@@ -4,9 +4,9 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.iharder.Base64;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
@@ -15,7 +15,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.function.Supplier;
 
@@ -71,17 +74,20 @@ public abstract class MCSClient implements AutoCloseable {
         try {
             response.bufferEntity();
             if (responseParameters.isCodeInValidStatus(response.getStatus())) {
+                if (responseParameters.getExpectedMd5() != null && !responseParameters.getExpectedMd5().equals(response.getEntityTag().getValue())) {
+                    throw MCSExceptionProvider.createException("Incorrect MD5 checksum", null);
+                }
                 return readEntityByClass(responseParameters, response);
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
             throw MCSExceptionProvider.generateException(errorInfo);
-        } catch(MCSException | DriverException knownException) {
-            throw knownException; //re-throw just created CloudException
-        } catch(ProcessingException processingException) {
+        } catch (MCSException | DriverException knownException) {
+            throw knownException; //re-throw just created MCSException
+        } catch (ProcessingException processingException) {
             String message = String.format("Could not deserialize response with statusCode: %d; message: %s",
                     response.getStatus(), response.readEntity(String.class));
             throw MCSExceptionProvider.createException(message, processingException);
-        } catch(Exception otherExceptions) {
+        } catch (Exception otherExceptions) {
             throw MCSExceptionProvider.createException("Other client error", otherExceptions);
         } finally {
             closeResponse(response);
@@ -90,55 +96,77 @@ public abstract class MCSClient implements AutoCloseable {
 
     @SuppressWarnings("unchecked")
     protected <T> T readEntityByClass(ResponseParams<T> responseParameters, Response response) throws IOException {
-        if(responseParameters.getExpectedClass() == Void.class) {
+        if (responseParameters.getExpectedClass() == Void.class) {
             return null;
-        } else if(responseParameters.getExpectedClass() == Boolean.class) {
-            return (T)Boolean.TRUE;
-        } else if(responseParameters.getExpectedClass() == URI.class) {
+        } else if (responseParameters.getExpectedClass() == Boolean.class) {
+            return (T) Boolean.TRUE;
+        } else if (responseParameters.getExpectedClass() == URI.class) {
             return (T) response.getLocation();
-        } else if(responseParameters.getExpectedClass() == Response.Status.class) {
+        } else if (responseParameters.getExpectedClass() == Response.Status.class) {
             return (T) Response.Status.fromStatusCode(response.getStatus());
-        } else if(responseParameters.getGenericType() != null) {
+        } else if (responseParameters.getExpectedClass() == InputStream.class) {
+            return (T) copiedInputStream(response.readEntity(InputStream.class));
+        } else if (responseParameters.getGenericType() != null) {
             return response.readEntity(responseParameters.getGenericType());
         } else {
             return response.readEntity(responseParameters.getExpectedClass());
         }
     }
 
+    private InputStream copiedInputStream(InputStream originIS) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        while ((nRead = originIS.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        IOUtils.closeQuietly(originIS);
+        return new ByteArrayInputStream(buffer.toByteArray());
+    }
 
-    @AllArgsConstructor
+
     @Getter
     protected static class ResponseParams<T> {
-        private Class<T> expectedClass;
-        private GenericType<T> genericType;
-        private Response.Status[] validStatuses;
+        private final Class<T> expectedClass;
+        private final GenericType<T> genericType;
+        private final Response.Status[] validStatuses;
+        private final String expectedMd5;
 
         public ResponseParams(Class<T> expectedClass) {
-            this(expectedClass, null, new Response.Status[]{Response.Status.OK});
+            this(expectedClass, null, new Response.Status[]{Response.Status.OK}, null);
+        }
+
+        public ResponseParams(Class<T> expectedClass, Response.Status validStatus, String expectedMd5) {
+            this(expectedClass, null, new Response.Status[]{validStatus}, expectedMd5);
         }
 
         public ResponseParams(Class<T> expectedClass, Response.Status validStatus) {
-            this(expectedClass, null, new Response.Status[]{validStatus});
+            this(expectedClass, validStatus, null);
         }
 
         public ResponseParams(Class<T> expectedClass, Response.Status[] validStatuses) {
-            this(expectedClass, null, validStatuses);
+            this(expectedClass, null, validStatuses, null);
         }
 
         public ResponseParams(GenericType<T> genericType) {
-            this(null, genericType, new Response.Status[]{Response.Status.OK});
+            this(null, genericType, new Response.Status[]{Response.Status.OK}, null);
+        }
+
+        private ResponseParams(Class<T> expectedClass, GenericType<T> genericType, Response.Status[] validStatuses,String expectedMd5) {
+            this.expectedClass = expectedClass;
+            this.genericType = genericType;
+            this.validStatuses = validStatuses;
+            this.expectedMd5 = expectedMd5;
         }
 
         public boolean isCodeInValidStatus(int code) {
-            for(Response.Status status: validStatuses) {
-                if(status.getStatusCode() == code) {
+            for (Response.Status status : validStatuses) {
+                if (status.getStatusCode() == code) {
                     return true;
                 }
             }
             return false;
         }
     }
-
-
-
 }

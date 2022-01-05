@@ -2,14 +2,11 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.Permission;
-import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
@@ -38,7 +35,6 @@ public class RecordServiceClientTestIT {
 
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
     private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
-    private  static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";
     private  static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
@@ -47,11 +43,8 @@ public class RecordServiceClientTestIT {
     private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
 
     private static final String PROVIDER_ID = "xxx";
-    private static final String DATA_SET_ID = "DATA_SET_ID";
     private static final UUID VERSION = UUID.fromString("40585a42-e606-11eb-ba80-0242ac130004");
 
-    //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA_
-    //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA_
     @Test
     public void getRecord() throws MCSException {
         String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
@@ -82,10 +75,9 @@ public class RecordServiceClientTestIT {
         String representationURIString = representationURI.toString();
 
         int versionIndex = representationURIString.indexOf(versionTemplate);
-        String version = representationURIString.substring(versionIndex+versionTemplate.length());
+        representationURIString.substring(versionIndex+versionTemplate.length());
 
-
-        Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
+        mcsClient.getRepresentation(cloudId.getId(), representationName);
 
         Record record1 = mcsClient.getRecord(cloudId.getId());
         assertNotNull(record1);
@@ -386,7 +378,7 @@ public class RecordServiceClientTestIT {
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
         mcsClient.grantPermissionsToVersion(cloudId, representationName, version, userName, permission);
-
+        assertTrue(true);
     }
 
     @Test
@@ -402,9 +394,10 @@ public class RecordServiceClientTestIT {
     }
 
     @Test
-    public void useAuthorizationHeader() throws MCSException {
+    public void useAuthorizationHeader() {
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL);
         mcsClient.useAuthorizationHeader(MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+        assertTrue(true);
     }
 
     @Test
@@ -416,7 +409,7 @@ public class RecordServiceClientTestIT {
         String revisionTimestamp = "<enter_revision_timestamp_here[YYYY-MM-ddThh:mm:ss.sss]>";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
+        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
 
         assertNotNull(representations);
     }
@@ -430,7 +423,7 @@ public class RecordServiceClientTestIT {
         String revisionTimestamp = "2019-09-26T16:30:04.972";
 
         RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, revisionTimestamp);
+        List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
 
         assertNotNull(representations);
         assertTrue(representations.size() > 0);

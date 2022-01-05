@@ -97,13 +97,13 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     }
 
     private void removeRevision(StormTaskTuple tuple, Representation representation) throws MCSException {
+        new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toString();
+
         revisionServiceClient.deleteRevision(
                 representation.getCloudId(),
                 representation.getRepresentationName(),
                 representation.getVersion(),
-                tuple.getRevisionToBeApplied().getRevisionName(),
-                tuple.getRevisionToBeApplied().getRevisionProviderId(),
-                new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toString(),
+                tuple.getRevisionToBeApplied(),
                 AUTHORIZATION, tuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
     }
 

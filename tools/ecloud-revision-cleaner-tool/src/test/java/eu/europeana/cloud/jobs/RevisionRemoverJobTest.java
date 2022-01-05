@@ -20,8 +20,7 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -64,14 +63,14 @@ public class RevisionRemoverJobTest {
 
         ResultSlice<CloudTagsResponse> resultSlice = getCloudTagsResponseResultSlice(NUMBER_OF_RESPONSES);
 
-        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
-        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyObject(), anyString(), anyInt())).thenReturn(resultSlice);
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, new Revision(REVISION_NAME, REVISION_PROVIDER, date))).thenReturn(Arrays.asList(representation));
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, new Revision(REVISION_NAME, REVISION_PROVIDER, date))).thenReturn(Arrays.asList(representation));
         Thread thread = new Thread(revisionRemoverJob);
         thread.start();
         thread.join();
 
-        verify(revisionServiceClient, times(NUMBER_OF_RESPONSES * NUMBER_OF_REVISIONS)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(revisionServiceClient, times(NUMBER_OF_RESPONSES * NUMBER_OF_REVISIONS)).deleteRevision(anyString(), anyString(), anyString(), anyObject());
         verify(recordServiceClient, times(0)).deleteRepresentation(anyString(), anyString(), anyString());
 
     }
@@ -106,14 +105,14 @@ public class RevisionRemoverJobTest {
 
         ResultSlice<CloudTagsResponse> resultSlice = getCloudTagsResponseResultSlice(NUMBER_OF_RESPONSES);
 
-        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyInt())).thenReturn(resultSlice);
-        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
-        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER, getUTCDateString(date))).thenReturn(Arrays.asList(representation));
+        when(dataSetServiceClient.getDataSetRevisionsChunk(anyString(), anyString(), anyString(), anyObject(), anyString(), anyInt())).thenReturn(resultSlice);
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, new Revision(REVISION_NAME, REVISION_PROVIDER, date))).thenReturn(Arrays.asList(representation));
+        when(recordServiceClient.getRepresentationsByRevision(SOURCE + CLOUD_ID2, SOURCE + REPRESENTATION_NAME, new Revision(REVISION_NAME, REVISION_PROVIDER, date))).thenReturn(Arrays.asList(representation));
         Thread thread = new Thread(revisionRemoverJob);
         thread.start();
         thread.join();
 
-        verify(revisionServiceClient, times(0)).deleteRevision(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(revisionServiceClient, times(0)).deleteRevision(anyString(), anyString(), anyString(), anyObject());
         verify(recordServiceClient, times(NUMBER_OF_RESPONSES)).deleteRepresentation(anyString(), anyString(), anyString());
 
     }
@@ -129,8 +128,8 @@ public class RevisionRemoverJobTest {
     }
 
 
-    public static String getUTCDateString(Date date) {
-        final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+    private static String getUTCDateString(Date date) {
+        final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
         FastDateFormat formatter = FastDateFormat.getInstance(DATE_FORMAT, TimeZone.getTimeZone("UTC"));
         return formatter.format(date);
     }

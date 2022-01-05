@@ -4,7 +4,9 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
@@ -57,7 +59,8 @@ public class RecordServiceClient extends MCSClient {
 
     /**
      * Constructor with url and http header authorisation
-     * @param baseUrl URL to connect to
+     *
+     * @param baseUrl             URL to connect to
      * @param authorizationHeader Authorization header
      */
     public RecordServiceClient(String baseUrl, final String authorizationHeader) {
@@ -67,20 +70,21 @@ public class RecordServiceClient extends MCSClient {
 
     /**
      * All parameters' constructor used by another one
-     * @param baseUrl URL of the MCS Rest Service
-     * @param authorizationHeader Authorization header - used instead username/password pair
-     * @param username Username to HTTP authorisation  (use together with password)
-     * @param password Password to HTTP authorisation (use together with username)
+     *
+     * @param baseUrl                URL of the MCS Rest Service
+     * @param authorizationHeader    Authorization header - used instead username/password pair
+     * @param username               Username to HTTP authorisation  (use together with password)
+     * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
-     * @param readTimeoutInMillis Timeout for getting data
+     * @param readTimeoutInMillis    Timeout for getting data
      */
     public RecordServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
 
-        if(authorizationHeader != null) {
+        if (authorizationHeader != null) {
             client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if(username != null || password != null) {
+        } else if (username != null || password != null) {
             client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
 
@@ -104,7 +108,7 @@ public class RecordServiceClient extends MCSClient {
                         .resolveTemplate(CLOUD_ID, cloudId)
                         .request()
                         .get()
-                );
+        );
     }
 
     /**
@@ -138,7 +142,8 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException             on unexpected situations
      */
     public List<Representation> getRepresentations(String cloudId) throws MCSException {
-        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
+                }),
                 () -> client
                         .target(baseUrl)
                         .path(REPRESENTATIONS_RESOURCE)
@@ -196,7 +201,7 @@ public class RecordServiceClient extends MCSClient {
             form.param(VERSION, version.toString());
         }
 
-        if(key == null) {
+        if (key == null) {
             return createRepresentation(cloudId, representationName, form);
         } else {
             return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
@@ -326,7 +331,7 @@ public class RecordServiceClient extends MCSClient {
      * @param data               file that should be uploaded (required)
      * @param mediaType          mimeType of uploaded file
      * @return URI to created file
-     * @throws MCSException     throws if something went wrong
+     * @throws MCSException throws if something went wrong
      */
     public URI createRepresentation(String cloudId, String representationName, String providerId,
                                     InputStream data, String mediaType) throws IOException, MCSException {
@@ -354,7 +359,7 @@ public class RecordServiceClient extends MCSClient {
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
                         .request()
                         .delete()
-                );
+        );
     }
 
     /**
@@ -369,7 +374,8 @@ public class RecordServiceClient extends MCSClient {
      */
     public List<Representation> getRepresentations(String cloudId, String representationName) throws MCSException {
 
-        return  manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
+                }),
                 () -> client
                         .target(baseUrl)
                         .path(REPRESENTATION_VERSIONS_RESOURCE)
@@ -503,7 +509,7 @@ public class RecordServiceClient extends MCSClient {
                         .resolveTemplate(VERSION, version)
                         .request()
                         .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-                );
+        );
     }
 
     /**
@@ -543,7 +549,7 @@ public class RecordServiceClient extends MCSClient {
      * @param version            representation version
      * @param userName           user who will get access to representation version
      * @param permission         permission that will be granted
-     * @throws MCSException      throws if something went wrong
+     * @throws MCSException throws if something went wrong
      */
     public void grantPermissionsToVersion(String cloudId, String representationName, String version,
                                           String userName, Permission permission) throws MCSException {
@@ -560,7 +566,7 @@ public class RecordServiceClient extends MCSClient {
                         .post(null)
         );
 
-        if(status == Response.Status.NOT_MODIFIED) {
+        if (status == Response.Status.NOT_MODIFIED) {
             throw new MCSException("Permissions not modified");
         }
     }
@@ -573,7 +579,7 @@ public class RecordServiceClient extends MCSClient {
      * @param version            representation version
      * @param userName           user who will get access to representation version
      * @param permission         permission that will be granted
-     * @throws MCSException      throws if something went wrong
+     * @throws MCSException throws if something went wrong
      */
     public void revokePermissionsToVersion(String cloudId, String representationName, String version,
                                            String userName, Permission permission) throws MCSException {
@@ -597,7 +603,7 @@ public class RecordServiceClient extends MCSClient {
      * @param cloudId            record identifier
      * @param representationName representation name
      * @param version            representation version
-     * @throws MCSException      throws if something went wrong
+     * @throws MCSException throws if something went wrong
      */
     public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
         manageResponse(new ResponseParams<>(Void.class),
@@ -627,37 +633,35 @@ public class RecordServiceClient extends MCSClient {
      *                                          not exist
      * @throws RepresentationNotExistsException on representation does not exist
      * @throws MCSException                     on unexpected situations
+     * @deprecated              since 6-SNAPSHOT. The method {@link #getRepresentationsByRevision(String, String, Revision)} should be used instead
      */
-    public List<Representation> getRepresentationsByRevision(
-            String cloudId, String representationName, String revisionName,
-            String revisionProviderId, String revisionTimestamp) throws MCSException {
-
-        if(revisionProviderId == null) {
-            throw new MCSException("RevisionProviderId is required");
-        }
-
-        if(revisionTimestamp == null) {
-            return getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId);
-        } else {
-            return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
-                    }),
-                    () -> client
-                            .target(baseUrl)
-                            .path(REPRESENTATION_REVISIONS_RESOURCE)
-                            .resolveTemplate(CLOUD_ID, cloudId)
-                            .resolveTemplate(REPRESENTATION_NAME, representationName)
-                            .resolveTemplate(REVISION_NAME, revisionName)
-                            .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
-                            .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                            .request()
-                            .get()
-            );
-        }
+    @Deprecated(since = "6-SNAPSHOT")
+    public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, String revisionName,
+                                                             String revisionProviderId, String revisionTimestamp) throws MCSException {
+        return getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
     }
 
-    private List<Representation> getRepresentationsByRevision(
-            String cloudId, String representationName, String revisionName,
-            String revisionProviderId) throws MCSException {
+
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param revision           the revision (required) (revisionProviderId is required)
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws RepresentationNotExistsException on representation does not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, Revision revision) throws MCSException {
+
+        if(revision.getRevisionProviderId() == null) {
+            throw new MCSException("RevisionProviderId is required");
+        }
 
         return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
                 () -> client
@@ -665,12 +669,14 @@ public class RecordServiceClient extends MCSClient {
                         .path(REPRESENTATION_REVISIONS_RESOURCE)
                         .resolveTemplate(CLOUD_ID, cloudId)
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(REVISION_NAME, revisionName)
-                        .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()) )
                         .request()
                         .get()
         );
     }
+
 
 
     public List<Representation> getRepresentationsByRevision(
@@ -687,44 +693,18 @@ public class RecordServiceClient extends MCSClient {
             throw new MCSException("RevisionProviderId is required");
         }
 
-        if(revisionTimestamp == null) {
-            return getRepresentationsByRevision(cloudId, representationName, revisionName, revisionProviderId, key, value);
-        } else {
-            return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>(){}),
-                    () -> client.target(baseUrl)
-                            .path(REPRESENTATION_REVISIONS_RESOURCE)
-                            .resolveTemplate(CLOUD_ID, cloudId)
-                            .resolveTemplate(REPRESENTATION_NAME, representationName)
-                            .resolveTemplate(REVISION_NAME, revisionName)
-                            .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
-                            .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                            .request()
-                            .header(key, value)
-                            .get()
-            );
-        }
-
-    }
-
-    private List<Representation> getRepresentationsByRevision(
-            String cloudId,
-            String representationName,
-            String revisionName,
-            String revisionProviderId,
-            String key,
-            String value)
-            throws MCSException {
-        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>(){}),
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
                 () -> client.target(baseUrl)
                         .path(REPRESENTATION_REVISIONS_RESOURCE)
                         .resolveTemplate(CLOUD_ID, cloudId)
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
                         .resolveTemplate(REVISION_NAME, revisionName)
                         .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
                         .request()
                         .header(key, value)
                         .get()
-                );
+        );
     }
 
     private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
@@ -744,7 +724,7 @@ public class RecordServiceClient extends MCSClient {
 
     private void closeDataSources(InputStream data, MultiPart multiPartData) throws IOException {
         IOUtils.closeQuietly(data);
-        if(multiPartData != null) {
+        if (multiPartData != null) {
             multiPartData.close();
         }
     }

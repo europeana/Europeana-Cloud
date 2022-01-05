@@ -10,20 +10,20 @@ import eu.europeana.cloud.service.mcs.status.McsErrorCode;
  */
 public class MCSExceptionProvider {
 
-    private MCSExceptionProvider(){}
+    private MCSExceptionProvider() {
+    }
 
     /**
      * Generate {@link MCSException} from {@link ErrorInfo}.
-     * 
+     * <p>
      * This method is intended to be used everywhere where we want to translate MCS error message to appropriate
      * exception and throw it. Error message handling occurs in different methods so we avoid code repetition.
-     * 
+     * <p>
      * Method returns the child classes of {@link MCSException}. It should not return general MCSException, unless new
      * error code was introduced in {@link McsErrorCode} Method can throw DriverException if MCS responded with HTTP 500
      * code (InternalServerError).
-     * 
-     * @param errorInfo
-     *            object storing error information returned by MCS
+     *
+     * @param errorInfo object storing error information returned by MCS
      * @return MCSException to be thrown
      */
     public static MCSException generateException(ErrorInfo errorInfo) {
@@ -42,7 +42,7 @@ public class MCSExceptionProvider {
         String details = errorInfo.getDetails();
 
         switch (errorCode) {
-        	case ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION:
+            case ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION:
                 return new AccessDeniedOrObjectDoesNotExistException(details);
             case CANNOT_MODIFY_PERSISTENT_REPRESENTATION:
                 return new CannotModifyPersistentRepresentationException(details);
@@ -76,7 +76,6 @@ public class MCSExceptionProvider {
     }
 
     public static MCSException createException(String message, Throwable throwable) {
-        //LOGG
         return new MCSException(message, throwable);
     }
 }

@@ -6,19 +6,17 @@ import eu.europeana.cloud.common.utils.FirstFlag;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 
-import javax.xml.crypto.Data;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
  * Class for iterating through DataSets of given provider.
- *
+ * <p>
  * The best way to initialise iterator is to obtain it by calling
  * {@link DataSetServiceClient#getDataSetIteratorForProvider(String)} method.
- *
+ * <p>
  * Iterator obtains {@link DataSet} objects in chunks, obtaining new chunk only
  * if needed, inside overridden {@link Iterator} class methods.
- *
  */
 public class DataSetIterator implements Iterator<DataSet> {
 
@@ -26,15 +24,15 @@ public class DataSetIterator implements Iterator<DataSet> {
     private final DataSetServiceClient client;
     private final String providerId;
     //variables for holding state
-    private FirstFlag firstTime = new FirstFlag();
+    private final FirstFlag firstTime = new FirstFlag();
     private String nextSlice = null;
     private Iterator<DataSet> dataSetListIterator;
 
     /**
      * Creates instance of DataSetIterator.
      *
-     * @param client properly initialised client for internal communication with
-     * MCS server (required)
+     * @param client     properly initialised client for internal communication with
+     *                   MCS server (required)
      * @param providerId id of the provider (required)
      */
     public DataSetIterator(DataSetServiceClient client, String providerId) {
@@ -52,7 +50,7 @@ public class DataSetIterator implements Iterator<DataSet> {
 
     /**
      * Returns <code>true</code> if the iteration has more elements.
-     *
+     * <p>
      * The first call to this method might take longer time than the others, as
      * there might be a need to obtain first chunk of data.
      *
@@ -69,7 +67,7 @@ public class DataSetIterator implements Iterator<DataSet> {
 
     /**
      * Returns next element in the iteration.
-     *
+     * <p>
      * Some calls to this method might take longer time than the others, if the
      * new chunk of data has to be obtained.
      *

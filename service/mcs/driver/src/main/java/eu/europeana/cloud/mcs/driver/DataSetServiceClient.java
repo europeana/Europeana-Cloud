@@ -3,10 +3,12 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -47,25 +49,26 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl,null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
      * All parameters' constructor used by another one
-     * @param baseUrl URL of the MCS Rest Service
-     * @param authorizationHeader Authorization header - used instead username/password pair
-     * @param username Username to HTTP authorisation  (use together with password)
-     * @param password Password to HTTP authorisation (use together with username)
+     *
+     * @param baseUrl                URL of the MCS Rest Service
+     * @param authorizationHeader    Authorization header - used instead username/password pair
+     * @param username               Username to HTTP authorisation  (use together with password)
+     * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
-     * @param readTimeoutInMillis Timeout for getting data
+     * @param readTimeoutInMillis    Timeout for getting data
      */
     public DataSetServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                 final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
 
-        if(authorizationHeader != null) {
+        if (authorizationHeader != null) {
             this.client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if(username != null || password != null) {
+        } else if (username != null || password != null) {
             this.client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
@@ -96,31 +99,19 @@ public class DataSetServiceClient extends MCSClient {
      */
     @SuppressWarnings("unchecked")
     public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
-        if(startFrom == null) {
-            return getDataSetsForProviderChunk(providerId);
-        } else {
-            return manageResponse(new ResponseParams<>(ResultSlice.class),
-                    () -> client
-                            .target(this.baseUrl)
-                            .path(DATA_SETS_RESOURCE)
-                            .resolveTemplate(PROVIDER_ID, providerId)
-                            .queryParam(ParamConstants.F_START_FROM, startFrom)
-                            .request()
-                            .get()
-            );
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId) throws MCSException {
         return manageResponse(new ResponseParams<>(ResultSlice.class),
                 () -> client
                         .target(this.baseUrl)
                         .path(DATA_SETS_RESOURCE)
                         .resolveTemplate(PROVIDER_ID, providerId)
+                        .queryParam(ParamConstants.F_START_FROM, startFrom)
                         .request()
                         .get()
         );
+    }
+
+    public ResultSlice<DataSet> getDataSetsForProvider(String providerId) throws MCSException {
+        return getDataSetsForProviderChunk(providerId, null);
     }
 
     /**
@@ -133,7 +124,7 @@ public class DataSetServiceClient extends MCSClient {
      * does not exist)
      * @throws MCSException on unexpected situations
      */
-    public List<DataSet> getDataSetsForProvider(String providerId) throws MCSException {
+    public List<DataSet> getDataSetsForProviderList(String providerId) throws MCSException {
 
         List<DataSet> resultList = new ArrayList<>();
         ResultSlice<DataSet> resultSlice;
@@ -220,32 +211,20 @@ public class DataSetServiceClient extends MCSClient {
      */
     @SuppressWarnings("unchecked")
     public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom) throws MCSException {
-        if(startFrom == null) {
-            return getDataSetRepresentationsChunk(providerId, dataSetId);
-        } else {
-            return manageResponse(new ResponseParams<>(ResultSlice.class),
-                    () -> client
-                            .target(this.baseUrl)
-                            .path(DATA_SET_RESOURCE)
-                            .resolveTemplate(PROVIDER_ID, providerId)
-                            .resolveTemplate(DATA_SET_ID, dataSetId)
-                            .queryParam(ParamConstants.F_START_FROM, startFrom)
-                            .request()
-                            .get()
-            );
-        }
-    }
-
-    private ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId) throws MCSException {
         return manageResponse(new ResponseParams<>(ResultSlice.class),
                 () -> client
                         .target(this.baseUrl)
                         .path(DATA_SET_RESOURCE)
                         .resolveTemplate(PROVIDER_ID, providerId)
                         .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .queryParam(ParamConstants.F_START_FROM, startFrom)
                         .request()
                         .get()
         );
+    }
+
+    public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
+        return getDataSetRepresentationsChunk(providerId, dataSetId, null);
     }
 
     /**
@@ -261,12 +240,13 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public List<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
+    public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
         List<Representation> resultList = new ArrayList<>();
         ResultSlice<Representation> resultSlice;
         String startFrom = null;
         do {
             resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
             }
@@ -461,6 +441,7 @@ public class DataSetServiceClient extends MCSClient {
      * @return slice of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
+    @SuppressWarnings("unchecked")
     public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(String providerId, String dataSetId, String representationName,
                                                                          String revisionName, String revisionProviderId,
                                                                          String revisionTimestamp, int limit) throws MCSException {
@@ -487,9 +468,7 @@ public class DataSetServiceClient extends MCSClient {
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision name (required)
-     * @param revisionProviderId revision provider id (required)
-     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @param revision           the revision
      * @param startFrom          code pointing to the requested result slice (if equal to
      *                           null, first slice is returned)
      * @return chunk of representation cloud identifier list from data set together with tags of the revision
@@ -498,7 +477,7 @@ public class DataSetServiceClient extends MCSClient {
     @SuppressWarnings("unchecked")
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
             String providerId, String dataSetId, String representationName,
-            String revisionName, String revisionProviderId, String revisionTimestamp,
+            Revision revision,
             String startFrom, Integer limit) throws MCSException {
 
         return manageResponse(new ResponseParams<>(ResultSlice.class),
@@ -507,14 +486,19 @@ public class DataSetServiceClient extends MCSClient {
                         .resolveTemplate(PROVIDER_ID, providerId)
                         .resolveTemplate(DATA_SET_ID, dataSetId)
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(REVISION_NAME, revisionName)
-                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
                         .queryParam(F_START_FROM, startFrom)
                         .queryParam(F_LIMIT, limit != null ? limit : 0)
                         .request().get()
         );
     }
+
+    public ResultSlice<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
+        return getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, null, 0);
+    }
+
 
     /**
      * Lists cloudIds and tags from data set for specific revision.
@@ -522,31 +506,27 @@ public class DataSetServiceClient extends MCSClient {
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision name (required)
-     * @param revisionProviderId revision provider id (required)
-     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @param revision           the revision(required)
      * @return chunk of representation cloud identifier list from data set together with revision tags
      * @throws MCSException on unexpected situations
      */
-    public List<CloudTagsResponse> getDataSetRevisions(
-            String providerId, String dataSetId, String representationName,
-            String revisionName, String revisionProviderId, String revisionTimestamp) throws MCSException {
+    public List<CloudTagsResponse> getDataSetRevisionsList(
+            String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
 
         List<CloudTagsResponse> resultList = new ArrayList<>();
         ResultSlice<CloudTagsResponse> resultSlice;
         String startFrom = null;
-        
+
         do {
-            resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                    revisionName, revisionProviderId, revisionTimestamp, startFrom, null);
+            resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, startFrom, null);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
             startFrom = resultSlice.getNextSlice();
-            
+
         } while (resultSlice.getNextSlice() != null);
-        
+
         return resultList;
     }
 

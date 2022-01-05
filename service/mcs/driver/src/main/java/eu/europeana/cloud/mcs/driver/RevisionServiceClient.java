@@ -3,6 +3,7 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import org.glassfish.jersey.client.ClientProperties;
@@ -140,7 +141,7 @@ public class RevisionServiceClient extends MCSClient {
                         .request()
                         .header(key, value)
                         .accept(MediaType.APPLICATION_JSON).post(Entity.json(revision))
-                );
+        );
     }
 
     /**
@@ -185,14 +186,10 @@ public class RevisionServiceClient extends MCSClient {
      * @param cloudId            cloud Id
      * @param representationName representation name
      * @param version            representation version
-     * @param revisionName       revision name
-     * @param revisionProviderId   revision provider
-     * @param revisionTimestamp  revision timestamp
+     * @param revision           the revision to delete
      * @throws RepresentationNotExistsException throws if given representation not exists
      */
-    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
-                               String revisionProviderId, String revisionTimestamp) throws MCSException {
-
+    public void deleteRevision(String cloudId, String representationName, String version, Revision revision) throws MCSException {
         manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
                 () -> client
                         .target(baseUrl)
@@ -200,9 +197,9 @@ public class RevisionServiceClient extends MCSClient {
                         .resolveTemplate(CLOUD_ID, cloudId)
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
                         .resolveTemplate(VERSION, version)
-                        .resolveTemplate(REVISION_NAME, revisionName)
-                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
                         .request()
                         .delete()
         );
@@ -214,25 +211,21 @@ public class RevisionServiceClient extends MCSClient {
      * @param cloudId            cloud Id
      * @param representationName representation name
      * @param version            representation version
-     * @param revisionName       revision name
-     * @param revisionProviderId revision provider
-     * @param revisionTimestamp  revision timestamp
+     * @param revision           the revision
      * @param key                authorisation key
      * @param value              authorisation value
      * @throws RepresentationNotExistsException throws if given representation not exists
      */
-    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
-                               String revisionProviderId, String revisionTimestamp, String key, String value) throws MCSException {
-
+    public void deleteRevision(String cloudId, String representationName, String version, Revision revision, String key, String value) throws MCSException {
         manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
                 () -> client.target(baseUrl)
                         .path(REVISION_DELETE)
                         .resolveTemplate(CLOUD_ID, cloudId)
                         .resolveTemplate(REPRESENTATION_NAME, representationName)
                         .resolveTemplate(VERSION, version)
-                        .resolveTemplate(REVISION_NAME, revisionName)
-                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
                         .request()
                         .header(key, value)
                         .delete()

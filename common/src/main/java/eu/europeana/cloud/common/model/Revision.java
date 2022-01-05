@@ -73,16 +73,17 @@ public class Revision implements Serializable {
 
     }
 
-
     public Revision(String revisionName, String providerId) {
         this(revisionName, providerId, new Date(), false, false, false);
     }
 
+    public Revision(String revisionName, String providerId, Date creationTimeStamp) {
+        this(revisionName, providerId, creationTimeStamp, false, false, false);
+    }
 
     public Revision(final Revision revision) {
         this(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp(), revision.isAcceptance(), revision.isPublished(), revision.isDeleted());
     }
-
 
     public String getRevisionName() {
         return revisionName;
@@ -102,7 +103,6 @@ public class Revision implements Serializable {
     public void setRevisionProviderId(String revisionProviderId) {
         this.revisionProviderId = revisionProviderId;
     }
-
 
     @Override
     public boolean equals(Object o) {
