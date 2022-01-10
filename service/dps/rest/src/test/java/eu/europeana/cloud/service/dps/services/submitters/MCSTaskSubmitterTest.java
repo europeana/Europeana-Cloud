@@ -49,8 +49,6 @@ public class MCSTaskSubmitterTest {
 
     public static final String REPRESENTATION_URI_STRING_1 = "http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621";
     public static final URI REPRESENTATION_ALL_VERSION_URI_1 = URI.create("http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions");
-    public static final String FILE_CREATION_DATE_STRING_2 = "2020-03-31T15:38:38.873Z";
-    public static final Date FILE_CREATION_DATE_2 = Date.from(Instant.parse(FILE_CREATION_DATE_STRING_2));
     private static final long TASK_ID = 10L;
     private static final String DATASET_PROVIDER_1 = "providerId1";
     private static final String DATASET_ID_1 = "datasetId1";
@@ -286,43 +284,6 @@ public class MCSTaskSubmitterTest {
     }
 
     @Test
-    public void shouldDropTheTaskInCaseOfTaskSubmissionWithInputRevisionContainingNoRevisionTimestamp() throws MCSException {
-        task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-        task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-        task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
-        when(dataSetServiceClient.getDataSetRevisionsChunk(
-                eq(DATASET_PROVIDER_1),
-                eq(DATASET_ID_1),
-                eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, null )),
-                isNull(),
-                isNull()
-        )).thenReturn(cloudTagsResponseResultSlice);
-        when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-        cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false, false, false));
-
-/*
-        when(recordServiceClient.getRepresentationsByRevision(
-                eq(CLOUD_ID1),
-                eq(REPRESENTATION_NAME),
-                eq(REVISION_NAME), eq(REVISION_PROVIDER_1), anyString()
-        )).thenReturn(Collections.singletonList(REPRESENTATION_1));
-*/
-
-        when(recordServiceClient.getRepresentationsByRevision(
-                eq(CLOUD_ID1),
-                eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, new Date() ))
-        )).thenReturn(Collections.singletonList(REPRESENTATION_1));
-
-
-        submitter.execute(submitParameters);
-
-        verify(taskStatusUpdater).setTaskDropped(anyLong(), anyString());
-    }
-
-    @Test
     public void executeMcsBasedTask_lastRevisionsForTwoObject_verifyTwoRecordsSentToKafka() throws MCSException {
         prepareInvocationForLastRevisionOfTwoObjects();
 
@@ -380,7 +341,7 @@ public class MCSTaskSubmitterTest {
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID1),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision( REVISION_NAME, REVISION_PROVIDER_1, new Date() ))
+                eq(new Revision( REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
 
 
@@ -409,7 +370,7 @@ public class MCSTaskSubmitterTest {
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID1),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, new Date()))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(DELETED_REPRESENTATION));
 
 
@@ -441,13 +402,13 @@ public class MCSTaskSubmitterTest {
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID1),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, new Date() ))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, /*new Date()*/ DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
 
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID2),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, new Date() ))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, /*new Date()*/ DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
     }
 
@@ -471,7 +432,7 @@ public class MCSTaskSubmitterTest {
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID1),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, new Date() ))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
     }
 
