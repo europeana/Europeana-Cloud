@@ -98,6 +98,11 @@ public final class TopologyHelper {
         config.put(TOPOLOGY_KRYO_REGISTER, Arrays.asList(LinkedHashMap.class.getName(),
                 OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
                 DataSetCleanerParameters.class.getName()));
+
+        config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
+        config.put(SPOUT_SLEEP_MS, getValue(topologyProperties, SPOUT_SLEEP_MS, DEFAULT_SPOUT_SLEEP_MS));
+        config.put(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, getValue(topologyProperties,
+                SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
         return config;
     }
 

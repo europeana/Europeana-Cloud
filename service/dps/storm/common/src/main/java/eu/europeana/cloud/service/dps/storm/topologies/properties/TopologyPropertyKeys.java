@@ -56,6 +56,8 @@ public final class TopologyPropertyKeys {
     public static final String MAX_SPOUT_PENDING = "MAX_SPOUT_PENDING";
     public static final String MAX_POLL_RECORDS = "MAX_POLL_RECORDS";
     public static final String FETCH_MAX_BYTES = "FETCH_MAX_BYTES";
+    public static final String SPOUT_SLEEP_MS = "SPOUT_SLEEP_MS";
+    public static final String SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS = "SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS";
 
     public static final String LINK_CHECK_BOLT_PARALLEL = "LINK_CHECK_BOLT_PARALLEL";
     public static final String LINK_CHECK_BOLT_NUMBER_OF_TASKS = "LINK_CHECK_BOLT_NUMBER_OF_TASKS";
