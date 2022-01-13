@@ -24,7 +24,7 @@ public class BucketsHandlerTest extends CassandraTestBase {
     @Autowired
     private CassandraConnectionProvider dbService;
 
-    private static final String BUCKETS_TABLE_NAME = "provider_record_id_buckets";
+    private static final String BUCKETS_TABLE_NAME = "data_set_assignments_by_data_set_buckets";
 
     @Test
     public void currentBucketShouldBeNull() {

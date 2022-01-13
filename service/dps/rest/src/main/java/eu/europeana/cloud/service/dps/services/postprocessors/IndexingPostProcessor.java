@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.slf4j.Logger;
@@ -24,28 +25,20 @@ import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase.*;
 
-public class IndexingPostProcessor implements TaskPostProcessor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
-
-    private static final int DELETE_ATTEMPTS = 20;
-
-    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
-
-    private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
+public class IndexingPostProcessor extends TaskPostProcessor {
 
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
+    private static final int DELETE_ATTEMPTS = 20;
+    private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
+    private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
 
-    private final TaskStatusUpdater taskStatusUpdater;
-    private final HarvestedRecordsDAO harvestedRecordsDAO;
-
-    public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO) {
-        this.taskStatusUpdater = taskStatusUpdater;
-        this.harvestedRecordsDAO = harvestedRecordsDAO;
+    public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO, TaskStatusChecker taskStatusChecker) {
+        super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
     }
 
     @Override
-    public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
+    public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
         try {
             LOGGER.info("Started postprocessing for {}", dpsTask);
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
@@ -54,14 +47,14 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 var datasetCleaner = new DatasetCleaner(cleanerParameters);
                 taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(), datasetCleaner.getRecordsCount());
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
-                int deletedCount = cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved);
+                int deletedCount = cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved, dpsTask);
                 cleanInMetis(cleanerParameters, datasetCleaner);
                 taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), deletedCount);
                 endTheTask(dpsTask);
             } else {
                 taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
             }
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             throw new PostProcessingException(
                     String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. Cause: %s",
                             getClass().getSimpleName(), dpsTask.getTaskId(),
@@ -82,23 +75,24 @@ public class IndexingPostProcessor implements TaskPostProcessor {
                 dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
 
-    private int cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds) {
+    private int cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds, DpsTask dpsTask) {
         TargetIndexingDatabase indexingDatabase;
         try {
             indexingDatabase = TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv());
-        } catch(IllegalArgumentException | NullPointerException exception) {
+        } catch (IllegalArgumentException | NullPointerException exception) {
             throw new PostProcessingException("Unable to recognize environment: " + cleanerParameters.getTargetIndexingEnv());
         }
-       return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase);
+        return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase, dpsTask);
     }
 
-    private int cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase) {
+    private int cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase, DpsTask dpsTask) {
         var deletedCount = new AtomicInteger();
         recordIds
                 .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(harvestedRecord -> doCleaning(harvestedRecord, indexingDatabase))
+                .takeWhile(harvestedRecord -> !taskIsDropped(dpsTask))
                 .forEach(theRecord -> {
                     harvestedRecordsDAO.insertHarvestedRecord(theRecord);
                     deletedCount.incrementAndGet();
@@ -108,10 +102,10 @@ public class IndexingPostProcessor implements TaskPostProcessor {
     }
 
     private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
-        if(indexingDatabase == PREVIEW) {
+        if (indexingDatabase == PREVIEW) {
             harvestedRecord.setPreviewHarvestDate(null);
             harvestedRecord.setPreviewHarvestMd5(null);
-        } else if(indexingDatabase == PUBLISH) {
+        } else if (indexingDatabase == PUBLISH) {
             harvestedRecord.setPublishedHarvestDate(null);
             harvestedRecord.setPublishedHarvestMd5(null);
         }

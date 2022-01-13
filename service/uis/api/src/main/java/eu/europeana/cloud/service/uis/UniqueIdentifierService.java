@@ -64,41 +64,6 @@ public interface UniqueIdentifierService {
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
             RecordDatasetEmptyException;
 
-
-    /**
-     * Retrieve the recordIds for a given provider, supporting pagination. If no
-     * pagination is provided then the recordIds retrieved are 10000 starting
-     * from record 0
-     * 
-     * @param providerId
-     * @param start
-     * @param end
-     * @return A list of recordIds for a provider bound to 10000 results
-     * @throws DatabaseConnectionException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     */
-    List<CloudId> getLocalIdsByProvider(String providerId, String start, int end)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
-
-
-    /**
-     * Retrieve the cloudIds for a given provider, supporting pagination. If no
-     * pagination is provided then the cloudIds retrieved are 10000 starting
-     * from record 0
-     * 
-     * @param providerId
-     * @param start
-     * @param end
-     * @return A list of cloudIds for a provider bound to 10000 results
-     * @throws DatabaseConnectionException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     */
-    List<CloudId> getCloudIdsByProvider(String providerId, String start, int end)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordDatasetEmptyException;
-
-
     /**
      * Create a mapping between a new providerId and recordId and an existing
      * cloud identifier
@@ -124,7 +89,6 @@ public interface UniqueIdentifierService {
      * 
      * @param cloudId
      * @param providerId
-     * @param recordId
      * @return The newly created CloudId
      * @throws DatabaseConnectionException
      * @throws CloudIdDoesNotExistException

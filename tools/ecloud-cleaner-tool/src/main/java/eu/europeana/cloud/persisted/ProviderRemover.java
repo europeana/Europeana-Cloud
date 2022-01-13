@@ -66,15 +66,17 @@ public class ProviderRemover {
         int counter = 0;
 
         do {
-            try {
-                records = uisClient.getCloudIdsByProviderWithPagination(providerId, startRecordId, FETCH_LIMIT);
-            }catch(CloudException ce) {
-                if(ce.getMessage().equals("PROVIDER_DOES_NOT_EXIST")) {
-                    LOGGER.info(String.format("Provider '%s' doen't exists", providerId) );
-                } else {
-                    throw ce;  //re-throw others/unexpected CloudException
-                }
-            }
+            //TODO this code was removed from UIS. Because of that the tool is not usable anymore.
+            //TODO if it will be needed we will have to modify this tool;
+//            try {
+//                records = uisClient.getCloudIdsByProviderWithPagination(providerId, startRecordId, FETCH_LIMIT);
+//            }catch(CloudException ce) {
+//                if(ce.getMessage().equals("PROVIDER_DOES_NOT_EXIST")) {
+//                    LOGGER.info(String.format("Provider '%s' doen't exists", providerId) );
+//                } else {
+//                    throw ce;  //re-throw others/unexpected CloudException
+//                }
+//            }
 
             if (records != null && records.getResults() != null && !records.getResults().isEmpty()) {
                 startRecordId = records.getNextSlice();
