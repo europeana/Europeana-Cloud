@@ -27,7 +27,13 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.time.Instant;
 import java.util.*;
 
@@ -39,7 +45,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
     private static final int MAX_RETRIES = 3;
 
+
     private String topologyName;
+    private String topic;
     private String hosts;
     private int port;
     private String keyspaceName;
@@ -52,12 +60,14 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
+    protected transient MBean mBean;
 
-    public ECloudSpout(String topologyName, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
+    public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
         this.topologyName=topologyName;
+        this.topic = topic;
         this.hosts = hosts;
         this.port = port;
         this.keyspaceName = keyspaceName;
@@ -65,8 +75,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         this.password = password;
     }
 
+
     @Override
     public void ack(Object messageId) {
+        mBean.lastAckedMessageId = String.valueOf(messageId);
         LOGGER.info("Record acknowledged {}", messageId);
         super.ack(messageId);
     }
@@ -77,12 +89,14 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void fail(Object messageId) {
+        mBean.lastFailedMessageId = String.valueOf(messageId);
         LOGGER.error("Record failed {}", messageId);
         super.fail(messageId);
     }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+        mBean = new MBean();
         super.open(conf, context, new ECloudOutputCollector(collector));
 
         var cassandraConnectionProvider =
@@ -118,11 +132,17 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
+                mBean.lastConsumedMessageId=String.valueOf(messageId);
+                mBean.lastConsumedMessage=String.valueOf(message);
                 DiagnosticContextWrapper.putValuesFrom(message);
+
                 LOGGER.info("Reading message from Queue");
                 if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {
+                    mBean.lastConsumedMessageCanceled=true;
                     return omitMessageFromDroppedTask(messageId);
                 }
+                mBean.lastConsumedMessageCanceled=false;
+
 
                 ProcessedRecord aRecord = prepareRecordForExecution(message);
                 if (isFinished(aRecord)) {
@@ -271,6 +291,82 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 processedRecordsDAO.insert(aRecord);
             }
             return aRecord;
+        }
+    }
+
+    private class MBean implements EspoutMXBean {
+        protected transient String lastConsumedMessageId;
+        protected transient String lastConsumedMessage;
+        protected transient String lastAckedMessageId;
+        protected transient String lastFailedMessageId;
+        protected transient boolean lastConsumedMessageCanceled;
+
+        public MBean(){
+            register();
+        }
+
+        public void register() {
+            try {
+                ManagementFactory.getPlatformMBeanServer().registerMBean(this, new ObjectName(this.getName()));
+            } catch (NotCompliantMBeanException | InstanceAlreadyExistsException | MalformedObjectNameException
+                    | MBeanRegistrationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public String getName() {
+            return "eu.europeana.cloud:executor=spouts,topic=" + topic;
+        }
+
+        public String getLastConsumedMessageId() {
+            return lastConsumedMessageId;
+        }
+
+        public String getLastConsumedMessage() {
+            return lastConsumedMessage;
+        }
+
+        public String getLastAckedMessageId() {
+            return lastAckedMessageId;
+        }
+
+        public String getLastFailedMessageId() {
+            return lastFailedMessageId;
+        }
+
+        @Override
+        public String showSpoutToString() {
+            return getSpoutString();
+        }
+
+        @Override
+        public String showOffsetManagers() {
+            String s = getSpoutString();
+            int index = s.lastIndexOf("emitted=");
+            if (index > -1) {
+                return s.substring(0, index)
+                        .replaceAll("ackedMsgs=", "\nackedMsgs=\n")
+                        .replaceAll("},", "},\n");
+            } else {
+                return "Could not find info in spout string!";
+            }
+
+        }
+
+        @Override
+        public String showEmitted() {
+            String s = getSpoutString();
+            int index = s.lastIndexOf("emitted=");
+            if (index > -1) {
+                return s.substring(index)
+                        .replaceAll("},", "},\n");
+            } else {
+                return "Could not find info in spout string!";
+            }
+        }
+
+        private String getSpoutString() {
+            return ECloudSpout.this.toString();
         }
     }
 }

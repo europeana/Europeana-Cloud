@@ -141,7 +141,7 @@ public final class TopologyHelper {
                         .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
         return new ECloudSpout(
-                topologyName,
+                topologyName, topic,
                 configBuilder.build(),
                 topologyProperties.getProperty(CASSANDRA_HOSTS),
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
