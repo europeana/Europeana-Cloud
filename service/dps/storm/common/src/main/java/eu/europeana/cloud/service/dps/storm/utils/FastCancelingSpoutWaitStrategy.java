@@ -9,9 +9,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 
 public class FastCancelingSpoutWaitStrategy implements IWaitStrategy {
 
-
     private long sleepMs;
-
     private int sleepEveryNIdleIterations;
 
     @Override
@@ -22,7 +20,7 @@ public class FastCancelingSpoutWaitStrategy implements IWaitStrategy {
 
     @Override
     public int idle(int idleCounter) throws InterruptedException {
-        if(++idleCounter%sleepEveryNIdleIterations==0){
+        if (++idleCounter % sleepEveryNIdleIterations == 0) {
             Thread.sleep(sleepMs);
         }
         return idleCounter;

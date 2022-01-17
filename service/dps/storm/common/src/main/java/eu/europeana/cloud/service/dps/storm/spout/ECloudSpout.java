@@ -60,7 +60,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
-    protected transient MBean mBean;
+    protected transient ECloudSpoutSamplerMXBean ECloudSpoutSamplerMXBean;
 
     public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -78,7 +78,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void ack(Object messageId) {
-        mBean.lastAckedMessageId = String.valueOf(messageId);
+        ECloudSpoutSamplerMXBean.lastAckedMessageId = String.valueOf(messageId);
         LOGGER.info("Record acknowledged {}", messageId);
         super.ack(messageId);
     }
@@ -89,14 +89,14 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void fail(Object messageId) {
-        mBean.lastFailedMessageId = String.valueOf(messageId);
+        ECloudSpoutSamplerMXBean.lastFailedMessageId = String.valueOf(messageId);
         LOGGER.error("Record failed {}", messageId);
         super.fail(messageId);
     }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        mBean = new MBean();
+        ECloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();
         super.open(conf, context, new ECloudOutputCollector(collector));
 
         var cassandraConnectionProvider =
@@ -132,16 +132,16 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
-                mBean.lastConsumedMessageId=String.valueOf(messageId);
-                mBean.lastConsumedMessage=String.valueOf(message);
+                ECloudSpoutSamplerMXBean.lastConsumedMessageId=String.valueOf(messageId);
+                ECloudSpoutSamplerMXBean.lastConsumedMessage=String.valueOf(message);
                 DiagnosticContextWrapper.putValuesFrom(message);
 
                 LOGGER.info("Reading message from Queue");
                 if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {
-                    mBean.lastConsumedMessageCanceled=true;
+                    ECloudSpoutSamplerMXBean.lastConsumedMessageCanceled=true;
                     return omitMessageFromDroppedTask(messageId);
                 }
-                mBean.lastConsumedMessageCanceled=false;
+                ECloudSpoutSamplerMXBean.lastConsumedMessageCanceled=false;
 
 
                 ProcessedRecord aRecord = prepareRecordForExecution(message);
@@ -294,14 +294,17 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
     }
 
-    private class MBean implements EspoutMXBean {
+    /**
+     * MX bean responsible for sampling spout used by the topologies
+     */
+    private class ECloudSpoutSamplerMXBean implements ECloudSpoutMXBean {
         protected transient String lastConsumedMessageId;
         protected transient String lastConsumedMessage;
         protected transient String lastAckedMessageId;
         protected transient String lastFailedMessageId;
         protected transient boolean lastConsumedMessageCanceled;
 
-        public MBean(){
+        public ECloudSpoutSamplerMXBean() {
             register();
         }
 

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
-public interface EspoutMXBean {
+public interface ECloudSpoutMXBean {
     String showSpoutToString();
 
     String showOffsetManagers();
