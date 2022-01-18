@@ -44,29 +44,26 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
     private static final int MAX_RETRIES = 3;
-
-
-    private String topologyName;
-    private String topic;
-    private String hosts;
-    private int port;
-    private String keyspaceName;
-    private String userName;
-    private String password;
-
+    private final String topologyName;
+    private final String topic;
+    private final String hosts;
+    private final int port;
+    private final String keyspaceName;
+    private final String userName;
+    private final String password;
     protected transient CassandraTaskInfoDAO taskInfoDAO;
     protected transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient TaskStatusChecker taskStatusChecker;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
-    protected transient ECloudSpoutSamplerMXBean ECloudSpoutSamplerMXBean;
+    protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
 
     public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
         super(kafkaSpoutConfig);
 
-        this.topologyName=topologyName;
+        this.topologyName = topologyName;
         this.topic = topic;
         this.hosts = hosts;
         this.port = port;
@@ -78,25 +75,21 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public void ack(Object messageId) {
-        ECloudSpoutSamplerMXBean.lastAckedMessageId = String.valueOf(messageId);
+        eCloudSpoutSamplerMXBean.lastAckedMessageId = String.valueOf(messageId);
         LOGGER.info("Record acknowledged {}", messageId);
-        super.ack(messageId);
-    }
-
-    private void ackIgnoredMessage(Object messageId) {
         super.ack(messageId);
     }
 
     @Override
     public void fail(Object messageId) {
-        ECloudSpoutSamplerMXBean.lastFailedMessageId = String.valueOf(messageId);
+        eCloudSpoutSamplerMXBean.lastFailedMessageId = String.valueOf(messageId);
         LOGGER.error("Record failed {}", messageId);
         super.fail(messageId);
     }
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-        ECloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();
+        eCloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();
         super.open(conf, context, new ECloudOutputCollector(collector));
 
         var cassandraConnectionProvider =
@@ -121,6 +114,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    private void ackIgnoredMessage(Object messageId) {
+        super.ack(messageId);
+    }
+
     public class ECloudOutputCollector extends SpoutOutputCollector {
 
         public ECloudOutputCollector(ISpoutOutputCollector delegate) {
@@ -132,16 +129,16 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             DpsRecord message = null;
             try {
                 message = readMessageFromTuple(tuple);
-                ECloudSpoutSamplerMXBean.lastConsumedMessageId=String.valueOf(messageId);
-                ECloudSpoutSamplerMXBean.lastConsumedMessage=String.valueOf(message);
+                eCloudSpoutSamplerMXBean.lastConsumedMessageId = String.valueOf(messageId);
+                eCloudSpoutSamplerMXBean.lastConsumedMessage = String.valueOf(message);
                 DiagnosticContextWrapper.putValuesFrom(message);
 
                 LOGGER.info("Reading message from Queue");
                 if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {
-                    ECloudSpoutSamplerMXBean.lastConsumedMessageCanceled=true;
+                    eCloudSpoutSamplerMXBean.lastConsumedMessageCanceled = true;
                     return omitMessageFromDroppedTask(messageId);
                 }
-                ECloudSpoutSamplerMXBean.lastConsumedMessageCanceled=false;
+                eCloudSpoutSamplerMXBean.lastConsumedMessageCanceled = false;
 
 
                 ProcessedRecord aRecord = prepareRecordForExecution(message);
@@ -165,47 +162,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             }
         }
 
-        List<Integer> omitAlreadyProcessedRecord(Object messageId) {
-            //Ignore records that is already preformed. It could take place after spout restart
-            //if record was performed but was not acknowledged in kafka service. It is normal situation.
-            //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
-            //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
-            //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
-            LOGGER.info("Dropping kafka message because record was already processed");
-            ackIgnoredMessage(messageId);
-            return Collections.emptyList();
-        }
-
-        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
-            var taskInfo = getTaskInfo(message);
-            updateDiagnosticCounters(aRecord);
-            var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
-            LOGGER.info("Emitting a record to the subsequent bolt");
-            return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
-        }
-
-        List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
-            LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
-            var notificationTuple = NotificationTuple.prepareNotification(
-                    message.getTaskId(),
-                    message.isMarkedAsDeleted(),
-                    message.getRecordId(),
-                    RecordState.ERROR,
-                    "Max retries reached",
-                    "Max retries reached",
-                    System.currentTimeMillis());
-            return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
-        }
-
-        List<Integer> omitMessageFromDroppedTask(Object messageId) {
-            // Ignores message from dropped tasks. Such message should not be emitted,
-            // but must be acknowledged to not remain in topic and to allow acknowledgement
-            // of any following messages.
-            ackIgnoredMessage(messageId);
-            LOGGER.info("Dropping kafka message because task was dropped");
-            return Collections.emptyList();
-        }
-
         private boolean maxTriesReached(ProcessedRecord aRecord) {
             return aRecord.getAttemptNumber() > MAX_RETRIES;
         }
@@ -214,8 +170,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return aRecord.getState() == RecordState.SUCCESS || aRecord.getState() == RecordState.ERROR;
         }
 
-        private DpsRecord readMessageFromTuple(List<Object> tuple){
-            return (DpsRecord)tuple.get(4);
+        private DpsRecord readMessageFromTuple(List<Object> tuple) {
+            return (DpsRecord) tuple.get(4);
         }
 
         private TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
@@ -291,6 +247,47 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 processedRecordsDAO.insert(aRecord);
             }
             return aRecord;
+        }
+
+        List<Integer> omitAlreadyProcessedRecord(Object messageId) {
+            //Ignore records that is already preformed. It could take place after spout restart
+            //if record was performed but was not acknowledged in kafka service. It is normal situation.
+            //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
+            //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
+            //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
+            LOGGER.info("Dropping kafka message because record was already processed");
+            ackIgnoredMessage(messageId);
+            return Collections.emptyList();
+        }
+
+        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+            var taskInfo = getTaskInfo(message);
+            updateDiagnosticCounters(aRecord);
+            var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
+            LOGGER.info("Emitting a record to the subsequent bolt");
+            return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
+        }
+
+        List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
+            LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
+            var notificationTuple = NotificationTuple.prepareNotification(
+                    message.getTaskId(),
+                    message.isMarkedAsDeleted(),
+                    message.getRecordId(),
+                    RecordState.ERROR,
+                    "Max retries reached",
+                    "Max retries reached",
+                    System.currentTimeMillis());
+            return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
+        }
+
+        List<Integer> omitMessageFromDroppedTask(Object messageId) {
+            // Ignores message from dropped tasks. Such message should not be emitted,
+            // but must be acknowledged to not remain in topic and to allow acknowledgement
+            // of any following messages.
+            ackIgnoredMessage(messageId);
+            LOGGER.info("Dropping kafka message because task was dropped");
+            return Collections.emptyList();
         }
     }
 
