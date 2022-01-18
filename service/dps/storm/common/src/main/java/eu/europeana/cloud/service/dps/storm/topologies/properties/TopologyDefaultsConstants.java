@@ -26,5 +26,7 @@ public class TopologyDefaultsConstants {
     public static final String DEFAULT_ZOOKEEPER_HOST = "localhost";
     public static final String DEFAULT_KAFKA_HOST = "localhost";
     public static final int DPS_DEFAULT_MAX_ATTEMPTS = 7;
+    public static final int DEFAULT_SPOUT_SLEEP_MS = 1;
+    public static final int DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS = 32;
 
 }

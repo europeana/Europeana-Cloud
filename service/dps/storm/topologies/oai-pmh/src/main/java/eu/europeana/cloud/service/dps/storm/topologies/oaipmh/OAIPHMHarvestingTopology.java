@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
@@ -19,15 +18,14 @@ import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static java.lang.Integer.parseInt;
@@ -47,8 +45,7 @@ public class OAIPHMHarvestingTopology {
     public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
-                TopologiesNames.OAI_TOPOLOGY, topologyProperties, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+        List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.OAI_TOPOLOGY, topologyProperties);
 
         String mcsServer = topologyProperties.getProperty(MCS_URL);
         String uisServer = topologyProperties.getProperty(UIS_URL);
@@ -57,66 +54,60 @@ public class OAIPHMHarvestingTopology {
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
         HarvestingAddToDatasetBolt addResultToDataSetBolt = new HarvestingAddToDatasetBolt(mcsServer);
 
-        builder.setSpout(SPOUT, eCloudSpout, 1);
 
-        builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(),
-                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT, new ShuffleGrouping());
+        TopologyHelper.addSpoutShuffleGrouping(spoutNames,
+                builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+                        .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))));
 
         builder.setBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(prepareConnectionDetails()),
-                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+                        (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
-                (getAnInt(WRITE_BOLT_PARALLEL)))
+                        (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(RECORD_CATEGORIZATION_BOLT, new ShuffleGrouping());
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
-                (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
+                        (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
         builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(mcsServer),
-                (getAnInt(DUPLICATES_BOLT_PARALLEL)))
+                        (getAnInt(DUPLICATES_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
+                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(DUPLICATES_DETECTOR_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new HarvestNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                getAnInt(NOTIFICATION_BOLT_PARALLEL))
-                .setNumTasks(
-                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(SPOUT, NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+        TopologyHelper.addSpoutsGroupingToNotificationBolt(
+                spoutNames,
+                builder.setBolt(NOTIFICATION_BOLT, new HarvestNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                                        Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                                getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                        .setNumTasks(
+                                (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
+                        .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
         return builder.createTopology();
-    }
-
-    public static Properties getProperties() {
-        return topologyProperties;
     }
 
     private static int getAnInt(String parseTasksBoltParallel) {
