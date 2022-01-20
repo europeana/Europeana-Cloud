@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactory;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForDefaultTasks;
-import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForPostprocessinTasks;
+import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForPostprocessingTasks;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
@@ -136,7 +136,7 @@ public class NotificationBolt extends BaseRichBolt {
 
     private NotificationTupleHandler prepareNotificationHandler(NotificationTuple notificationTuple, NotificationCache cachedCounters) throws TaskInfoDoesNotExistException, IOException {
         if (needsPostProcessing(notificationTuple)) {
-            NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+            NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                     processedRecordsDAO,
                     taskDiagnosticInfoDAO,
                     taskStatusUpdater,
@@ -144,8 +144,7 @@ public class NotificationBolt extends BaseRichBolt {
                     taskErrorDAO,
                     taskInfoDAO
             );
-            TaskInfo task = taskInfoDAO.findById(notificationTuple.getTaskId()).orElseThrow(TaskInfoDoesNotExistException::new);
-            return factory.provide(notificationTuple, task.getExpectedRecordsNumber(), cachedCounters.processed);
+            return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
         } else {
             NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                     processedRecordsDAO,
@@ -155,8 +154,7 @@ public class NotificationBolt extends BaseRichBolt {
                     taskErrorDAO,
                     taskInfoDAO
             );
-            TaskInfo task = taskInfoDAO.findById(notificationTuple.getTaskId()).orElseThrow(TaskInfoDoesNotExistException::new);
-            return factory.provide(notificationTuple, task.getExpectedRecordsNumber(), cachedCounters.processed);
+            return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
         }
     }
 
@@ -169,13 +167,15 @@ public class NotificationBolt extends BaseRichBolt {
         int deletedRecordsCount;
         int processedErrorsCount;
         int deletedErrorsCount;
+        int expectedRecordsNumber;
 
         Map<String, String> errorTypes = new HashMap<>();
 
         NotificationCache(long taskId) {
             processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
+            var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
+            expectedRecordsNumber = taskInfo.getExpectedRecordsNumber();
             if (processed > 0) {
-                var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
                 processedRecordsCount = taskInfo.getProcessedRecordsCount();
                 ignoredRecordsCount = taskInfo.getIgnoredRecordsCount();
                 deletedRecordsCount = taskInfo.getDeletedRecordsCount();

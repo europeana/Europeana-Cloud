@@ -5,17 +5,17 @@ import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.handler.*;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 
-public class NotificationHandlerFactoryForPostprocessinTasks extends NotificationHandlerFactory {
+public class NotificationHandlerFactoryForPostprocessingTasks extends NotificationHandlerFactory {
 
     /**
      * Factory for Notification handlers for tasks that needs postprocessing
      */
-    public NotificationHandlerFactoryForPostprocessinTasks(ProcessedRecordsDAO processedRecordsDAO,
-                                                           TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                                           TaskStatusUpdater taskStatusUpdater,
-                                                           CassandraSubTaskInfoDAO subTaskInfoDAO,
-                                                           CassandraTaskErrorsDAO taskErrorDAO,
-                                                           CassandraTaskInfoDAO taskInfoDAO) {
+    public NotificationHandlerFactoryForPostprocessingTasks(ProcessedRecordsDAO processedRecordsDAO,
+                                                            TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
+                                                            TaskStatusUpdater taskStatusUpdater,
+                                                            CassandraSubTaskInfoDAO subTaskInfoDAO,
+                                                            CassandraTaskErrorsDAO taskErrorDAO,
+                                                            CassandraTaskInfoDAO taskInfoDAO) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
                 taskStatusUpdater,
@@ -24,10 +24,10 @@ public class NotificationHandlerFactoryForPostprocessinTasks extends Notificatio
                 taskInfoDAO);
     }
 
-    public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int count) {
+    public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount) {
 
         if (isError(notificationTuple)) {
-            if (isLastOne(expectedSize, count)) {
+            if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
                 return new NotificationWithErrorForLastRecordInPostProcessingTask(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,
@@ -45,7 +45,7 @@ public class NotificationHandlerFactoryForPostprocessinTasks extends Notificatio
                         taskInfoDAO);
             }
         } else {
-            if (isLastOne(expectedSize, count)) {
+            if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
                 return new DefaultNotificationForLastRecordInPostprocessingTask(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,

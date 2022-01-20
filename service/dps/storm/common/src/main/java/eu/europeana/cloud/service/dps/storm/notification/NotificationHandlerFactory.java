@@ -34,7 +34,7 @@ public abstract class NotificationHandlerFactory {
         this.taskInfoDAO = taskInfoDAO;
     }
 
-    public abstract NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int count);
+    public abstract NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount);
 
     protected boolean isError(NotificationTuple notificationTuple) {
         return isErrorTuple(notificationTuple)
@@ -45,7 +45,7 @@ public abstract class NotificationHandlerFactory {
         return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
     }
 
-    protected boolean isLastOne(int expectedSize, int count) {
-        return count + 1 == expectedSize;
+    protected boolean isLastOneTupleInTask(int expectedSize, int processedRecordsCount) {
+        return processedRecordsCount + 1 == expectedSize;
     }
 }

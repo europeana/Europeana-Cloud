@@ -21,7 +21,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForDefaultNotification() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),
@@ -38,7 +38,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForDefaultNotificationAndLastRecord() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),
@@ -55,7 +55,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForNotificationContainingError() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),
@@ -74,7 +74,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForNotificationContainingErrorForLastOneRecord() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),
@@ -93,7 +93,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForNotificationContainingUnifiedError() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),
@@ -112,7 +112,7 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
 
     @Test
     public void shouldProvideHandlerForNotificationContainingUnifiedErrorForLastOneRecord() {
-        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessinTasks(
+        NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
                 Mockito.mock(TaskStatusUpdater.class),

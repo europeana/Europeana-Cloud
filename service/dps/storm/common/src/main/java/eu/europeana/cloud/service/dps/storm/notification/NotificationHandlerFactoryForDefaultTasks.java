@@ -25,10 +25,10 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                 taskInfoDAO);
     }
 
-    public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int count) {
+    public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount) {
 
         if (isError(notificationTuple)) {
-            if (isLastOne(expectedSize, count)) {
+            if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
                 return new NotificationWithErrorForLastRecordInTask(this.processedRecordsDAO,
                         this.taskDiagnosticInfoDAO,
                         this.taskStatusUpdater,
@@ -45,7 +45,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                         this.taskInfoDAO);
             }
         } else {
-            if (isLastOne(expectedSize, count)) {
+            if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
                 return new DefaultNotificationForLastRecordInTask(
                         this.processedRecordsDAO,
                         this.taskDiagnosticInfoDAO,
