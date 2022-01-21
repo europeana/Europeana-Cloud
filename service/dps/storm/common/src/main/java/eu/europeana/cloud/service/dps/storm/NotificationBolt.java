@@ -142,7 +142,8 @@ public class NotificationBolt extends BaseRichBolt {
                     taskStatusUpdater,
                     subTaskInfoDAO,
                     taskErrorDAO,
-                    taskInfoDAO
+                    taskInfoDAO,
+                    topologyName
             );
             return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
         } else {
@@ -152,7 +153,8 @@ public class NotificationBolt extends BaseRichBolt {
                     taskStatusUpdater,
                     subTaskInfoDAO,
                     taskErrorDAO,
-                    taskInfoDAO
+                    taskInfoDAO,
+                    topologyName
             );
             return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
         }

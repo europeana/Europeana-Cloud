@@ -26,7 +26,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         NotificationTuple tuple = new NotificationTuple(1L, Collections.<String, Object>emptyMap());
@@ -43,7 +44,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         NotificationTuple tuple = new NotificationTuple(1L, Collections.<String, Object>emptyMap());
@@ -60,7 +62,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         Map<String, Object> parameters = new HashMap<>();
@@ -79,7 +82,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         Map<String, Object> parameters = new HashMap<>();
@@ -98,7 +102,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         Map<String, Object> parameters = new HashMap<>();
@@ -117,7 +122,8 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
-                Mockito.mock(CassandraTaskInfoDAO.class)
+                Mockito.mock(CassandraTaskInfoDAO.class),
+                "topologyName"
         );
 
         Map<String, Object> parameters = new HashMap<>();

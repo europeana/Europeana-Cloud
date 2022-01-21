@@ -15,13 +15,15 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                                                             TaskStatusUpdater taskStatusUpdater,
                                                             CassandraSubTaskInfoDAO subTaskInfoDAO,
                                                             CassandraTaskErrorsDAO taskErrorDAO,
-                                                            CassandraTaskInfoDAO taskInfoDAO) {
+                                                            CassandraTaskInfoDAO taskInfoDAO,
+                                                            String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
                 taskStatusUpdater,
                 subTaskInfoDAO,
                 taskErrorDAO,
-                taskInfoDAO);
+                taskInfoDAO,
+                topologyName);
     }
 
     public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount) {
@@ -34,7 +36,8 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                         taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
-                        taskInfoDAO);
+                        taskInfoDAO,
+                        topologyName);
             } else {
                 return new NotificationWithError(
                         processedRecordsDAO,
@@ -42,7 +45,8 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                         taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
-                        taskInfoDAO);
+                        taskInfoDAO,
+                        topologyName);
             }
         } else {
             if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
@@ -52,7 +56,8 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                         taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
-                        taskInfoDAO);
+                        taskInfoDAO,
+                        topologyName);
             } else {
                 return new DefaultNotification(
                         processedRecordsDAO,
@@ -60,7 +65,8 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                         taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
-                        taskInfoDAO);
+                        taskInfoDAO,
+                        topologyName);
             }
         }
     }

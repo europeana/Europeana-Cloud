@@ -19,19 +19,22 @@ public abstract class NotificationHandlerFactory {
     protected final CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected final CassandraTaskErrorsDAO taskErrorDAO;
     protected final CassandraTaskInfoDAO taskInfoDAO;
+    protected final String topologyName;
 
     protected NotificationHandlerFactory(ProcessedRecordsDAO processedRecordsDAO,
-                                      TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                      TaskStatusUpdater taskStatusUpdater,
-                                      CassandraSubTaskInfoDAO subTaskInfoDAO,
-                                      CassandraTaskErrorsDAO taskErrorDAO,
-                                      CassandraTaskInfoDAO taskInfoDAO) {
+                                         TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
+                                         TaskStatusUpdater taskStatusUpdater,
+                                         CassandraSubTaskInfoDAO subTaskInfoDAO,
+                                         CassandraTaskErrorsDAO taskErrorDAO,
+                                         CassandraTaskInfoDAO taskInfoDAO,
+                                         String topologyName) {
         this.processedRecordsDAO = processedRecordsDAO;
         this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
         this.taskStatusUpdater = taskStatusUpdater;
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
         this.taskInfoDAO = taskInfoDAO;
+        this.topologyName = topologyName;
     }
 
     public abstract NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount);

@@ -1,18 +1,20 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.dao.*;
+import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,22 +33,17 @@ public class DefaultNotification extends NotificationTupleHandler {
                                TaskStatusUpdater taskStatusUpdater,
                                CassandraSubTaskInfoDAO subTaskInfoDAO,
                                CassandraTaskErrorsDAO taskErrorDAO,
-                               CassandraTaskInfoDAO taskInfoDAO) {
+                               CassandraTaskInfoDAO taskInfoDAO,
+                               String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
                 taskStatusUpdater,
                 subTaskInfoDAO,
                 taskErrorDAO,
-                taskInfoDAO);
+                taskInfoDAO,
+                topologyName);
     }
 
-    /**
-     * co tu robimy:
-     * insert do notifications table;          //to samo dla wszystkich
-     * insert z nowymi licznikami              //to samo dla wszystkich
-     * insert do processedRecords              //to samo dla wszystkich
-     * insert diagnostyki                      //to samo dla wszystkich
-     */
     @Override
     public void handle(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
         long taskId = notificationTuple.getTaskId();
@@ -60,7 +57,7 @@ public class DefaultNotification extends NotificationTupleHandler {
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        subTaskInfoDAO.insert(resourceNum, taskId, "do zmiany", resource, state, infoText, additionalInfo, resultResource);
+        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 
     private boolean isFinished(ProcessedRecord theRecord) {

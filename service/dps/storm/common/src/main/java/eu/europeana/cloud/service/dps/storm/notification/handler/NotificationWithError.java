@@ -32,13 +32,15 @@ public class NotificationWithError extends NotificationTupleHandler {
                                  TaskStatusUpdater taskStatusUpdater,
                                  CassandraSubTaskInfoDAO subTaskInfoDAO,
                                  CassandraTaskErrorsDAO taskErrorDAO,
-                                 CassandraTaskInfoDAO taskInfoDAO) {
+                                 CassandraTaskInfoDAO taskInfoDAO,
+                                 String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
                 taskStatusUpdater,
                 subTaskInfoDAO,
                 taskErrorDAO,
-                taskInfoDAO);
+                taskInfoDAO,
+                topologyName);
     }
 
     @Override
@@ -56,7 +58,7 @@ public class NotificationWithError extends NotificationTupleHandler {
     }
 
     protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
-        subTaskInfoDAO.insert(resourceNum, taskId, "do ZMIANY!!", resource, state, infoText, additionalInfo, resultResource);
+        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 
     private void notifyTask(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache, long taskId) {
