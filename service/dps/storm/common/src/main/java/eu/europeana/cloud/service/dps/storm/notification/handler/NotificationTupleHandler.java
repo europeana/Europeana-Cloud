@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
@@ -37,4 +39,8 @@ public abstract class NotificationTupleHandler {
     }
 
     public abstract void handle(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) throws TaskInfoDoesNotExistException;
+
+    protected boolean isFinished(ProcessedRecord theRecord) {
+        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
+    }
 }

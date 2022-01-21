@@ -104,10 +104,6 @@ public class DefaultNotificationForLastRecordInPostprocessingTask extends Notifi
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
-    private boolean isFinished(ProcessedRecord theRecord) {
-        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
-    }
-
     private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
         taskStatusUpdater.updateState(notificationTuple.getTaskId(), TaskState.READY_FOR_POST_PROCESSING,
                 "Ready for post processing after topology stage is finished");

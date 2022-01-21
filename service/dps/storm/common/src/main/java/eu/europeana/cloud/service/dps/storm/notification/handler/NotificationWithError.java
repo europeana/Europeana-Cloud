@@ -127,9 +127,4 @@ public class NotificationWithError extends NotificationTupleHandler {
     private boolean isErrorTuple(NotificationTuple notificationTuple) {
         return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
     }
-
-    private boolean isFinished(ProcessedRecord theRecord) {
-        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
-    }
-
 }

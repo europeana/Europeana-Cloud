@@ -103,10 +103,6 @@ public class DefaultNotificationForLastRecordInTask extends NotificationTupleHan
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
-    private boolean isFinished(ProcessedRecord theRecord) {
-        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
-    }
-
     private void setTaskProcessed(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
         taskStatusUpdater.setTaskCompletelyProcessed(notificationTuple.getTaskId(), "Completely processed");
         LOGGER.info("Task id={} completely processed! Counters: {} ", notificationTuple.getTaskId(),

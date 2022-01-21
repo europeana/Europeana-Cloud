@@ -22,7 +22,7 @@ import java.util.UUID;
 
 /**
  * Handles {@link NotificationTuple} that is generated in case of error in bolts.
- * It also handles record that is the last one record in the task (task status will be changed to PROCESSED);
+ * It also handles record that is the last one record in the task (task status will be changed to TaskState.READY_FOR_POST_PROCESSING);
  */
 public class NotificationWithErrorForLastRecordInPostProcessingTask extends NotificationTupleHandler {
 
@@ -140,10 +140,6 @@ public class NotificationWithErrorForLastRecordInPostProcessingTask extends Noti
 
     private boolean isErrorTuple(NotificationTuple notificationTuple) {
         return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
-    }
-
-    private boolean isFinished(ProcessedRecord theRecord) {
-        return theRecord.getState() == RecordState.SUCCESS || theRecord.getState() == RecordState.ERROR;
     }
 
     private void setTaskStatusToReadyForPostprocessing(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
