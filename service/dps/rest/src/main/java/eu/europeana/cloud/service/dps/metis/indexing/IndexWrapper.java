@@ -36,7 +36,7 @@ public abstract class IndexWrapper {
 
     protected void loadProperties() {
         try {
-            InputStream input = DatasetCleaner.class.getClassLoader().getResourceAsStream("indexing.properties");
+            InputStream input = DatasetCleaner.class.getClassLoader().getResourceAsStream(IndexingSettingsGenerator.DEFAULT_PROPERTIES_FILENAME);
             properties.load(input);
         } catch (Exception e) {
             LOGGER.warn("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.");
@@ -44,18 +44,27 @@ public abstract class IndexWrapper {
     }
 
     protected void prepareIndexers() throws IndexingException, URISyntaxException {
-        IndexingSettingsGenerator indexingSettingsGenerator = new IndexingSettingsGenerator(properties);
+        IndexingSettings indexingSettings;
+        IndexingSettingsGenerator indexingSettingsGenerator;
 
-        IndexingSettings indexingSettings = indexingSettingsGenerator.generateForPreview();
+        indexingSettingsGenerator = new IndexingSettingsGenerator(properties);
+
+        indexingSettings = indexingSettingsGenerator.generateForPreview();
         indexers.put(DatabaseLocation.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
         indexingSettings = indexingSettingsGenerator.generateForPublish();
         indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
         //
+        //
         indexingSettingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
+
         indexingSettings = indexingSettingsGenerator.generateForPreview();
-        indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+        if(indexingSettings != null) {
+            indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+        }
         indexingSettings = indexingSettingsGenerator.generateForPublish();
-        indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+        if(indexingSettings != null) {
+            indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+        }
     }
 
     protected DatabaseLocation evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
