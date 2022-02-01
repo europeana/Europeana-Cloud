@@ -95,8 +95,7 @@ public class RecordServiceClientTest {
 
         String cloudId = "231PJ0QGW6N";
         String representationName = "schema77";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
+        RecordServiceClient instance = new RecordServiceClient(baseUrl, username, password);
 
         // delete record
         instance.deleteRecord(cloudId);

@@ -1,41 +1,29 @@
 package eu.europeana.cloud.mcs.driver;
 
 
-import com.google.common.hash.Hashing;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 
-@Ignore
-public class FileServiceClientITest {
+public class FileServiceClientTestIT {
 
     private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
-    private static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
-    private static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";
-    private static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
     private static final String USER_PASSWORD = "1RkZBuVf";
-    private static final String ADMIN_NAME = "admin";  //admin z bazy danych
-    private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
 
     @Test
-    public void getFile1() throws MCSException, IOException {
+    public void getFile1() throws MCSException {
         String fileUrlText = "http://localhost:8080/mcs/<enter_path_to_file_here>";
 
         FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -45,7 +33,7 @@ public class FileServiceClientITest {
     }
 
     @Test
-    public void getFile3() throws MCSException, IOException {
+    public void getFile3() throws MCSException {
         String fileUrlText = "http://localhost:8080/mcs/<enter_path_to_file_here>";
 
         FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL);
@@ -56,13 +44,13 @@ public class FileServiceClientITest {
     }
 
     @Test
-    public void uploadFile() throws MCSException, IOException {
+    public void uploadFile() throws MCSException {
         String cloudId = "<enter_cloud_id_here>";
         String representationName = "<enter_representation_name_here>";
         String version = "<enter_version_here>";
 
         String filename = "log4j.properties";
-        InputStream is = FileServiceClientITest.class.getResourceAsStream("/" + filename);
+        InputStream is = FileServiceClientTestIT.class.getResourceAsStream("/" + filename);
         String mimeType = MediaType.TEXT_PLAIN_VALUE;
 
         FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -83,7 +71,6 @@ public class FileServiceClientITest {
 
         byte[] content = new byte[1000000];
         ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
 
         FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
@@ -94,11 +81,9 @@ public class FileServiceClientITest {
         }
 
 
-        URI resultUri = null;
-
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
         //Uncoment one of them to test and comment modification section
-        resultUri = mcsClient.uploadFile(cloudId, representationName, version, fileName, inputStream, mediaType);
+        var resultUri = mcsClient.uploadFile(cloudId, representationName, version, fileName, inputStream, mediaType);
         //     resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType, contentMd5);
         //    resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType);
         //     resultUri = mcsClient.uploadFile("http://localhost:8080/mcs/records/7XGEDN7JTPRL6SALCRQDG4WX5CYRZTFJ6GDXJKLAAZHHJNSUCMSA/representations/tekstowy/versions/41caee00-3db3-11ea-8db6-04922659f621",inputStream,mediaType);
@@ -107,7 +92,6 @@ public class FileServiceClientITest {
         //Modifications
         content[120631] = 77;
         content[140631] = 81;
-        contentMd5 = Hashing.md5().hashBytes(content).toString();
         inputStream = new ByteArrayInputStream(content);
 
         //Uncoment one of them to test
