@@ -1,21 +1,17 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
+import eu.europeana.cloud.common.model.dps.Notification;
 import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.*;
+import eu.europeana.cloud.service.dps.storm.BatchExecutor;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
-import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Handles {@link NotificationTuple} that is generated during default records processing.
@@ -23,7 +19,6 @@ import java.util.Optional;
  * It also handles record that is not the last one record in the task (changes of the task status (for example to PROCESSED) are not needed here);
  */
 public class DefaultNotification extends NotificationTupleHandler {
-
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNotification.class);
 
@@ -33,6 +28,7 @@ public class DefaultNotification extends NotificationTupleHandler {
                                CassandraSubTaskInfoDAO subTaskInfoDAO,
                                CassandraTaskErrorsDAO taskErrorDAO,
                                CassandraTaskInfoDAO taskInfoDAO,
+                               BatchExecutor batchExecutor,
                                String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
@@ -40,59 +36,37 @@ public class DefaultNotification extends NotificationTupleHandler {
                 subTaskInfoDAO,
                 taskErrorDAO,
                 taskInfoDAO,
+                batchExecutor,
                 topologyName);
     }
 
     @Override
     public void handle(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
+        LOGGER.debug("Executing notification handler");
         long taskId = notificationTuple.getTaskId();
         var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-        Optional<ProcessedRecord> theRecord = processedRecordsDAO.selectByPrimaryKey(taskId, recordId);
-        if (theRecord.isEmpty() || !isFinished(theRecord.get())) {
+        //
+        if (tupleShouldBeProcessed(taskId, recordId)) {
             nCache.incrementCounters(notificationTuple);
+            Notification notification = prepareNotification(notificationTuple, nCache.getProcessed());
 
-            //
-            BatchExecutor batchExecutor = new BatchExecutor(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                    "localhost", 9192, "keyspaceName", "userName", "password"));
-
-            PreparedStatementsStore preparedStatementsStore = new PreparedStatementsStore(CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                    "localhost", 9192, "keyspaceName", "userName", "password"));
-            //
-            Map<String, Object> parameters = notificationTuple.getParameters();
-            var resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
-            var state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
-            var infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
-            var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-            var resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-            var now = Instant.now().toEpochMilli();
-            var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
-            additionalInfo = additionalInfo + " Processing time: " + processingTime;
-            //
-            batchExecutor.executeAll(Arrays.asList(
-                    preparedStatementsStore.subtaskInsertStatement.bind(
-                            notificationTuple.getTaskId(),
-                            CassandraSubTaskInfoDAO.bucketNumber(nCache.getProcessed()),
-                            nCache.getProcessed(),
-                            topologyName,
-                            resource,
-                            state,
-                            infoText,
-                            additionalInfo,
-                            resultResource),
-                    preparedStatementsStore.updateCounters.bind(
+            batchExecutor.executeAll(
+                    subTaskInfoDAO.insertNotificationStatement(notification),
+                    taskInfoDAO.updateProcessedFilesStatement(taskId,
                             nCache.getProcessedRecordsCount(),
                             nCache.getIgnoredRecordsCount(),
                             nCache.getDeletedRecordsCount(),
                             nCache.getProcessedErrorsCount(),
-                            nCache.getDeletedErrorsCount(),
-                            taskId),
-                    preparedStatementsStore.updateRecordStateStatement.bind(
-                            notificationTuple.getTaskId(),
+                            nCache.getDeletedErrorsCount()),
+                    processedRecordsDAO.updateProcessedRecordStateStatement(notification.getTaskId(),
                             String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)),
-                            BucketUtils.bucketNumber(String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)), 128),
-                            RecordState.SUCCESS.toString()),
-                    preparedStatementsStore.updateLastRecordFinishedOnStormTime.bind(notificationTuple.getTaskId(), Date.from(Instant.now())))
+                            RecordState.SUCCESS),
+                    taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTimeStatement(
+                            notificationTuple.getTaskId(), Instant.now()
+                    )
             );
+        } else {
+            taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTime(notificationTuple.getTaskId(), Instant.now());
         }
     }
 }

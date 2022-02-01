@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.Constants;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -34,6 +35,7 @@ public class NotificationWithErrorForLastRecordInPostProcessingTask extends Noti
                                                                   CassandraSubTaskInfoDAO subTaskInfoDAO,
                                                                   CassandraTaskErrorsDAO taskErrorDAO,
                                                                   CassandraTaskInfoDAO taskInfoDAO,
+                                                                  BatchExecutor batchExecutor,
                                                                   String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
@@ -41,6 +43,7 @@ public class NotificationWithErrorForLastRecordInPostProcessingTask extends Noti
                 subTaskInfoDAO,
                 taskErrorDAO,
                 taskInfoDAO,
+                batchExecutor,
                 topologyName);
     }
 

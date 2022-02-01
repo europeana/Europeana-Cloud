@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.notification;
 
+import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.handler.*;
@@ -17,6 +18,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                                                      CassandraSubTaskInfoDAO subTaskInfoDAO,
                                                      CassandraTaskErrorsDAO taskErrorDAO,
                                                      CassandraTaskInfoDAO taskInfoDAO,
+                                                     BatchExecutor batchExecutor,
                                                      String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
@@ -24,6 +26,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                 subTaskInfoDAO,
                 taskErrorDAO,
                 taskInfoDAO,
+                batchExecutor,
                 topologyName);
     }
 
@@ -37,6 +40,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                         this.subTaskInfoDAO,
                         this.taskErrorDAO,
                         this.taskInfoDAO,
+                        this.batchExecutor,
                         topologyName);
             } else {
                 return new NotificationWithError(
@@ -46,6 +50,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                         this.subTaskInfoDAO,
                         this.taskErrorDAO,
                         this.taskInfoDAO,
+                        this.batchExecutor,
                         topologyName);
             }
         } else {
@@ -57,6 +62,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                         this.subTaskInfoDAO,
                         this.taskErrorDAO,
                         this.taskInfoDAO,
+                        this.batchExecutor,
                         topologyName);
             } else {
                 return new DefaultNotification(
@@ -66,6 +72,7 @@ public class NotificationHandlerFactoryForDefaultTasks extends NotificationHandl
                         this.subTaskInfoDAO,
                         this.taskErrorDAO,
                         this.taskInfoDAO,
+                        this.batchExecutor,
                         topologyName);
             }
         }

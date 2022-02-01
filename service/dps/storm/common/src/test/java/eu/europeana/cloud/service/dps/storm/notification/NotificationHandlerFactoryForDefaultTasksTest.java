@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.notification;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -27,6 +28,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 
@@ -45,6 +47,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 
@@ -63,6 +66,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 
@@ -83,6 +87,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 
@@ -103,6 +108,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 
@@ -123,6 +129,7 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
 

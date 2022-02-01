@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.notification;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -19,6 +20,7 @@ public abstract class NotificationHandlerFactory {
     protected final CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected final CassandraTaskErrorsDAO taskErrorDAO;
     protected final CassandraTaskInfoDAO taskInfoDAO;
+    protected BatchExecutor batchExecutor;
     protected final String topologyName;
 
     protected NotificationHandlerFactory(ProcessedRecordsDAO processedRecordsDAO,
@@ -27,6 +29,7 @@ public abstract class NotificationHandlerFactory {
                                          CassandraSubTaskInfoDAO subTaskInfoDAO,
                                          CassandraTaskErrorsDAO taskErrorDAO,
                                          CassandraTaskInfoDAO taskInfoDAO,
+                                         BatchExecutor batchExecutor,
                                          String topologyName) {
         this.processedRecordsDAO = processedRecordsDAO;
         this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
@@ -34,6 +37,7 @@ public abstract class NotificationHandlerFactory {
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
         this.taskInfoDAO = taskInfoDAO;
+        this.batchExecutor = batchExecutor;
         this.topologyName = topologyName;
     }
 

@@ -56,6 +56,7 @@ public class NotificationBolt extends BaseRichBolt {
     private transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
+    private transient BatchExecutor batchExecutor;
 
     /**
      * Constructor of notification bolt.
@@ -107,6 +108,7 @@ public class NotificationBolt extends BaseRichBolt {
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+        batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
     }
 
@@ -143,6 +145,7 @@ public class NotificationBolt extends BaseRichBolt {
                     subTaskInfoDAO,
                     taskErrorDAO,
                     taskInfoDAO,
+                    batchExecutor,
                     topologyName
             );
             return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
@@ -154,6 +157,7 @@ public class NotificationBolt extends BaseRichBolt {
                     subTaskInfoDAO,
                     taskErrorDAO,
                     taskInfoDAO,
+                    batchExecutor,
                     topologyName
             );
             return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
