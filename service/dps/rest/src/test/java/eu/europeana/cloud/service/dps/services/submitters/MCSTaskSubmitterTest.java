@@ -402,13 +402,13 @@ public class MCSTaskSubmitterTest {
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID1),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, /*new Date()*/ DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
 
         when(recordServiceClient.getRepresentationsByRevision(
                 eq(CLOUD_ID2),
                 eq(REPRESENTATION_NAME),
-                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, /*new Date()*/ DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
+                eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1) ))
         )).thenReturn(Collections.singletonList(REPRESENTATION_1));
     }
 
