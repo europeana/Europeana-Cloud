@@ -5,6 +5,7 @@ import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Component responsible for executing provided statements in LOGGED batch
@@ -29,6 +30,12 @@ public class BatchExecutor {
     public void executeAll(BoundStatement... statements) {
         BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
         Arrays.stream(statements).forEach(batchStatement::add);
+        dbService.getSession().execute(batchStatement);
+    }
+
+    public void executeAll(List<BoundStatement> statements) {
+        BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
+        statements.forEach(batchStatement::add);
         dbService.getSession().execute(batchStatement);
     }
 }

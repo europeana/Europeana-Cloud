@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.handler.*;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 
 public class NotificationHandlerFactoryForPostprocessingTasks extends NotificationHandlerFactory {
 
@@ -13,18 +12,18 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
      */
     public NotificationHandlerFactoryForPostprocessingTasks(ProcessedRecordsDAO processedRecordsDAO,
                                                             TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                                            TaskStatusUpdater taskStatusUpdater,
                                                             CassandraSubTaskInfoDAO subTaskInfoDAO,
                                                             CassandraTaskErrorsDAO taskErrorDAO,
                                                             CassandraTaskInfoDAO taskInfoDAO,
+                                                            TasksByStateDAO tasksByStateDAO,
                                                             BatchExecutor batchExecutor,
                                                             String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
-                taskStatusUpdater,
                 subTaskInfoDAO,
                 taskErrorDAO,
                 taskInfoDAO,
+                tasksByStateDAO,
                 batchExecutor,
                 topologyName);
     }
@@ -36,20 +35,20 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                 return new NotificationWithErrorForLastRecordInPostProcessingTask(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,
-                        taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
                         taskInfoDAO,
+                        tasksByStateDAO,
                         batchExecutor,
                         topologyName);
             } else {
                 return new NotificationWithError(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,
-                        taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
                         taskInfoDAO,
+                        tasksByStateDAO,
                         batchExecutor,
                         topologyName);
             }
@@ -58,20 +57,20 @@ public class NotificationHandlerFactoryForPostprocessingTasks extends Notificati
                 return new DefaultNotificationForLastRecordInPostprocessingTask(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,
-                        taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
                         taskInfoDAO,
+                        tasksByStateDAO,
                         batchExecutor,
                         topologyName);
             } else {
                 return new DefaultNotification(
                         processedRecordsDAO,
                         taskDiagnosticInfoDAO,
-                        taskStatusUpdater,
                         subTaskInfoDAO,
                         taskErrorDAO,
                         taskInfoDAO,
+                        tasksByStateDAO,
                         batchExecutor,
                         topologyName);
             }

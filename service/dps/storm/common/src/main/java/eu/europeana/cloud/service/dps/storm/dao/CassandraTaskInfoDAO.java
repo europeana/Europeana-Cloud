@@ -186,7 +186,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public void updateState(long taskId, TaskState state, String info) {
-        dbService.getSession().execute(updateStateStatement.bind(String.valueOf(state), info, taskId));
+        dbService.getSession().execute(updateStateStatement(taskId, state, info));
+    }
+
+    public BoundStatement updateStateStatement(long taskId, TaskState state, String info) {
+        return updateStateStatement.bind(String.valueOf(state), info, taskId);
     }
 
     public boolean isDroppedTask(long taskId) throws TaskInfoDoesNotExistException {

@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.handler.*;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -15,7 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class NotificationHandlerFactoryForDefaultTasksTest {
 
@@ -24,10 +23,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -43,10 +42,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -62,10 +61,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -83,10 +82,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -104,10 +103,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -125,10 +124,10 @@ public class NotificationHandlerFactoryForDefaultTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );

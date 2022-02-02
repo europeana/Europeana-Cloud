@@ -1,17 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
-import eu.europeana.cloud.common.model.dps.Notification;
+import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Handles {@link NotificationTuple} that is generated during default records processing.
@@ -24,49 +23,34 @@ public class DefaultNotification extends NotificationTupleHandler {
 
     public DefaultNotification(ProcessedRecordsDAO processedRecordsDAO,
                                TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                               TaskStatusUpdater taskStatusUpdater,
                                CassandraSubTaskInfoDAO subTaskInfoDAO,
                                CassandraTaskErrorsDAO taskErrorDAO,
                                CassandraTaskInfoDAO taskInfoDAO,
+                               TasksByStateDAO tasksByStateDAO,
                                BatchExecutor batchExecutor,
                                String topologyName) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
-                taskStatusUpdater,
                 subTaskInfoDAO,
                 taskErrorDAO,
                 taskInfoDAO,
+                tasksByStateDAO,
                 batchExecutor,
                 topologyName);
     }
 
     @Override
-    public void handle(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
-        LOGGER.debug("Executing notification handler");
-        long taskId = notificationTuple.getTaskId();
-        var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-        //
-        if (tupleShouldBeProcessed(taskId, recordId)) {
-            nCache.incrementCounters(notificationTuple);
-            Notification notification = prepareNotification(notificationTuple, nCache.getProcessed());
+    protected List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple) {
+        return Collections.emptyList();
+    }
 
-            batchExecutor.executeAll(
-                    subTaskInfoDAO.insertNotificationStatement(notification),
-                    taskInfoDAO.updateProcessedFilesStatement(taskId,
-                            nCache.getProcessedRecordsCount(),
-                            nCache.getIgnoredRecordsCount(),
-                            nCache.getDeletedRecordsCount(),
-                            nCache.getProcessedErrorsCount(),
-                            nCache.getDeletedErrorsCount()),
-                    processedRecordsDAO.updateProcessedRecordStateStatement(notification.getTaskId(),
-                            String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)),
-                            RecordState.SUCCESS),
-                    taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTimeStatement(
-                            notificationTuple.getTaskId(), Instant.now()
-                    )
-            );
-        } else {
-            taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTime(notificationTuple.getTaskId(), Instant.now());
-        }
+    @Override
+    protected List<BoundStatement> prepareStatementsForRecordState(NotificationTuple notificationTuple) {
+        return prepareStatementsForRecordState(notificationTuple, RecordState.SUCCESS);
+    }
+
+    @Override
+    protected List<BoundStatement> prepareStatementsForTupleContainingError(NotificationTuple notificationTuple, NotificationBolt.NotificationCache nCache) {
+        return Collections.emptyList();
     }
 }

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -90,11 +91,19 @@ public class TasksByStateDAO extends CassandraDAO {
     }
 
     public void insert(TaskState state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
-        dbService.getSession().execute(insertStatement.bind(state.toString(), topologyName, taskId, applicationId, topicName, startTime));
+        dbService.getSession().execute(insertStatement(state, topologyName, taskId, applicationId, topicName, startTime));
+    }
+
+    public BoundStatement insertStatement(TaskState state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
+        return insertStatement.bind(state.toString(), topologyName, taskId, applicationId, topicName, startTime);
     }
 
     public void delete(TaskState state, String topologyName, long taskId) {
-        dbService.getSession().execute(deleteStatement.bind(state.toString(), topologyName, taskId));
+        dbService.getSession().execute(deleteStatement(state, topologyName, taskId));
+    }
+
+    public BoundStatement deleteStatement(TaskState state, String topologyName, long taskId) {
+        return deleteStatement.bind(state.toString(), topologyName, taskId);
     }
 
     public Optional<TaskByTaskState> findTask(TaskState state, String topologyName, long taskId) {

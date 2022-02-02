@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFact
 import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForDefaultTasks;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForPostprocessingTasks;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -50,12 +49,12 @@ public class NotificationBolt extends BaseRichBolt {
     protected LRUCache<Long, NotificationCache> cache = new LRUCache<>(50);
 
     protected String topologyName;
-    protected transient TaskStatusUpdater taskStatusUpdater;
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient CassandraTaskInfoDAO taskInfoDAO;
     private transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
     private transient CassandraTaskErrorsDAO taskErrorDAO;
+    private transient TasksByStateDAO tasksByStateDAO;
     private transient BatchExecutor batchExecutor;
 
     /**
@@ -104,10 +103,10 @@ public class NotificationBolt extends BaseRichBolt {
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
-        taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);
         subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+        tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
         batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
     }
@@ -141,10 +140,10 @@ public class NotificationBolt extends BaseRichBolt {
             NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                     processedRecordsDAO,
                     taskDiagnosticInfoDAO,
-                    taskStatusUpdater,
                     subTaskInfoDAO,
                     taskErrorDAO,
                     taskInfoDAO,
+                    tasksByStateDAO,
                     batchExecutor,
                     topologyName
             );
@@ -153,10 +152,10 @@ public class NotificationBolt extends BaseRichBolt {
             NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
                     processedRecordsDAO,
                     taskDiagnosticInfoDAO,
-                    taskStatusUpdater,
                     subTaskInfoDAO,
                     taskErrorDAO,
                     taskInfoDAO,
+                    tasksByStateDAO,
                     batchExecutor,
                     topologyName
             );

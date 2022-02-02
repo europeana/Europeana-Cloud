@@ -25,10 +25,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -44,10 +44,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -63,10 +63,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -84,10 +84,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -105,10 +105,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );
@@ -126,10 +126,10 @@ public class NotificationHandlerFactoryForPostprocessingTasksTest {
         NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(TaskDiagnosticInfoDAO.class),
-                Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(CassandraSubTaskInfoDAO.class),
                 Mockito.mock(CassandraTaskErrorsDAO.class),
                 Mockito.mock(CassandraTaskInfoDAO.class),
+                Mockito.mock(TasksByStateDAO.class),
                 Mockito.mock(BatchExecutor.class),
                 "topologyName"
         );

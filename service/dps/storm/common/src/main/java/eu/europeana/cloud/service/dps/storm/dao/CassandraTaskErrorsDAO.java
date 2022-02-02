@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -7,6 +8,7 @@ import com.google.common.collect.Iterators;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 
+import eu.europeana.cloud.common.model.dps.ErrorNotification;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
@@ -127,9 +129,25 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
      * @param resource     resource identifier
      */
     public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
-        dbService.getSession().execute(insertErrorStatement.bind(taskId, UUID.fromString(errorType), errorMessage, resource, additionalInformations));
+        dbService.getSession().execute(insertErrorStatement(
+                ErrorNotification.builder()
+                        .taskId(taskId)
+                        .errorType(errorType)
+                        .errorMessage(errorMessage)
+                        .resource(resource)
+                        .additionalInformations(additionalInformations)
+                        .build()
+        ));
     }
 
+    public BoundStatement insertErrorStatement(ErrorNotification errorNotification) {
+        return insertErrorStatement.bind(
+                errorNotification.getTaskId(),
+                UUID.fromString(errorNotification.getErrorType()),
+                errorNotification.getErrorMessage(),
+                errorNotification.getResource(),
+                errorNotification.getAdditionalInformations());
+    }
     /**
      * Return the number of errors of all types for a given task.
      *

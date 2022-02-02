@@ -7,36 +7,35 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 
 /**
  * Abstract factory for notification tuple handlers;
  */
 public abstract class NotificationHandlerFactory {
 
-    protected final TaskStatusUpdater taskStatusUpdater;
     protected final ProcessedRecordsDAO processedRecordsDAO;
     protected final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
     protected final CassandraSubTaskInfoDAO subTaskInfoDAO;
     protected final CassandraTaskErrorsDAO taskErrorDAO;
     protected final CassandraTaskInfoDAO taskInfoDAO;
+    protected  final TasksByStateDAO tasksByStateDAO;
     protected BatchExecutor batchExecutor;
     protected final String topologyName;
 
     protected NotificationHandlerFactory(ProcessedRecordsDAO processedRecordsDAO,
                                          TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                         TaskStatusUpdater taskStatusUpdater,
                                          CassandraSubTaskInfoDAO subTaskInfoDAO,
                                          CassandraTaskErrorsDAO taskErrorDAO,
                                          CassandraTaskInfoDAO taskInfoDAO,
+                                         TasksByStateDAO tasksByStateDAO,
                                          BatchExecutor batchExecutor,
                                          String topologyName) {
         this.processedRecordsDAO = processedRecordsDAO;
         this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
-        this.taskStatusUpdater = taskStatusUpdater;
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
         this.taskInfoDAO = taskInfoDAO;
+        this.tasksByStateDAO = tasksByStateDAO;
         this.batchExecutor = batchExecutor;
         this.topologyName = topologyName;
     }
