@@ -23,7 +23,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
- * Created by pwozniak on 4/6/18
+ * Indexing topology main file
  */
 public class IndexingTopology {
 
@@ -32,14 +32,11 @@ public class IndexingTopology {
     private static final Properties topologyProperties = new Properties();
     private static final Properties indexingProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "indexing-topology-config.properties";
-    private static final String INDEXING_PROPERTIES_FILE = "indexing.properties";
     public static final String SUCCESS_MESSAGE = "Record is indexed correctly";
 
-    private IndexingTopology(String defaultPropertyFile, String providedPropertyFile,
-                             String defaultIndexingPropertiesFile, String providedIndexingPropertiesFile) {
-
+    private IndexingTopology(String defaultPropertyFile, String providedPropertyFile, String providedIndexingPropertiesFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
-        PropertyFileLoader.loadPropertyFile(defaultIndexingPropertiesFile, providedIndexingPropertiesFile, indexingProperties);
+        PropertyFileLoader.loadPropertyFile("", providedIndexingPropertiesFile, indexingProperties);
         TopologyPropertiesValidator.validateFor(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties);
     }
 
@@ -108,8 +105,7 @@ public class IndexingTopology {
                 String providedIndexingPropertiesFile = (args.length == 2 ? args[1] : "");
 
                 IndexingTopology indexingTopology =
-                        new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
-                                INDEXING_PROPERTIES_FILE, providedIndexingPropertiesFile);
+                        new IndexingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile, providedIndexingPropertiesFile);
 
                 StormTopology stormTopology = indexingTopology.buildTopology();
 
