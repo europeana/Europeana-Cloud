@@ -21,11 +21,13 @@ import java.util.List;
  * <li>Update record status in <b>processedRecords</b> table</li>
  * <li>Update error counters in <b>error_counters</b> table</li>
  * <li>Insert error information in <b>error_notifications</b> table</li>
- * <li>Update task status to TaskState.PROCESSED in <b>tasksByTaskState</b> table (by removing old status and inserting new one)</li>
+ * <li>Update task status to what is provided in parameter in <b>tasksByTaskState</b> table (by removing old status and inserting new one)</li>
  */
 public class NotificationWithErrorForLastRecordInTask extends NotificationTupleHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationWithErrorForLastRecordInTask.class);
+
+    private final TaskState taskStateToBeSet;
 
     public NotificationWithErrorForLastRecordInTask(ProcessedRecordsDAO processedRecordsDAO,
                                                     TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
@@ -34,7 +36,8 @@ public class NotificationWithErrorForLastRecordInTask extends NotificationTupleH
                                                     CassandraTaskInfoDAO taskInfoDAO,
                                                     TasksByStateDAO tasksByStateDAO,
                                                     BatchExecutor batchExecutor,
-                                                    String topologyName) {
+                                                    String topologyName,
+                                                    TaskState taskStateToBeSet) {
         super(processedRecordsDAO,
                 taskDiagnosticInfoDAO,
                 subTaskInfoDAO,
@@ -43,11 +46,12 @@ public class NotificationWithErrorForLastRecordInTask extends NotificationTupleH
                 tasksByStateDAO,
                 batchExecutor,
                 topologyName);
+        this.taskStateToBeSet = taskStateToBeSet;
     }
 
     @Override
     protected List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple) {
-        return prepareStatementsForTupleContainingLastRecord(notificationTuple, TaskState.PROCESSED, "Completely processed");
+        return prepareStatementsForTupleContainingLastRecord(notificationTuple, taskStateToBeSet);
     }
 
     @Override

@@ -156,7 +156,7 @@ public abstract class NotificationTupleHandler {
         return statementsToBeExecuted;
     }
 
-    protected List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState, String message) {
+    protected List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState) {
         List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
 
         taskInfoDAO.findById(notificationTuple.getTaskId()).flatMap(
@@ -167,7 +167,7 @@ public abstract class NotificationTupleHandler {
                     statementsToBeExecuted.add(tasksByStateDAO.insertStatement(newState, topologyName, notificationTuple.getTaskId(), oldTaskState.getApplicationId(),
                             oldTaskState.getTopicName(), oldTaskState.getStartTime()));
                 });
-        statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, message));
+        statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, newState.getDefaultMessage()));
 
         return statementsToBeExecuted;
     }

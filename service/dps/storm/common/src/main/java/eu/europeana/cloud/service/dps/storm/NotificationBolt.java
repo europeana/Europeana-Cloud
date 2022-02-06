@@ -10,8 +10,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactory;
-import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForDefaultTasks;
-import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactoryForPostprocessingTasks;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import lombok.Getter;
@@ -136,31 +134,16 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private NotificationTupleHandler prepareNotificationHandler(NotificationTuple notificationTuple, NotificationCache cachedCounters) throws TaskInfoDoesNotExistException, IOException {
-        if (needsPostProcessing(notificationTuple)) {
-            NotificationHandlerFactory factory = new NotificationHandlerFactoryForPostprocessingTasks(
-                    processedRecordsDAO,
-                    taskDiagnosticInfoDAO,
-                    subTaskInfoDAO,
-                    taskErrorDAO,
-                    taskInfoDAO,
-                    tasksByStateDAO,
-                    batchExecutor,
-                    topologyName
-            );
-            return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
-        } else {
-            NotificationHandlerFactory factory = new NotificationHandlerFactoryForDefaultTasks(
-                    processedRecordsDAO,
-                    taskDiagnosticInfoDAO,
-                    subTaskInfoDAO,
-                    taskErrorDAO,
-                    taskInfoDAO,
-                    tasksByStateDAO,
-                    batchExecutor,
-                    topologyName
-            );
-            return factory.provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed);
-        }
+        return new NotificationHandlerFactory(
+                processedRecordsDAO,
+                taskDiagnosticInfoDAO,
+                subTaskInfoDAO,
+                taskErrorDAO,
+                taskInfoDAO,
+                tasksByStateDAO,
+                batchExecutor,
+                topologyName
+        ).provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed, needsPostProcessing(notificationTuple));
     }
 
     @Getter

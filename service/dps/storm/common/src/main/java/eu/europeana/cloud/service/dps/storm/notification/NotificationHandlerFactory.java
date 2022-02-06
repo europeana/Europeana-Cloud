@@ -1,17 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.notification;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.dao.*;
-import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
+import eu.europeana.cloud.service.dps.storm.notification.handler.*;
 
 /**
  * Abstract factory for notification tuple handlers;
  */
-public abstract class NotificationHandlerFactory {
+public class NotificationHandlerFactory {
 
     protected final ProcessedRecordsDAO processedRecordsDAO;
     protected final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
@@ -22,7 +23,7 @@ public abstract class NotificationHandlerFactory {
     protected BatchExecutor batchExecutor;
     protected final String topologyName;
 
-    protected NotificationHandlerFactory(ProcessedRecordsDAO processedRecordsDAO,
+    public NotificationHandlerFactory(ProcessedRecordsDAO processedRecordsDAO,
                                          TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
                                          CassandraSubTaskInfoDAO subTaskInfoDAO,
                                          CassandraTaskErrorsDAO taskErrorDAO,
@@ -40,7 +41,67 @@ public abstract class NotificationHandlerFactory {
         this.topologyName = topologyName;
     }
 
-    public abstract NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount);
+    public NotificationTupleHandler provide(NotificationTuple notificationTuple, int expectedSize, int processedRecordsCount, boolean needsPostprocessing){
+        if (isLastOneTupleInTask(expectedSize, processedRecordsCount)) {
+            return notificationTupleHandlerForLastRecord(notificationTuple, needsPostprocessing);
+        } else {
+            return notificationTupleHandlerForMiddleRecord(notificationTuple);
+        }
+    }
+
+    private NotificationTupleHandler notificationTupleHandlerForLastRecord(NotificationTuple notificationTuple, boolean needsPostprocessing) {
+        if (isError(notificationTuple)) {
+            return new NotificationWithErrorForLastRecordInTask(
+                    processedRecordsDAO,
+                    taskDiagnosticInfoDAO,
+                    subTaskInfoDAO,
+                    taskErrorDAO,
+                    taskInfoDAO,
+                    tasksByStateDAO,
+                    batchExecutor,
+                    topologyName,
+                    needsPostprocessing ? TaskState.READY_FOR_POST_PROCESSING : TaskState.PROCESSED
+            );
+        } else {
+            return new DefaultNotificationForLastRecordInTask(
+                    processedRecordsDAO,
+                    taskDiagnosticInfoDAO,
+                    subTaskInfoDAO,
+                    taskErrorDAO,
+                    taskInfoDAO,
+                    tasksByStateDAO,
+                    batchExecutor,
+                    topologyName,
+                    needsPostprocessing ? TaskState.READY_FOR_POST_PROCESSING : TaskState.PROCESSED
+            );
+        }
+    }
+
+    private NotificationTupleHandler notificationTupleHandlerForMiddleRecord(NotificationTuple notificationTuple) {
+        if (isError(notificationTuple)) {
+            return new NotificationWithError(
+                    processedRecordsDAO,
+                    taskDiagnosticInfoDAO,
+                    subTaskInfoDAO,
+                    taskErrorDAO,
+                    taskInfoDAO,
+                    tasksByStateDAO,
+                    batchExecutor,
+                    topologyName
+            );
+        } else {
+            return new DefaultNotification(
+                    processedRecordsDAO,
+                    taskDiagnosticInfoDAO,
+                    subTaskInfoDAO,
+                    taskErrorDAO,
+                    taskInfoDAO,
+                    tasksByStateDAO,
+                    batchExecutor,
+                    topologyName
+            );
+        }
+    }
 
     protected boolean isError(NotificationTuple notificationTuple) {
         return isErrorTuple(notificationTuple)
