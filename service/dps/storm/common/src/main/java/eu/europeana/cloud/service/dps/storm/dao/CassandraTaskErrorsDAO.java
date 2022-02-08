@@ -11,6 +11,7 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.ErrorNotification;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
@@ -25,7 +26,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskErrorsDAO extends CassandraDAO {
     private PreparedStatement insertErrorStatement;
-    private PreparedStatement updateErrorCounterStatement;
+    private PreparedStatement insertErrorCounterStatement;
     private PreparedStatement selectErrorCountsStatement;
     private PreparedStatement selectErrorCountsForErrorTypeStatement;
     private PreparedStatement removeErrorCountsStatement;
@@ -69,11 +70,12 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 ") VALUES (?,?,?,?,?)");
         insertErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        updateErrorCounterStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
-                " SET " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER + " = " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER + " + 1 " +
-                "WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + " = ?");
-        updateErrorCounterStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+        insertErrorCounterStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
+                "(" + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + ","
+                + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + ","
+                + CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER
+                + ") VALUES (?,?,?)");
+        insertErrorCounterStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorCountsStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER +
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
@@ -109,15 +111,17 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         removeErrorNotifications.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
+    public void insertErrorCounter(long taskId, String errorType, int number) {
+        dbService.getSession().execute(insertErrorCounterStatement(taskId,
+                ErrorType.builder()
+                        .taskId(taskId)
+                        .count(number)
+                        .uuid(errorType)
+                        .build()));
+    }
 
-    /**
-     * Update number of errors of the given type that occurred in the given task
-     *
-     * @param taskId    task identifier
-     * @param errorType type of error
-     */
-    public void updateErrorCounter(long taskId, String errorType) {
-        dbService.getSession().execute(updateErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
+    public BoundStatement insertErrorCounterStatement(long taskId, ErrorType errorType){
+        return insertErrorCounterStatement.bind(taskId, UUID.fromString(errorType.getUuid()), errorType.getCount());
     }
 
     /**
@@ -178,7 +182,7 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         ResultSet rs = dbService.getSession().execute(selectErrorCountsForErrorTypeStatement.bind(taskId, errorType));
         Row result = rs.one();
         if (result != null) {
-            return result.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
+            return result.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
         } else {
             return 0;
         }
@@ -188,6 +192,15 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         return Iterators.transform(
                 dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
                 row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString());
+    }
+
+    public Iterator<ErrorType> getAll(long taskId) {
+        return Iterators.transform(
+                dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
+                row -> ErrorType.builder()
+                        .count(row.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER))
+                        .uuid(row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString())
+                        .build());
     }
 
     public Optional<String> getErrorMessage(long taskId, String errorType)  {

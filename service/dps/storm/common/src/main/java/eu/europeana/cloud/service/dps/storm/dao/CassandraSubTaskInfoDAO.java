@@ -86,7 +86,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 notification.getResource(),
                 notification.getState(),
                 notification.getInfoText(),
-                notification.getAdditionalInformations(),
+                notification.getAdditionalInformation(),
                 notification.getResultResource());
     }
 

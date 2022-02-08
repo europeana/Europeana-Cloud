@@ -142,7 +142,7 @@ public class ReportService implements TaskExecutionReportService {
 
             String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
             String message = getErrorMessage(taskId, errorMessages, errorType);
-            int occurrences = (int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
+            int occurrences = row.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
             List<ErrorDetails> errorDetails = retrieveErrorDetails(taskId, errorType, idsCount);
             errors.add(new TaskErrorInfo(errorType, message, occurrences, errorDetails));
         }
@@ -242,7 +242,7 @@ public class ReportService implements TaskExecutionReportService {
         taskErrorInfo.setErrorType(errorType);
 
         Row row = rs.one();
-        taskErrorInfo.setOccurrences((int) row.getLong(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER));
+        taskErrorInfo.setOccurrences(row.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER));
 
         return taskErrorInfo;
     }

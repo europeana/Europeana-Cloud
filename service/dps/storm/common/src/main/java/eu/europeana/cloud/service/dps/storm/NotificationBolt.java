@@ -4,17 +4,16 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
-import eu.europeana.cloud.service.dps.storm.notification.NotificationHandlerFactory;
+import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
+import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheBuilder;
+import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
+import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.util.LRUCache;
-import lombok.Getter;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.StandardToStringStyle;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -25,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -44,16 +41,12 @@ public class NotificationBolt extends BaseRichBolt {
     private final String userName;
     private final String password;
     protected transient OutputCollector outputCollector;
-    protected LRUCache<Long, NotificationCache> cache = new LRUCache<>(50);
+    protected LRUCache<Long, NotificationCacheEntry> cache = new LRUCache<>(50);
 
     protected String topologyName;
-    protected transient ProcessedRecordsDAO processedRecordsDAO;
-    protected transient CassandraTaskInfoDAO taskInfoDAO;
-    private transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
-    private transient CassandraSubTaskInfoDAO subTaskInfoDAO;
-    private transient CassandraTaskErrorsDAO taskErrorDAO;
-    private transient TasksByStateDAO tasksByStateDAO;
-    private transient BatchExecutor batchExecutor;
+    private transient CassandraTaskInfoDAO taskInfoDAO;
+    private transient NotificationTupleHandler notificationTupleHandler;
+    private transient NotificationEntryCacheBuilder notificationEntryCacheBuilder;
 
     /**
      * Constructor of notification bolt.
@@ -80,8 +73,12 @@ public class NotificationBolt extends BaseRichBolt {
         try {
             var notificationTuple = NotificationTuple.fromStormTuple(tuple);
             var cachedCounters = readCachedCounters(notificationTuple);
-            NotificationTupleHandler handler = prepareNotificationHandler(notificationTuple, cachedCounters);
-            handler.handle(notificationTuple, cachedCounters);
+            NotificationHandlerConfig notificationHandlerConfig =
+                    NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(
+                            notificationTuple,
+                            cachedCounters,
+                            needsPostProcessing(notificationTuple));
+            notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
         } catch (NoHostAvailableException | QueryExecutionException ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
         } catch (Exception ex) {
@@ -100,13 +97,22 @@ public class NotificationBolt extends BaseRichBolt {
                         hosts, port, keyspaceName, userName, password);
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
-        subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
-        taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
-        tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
-        batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
+        CassandraSubTaskInfoDAO subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
+        CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+        TasksByStateDAO tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
+        notificationEntryCacheBuilder = new NotificationEntryCacheBuilder(subTaskInfoDAO, taskInfoDAO, taskErrorDAO);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
+        notificationTupleHandler = new NotificationTupleHandler(
+                processedRecordsDAO,
+                TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider),
+                CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider),
+                taskErrorDAO,
+                taskInfoDAO,
+                tasksByStateDAO,
+                BatchExecutor.getInstance(cassandraConnectionProvider),
+                topologyName
+        );
     }
 
     @Override
@@ -124,110 +130,12 @@ public class NotificationBolt extends BaseRichBolt {
         return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 
-    private NotificationCache readCachedCounters(NotificationTuple notificationTuple) {
+    private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {
         var cachedCounters = cache.get(notificationTuple.getTaskId());
         if (cachedCounters == null) {
-            cachedCounters = new NotificationCache(notificationTuple.getTaskId());
+            cachedCounters = notificationEntryCacheBuilder.build(notificationTuple.getTaskId());
             cache.put(notificationTuple.getTaskId(), cachedCounters);
         }
         return cachedCounters;
-    }
-
-    private NotificationTupleHandler prepareNotificationHandler(NotificationTuple notificationTuple, NotificationCache cachedCounters) throws TaskInfoDoesNotExistException, IOException {
-        return new NotificationHandlerFactory(
-                processedRecordsDAO,
-                taskDiagnosticInfoDAO,
-                subTaskInfoDAO,
-                taskErrorDAO,
-                taskInfoDAO,
-                tasksByStateDAO,
-                batchExecutor,
-                topologyName
-        ).provide(notificationTuple, cachedCounters.expectedRecordsNumber, cachedCounters.processed, needsPostProcessing(notificationTuple));
-    }
-
-    @Getter
-    public class NotificationCache {
-
-        int processed;
-        int processedRecordsCount;
-        int ignoredRecordsCount;
-        int deletedRecordsCount;
-        int processedErrorsCount;
-        int deletedErrorsCount;
-        int expectedRecordsNumber;
-
-        Map<String, String> errorTypes = new HashMap<>();
-
-        NotificationCache(long taskId) {
-            processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
-            var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
-            expectedRecordsNumber = taskInfo.getExpectedRecordsNumber();
-            if (processed > 0) {
-                processedRecordsCount = taskInfo.getProcessedRecordsCount();
-                ignoredRecordsCount = taskInfo.getIgnoredRecordsCount();
-                deletedRecordsCount = taskInfo.getDeletedRecordsCount();
-                processedErrorsCount = taskInfo.getProcessedErrorsCount();
-                deletedErrorsCount = taskInfo.getDeletedErrorsCount();
-                errorTypes = getMessagesUUIDsMap(taskId);
-                LOGGER.info("Restored state of NotificationBolt from Cassandra for taskId={} counters={}",
-                        taskId, getCountersAsText());
-            }
-        }
-
-        public void incrementCounters(NotificationTuple notificationTuple) {
-            processed++;
-
-            if (notificationTuple.isMarkedAsDeleted()) {
-                deletedRecordsCount++;
-                if (isErrorTuple(notificationTuple)) {
-                    deletedErrorsCount++;
-                }
-            } else if (notificationTuple.isIgnoredRecord()) {
-                if (isErrorTuple(notificationTuple)) {
-                    LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
-                            , notificationTuple);
-                    processedRecordsCount++;
-                    processedErrorsCount++;
-                } else {
-                    ignoredRecordsCount++;
-                }
-            } else {
-                processedRecordsCount++;
-                if (isErrorTuple(notificationTuple)) {
-                    processedErrorsCount++;
-                }
-            }
-
-        }
-
-        public String getErrorType(String infoText) {
-            return errorTypes.computeIfAbsent(infoText,
-                    key -> new com.eaio.uuid.UUID().toString());
-        }
-
-        public String getCountersAsText() {
-            var style = new StandardToStringStyle();
-            style.setUseClassName(false);
-            style.setUseIdentityHashCode(false);
-            style.setContentEnd("");
-            style.setContentStart("");
-            return new ReflectionToStringBuilder(this, style).setExcludeFieldNames("errorTypes").toString();
-        }
-
-        private boolean isErrorTuple(NotificationTuple notificationTuple) {
-            return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
-        }
-
-        private Map<String, String> getMessagesUUIDsMap(long taskId) {
-            Map<String, String> errorMessageToUuidMap = new HashMap<>();
-            Iterator<String> it = taskErrorDAO.getMessagesUuids(taskId);
-            while (it.hasNext()) {
-                String errorType = it.next();
-                Optional<String> message = taskErrorDAO.getErrorMessage(taskId, errorType);
-                message.ifPresent(s -> errorMessageToUuidMap.put(s, errorType));
-            }
-            return errorMessageToUuidMap;
-        }
     }
 }

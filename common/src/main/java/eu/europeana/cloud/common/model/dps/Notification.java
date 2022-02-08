@@ -21,6 +21,6 @@ public class Notification {
     private String resource;
     private String state;
     private String infoText;
-    private String additionalInformations;
+    private String additionalInformation;
     private String resultResource;
 }
