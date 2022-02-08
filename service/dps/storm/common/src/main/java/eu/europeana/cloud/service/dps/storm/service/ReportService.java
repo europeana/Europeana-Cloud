@@ -257,12 +257,9 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     @Override
-    public Boolean checkIfReportExists(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
+    public boolean checkIfReportExists(String taskId) {
         ResultSet rs = cassandra.getSession().execute(checkErrorExistStatement.bind(Long.parseLong(taskId)));
-        if (rs.iterator().hasNext()) {
-            return true;
-        }
-        throw new AccessDeniedOrObjectDoesNotExistException("No statistic report");
+        return rs.iterator().hasNext();
     }
 
 }

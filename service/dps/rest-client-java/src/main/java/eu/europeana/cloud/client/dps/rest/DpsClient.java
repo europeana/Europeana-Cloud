@@ -17,6 +17,7 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -30,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -285,19 +287,17 @@ public class DpsClient implements AutoCloseable {
                 "Error while retrieving task error report");
     }
 
-    public boolean checkIfErrorReportExists(final String topologyName, final long taskId) {
-        try {
-            return manageResponse(new ResponseParams<>(Boolean.class),
-                    () -> client
-                            .target(dpsUrl)
-                            .path(ERRORS_TASK_REPORT_URL)
-                            .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                            .resolveTemplate(TASK_ID, taskId)
-                            .request().head(),
-                    "Error while checking error report exits");
-        }catch (Exception e) {
-            return false;
-        }
+    public boolean checkIfErrorReportExists(final String topologyName, final long taskId) throws DpsException {
+        return manageResponse(
+                new ResponseParams<>(Response.StatusType.class, Response.Status.OK, Response.Status.METHOD_NOT_ALLOWED),
+                () -> client
+                        .target(dpsUrl)
+                        .path(ERRORS_TASK_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request().head(),
+                "Error while checking error report exits")
+                .getStatusCode() == Response.Status.OK.getStatusCode();
     }
 
     public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) throws DpsException {
@@ -354,7 +354,7 @@ public class DpsClient implements AutoCloseable {
         Response response = responseSupplier.get();
         try {
             response.bufferEntity();
-            if (response.getStatus() == responseParameters.getValidStatus().getStatusCode()) {
+            if (responseParameters.isStatusValid(response.getStatus())) {
                 return readEntityByClass(responseParameters, response);
             } else if (response.getStatus() == HttpURLConnection.HTTP_UNAVAILABLE) {
                 throw DPSExceptionProvider.createException(errorMessage, "Service unavailable", new ServiceUnavailableException());
@@ -410,18 +410,26 @@ public class DpsClient implements AutoCloseable {
     private static class ResponseParams<T> {
         private Class<T> expectedClass;
         private GenericType<T> genericType;
-        private Response.Status validStatus;
+        private Response.Status[] validStatuses;
 
         public ResponseParams(Class<T> expectedClass) {
-            this(expectedClass, null, Response.Status.OK);
+            this(expectedClass, Response.Status.OK);
         }
 
         public ResponseParams(Class<T> expectedClass, Response.Status validStatus) {
-            this(expectedClass, null, validStatus);
+            this(expectedClass, null, new Response.Status[]{validStatus});
         }
 
         public ResponseParams(GenericType<T> genericType) {
-            this(null, genericType, Response.Status.OK);
+            this(null, genericType, new Response.Status[]{Response.Status.OK});
+        }
+
+        public ResponseParams(Class<T> expectedClass, Response.Status... validStatuses) {
+            this(expectedClass, null, validStatuses);
+        }
+
+        public boolean isStatusValid(Integer status) {
+            return Arrays.stream(validStatuses).map(Response.Status::getStatusCode).anyMatch(status::equals);
         }
     }
 

@@ -53,7 +53,7 @@ public interface TaskExecutionReportService {
     void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException;
 
 
-    Boolean checkIfReportExists(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
+    boolean checkIfReportExists(String taskId) throws AccessDeniedOrObjectDoesNotExistException;
 }
 
 

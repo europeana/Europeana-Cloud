@@ -87,7 +87,7 @@ public class DPSClientTestIT {
     }
 
     @Test
-    public void shouldCheckIfErrorReportExists() {
+    public void shouldCheckIfErrorReportExists() throws DpsException {
         DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
 
         boolean errorReportExists = client.checkIfErrorReportExists("oai_topology", 3289416056779392187L);
