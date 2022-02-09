@@ -354,7 +354,7 @@ public class DpsClient implements AutoCloseable {
         Response response = responseSupplier.get();
         try {
             response.bufferEntity();
-            if (responseParameters.isStatusValid(response.getStatus())) {
+            if (responseParameters.isStatusCodeValid(response.getStatus())) {
                 return readEntityByClass(responseParameters, response);
             } else if (response.getStatus() == HttpURLConnection.HTTP_UNAVAILABLE) {
                 throw DPSExceptionProvider.createException(errorMessage, "Service unavailable", new ServiceUnavailableException());
@@ -428,8 +428,10 @@ public class DpsClient implements AutoCloseable {
             this(expectedClass, null, validStatuses);
         }
 
-        public boolean isStatusValid(Integer status) {
-            return Arrays.stream(validStatuses).map(Response.Status::getStatusCode).anyMatch(status::equals);
+        public boolean isStatusCodeValid(Integer statusCode) {
+            return Arrays.stream(validStatuses)
+                    .map(Response.Status::getStatusCode)
+                    .anyMatch(statusCode::equals);
         }
     }
 

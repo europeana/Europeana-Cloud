@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
@@ -73,7 +74,7 @@ public abstract class MCSClient implements AutoCloseable {
         Response response = responseSupplier.get();
         try {
             response.bufferEntity();
-            if (responseParameters.isCodeInValidStatus(response.getStatus())) {
+            if (responseParameters.isStatusCodeValid(response.getStatus())) {
                 if (responseParameters.getExpectedMd5() != null && !responseParameters.getExpectedMd5().equals(response.getEntityTag().getValue())) {
                     throw MCSExceptionProvider.createException("Incorrect MD5 checksum", null);
                 }
@@ -160,13 +161,10 @@ public abstract class MCSClient implements AutoCloseable {
             this.expectedMd5 = expectedMd5;
         }
 
-        public boolean isCodeInValidStatus(int code) {
-            for (Response.Status status : validStatuses) {
-                if (status.getStatusCode() == code) {
-                    return true;
-                }
-            }
-            return false;
+        public boolean isStatusCodeValid(Integer statusCode) {
+            return Arrays.stream(validStatuses)
+                    .map(Response.Status::getStatusCode)
+                    .anyMatch(statusCode::equals);
         }
     }
 }

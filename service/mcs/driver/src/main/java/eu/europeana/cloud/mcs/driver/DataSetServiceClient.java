@@ -184,6 +184,7 @@ public class DataSetServiceClient extends MCSClient {
                         .request()
                         .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         );
+    }
 
     /**
      * Returns chunk of representation versions list from data set.
