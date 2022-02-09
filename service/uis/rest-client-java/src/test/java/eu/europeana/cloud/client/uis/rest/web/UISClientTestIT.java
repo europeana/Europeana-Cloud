@@ -134,27 +134,6 @@ public class UISClientTestIT {
     }
 
     @Test
-    public void shouldGetRecordIdsByProvider()
-            throws CloudException {
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        ResultSlice<CloudId> cloudIds = c.getCloudIdsByProvider("providerId");
-    }
-
-    @Test
-    public void shouldGetCloudIdsByProviderWithPagination()
-            throws CloudException {
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        ResultSlice<CloudId> cloudIds = c.getCloudIdsByProviderWithPagination("providerId", "RK", 100);
-    }
-
-    @Test
-    public void shouldGetRecordIdsByProviderWithPagination()
-            throws CloudException {
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        ResultSlice<LocalId> cloudIds = c.getRecordIdsByProviderWithPagination("providerId", "1", 100);
-    }
-
-    @Test
     public void shouldCreateMapping() throws CloudException {
         UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
         boolean result = c.createMapping("AD2A6DWBPNSUSIM5FXFW7RXFJKI4LY3BZJGZ336XFPVCHX6G2HKA", "providerId", "startRecordId");

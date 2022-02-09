@@ -129,6 +129,7 @@ public class ParseFileBoltTest {
     @Test
     public void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);

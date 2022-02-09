@@ -3,22 +3,20 @@ package eu.europeana.cloud.service.uis.rest;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.service.uis.DataProviderService;
+import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import static eu.europeana.cloud.common.web.ParamConstants.P_PROVIDER;
-
 @RestController
-@RequestMapping("/data-providers/{" + P_PROVIDER + "}/active")
+@RequestMapping(RestInterfaceConstants.DATA_PROVIDER_ACTIVATION)
 public class DataProviderActivationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataProviderActivationResource.class);
 
-    private DataProviderService providerService;
+    private final DataProviderService providerService;
 
     public DataProviderActivationResource(DataProviderService providerService){
         this.providerService = providerService;
@@ -36,7 +34,7 @@ public class DataProviderActivationResource {
      * </div>    
      * 
      * @summary Data-provider activation 
-     * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated 
+     * @param providerId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated
      * @return Empty response with http status code indicating whether the operation was successful or not
      * @author 
      * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
@@ -44,10 +42,10 @@ public class DataProviderActivationResource {
      */
     @PutMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> activateDataProvider(@PathVariable(P_PROVIDER) String dataProviderId) throws ProviderDoesNotExistException {
-        LOGGER.info("Activating data provider: {}", dataProviderId);
+    public ResponseEntity<Void> activateDataProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+        LOGGER.info("Activating data provider: {}", providerId);
 
-        DataProvider dataProvider = providerService.getProvider(dataProviderId);
+        DataProvider dataProvider = providerService.getProvider(providerId);
         dataProvider.setActive(true);
         providerService.updateProvider(dataProvider);
 
@@ -66,17 +64,17 @@ public class DataProviderActivationResource {
      * </div>
      * 
      * @summary Data-provider deactivation
-     * @param dataProviderId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated    
+     * @param providerId <strong>REQUIRED</strong> identifier of data-provider which is about to be activated
      * @return Empty response with http status code indicating whether the operation was successful or not
      * @author
      * @throws ProviderDoesNotExistException Supplied Data-provider does not exist 
      */
     @DeleteMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deactivateDataProvider(@PathVariable(P_PROVIDER) String dataProviderId) throws ProviderDoesNotExistException {
-        LOGGER.info("Deactivating data provider: {}", dataProviderId);
+    public ResponseEntity<Void> deactivateDataProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+        LOGGER.info("Deactivating data provider: {}", providerId);
 
-        DataProvider dataProvider = providerService.getProvider(dataProviderId);
+        DataProvider dataProvider = providerService.getProvider(providerId);
         dataProvider.setActive(false);
         providerService.updateProvider(dataProvider);
 

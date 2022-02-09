@@ -246,7 +246,7 @@ public class IndexingNotificationBoltTest extends CassandraTestBase {
                 return NotificationTuple.getFields();
             }
         };
-        return new TupleImpl(topologyContext, testValue, 1, "");
+        return new TupleImpl(topologyContext, testValue, "BoltTest", 1, "");
     }
 
 }

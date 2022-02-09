@@ -18,6 +18,7 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Before;
@@ -87,6 +88,9 @@ public class HarvestingPostProcessorTest {
 
     @Mock
     private TaskStatusUpdater taskStatusUpdater;
+
+    @Mock
+    private TaskStatusChecker taskStatusChecker;
 
     @InjectMocks
     private HarvestingPostProcessor service;
@@ -231,6 +235,20 @@ public class HarvestingPostProcessorTest {
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
         verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
         verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
+    }
+
+    @Test
+    public void shouldNotStartPostprocessingForDroppedTask() {
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+        allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
+
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+
+        service.execute(taskInfo, task);
+
+        verifyNoInteractions(taskStatusUpdater);
+        verifyNoInteractions(harvestedRecordsDAO);
+
     }
 
     private HarvestedRecord createHarvestedRecord(Date date, String recordId) {

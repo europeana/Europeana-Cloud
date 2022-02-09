@@ -13,11 +13,14 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -209,15 +212,10 @@ public class RevisionResource {
     }
 
     private <T> ResponseEntity<T> createResponseEntity(HttpServletRequest httpServletRequest, T entity) {
-        URI resultURI = null;
-        try {
-            resultURI = new URI(httpServletRequest.getRequestURL().toString());
-        } catch (URISyntaxException urise) {
-            LOGGER.warn("Invalid URI: '{}'", httpServletRequest.getRequestURL(), urise);
-        }
-
+        HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
+        URI resultURI = UriComponentsBuilder.fromHttpRequest(httpRequest).build().toUri();
         ResponseEntity.BodyBuilder bb = ResponseEntity.created(resultURI);
-        if(entity != null) {
+        if (entity != null) {
             return bb.body(entity);
         } else {
             return bb.build();

@@ -12,10 +12,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
+import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -32,6 +29,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -50,11 +48,12 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @ComponentScan("eu.europeana.cloud.service.dps")
 @EnableAspectJAutoProxy
 @EnableAsync
+@EnableScheduling
 public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
-    public ServiceConfiguration(Environment environment){
+    public ServiceConfiguration(Environment environment) {
         this.environment = environment;
     }
 
@@ -226,9 +225,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public FileURLCreator fileURLCreator(){
+    public FileURLCreator fileURLCreator() {
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
-        if(machineLocation == null) {
+        if (machineLocation == null) {
             throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
@@ -242,14 +241,15 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public HarvestingPostProcessor harvestingPostProcessor(){
+    public HarvestingPostProcessor harvestingPostProcessor() {
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
+                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater(),
+                taskStatusChecker());
     }
 
     @Bean
-    public IndexingPostProcessor indexingPostProcessor(){
-        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO());
+    public IndexingPostProcessor indexingPostProcessor() {
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker());
     }
 
     @Bean
@@ -272,14 +272,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return new RevisionServiceClient(mcsLocation());
     }
 
-    private String mcsLocation() {
-        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
-    }
-
-    private String uisLocation() {
-        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
-    }
-
     @Bean
     public RetryAspect retryAspect() {
         return new RetryAspect();
@@ -287,27 +279,48 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
-                tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
+        return new PostProcessingService(
+                postProcessorFactory(),
+                taskInfoDAO(),
+                taskDiagnosticInfoDAO(),
+                taskStatusUpdater());
     }
 
     @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
+    public PostProcessingScheduler postProcessingScheduler(
+            PostProcessingService postProcessingService,
+            TasksByStateDAO tasksByStateDAO,
+            TaskStatusUpdater taskStatusUpdater,
+            String applicationIdentifier
+    ) {
+        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
+    }
+
+    @Bean
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever) {
         return new MetisDatasetService(datasetStatsRetriever);
     }
 
     @Bean
-    public DatasetStatsRetriever datasetStatsRetriever(){
+    public DatasetStatsRetriever datasetStatsRetriever() {
         return new DatasetStatsRetriever();
     }
 
     @Bean
     public AsyncTaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
+        executor.setCorePoolSize(40);
         executor.setMaxPoolSize(40);
-        executor.setQueueCapacity(20);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
+    }
+
+    private String mcsLocation() {
+        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+    }
+
+    private String uisLocation() {
+        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
     }
 }

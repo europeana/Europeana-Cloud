@@ -5,6 +5,9 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
+
 /**
  * Class with static method for generating Exceptions from ErrorInfo objects.
  */
@@ -12,6 +15,21 @@ public class MCSExceptionProvider {
 
     private MCSExceptionProvider() {
     }
+
+
+    public static MCSException generateException(Response response) {
+
+        try {
+            response.bufferEntity();
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            return MCSExceptionProvider.generateException(errorInfo);
+        } catch (ProcessingException e) {
+            String message = response.readEntity(String.class);
+            throw new RuntimeException("Cound not deserialize response with statusCode: " + response.getStatus()
+                    + ", and message: " + message, e);
+        }
+    }
+
 
     /**
      * Generate {@link MCSException} from {@link ErrorInfo}.
