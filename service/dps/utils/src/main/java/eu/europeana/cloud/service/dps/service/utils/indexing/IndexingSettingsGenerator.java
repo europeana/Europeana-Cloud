@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
  */
 public class IndexingSettingsGenerator {
 
+    public static final String DEFAULT_PROPERTIES_FILENAME = "indexing.properties";
+
     public static final String PREVIEW_PREFIX = "preview";
     public static final String PUBLISH_PREFIX = "publish";
     public static final String MONGO_INSTANCES = "mongo.instances";
