@@ -124,7 +124,7 @@ public class NotificationTupleHandler {
         errorType.incrementCounter();
         statementsToBeExecuted.add(taskErrorDAO.insertErrorCounterStatement(notificationTuple.getTaskId(), errorType));
         //insert error
-        if (!maximumNumberOfErrorsReached(notificationTuple, errorType)) {
+        if (!maximumNumberOfErrorsReached(errorType)) {
             statementsToBeExecuted.add(taskErrorDAO.insertErrorStatement(
                     prepareErrorNotification(notificationTuple, nCache)
             ));
@@ -166,13 +166,9 @@ public class NotificationTupleHandler {
     }
 
     private List<BoundStatement> prepareStatementsForRecordState(NotificationTuple notificationTuple, RecordState recordState) {
-        List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
-
-        statementsToBeExecuted.add(processedRecordsDAO.updateProcessedRecordStateStatement(notificationTuple.getTaskId(),
+        return Collections.singletonList(processedRecordsDAO.updateProcessedRecordStateStatement(notificationTuple.getTaskId(),
                 String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)),
                 recordState));
-
-        return statementsToBeExecuted;
     }
 
     private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState) {
@@ -198,9 +194,8 @@ public class NotificationTupleHandler {
         return additionalInfo + " Processing time: " + processingTime;
     }
 
-    private boolean maximumNumberOfErrorsReached(NotificationTuple notificationTuple, ErrorType errorType) {
-        long errorCount = taskErrorDAO.selectErrorCountsForErrorType(notificationTuple.getTaskId(), UUID.fromString(errorType.getUuid()));
-        return errorCount > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE;
+    private boolean maximumNumberOfErrorsReached(ErrorType errorType) {
+        return errorType.getCount() > Constants.MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE;
     }
 
     private boolean isErrorTuple(NotificationTuple notificationTuple) {

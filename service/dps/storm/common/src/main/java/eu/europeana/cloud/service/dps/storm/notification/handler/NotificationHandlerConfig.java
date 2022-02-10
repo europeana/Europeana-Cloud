@@ -32,9 +32,6 @@ public class NotificationHandlerConfig {
      * @return
      */
     public Optional<TaskState> getTaskStateToBeSet() {
-        if(taskStateToBeSet != null)
-            return Optional.of(taskStateToBeSet);
-        else
-            return Optional.empty();
+        return Optional.ofNullable(taskStateToBeSet);
     }
 }

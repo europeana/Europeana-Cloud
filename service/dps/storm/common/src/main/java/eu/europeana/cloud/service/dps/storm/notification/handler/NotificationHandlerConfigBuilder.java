@@ -17,32 +17,17 @@ public class NotificationHandlerConfigBuilder {
             NotificationCacheEntry notificationCacheEntry,
             boolean needsPostprocessing) {
 
+        NotificationHandlerConfig.NotificationHandlerConfigBuilder builder = NotificationHandlerConfig.builder();
+        builder.recordStateToBeSet(isError(notificationTuple) ? RecordState.ERROR : RecordState.SUCCESS);
+        builder.notificationCacheEntry(notificationCacheEntry);
+
         if (isLastOneTupleInTask(notificationCacheEntry.getExpectedRecordsNumber(), notificationCacheEntry.getProcessed())) {
-            if (isError(notificationTuple)) {
-                return NotificationHandlerConfig.builder()
-                        .taskStateToBeSet(needsPostprocessing ? TaskState.READY_FOR_POST_PROCESSING : TaskState.PROCESSED)
-                        .recordStateToBeSet(RecordState.ERROR)
-                        .notificationCacheEntry(notificationCacheEntry)
-                        .build();
-            } else {
-                return NotificationHandlerConfig.builder()
-                        .taskStateToBeSet(needsPostprocessing ? TaskState.READY_FOR_POST_PROCESSING : TaskState.PROCESSED)
-                        .recordStateToBeSet(RecordState.SUCCESS)
-                        .notificationCacheEntry(notificationCacheEntry)
-                        .build();
-            }
+            return builder
+                    .taskStateToBeSet(needsPostprocessing ? TaskState.READY_FOR_POST_PROCESSING : TaskState.PROCESSED)
+                    .build();
+
         } else {
-            if (isError(notificationTuple)) {
-                return NotificationHandlerConfig.builder()
-                        .recordStateToBeSet(RecordState.ERROR)
-                        .notificationCacheEntry(notificationCacheEntry)
-                        .build();
-            } else {
-                return NotificationHandlerConfig.builder()
-                        .recordStateToBeSet(RecordState.SUCCESS)
-                        .notificationCacheEntry(notificationCacheEntry)
-                        .build();
-            }
+            return builder.build();
         }
     }
 
