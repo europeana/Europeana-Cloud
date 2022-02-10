@@ -68,7 +68,7 @@ public class TestUtils {
     }
 
     public static int howManyThisRepresentationVersion(DataSetServiceClient instance, String providerId, String dataSetId, String representationName, String versionId) throws MCSException {
-        List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
+        List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId).getResults();
         int found = 0;
         for (Representation r : result) {
             if (r.getRepresentationName().equals(representationName)) {

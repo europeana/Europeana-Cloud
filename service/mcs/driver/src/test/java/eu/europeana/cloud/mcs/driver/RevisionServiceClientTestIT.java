@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.Test;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -12,14 +13,9 @@ import static org.junit.Assert.*;
 
 public class RevisionServiceClientTestIT {
     private  static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
-    private  static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
-    private  static final String REMOTE_TEST_URL = "https://test.ecloud.psnc.pl/api";
-    private  static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
 
     private static final String USER_NAME = "metis_test";  //user z bazy danych
     private static final String USER_PASSWORD = "1RkZBuVf";
-    private static final String ADMIN_NAME = "admin";  //admin z bazy danych
-    private static final String ADMIN_PASSWORD = "glEumLWDSVUjQcRVswhN";
 
     @Test
     public void addRevision() throws MCSException {
@@ -59,7 +55,7 @@ public class RevisionServiceClientTestIT {
         String timestamp = "<enter_timestamp_here>";
 
         RevisionServiceClient mcsClient = new RevisionServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        mcsClient.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp);
+        mcsClient.deleteRevision(cloudId, representationName, version, new Revision(revisionName, revisionProviderId, Date.from(ZonedDateTime.parse(timestamp).toInstant()) ));
 
         assertTrue(true);
     }

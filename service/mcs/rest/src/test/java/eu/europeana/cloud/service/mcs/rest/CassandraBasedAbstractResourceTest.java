@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
-import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.CassandraBasedTestContext;
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,7 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @WebAppConfiguration
 @ContextConfiguration(
-        classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnitedExceptionMapper.class, CassandraBasedTestContext.class})
+        classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnifiedExceptionsMapper.class, CassandraBasedTestContext.class})
 public abstract class CassandraBasedAbstractResourceTest {
 
     @Rule

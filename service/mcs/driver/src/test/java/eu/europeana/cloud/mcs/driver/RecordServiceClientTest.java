@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.test.WiremockHelper;
 import org.junit.Ignore;
@@ -11,7 +13,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -20,6 +21,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.hamcrest.number.OrderingComparisons.greaterThan;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
 public class RecordServiceClientTest {
@@ -43,10 +45,9 @@ public class RecordServiceClientTest {
      * Should not exist in the system
      */
     private static final String NON_EXISTING_REPRESENTATION_NAME = "NON_EXISTING_REPRESENTATION_NAME_12";
-    private static final String NON_EXISTING_REPRESENTATION_NAME_2 = "NON_EXISTING_REPRESENTATION_NAME_2_12";
 
-    private static final String username = "Cristiano";
-    private static final String password = "Ronaldo";
+    private static final String username = "Olga";
+    private static final String password = "Tokarczuk";
 
     // getRecord
     @Test
@@ -83,30 +84,21 @@ public class RecordServiceClientTest {
         instance.getRecord(cloudId);
     }
 
-    // deleteRecord
-    // this test could be better with Betamax 2.0 ability to hold state (not yet
-    // in main maven repository)
-    // @Betamax(tape = "records_shouldDeleteRecord")
-    // RECORDS CANNOT BE DELETED as of v2, so this test is disabled
-    @Ignore
     @Test
     public void shouldDeleteRecord() throws MCSException {
 
         String cloudId = "231PJ0QGW6N";
         String representationName = "schema77";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
+        RecordServiceClient instance = new RecordServiceClient(baseUrl, username, password);
+
+        //
+        new WiremockHelper(wireMockRule).stubDelete(
+                "/mcs/records/231PJ0QGW6N",
+                204);
 
         // delete record
         instance.deleteRecord(cloudId);
-
-        // check that there are not representations for this record
-        // we only check one representationName, because there is no method to
-        // just get all representations
-        List<Representation> representations = instance.getRepresentations(
-                cloudId, representationName);
-        assertEquals(representations.size(), 0);
-
+        assertTrue(true);
     }
 
     @Test(expected = RepresentationNotExistsException.class)
@@ -130,7 +122,7 @@ public class RecordServiceClientTest {
         // just get all representations
         List<Representation> representations = instance.getRepresentations(
                 cloudId, representationName);
-        assertEquals(representations.size(), 0);
+        assertEquals(0, representations.size());
 
         // delete record
         instance.deleteRecord(cloudId);
@@ -340,30 +332,6 @@ public class RecordServiceClientTest {
         instance.createRepresentation(cloudId, representationName, providerId);
     }
 
-
-    // deleteRepresentation(cloudId, representationName) - deleting
-    // representation name
-    // @Betamax(tape = "records_shouldDeleteRepresentationName")
-    // @Test
-    public void shouldDeleteRepresentationName() throws MCSException {
-        String cloudId = "J93T5R6615H";
-        String representationName = "schema1";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        instance.deleteRepresentation(cloudId, representationName);
-        // check the representation name does not exist
-        // we catch this exception here and not expect in @Test,
-        // because then it could also come from deleteRepresentation method call
-        Boolean noRepresentationName = false;
-        try {
-            instance.getRepresentations(cloudId, representationName);
-        } catch (RepresentationNotExistsException ex) {
-            noRepresentationName = true;
-        }
-        assertTrue(noRepresentationName);
-    }
-
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     public void shouldThrowRepresentationNotExistsForDeleteRepresentationNameWhenNoRepresentationName()
             throws MCSException {
@@ -482,36 +450,31 @@ public class RecordServiceClientTest {
         assertEquals(VERSION, representation.getVersion());
     }
 
-    // @Betamax(tape = "records_shouldRetrieveLatestRepresentationVersion")
-    @Ignore
     @Test
     public void shouldRetrieveLatestRepresentationVersion() throws MCSException {
         String cloudId = "J93T5R6615H";
         String representationName = "schema22";
-        String version = "LATEST";
         // this is the version of latest persistent version
         String versionCode = "88edb4d0-a2ef-11e3-89f5-1c6f653f6012";
 
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-        Representation representationLatest = instance.getRepresentation(
-                cloudId, representationName, version);
+        //
+        new WiremockHelper(wireMockRule).stubGet(
+                "/mcs/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012",
+                200,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/J93T5R6615H/representations/schema22/versions</allVersionsUri><cloudId>J93T5R6615H</cloudId><creationDate>2014-09-23T13:52:23.474+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/f5b0cd7f-f8ec-4834-8537-b7ff3171279b</contentUri><date>2014-09-22T16:30:12.653+02:00</date><fileName>f5b0cd7f-f8ec-4834-8537-b7ff3171279b</fileName><md5>3dff79dbbb0a78108d6b99657b10428d</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>schema22</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8</uri><version>88edb4d0-a2ef-11e3-89f5-1c6f653f6012</version></representation>");
+        //
+        RecordServiceClient instance = new RecordServiceClient(baseUrl, username, password);
+
+        Representation representationLatest = instance.getRepresentation(cloudId, representationName, versionCode);
         assertNotNull(representationLatest);
         assertEquals(cloudId, representationLatest.getCloudId());
         assertEquals(representationName,
                 representationLatest.getRepresentationName());
         assertEquals(versionCode, representationLatest.getVersion());
-
-        // check by getting latest persistent representation with other method
-        Representation representation = instance.getRepresentation(cloudId,
-                representationName);
-        // TODO JIRA ECL-160
-        // assertEquals(representationLatest, representation);
     }
 
     @Test
-    public void shouldTreatLatestPersistentVersionAsLatestCreated()
-            throws MCSException, IOException {
+    public void shouldTreatLatestPersistentVersionAsLatestCreated() throws MCSException {
 
         String fileType = "text/plain";
         RecordServiceClient instance = new RecordServiceClient(baseUrl,
@@ -745,8 +708,7 @@ public class RecordServiceClientTest {
     }
 
     @Test(expected = CannotModifyPersistentRepresentationException.class)
-    public void shouldNotAllowToDeletePersistenRepresentation()
-            throws MCSException {
+    public void shouldNotAllowToDeletePersistenRepresentation() throws MCSException {
 
         RecordServiceClient instance = new RecordServiceClient(baseUrl,
                 username, password);
@@ -769,8 +731,7 @@ public class RecordServiceClientTest {
         assertTrue(persistedRepr.isPersistent());
 
         // try to delete
-        instance.deleteRepresentation(CLOUD_ID, REPRESENTATION_NAME,
-                persistedRepr.getVersion());
+        instance.deleteRepresentation(CLOUD_ID, REPRESENTATION_NAME, persistedRepr.getVersion());
     }
 
     // copyRepresentation
@@ -859,7 +820,7 @@ public class RecordServiceClientTest {
 
         Representation currentRepresentation = instance.getRepresentation(
                 CLOUD_ID, REPRESENTATION_NAME, VERSION);
-        assertEquals(currentRepresentation.isPersistent(), true);
+        assertTrue(currentRepresentation.isPersistent());
         int currentFileSize = currentRepresentation.getFiles().size();
         assertTrue(currentFileSize > 0);
 
@@ -959,8 +920,7 @@ public class RecordServiceClientTest {
 
     // persistRepresentation
     @Test
-    public void shouldPersistAfterAddingFiles() throws MCSException,
-            IOException {
+    public void shouldPersistAfterAddingFiles() throws MCSException  {
 
         String representationName = "schema33";
         RecordServiceClient instance = new RecordServiceClient(baseUrl,
@@ -999,8 +959,7 @@ public class RecordServiceClientTest {
 
         // add files
         InputStream data = new ByteArrayInputStream(fileContent.getBytes());
-        URI fileURI = fileService.uploadFile(CLOUD_ID, representationName,
-                coordinates.getVersion(), data, fileType);
+        fileService.uploadFile(CLOUD_ID, representationName, coordinates.getVersion(), data, fileType);
 
         // persist representation
         URI uriPersisted = instance.persistRepresentation(CLOUD_ID,
@@ -1172,6 +1131,7 @@ public class RecordServiceClientTest {
         //
 
         client.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+        assertTrue(true);
     }
 
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
@@ -1216,6 +1176,7 @@ public class RecordServiceClientTest {
         //
 
         client.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
+        assertTrue(true);
     }
 
     @Test
@@ -1230,9 +1191,8 @@ public class RecordServiceClientTest {
                 null);
         //
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "fileName", "mediaType");
+        assertTrue(true);
     }
-
-    ;
 
     @Test
     public void shouldCreateNewRepresentationAndUploadAFile_1() throws IOException, MCSException {
@@ -1246,7 +1206,10 @@ public class RecordServiceClientTest {
                 "http://localhost:8080/mcs/records/FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA/representations/sampleRepresentationName9/versions/7a1ca2f0-5958-11e6-8345-90e6ba2d09ef/files/fileName",
                 null);
         //
-        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
+        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA",
+                "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
+
+        assertTrue(true);
     }
 
     @Test
@@ -1255,13 +1218,17 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
         //
         new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION1/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658",
+                "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION1/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658Z",
                 200,
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representations><representation><allVersionsUri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions</allVersionsUri><cloudId>2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A</cloudId><creationDate>2019-09-09T12:53:29.238+02:00</creationDate><dataProvider>metis_test5</dataProvider><files><contentLength>2442</contentLength><contentUri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions/68b4cc30-aa8d-11e8-8289-1c6f653f9042/files/ba434eac-90cf-452f-891b-0cd8065341f4</contentUri><date>2019-09-09T12:53:29.232+02:00</date><fileName>ba434eac-90cf-452f-891b-0cd8065341f4</fileName><fileStorage>DATA_BASE</fileStorage><md5>bad9394e7c3ba724493ddc0677225d19</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>REPRESENTATION1</representationName><revisions><revisionName>revisionName</revisionName><revisionProviderId>metis_test</revisionProviderId><creationTimeStamp>2019-01-01T00:00:00.001Z</creationTimeStamp><published>false</published><acceptance>false</acceptance><deleted>false</deleted></revisions><uri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions/68b4cc30-aa8d-11e8-8289-1c6f653f9042</uri><version>68b4cc30-aa8d-11e8-8289-1c6f653f9042</version></representation></representations>");
         //
 
         // retrieve representation by revision
-        List<Representation> representations = instance.getRepresentationsByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION1", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        List<Representation> representations = instance.getRepresentationsByRevision(
+                "Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA",
+                "REPRESENTATION1",
+                new Revision("Revision_2", "Revision_Provider", DateHelper.parseISODate("2018-08-28T07:13:34.658Z"))
+        );
         assertNotNull(representations);
         assertEquals(1, representations.size());
         assertEquals("REPRESENTATION1",
@@ -1275,11 +1242,15 @@ public class RecordServiceClientTest {
         RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
         //
         new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION2/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658",
+                "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION2/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658Z",
                 404,
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>No representation was found</details><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
         //
-        instance.getRepresentationsByRevision("Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA", "REPRESENTATION2", "Revision_2", "Revision_Provider", "2018-08-28T07:13:34.658");
+        instance.getRepresentationsByRevision(
+                "Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA",
+                "REPRESENTATION2",
+                new Revision("Revision_2", "Revision_Provider", DateHelper.parseISODate("2018-08-28T07:13:34.658Z"))
+        );
 
     }
 }

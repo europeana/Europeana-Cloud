@@ -2,44 +2,40 @@ package eu.europeana.cloud.common.exceptions;
 
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import lombok.Getter;
 
 /**
  * Generic Exception
- * 
- * @author Yorgos.Mamakis@ kb.nl
- * @since Dec 17, 2013
  */
+@Getter
 public class GenericException extends Exception {
-    private static final long   serialVersionUID = -6146223626718871100L;
+    private static final long serialVersionUID = -6146223626718871100L;
     
     private final IdentifierErrorInfo errorInfo;
 
     /**
-     * Creates a new instance of this class.
-     * 
-     * @param e
+     * Create new instance for given message
      */
-    public GenericException(ErrorInfo e) {
-        super(e.getDetails());
-        errorInfo=null;
+    public GenericException(String detail) {
+        this(detail, null);
     }
 
     /**
-     * Creates a new instance of this class.
-     * 
-     * @param errorInfo
+     * Creates a new instance for given {@link ErrorInfo}.
      */
-    public GenericException(IdentifierErrorInfo errorInfo) {
-        super(errorInfo.getErrorInfo().getDetails());
+    public GenericException(ErrorInfo errorInfo) {
+        this(errorInfo.getDetails());
+    }
+
+    /**
+     * Creates a new instance for given {@link IdentifierErrorInfo}.
+     */
+    public GenericException(IdentifierErrorInfo identifierErrorInfo) {
+        this(identifierErrorInfo.getErrorInfo().getDetails(), identifierErrorInfo);
+    }
+
+    private GenericException(String detail, IdentifierErrorInfo errorInfo) {
+        super(detail);
         this.errorInfo = errorInfo;
-    }
-
-    /**
-     * Retrieve the error information that caused the exception happen
-     * 
-     * @return The error information
-     */
-    public IdentifierErrorInfo getErrorInfo() {
-        return this.errorInfo;
     }
 }

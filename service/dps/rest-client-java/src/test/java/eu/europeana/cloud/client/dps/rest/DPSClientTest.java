@@ -250,7 +250,7 @@ public class DPSClientTest {
     }
 
     @Test
-    public final void shouldReturnTrueWhenErrorsReportExists() {
+    public final void shouldReturnTrueWhenErrorsReportExists() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         //
         new WiremockHelper(wireMockRule).stubHead("/services/TopologyName/tasks/12345/reports/errors", 200);
@@ -259,7 +259,7 @@ public class DPSClientTest {
     }
 
     @Test
-    public final void shouldReturnFalseWhenErrorsReportDoesNotExists() {
+    public final void shouldReturnFalseWhenErrorsReportDoesNotExists() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
         //
         new WiremockHelper(wireMockRule).stubHead("/services/TopologyName/tasks/12345/reports/errors", 405);

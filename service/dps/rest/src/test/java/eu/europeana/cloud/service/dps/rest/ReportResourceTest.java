@@ -136,7 +136,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     public void shouldReturn405InCaseOfException() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfReportExists(eq(Long.toString(TASK_ID)));
+        when(reportService.checkIfReportExists(eq(Long.toString(TASK_ID)))).thenReturn(false);
 
         ResultActions response = mockMvc.perform(
                 head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)

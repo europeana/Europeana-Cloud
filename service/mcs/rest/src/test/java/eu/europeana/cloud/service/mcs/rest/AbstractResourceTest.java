@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
-import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.BasicResourceTestContext;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,8 +24,8 @@ import java.util.Collections;
 import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
-@ContextConfiguration(classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnitedExceptionMapper.class,
-        BasicResourceTestContext.class})
+@ContextConfiguration(classes = {MCSAppInitializer.class, ServiceConfiguration.class,
+        UnifiedExceptionsMapper.class, BasicResourceTestContext.class})
 public abstract class AbstractResourceTest {
 
     @Rule

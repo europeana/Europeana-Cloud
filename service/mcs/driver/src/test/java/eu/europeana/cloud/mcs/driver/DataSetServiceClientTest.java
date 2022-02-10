@@ -3,11 +3,12 @@ package eu.europeana.cloud.mcs.driver;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
-import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -19,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
 public class DataSetServiceClientTest {
@@ -45,7 +47,7 @@ public class DataSetServiceClientTest {
         String startFrom = "dataset000101";
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        ResultSlice<DataSet> result = instance.getDataSetsForProviderChunk(providerId, null);
+        ResultSlice<DataSet> result = instance.getDataSetsForProvider(providerId);
         assertNotNull(result.getResults());
         assertEquals(result.getResults().size(), resultSize);
         assertEquals(result.getNextSlice(), startFrom);
@@ -112,7 +114,7 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        List<DataSet> result = instance.getDataSetsForProvider(providerId);
+        List<DataSet> result = instance.getDataSetsForProviderList(providerId);
         assertNotNull(result);
         assertEquals(result.size(), resultSize);
     }
@@ -130,7 +132,7 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        List<DataSet> result = instance.getDataSetsForProvider(providerId);
+        List<DataSet> result = instance.getDataSetsForProviderList(providerId);
         assertNotNull(result);
         assertEquals(0, result.size());
     }
@@ -146,7 +148,7 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.getDataSetsForProviderChunk(providerId, null);
+        instance.getDataSetsForProvider(providerId);
     }
 
     @Test(expected = DriverException.class)
@@ -163,7 +165,7 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.getDataSetsForProviderChunk(providerId, null);
+        instance.getDataSetsForProvider(providerId);
     }
 
     @Test
@@ -329,8 +331,8 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        List<Representation> result = instance.getDataSetRepresentations(providerId, dataSetId);
-        assertNotNull(result);
+
+        List<Representation> result = instance.getDataSetRepresentationsList(providerId, dataSetId);
         assertEquals(result.size(), resultSize);
     }
 
@@ -415,7 +417,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
-        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+        List<DataSet> dataSets = instance.getDataSetsForProviderList(providerId);
 
         for (DataSet dataSet : dataSets) {
             if (dataSetId.equals(dataSet.getId())) {
@@ -456,7 +458,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
-        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+        List<DataSet> dataSets = instance.getDataSetsForProviderList(providerId);
 
         for (DataSet dataSet : dataSets) {
             if (dataSetId.equals(dataSet.getId())) {
@@ -496,16 +498,13 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
         instance.updateDescriptionOfDataSet(providerId, dataSetId, description);
-        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+        List<DataSet> dataSets = instance.getDataSetsForProviderList(providerId);
 
         for (DataSet dataSet : dataSets) {
             if (dataSetId.equals(dataSet.getId())) {
-
                 assertNull(dataSet.getDescription());
             }
-
         }
-
     }
 
     @Test(expected = DataSetNotExistsException.class)
@@ -580,7 +579,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         instance.deleteDataSet(providerId, dataSetId);
 
-        List<DataSet> dataSets = instance.getDataSetsForProvider(providerId);
+        List<DataSet> dataSets = instance.getDataSetsForProviderList(providerId);
 
         assertFalse(dataSets.contains(dataSet));
     }
@@ -1099,8 +1098,7 @@ public class DataSetServiceClientTest {
     }
 
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider()
-            throws MCSException, Throwable {
+    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider() throws Throwable {
         String providerId = "noSuchProvider";
         String dataSetId = "dataset3";
 
@@ -1191,10 +1189,10 @@ public class DataSetServiceClientTest {
         String representationName = "t1";
         String revisionName = "IMPORT";
         String revisionProviderId = "EU";
-        String revisionTimestamp = "2017-01-09T08:16:47.824";
+        String revisionTimestamp = "2017-01-09T08:16:47.824Z";
 
         //
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824&limit=0"))
+        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824Z&limit=0"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/xml")
@@ -1203,8 +1201,8 @@ public class DataSetServiceClientTest {
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
-        List<CloudTagsResponse> cloudIds = instance.getDataSetRevisions(providerId, dataSetId, representationName,
-                revisionName, revisionProviderId, revisionTimestamp);
+        List<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsList(providerId, dataSetId, representationName,
+                new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp) ));
         //then
         assertThat(cloudIds.size(), is(2));
         CloudTagsResponse cid = cloudIds.get(0);
@@ -1229,10 +1227,10 @@ public class DataSetServiceClientTest {
         String representationName = "t1";
         String revisionName = "IMPORT";
         String revisionProviderId = "EU";
-        String revisionTimestamp = "2017-01-09T08:16:47.824";
+        String revisionTimestamp = "2017-01-09T08:16:47.824Z";
 
         //
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824&limit=0"))
+        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824Z&limit=0"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/xml")
@@ -1242,7 +1240,7 @@ public class DataSetServiceClientTest {
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
         //when
         ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                revisionName, revisionProviderId, revisionTimestamp, null, null);
+                new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)), null, null);
         //then
         assertThat(cloudIds.getNextSlice(), nullValue());
         assertThat(cloudIds.getResults().size(), is(2));

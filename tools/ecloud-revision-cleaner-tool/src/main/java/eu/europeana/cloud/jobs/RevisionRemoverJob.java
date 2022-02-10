@@ -9,13 +9,14 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -45,15 +46,19 @@ public class RevisionRemoverJob implements Runnable {
             int batchNumber = 1;
             String startFrom = null;
             do {
-                ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(revisionInformation.getProviderId(), revisionInformation.getDataSet(),
-                        revisionInformation.getRepresentationName(),
-                        revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp(), startFrom, null);
+                ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(revisionInformation.getProviderId(),  revisionInformation.getDataSet(), revisionInformation.getRepresentationName(),
+                        new Revision(revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), DateHelper.parseISODate(revisionInformation.getRevisionTimeStamp()) ),
+                        startFrom, null);
                 if (resultSlice == null || resultSlice.getResults() == null) {
                     throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
                 }
                 List<CloudTagsResponse> cloudTagsResponses = resultSlice.getResults();
                 for (CloudTagsResponse cloudTagsResponse : cloudTagsResponses) {
-                    List<Representation> representations = recordServiceClient.getRepresentationsByRevision(cloudTagsResponse.getCloudId(), revisionInformation.getRepresentationName(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp());
+                    List<Representation> representations = recordServiceClient.getRepresentationsByRevision(
+                            cloudTagsResponse.getCloudId(),
+                            revisionInformation.getRepresentationName(),
+                            new Revision(revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), DateHelper.parseISODate(revisionInformation.getRevisionTimeStamp()) )
+                    );
                     for (Representation representation : representations) {
                         if (representation.getRevisions().size() == 1) {
                             removeRepresentationWithFilesAndRevisions(cloudTagsResponse, representation);
@@ -93,7 +98,9 @@ public class RevisionRemoverJob implements Runnable {
         int retries = 2;
         while (true) {
             try {
-                revisionServiceClient.deleteRevision(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(), revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(), revisionInformation.getRevisionTimeStamp());
+                revisionServiceClient.deleteRevision(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
+                        new Revision(revisionInformation.getRevisionName(), revisionInformation.getRevisionProvider(),  DateHelper.parseISODate(revisionInformation.getRevisionTimeStamp()) )
+                );
                 break;
             } catch (Exception e) {
                 retries--;

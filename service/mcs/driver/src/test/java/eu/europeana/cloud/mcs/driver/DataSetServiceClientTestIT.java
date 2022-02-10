@@ -2,10 +2,11 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,8 @@ public class DataSetServiceClientTestIT {
 
         ResultSlice<CloudTagsResponse> response =
                 mcsClient.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                        revisionName, revisionProviderId, revisionTimestamp, startFrom, limit);
+                        new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)),
+                        startFrom, limit);
 
         assertNotNull(response);
         assertNotNull(response.getResults());
@@ -83,13 +85,13 @@ public class DataSetServiceClientTestIT {
         String revisionProviderId = "metis_acceptance";
         String revisionTimestamp = "2019-09-26T16:30:04.972";
         String startFrom = null;
-        Integer limit = null;
 
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
         ResultSlice<CloudTagsResponse> response =
                 mcsClient.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                        revisionName, revisionProviderId, revisionTimestamp, startFrom, null);
+                        new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)),
+                        startFrom, null);
 
         assertNotNull(response);
         assertNotNull(response.getResults());
@@ -103,7 +105,7 @@ public class DataSetServiceClientTestIT {
         String revisionName = "OAIPMH_HARVEST";
         String revisionProviderId = "xxx";
         String revisionTimestamp = "2021-09-22T06:45:02.592";
-        Integer limit = 1000;
+        int limit = 1000;
 
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
@@ -175,7 +177,7 @@ public class DataSetServiceClientTestIT {
         String providerId = "metis_acceptance";
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-        List<DataSet> response = mcsClient.getDataSetsForProvider(providerId);
+        List<DataSet> response = mcsClient.getDataSetsForProviderList(providerId);
 
         assertNotNull(response);
 
@@ -199,8 +201,7 @@ public class DataSetServiceClientTestIT {
         String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-        List<Representation> result = mcsClient.getDataSetRepresentations(providerId, dataSetId);
-
+        ResultSlice<Representation> result = mcsClient.getDataSetRepresentations(providerId, dataSetId);
         assertNotNull(result);
     }
 
@@ -214,8 +215,8 @@ public class DataSetServiceClientTestIT {
         String revisionTimestamp = "2019-11-22T13:50:34.413Z";
         DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-        List<CloudTagsResponse> result = mcsClient.getDataSetRevisions(providerId, dataSetId, representationName,
-                revisionName, revisionProviderId, revisionTimestamp);
+        List<CloudTagsResponse> result = mcsClient.getDataSetRevisionsList(providerId, dataSetId, representationName,
+                new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
 
         assertNotNull(result);
     }

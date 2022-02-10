@@ -34,7 +34,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class})
+@Import({UnifiedExceptionsMapper.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */

@@ -3,6 +3,7 @@ package eu.europeana.cloud.mcs.driver;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.WiremockHelper;
@@ -123,10 +124,10 @@ public class RevisionServiceClientTest {
     public void shouldRemoveRevision() throws MCSException {
         //
         new WiremockHelper(wireMockRule).stubDelete(
-                "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11",
+                "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
                 204);
         //
-        instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
+        instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
         assertTrue(true);
     }
 
@@ -135,11 +136,11 @@ public class RevisionServiceClientTest {
     public void shouldThrowPresentationDoesNotExistsException() throws MCSException {
         //
         new WiremockHelper(wireMockRule).stubDelete(
-                "/mcs/records/test_cloud_id/representations/REP_NOT_FOUND/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11",
+                "/mcs/records/test_cloud_id/representations/REP_NOT_FOUND/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
                 404,
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
         //
-        instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION, REVISION_NAME, PROVIDER_ID, "2019-07-11");
+        instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION, new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
     }
 
 

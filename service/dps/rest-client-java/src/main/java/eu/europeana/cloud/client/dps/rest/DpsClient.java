@@ -4,40 +4,46 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.RestInterfaceConstants;
+import eu.europeana.cloud.service.dps.exception.DPSClientException;
 import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.List;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.ServiceUnavailableException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.ServiceUnavailableException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The REST API client for the Data Processing service.
  */
-public class DpsClient {
+public class DpsClient implements AutoCloseable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
 
     private static final String ERROR = "error";
     private static final String IDS_COUNT = "idsCount";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
     private static final String TOPOLOGY_NAME = "TopologyName";
     private static final String TASK_ID = "TaskId";
     private static final String TASKS_URL = "/{" + TOPOLOGY_NAME + "}/tasks";
@@ -57,8 +63,11 @@ public class DpsClient {
     private static final String ELEMENT_REPORT = TASK_URL + "/" + REPORTS_RESOURCE + "/element";
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
+    public static final String TASK_CANT_BE_KILLED_MESSAGE = "Task Can't be killed";
     private final String dpsUrl;
-    private final Client client = ClientBuilder.newBuilder()
+
+    private final Client client =
+            ClientBuilder.newBuilder()
             .register(JacksonFeature.class)
             .build();
 
@@ -91,8 +100,7 @@ public class DpsClient {
      * @param password THe username to perform authenticated requests.
      */
     public DpsClient(final String dpsUrl, final String username, final String password) {
-        this(dpsUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS,
-                DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(dpsUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
 
@@ -128,103 +136,63 @@ public class DpsClient {
      * Submits a task for execution in the specified topology.
      */
     public long submitTask(DpsTask task, String topologyName) throws DpsException {
+        URI uri = manageResponse(
+                new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client.target(dpsUrl)
+                        .path(TASKS_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .request()
+                        .post(Entity.json(task)), "Submit Task Was not successful"
+                );
 
-        Response resp = null;
-        try {
-            resp = client.target(dpsUrl)
-                    .path(TASKS_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .request()
-                    .post(Entity.json(task));
-
-            if (resp.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return getTaskId(resp.getLocation());
-            } else {
-                LOGGER.error("Submit Task Was not successful");
-                throw handleException(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return getTaskId(uri);
     }
 
     /**
      * clean METIS indexing dataset.
      */
     public void cleanMetisIndexingDataset(String topologyName, long taskId,
-                                          DataSetCleanerParameters dataSetCleanerParameters, String key, String value)
-            throws DpsException {
-
-        Response resp = null;
-        try {
-            resp = client.target(dpsUrl)
-                    .path(TASK_CLEAN_DATASET_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .request().header(key, value)
-                    .post(Entity.json(dataSetCleanerParameters));
-
-            if (resp.getStatus() != Response.Status.OK.getStatusCode()) {
-                LOGGER.error("Cleaning a dataset was not successful");
-                throw handleException(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
-
+                                          DataSetCleanerParameters dataSetCleanerParameters,
+                                          String key, String value) throws DpsException {
+        manageResponse(new ResponseParams<>(Void.class),
+                () -> client.target(dpsUrl)
+                        .path(TASK_CLEAN_DATASET_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request().header(key, value)
+                        .post(Entity.json(dataSetCleanerParameters)),
+                "Cleaning a dataset was not successful");
     }
 
     /**
      * permit user to use topology
      */
-    public Response.StatusType topologyPermit(String topologyName, String username)
-            throws DpsException {
+    public Response.StatusType topologyPermit(String topologyName, String username) throws DpsException {
         Form form = new Form();
         form.param("username", username);
-        Response resp = null;
 
-        try {
-            resp = client.target(dpsUrl)
-                    .path(PERMIT_TOPOLOGY_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .request()
-                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-            if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-                return resp.getStatusInfo();
-            } else {
-                LOGGER.error("Granting permission was not successful");
-                throw handleException(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return manageResponse(new ResponseParams<>(Response.StatusType.class),
+                () -> client.target(dpsUrl)
+                        .path(PERMIT_TOPOLOGY_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .request()
+                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE)),
+                "Granting permission was not successful");
     }
 
     /**
      * Retrieves progress for the specified combination of taskId and topology.
      */
     public TaskInfo getTaskProgress(String topologyName, final long taskId) throws DpsException {
-
-        Response response = null;
-
-        try {
-            response = client
-                    .target(dpsUrl)
-                    .path(TASK_PROGRESS_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .request().get();
-
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(TaskInfo.class);
-            } else {
-                LOGGER.error("Task progress cannot be read");
-                throw handleException(response);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(TaskInfo.class),
+                () -> client
+                        .target(dpsUrl)
+                        .path(TASK_PROGRESS_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request()
+                        .get(),
+                "Task progress cannot be read");
     }
 
     /**
@@ -233,10 +201,10 @@ public class DpsClient {
      * @param datasetId dataset identifier
      * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW
      * @return number of elements in the dataset
-     * @throws DpsException
+     * @throws DpsException throws common {@link DpsException} if something went wrong
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
-        return this.getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
+        return getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
     }
 
     /**
@@ -246,172 +214,133 @@ public class DpsClient {
      * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
      * @param environment value indicating which environment will be used. Allowed values are DEFAULT and ALTERNATIVE {@link TargetIndexingEnvironment}. This is temporary solution when there is one eCloud for both test and acceptance Metis environment
      * @return number of elements in the dataset
-     * @throws DpsException
+     * @throws DpsException throws common {@link DpsException} if something went wrong
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
-        Response response = null;
-
-        try {
-            response = client
-                    .target(dpsUrl)
-                    .path(RestInterfaceConstants.METIS_DATASETS)
-                    .resolveTemplate("datasetId", datasetId)
-                    .queryParam("database", database)
-                    .queryParam("altEnv", environment)
-                    .request().get();
-
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                MetisDataset metisDataset = response.readEntity(MetisDataset.class);
-                return metisDataset.getSize();
-            } else {
-                throw handleException(response);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        MetisDataset metisDataset = manageResponse(new ResponseParams<>(MetisDataset.class),
+                () -> client
+                        .target(dpsUrl)
+                        .path(RestInterfaceConstants.METIS_DATASETS)
+                        .resolveTemplate("datasetId", datasetId)
+                        .queryParam("database", database)
+                        .queryParam("altEnv", environment)
+                        .request()
+                        .get(),
+                "Error while retrieving total metis database records");
+        return metisDataset.getSize();
     }
 
-    public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId)
-            throws DpsException {
-
-        Response response = null;
-
-        try {
-            response = client
-                    .target(dpsUrl)
-                    .path(DETAILED_TASK_REPORT_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .request().get();
-
-            return handleResponse(response);
-
-        } finally {
-            closeResponse(response);
-        }
+    public List<SubTaskInfo> getDetailedTaskReport(final String topologyName, final long taskId) throws DpsException {
+        return manageResponse(new ResponseParams<>(new GenericType<List<SubTaskInfo>>(){}),
+                ()-> client
+                        .target(dpsUrl)
+                        .path(DETAILED_TASK_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request()
+                        .get(),
+                "Error while retrieving detailed task report"
+        );
     }
 
-    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(final String topologyName,
-                                                                final long taskId, int from, int to) throws DpsException {
-
-        Response getResponse = null;
-
-        try {
-            getResponse = client
-                    .target(dpsUrl)
-                    .path(DETAILED_TASK_REPORT_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId).queryParam("from", from).queryParam("to", to)
-                    .request().get();
-
-            return handleResponse(getResponse);
-
-        } finally {
-            closeResponse(getResponse);
-        }
+    public List<SubTaskInfo> getDetailedTaskReportBetweenChunks(
+            final String topologyName, final long taskId, int from, int to) throws DpsException {
+        //
+        return manageResponse(
+                new ResponseParams<>(new GenericType<List<SubTaskInfo>>(){}),
+                () -> client
+                        .target(dpsUrl)
+                        .path(DETAILED_TASK_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .queryParam("from", from)
+                        .queryParam("to", to)
+                        .request()
+                        .get(),
+                "Error while retrieving detailed task report (witch chunks)");
     }
 
-    public List<NodeReport> getElementReport(final String topologyName, final long taskId,
-                                             String elementPath) throws DpsException {
-
-        Response getResponse = null;
-
-        try {
-            getResponse = client
-                    .target(dpsUrl)
-                    .path(ELEMENT_REPORT)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId).queryParam("path", elementPath)
-                    .request().get();
-
-            return handleElementReportResponse(getResponse);
-
-        } finally {
-            closeResponse(getResponse);
-        }
+    @SuppressWarnings("all")
+    public List<NodeReport> getElementReport(final String topologyName, final long taskId, String elementPath) throws DpsException {
+        return manageResponse(new ResponseParams<>(new GenericType<List<NodeReport>>(){}),
+                () -> client
+                        .target(dpsUrl)
+                        .path(ELEMENT_REPORT)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .queryParam("path", elementPath)
+                        .request().get(),
+                "Error while retrieving reports element");
     }
 
     public TaskErrorsInfo getTaskErrorsReport(final String topologyName, final long taskId,
                                               final String error, final int idsCount) throws DpsException {
-
-        Response response = null;
-
-        try {
-            response = client
-                    .target(dpsUrl)
-                    .path(ERRORS_TASK_REPORT_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .queryParam(ERROR, error)
-                    .queryParam(IDS_COUNT, idsCount)
-                    .request().get();
-
-            return handleErrorResponse(response);
-
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(TaskErrorsInfo.class),
+                () -> client
+                        .target(dpsUrl)
+                        .path(ERRORS_TASK_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .queryParam(ERROR, error)
+                        .queryParam(IDS_COUNT, idsCount)
+                        .request().get(),
+                "Error while retrieving task error report");
     }
 
-    public boolean checkIfErrorReportExists(final String topologyName, final long taskId) {
-
-        Response response = null;
-
-        try {
-            response = client
-                    .target(dpsUrl)
-                    .path(ERRORS_TASK_REPORT_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName)
-                    .resolveTemplate(TASK_ID, taskId)
-                    .request().head();
-
-            return response.getStatus() == Response.Status.OK.getStatusCode();
-
-        } finally {
-            closeResponse(response);
-        }
+    public boolean checkIfErrorReportExists(final String topologyName, final long taskId) throws DpsException {
+        return manageResponse(
+                new ResponseParams<>(Response.StatusType.class, Response.Status.OK, Response.Status.METHOD_NOT_ALLOWED),
+                () -> client
+                        .target(dpsUrl)
+                        .path(ERRORS_TASK_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request().head(),
+                "Error while checking error report exits")
+                .getStatusCode() == Response.Status.OK.getStatusCode();
     }
 
-    public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId)
-            throws DpsException {
-        Response response = null;
-        try {
-            response = client.target(dpsUrl).path(STATISTICS_REPORT_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId).request()
-                    .get();
-
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(StatisticsReport.class);
-            } else {
-                LOGGER.error("Task statistics report cannot be read");
-                throw handleException(response);
-            }
-        } finally {
-            closeResponse(response);
-        }
+    public StatisticsReport getTaskStatisticsReport(final String topologyName, final long taskId) throws DpsException {
+        return manageResponse(new ResponseParams<>(StatisticsReport.class),
+                () -> client.target(dpsUrl)
+                        .path(STATISTICS_REPORT_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request()
+                        .get(),
+                "Task statistics report cannot be read"
+        );
     }
 
-    public String killTask(final String topologyName, final long taskId, String info)
-            throws DpsException {
-        Response response = null;
-        try {
-            WebTarget webTarget = client.target(dpsUrl).path(KILL_TASK_URL)
-                    .resolveTemplate(TOPOLOGY_NAME, topologyName).resolveTemplate(TASK_ID, taskId);
-            if (info != null) {
-                webTarget = webTarget.queryParam("info", info);
-            }
-            response = webTarget.request().post(null);
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(String.class);
-            } else {
-                LOGGER.error("Task Can't be killed");
-                throw handleException(response);
-            }
-        } finally {
-            closeResponse(response);
+    public String killTask(final String topologyName, final long taskId, String info) throws DpsException {
+        if (info == null) {
+            return killTask(topologyName, taskId);
         }
+        return manageResponse(new ResponseParams<>(String.class),
+                () -> client
+                        .target(dpsUrl)
+                        .path(KILL_TASK_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .queryParam("info", info)
+                        .request()
+                        .post(null),
+                TASK_CANT_BE_KILLED_MESSAGE);
     }
 
+    private String killTask(final String topologyName, final long taskId) throws DpsException {
+        return manageResponse(new ResponseParams<>(String.class),
+                () -> client
+                        .target(dpsUrl)
+                        .path(KILL_TASK_URL)
+                        .resolveTemplate(TOPOLOGY_NAME, topologyName)
+                        .resolveTemplate(TASK_ID, taskId)
+                        .request()
+                        .post(null),
+                TASK_CANT_BE_KILLED_MESSAGE);
+    }
+
+    @Override
     public void close() {
         client.close();
     }
@@ -421,21 +350,46 @@ public class DpsClient {
         return Long.parseLong(elements[elements.length - 1]);
     }
 
-    private List<NodeReport> handleElementReportResponse(Response response) throws DpsException {
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return response.readEntity(new GenericType<List<NodeReport>>() {
-            });
-        } else {
-            throw handleException(response);
+    private <T> T manageResponse(ResponseParams<T> responseParameters, Supplier<Response> responseSupplier, String errorMessage) throws DpsException {
+        Response response = responseSupplier.get();
+        try {
+            response.bufferEntity();
+            if (responseParameters.isStatusCodeValid(response.getStatus())) {
+                return readEntityByClass(responseParameters, response);
+            } else if (response.getStatus() == HttpURLConnection.HTTP_UNAVAILABLE) {
+                throw DPSExceptionProvider.createException(errorMessage, "Service unavailable", new ServiceUnavailableException());
+            } else if (response.getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
+                throw DPSExceptionProvider.createException(errorMessage, "Endpoint not found", new NotFoundException());
+            }
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            throw DPSExceptionProvider.createException(errorInfo);
+        } catch (DpsException | DPSClientException dpsException) {
+            throw dpsException; //re-throw just created DpsException
+        } catch (ProcessingException processingException) {
+            String message = String.format(
+                    "Could not deserialize response with statusCode: %d; message: %s", response.getStatus(), response.readEntity(String.class));
+            throw DPSExceptionProvider.createException(errorMessage, message, processingException);
+        } catch (Exception otherExceptions) {
+            throw DPSExceptionProvider.createException(errorMessage, "Other exception", otherExceptions);
+        } finally {
+            closeResponse(response);
         }
     }
 
-    private List<SubTaskInfo> handleResponse(Response response) throws DpsException {
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return response.readEntity(new GenericType<List<SubTaskInfo>>() {
-            });
+    @SuppressWarnings("unchecked")
+    private <T> T readEntityByClass(ResponseParams<T> responseParameters, Response response) {
+        if (responseParameters.getExpectedClass() == Void.class) {
+            return null;
+        } else if (responseParameters.getExpectedClass() == Boolean.class) {
+            return (T) Boolean.TRUE;
+        } else if (responseParameters.getExpectedClass() == URI.class) {
+            return (T) response.getLocation();
+        } else if (responseParameters.getExpectedClass() == Response.StatusType.class) {
+            return (T) response.getStatusInfo();
+        } else if (responseParameters.getGenericType() != null) {
+            return response.readEntity(responseParameters.getGenericType());
         } else {
-            throw handleException(response);
+            return response.readEntity(responseParameters.getExpectedClass());
         }
     }
 
@@ -445,41 +399,40 @@ public class DpsClient {
         }
     }
 
-    private TaskErrorsInfo handleErrorResponse(Response response) throws DpsException {
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return response.readEntity(TaskErrorsInfo.class);
-        } else {
-            LOGGER.error("Task error report cannot be read");
-            throw handleException(response);
-        }
-    }
-
-    private DpsException handleException(Response response) {
-        try {
-            final DpsException dpsException;
-            if (response.getStatus() == HttpURLConnection.HTTP_UNAVAILABLE) {
-                dpsException = new DpsException("Service unavailable", new ServiceUnavailableException());
-            } else if (response.getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
-                dpsException = new DpsException("Endpoint not found", new NotFoundException());
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                dpsException = DPSExceptionProvider.generateException(errorInfo);
-            }
-            return dpsException;
-        } catch (Exception e) {
-          // TODO: 08/01/2021 Fix this when there is more information about what is the response status code and body
-            return new DpsException(String.format("Could not identify exception which had "
-                + "responseStatusCode=%s and responseBody=%s", response.getStatus(),
-                response.readEntity(String.class)),
-                e);
-        }
-    }
-
     @Override
     protected void finalize() throws Throwable {
+        LOGGER.warn("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
         client.close();
     }
+
+    @AllArgsConstructor
+    @Getter
+    private static class ResponseParams<T> {
+        private Class<T> expectedClass;
+        private GenericType<T> genericType;
+        private Response.Status[] validStatuses;
+
+        public ResponseParams(Class<T> expectedClass) {
+            this(expectedClass, Response.Status.OK);
+        }
+
+        public ResponseParams(Class<T> expectedClass, Response.Status validStatus) {
+            this(expectedClass, null, new Response.Status[]{validStatus});
+        }
+
+        public ResponseParams(GenericType<T> genericType) {
+            this(null, genericType, new Response.Status[]{Response.Status.OK});
+        }
+
+        public ResponseParams(Class<T> expectedClass, Response.Status... validStatuses) {
+            this(expectedClass, null, validStatuses);
+        }
+
+        public boolean isStatusCodeValid(Integer statusCode) {
+            return Arrays.stream(validStatuses)
+                    .map(Response.Status::getStatusCode)
+                    .anyMatch(statusCode::equals);
+        }
+    }
+
 }
-
-
-

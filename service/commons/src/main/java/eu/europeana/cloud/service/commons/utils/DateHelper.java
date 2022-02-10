@@ -14,7 +14,10 @@ public class DateHelper {
     }
 
     public static String getISODateString(Date date) {
-        return date.toInstant().toString();
+        return Optional.ofNullable(date)
+                .map(Date::toInstant)
+                .map(Instant::toString)
+                .orElse(null);
     }
 
     public static Date parseISODate(String dateString){

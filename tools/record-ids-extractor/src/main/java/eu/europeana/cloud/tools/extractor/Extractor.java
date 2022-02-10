@@ -3,10 +3,10 @@ package eu.europeana.cloud.tools.extractor;
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -156,9 +156,11 @@ public class Extractor implements AutoCloseable {
     private ResultSlice<CloudTagsResponse> getCloudIdsChunk(
             String datasetName, RevisionIdentifier revision, String startFrom) throws MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.",
-                () -> dataSetServiceClient.getDataSetRevisionsChunk(Config.DATASET_PROVIDER, datasetName,
-                        Config.REPRESENTATION_NAME, revision.getRevisionName(), revision.getRevisionProviderId(),
-                        DateHelper.getISODateString(revision.getCreationTimeStamp()), startFrom, REVISION_DATA_FETCH_SIZE));
+                () -> dataSetServiceClient.getDataSetRevisionsChunk(
+                        Config.DATASET_PROVIDER, datasetName, Config.REPRESENTATION_NAME,
+                        new Revision(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp() ),
+                        startFrom, REVISION_DATA_FETCH_SIZE)
+        );
     }
 
     private boolean idsContainsRestrictedCharacters(List<String> ids) {

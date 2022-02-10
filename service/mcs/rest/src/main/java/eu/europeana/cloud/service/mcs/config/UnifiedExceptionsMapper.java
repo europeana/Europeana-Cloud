@@ -27,9 +27,9 @@ import javax.ws.rs.WebApplicationException;
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice(basePackages = {"eu.europeana.cloud.service.mcs.rest"})
-public class UnitedExceptionMapper {
+public class UnifiedExceptionsMapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnitedExceptionMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
     @Autowired
     private HttpServletRequest request;
@@ -143,20 +143,6 @@ public class UnitedExceptionMapper {
     @ResponseBody
     public ResponseEntity<ErrorInfo> handleRepresentationNotExistsException(Exception exception) {
         return buildResponse(HttpStatus.NOT_FOUND, McsErrorCode.REPRESENTATION_NOT_EXISTS, exception);
-    }
-
-
-    /**
-     * Maps {@link VersionNotExistsException} to {@link ResponseEntity}. Returns a response with HTTP status code 404 -
-     * "Not Found" and a {@link ResponseEntity<ErrorInfo>} with exception details as a message body.
-     *
-     * @param exception the exception to map to a response
-     * @return a response mapped from the supplied exception
-     */
-    @ExceptionHandler(VersionNotExistsException.class)
-    @ResponseBody
-    public ResponseEntity<ErrorInfo> handleVersionNotExistsException(Exception exception) {
-        return buildResponse(HttpStatus.NOT_FOUND, McsErrorCode.VERSION_NOT_EXISTS, exception);
     }
 
 
@@ -285,9 +271,6 @@ public class UnitedExceptionMapper {
 
     /**
      * Method below is instead {@link eu.europeana.cloud.service.mcs.utils.ParamUtil#require(String, Object)}
-     *
-     * @param exception
-     * @return
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public @ResponseBody
