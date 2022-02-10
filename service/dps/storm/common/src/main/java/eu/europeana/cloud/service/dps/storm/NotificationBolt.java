@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -47,6 +46,7 @@ public class NotificationBolt extends BaseRichBolt {
     private transient CassandraTaskInfoDAO taskInfoDAO;
     private transient NotificationTupleHandler notificationTupleHandler;
     private transient NotificationEntryCacheBuilder notificationEntryCacheBuilder;
+    private transient BatchExecutor batchExecutor;
 
     /**
      * Constructor of notification bolt.
@@ -70,8 +70,8 @@ public class NotificationBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
+        var notificationTuple = NotificationTuple.fromStormTuple(tuple);
         try {
-            var notificationTuple = NotificationTuple.fromStormTuple(tuple);
             var cachedCounters = readCachedCounters(notificationTuple);
             NotificationHandlerConfig notificationHandlerConfig =
                     NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(
@@ -79,10 +79,13 @@ public class NotificationBolt extends BaseRichBolt {
                             cachedCounters,
                             needsPostProcessing(notificationTuple));
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
-        } catch (NoHostAvailableException | QueryExecutionException ex) {
-            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
         } catch (Exception ex) {
-            LOGGER.error("Problem with store notification because: {}", ex.getMessage(), ex);
+            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
+            batchExecutor.executeAll(
+                    notificationTupleHandler.prepareStatementsForTupleContainingLastRecord(
+                            notificationTuple,
+                            TaskState.DROPPED,
+                            ex.getMessage()));
         } finally {
             outputCollector.ack(tuple);
         }
@@ -102,6 +105,7 @@ public class NotificationBolt extends BaseRichBolt {
         CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         TasksByStateDAO tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
         notificationEntryCacheBuilder = new NotificationEntryCacheBuilder(subTaskInfoDAO, taskInfoDAO, taskErrorDAO);
+        batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
         topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
         notificationTupleHandler = new NotificationTupleHandler(
                 processedRecordsDAO,
@@ -110,7 +114,7 @@ public class NotificationBolt extends BaseRichBolt {
                 taskErrorDAO,
                 taskInfoDAO,
                 tasksByStateDAO,
-                BatchExecutor.getInstance(cassandraConnectionProvider),
+                batchExecutor,
                 topologyName
         );
     }

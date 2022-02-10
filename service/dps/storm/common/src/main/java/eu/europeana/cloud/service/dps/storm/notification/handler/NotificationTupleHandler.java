@@ -171,7 +171,7 @@ public class NotificationTupleHandler {
                 recordState));
     }
 
-    private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState) {
+    public List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState, String message) {
         List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
 
         taskInfoDAO.findById(notificationTuple.getTaskId()).flatMap(
@@ -182,9 +182,13 @@ public class NotificationTupleHandler {
                     statementsToBeExecuted.add(tasksByStateDAO.insertStatement(newState, topologyName, notificationTuple.getTaskId(), oldTaskState.getApplicationId(),
                             oldTaskState.getTopicName(), oldTaskState.getStartTime()));
                 });
-        statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, newState.getDefaultMessage()));
+        statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, message));
 
         return statementsToBeExecuted;
+    }
+
+    private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState) {
+        return prepareStatementsForTupleContainingLastRecord(notificationTuple,newState, newState.getDefaultMessage());
     }
 
     private String prepareAdditionalInfo(Map<String, Object> parameters) {
