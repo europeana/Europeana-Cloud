@@ -58,7 +58,7 @@ CREATE TABLE error_notifications (
     PRIMARY KEY((task_id,error_type),resource)
 );
 
-CREATE TABLE error_counters (
+CREATE TABLE error_types (
     task_id bigint,
     error_type timeuuid,
     error_count int,

@@ -5,7 +5,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String TASK_INFO_TABLE = "task_info";
     public static final String NOTIFICATIONS_TABLE = "notifications";
     public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
-    public static final String ERROR_COUNTERS_TABLE = "error_counters";
+    public static final String ERROR_TYPES_TABLE = "error_types";
     public static final String GENERAL_STATISTICS_TABLE = "general_statistics";
     public static final String NODE_STATISTICS_TABLE = "node_statistics";
     public static final String ATTRIBUTE_STATISTICS_TABLE = "attribute_statistics";
@@ -66,9 +66,9 @@ public class CassandraTablesAndColumnsNames {
 
 
     //-------- ERROR COUNTERS ----------
-    public static final String ERROR_COUNTERS_TASK_ID = "task_id";
-    public static final String ERROR_COUNTERS_ERROR_TYPE = "error_type";
-    public static final String ERROR_COUNTERS_COUNTER = "error_count";
+    public static final String ERROR_TYPES_TASK_ID = "task_id";
+    public static final String ERROR_TYPES_ERROR_TYPE = "error_type";
+    public static final String ERROR_TYPES_COUNTER = "error_count";
 
 
     //-------- GENERAL STATISTICS ----------

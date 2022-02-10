@@ -44,8 +44,8 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     private void prepareStatements() {
-        selectErrorsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ?");
+        selectErrorsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?");
         selectErrorsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         selectErrorStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
@@ -53,17 +53,17 @@ public class ReportService implements TaskExecutionReportService {
                 "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT ?");
         selectErrorStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        selectErrorCounterStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE + " = ?");
+        selectErrorCounterStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
+                "AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?");
         selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkErrorExistStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_COUNTERS_TASK_ID + " = ? LIMIT 1");
+        checkErrorExistStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
+                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? LIMIT 1");
         checkErrorExistStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
     }
@@ -140,9 +140,9 @@ public class ReportService implements TaskExecutionReportService {
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
 
-            String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_COUNTERS_ERROR_TYPE).toString();
+            String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString();
             String message = getErrorMessage(taskId, errorMessages, errorType);
-            int occurrences = row.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER);
+            int occurrences = row.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
             List<ErrorDetails> errorDetails = retrieveErrorDetails(taskId, errorType, idsCount);
             errors.add(new TaskErrorInfo(errorType, message, occurrences, errorDetails));
         }
@@ -242,7 +242,7 @@ public class ReportService implements TaskExecutionReportService {
         taskErrorInfo.setErrorType(errorType);
 
         Row row = rs.one();
-        taskErrorInfo.setOccurrences(row.getInt(CassandraTablesAndColumnsNames.ERROR_COUNTERS_COUNTER));
+        taskErrorInfo.setOccurrences(row.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER));
 
         return taskErrorInfo;
     }
