@@ -7,6 +7,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
@@ -76,7 +77,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         boltConfig.put(Config.TOPOLOGY_NAME, "");
         testedBolt.prepare(boltConfig, null, collector);
     }
-
 
     @Test
     public void shouldProperlyExecuteRegularTuple() throws Exception {
@@ -377,7 +377,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
     }
 
-
     @Test
     public void testNotificationForErrors() throws Exception {
         //given
@@ -408,6 +407,25 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         assertEquals(1, errorsInfo.getErrors().size());
         assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
+    }
+
+    @Test
+    public void shouldProperlyExecuteTupleWithExpectedSizeNotAvailableAtTheBeginning() throws AccessDeniedOrObjectDoesNotExistException {
+        insertTaskToDB(TASK_ID, TOPOLOGY_NAME, -1, TaskState.QUEUED, "");
+        testedBolt.execute(createNotificationTuple(1L, RecordState.SUCCESS));
+        insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 2, TaskState.QUEUED, "");
+        testedBolt.execute(createNotificationTuple(1L, RecordState.SUCCESS));
+
+        TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
+        List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
+        assertThat(notifications, hasSize(2));
+        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(2, taskProgress.getProcessedRecordsCount());
+        assertEquals(0, taskProgress.getIgnoredRecordsCount());
+        assertEquals(0, taskProgress.getDeletedRecordsCount());
+        assertEquals(0, taskProgress.getProcessedErrorsCount());
+        assertEquals(0, taskProgress.getDeletedErrorsCount());
+        assertEquals(2, taskProgress.getExpectedRecordsNumber());
     }
 
     private void insertTaskToDB(long taskId, String topologyName, int expectedSize, TaskState state,

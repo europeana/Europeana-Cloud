@@ -3,14 +3,17 @@ package eu.europeana.cloud.service.dps.storm;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Component responsible for executing provided statements in LOGGED batch
  */
 public class BatchExecutor {
+
+    private static final int RETRY_COUNT = 3;
+    private static final int SLEEP_BETWEEN_RETRIES_MS = 200;
 
     private final CassandraConnectionProvider dbService;
 
@@ -27,15 +30,17 @@ public class BatchExecutor {
         return instance;
     }
 
-    public void executeAll(BoundStatement... statements) {
-        BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
-        Arrays.stream(statements).forEach(batchStatement::add);
-        dbService.getSession().execute(batchStatement);
-    }
-
     public void executeAll(List<BoundStatement> statements) {
         BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
         statements.forEach(batchStatement::add);
-        dbService.getSession().execute(batchStatement);
+        executeWithRetries(batchStatement);
+    }
+
+    private void executeWithRetries(BatchStatement batchStatement) {
+        RetryableMethodExecutor.execute("Unable to execute batch", RETRY_COUNT,
+                SLEEP_BETWEEN_RETRIES_MS, () -> {
+                    dbService.getSession().execute(batchStatement);
+                    return null;
+                });
     }
 }

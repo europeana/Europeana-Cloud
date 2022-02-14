@@ -139,6 +139,30 @@ public class NotificationBolt extends BaseRichBolt {
         if (cachedCounters == null) {
             cachedCounters = notificationEntryCacheBuilder.build(notificationTuple.getTaskId());
             cache.put(notificationTuple.getTaskId(), cachedCounters);
+        } else {
+            cachedCounters = updateExpectedRecordsNumberIfNeeded(cachedCounters, notificationTuple.getTaskId());
+            cache.put(notificationTuple.getTaskId(), cachedCounters);
+        }
+        return cachedCounters;
+    }
+
+    private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
+        if (cachedCounters.getExpectedRecordsNumber() == -1) {
+            Optional<TaskInfo> byId = taskInfoDAO.findById(taskId);
+            if (byId.isPresent()) {
+                TaskInfo taskInfo = byId.get();
+                return NotificationCacheEntry.builder()
+                        .processed(cachedCounters.getProcessed())
+                        .errorTypes(cachedCounters.getErrorTypes())
+                        .expectedRecordsNumber(taskInfo.getExpectedRecordsNumber())
+                        .processedRecordsCount(cachedCounters.getProcessedRecordsCount())
+                        .ignoredRecordsCount(cachedCounters.getIgnoredRecordsCount())
+                        .deletedRecordsCount(cachedCounters.getDeletedRecordsCount())
+                        .processedErrorsCount(cachedCounters.getProcessedErrorsCount())
+                        .deletedErrorsCount(cachedCounters.getDeletedErrorsCount())
+                        .errorTypes(cachedCounters.getErrorTypes())
+                        .build();
+            }
         }
         return cachedCounters;
     }
