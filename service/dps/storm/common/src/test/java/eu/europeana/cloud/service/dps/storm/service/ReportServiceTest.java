@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -131,7 +132,8 @@ public class ReportServiceTest extends CassandraTestBase {
 
     private SubTaskInfo createAndStoreSubtaskInfo(int resourceNum) {
         SubTaskInfo info = new SubTaskInfo(resourceNum, "resource" + resourceNum, RecordState.QUEUED, "info", "additionalInformations", "resultResource" + resourceNum);
-        subtaskInfoDao.insert(info.getResourceNum(), TASK_ID_LONG, TOPOLOGY_NAME, info.getResource(), info.getRecordState().toString(), info.getInfo(), info.getAdditionalInformations(), info.getResultResource());
+        subtaskInfoDao.insert(info.getResourceNum(), TASK_ID_LONG, TOPOLOGY_NAME, info.getResource(), info.getRecordState().toString(),
+                info.getInfo(), Map.of(CassandraSubTaskInfoDAO.AUXILIARY_KEY, info.getAdditionalInformations()), info.getResultResource());
         return info;
     }
 

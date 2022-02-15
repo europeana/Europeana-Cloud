@@ -7,6 +7,8 @@ import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
@@ -56,7 +58,8 @@ public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
 
     private void insertNotifications(int count) {
         for(int i=1;i<=count;i++) {
-            subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(), "infoTxt", "additionalInformations", "resultResource" + i);
+            subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(),
+                    "infoTxt", Map.of(CassandraSubTaskInfoDAO.AUXILIARY_KEY, "additionalInformations"), "resultResource" + i);
         }
     }
 

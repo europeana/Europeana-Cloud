@@ -52,9 +52,9 @@ public class NotificationTupleHandler {
     public void handle(NotificationTuple notificationTuple, NotificationHandlerConfig config) {
         LOGGER.debug("Executing notification handler");
         long taskId = notificationTuple.getTaskId();
-        var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+        var resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         //
-        if (tupleShouldBeProcessed(taskId, recordId)) {
+        if (tupleShouldBeProcessed(taskId, resource)) {
             config.getNotificationCacheEntry().incrementCounters(notificationTuple);
             Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getProcessed());
             List<BoundStatement> statementsToBeExecutedInBatch = new ArrayList<>();
@@ -191,11 +191,15 @@ public class NotificationTupleHandler {
         return prepareStatementsForTupleContainingLastRecord(notificationTuple,newState, newState.getDefaultMessage());
     }
 
-    private String prepareAdditionalInfo(Map<String, Object> parameters) {
-        var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        var now = Instant.now().toEpochMilli();
-        var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
-        return additionalInfo + " Processing time: " + processingTime;
+    private Map<String, String> prepareAdditionalInfo(Map<String, Object> parameters) {
+        var processingTime = Instant.now().toEpochMilli()
+                - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
+
+        return Map.of(
+                CassandraSubTaskInfoDAO.AUXILIARY_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS)),
+                CassandraSubTaskInfoDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                CassandraSubTaskInfoDAO.RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
+        );
     }
 
     private boolean maximumNumberOfErrorsReached(ErrorType errorType) {

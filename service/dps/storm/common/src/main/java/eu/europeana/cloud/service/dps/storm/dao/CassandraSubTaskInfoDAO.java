@@ -1,13 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.Notification;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
-import java.time.Duration;
 import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
@@ -79,8 +81,13 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     }
 
-    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, Map<String, String> additionalInformations, String resultResource) {
-        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
+    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state,
+                       String infoTxt, Map<String, String> additionalInformations, String resultResource) {
+
+        dbService.getSession().execute(
+                subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state,
+                infoTxt, additionalInformations, resultResource)
+        );
     }
 
     public BoundStatement insertNotificationStatement(Notification notification) {

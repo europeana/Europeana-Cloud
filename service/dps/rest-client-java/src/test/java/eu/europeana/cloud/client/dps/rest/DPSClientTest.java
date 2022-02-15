@@ -221,7 +221,7 @@ public class DPSClientTest {
     @Test
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", RecordState.SUCCESS, "", "", "result");
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", RecordState.SUCCESS, "", "", null, "result");
         List<SubTaskInfo> taskInfoList = new ArrayList<>(1);
         taskInfoList.add(subTaskInfo);
         //
@@ -238,7 +238,7 @@ public class DPSClientTest {
     @Test
     public final void shouldReturnedGeneralErrorReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        TaskErrorsInfo report = createErrorInfo(TASK_ID, false);
+        TaskErrorsInfo report = createErrorInfo(false);
         //
         new WiremockHelper(wireMockRule).stubGet(
                 "/services/TopologyName/tasks/12345/reports/errors?idsCount=0",
@@ -270,7 +270,7 @@ public class DPSClientTest {
     @Test
     public final void shouldReturnedSpecificErrorReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        TaskErrorsInfo report = createErrorInfo(TASK_ID, true);
+        TaskErrorsInfo report = createErrorInfo(true);
         new WiremockHelper(wireMockRule).stubGet("/services/TopologyName/tasks/12345/reports/errors?error=92f19f57-d173-4e07-8fc9-2a6f0df42549&idsCount=100",
                 200,
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><taskErrorsInfo>\n" +
@@ -375,9 +375,9 @@ public class DPSClientTest {
         return task;
     }
 
-    private TaskErrorsInfo createErrorInfo(long taskId, boolean specific) {
+    private TaskErrorsInfo createErrorInfo(boolean specific) {
         TaskErrorsInfo info = new TaskErrorsInfo();
-        info.setId(taskId);
+        info.setId(DPSClientTest.TASK_ID);
         List<TaskErrorInfo> errors = new ArrayList<>(1);
         TaskErrorInfo error = new TaskErrorInfo();
         error.setOccurrences(ERROR_OCCURRENCES);
