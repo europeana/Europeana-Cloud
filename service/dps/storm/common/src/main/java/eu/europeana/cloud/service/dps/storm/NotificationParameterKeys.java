@@ -5,16 +5,16 @@ package eu.europeana.cloud.service.dps.storm;
  */
 public class NotificationParameterKeys {
     //------- for BASIC INFO -------
-    public static final String TOPOLOGY_NAME = "topology_name";
+    public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
 
 
     //------- for NOTIFICATION -------
-    public static final String RESOURCE = "resource";
-    public static final String STATE = "state";
-    public static final String INFO_TEXT = "info_text";
+    public static final String RESOURCE = "RESOURCE";
+    public static final String STATE = "STATE";
+    public static final String INFO_TEXT = "INFO_TEXT";
     public static final String ADDITIONAL_INFORMATION = "ADDITIONAL_INFORMATION";
     public static final String RECORD_ID = "RECORD_ID";
-    public static final String RESULT_RESOURCE = "resultResource";
+    public static final String RESULT_RESOURCE = "RESULT_RESOURCE";
 
     public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
     public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
