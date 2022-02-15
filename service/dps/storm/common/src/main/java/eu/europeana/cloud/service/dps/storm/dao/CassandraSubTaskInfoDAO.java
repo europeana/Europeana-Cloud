@@ -61,7 +61,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
+                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
                 + ") VALUES (?,?,?,?,?,?,?,?,?)");
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());

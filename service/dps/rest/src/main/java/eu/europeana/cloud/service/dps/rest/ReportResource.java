@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
-import eu.europeana.cloud.service.dps.Constants;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -29,6 +28,7 @@ import java.util.List;
 @Scope("request")
 @RequestMapping("/{topologyName}/tasks")
 public class ReportResource {
+    @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
     public static final String TASK_PREFIX = "DPS_Task";
@@ -46,6 +46,7 @@ public class ReportResource {
     private ValidationStatisticsService validationStatisticsService;
 
     /**
+     * Retrieve task detailed report
      * Retrieves a detailed report for the specified task.It will return info about
      * the first 100 resources unless you specified the needed chunk by using from&to parameters
      * <p/>
@@ -63,7 +64,6 @@ public class ReportResource {
      * @param from         The starting resource number should be bigger than 0
      * @param to           The ending resource number should be bigger than 0
      * @return Notification messages for the specified task.
-     * @summary Retrieve task detailed report
      */
     @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -100,7 +100,6 @@ public class ReportResource {
      * @param error        Error type.
      * @param idsCount     number of identifiers to retrieve
      * @return Errors that occurred for the specified task.
-     * @summary Retrieve task detailed error report
      */
     @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
@@ -139,19 +138,18 @@ public class ReportResource {
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return if the error report exists
-     * @summary Check if the task has error report
      */
     @RequestMapping(method = { RequestMethod.HEAD }, path = "{taskId}/reports/errors")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
     public ResponseEntity checkIfErrorReportExists(
             @PathVariable String taskId,
             @PathVariable final String topologyName)
-            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+                throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        return (reportService.checkIfReportExists(taskId) ?
-                ResponseEntity.ok() : ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED))
-                .build();
+        return (reportService.checkIfReportExists(taskId) ? ResponseEntity.ok()
+                : ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)).build();
     }
 
 
@@ -171,7 +169,6 @@ public class ReportResource {
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return Statistics report for the specified task.
-     * @summary Retrieve task statistics report
      */
     @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")

@@ -109,7 +109,7 @@ public class ReportService implements TaskExecutionReportService {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
-            Map<String, String> additionalInformationsMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS, String.class, String.class);
+            Map<String, String> additionalInformationsMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
             var additionalInformations = additionalInformationsMap != null ?
                     additionalInformationsMap.get(CassandraSubTaskInfoDAO.AUXILIARY_KEY) : null;
 
