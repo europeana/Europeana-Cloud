@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.time.Duration;
+import java.util.Map;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
@@ -21,6 +22,9 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public static final int BUCKET_SIZE = 10000;
+    public static final String AUXILIARY_KEY = "additionalInfo.auxiliary";
+    public static final String PROCESSING_TIME_KEY = "additionalInfo.processingTime";
+    public static final String RECORD_ID_KEY = "additionalInfo.recordId";
 
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;
@@ -76,7 +80,7 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     }
 
-    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource) {
+    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, Map<String, String> additionalInformations, String resultResource) {
         dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
     }
 

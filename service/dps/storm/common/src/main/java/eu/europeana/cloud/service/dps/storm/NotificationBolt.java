@@ -137,8 +137,7 @@ public class NotificationBolt extends BaseRichBolt {
         nCache.incrementCounters(notificationTuple);
 
         //notification table (for single record)
-        storeNotification(nCache.getProcessed(), taskId,
-                notificationTuple.getParameters());
+        storeNotification(nCache.getProcessed(), taskId, notificationTuple.getParameters());
 
         if (error) {
             storeNotificationError(taskId, nCache, notificationTuple);
@@ -209,11 +208,15 @@ public class NotificationBolt extends BaseRichBolt {
         var resource = String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
         var state = String.valueOf(parameters.get(NotificationParameterKeys.STATE));
         var infoText = String.valueOf(parameters.get(NotificationParameterKeys.INFO_TEXT));
-        var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
         var resultResource = String.valueOf(parameters.get(NotificationParameterKeys.RESULT_RESOURCE));
-        var now = Instant.now().toEpochMilli();
-        var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
-        additionalInfo = additionalInfo + " Processing time: " + processingTime;
+        var processingTime = Instant.now().toEpochMilli() - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
+
+        var additionalInfo = Map.of(
+                CassandraSubTaskInfoDAO.AUXILIARY_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS)),
+                CassandraSubTaskInfoDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                CassandraSubTaskInfoDAO.RECORD_ID_KEY, "recordId"
+        );
+
         insertRecordDetailedInformation(resourceNum, taskId, resource, state, infoText, additionalInfo, resultResource);
     }
 
@@ -341,7 +344,8 @@ public class NotificationBolt extends BaseRichBolt {
         return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 
-    protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state, String infoText, String additionalInfo, String resultResource) {
+    protected void insertRecordDetailedInformation(int resourceNum, long taskId, String resource, String state,
+                                                   String infoText, Map<String, String> additionalInfo, String resultResource) {
         subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, state, infoText, additionalInfo, resultResource);
     }
 }
