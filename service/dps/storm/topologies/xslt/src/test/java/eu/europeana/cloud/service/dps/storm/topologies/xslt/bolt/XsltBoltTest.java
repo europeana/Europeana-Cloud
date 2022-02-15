@@ -75,7 +75,7 @@ public class XsltBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
-        parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest-test.eanadev.org/datasets/xslt/60a50844eec47c5ba9f6eb56");
+        parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest-test.eanadev.org/datasets/xslt/default");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }

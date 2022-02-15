@@ -80,7 +80,7 @@ public class NotificationBolt extends BaseRichBolt {
                             needsPostProcessing(notificationTuple));
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
         } catch (Exception ex) {
-            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
+            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
             batchExecutor.executeAll(
                     notificationTupleHandler.prepareStatementsForTupleContainingLastRecord(
                             notificationTuple,
