@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class BatchExecutor {
 
-    private static final int RETRY_COUNT = 3;
-    private static final int SLEEP_BETWEEN_RETRIES_MS = 200;
+    private static final int RETRY_COUNT = 10;
+    private static final int SLEEP_BETWEEN_RETRIES_MS = 10000;
 
     private final CassandraConnectionProvider dbService;
 
