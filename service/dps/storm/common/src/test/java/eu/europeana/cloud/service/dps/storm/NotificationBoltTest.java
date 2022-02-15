@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
@@ -50,7 +50,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     private NotificationBolt testedBolt;
     private CassandraTaskInfoDAO taskInfoDAO;
     private ReportService reportService;
-    private CassandraSubTaskInfoDAO subtaskDAO;
+    private NotificationsDAO subtaskDAO;
     private ProcessedRecordsDAO processedRecordsDAO;
     private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
     private int resourceCounter=0;
@@ -63,7 +63,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         reportService = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
 
         CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,CassandraTestInstance.getPort(),KEYSPACE,USER_NAME,PASSWORD);
-        subtaskDAO = CassandraSubTaskInfoDAO.getInstance(db);
+        subtaskDAO = NotificationsDAO.getInstance(db);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
         cassandraTaskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     }

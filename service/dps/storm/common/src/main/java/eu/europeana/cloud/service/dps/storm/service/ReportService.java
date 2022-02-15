@@ -11,7 +11,7 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
@@ -89,7 +89,7 @@ public class ReportService implements TaskExecutionReportService {
     @Override
     public List<SubTaskInfo> getDetailedTaskReport(String taskId, int from, int to) {
         List<SubTaskInfo> result = new ArrayList<>();
-        for (int i = CassandraSubTaskInfoDAO.bucketNumber(to); i >= CassandraSubTaskInfoDAO.bucketNumber(from); i--) {
+        for (int i = NotificationsDAO.bucketNumber(to); i >= NotificationsDAO.bucketNumber(from); i--) {
             Statement selectFromNotification = QueryBuilder.select()
                     .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
                     .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId)))
@@ -111,10 +111,10 @@ public class ReportService implements TaskExecutionReportService {
         for (Row row : data) {
             Map<String, String> additionalInformationsMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
             var additionalInformations = additionalInformationsMap != null ?
-                    additionalInformationsMap.get(CassandraSubTaskInfoDAO.AUXILIARY_KEY) : null;
+                    additionalInformationsMap.get(NotificationsDAO.AUXILIARY_KEY) : null;
 
             var recordId = additionalInformationsMap != null ?
-                    additionalInformationsMap.get(CassandraSubTaskInfoDAO.RECORD_ID_KEY) : null;
+                    additionalInformationsMap.get(NotificationsDAO.RECORD_ID_KEY) : null;
 
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),

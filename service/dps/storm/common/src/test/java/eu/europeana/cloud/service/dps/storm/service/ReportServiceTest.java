@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
@@ -25,13 +25,13 @@ public class ReportServiceTest extends CassandraTestBase {
     private static final String TASK_ID = String.valueOf(TASK_ID_LONG);
     private static final String TOPOLOGY_NAME = "some_topology";
     private ReportService service;
-    private CassandraSubTaskInfoDAO subtaskInfoDao;
+    private NotificationsDAO subtaskInfoDao;
 
     @Before
     public void setup() {
         CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
         service = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
-        subtaskInfoDao = CassandraSubTaskInfoDAO.getInstance(db);
+        subtaskInfoDao = NotificationsDAO.getInstance(db);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class ReportServiceTest extends CassandraTestBase {
 
     @Test
     public void shouldReturnEmptyReportWhenThereIsNoDataWhenQueryingManyBuckets() {
-        List<SubTaskInfo> report = service.getDetailedTaskReport(TASK_ID, 1, CassandraSubTaskInfoDAO.BUCKET_SIZE * 3);
+        List<SubTaskInfo> report = service.getDetailedTaskReport(TASK_ID, 1, NotificationsDAO.BUCKET_SIZE * 3);
 
         assertThat(report, hasSize(0));
     }
@@ -133,7 +133,7 @@ public class ReportServiceTest extends CassandraTestBase {
     private SubTaskInfo createAndStoreSubtaskInfo(int resourceNum) {
         SubTaskInfo info = new SubTaskInfo(resourceNum, "resource" + resourceNum, RecordState.QUEUED, "info", "additionalInformations", "resultResource" + resourceNum);
         subtaskInfoDao.insert(info.getResourceNum(), TASK_ID_LONG, TOPOLOGY_NAME, info.getResource(), info.getRecordState().toString(),
-                info.getInfo(), Map.of(CassandraSubTaskInfoDAO.AUXILIARY_KEY, info.getAdditionalInformations()), info.getResultResource());
+                info.getInfo(), Map.of(NotificationsDAO.AUXILIARY_KEY, info.getAdditionalInformations()), info.getResultResource());
         return info;
     }
 

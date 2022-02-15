@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 
 import java.util.Map;
 
@@ -10,9 +10,9 @@ import java.util.Map;
  */
 public class RecordStatusUpdater {
 
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private NotificationsDAO subTaskInfoDAO;
 
-    public RecordStatusUpdater(CassandraSubTaskInfoDAO subTaskInfoDAO) {
+    public RecordStatusUpdater(NotificationsDAO subTaskInfoDAO) {
         this.subTaskInfoDAO = subTaskInfoDAO;
     }
 
@@ -27,7 +27,7 @@ public class RecordStatusUpdater {
     public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName,
                                           String resource, String info, String additionalInfo) {
         subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource,
-                RecordState.ERROR.name(), info, Map.of(CassandraSubTaskInfoDAO.AUXILIARY_KEY, additionalInfo), null);
+                RecordState.ERROR.name(), info, Map.of(NotificationsDAO.AUXILIARY_KEY, additionalInfo), null);
     }
 
 }

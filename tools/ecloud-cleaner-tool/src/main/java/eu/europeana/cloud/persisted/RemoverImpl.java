@@ -3,7 +3,7 @@ package eu.europeana.cloud.persisted;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ public class RemoverImpl implements Remover {
 
     static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
 
-    private final CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private final NotificationsDAO subTaskInfoDAO;
     private final CassandraTaskErrorsDAO taskErrorDAO;
     private final ValidationStatisticsServiceImpl statisticsService;
 
@@ -28,12 +28,12 @@ public class RemoverImpl implements Remover {
     public RemoverImpl(String hosts, int port, String keyspaceName, String userName, String password) {
         CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
                 userName, password);
-        subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
         taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         statisticsService = ValidationStatisticsServiceImpl.getInstance(cassandraConnectionProvider);
     }
 
-    RemoverImpl(CassandraSubTaskInfoDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, ValidationStatisticsServiceImpl statisticsService) {
+    RemoverImpl(NotificationsDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, ValidationStatisticsServiceImpl statisticsService) {
         this.subTaskInfoDAO = subTaskInfoDAO;
         this.taskErrorDAO = taskErrorDAO;
         this.statisticsService = statisticsService;

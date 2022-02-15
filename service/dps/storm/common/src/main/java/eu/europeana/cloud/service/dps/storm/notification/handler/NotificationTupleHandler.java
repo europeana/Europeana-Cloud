@@ -22,7 +22,7 @@ public class NotificationTupleHandler {
 
     protected final ProcessedRecordsDAO processedRecordsDAO;
     protected final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
-    protected final CassandraSubTaskInfoDAO subTaskInfoDAO;
+    protected final NotificationsDAO subTaskInfoDAO;
     protected final CassandraTaskErrorsDAO taskErrorDAO;
     protected final CassandraTaskInfoDAO taskInfoDAO;
     protected final TasksByStateDAO tasksByStateDAO;
@@ -31,7 +31,7 @@ public class NotificationTupleHandler {
 
     public NotificationTupleHandler(ProcessedRecordsDAO processedRecordsDAO,
                                            TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                           CassandraSubTaskInfoDAO subTaskInfoDAO,
+                                           NotificationsDAO subTaskInfoDAO,
                                            CassandraTaskErrorsDAO taskErrorDAO,
                                            CassandraTaskInfoDAO taskInfoDAO,
                                            TasksByStateDAO tasksByStateDAO,
@@ -196,9 +196,9 @@ public class NotificationTupleHandler {
                 - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
 
         return Map.of(
-                CassandraSubTaskInfoDAO.AUXILIARY_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATION)),
-                CassandraSubTaskInfoDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
-                CassandraSubTaskInfoDAO.RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
+                NotificationsDAO.AUXILIARY_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATION)),
+                NotificationsDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                NotificationsDAO.RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
         );
     }
 
