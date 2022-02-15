@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
+import com.datastax.driver.core.*;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.common.model.dps.Notification;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
@@ -82,6 +81,19 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, Map<String, String> additionalInformations, String resultResource) {
         dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
+    }
+
+    public BoundStatement insertNotificationStatement(Notification notification) {
+        return subtaskInsertStatement.bind(
+                notification.getTaskId(),
+                bucketNumber(notification.getResourceNum()),
+                notification.getResourceNum(),
+                notification.getTopologyName(),
+                notification.getResource(),
+                notification.getState(),
+                notification.getInfoText(),
+                notification.getAdditionalInformation(),
+                notification.getResultResource());
     }
 
     public int getProcessedFilesCount(long taskId) {
