@@ -23,7 +23,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     public static final int BUCKET_SIZE = 10000;
-    public static final String AUXILIARY_KEY = "additionalInfo.auxiliary";
+    public static final String AUXILIARY_KEY = "additionalInfo.text";
     public static final String PROCESSING_TIME_KEY = "additionalInfo.processingTime";
     public static final String RECORD_ID_KEY = "additionalInfo.recordId";
 

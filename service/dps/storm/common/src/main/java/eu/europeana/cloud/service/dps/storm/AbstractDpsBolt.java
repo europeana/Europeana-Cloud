@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -199,32 +198,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
     }
 
-
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, boolean markedAsDeleted,
-                                                      DataSetCleanerParameters dataSetCleanerParameters,
-                                                      String authenticationHeader, String resource, String message,
-                                                      String additionalInformation, String resultResource,
-                                                      long processingStartTime) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, markedAsDeleted, dataSetCleanerParameters, authenticationHeader,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-    }
-
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
         stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
-    }
-
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(ie.getMessage());
-        }
     }
 
     protected void cleanInvalidData(StormTaskTuple tuple) {
