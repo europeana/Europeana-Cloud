@@ -8,12 +8,11 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
@@ -52,7 +51,6 @@ public class NotificationBoltTest extends CassandraTestBase {
     private ReportService reportService;
     private NotificationsDAO subtaskDAO;
     private ProcessedRecordsDAO processedRecordsDAO;
-    private CassandraTaskErrorsDAO cassandraTaskErrorsDAO;
     private int resourceCounter=0;
 
     @Before
@@ -65,7 +63,6 @@ public class NotificationBoltTest extends CassandraTestBase {
         CassandraConnectionProvider db=new CassandraConnectionProvider(HOST,CassandraTestInstance.getPort(),KEYSPACE,USER_NAME,PASSWORD);
         subtaskDAO = NotificationsDAO.getInstance(db);
         processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
-        cassandraTaskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     }
 
     private void createBolt() {

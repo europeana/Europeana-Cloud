@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
+public class NotificationsDAOTest extends CassandraTestBase {
 
     private static final long TASK_ID = 111;
     private NotificationsDAO subtaskInfoDao;
@@ -31,37 +31,31 @@ public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
 
     @Test
     public void shouldReturn1WhenExecuteGetProcessedFilesCountOnOneRecord(){
-        insertNotifications(1);
-
-        int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
-
-        assertEquals(1,result);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(1);
     }
 
     @Test
     public void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountOnOneBucketData(){
-        insertNotifications(100);
-
-        int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
-
-        assertEquals(100,result);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(100);
     }
 
     @Test
     public void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountManyBucketsData(){
-        insertNotifications(34567);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(34567);
+    }
+
+    private void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(int count) {
+        insertNotifications(count);
 
         int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
 
-        assertEquals(34567,result);
+        assertEquals(count, result);
     }
 
     private void insertNotifications(int count) {
         for(int i=1;i<=count;i++) {
             subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(),
-                    "infoTxt", Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, "additionalInformations"), "resultResource" + i);
+                    "infoTxt", Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, "additionalInformation"), "resultResource" + i);
         }
     }
-
-
 }
