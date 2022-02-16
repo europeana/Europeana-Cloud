@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
@@ -156,11 +157,17 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         dbService.getSession().execute(finishTask.bind(String.valueOf(TaskState.DROPPED), info, new Date(), taskId));
     }
 
+    public BoundStatement updateProcessedFilesStatement(long taskId, int processedRecordsCount, int ignoredRecordsCount,
+                                                           int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount){
+        return updateCounters.bind(processedRecordsCount, ignoredRecordsCount, deletedRecordsCount, processedErrorsCount, deletedErrorsCount, taskId);
+    }
+
     public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
                                         int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateCounters.bind(processedRecordsCount, ignoredRecordsCount,
-                deletedRecordsCount, processedErrorsCount, deletedErrorsCount, taskId));
+
+        dbService.getSession().execute(updateProcessedFilesStatement(taskId, processedRecordsCount, ignoredRecordsCount,
+                deletedRecordsCount, processedErrorsCount, deletedErrorsCount));
     }
 
     public void updatePostProcessedRecordsCount(long taskId, int postProcessedRecordsCount)
@@ -179,7 +186,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     }
 
     public void updateState(long taskId, TaskState state, String info) {
-        dbService.getSession().execute(updateStateStatement.bind(String.valueOf(state), info, taskId));
+        dbService.getSession().execute(updateStateStatement(taskId, state, info));
+    }
+
+    public BoundStatement updateStateStatement(long taskId, TaskState state, String info) {
+        return updateStateStatement.bind(String.valueOf(state), info, taskId);
     }
 
     public boolean isDroppedTask(long taskId) throws TaskInfoDoesNotExistException {

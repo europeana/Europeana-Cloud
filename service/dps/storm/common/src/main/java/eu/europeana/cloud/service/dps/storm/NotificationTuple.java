@@ -24,7 +24,7 @@ public class NotificationTuple {
     private final long taskId;
     private final Map<String, Object> parameters;
 
-    protected NotificationTuple(long taskId, Map<String, Object> parameters) {
+    public NotificationTuple(long taskId, Map<String, Object> parameters) {
         this.taskId = taskId;
         this.parameters = parameters;
     }
