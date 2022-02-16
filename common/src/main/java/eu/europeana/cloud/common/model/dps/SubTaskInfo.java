@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement()
-@NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder
+@Data
+@NoArgsConstructor
 public class SubTaskInfo {
     private int resourceNum;
     private String resource;

@@ -196,9 +196,9 @@ public class NotificationTupleHandler {
                 - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
 
         return Map.of(
-                NotificationsDAO.AUXILIARY_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATION)),
-                NotificationsDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
-                NotificationsDAO.RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
+                NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATION)),
+                NotificationsDAO.ADDITIONAL_INFO_PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                NotificationsDAO.ADDITIONAL_INFO_RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
         );
     }
 

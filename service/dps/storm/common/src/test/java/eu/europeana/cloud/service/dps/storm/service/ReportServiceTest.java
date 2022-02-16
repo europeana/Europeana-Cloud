@@ -133,7 +133,7 @@ public class ReportServiceTest extends CassandraTestBase {
     private SubTaskInfo createAndStoreSubtaskInfo(int resourceNum) {
         SubTaskInfo info = new SubTaskInfo(resourceNum, "resource" + resourceNum, RecordState.QUEUED, "info", "additionalInformations", "resultResource" + resourceNum);
         subtaskInfoDao.insert(info.getResourceNum(), TASK_ID_LONG, TOPOLOGY_NAME, info.getResource(), info.getRecordState().toString(),
-                info.getInfo(), Map.of(NotificationsDAO.AUXILIARY_KEY, info.getAdditionalInformations()), info.getResultResource());
+                info.getInfo(), Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, info.getAdditionalInformations()), info.getResultResource());
         return info;
     }
 

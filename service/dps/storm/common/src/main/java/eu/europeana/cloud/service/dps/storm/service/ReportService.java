@@ -47,26 +47,46 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     private void prepareStatements() {
-        selectErrorsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?");
+        selectErrorsStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ?",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
+                )
+        );
         selectErrorsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        selectErrorStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT ?");
+        selectErrorStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? and %s = ? limit ?",
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID,
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE
+                )
+        );
         selectErrorStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        selectErrorCounterStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?");
+        selectErrorCounterStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? and %s = ?",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
+                )
+        );
         selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        checkIfTaskExistsStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ?",
+                        CassandraTablesAndColumnsNames.TASK_INFO_TABLE,
+                        CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID
+                )
+        );
         checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkErrorExistStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? LIMIT 1");
+        checkErrorExistStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? limit 1",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
+                )
+        );
         checkErrorExistStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
     }
@@ -109,18 +129,18 @@ public class ReportService implements TaskExecutionReportService {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
-            Map<String, String> additionalInformationsMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
-            var additionalInformations = additionalInformationsMap != null ?
-                    additionalInformationsMap.get(NotificationsDAO.AUXILIARY_KEY) : null;
+            Map<String, String> additionalInformationMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
+            var additionalInformation = additionalInformationMap != null ?
+                    additionalInformationMap.get(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY) : null;
 
-            var recordId = additionalInformationsMap != null ?
-                    additionalInformationsMap.get(NotificationsDAO.RECORD_ID_KEY) : null;
+            var recordId = additionalInformationMap != null ?
+                    additionalInformationMap.get(NotificationsDAO.ADDITIONAL_INFO_RECORD_ID_KEY) : null;
 
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
                     RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-                    additionalInformations,
+                    additionalInformation,
                     recordId,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
             subTaskInfoList.add(subTaskInfo);

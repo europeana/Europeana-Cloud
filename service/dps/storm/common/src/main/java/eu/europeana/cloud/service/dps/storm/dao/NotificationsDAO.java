@@ -23,9 +23,9 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class NotificationsDAO extends CassandraDAO {
 
     public static final int BUCKET_SIZE = 10000;
-    public static final String AUXILIARY_KEY = "additionalInfo.text";
-    public static final String PROCESSING_TIME_KEY = "additionalInfo.processingTime";
-    public static final String RECORD_ID_KEY = "additionalInfo.recordId";
+    public static final String ADDITIONAL_INFO_TEXT_KEY = "additionalInfo.text";
+    public static final String ADDITIONAL_INFO_PROCESSING_TIME_KEY = "additionalInfo.processingTime";
+    public static final String ADDITIONAL_INFO_RECORD_ID_KEY = "additionalInfo.recordId";
 
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;
@@ -53,40 +53,48 @@ public class NotificationsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        subtaskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + "("
-                + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-                + ") VALUES (?,?,?,?,?,?,?,?,?)");
+        subtaskInsertStatement = dbService.getSession().prepare(
+                String.format("insert into %s(%s, %s, %s, %s, %s, %s, %s, %s, %s) values (?,?,?,?,?,?,?,?,?)",
+                    CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_STATE,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
+                )
+        );
         subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-
         processedFilesCountStatement = dbService.getSession().prepare(
-                "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
-                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
-                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?" +
-                        " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1");
+                String.format("select %s from %s where %s = ? and %s = ? order by %s desc limit 1",
+                    CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
+                    CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
+                )
+        );
         processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeNotificationsByTaskId = dbService.getSession().prepare(
-                "delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
-                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
-                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?");
-
+                String.format("delete from %s where %s = ? and %s = ?",
+                    CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+                    CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
+                )
+        );
     }
 
     public void insert(int resourceNum, long taskId, String topologyName, String resource, String state,
-                       String infoTxt, Map<String, String> additionalInformations, String resultResource) {
+                       String infoTxt, Map<String, String> additionalInformation, String resultResource) {
 
         dbService.getSession().execute(
                 subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state,
-                infoTxt, additionalInformations, resultResource)
+                infoTxt, additionalInformation, resultResource)
         );
     }
 

@@ -59,7 +59,7 @@ public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
     private void insertNotifications(int count) {
         for(int i=1;i<=count;i++) {
             subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(),
-                    "infoTxt", Map.of(NotificationsDAO.AUXILIARY_KEY, "additionalInformations"), "resultResource" + i);
+                    "infoTxt", Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, "additionalInformations"), "resultResource" + i);
         }
     }
 

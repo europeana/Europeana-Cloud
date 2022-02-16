@@ -27,7 +27,7 @@ public class RecordStatusUpdater {
     public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName,
                                           String resource, String info, String additionalInfo) {
         subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource,
-                RecordState.ERROR.name(), info, Map.of(NotificationsDAO.AUXILIARY_KEY, additionalInfo), null);
+                RecordState.ERROR.name(), info, Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, additionalInfo), null);
     }
 
 }
