@@ -34,6 +34,7 @@ import java.util.Optional;
 public class NotificationBolt extends BaseRichBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBolt.class);
+    public static final int UNKNOWN_EXPECTED_RECORD_NUMBER = -1;
     private final String hosts;
     private final int port;
     private final String keyspaceName;
@@ -147,14 +148,14 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
-        if (cachedCounters.getExpectedRecordsNumber() == -1) {
+        if (cachedCounters.getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORD_NUMBER) {
             Optional<TaskInfo> byId = taskInfoDAO.findById(taskId);
             if (byId.isPresent()) {
                 TaskInfo taskInfo = byId.get();
                 return NotificationCacheEntry.builder()
                         .processed(cachedCounters.getProcessed())
                         .errorTypes(cachedCounters.getErrorTypes())
-                        .expectedRecordsNumber(taskInfo.getExpectedRecordsNumber())
+                        .expectedRecordsNumber(evaluateCredibleExpectedRecordNumber(taskInfo))
                         .processedRecordsCount(cachedCounters.getProcessedRecordsCount())
                         .ignoredRecordsCount(cachedCounters.getIgnoredRecordsCount())
                         .deletedRecordsCount(cachedCounters.getDeletedRecordsCount())
@@ -165,5 +166,9 @@ public class NotificationBolt extends BaseRichBolt {
             }
         }
         return cachedCounters;
+    }
+
+    private int evaluateCredibleExpectedRecordNumber(TaskInfo taskInfo) {
+        return taskInfo.getState() == TaskState.QUEUED ? taskInfo.getExpectedRecordsNumber() : UNKNOWN_EXPECTED_RECORD_NUMBER;
     }
 }
