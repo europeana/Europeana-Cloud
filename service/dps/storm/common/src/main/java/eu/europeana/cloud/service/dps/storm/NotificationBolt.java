@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORD_NUMBER;
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -149,7 +149,7 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
-        if (cachedCounters.getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORD_NUMBER) {
+        if (cachedCounters.getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
             return notificationEntryCacheBuilder.build(taskId);
         }
         return cachedCounters;

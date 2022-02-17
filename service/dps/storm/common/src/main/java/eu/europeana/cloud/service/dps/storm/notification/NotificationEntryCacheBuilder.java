@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORD_NUMBER;
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 public class NotificationEntryCacheBuilder {
 
@@ -56,7 +56,7 @@ public class NotificationEntryCacheBuilder {
     }
 
     private int evaluateCredibleExpectedRecordNumber(TaskInfo taskInfo) {
-        return taskInfo.getState() == TaskState.QUEUED ? taskInfo.getExpectedRecordsNumber() : UNKNOWN_EXPECTED_RECORD_NUMBER;
+        return taskInfo.getState() == TaskState.QUEUED ? taskInfo.getExpectedRecordsNumber() : UNKNOWN_EXPECTED_RECORDS_NUMBER;
     }
 
     private Map<String, ErrorType> getMessagesUUIDsMap(long taskId) {
