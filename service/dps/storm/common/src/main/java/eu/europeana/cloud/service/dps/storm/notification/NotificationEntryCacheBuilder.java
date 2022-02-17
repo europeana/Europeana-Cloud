@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.notification;
 
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
@@ -11,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORD_NUMBER;
 
 public class NotificationEntryCacheBuilder {
 
@@ -31,15 +35,12 @@ public class NotificationEntryCacheBuilder {
     }
 
     public NotificationCacheEntry build(long taskId) {
-
+        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
+        int processed = taskInfo.getProcessedRecordsCount() + taskInfo.getIgnoredRecordsCount() + taskInfo.getDeletedRecordsCount();
         NotificationCacheEntry.NotificationCacheEntryBuilder builder = NotificationCacheEntry.builder();
-
-        int processed = subTaskInfoDAO.getProcessedFilesCount(taskId);
-
         builder.processed(processed);
         builder.errorTypes(new HashMap<>());
-        var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
-        builder.expectedRecordsNumber(taskInfo.getExpectedRecordsNumber());
+        builder.expectedRecordsNumber(evaluateCredibleExpectedRecordNumber(taskInfo));
         if (processed > 0) {
             builder.processedRecordsCount(taskInfo.getProcessedRecordsCount());
             builder.ignoredRecordsCount(taskInfo.getIgnoredRecordsCount());
@@ -49,9 +50,13 @@ public class NotificationEntryCacheBuilder {
             builder.errorTypes(getMessagesUUIDsMap(taskId));
         }
         NotificationCacheEntry result = builder.build();
-        LOGGER.info("Restored state of NotificationBolt from Cassandra for taskId={} counters={}",
+        LOGGER.info("Updated state of NotificationBolt from Cassandra for taskId={} counters={}",
                 taskId, result);
         return result;
+    }
+
+    private int evaluateCredibleExpectedRecordNumber(TaskInfo taskInfo) {
+        return taskInfo.getState() == TaskState.QUEUED ? taskInfo.getExpectedRecordsNumber() : UNKNOWN_EXPECTED_RECORD_NUMBER;
     }
 
     private Map<String, ErrorType> getMessagesUUIDsMap(long taskId) {

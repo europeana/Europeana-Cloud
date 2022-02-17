@@ -14,7 +14,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskInfo {
-
+    public static final int UNKNOWN_EXPECTED_RECORD_NUMBER = -1;
     private long id;
     private String topologyName;
     private TaskState state;
