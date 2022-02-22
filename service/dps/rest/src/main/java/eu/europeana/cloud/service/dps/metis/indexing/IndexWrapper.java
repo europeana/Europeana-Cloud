@@ -51,20 +51,20 @@ public abstract class IndexWrapper {
 
         indexingSettings = indexingSettingsGenerator.generateForPreview();
         indexers.put(DatabaseLocation.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
-        indexingSettings = indexingSettingsGenerator.generateForPublish();
-        indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
-        //
-        //
-        indexingSettingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-
-        indexingSettings = indexingSettingsGenerator.generateForPreview();
-        if(indexingSettings != null) {
-            indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
-        }
-        indexingSettings = indexingSettingsGenerator.generateForPublish();
-        if(indexingSettings != null) {
-            indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
-        }
+//        indexingSettings = indexingSettingsGenerator.generateForPublish();
+//        indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+//        //
+//        //
+//        indexingSettingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
+//
+//        indexingSettings = indexingSettingsGenerator.generateForPreview();
+//        if(indexingSettings != null) {
+//            indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+//        }
+//        indexingSettings = indexingSettingsGenerator.generateForPublish();
+//        if(indexingSettings != null) {
+//            indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+//        }
     }
 
     protected DatabaseLocation evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
