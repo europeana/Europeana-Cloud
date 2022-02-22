@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -34,7 +33,7 @@ public class NotificationTuple {
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-        parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATION, additionalInformation);
+        parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
         if (markedAsDeleted) {
             parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
@@ -50,7 +49,7 @@ public class NotificationTuple {
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-        parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATION, additionalInformation);
+        parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
         if (markedAsDeleted) {
@@ -62,22 +61,20 @@ public class NotificationTuple {
 
 
     public static NotificationTuple prepareIndexingNotification(long taskId, boolean markedAsDeleted,
-                                                                DataSetCleanerParameters dataSetCleanerParameters,
                                                                 String authenticationHeader, String resource,
                                                                 RecordState state, String text,
-                                                                String additionalInformation, String recordId,
+                                                                String additionalInformation, String europeanaId,
                                                                 String resultResource, long processingStartTime) {
         Map<String, Object> parameters = new HashMap<>();
         if (markedAsDeleted) {
             parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
         }
-        parameters.put(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS, dataSetCleanerParameters);
         parameters.put(NotificationParameterKeys.AUTHORIZATION_HEADER, authenticationHeader);
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-        parameters.put(NotificationParameterKeys.ADDITIONAL_INFORMATION, additionalInformation);
-        parameters.put(NotificationParameterKeys.RECORD_ID, recordId);
+        parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
+        parameters.put(NotificationParameterKeys.EUROPEANA_ID, europeanaId);
         parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
         return new NotificationTuple(taskId, parameters);
@@ -99,6 +96,7 @@ public class NotificationTuple {
         parameters.put(key, value);
     }
 
+    @SuppressWarnings("unchecked")
     public static NotificationTuple fromStormTuple(Tuple tuple) {
         return new NotificationTuple(tuple.getLongByField(TASK_ID_FIELD_NAME),
                 (Map<String, Object>) tuple.getValueByField(PARAMETERS_FIELD_NAME));

@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class RecordStatusUpdater {
 
-    private NotificationsDAO subTaskInfoDAO;
+    private final NotificationsDAO subTaskInfoDAO;
 
     public RecordStatusUpdater(NotificationsDAO subTaskInfoDAO) {
         this.subTaskInfoDAO = subTaskInfoDAO;
@@ -26,8 +26,9 @@ public class RecordStatusUpdater {
 
     public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName,
                                           String resource, String info, String additionalInfo) {
-        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource,
-                RecordState.ERROR.name(), info, Map.of(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, additionalInfo), null);
+        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, RecordState.ERROR.name(), info,
+                additionalInfo != null ? Map.of(NotificationsDAO.STATE_DESCRIPTION_KEY, additionalInfo): null,
+                null);
     }
 
 }

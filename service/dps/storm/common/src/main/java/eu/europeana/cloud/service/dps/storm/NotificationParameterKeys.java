@@ -12,14 +12,13 @@ public class NotificationParameterKeys {
     public static final String RESOURCE = "RESOURCE";
     public static final String STATE = "STATE";
     public static final String INFO_TEXT = "INFO_TEXT";
-    public static final String ADDITIONAL_INFORMATION = "ADDITIONAL_INFORMATION";
-    public static final String RECORD_ID = "RECORD_ID";
+    public static final String STATE_DESCRIPTION = "STATE_DESCRIPTION";
+    public static final String EUROPEANA_ID = "EUROPEANA_ID";
     public static final String RESULT_RESOURCE = "RESULT_RESOURCE";
 
     public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
     public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
 
-    public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
     public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
 
     private NotificationParameterKeys() {

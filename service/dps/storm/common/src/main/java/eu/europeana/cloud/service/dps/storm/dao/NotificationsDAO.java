@@ -23,9 +23,9 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 public class NotificationsDAO extends CassandraDAO {
 
     public static final int BUCKET_SIZE = 10000;
-    public static final String ADDITIONAL_INFO_TEXT_KEY = "additionalInfo.text";
-    public static final String ADDITIONAL_INFO_PROCESSING_TIME_KEY = "additionalInfo.processingTime";
-    public static final String ADDITIONAL_INFO_RECORD_ID_KEY = "additionalInfo.recordId";
+    public static final String STATE_DESCRIPTION_KEY = "stateDescription";
+    public static final String PROCESSING_TIME_KEY = "processingTime";
+    public static final String EUROPEANA_ID_KEY = "europeanaId";
 
     private PreparedStatement subtaskInsertStatement;
     private PreparedStatement processedFilesCountStatement;

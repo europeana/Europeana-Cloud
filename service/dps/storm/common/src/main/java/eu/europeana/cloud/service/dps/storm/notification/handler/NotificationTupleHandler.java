@@ -139,7 +139,7 @@ public class NotificationTupleHandler {
         //
         //store notification errror
         var errorMessage = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.INFO_TEXT));
-        var additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.ADDITIONAL_INFORMATION));
+        var additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE_DESCRIPTION));
         if (!isErrorTuple(notificationTuple) && notificationTuple.getParameters().get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             errorMessage = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -196,9 +196,9 @@ public class NotificationTupleHandler {
                 - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
 
         return Map.of(
-                NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY, String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATION)),
-                NotificationsDAO.ADDITIONAL_INFO_PROCESSING_TIME_KEY, String.valueOf(processingTime),
-                NotificationsDAO.ADDITIONAL_INFO_RECORD_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.RECORD_ID))
+                NotificationsDAO.STATE_DESCRIPTION_KEY, String.valueOf(parameters.get(NotificationParameterKeys.STATE_DESCRIPTION)),
+                NotificationsDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                NotificationsDAO.EUROPEANA_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.EUROPEANA_ID))
         );
     }
 

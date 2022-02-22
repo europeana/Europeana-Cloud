@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
@@ -168,13 +166,10 @@ public class IndexingBolt extends AbstractDpsBolt {
         indexerPool.index(document, properties);
     }
 
+    @SuppressWarnings("unused")
     private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
                               String database, Date recordDate, String europeanaId) {
         stormTaskTuple.setFileData((byte[]) null);
-        var dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
-                Boolean.parseBoolean(useAltEnv), database, recordDate);
-        stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
-                new Gson().toJson(dataSetCleanerParameters));
         stormTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
     }
 

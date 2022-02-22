@@ -130,18 +130,20 @@ public class ReportService implements TaskExecutionReportService {
 
         for (Row row : data) {
             Map<String, String> additionalInformationMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
-            var additionalInformation = additionalInformationMap != null ?
-                    additionalInformationMap.get(NotificationsDAO.ADDITIONAL_INFO_TEXT_KEY) : null;
-
-            var recordId = additionalInformationMap != null ?
-                    additionalInformationMap.get(NotificationsDAO.ADDITIONAL_INFO_RECORD_ID_KEY) : null;
+            long processingTime = 0L;
+            try {
+                processingTime = Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY));
+            } catch (Exception exception){
+                //Skip exception. processingTime is set to 0L.
+            }
 
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
                     RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-                    additionalInformation,
-                    recordId,
+                    additionalInformationMap.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
+                    additionalInformationMap.get(NotificationsDAO.EUROPEANA_ID_KEY),
+                    processingTime,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
             subTaskInfoList.add(subTaskInfo);
         }

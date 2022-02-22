@@ -18,14 +18,16 @@ public class SubTaskInfo {
     private RecordState recordState;
     private String info;
     private String additionalInformations;
-    private String recordId;
+    private String europeanaId;
+    private long processingTime;
     private String resultResource;
 
     public SubTaskInfo(String resource) {
-        this(0, resource, null, null, null, null);
+        this(0, resource, null, null, null, null, 0L);
     }
 
-    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations, String recordId) {
-        this(resourceNum, resource, recordState, info, additionalInformations, recordId, null);
+    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations, String europeanaId, long processingTime) {
+        this(resourceNum, resource, recordState, info, additionalInformations, europeanaId, processingTime, null);
     }
 }
+

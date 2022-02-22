@@ -221,7 +221,7 @@ public class DPSClientTest {
     @Test
     public final void shouldReturnedDetailsReport() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", RecordState.SUCCESS, "", "", null, "result");
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, "resource", RecordState.SUCCESS, "", "", null, 0L, "result");
         List<SubTaskInfo> taskInfoList = new ArrayList<>(1);
         taskInfoList.add(subTaskInfo);
         //
