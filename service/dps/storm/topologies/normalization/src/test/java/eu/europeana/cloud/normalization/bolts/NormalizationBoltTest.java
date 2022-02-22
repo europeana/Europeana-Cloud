@@ -1,6 +1,7 @@
 package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -11,14 +12,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.mockito.Matchers.any;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 public class NormalizationBoltTest {
@@ -27,7 +27,7 @@ public class NormalizationBoltTest {
     private OutputCollector outputCollector;
 
     @Captor
-    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+    ArgumentCaptor<Values> captor;
 
     @InjectMocks
     private NormalizationBolt normalizationBolt = new NormalizationBolt();
@@ -56,6 +56,7 @@ public class NormalizationBoltTest {
 
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldEmitErrorWhenNormalizationResultContainsErrorMessage() throws Exception {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -67,14 +68,14 @@ public class NormalizationBoltTest {
 
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
-        Assert.assertEquals("Error during normalization.", val.get("additionalInfo"));
-        Assert.assertTrue(val.get("info_text").toString().startsWith("Error parsing XML: Could not parse DOM for"));
+        var val = (Map<String, String>)captor.getValue().get(1);
+        Assert.assertEquals("Error during normalization.", val.get(NotificationParameterKeys.STATE_DESCRIPTION));
+        Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).startsWith("Error parsing XML: Could not parse DOM for"));
     }
 
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldEmitErrorWhenCantPrepareTupleForEmission() throws Exception {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -86,10 +87,9 @@ public class NormalizationBoltTest {
 
         //then
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("Cannot prepare output storm tuple."));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("malformed.url"));
+        var val = (Map<String, String>)captor.getValue().get(1);
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Cannot prepare output storm tuple."));
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("malformed.url"));
     }
 
     private StormTaskTuple getCorrectStormTuple(byte[] inputData) {
@@ -101,8 +101,7 @@ public class NormalizationBoltTest {
     }
 
     private StormTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
-        StormTaskTuple tuple = new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, prepareStormTaskTupleParameters(), null);
-        return tuple;
+        return new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, prepareStormTaskTupleParameters(), null);
     }
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {
