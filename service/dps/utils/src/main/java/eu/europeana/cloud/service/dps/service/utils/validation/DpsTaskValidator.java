@@ -232,15 +232,15 @@ public class DpsTaskValidator {
     public void validate(DpsTask task) throws DpsTaskValidationException {
         for (DpsTaskConstraint re : dpsTaskConstraints) {
             DpsTaskFieldType fieldType = re.getFieldType();
-            if (fieldType.equals(DpsTaskFieldType.NAME)) {
+            if (fieldType == DpsTaskFieldType.NAME) {
                 validateName(task, re);
-            } else if (fieldType.equals(DpsTaskFieldType.PARAMETER)) {
+            } else if (fieldType == DpsTaskFieldType.PARAMETER) {
                 validateParameter(task, re);
-            } else if (fieldType.equals(DpsTaskFieldType.INPUT_DATA)) {
+            } else if (fieldType == DpsTaskFieldType.INPUT_DATA) {
                 validateInputData(task, re);
-            } else if (fieldType.equals(DpsTaskFieldType.ID)) {
+            } else if (fieldType == DpsTaskFieldType.ID) {
                 validateId(task, re);
-            } else if (fieldType.equals(DpsTaskFieldType.OUTPUT_REVISION)) {
+            } else if (fieldType == DpsTaskFieldType.OUTPUT_REVISION) {
                 validateOutputRevision(task, revisionMustExist);
             }
         }
@@ -292,7 +292,7 @@ public class DpsTaskValidator {
     }
 
     private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-        if( NO_DATA.equals(constraint.getExpectedValueType())){
+        if (NO_DATA == constraint.getExpectedValueType()) {
             validateNoInputData(task);
             return;
         }
@@ -300,7 +300,7 @@ public class DpsTaskValidator {
         try {
             dataType = InputDataType.valueOf(constraint.getExpectedName());
         } catch (IllegalArgumentException e) {
-            throw new DpsTaskValidationException("Input data is not valid.");
+            throw new DpsTaskValidationException("Input data is not valid.", e);
         }
         List<String> expectedInputData = task.getDataEntry(dataType);
 
@@ -331,15 +331,15 @@ public class DpsTaskValidator {
     private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint) throws DpsTaskValidationException {
         for (String expectedInputDataValue : expectedInputData) {
             try {
-                if (constraint.getExpectedValueType().equals(LINK_TO_FILE)) {
+                if (constraint.getExpectedValueType() == LINK_TO_FILE) {
                     tryValidateFileUrl(expectedInputDataValue);
-                } else if (constraint.getExpectedValueType().equals(LINK_TO_DATASET)) {
+                } else if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
                     tryValidateDatasetUrl(expectedInputDataValue);
-                } else if (constraint.getExpectedValueType().equals(LINK_TO_EXTERNAL_URL)) {
+                } else if (constraint.getExpectedValueType() == LINK_TO_EXTERNAL_URL) {
                     tryValidateResourceUrl(expectedInputDataValue);
                 }
             } catch (MalformedURLException e) {
-                throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+                throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue, e);
             }
         }
     }
