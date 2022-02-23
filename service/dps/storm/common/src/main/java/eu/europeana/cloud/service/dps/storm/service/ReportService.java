@@ -125,17 +125,10 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
-
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
             Map<String, String> additionalInformationMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
-            long processingTime = 0L;
-            try {
-                processingTime = Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY));
-            } catch (Exception exception){
-                //Skip exception. processingTime is set to 0L.
-            }
 
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
@@ -143,7 +136,7 @@ public class ReportService implements TaskExecutionReportService {
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
                     additionalInformationMap.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
                     additionalInformationMap.get(NotificationsDAO.EUROPEANA_ID_KEY),
-                    processingTime,
+                    additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY) != null ? Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
             subTaskInfoList.add(subTaskInfo);
         }
