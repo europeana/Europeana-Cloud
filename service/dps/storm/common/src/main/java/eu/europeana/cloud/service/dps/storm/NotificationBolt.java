@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+
 /**
  * This bolt is responsible for store notifications to Cassandra.
  *
@@ -80,7 +82,7 @@ public class NotificationBolt extends BaseRichBolt {
                             needsPostProcessing(notificationTuple));
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
         } catch (Exception ex) {
-            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage());
+            LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
             batchExecutor.executeAll(
                     notificationTupleHandler.prepareStatementsForTupleContainingLastRecord(
                             notificationTuple,
@@ -147,23 +149,10 @@ public class NotificationBolt extends BaseRichBolt {
     }
 
     private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
-        if (cachedCounters.getExpectedRecordsNumber() == -1) {
-            Optional<TaskInfo> byId = taskInfoDAO.findById(taskId);
-            if (byId.isPresent()) {
-                TaskInfo taskInfo = byId.get();
-                return NotificationCacheEntry.builder()
-                        .processed(cachedCounters.getProcessed())
-                        .errorTypes(cachedCounters.getErrorTypes())
-                        .expectedRecordsNumber(taskInfo.getExpectedRecordsNumber())
-                        .processedRecordsCount(cachedCounters.getProcessedRecordsCount())
-                        .ignoredRecordsCount(cachedCounters.getIgnoredRecordsCount())
-                        .deletedRecordsCount(cachedCounters.getDeletedRecordsCount())
-                        .processedErrorsCount(cachedCounters.getProcessedErrorsCount())
-                        .deletedErrorsCount(cachedCounters.getDeletedErrorsCount())
-                        .errorTypes(cachedCounters.getErrorTypes())
-                        .build();
-            }
+        if (cachedCounters.getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
+            return notificationEntryCacheBuilder.build(taskId);
         }
         return cachedCounters;
     }
+
 }

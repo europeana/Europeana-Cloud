@@ -10,6 +10,8 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+
 /**
  * Counts the number of records to harvest from a specified OAI-PMH repository.
  */
@@ -30,7 +32,7 @@ public class OaiPmhFilesCounter extends FilesCounter {
                 LOGGER.info(
                         "Cannot count completeListSize for taskId= {}: No resumption token information found.",
                         task.getTaskId());
-                return -1;
+                return UNKNOWN_EXPECTED_RECORDS_NUMBER;
             }
             total += count;
         } catch (HarvesterException e) {
