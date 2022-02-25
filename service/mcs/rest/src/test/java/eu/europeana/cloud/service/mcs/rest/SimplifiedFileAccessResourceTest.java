@@ -124,11 +124,11 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
         cid2.setId(EXISTING_CLOUD_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
         cid2.setLocalId(localId);
 
-        Mockito.when(uisClient.getCloudId(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
-        Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
-        Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID)).thenReturn(cid);
-        Mockito.when(uisClient.getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION)).thenReturn(cid2);
-        Mockito.when(uisClient.getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID)).thenThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo())));
+        Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient).getCloudId(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
+        Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient).getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
+        Mockito.doReturn(cid).when(uisClient).getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID);
+        Mockito.doReturn(cid2).when(uisClient).getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
+        Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient).getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID);
     }
 
     @SuppressWarnings("unchecked")
