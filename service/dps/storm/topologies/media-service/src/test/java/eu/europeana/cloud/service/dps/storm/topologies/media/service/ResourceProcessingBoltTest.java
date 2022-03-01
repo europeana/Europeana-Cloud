@@ -17,6 +17,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import org.mockito.internal.util.reflection.FieldSetter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,23 +27,16 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Matchers.nullable;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 12/11/2018.
- */
 public class ResourceProcessingBoltTest {
 
-    private final static String AWS_ACCESS_KEY = "AWS_ACCESS_KEY";
-    private final static String AWS_SECRET_KEY = "AWS_SECRET_KEY";
-    private final static String AWS_END_POINT = "AWS_END_POINT";
-    private final static String AWS_BUCKET = "AWS_BUCKET";
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
     private static final long TASK_ID = 1;
 
@@ -65,9 +59,11 @@ public class ResourceProcessingBoltTest {
     @Mock(name = "taskStatusChecker")
     private TaskStatusChecker taskStatusChecker;
 
+    @InjectMocks
+    private ThumbnailUploader thumbnailUploader;
+
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
-
 
     @InjectMocks
     ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(amazonClient);
@@ -76,6 +72,8 @@ public class ResourceProcessingBoltTest {
     @Before
     public void prepareTuple() throws Exception {
         MockitoAnnotations.initMocks(this);
+        FieldSetter.setField(resourceProcessingBolt,
+                ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader"), thumbnailUploader);
         resourceProcessingBolt.initGson();
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
@@ -107,7 +105,7 @@ public class ResourceProcessingBoltTest {
 
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(new PutObjectResult());
-        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false);
+        when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
         verify(amazonClient, Mockito.times(thumbnailCount)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
@@ -136,7 +134,7 @@ public class ResourceProcessingBoltTest {
         when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
         when(amazonClient.putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(new PutObjectResult());
 
-        when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(false).thenReturn(true);
+        when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(true);
 
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
         verify(amazonClient, Mockito.times(1)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));

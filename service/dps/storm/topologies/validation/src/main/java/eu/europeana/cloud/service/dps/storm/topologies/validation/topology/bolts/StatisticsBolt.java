@@ -53,12 +53,12 @@ public class StatisticsBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
-            if (!statsAlreadyCalculated(stormTaskTuple)) {
+            if (statsShouldBeGenerated(stormTaskTuple)) {
                 LOGGER.info("Calculating file statistics for {}", stormTaskTuple);
                 countStatistics(stormTaskTuple);
                 markRecordStatsAsCalculated(stormTaskTuple);
             } else {
-                LOGGER.info("File stats will NOT be calculated because if was already done in the previous attempt");
+                LOGGER.info("File stats will NOT be calculated for: {}", stormTaskTuple.getFileUrl());
             }
             // we can remove the file content before emitting further
             stormTaskTuple.setFileData((byte[]) null);
@@ -69,6 +69,10 @@ public class StatisticsBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         outputCollector.ack(anchorTuple);
+    }
+
+    private boolean statsShouldBeGenerated(StormTaskTuple stormTaskTuple) {
+        return StormTaskTupleHelper.statisticsShouldBeGenerated(stormTaskTuple) && !statsAlreadyCalculated(stormTaskTuple);
     }
 
     private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {

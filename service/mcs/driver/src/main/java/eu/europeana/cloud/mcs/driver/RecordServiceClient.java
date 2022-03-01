@@ -4,24 +4,18 @@ import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -36,14 +30,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
- * Exposes API related to records.
+ * Exposes API related for records.
  */
 public class RecordServiceClient extends MCSClient {
-
-    private final Client client = ClientBuilder.newBuilder()
-            .register(JacksonFeature.class)
-            .register(MultiPartFeature.class)
-            .build();
 
     /**
      * Creates instance of RecordServiceClient.
@@ -70,7 +59,8 @@ public class RecordServiceClient extends MCSClient {
 
     /**
      * Constructor with url and http header authorisation
-     * @param baseUrl URL to connect to
+     *
+     * @param baseUrl             URL to connect to
      * @param authorizationHeader Authorization header
      */
     public RecordServiceClient(String baseUrl, final String authorizationHeader) {
@@ -79,36 +69,27 @@ public class RecordServiceClient extends MCSClient {
 
 
     /**
-     * All parameters constructor used by another one
-     * @param baseUrl URL of the MCS Rest Service
-     * @param authorizationHeader Authorization header - used instead username/password pair
-     * @param username Username to HTTP authorisation  (use together with password)
-     * @param password Password to HTTP authorisation (use together with username)
+     * All parameters' constructor used by another one
+     *
+     * @param baseUrl                URL of the MCS Rest Service
+     * @param authorizationHeader    Authorization header - used instead username/password pair
+     * @param username               Username to HTTP authorisation  (use together with password)
+     * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
-     * @param readTimeoutInMillis Timeout for getting data
+     * @param readTimeoutInMillis    Timeout for getting data
      */
     public RecordServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
 
-        if(authorizationHeader != null) {
+        if (authorizationHeader != null) {
             client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if(username != null || password != null) {
+        } else if (username != null || password != null) {
             client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
 
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
         this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
-    }
-
-
-    /**
-     * Client will use provided authorization header for all requests;
-     *
-     * @param authorizationHeader authorization header value
-     */
-    public void useAuthorizationHeader(final String authorizationHeader) {
-        client.register(new ECloudBasicAuthFilter(authorizationHeader));
     }
 
     /**
@@ -120,25 +101,14 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException             on unexpected situations
      */
     public Record getRecord(String cloudId) throws MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(RECORDS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId);
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(Record.class);
-            }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-
-        } finally {
-            closeResponse(response);
-        }
-
+        return manageResponse(new ResponseParams<>(Record.class),
+                () -> client
+                        .target(baseUrl)
+                        .path(RECORDS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .request()
+                        .get()
+        );
     }
 
     /**
@@ -153,13 +123,14 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException             on unexpected situations
      */
     public void deleteRecord(String cloudId) throws MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(RECORDS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId);
-        Builder request = target.request();
-
-        handleDeleteRequest(request);
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(RECORDS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .request()
+                        .delete()
+        );
     }
 
     /**
@@ -171,26 +142,15 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException             on unexpected situations
      */
     public List<Representation> getRepresentations(String cloudId) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATIONS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId);
-
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>() {
-                }); //formatting here is irreadble
-            }
-
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
+                }),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATIONS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .request()
+                        .get()
+        );
     }
 
     /**
@@ -204,34 +164,18 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException                     on unexpected situations
      */
     public Representation getRepresentation(String cloudId, String representationName) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()
-                    || response.getStatus() == Response.Status.TEMPORARY_REDIRECT.getStatusCode()) {
-
-                return response.readEntity(Representation.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(Representation.class, new Response.Status[]{Response.Status.OK, Response.Status.TEMPORARY_REDIRECT}),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .request()
+                        .get()
+        );
     }
 
-
-    public URI createRepresentation(String cloudId, String representationName, String providerId,
-                                    String key, String value) throws MCSException {
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String key, String value) throws MCSException {
         return createRepresentation(cloudId, representationName, providerId, (UUID) null, key, value);
     }
 
@@ -243,42 +187,53 @@ public class RecordServiceClient extends MCSClient {
      * @param representationName name of the representation to be created
      *                           (required)
      * @param providerId         provider of this representation version (required)
-     * @param version
+     * @param version            representation's version
      * @return URI to the created representation
      * @throws ProviderNotExistsException when no provider with given id exists
      * @throws RecordNotExistsException   when cloud id is not known to UIS
      *                                    Service
      * @throws MCSException               on unexpected situations
      */
-    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-                                    String key, String value) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
+    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version, String key, String value) throws MCSException {
         var form = new Form();
         form.param(PROVIDER_ID, providerId);
-
         if (version != null) {
             form.param(VERSION, version.toString());
         }
 
-        if (key != null) {
-            request.header(key, value);
+        if (key == null) {
+            return createRepresentation(cloudId, representationName, form);
+        } else {
+            return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                    () -> client.target(baseUrl)
+                            .path(REPRESENTATION_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .request()
+                            .header(key, value)
+                            .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+            );
         }
-        Response response = null;
-        return handleRepresentationResponse(form, request, response);
     }
 
+    private URI createRepresentation(String cloudId, String representationName, Form form) throws MCSException {
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client.target(baseUrl)
+                        .path(REPRESENTATION_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .request()
+                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
+    }
+
+
     public URI createRepresentation(String cloudId, String representationName, String providerId) throws MCSException {
-        return createRepresentation(cloudId, representationName, providerId, (String) null, (String) null);
+        return createRepresentation(cloudId, representationName, providerId, (String) null, null);
     }
 
     /**
-     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     * Creates new representation version, uploads a file and makes this representation persistent (in one request)
      *
      * @param cloudId            id of the record in which to create the representation
      *                           (required)
@@ -296,37 +251,31 @@ public class RecordServiceClient extends MCSClient {
                                     InputStream data,
                                     String fileName,
                                     String mediaType) throws IOException, MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(FILE_UPLOAD_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
 
-        FormDataMultiPart multipart = null;
+        var multiPart = prepareRequestBody(providerId, data, fileName, mediaType);
 
-        Response response = null;
-        request.header("Content-Type", "multipart/form-data");
         try {
-            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
-            response = request.post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
-            return handleResponse(response);
+            return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                    () -> client
+                            .target(baseUrl)
+                            .path(FILE_UPLOAD_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .request()
+                            .header("Content-Type", "multipart/form-data")
+                            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA)));
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            closeDataSources(data, multiPart);
         }
     }
 
     public URI createRepresentation(String cloudId, String representationName, String providerId, InputStream data,
-                                    String fileName, String mediaType, String key, String value)
-            throws IOException, MCSException {
+                                    String fileName, String mediaType, String key, String value) throws IOException, MCSException {
         return createRepresentation(cloudId, representationName, providerId, null, data, fileName, mediaType, key, value);
     }
 
     /**
-     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     * Creates new representation version, uploads a file and makes this representation persistent (in one request)
      *
      * @param cloudId            id of the record in which to create the representation
      *                           (required)
@@ -348,34 +297,31 @@ public class RecordServiceClient extends MCSClient {
                                     String fileName,
                                     String mediaType,
                                     String key, String value) throws IOException, MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(FILE_UPLOAD_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
 
-        FormDataMultiPart multipart = null;
+        var multiPart = prepareRequestBody(providerId, data, fileName, mediaType);
+        if (version != null) {
+            multiPart.field(VERSION, version.toString());
+        }
 
-        Response response = null;
-        request.header("Content-Type", "multipart/form-data");
         try {
-            multipart = prepareRequestBody(providerId, data, fileName, mediaType);
-            if (version != null) {
-                multipart.field(VERSION, version.toString());
-            }
-            response = request.header(key, value).post(Entity.entity(multipart, MediaType.MULTIPART_FORM_DATA));
-            return handleResponse(response);
+            return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                    () -> client
+                            .target(baseUrl)
+                            .path(FILE_UPLOAD_RESOURCE)
+                            .resolveTemplate(CLOUD_ID, cloudId)
+                            .resolveTemplate(REPRESENTATION_NAME, representationName)
+                            .request()
+                            .header(key, value)
+                            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA))
+            );
         } finally {
-            closeResponse(response);
-            IOUtils.closeQuietly(data);
-            if (multipart != null)
-                multipart.close();
+            closeDataSources(data, multiPart);
         }
     }
 
+
     /**
-     * Creates new representation version, aploads a file and makes this representation persistent (in one request)
+     * Creates new representation version, uploads a file and makes this representation persistent (in one request)
      *
      * @param cloudId            id of the record in which to create the representation
      *                           (required)
@@ -385,30 +331,12 @@ public class RecordServiceClient extends MCSClient {
      * @param data               file that should be uploaded (required)
      * @param mediaType          mimeType of uploaded file
      * @return URI to created file
-     * @throws MCSException
+     * @throws MCSException throws if something went wrong
      */
-    public URI createRepresentation(String cloudId,
-                                    String representationName,
-                                    String providerId,
-                                    InputStream data,
-                                    String mediaType) throws IOException, MCSException {
+    public URI createRepresentation(String cloudId, String representationName, String providerId,
+                                    InputStream data, String mediaType) throws IOException, MCSException {
 
         return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
-    }
-
-    private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
-        FormDataMultiPart requestBody = new FormDataMultiPart();
-        requestBody
-                .field(ParamConstants.F_PROVIDER, providerId)
-                .field(ParamConstants.F_FILE_MIME, mediaType)
-                .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
-
-        if (fileName == null || fileName.trim().isEmpty()) {
-            fileName = UUID.randomUUID().toString();
-        }
-        requestBody.field(ParamConstants.F_FILE_NAME, fileName);
-
-        return requestBody;
     }
 
     /**
@@ -422,14 +350,16 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException                     on unexpected situations
      */
     public void deleteRepresentation(String cloudId, String representationName) throws MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
 
-        handleDeleteRequest(request);
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .request()
+                        .delete()
+        );
     }
 
     /**
@@ -444,54 +374,16 @@ public class RecordServiceClient extends MCSClient {
      */
     public List<Representation> getRepresentations(String cloudId, String representationName) throws MCSException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSIONS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName);
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>() {});
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
-    }
-
-
-   /**
-     * Returns representation in specified version.
-     * <p/>
-     * If Version = LATEST, will redirect to actual latest persistent version at
-     * the moment of invoking this method.
-     *
-     * @param cloudId            id of the record to get representation from (required)
-     * @param representationName name of the representation (required)
-     * @param version            version of the representation to be obtained; if
-     *                           version==LATEST function will return latest persistent version (required)
-     * @return requested representation version
-     * @throws RepresentationNotExistsException if specified representation does
-     *                                          not exist
-     * @throws MCSException                     on unexpected situations
-     */
-    public Representation getRepresentation(String cloudId, String representationName, String version) throws MCSException {
-
-        WebTarget webtarget = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Builder request = webtarget.request();
-
-        return handleRepresentationResponse(webtarget, request);
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
+                }),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSIONS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .request()
+                        .get()
+        );
     }
 
     /**
@@ -502,8 +394,36 @@ public class RecordServiceClient extends MCSClient {
      *
      * @param cloudId            id of the record to get representation from (required)
      * @param representationName name of the representation (required)
-     * @param version            version of the representation to be obtained; if
-     *                           version==LATEST function will return latest persistent version (required)
+     * @param version            version of the representation to be obtained;
+     *                           if version is equal LATEST function will return the latest persistent version (required)
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public Representation getRepresentation(String cloudId, String representationName, String version) throws MCSException {
+        return manageResponse(new ResponseParams<>(Representation.class),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .get()
+        );
+    }
+
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param version            version of the representation to be obtained;
+     *                           if version is equal LATEST function will return the latest persistent version (required)
      * @param key                key to header
      * @param value              value to header
      * @return requested representation version
@@ -511,20 +431,19 @@ public class RecordServiceClient extends MCSClient {
      *                                          not exist
      * @throws MCSException                     on unexpected situations
      */
-    public Representation getRepresentation(String cloudId, String representationName,
-                                            String version, String key, String value) throws MCSException {
-
-        WebTarget webtarget = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Builder request = webtarget.request().header(key, value);
-
-        return handleRepresentationResponse(webtarget, request);
+    public Representation getRepresentation(String cloudId, String representationName, String version, String key, String value) throws MCSException {
+        return manageResponse(new ResponseParams<>(Representation.class),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .header(key, value)
+                        .get()
+        );
     }
-
 
     /**
      * Deletes representation in specified version.
@@ -540,30 +459,30 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations
      */
     public void deleteRepresentation(String cloudId, String representationName, String version) throws MCSException {
-        WebTarget webtarget = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Builder request = webtarget.request();
-
-        handleDeleteRequest(request);
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .delete()
+        );
     }
 
-
-    public void deleteRepresentation(String cloudId, String representationName, String version,
-                                     String key, String value) throws MCSException {
-
-        WebTarget webtarget = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Builder request = webtarget.request().header(key, value);
-
-        handleDeleteRequest(request);
+    public void deleteRepresentation(String cloudId, String representationName, String version, String key, String value) throws MCSException {
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .header(key, value)
+                        .delete()
+        );
     }
 
     /**
@@ -581,27 +500,16 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException                     on unexpected situations
      */
     public URI copyRepresentation(String cloudId, String representationName, String version) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION_COPY)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-            if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION_COPY)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
 
     /**
@@ -621,18 +529,16 @@ public class RecordServiceClient extends MCSClient {
      * @throws MCSException                                  on unexpected situations
      */
     public URI persistRepresentation(String cloudId, String representationName, String version) throws MCSException {
-
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_VERSION_PERSIST)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-        Form form = new Form();
-        Builder request = target.request();
-
-        Response response = null;
-        return handleRepresentationResponse(form, request, response);
+        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_VERSION_PERSIST)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
 
     /**
@@ -643,32 +549,25 @@ public class RecordServiceClient extends MCSClient {
      * @param version            representation version
      * @param userName           user who will get access to representation version
      * @param permission         permission that will be granted
-     * @throws MCSException
+     * @throws MCSException throws if something went wrong
      */
     public void grantPermissionsToVersion(String cloudId, String representationName, String version,
                                           String userName, Permission permission) throws MCSException {
+        Response.Status status = manageResponse(new ResponseParams<>(Response.Status.class, new Response.Status[]{Response.Status.NOT_MODIFIED, Response.Status.OK}),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_PERMISSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(PERMISSION, permission.getValue())
+                        .resolveTemplate(USER_NAME, userName)
+                        .request()
+                        .post(null)
+        );
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_PERMISSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(PERMISSION, permission.getValue())
-                .resolveTemplate(USER_NAME, userName);
-
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.post(null);
-            if(response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
-                throw new MCSException("Permissions not modified");
-            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-                throwException(response);
-            }
-        } finally {
-            closeResponse(response);
+        if (status == Response.Status.NOT_MODIFIED) {
+            throw new MCSException("Permissions not modified");
         }
     }
 
@@ -680,23 +579,22 @@ public class RecordServiceClient extends MCSClient {
      * @param version            representation version
      * @param userName           user who will get access to representation version
      * @param permission         permission that will be granted
-     * @throws MCSException
+     * @throws MCSException throws if something went wrong
      */
     public void revokePermissionsToVersion(String cloudId, String representationName, String version,
                                            String userName, Permission permission) throws MCSException {
 
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_PERMISSION)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version)
-                .resolveTemplate(PERMISSION, permission.getValue())
-                .resolveTemplate(USER_NAME, userName);
-
-        Builder request = target.request();
-
-        handleDeleteRequest(request);
+        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_PERMISSION)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .resolveTemplate(PERMISSION, permission.getValue())
+                        .resolveTemplate(USER_NAME, userName)
+                        .request()
+                        .delete());
     }
 
     /**
@@ -705,27 +603,19 @@ public class RecordServiceClient extends MCSClient {
      * @param cloudId            record identifier
      * @param representationName representation name
      * @param version            representation version
-     * @throws MCSException
+     * @throws MCSException throws if something went wrong
      */
     public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
-        WebTarget target = client
-                .target(baseUrl)
-                .path(REPRESENTATION_PERMIT)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(VERSION, version);
-
-        Builder request = target.request();
-
-        Response response = null;
-        try {
-            response = request.post(null);
-            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-                throwException(response);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        manageResponse(new ResponseParams<>(Void.class),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_PERMIT)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(VERSION, version)
+                        .request()
+                        .post(null)
+        );
     }
 
     /**
@@ -743,46 +633,51 @@ public class RecordServiceClient extends MCSClient {
      *                                          not exist
      * @throws RepresentationNotExistsException on representation does not exist
      * @throws MCSException                     on unexpected situations
+     * @deprecated              since 6-SNAPSHOT. The method {@link #getRepresentationsByRevision(String, String, Revision)} should be used instead
      */
-    public List<Representation> getRepresentationsByRevision(
-            String cloudId, String representationName, String revisionName,
-            String revisionProviderId, String revisionTimestamp) throws MCSException {
+    @Deprecated(since = "6-SNAPSHOT")
+    public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, String revisionName,
+                                                             String revisionProviderId, String revisionTimestamp) throws MCSException {
+        return getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
+    }
 
-        WebTarget webtarget = client
-                .target(baseUrl)
-                .path(REPRESENTATION_REVISIONS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(REVISION_NAME, revisionName);
 
-        if (revisionProviderId != null) {
-            webtarget = webtarget.queryParam(F_REVISION_PROVIDER_ID, revisionProviderId);
-        } else {
+    /**
+     * Returns representation in specified version.
+     * <p/>
+     * If Version = LATEST, will redirect to actual latest persistent version at
+     * the moment of invoking this method.
+     *
+     * @param cloudId            id of the record to get representation from (required)
+     * @param representationName name of the representation (required)
+     * @param revision           the revision (required) (revisionProviderId is required)
+     * @return requested representation version
+     * @throws RepresentationNotExistsException if specified representation does
+     *                                          not exist
+     * @throws RepresentationNotExistsException on representation does not exist
+     * @throws MCSException                     on unexpected situations
+     */
+    public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, Revision revision) throws MCSException {
+
+        if(revision.getRevisionProviderId() == null) {
             throw new MCSException("RevisionProviderId is required");
         }
-        // revision timestamp is optional
-        if (revisionTimestamp != null) {
-            webtarget = webtarget.queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
-        }
 
-        Builder request = webtarget.request();
-
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>() {});
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } catch (MessageBodyProviderNotFoundException e) {
-            String out = webtarget.getUri().toString();
-            throw new MCSException(out, e);
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
+                () -> client
+                        .target(baseUrl)
+                        .path(REPRESENTATION_REVISIONS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()) )
+                        .request()
+                        .get()
+        );
     }
+
+
 
     public List<Representation> getRepresentationsByRevision(
             String cloudId,
@@ -793,110 +688,44 @@ public class RecordServiceClient extends MCSClient {
             String key,
             String value)
             throws MCSException {
-        WebTarget webtarget = client.target(baseUrl)
-                .path(REPRESENTATION_REVISIONS_RESOURCE)
-                .resolveTemplate(CLOUD_ID, cloudId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(REVISION_NAME, revisionName);
 
-        if (revisionProviderId != null) {
-            webtarget = webtarget.queryParam(F_REVISION_PROVIDER_ID, revisionProviderId);
-        } else
+        if (revisionProviderId == null) {
             throw new MCSException("RevisionProviderId is required");
-        // revision timestamp is optional
-        if (revisionTimestamp != null) {
-            webtarget = webtarget.queryParam(F_REVISION_TIMESTAMP, revisionTimestamp);
         }
 
-        Builder request = webtarget.request().header(key, value);
+        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
+                () -> client.target(baseUrl)
+                        .path(REPRESENTATION_REVISIONS_RESOURCE)
+                        .resolveTemplate(CLOUD_ID, cloudId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .request()
+                        .header(key, value)
+                        .get()
+        );
+    }
 
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(new GenericType<List<Representation>>() {
-                });
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } catch (MessageBodyProviderNotFoundException e) {
-            String out = webtarget.getUri().toString();
-            throw new MCSException(out, e);
-        } finally {
-            closeResponse(response);
+    private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
+        FormDataMultiPart requestBody = new FormDataMultiPart();
+        requestBody
+                .field(ParamConstants.F_PROVIDER, providerId)
+                .field(ParamConstants.F_FILE_MIME, mediaType)
+                .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
+
+        if (fileName == null || fileName.trim().isEmpty()) {
+            fileName = UUID.randomUUID().toString();
         }
+        requestBody.field(ParamConstants.F_FILE_NAME, fileName);
+
+        return requestBody;
     }
 
-
-    public void close() {
-        client.close();
-    }
-
-    private void throwException(Response response) throws MCSException {
-        try {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } catch (MessageBodyProviderNotFoundException e) {
-            ErrorInfo errorInfo = new ErrorInfo();
-            errorInfo.setErrorCode(McsErrorCode.OTHER.toString());
-            errorInfo.setDetails("Mcs not available");
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
-    }
-
-    private void closeResponse(Response response) {
-        if (response != null) {
-            response.close();
-        }
-    }
-
-    private URI handleResponse(Response response) throws MCSException {
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            return response.getLocation();
-        } else {
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        }
-    }
-
-    private void handleDeleteRequest(Builder request) throws MCSException {
-        Response response = null;
-        try {
-            response = request.delete();
-            if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
-    }
-
-    private Representation handleRepresentationResponse(WebTarget webtarget, Builder request) throws MCSException {
-        Response response = null;
-        try {
-            response = request.get();
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return response.readEntity(Representation.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } catch (MessageBodyProviderNotFoundException e) {
-            String out = webtarget.getUri().toString();
-            throw new MCSException(out, e);
-        } finally {
-            closeResponse(response);
-        }
-    }
-
-    private URI handleRepresentationResponse(Form form, Builder request, Response response) throws MCSException {
-        try {
-            response = request.post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-            return handleResponse(response);
-        } finally {
-            closeResponse(response);
+    private void closeDataSources(InputStream data, MultiPart multiPartData) throws IOException {
+        IOUtils.closeQuietly(data);
+        if (multiPartData != null) {
+            multiPartData.close();
         }
     }
 }

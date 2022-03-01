@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -117,9 +118,12 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 theRecord.getAdditionalInformations());
     }
 
+    public BoundStatement updateProcessedRecordStateStatement(long taskId, String recordId, RecordState state) {
+        return updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state.toString());
+    }
+
     public void updateProcessedRecordState(long taskId, String recordId, RecordState state) {
-        dbService.getSession().execute(
-                updateRecordStateStatement.bind(taskId, recordId, BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), state.toString()));
+        dbService.getSession().execute(updateProcessedRecordStateStatement(taskId, recordId, state));
     }
 
     public Optional<ProcessedRecord> selectByPrimaryKey(long taskId, String recordId)

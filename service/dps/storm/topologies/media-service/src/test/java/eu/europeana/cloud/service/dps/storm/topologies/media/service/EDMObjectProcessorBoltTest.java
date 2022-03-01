@@ -19,7 +19,9 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -29,18 +31,25 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class EDMObjectProcessorBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
+
     @Mock(name = "fileClient")
     private FileServiceClient fileClient;
+
+    @SuppressWarnings("unused") //Field is used on runtime - by @InjectMocks
     @Mock(name = "taskStatusChecker")
     private TaskStatusChecker taskStatusChecker;
+
     @Spy
     private transient MediaExtractor mediaExtractor;
+
     @Spy
     private transient RdfDeserializer rdfDeserializer;
 
@@ -170,13 +179,12 @@ public class EDMObjectProcessorBoltTest {
         }
     }
     @Test
-    public void shouldDoProperEmissionInCaseOfFileExceptionWhileStoringTheThumbnail() throws Exception {
+    public void shouldDoProperEmissionWhileThumbnailStoringFailure() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
             when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
 
             when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(new RuntimeException());
-            doThrow(new RuntimeException()).when(amazonClient).putObject(anyString(), anyString(), any(InputStream.class), nullable(ObjectMetadata.class));
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");

@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>5.1</version>
+        <version>6</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -122,14 +122,6 @@
             <version>${version.storm}</version>
             <!-- keep storm out of the jar-with-dependencies -->
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>topologies-common-helper-test</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

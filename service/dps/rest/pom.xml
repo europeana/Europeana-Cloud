@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>5.1</version>
+        <version>6</version>
     </parent>
 
 
@@ -25,13 +25,6 @@
             <properties>
                 <spring.config.dir>tomcat</spring.config.dir>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-dps-kafka</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 
@@ -321,7 +314,7 @@
 
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet}</version>
             <scope>provided</scope>
         </dependency>

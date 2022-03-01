@@ -14,14 +14,14 @@ public class PostProcessorFactory {
         Map<String, TaskPostProcessor> postProcessorsMap = new HashMap<>();
 
         services.forEach(postProcessor ->
-            postProcessor.getProcessedTopologies().forEach(topologyName -> postProcessorsMap.put(topologyName, postProcessor))
+                postProcessor.getProcessedTopologies().forEach(topologyName -> postProcessorsMap.put(topologyName, postProcessor))
         );
 
         this.services = Collections.unmodifiableMap(postProcessorsMap);
     }
 
     public TaskPostProcessor getPostProcessor(TaskByTaskState taskByTaskState) {
-        if(!services.containsKey(taskByTaskState.getTopologyName())) {
+        if (!services.containsKey(taskByTaskState.getTopologyName())) {
             throw new PostProcessingException(String.format("No PostProcessor for given topology: '%s'", taskByTaskState.getTopologyName()));
         }
 

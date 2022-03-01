@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -17,12 +16,12 @@ import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
@@ -52,10 +51,7 @@ public class XSLTTopology {
     public StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
-        ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(
-                TopologiesNames.XSLT_TOPOLOGY,
-                topologyProperties,
-                KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+        List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
         String mcsServer = topologyProperties.getProperty(MCS_URL);
 
@@ -64,64 +60,55 @@ public class XSLTTopology {
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
 
         // TOPOLOGY STRUCTURE!
-        builder.setSpout(SPOUT, eCloudSpout,
-                (getAnInt(KAFKA_SPOUT_PARALLEL)))
-                .setNumTasks(
-                        (getAnInt(KAFKA_SPOUT_NUMBER_OF_TASKS)));
 
-
-        builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt,
-                (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
-                .setNumTasks(
-                        (getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(SPOUT, new ShuffleGrouping());
-
+        TopologyHelper.addSpoutShuffleGrouping(spoutNames,
+                builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
+                        .setNumTasks((getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))));
 
         builder.setBolt(XSLT_BOLT, new XsltBolt(),
-                (getAnInt(XSLT_BOLT_PARALLEL)))
+                        (getAnInt(XSLT_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(XSLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_RECORD_BOLT, writeRecordBolt,
-                (getAnInt(WRITE_BOLT_PARALLEL)))
+                        (getAnInt(WRITE_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(WRITE_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(XSLT_BOLT, new ShuffleGrouping());
 
 
         builder.setBolt(REVISION_WRITER_BOLT, revisionWriterBolt,
-                (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
+                        (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
         builder.setBolt(WRITE_TO_DATA_SET_BOLT, new AddResultToDataSetBolt(mcsServer),
-                (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
+                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                        getAnInt(CASSANDRA_PORT),
-                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                        topologyProperties.getProperty(CASSANDRA_USERNAME),
-                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                getAnInt(NOTIFICATION_BOLT_PARALLEL))
-                .setNumTasks(
-                        (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(SPOUT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(XSLT_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                        new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+        TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
+                builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                                        getAnInt(CASSANDRA_PORT),
+                                        topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                        topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                        topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                                getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                        .setNumTasks(
+                                (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
+                        .fieldsGrouping(RETRIEVE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(XSLT_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
 
         return builder.createTopology();

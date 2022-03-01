@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import migrator.validators.*;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author krystian.
  */
+@Ignore("Should be decided what to do with the Migrator")
 public class MigrationExecutorTest {
     private static final String contactPoint = "localhost";
     private static final String cassandraUsername = "";
@@ -91,17 +93,17 @@ public class MigrationExecutorTest {
         //when
         migrator.migrate();
         List<Row> rows = session.execute("SELECT * FROM provider_record_id;").all();
-        assertEquals(rows.size(), 1);
+        assertEquals(1, rows.size());
         Row row = rows.get(0);
         assertTheMigratedTableValues(row);
     }
 
     private void assertTheMigratedTableValues(Row row) {
         assertNotNull(row.getString("provider_id"));
-        assertEquals(row.getString("provider_id"), "provider_id");
+        assertEquals("provider_id", row.getString("provider_id"));
         assertNotNull(row.getUUID("bucket_id").toString());
-        assertEquals(row.getString("record_id"), "record_id");
-        assertEquals(row.getString("cloud_id"), "cloud_id");
+        assertEquals("record_id", row.getString("record_id"));
+        assertEquals("cloud_id", row.getString("cloud_id"));
     }
 
     @Test

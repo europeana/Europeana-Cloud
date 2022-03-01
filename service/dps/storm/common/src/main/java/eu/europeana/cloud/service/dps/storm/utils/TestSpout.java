@@ -10,6 +10,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.utils.Utils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TestSpout extends BaseRichSpout {
@@ -31,14 +32,14 @@ public class TestSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        Utils.sleep(100);
-
-        StormTaskTuple stormTaskTuple = new StormTaskTuple(
-                1,
-               "taskName",
-                null, null, null, new Revision(), new OAIPMHHarvestingDetails());
-
-        collector.emit(stormTaskTuple.toStormTuple());
+//        Utils.sleep(100);
+//
+//        StormTaskTuple stormTaskTuple = new StormTaskTuple(
+//                1,
+//               "taskName",
+//                null, null, new HashMap<>(), new Revision(), new OAIPMHHarvestingDetails());
+//
+//        collector.emit(stormTaskTuple.toStormTuple());
 
     }
 

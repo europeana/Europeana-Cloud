@@ -4,7 +4,7 @@
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>5.1</version>
+        <version>6</version>
     </parent>
     <artifactId>ecloud-service-dps-rest-client-java</artifactId>
     <packaging>jar</packaging>
@@ -16,6 +16,18 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${version.wiremock}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-api</artifactId>
@@ -63,33 +75,39 @@
             <artifactId>commons-io</artifactId>
             <version>${version.commonio}</version>
         </dependency>
-        <!--test dependencies -->
-        <dependency>
-            <groupId>co.freeside</groupId>
-            <artifactId>betamax</artifactId>
-            <version>1.1.2</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!--betamax is in groovy :) -->
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.0.4</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${version.jackson}</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${version.lombok}</version>
+            <scope>compile</scope>
+        </dependency>
 
+        <!-- API, java.xml.bind module -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+
+        <!-- Runtime, com.sun.xml.bind module -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+
+        <!-- test dependencies -->
+        <!-- no special test dependencies -->
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -111,15 +129,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <includes>
-                    <include>**/betamax.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
     </build>
-
 </project>

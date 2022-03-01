@@ -34,9 +34,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-/**
- * Created by Tarek on 1/23/2018.
- */
 public class EnrichmentBoltTest {
 
     public static final String DEREFERENCE_URL = "https:/dereference.org";

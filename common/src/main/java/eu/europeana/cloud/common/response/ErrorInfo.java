@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
+import lombok.*;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -9,6 +10,11 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonRootName("errorInfo")
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorInfo {
 
 	/**
@@ -20,42 +26,4 @@ public class ErrorInfo {
 	 * Details message for error.
 	 */
     private String details;
-
-
-    /**
-     * Creates a new instance of this class.
-     */
-    public ErrorInfo() {
-    }
-
-
-    /**
-     * Creates a new instance of this class.
-     * @param errorCode
-     * @param details
-     */
-    public ErrorInfo(String errorCode, String details) {
-        this.errorCode = errorCode;
-        this.details = details;
-    }
-
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
-
-    public String getDetails() {
-        return details;
-    }
-
-
-    public void setDetails(String details) {
-        this.details = details;
-    }
 }

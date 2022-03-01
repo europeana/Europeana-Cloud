@@ -30,11 +30,8 @@ public class CassandraTaskErrorsDAOTest extends CassandraTestBase {
 
     @Test
     public void shouldReturnCorrectNumberOfErrorsForTask() {
-        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
-        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
-        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
-        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_1);
-        cassandraTaskErrorsDAO.updateErrorCounter(1, ERROR_TYPE_2);
+        cassandraTaskErrorsDAO.insertErrorCounter(1, ERROR_TYPE_1,4);
+        cassandraTaskErrorsDAO.insertErrorCounter(1, ERROR_TYPE_2,1);
 
         long errorCount = cassandraTaskErrorsDAO.selectErrorCountsForErrorType(1, UUID.fromString(ERROR_TYPE_1));
         assertEquals(4, errorCount);

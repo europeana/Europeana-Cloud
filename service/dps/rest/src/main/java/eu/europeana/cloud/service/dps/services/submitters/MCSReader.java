@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -40,9 +41,9 @@ public class MCSReader implements AutoCloseable {
                     datasetProvider,
                     datasetName,
                     representationName,
-                    revision.getRevisionName(),
-                    revision.getRevisionProviderId(),
-                    DateHelper.getISODateString(revision.getCreationTimeStamp()), startFrom, null);
+                    new Revision(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp()),
+                    startFrom,
+                    null);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
@@ -54,7 +55,7 @@ public class MCSReader implements AutoCloseable {
 
     public List<Representation> getRepresentationsByRevision(String representationName, String revisionName, String revisionProvider, Date revisionTimestamp, String responseCloudId) throws MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting representation revision.", () ->
-                recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, revisionName, revisionProvider, DateHelper.getISODateString(revisionTimestamp)));
+                recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, new Revision(revisionName, revisionProvider, revisionTimestamp)));
     }
 
     public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {

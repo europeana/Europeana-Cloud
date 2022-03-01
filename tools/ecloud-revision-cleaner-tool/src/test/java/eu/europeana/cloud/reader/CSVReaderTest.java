@@ -9,9 +9,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by Tarek on 7/16/2019.
- */
 public class CSVReaderTest {
     private CSVReader csvReader = new CSVReader();
 

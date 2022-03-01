@@ -25,9 +25,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 
-/**
- * Created by Tarek on 12/6/2017.
- */
 
 public class ValidationRevisionWriterTest {
     @Mock(name = "outputCollector")

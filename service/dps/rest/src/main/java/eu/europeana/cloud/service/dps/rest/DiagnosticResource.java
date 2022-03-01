@@ -112,7 +112,6 @@ public class DiagnosticResource {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String acticeTasks() throws JsonProcessingException {
         List<JoinedTaskInfo> taskInfoList = tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES).stream()
-                .filter(task -> applicationIdentifier.equals(task.getApplicationId()))
                 .map(TaskByTaskState::getId).map(taskInfoDAO::findById).flatMap(Optional::stream)
                 .map(this::loadExtraInfo).collect(Collectors.toList());
         return mapper().writeValueAsString(taskInfoList);

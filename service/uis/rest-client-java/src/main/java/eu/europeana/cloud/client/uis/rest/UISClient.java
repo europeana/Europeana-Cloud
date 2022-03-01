@@ -3,11 +3,15 @@ package eu.europeana.cloud.client.uis.rest;
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
-import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataProviderProperties;
+import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -20,14 +24,12 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import java.util.function.Supplier;
 
 /**
  * The REST API client for the Unique Identifier Service.
- *
- * @author Yorgos.Mamakis@ kb.nl
  */
-public class UISClient {
+public class UISClient implements AutoCloseable {
 
     private static final String CLOUD_IDS_PATH = "/cloudIds";
     private static final String P_CLOUD_ID = "CLOUD_ID";
@@ -37,16 +39,19 @@ public class UISClient {
     private static final String DATA_PROVIDERS_PATH = "/data-providers";
     private static final String CLOUD_IDS_PATH_WITH_CLOUD_ID = "/cloudIds/{CLOUD_ID}";
 
-    private final Client client = ClientBuilder.newBuilder()
-            .register(JacksonFeature.class)
-            .build();
+    private static final String OTHER_CLIENT_MESSAGE = "Other client error";
 
     private UrlProvider urlProvider;
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
 
-    /**
+    protected final Client client =
+            ClientBuilder
+                    .newBuilder()
+                    .register(JacksonFeature.class)
+                    .build();
+
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}
      * but includes username and password to perform authenticated requests.
@@ -97,26 +102,16 @@ public class UISClient {
      * @return The newly generated CloudId
      * @throws CloudException The generic cloud exception wrapper
      */
-    public CloudId createCloudId(String providerId, String recordId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                    .post(null);
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(CloudId.class);
-            } else {
-                throw generateExpception(resp);
-            }
-
-        } finally {
-            closeResponse(resp);
-        }
+    public CloudId createCloudId(String providerId, String recordId) throws CloudException {
+        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                .post(null)
+        );
     }
+
 
     /**
      * Invoke the creation of a new CloudId REST call.
@@ -128,26 +123,15 @@ public class UISClient {
      * @return The newly generated CloudId
      * @throws CloudException The generic cloud exception wrapper
      */
-    public CloudId createCloudId(String providerId, String recordId, String key, String value)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .post(null);
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(CloudId.class);
-            } else {
-                throw generateExpception(resp);
-            }
-
-        } finally {
-            closeResponse(resp);
-        }
+    public CloudId createCloudId(String providerId, String recordId, String key, String value) throws CloudException {
+        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
+                .accept(MediaType.APPLICATION_JSON)
+                .post(null)
+        );
     }
 
     /**
@@ -158,22 +142,15 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     public CloudId createCloudId(String providerId) throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                    .request().post(null);
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(CloudId.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .request()
+                .post(null)
+        );
     }
+
 
     /**
      * Invoke the retrieval of a cloud identifier.
@@ -183,25 +160,17 @@ public class UISClient {
      * @return The retrieved cloud Id
      * @throws CloudException The generic cloud exception wrapper
      */
-    public CloudId getCloudId(String providerId, String recordId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                    .get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(CloudId.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public CloudId getCloudId(String providerId, String recordId) throws CloudException {
+        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
+                .request()
+                .get()
+        );
     }
+
 
     /**
      * Invoke the retrieval of a cloud identifier.
@@ -213,24 +182,15 @@ public class UISClient {
      * @return The retrieved cloud Id
      * @throws CloudException The generic cloud exception wrapper
      */
-    public CloudId getCloudId(String providerId, String recordId, String key, String value)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client.target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
-                    .get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(CloudId.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public CloudId getCloudId(String providerId, String recordId, String key, String value) throws CloudException {
+        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+                .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
+                .request()
+                .header(key, value)
+                .get()
+        );
     }
 
     /**
@@ -241,24 +201,16 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
-    public ResultSlice<CloudId> getRecordId(String cloudId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
-                    .resolveTemplate(P_CLOUD_ID, cloudId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public ResultSlice<CloudId> getRecordId(String cloudId) throws CloudException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
+                .resolveTemplate(P_CLOUD_ID, cloudId)
+                .request()
+                .get()
+        );
     }
+
 
     /**
      * Retrieve records associated with a provider.
@@ -268,24 +220,16 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
-    public ResultSlice<LocalId> getRecordIdsByProvider(String providerId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public ResultSlice<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path("/data-providers/{PROVIDER_ID}/localIds")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .request()
+                .get()
+        );
     }
+
 
     /**
      * Retrieve the Cloud ids associated with a provider.
@@ -295,24 +239,16 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
-    public ResultSlice<CloudId> getCloudIdsByProvider(String providerId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public ResultSlice<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path("/data-providers/{PROVIDER_ID}/cloudIds")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .request()
+                .get()
+        );
     }
+
 
     /**
      * Retrieve the record ids associated with a provider with pagination.
@@ -324,27 +260,18 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     @SuppressWarnings("unchecked")
-    public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(
-            String providerId, String startRecordId, int limit)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
-                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(String providerId, String startRecordId, int limit) throws CloudException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path("/data-providers/{PROVIDER_ID}/localIds")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_FROM, startRecordId)
+                .queryParam(UISParamConstants.Q_LIMIT, limit)
+                .request()
+                .get()
+        );
     }
+
 
     /**
      * Retrieve the cloud ids associated with a provider with pagination.
@@ -359,24 +286,14 @@ public class UISClient {
     public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(
             String providerId, String startRecordId, int limit)
             throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .queryParam(UISParamConstants.Q_FROM, startRecordId)
-                    .queryParam(UISParamConstants.Q_LIMIT, limit).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .queryParam(UISParamConstants.Q_FROM, startRecordId)
+                .queryParam(UISParamConstants.Q_LIMIT, limit).request().get()
+        );
     }
+
 
     /**
      * Create a mapping between a cloud id and provider and record id.
@@ -387,26 +304,14 @@ public class UISClient {
      * @return A confirmation that the mapping has been created
      * @throws CloudException The generic cloud exception wrapper
      */
-    public boolean createMapping(String cloudId, String providerId,
-                                 String recordId) throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .resolveTemplate(P_CLOUD_ID, cloudId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
-                    .post(null);
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return true;
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public boolean createMapping(String cloudId, String providerId, String recordId) throws CloudException {
+        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
+                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .resolveTemplate(P_CLOUD_ID, cloudId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                .post(null)
+        );
     }
 
 
@@ -421,27 +326,18 @@ public class UISClient {
      * @return A confirmation that the mapping has been created
      * @throws CloudException The generic cloud exception wrapper
      */
+    @SuppressWarnings("unused")
     public boolean createMapping(String cloudId, String providerId,
                                  String recordId, String key, String value) throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .resolveTemplate(P_CLOUD_ID, cloudId)
-                    .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
-                    .post(null);
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return true;
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
+                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .resolveTemplate(P_CLOUD_ID, cloudId)
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                .post(null)
+        );
     }
+
 
     /**
      * Remove the association of a record id to a cloud id.
@@ -451,25 +347,16 @@ public class UISClient {
      * @return A confirmation that the mapping has removed correctly
      * @throws CloudException The generic cloud exception wrapper
      */
-    public boolean removeMappingByLocalId(String providerId, String recordId)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
-                    .resolveTemplate(P_PROVIDER_ID, providerId)
-                    .resolveTemplate(P_LOCAL_ID, recordId).request().delete();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return true;
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public boolean removeMappingByLocalId(String providerId, String recordId) throws CloudException {
+        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
+                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .resolveTemplate(P_LOCAL_ID, recordId)
+                .request()
+                .delete()
+        );
     }
+
 
     /**
      * Delete a cloud id and all its mapped record ids.
@@ -480,22 +367,16 @@ public class UISClient {
      * @throws CloudException The generic cloud exception wrapper
      */
     public boolean deleteCloudId(String cloudId) throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
-                    .resolveTemplate(P_CLOUD_ID, cloudId).request().delete();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return true;
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
+                .resolveTemplate(P_CLOUD_ID, cloudId)
+                .request()
+                .delete()
+        );
     }
+
+
 
     /**
      * Create a data provider.
@@ -503,27 +384,17 @@ public class UISClient {
      * @param providerId The data provider Id
      * @param dp         The data provider properties
      * @return A URL that points to the data provider
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
-    public String createProvider(String providerId, DataProviderProperties dp)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
-                    .queryParam(UISParamConstants.Q_PROVIDER, providerId).request()
-                    .post(Entity.json(dp));
-
-            if (resp.getStatus() == Status.CREATED.getStatusCode()) {
-                return resp.toString();
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public String createProvider(String providerId, DataProviderProperties dp) throws CloudException {
+        return manageResponse(new ResponseParams<>(String.class, Response.Status.CREATED), () -> client
+                .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
+                .queryParam(UISParamConstants.Q_PROVIDER, providerId)
+                .request()
+                .post(Entity.json(dp))
+        );
     }
+
 
     /**
      * Update a Data Provider.
@@ -531,53 +402,35 @@ public class UISClient {
      * @param providerId The provider to update
      * @param dp         The data provider properties
      * @return True if successful, false else
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
-    public boolean updateProvider(String providerId, DataProviderProperties dp)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request()
-                    .put(Entity.json(dp));
-
-            if (resp.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-                return true;
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
+        return manageResponse(new ResponseParams<>(Boolean.class, Response.Status.NO_CONTENT), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .request()
+                .put(Entity.json(dp))
+        );
     }
+
 
     /**
      * Get data providers
      *
      * @param from The record to start from
      * @return A predefined number of data providers
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
     @SuppressWarnings("unchecked")
-    public ResultSlice<DataProvider> getDataProviders(String from)
-            throws CloudException {
-
-        Response resp = null;
-        try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
-                    .queryParam(UISParamConstants.Q_FROM, from).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(ResultSlice.class);
-            } else {
-                throw generateExpception(resp);
-            }
-        } finally {
-            closeResponse(resp);
-        }
+    public ResultSlice<DataProvider> getDataProviders(String from) throws CloudException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(DATA_PROVIDERS_PATH)
+                .queryParam(UISParamConstants.Q_FROM, from)
+                .request()
+                .get()
+        );
     }
 
     /**
@@ -585,46 +438,67 @@ public class UISClient {
      *
      * @param providerId The provider id to retrieve
      * @return The Data provider that corresponds to the selected id
-     * @throws CloudException
+     * @throws CloudException throws common {@link CloudException} if something went wrong
      */
-    public DataProvider getDataProvider(String providerId)
-            throws CloudException {
+    public DataProvider getDataProvider(String providerId) throws CloudException {
+        return manageResponse(new ResponseParams<>(DataProvider.class), () -> client
+                .target(urlProvider.getBaseUrl())
+                .path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
+                .resolveTemplate(P_PROVIDER_ID, providerId)
+                .request()
+                .get()
+        );
+    }
 
-        Response resp = null;
+    @SuppressWarnings("unchecked")
+    protected <T> T manageResponse(ResponseParams<T> responseParameters, Supplier<Response> responseSupplier) throws CloudException {
+        Response response = responseSupplier.get();
         try {
-            resp = client
-                    .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
-                    .resolveTemplate(P_PROVIDER_ID, providerId).request().get();
-
-            if (resp.getStatus() == Status.OK.getStatusCode()) {
-                return resp.readEntity(DataProvider.class);
-            } else {
-                throw generateExpception(resp);
+            response.bufferEntity();
+            if (response.getStatus() == responseParameters.getValidStatus().getStatusCode()) {
+                return (responseParameters.getExpectedClass() == Boolean.class) ? (T)Boolean.TRUE : response.readEntity(responseParameters.getExpectedClass());
             }
+            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
+            IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(errorInfo.getErrorCode());
+
+            throw  createException(errorInfo.getDetails(), errorInfo.getErrorCode(), error.getException(errorInfo));
+        } catch(CloudException cloudException) {
+            throw cloudException; //re-throw just created CloudException
+        } catch(ProcessingException processingException) {
+            String message = String.format("Could not deserialize response with statusCode: %d; message: %s",
+                    response.getStatus(), response.readEntity(String.class));
+            throw createException(message, message, processingException);
+        } catch(Exception otherExceptions) {
+            throw createException(OTHER_CLIENT_MESSAGE, OTHER_CLIENT_MESSAGE, otherExceptions);
         } finally {
-            closeResponse(resp);
+            closeResponse(response);
         }
     }
 
+
+    public void close() {
+        client.close();
+    }
     /**
-     * Generates the exception to be returned to the client.
+     * Client will use provided authorization header for all requests;
      *
-     * @param response - response containing the error info that was generated on server
+     * @param headerValue authorization header value
+     */
+    public void useAuthorizationHeader(final String headerValue) {
+        client.register(new ECloudBasicAuthFilter(headerValue));
+    }
+
+    /**
+     * Creates the exception to be returned to the client.
+     *
+     * @param errorMessage - Messages to show in log file
+     * @param errorCode - Message used in #CloudException as a message (first parameter)
+     * @param causeException - Local (client-side) exception for log output. Can be null
      * @return A CloudException that wraps the original exception
      */
-    private CloudException generateExpception(Response response) {
-        ErrorInfo errorInfo;
-        try {
-            response.bufferEntity();
-            errorInfo = response.readEntity(ErrorInfo.class);
-        } catch (ProcessingException e) {
-            String message = response.readEntity(String.class);
-            throw new RuntimeException("Cound not deserialize response with statusCode: " + response.getStatus()
-                    + ", and message: " + message, e);
-        }
-        IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(errorInfo.getErrorCode());
-        LOGGER.error(errorInfo.getDetails());
-        return new CloudException(errorInfo.getErrorCode(), error.getException(errorInfo));
+    private CloudException createException(String errorMessage, String errorCode, Exception causeException) {
+        LOGGER.error(errorMessage, causeException);
+        return new CloudException(errorCode, causeException);
     }
 
     private void closeResponse(Response response) {
@@ -633,22 +507,27 @@ public class UISClient {
         }
     }
 
-    /**
-     * Client will use provided authorization header for all requests;
-     *
-     * @param headerValue authorization header value
-     * @return
-     */
-    public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter(headerValue));
-    }
-
     @Override
+    @Deprecated(forRemoval = true)
     protected void finalize() throws Throwable {
+        LOGGER.warn("'{}.finalize()' called!!!\n{}", getClass().getSimpleName(), Thread.currentThread().getStackTrace());
         client.close();
     }
 
-    public void close() {
-        client.close();
+
+    @Getter
+    protected static class ResponseParams<T> {
+        private final Class<T> expectedClass;
+        private final Response.Status validStatus;
+
+        public ResponseParams(Class<T> expectedClass) {
+            this(expectedClass, Response.Status.OK);
+        }
+
+        private ResponseParams(Class<T> expectedClass, Response.Status validStatus) {
+            this.expectedClass = expectedClass;
+            this.validStatus = validStatus;
+        }
     }
+
 }

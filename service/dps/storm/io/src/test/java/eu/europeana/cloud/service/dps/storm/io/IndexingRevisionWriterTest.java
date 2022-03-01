@@ -29,9 +29,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 
-/**
- * Created by Tarek on 9/24/2019.
- */
 public class IndexingRevisionWriterTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;

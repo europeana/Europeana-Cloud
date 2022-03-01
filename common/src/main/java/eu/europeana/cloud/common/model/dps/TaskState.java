@@ -11,27 +11,37 @@ public enum TaskState {
      * <li>Number of element that has to be processed is calculated;</li>
      * <ol/>
      */
-    PENDING,
+    PENDING("Task is being prepared by the REST application"),
     /**
      * Task is being processed by the REST application.<br/>
      * <ol>
      * <li>For OAI topology identifiers are harvested and pushed to the kafka topic;</li>
      * <ol/>
      */
-    PROCESSING_BY_REST_APPLICATION,
+    PROCESSING_BY_REST_APPLICATION("Task is being processed by the REST application"),
 
     /**
      * All task's records pushed to Kafka queue and waits for topology processing.<br/>
      * Some of the records may already be processed by topology.
      */
-    QUEUED,
+    QUEUED("All task's records pushed to Kafka queue"),
 
-    SENT,
-    CURRENTLY_PROCESSING,
-    DROPPED,
-    PROCESSED,
-    REMOVING_FROM_SOLR_AND_MONGO,
-    DEPUBLISHING,
-    READY_FOR_POST_PROCESSING,
-    IN_POST_PROCESSING
+    SENT("Sent"),
+    CURRENTLY_PROCESSING("Currently processed by the topology"),
+    DROPPED("Task was dropped"),
+    PROCESSED("Completely processed"),
+    REMOVING_FROM_SOLR_AND_MONGO("Records are being removed from Solr and Mongo"),
+    DEPUBLISHING("Depublishing"),
+    READY_FOR_POST_PROCESSING("Ready for post-processing after topology stage is finished"),
+    IN_POST_PROCESSING("Task in post-processing");
+
+    private final String defaultMessage;
+
+    TaskState(String s) {
+        this.defaultMessage = s;
+    }
+
+    public String getDefaultMessage() {
+        return defaultMessage;
+    }
 }

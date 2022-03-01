@@ -12,14 +12,12 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
-import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
+import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.*;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -60,7 +58,6 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -111,13 +108,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private RecordKafkaSubmitService recordKafkaSubmitService;
     private RecordServiceClient recordServiceClient;
     private TaskExecutionReportService reportService;
-    private TaskKafkaSubmitService taskKafkaSubmitService;
 
     @Autowired
     private DepublicationService depublicationService;
-
-    @Autowired
-    private DatasetDepublisher datasetDepublisher;
 
     public TopologyTasksResourceTest() {
         super();
@@ -138,44 +131,16 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         recordKafkaSubmitService = applicationContext.getBean(RecordKafkaSubmitService.class);
         recordServiceClient = applicationContext.getBean(RecordServiceClient.class);
         reportService = applicationContext.getBean(TaskExecutionReportService.class);
-        taskKafkaSubmitService = applicationContext.getBean(TaskKafkaSubmitService.class);
 
         reset(
                 taskDAO,
                 dataSetServiceClient,
                 recordKafkaSubmitService,
                 reportService,
-                taskKafkaSubmitService,
                 depublicationService
         );
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
     }
-
-
-    @Test
-    public void shouldProperlySendTask() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        task.addParameter(MIME_TYPE, IMAGE_TIFF);
-        task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
-        prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
-
-    @Test
-    public void shouldProperlySendTaskWithDataSetEntry() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithDataSetEntry();
-        prepareCompleteParametersForIcTask(task);
-        prepareMocks(IC_TOPOLOGY);
-
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
 
     @Test
     public void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws Exception {
@@ -191,7 +156,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
     }
 
-
     @Test
     public void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
@@ -201,7 +165,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
-
 
     @Test
     public void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws Exception {
@@ -214,11 +177,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
 
-
     @Test
     public void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithWrongDataSetURL() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addDataEntry(DATASET_URLS, Arrays.asList(WRONG_DATA_SET_URL));
+        task.addDataEntry(DATASET_URLS, List.of(WRONG_DATA_SET_URL));
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
@@ -320,6 +282,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
@@ -381,11 +347,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
     @Test
     public void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
@@ -400,6 +369,9 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
@@ -482,6 +454,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldProperlySendTaskWithOaiPmhRepository() throws Exception {
         DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setSchema("oai_dc");
         task.setHarvestingDetails(harvestingDetails);
@@ -492,10 +466,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep( 1000);
         verify(harvestsExecutor).execute(any(OaiHarvest.class), any(SubmitTaskParameters.class));
-        verifyZeroInteractions(taskKafkaSubmitService);
-        verifyZeroInteractions(recordKafkaSubmitService);
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
 
@@ -516,6 +488,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
 
         prepareMocks(HTTP_TOPOLOGY);
         ResultActions response = sendTask(task, HTTP_TOPOLOGY);
@@ -549,26 +526,17 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-    @Test
-    public void shouldProperlySendTaskWithDataSetEntryWithOutputRevision() throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-        prepareCompleteParametersForIcTask(task);
-        task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
-
-        prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        assertSuccessfulRequest(response, IC_TOPOLOGY);
-    }
-
-
     @Test
     public void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
 
         prepareMocks(INDEXING_TOPOLOGY);
@@ -586,6 +554,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
         prepareMocks(INDEXING_TOPOLOGY);
 
@@ -603,6 +576,11 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
+        task.addParameter(HARVEST_DATE,"2021-07-12T16:50:00.000Z");
+        task.addParameter(OUTPUT_DATA_SETS,"http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+        task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
+        task.addParameter(REVISION_PROVIDER, "metis_test5");
+        task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
         prepareMocks(INDEXING_TOPOLOGY);
 
         //when
@@ -654,6 +632,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputRevision(task);
         prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
@@ -661,9 +643,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
         response.andExpect(status().isCreated());
-        Thread.sleep(10000);
-        verifyZeroInteractions(taskKafkaSubmitService);
-        verifyZeroInteractions(recordKafkaSubmitService);
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
 
@@ -789,7 +769,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void killTaskShouldFailForNonExistedTopology() throws Exception {
-        String info = "Dropped by the user";
         doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(false);
 
@@ -802,7 +781,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     public void killTaskShouldFailWhenTaskDoesNotBelongToTopology() throws Exception {
-        String info = "Dropped by the user";
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
 
@@ -928,7 +906,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
-        Thread.sleep(200L);
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishIndividualRecords(captor.capture());
@@ -945,7 +922,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
-        Thread.sleep(200L);
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishDataset(captor.capture());
@@ -963,24 +939,23 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private void assertSuccessfulHttpTopologyRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep(5000);
-        verify(taskKafkaSubmitService).submitTask(any(DpsTask.class), eq(topologyName));
-        verifyNoMoreInteractions(taskKafkaSubmitService);
-        verifyZeroInteractions(recordKafkaSubmitService);
-        //verify(recordKafkaSubmitService).submitRecord(any(DpsRecord.class), eq(topologyName));
+        verifyNoInteractions(recordKafkaSubmitService);
     }
 
     private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
-        Thread.sleep(5000);
-        verifyZeroInteractions(taskKafkaSubmitService);
     }
 
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+
+        task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
+        task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
+        task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
+
         return task;
     }
 

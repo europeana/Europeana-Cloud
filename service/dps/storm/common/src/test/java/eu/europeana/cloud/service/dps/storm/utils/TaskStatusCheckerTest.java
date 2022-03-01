@@ -17,9 +17,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 4/9/2018.
- */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CassandraTaskInfoDAO.class)
 @PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*",

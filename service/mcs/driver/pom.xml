@@ -4,10 +4,10 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>5.1</version>
+        <version>6</version>
     </parent>
     <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-    <version>5.1</version>
+    <version>6</version>
     <name>Europeana Cloud: Metadata and Content Service Java Client</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -15,6 +15,19 @@
         <version.spring-framework>5.2.3.RELEASE</version.spring-framework>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${version.wiremock}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <artifactId>jaxb-api</artifactId>
             <groupId>javax.xml.bind</groupId>
@@ -74,24 +87,23 @@
             <artifactId>base64</artifactId>
             <version>2.3.8</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${version.lombok}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-service-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!--test dependencies-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>co.freeside</groupId>
-            <artifactId>betamax</artifactId>
-            <version>1.1.2</version>
-            <scope>test</scope>
-        </dependency>
-        <!--betamax is in groovy :)-->
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -131,19 +143,9 @@
         </dependency>
     </dependencies>
     <build>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <includes>
-                    <include>**/betamax.properties</include>
-                </includes>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

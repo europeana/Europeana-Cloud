@@ -55,6 +55,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
         LOGGER.info("HTTP task submission for {} started.", parameters.getTask().getTaskId());
 
         int expectedCount = -1;
+        parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
         LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
         try {

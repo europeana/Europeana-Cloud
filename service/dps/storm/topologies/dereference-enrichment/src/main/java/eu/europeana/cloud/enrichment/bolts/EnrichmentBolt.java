@@ -42,6 +42,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             String output = enrichmentWorker.process(fileContent);
             LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
             emitEnrichedContent(anchorTuple, stormTaskTuple, output);
+            LOGGER.info("Emmited enrichment on {}", output);
         } catch (Exception e) {
             LOGGER.error("Exception while Enriching/dereference", e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),

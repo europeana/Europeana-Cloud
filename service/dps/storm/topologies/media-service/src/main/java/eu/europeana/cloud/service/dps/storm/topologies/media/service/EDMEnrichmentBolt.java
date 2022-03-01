@@ -25,9 +25,6 @@ import java.net.MalformedURLException;
 import java.time.Instant;
 import java.util.*;
 
-/**
- * Created by Tarek on 12/12/2018.
- */
 public class EDMEnrichmentBolt extends ReadFileBolt {
     public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
     private static final long serialVersionUID = 1L;
@@ -47,7 +44,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("Starting EDM enrichment");
+        LOGGER.debug("Starting EDM enrichment");
         Instant processingStartTime = Instant.now();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
@@ -71,18 +68,22 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                     try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
                         tempEnrichedFile = new TempEnrichedFile();
                         tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
-                        tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream)));
+                        byte[] bytes = IOUtils.toByteArray(stream);
+                        tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
+                        LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
                     }
                 }
                 tempEnrichedFile.addSourceTuple(anchorTuple);
-                if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA) != null) {
-                    EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA));
+                String metadata = stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
+                if (metadata != null) {
+                    EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), metadata);
                     tempEnrichedFile.setEnrichedRdf(enrichedRdf);
                 }
                 String cachedErrorMessage = tempEnrichedFile.getExceptions();
                 cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
                 tempEnrichedFile.setExceptions(cachedErrorMessage);
-
+                LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
+                        tempEnrichedFile.getCount() + 1, tempEnrichedFile.getExceptions(), metadata);
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();
@@ -95,7 +96,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 tempEnrichedFile.increaseCount();
                 if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
                     try {
-                        LOGGER.info("The file was fully enriched and will be send to the next bolt");
+                        LOGGER.debug("The file was fully enriched and will be send to the next bolt");
                         prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
                         cache.remove(file);
                         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());

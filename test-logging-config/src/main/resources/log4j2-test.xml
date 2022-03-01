@@ -3,7 +3,7 @@
     <Properties>
         <Property name="fileName">tests.log</Property>
         <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>
-        <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} [%C] - %p : %m%n</Property>
+        <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} [%t] [%C] - %p : %m%n</Property>
     </Properties>
 
     <Appenders>
@@ -21,5 +21,6 @@
             <AppenderRef ref="STDOUT"/>
             <!-- Log only to console <AppenderRef ref="FILE"/> -->
         </Root>
+        <Logger name="eu.europeana.cloud.service.dps.storm.AbstractDpsBolt" level="debug"/>
     </Loggers>
 </Configuration>

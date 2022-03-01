@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -106,8 +107,12 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
         dbService.getSession().execute(updatePostprocessingStartTime.bind(taskId, Date.from(time)));
     }
 
+    public BoundStatement updateLastRecordFinishedOnStormTimeStatement(long taskId, Instant time) {
+        return updateLastRecordFinishedOnStormTime.bind(taskId, Date.from(time));
+    }
+
     public void updateLastRecordFinishedOnStormTime(long taskId, Instant time) {
-        dbService.getSession().execute(updateLastRecordFinishedOnStormTime.bind(taskId, Date.from(time)));
+        dbService.getSession().execute(updateLastRecordFinishedOnStormTimeStatement(taskId, time));
     }
 
     private TaskDiagnosticInfo createTaskInfo(Row row) {

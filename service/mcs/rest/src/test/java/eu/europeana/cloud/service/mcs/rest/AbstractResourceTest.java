@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
-import eu.europeana.cloud.service.mcs.config.UnitedExceptionMapper;
+import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.BasicResourceTestContext;
 import org.junit.Before;
 import org.junit.Rule;
@@ -19,11 +19,13 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Collections;
+
 import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
-@ContextConfiguration(classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnitedExceptionMapper.class,
-        BasicResourceTestContext.class})
+@ContextConfiguration(classes = {MCSAppInitializer.class, ServiceConfiguration.class,
+        UnifiedExceptionsMapper.class, BasicResourceTestContext.class})
 public abstract class AbstractResourceTest {
 
     @Rule
@@ -39,9 +41,8 @@ public abstract class AbstractResourceTest {
 
     public static HttpServletRequest mockHttpServletRequest() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        when(request.getScheme()).thenReturn("http");
-        when(request.getServerName()).thenReturn("localhost");
-        when(request.getServerPort()).thenReturn(80);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
+        when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
         return request;
     }
 

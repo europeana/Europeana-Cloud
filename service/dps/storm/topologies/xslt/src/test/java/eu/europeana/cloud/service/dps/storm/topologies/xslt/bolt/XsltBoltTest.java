@@ -20,12 +20,10 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.apache.storm.shade.com.google.common.io.Resources;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -34,9 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
-/**
- * Created by Tarek on 7/18/2017.
- */
 public class XsltBoltTest {
     private static final String EXAMPLE_METIS_DATASET_ID = "100";
     private final int TASK_ID = 1;
@@ -70,7 +65,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 4);
+        assertEmittedTuple(allValues, 5);
     }
 
     @Captor
@@ -80,8 +75,7 @@ public class XsltBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
-        URL xsltFileUrl = Resources.getResource(xsltFile);
-        parameters.put(PluginParameterKeys.XSLT_URL, xsltFileUrl.toString());
+        parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest-test.eanadev.org/datasets/xslt/default");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }
@@ -135,7 +129,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 4);
+        assertEmittedTuple(allValues, 5);
 
         String transformed = new String((byte[]) allValues.get(0).get(3));
         assertNotNull(transformed);

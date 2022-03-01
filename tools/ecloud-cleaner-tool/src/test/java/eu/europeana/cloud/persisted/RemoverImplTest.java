@@ -11,9 +11,6 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 4/17/2019.
- */
 public class RemoverImplTest {
 
 

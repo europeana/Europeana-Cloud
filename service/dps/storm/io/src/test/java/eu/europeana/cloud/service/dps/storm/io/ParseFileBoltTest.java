@@ -5,6 +5,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -26,9 +27,6 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 2/19/2019.
- */
 
 public class ParseFileBoltTest {
     private static final long serialVersionUID = 1L;
@@ -132,6 +130,7 @@ public class ParseFileBoltTest {
     @Test
     public void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
             when(fileClient.getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION))).thenReturn(stream);
@@ -152,7 +151,7 @@ public class ParseFileBoltTest {
     @Test
     public void shouldEmitErrorWhenDownloadFileFails() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        doThrow(IOException.class).when(fileClient).getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION));
+        doThrow(MCSException.class).when(fileClient).getFile(eq(FILE_URL), eq(AUTHORIZATION), eq(AUTHORIZATION));
         parseFileBolt.execute(anchorTuple, stormTaskTuple);
         verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();

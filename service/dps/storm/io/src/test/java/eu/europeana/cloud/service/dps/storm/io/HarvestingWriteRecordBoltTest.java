@@ -40,9 +40,6 @@ import static org.mockito.Mockito.anyListOf;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by Tarek on 7/21/2017.
- */
 public class HarvestingWriteRecordBoltTest {
 
     private static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";

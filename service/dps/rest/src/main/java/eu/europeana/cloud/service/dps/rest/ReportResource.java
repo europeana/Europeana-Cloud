@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -141,13 +143,15 @@ public class ReportResource {
      */
     @RequestMapping(method = { RequestMethod.HEAD }, path = "{taskId}/reports/errors")
     @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public Boolean checkIfErrorReportExists(
+    public ResponseEntity checkIfErrorReportExists(
             @PathVariable String taskId,
             @PathVariable final String topologyName)
             throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        return reportService.checkIfReportExists(taskId);
+        return (reportService.checkIfReportExists(taskId) ?
+                ResponseEntity.ok() : ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED))
+                .build();
     }
 
 

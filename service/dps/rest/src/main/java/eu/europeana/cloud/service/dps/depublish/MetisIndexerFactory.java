@@ -27,7 +27,7 @@ public class MetisIndexerFactory {
     }
 
     private void loadProperties() throws IOException {
-        InputStream input = MetisIndexerFactory.class.getClassLoader().getResourceAsStream("indexing.properties");
+        InputStream input = MetisIndexerFactory.class.getClassLoader().getResourceAsStream(IndexingSettingsGenerator.DEFAULT_PROPERTIES_FILENAME);
         properties.load(input);
     }
 

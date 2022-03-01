@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
  * Class for iterating through Representations of given data set.
  * <p>
  * The best way to initialise iterator is to obtain it by calling
- * {@link DataSetServiceClient#getRepresentationIteratorForProvider(String providerId, String dataSetId)}
+ * {@link DataSetServiceClient#getRepresentationIterator(String providerId, String dataSetId)}
  * method.
  * <p>
  * Iterator obtains {@link Representation} objects in chunks, obtaining new
@@ -27,7 +27,7 @@ public class RepresentationIterator implements Iterator<Representation> {
     private final String providerId;
     private final String dataSetId;
     //variables for holding state
-    private FirstFlag firstTime = new FirstFlag();
+    private final FirstFlag firstTime = new FirstFlag();
     private String nextSlice = null;
     private Iterator<Representation> representationListIterator;
 
@@ -73,7 +73,7 @@ public class RepresentationIterator implements Iterator<Representation> {
             obtainNextChunk();
         }
         if (representationListIterator.hasNext()) {
-            return representationListIterator.hasNext();
+            return true;
         }
         if (nextSlice != null) {
             obtainNextChunk();

@@ -24,8 +24,8 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
     }
 
     @Override
-    protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) throws RdfDeserializationException {
-        return resourcesCount;
+    protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) {
+        return Integer.parseInt(tuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
 
 }

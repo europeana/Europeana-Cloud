@@ -8,15 +8,11 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
-import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
-import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
+import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
+import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -57,7 +53,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     private final Environment environment;
 
-    public ServiceConfiguration(Environment environment){
+    public ServiceConfiguration(Environment environment) {
         this.environment = environment;
     }
 
@@ -77,15 +73,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public TaskKafkaSubmitService taskKafkaSubmitService() {
-        return new TaskKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
-    }
-
-    @Bean
     public RecordExecutionSubmitService recordKafkaSubmitService() {
         return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER));
+                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
+                taskStatusUpdater());
     }
 
     @Bean
@@ -234,9 +225,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public FileURLCreator fileURLCreator(){
+    public FileURLCreator fileURLCreator() {
         String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
-        if(machineLocation == null) {
+        if (machineLocation == null) {
             throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
         }
         return new FileURLCreator(machineLocation);
@@ -250,14 +241,15 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public HarvestingPostProcessor harvestingPostProcessor(){
+    public HarvestingPostProcessor harvestingPostProcessor() {
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater());
+                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater(),
+                taskStatusChecker());
     }
 
     @Bean
-    public IndexingPostProcessor indexingPostProcessor(){
-        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO());
+    public IndexingPostProcessor indexingPostProcessor() {
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker());
     }
 
     @Bean
@@ -280,14 +272,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
         return new RevisionServiceClient(mcsLocation());
     }
 
-    private String mcsLocation() {
-        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
-    }
-
-    private String uisLocation() {
-        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
-    }
-
     @Bean
     public RetryAspect retryAspect() {
         return new RetryAspect();
@@ -295,28 +279,48 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public PostProcessingService postProcessingService() {
-        return new PostProcessingService(postProcessorFactory(), taskInfoDAO(), taskDiagnosticInfoDAO(),
-                tasksByStateDAO(), taskStatusUpdater(), applicationIdentifier());
+        return new PostProcessingService(
+                postProcessorFactory(),
+                taskInfoDAO(),
+                taskDiagnosticInfoDAO(),
+                taskStatusUpdater());
+    }
+
+    @Bean
+    public PostProcessingScheduler postProcessingScheduler(
+            PostProcessingService postProcessingService,
+            TasksByStateDAO tasksByStateDAO,
+            TaskStatusUpdater taskStatusUpdater,
+            String applicationIdentifier
+    ) {
+        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
+    }
+
+    @Bean
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever) {
+        return new MetisDatasetService(datasetStatsRetriever);
+    }
+
+    @Bean
+    public DatasetStatsRetriever datasetStatsRetriever() {
+        return new DatasetStatsRetriever();
     }
 
     @Bean
     public AsyncTaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
+        executor.setCorePoolSize(40);
         executor.setMaxPoolSize(40);
-        executor.setQueueCapacity(20);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("DPSThreadPool-");
         return executor;
     }
-    @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever){
-        return new MetisDatasetService(datasetStatsRetriever);
+
+    private String mcsLocation() {
+        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
     }
 
-    @Bean
-    public DatasetStatsRetriever DatasetStatsRetriever(){
-        return new DatasetStatsRetriever();
+    private String uisLocation() {
+        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
     }
-
-
 }

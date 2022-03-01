@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
@@ -23,11 +24,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
@@ -49,6 +46,9 @@ public class IndexingPostProcessorTest {
 
     @Mock
     private TaskStatusUpdater taskStatusUpdater;
+
+    @Mock
+    private TaskStatusChecker taskStatusChecker;
 
     @Mock
     private DatasetCleaner datasetCleaner;
@@ -280,6 +280,17 @@ public class IndexingPostProcessorTest {
         when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
         //when
         service.execute(taskInfo, prepareTaskForNotUnknownEnv());
+    }
+
+    @Test
+    public void shouldNotStartPostprocessingForDroppedTask() {
+        //given
+        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+        //when
+        service.execute(taskInfo, prepareTaskForPreviewEnv());
+        //then
+        verifyNoInteractions(taskStatusUpdater);
+        verifyNoInteractions(harvestedRecordsDAO);
     }
 
     private DpsTask prepareTaskForPreviewEnv() {

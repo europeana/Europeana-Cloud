@@ -1,28 +1,21 @@
 package eu.europeana.cloud.service.uis.dao;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.utils.Bucket;
-import eu.europeana.cloud.service.commons.utils.BucketSize;
-import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Dao providing access to the search based on record id and provider id
@@ -32,16 +25,10 @@ import java.util.UUID;
  */
 public class CassandraLocalIdDAO {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLocalIdDAO.class);
-    private static final String PROVIDER_RECORD_ID_BUCKETS_TABLE = "provider_record_id_buckets";
     private final CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
-    private PreparedStatement searchByProviderStatement;
     private PreparedStatement searchByRecordIdStatement;
-    private PreparedStatement searchByProviderPaginatedStatement;
-
-    @Autowired
-    private BucketsHandler bucketsHandler;
 
     /**
      * The LocalId Dao
@@ -55,66 +42,32 @@ public class CassandraLocalIdDAO {
 
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare(
-                "INSERT INTO Provider_Record_Id(provider_id,bucket_id, record_id,cloud_id) VALUES(?,?,?,?)");
+                "INSERT INTO cloud_ids_by_record_id(provider_id, record_id, cloud_id) VALUES(?,?,?)");
         insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteStatement = dbService.getSession().prepare(
-                "DELETE FROM Provider_Record_Id WHERE provider_id= ? AND bucket_id = ? AND record_Id= ?");
+                "DELETE FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
         deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        searchByProviderStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id = ? AND bucket_id = ?");
-        searchByProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         searchByRecordIdStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id=?");
+                "SELECT * FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
         searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        searchByProviderPaginatedStatement = dbService.getSession().prepare(
-                "SELECT * FROM Provider_Record_Id WHERE provider_id=? AND bucket_id = ? AND record_id>=? LIMIT ?");
-        searchByProviderPaginatedStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-    }
-
-    @Retryable
-    public List<CloudId> searchById(String providerId) throws DatabaseConnectionException {
-        try {
-            List<CloudId> result = new ArrayList<>();
-            List<Bucket> bucketList = bucketsHandler.getAllBuckets(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
-            for (Bucket bucket : bucketList) {
-                ResultSet rs = dbService.getSession().execute(
-                        searchByProviderStatement.bind(providerId, UUID.fromString(bucket.getBucketId())));
-                result.addAll(createCloudIdsFromRs(rs));
-            }
-            LOGGER.debug("Searching by providerId, result size: {}, performed {} searches of records on different buckets."
-                    , result.size(), bucketList.size());
-            return result;
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(dbService.getHosts(), dbService.getPort(), e.getMessage())));
-        }
     }
 
     @Retryable
     public Optional<CloudId> searchById(String providerId, String recordId) throws DatabaseConnectionException {
+        LOGGER.debug("Searching cloudId for providerId={} and recordId={}", providerId, recordId);
         try {
-            int bucketTraversedCount = 0;
-            List<Bucket> bucketList = bucketsHandler.getAllBuckets(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
-            bucketList = Lists.reverse(bucketList);
-            for (Bucket bucket : bucketList) {
-                Row row = dbService.getSession().execute(
-                        searchByRecordIdStatement.bind(providerId, UUID.fromString(bucket.getBucketId()), recordId)).one();
-                bucketTraversedCount++;
-                if (row != null) {
-                    CloudId cloudId = createCloudIdFromProviderRecordRow(row);
-                    LOGGER.debug("Searching by localId - found cloudId: {}, performed {} searches on different buckets."
-                            , cloudId.getId(), bucketTraversedCount);
-                    return Optional.of(cloudId);
-                }
+            Row row = dbService.getSession().execute(searchByRecordIdStatement.bind(providerId, recordId)).one();
+            if (row != null) {
+                CloudId cloudId = createCloudIdFromProviderRecordRow(row);
+                LOGGER.debug("Found cloudId={} for providerId={} and recordId={}", cloudId, providerId, recordId);
+                return Optional.of(cloudId);
+            } else {
+                LOGGER.debug("CloudId not found for providerId={} and recordId={}", providerId, recordId);
+                return Optional.empty();
             }
-            LOGGER.debug("Searching by localId - cloudId not found! Performed {} searches on different buckets."
-                    , bucketTraversedCount);
-            return Optional.empty();
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -122,42 +75,9 @@ public class CassandraLocalIdDAO {
         }
     }
 
-
-    /**
-     * Enable pagination search on active local Id information
-     *
-     * @param start      Record to start from
-     * @param end        The number of record to retrieve
-     * @param providerId The provider Identifier
-     * @return A list of CloudId objects
-     */
-    @Retryable
-    public List<CloudId> searchByIdWithPagination(String start, int end, String providerId) {
-        List<CloudId> result = new ArrayList<>();
-
-        Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
-        while (bucket != null) {
-            ResultSet rs = dbService.getSession().execute(searchByProviderPaginatedStatement.bind(
-                    providerId, UUID.fromString(bucket.getBucketId()), start, end));
-
-            result.addAll(createCloudIdsFromRs(rs));
-            if (result.size() >= end) {
-                break;
-            }
-            bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId, bucket);
-        }
-        return result;
-    }
-
-    public List<CloudId> insert(String... args) throws DatabaseConnectionException {
+    public List<CloudId> insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
-            Bucket bucket = bucketsHandler.getCurrentBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, args[0]);
-            if (bucket == null || bucket.getRowsCount() >= BucketSize.PROVIDER_RECORD_ID_TABLE) {
-                bucket = new Bucket(args[0], new com.eaio.uuid.UUID().toString(), 0);
-            }
-            bucketsHandler.increaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
-
-            dbService.getSession().execute(insertStatement.bind(args[0], UUID.fromString(bucket.getBucketId()), args[1], args[2]));
+            dbService.getSession().execute(insertStatement.bind(providerId, recordId, cloudId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -168,35 +88,17 @@ public class CassandraLocalIdDAO {
         List<CloudId> cIds = new ArrayList<>();
         CloudId cId = new CloudId();
         LocalId lId = new LocalId();
-        lId.setProviderId(args[0]);
-        lId.setRecordId(args[1]);
+        lId.setProviderId(providerId);
+        lId.setRecordId(recordId);
         cId.setLocalId(lId);
-        cId.setId(args[2]);
+        cId.setId(cloudId);
         cIds.add(cId);
         return cIds;
     }
 
     public void delete(String providerId, String recordId) throws DatabaseConnectionException {
         try {
-            Bucket bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId);
-            while (bucket != null) {
-
-                ResultSet rs = dbService.getSession().execute(searchByRecordIdStatement.bind(
-                        providerId, UUID.fromString(bucket.getBucketId()), recordId));
-
-                if (rs.getAvailableWithoutFetching() == 1) {
-                    dbService.getSession().execute(deleteStatement.bind(
-                            providerId, UUID.fromString(bucket.getBucketId()), recordId));
-
-                    if (bucket.getRowsCount() == 1) {
-                        bucketsHandler.removeBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
-                    } else {
-                        bucketsHandler.decreaseBucketCount(PROVIDER_RECORD_ID_BUCKETS_TABLE, bucket);
-                    }
-                    break;
-                }
-                bucket = bucketsHandler.getNextBucket(PROVIDER_RECORD_ID_BUCKETS_TABLE, providerId, bucket);
-            }
+            dbService.getSession().execute(deleteStatement.bind(providerId, recordId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -204,18 +106,6 @@ public class CassandraLocalIdDAO {
                             dbService.getHosts(), dbService.getPort(), e.getMessage())
             ));
         }
-    }
-
-    private List<CloudId> createCloudIdsFromRs(ResultSet rs) {
-        List<CloudId> cloudIds = new ArrayList<>();
-        if (rs != null) {
-            for (Row row : rs.all()) {
-                CloudId cloudId = createCloudIdFromProviderRecordRow(row);
-                cloudIds.add(cloudId);
-            }
-        }
-
-        return cloudIds;
     }
 
     private CloudId createCloudIdFromProviderRecordRow(Row row) {

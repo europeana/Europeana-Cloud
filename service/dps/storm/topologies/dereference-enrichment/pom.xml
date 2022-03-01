@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>5.1</version>
+        <version>6</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -48,6 +48,12 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${version.commonio}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${version.jackson}</version>
         </dependency>
 
         <dependency>
@@ -138,16 +144,6 @@
             <version>1.4.2</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>topologies-common-helper-test</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-
-
     </dependencies>
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>

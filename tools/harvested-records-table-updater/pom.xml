@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-tools</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>5.1</version>
+        <version>6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,7 +18,12 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-common</artifactId>
-            <version>5.1</version>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
     <build>

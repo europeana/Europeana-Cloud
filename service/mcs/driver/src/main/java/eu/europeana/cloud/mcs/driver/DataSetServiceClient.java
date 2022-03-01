@@ -3,24 +3,19 @@ package eu.europeana.cloud.mcs.driver;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.ArrayList;
@@ -33,11 +28,6 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  * Client for managing datasets in MCS.
  */
 public class DataSetServiceClient extends MCSClient {
-
-    private final Client client = ClientBuilder.newBuilder()
-            .register(JacksonFeature.class)
-            .register(MultiPartFeature.class)
-            .build();
 
     /**
      * Creates instance of DataSetServiceClient.
@@ -59,25 +49,26 @@ public class DataSetServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public DataSetServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl,null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
-     * All parameters constructor used by another one
-     * @param baseUrl URL of the MCS Rest Service
-     * @param authorizationHeader Authorization header - used instead username/password pair
-     * @param username Username to HTTP authorisation  (use together with password)
-     * @param password Password to HTTP authorisation (use together with username)
+     * All parameters' constructor used by another one
+     *
+     * @param baseUrl                URL of the MCS Rest Service
+     * @param authorizationHeader    Authorization header - used instead username/password pair
+     * @param username               Username to HTTP authorisation  (use together with password)
+     * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
-     * @param readTimeoutInMillis Timeout for getting data
+     * @param readTimeoutInMillis    Timeout for getting data
      */
     public DataSetServiceClient(String baseUrl, final String authorizationHeader, final String username, final String password,
                                 final int connectTimeoutInMillis, final int readTimeoutInMillis) {
         super(baseUrl);
 
-        if(authorizationHeader != null) {
+        if (authorizationHeader != null) {
             this.client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if(username != null || password != null) {
+        } else if (username != null || password != null) {
             this.client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
         this.client.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutInMillis);
@@ -90,7 +81,7 @@ public class DataSetServiceClient extends MCSClient {
      * This method returns the chunk specified by <code>startFrom</code>
      * parameter. If parameter is <code>null</code>, the first chunk is
      * returned. You can use {@link ResultSlice#getNextSlice()} of returned
-     * result to obtain <code>startFrom</code> value to get the next chunk, etc;
+     * result to obtain <code>startFrom</code> value to get the next chunk, etc.;
      * if
      * {@link eu.europeana.cloud.common.response.ResultSlice#getNextSlice()}<code>==null</code>
      * in returned result it means it is the last slice.
@@ -106,18 +97,21 @@ public class DataSetServiceClient extends MCSClient {
      * does not exist)
      * @throws MCSException on unexpected situations
      */
+    @SuppressWarnings("unchecked")
     public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SETS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .queryParam(ParamConstants.F_START_FROM, startFrom)
+                        .request()
+                        .get()
+        );
+    }
 
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SETS_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId);
-
-        if (startFrom != null) {
-            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
-        }
-
-        return prepareResultSliceResponse(target);
+    public ResultSlice<DataSet> getDataSetsForProvider(String providerId) throws MCSException {
+        return getDataSetsForProviderChunk(providerId, null);
     }
 
     /**
@@ -130,10 +124,10 @@ public class DataSetServiceClient extends MCSClient {
      * does not exist)
      * @throws MCSException on unexpected situations
      */
-    public List<DataSet> getDataSetsForProvider(String providerId) throws MCSException {
+    public List<DataSet> getDataSetsForProviderList(String providerId) throws MCSException {
 
         List<DataSet> resultList = new ArrayList<>();
-        ResultSlice resultSlice;
+        ResultSlice<DataSet> resultSlice;
         String startFrom = null;
 
         do {
@@ -178,39 +172,18 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException                  on unexpected situations
      */
     public URI createDataSet(String providerId, String dataSetId, String description) throws MCSException {
-
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SETS_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId);
-
         Form form = new Form();
         form.param(ParamConstants.F_DATASET, dataSetId);
         form.param(ParamConstants.F_DESCRIPTION, description);
 
-        Response response = null;
-
-        try {
-            response = target
-                    .request()
-                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
-                return response.getLocation();
-            }
-
-            //TODO this does not function correctly,
-            //details are filled with "MessageBodyReader not found for media type=text/html; 
-            //charset=utf-8, type=class eu.europeana.cloud.common.response.ErrorInfo, 
-            //genericType=class eu.europeana.cloud.common.response.ErrorInfo."
-            //simple strings like 'adsfd' get entitised correctly
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SETS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .request()
+                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
 
     /**
@@ -235,32 +208,22 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public ResultSlice<Representation> getDataSetRepresentationsChunk(
-            String providerId, String dataSetId, String startFrom) throws MCSException {
-        
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId);
+    @SuppressWarnings("unchecked")
+    public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom) throws MCSException {
+        return manageResponse(new ResponseParams<>(ResultSlice.class),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .queryParam(ParamConstants.F_START_FROM, startFrom)
+                        .request()
+                        .get()
+        );
+    }
 
-        if (startFrom != null) {
-            target = target.queryParam(ParamConstants.F_START_FROM, startFrom);
-        }
-
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+    public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
+        return getDataSetRepresentationsChunk(providerId, dataSetId, null);
     }
 
     /**
@@ -276,13 +239,13 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public List<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
-
+    public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
         List<Representation> resultList = new ArrayList<>();
         ResultSlice<Representation> resultSlice;
         String startFrom = null;
         do {
             resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
             }
@@ -321,31 +284,18 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException              on unexpected situations
      */
     public void updateDescriptionOfDataSet(String providerId, String dataSetId, String description) throws MCSException {
-        
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId);
-
         Form form = new Form();
         form.param(ParamConstants.F_DESCRIPTION, description);
 
-        Response response = null;
-
-        try {
-            response = target.request().put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .request()
+                        .put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
 
     /**
@@ -357,30 +307,15 @@ public class DataSetServiceClient extends MCSClient {
      * @throws MCSException              on unexpected situations
      */
     public void deleteDataSet(String providerId, String dataSetId) throws MCSException {
-
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId);
-
-        Response response = null;
-
-        try {
-            response = target.request().delete();
-
-            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-
-
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .request()
+                        .delete()
+        );
     }
 
     /**
@@ -399,49 +334,27 @@ public class DataSetServiceClient extends MCSClient {
      * @param dataSetId          data set identifier (required)
      * @param cloudId            cloudId of the record (required)
      * @param representationName name of the representation (required)
-     * @param version            version of representation; if not provided, latest
+     * @param version            version of representation; if not provided, the latest one latest
      *                           persistent version will be assigned to data set
      * @throws DataSetNotExistsException        if data set does not exist
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException                     on unexpected situations
      */
-    public void assignRepresentationToDataSet(
-            String providerId, String dataSetId, String cloudId, String representationName, String version) throws MCSException {
-        
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_ASSIGNMENTS)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId);
+    public void assignRepresentationToDataSet(String providerId, String dataSetId,
+                                              String cloudId, String representationName, String version) throws MCSException {
 
         Form form = getForm(cloudId, representationName, version);
 
-
-        Response response = null;
-
-        try {
-            response = target.request().post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_ASSIGNMENTS)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .request()
+                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
-
-    private Form getForm(String cloudId, String representationName, String version) {
-        Form form = new Form();
-        form.param(CLOUD_ID, cloudId);
-        form.param(REPRESENTATION_NAME, representationName);
-        form.param(VERSION, version);
-        return form;
-    }
-
 
     /**
      * Assigns representation into data set.
@@ -459,7 +372,7 @@ public class DataSetServiceClient extends MCSClient {
      * @param dataSetId          data set identifier (required)
      * @param cloudId            cloudId of the record (required)
      * @param representationName name of the representation (required)
-     * @param version            version of representation; if not provided, latest
+     * @param version            version of representation; if not provided, the latest one
      *                           persistent version will be assigned to data set
      * @param key                key of header request
      * @param value              value of header request
@@ -467,40 +380,24 @@ public class DataSetServiceClient extends MCSClient {
      * @throws RepresentationNotExistsException if no such representation exists
      * @throws MCSException                     on unexpected situations
      */
-    public void assignRepresentationToDataSet(
-            String providerId, String dataSetId, String cloudId, String representationName,
-            String version, String key, String value) throws MCSException {
-        
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_ASSIGNMENTS)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId);
+    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
+                                              String representationName, String version, String key, String value) throws MCSException {
 
         Form form = getForm(cloudId, representationName, version);
-        
-        Response response = null;
-
-        try {
-            response = target
-                    .request()
-                    .header(key, value)
-                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
-
-            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_ASSIGNMENTS)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .request()
+                        .header(key, value)
+                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
     }
 
-
     /**
-     * Unassigns representation from data set.
+     * Un-assigns representation from data set.
      * <p/>
      * If representation was not assigned to data set, nothing happens. If
      * representation does not exist, nothing happens.
@@ -513,38 +410,28 @@ public class DataSetServiceClient extends MCSClient {
      * @throws DataSetNotExistsException if data set does not exist
      * @throws MCSException              on unexpected situations
      */
-    public void unassignRepresentationFromDataSet(
-            String providerId, String dataSetId, String cloudId, String representationName, String version) throws MCSException {
+    public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId,
+                                                  String representationName, String version) throws MCSException {
 
-        WebTarget target = client
-                .target(this.baseUrl)
-                .path(DATA_SET_ASSIGNMENTS)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId)
-                .queryParam(CLOUD_ID, cloudId)
-                .queryParam(REPRESENTATION_NAME, representationName)
-                .queryParam(VERSION, version);
-
-        Response response = null;
-
-        try {
-            response = target.request().delete();
-
-            if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            closeResponse(response);
-        }
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_ASSIGNMENTS)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .queryParam(CLOUD_ID, cloudId)
+                        .queryParam(REPRESENTATION_NAME, representationName)
+                        .queryParam(VERSION, version)
+                        .request()
+                        .delete()
+        );
     }
-
 
     /**
      * Retrieve list of existing (not deleted) cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (requred)
+     * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
      * @param revisionName       revision name (required)
      * @param revisionProviderId revision provider id (required)
@@ -553,76 +440,64 @@ public class DataSetServiceClient extends MCSClient {
      * @return slice of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
-    public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(
-            String providerId, String dataSetId, String representationName, String revisionName, String revisionProviderId,
-            String revisionTimestamp, int limit) throws MCSException {
-        WebTarget target = client.target(baseUrl)
-                .path(DATA_SET_REVISIONS_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                .queryParam(F_EXISTING_ONLY, true)
-                .queryParam(F_LIMIT, limit);
+    @SuppressWarnings("unchecked")
+    public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(String providerId, String dataSetId, String representationName,
+                                                                         String revisionName, String revisionProviderId,
+                                                                         String revisionTimestamp, int limit) throws MCSException {
 
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class).getResults();
-            }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } finally {
-            closeResponse(response);
-        }
+        ResultSlice<CloudTagsResponse> rs = manageResponse(new ResponseParams<>(ResultSlice.class),
+                () -> client.target(baseUrl)
+                        .path(DATA_SET_REVISIONS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(REVISION_NAME, revisionName)
+                        .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
+                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
+                        .queryParam(F_EXISTING_ONLY, true)
+                        .queryParam(F_LIMIT, limit)
+                        .request().get()
+        );
+        return rs.getResults();
     }
 
     /**
      * Retrieve chunk of cloudIds and tags from data set for specific revision.
      *
      * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (requred)
+     * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision name (required)
-     * @param revisionProviderId revision provider id (required)
-     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @param revision           the revision
      * @param startFrom          code pointing to the requested result slice (if equal to
      *                           null, first slice is returned)
      * @return chunk of representation cloud identifier list from data set together with tags of the revision
      * @throws MCSException on unexpected situations
      */
+    @SuppressWarnings("unchecked")
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
             String providerId, String dataSetId, String representationName,
-            String revisionName, String revisionProviderId, String revisionTimestamp,
+            Revision revision,
             String startFrom, Integer limit) throws MCSException {
 
-        WebTarget target = client.target(baseUrl)
-                .path(DATA_SET_REVISIONS_RESOURCE)
-                .resolveTemplate(PROVIDER_ID, providerId)
-                .resolveTemplate(DATA_SET_ID, dataSetId)
-                .resolveTemplate(REPRESENTATION_NAME, representationName)
-                .resolveTemplate(REVISION_NAME, revisionName)
-                .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                .queryParam(F_START_FROM, startFrom);
-
-        target = target.queryParam(F_LIMIT, limit != null ? limit : 0);
-
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            }
-            ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw MCSExceptionProvider.generateException(errorInfo);
-        } finally {
-            closeResponse(response);
-        }
+        return manageResponse(new ResponseParams<>(ResultSlice.class),
+                () -> client.target(baseUrl)
+                        .path(DATA_SET_REVISIONS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .resolveTemplate(REPRESENTATION_NAME, representationName)
+                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+                        .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
+                        .queryParam(F_START_FROM, startFrom)
+                        .queryParam(F_LIMIT, limit != null ? limit : 0)
+                        .request().get()
+        );
     }
+
+    public ResultSlice<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
+        return getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, null, 0);
+    }
+
 
     /**
      * Lists cloudIds and tags from data set for specific revision.
@@ -630,62 +505,35 @@ public class DataSetServiceClient extends MCSClient {
      * @param providerId         provider identifier (required)
      * @param dataSetId          data set identifier (required)
      * @param representationName name of the representation (required)
-     * @param revisionName       revision name (required)
-     * @param revisionProviderId revision provider id (required)
-     * @param revisionTimestamp  timestamp of the searched revision which is part of the revision identifier
+     * @param revision           the revision(required)
      * @return chunk of representation cloud identifier list from data set together with revision tags
      * @throws MCSException on unexpected situations
      */
-    public List<CloudTagsResponse> getDataSetRevisions(
-            String providerId, String dataSetId, String representationName,
-            String revisionName, String revisionProviderId, String revisionTimestamp) throws MCSException {
+    public List<CloudTagsResponse> getDataSetRevisionsList(
+            String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
 
         List<CloudTagsResponse> resultList = new ArrayList<>();
         ResultSlice<CloudTagsResponse> resultSlice;
         String startFrom = null;
-        
+
         do {
-            resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-                    revisionName, revisionProviderId, revisionTimestamp, startFrom, null);
+            resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, startFrom, null);
             if (resultSlice == null || resultSlice.getResults() == null) {
                 throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
             }
             resultList.addAll(resultSlice.getResults());
             startFrom = resultSlice.getNextSlice();
-            
+
         } while (resultSlice.getNextSlice() != null);
-        
+
         return resultList;
     }
 
-    public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter(headerValue));
-    }
-
-    public void close() {
-        client.close();
-    }
-
-    private ResultSlice prepareResultSliceResponse(WebTarget target) throws MCSException {
-        Response response = null;
-        try {
-            response = target.request().get();
-            if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(ResultSlice.class);
-            } else {
-                ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-                throw MCSExceptionProvider.generateException(errorInfo);
-            }
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-    }
-
-    private void closeResponse(Response response) {
-        if (response != null) {
-            response.close();
-        }
+    private Form getForm(String cloudId, String representationName, String version) {
+        Form form = new Form();
+        form.param(CLOUD_ID, cloudId);
+        form.param(REPRESENTATION_NAME, representationName);
+        form.param(VERSION, version);
+        return form;
     }
 }

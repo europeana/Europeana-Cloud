@@ -7,9 +7,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
-import eu.europeana.cloud.service.dps.service.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.service.kafka.TaskKafkaSubmitService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
@@ -35,7 +34,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@Import({UnitedExceptionMapper.class})
+@Import({UnifiedExceptionsMapper.class})
 public class DPSServiceTestContext {
 
     /* REAL Beans */
@@ -69,11 +68,6 @@ public class DPSServiceTestContext {
     @Bean
     public ValidationStatisticsServiceImpl validationStatisticsService() {
         return Mockito.mock(ValidationStatisticsServiceImpl.class);
-    }
-
-    @Bean
-    public TaskKafkaSubmitService submitService() {
-        return Mockito.mock(TaskKafkaSubmitService.class);
     }
 
     @Bean
