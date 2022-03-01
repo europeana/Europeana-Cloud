@@ -3,12 +3,12 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-tools</artifactId>
-        <version>6</version>
+        <version>7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ResourceMigrator</artifactId>
     <packaging>jar</packaging>
-    <version>6</version>
+    <version>7-SNAPSHOT</version>
     <name>ResourceMigrator</name>
     <url>http://maven.apache.org</url>
 
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-            <version>6</version>
+            <version>7-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-uis-rest-client-java</artifactId>
-            <version>6</version>
+            <version>7-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
