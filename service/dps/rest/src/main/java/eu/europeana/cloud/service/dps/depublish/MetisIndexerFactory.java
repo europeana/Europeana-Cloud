@@ -21,8 +21,8 @@ public class MetisIndexerFactory {
         loadProperties();
     }
 
-    public Indexer openIndexer(boolean useAlternativeEnvironment) throws IndexingException, URISyntaxException {
-        IndexerFactory indexerFactory = createMetisIndexerFactory(useAlternativeEnvironment);
+    public Indexer openIndexer() throws IndexingException, URISyntaxException {
+        IndexerFactory indexerFactory = createMetisIndexerFactory();
         return indexerFactory.getIndexer();
     }
 
@@ -31,13 +31,8 @@ public class MetisIndexerFactory {
         properties.load(input);
     }
 
-    private IndexerFactory createMetisIndexerFactory(boolean useAlternativeEnvironment) throws IndexingException, URISyntaxException {
-        IndexingSettingsGenerator settingsGenerator;
-        if (useAlternativeEnvironment) {
-            settingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-        } else {
-            settingsGenerator = new IndexingSettingsGenerator(properties);
-        }
+    private IndexerFactory createMetisIndexerFactory() throws IndexingException, URISyntaxException {
+        IndexingSettingsGenerator settingsGenerator = new IndexingSettingsGenerator(properties);
         return new IndexerFactory(settingsGenerator.generateForPublish());
     }
 

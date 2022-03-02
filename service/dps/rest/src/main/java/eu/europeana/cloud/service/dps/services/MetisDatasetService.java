@@ -19,9 +19,9 @@ public class MetisDatasetService {
         this.datasetStatsRetriever = datasetStatsRetriever;
     }
 
-    public MetisDataset prepareStatsFor(MetisDataset metisDataset, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment) throws IndexingException {
+    public MetisDataset prepareStatsFor(MetisDataset metisDataset, TargetIndexingDatabase targetIndexingDatabase/*, TargetIndexingEnvironment targetIndexingEnvironment*/) throws IndexingException {
         LOGGER.info("Reading dataset stats for dataset: {}", metisDataset);
-        MetisDataSetParameters parameters = new MetisDataSetParameters(metisDataset.getId(), targetIndexingDatabase, targetIndexingEnvironment, null);
+        MetisDataSetParameters parameters = new MetisDataSetParameters(metisDataset.getId(), targetIndexingDatabase, /*targetIndexingEnvironment,*/ null);
         MetisDataset result = MetisDataset.builder()
                 .id(metisDataset.getId())
                 .size(datasetStatsRetriever.getTotalRecordsForDataset(parameters))

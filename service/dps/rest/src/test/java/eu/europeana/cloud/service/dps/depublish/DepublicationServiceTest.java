@@ -90,31 +90,11 @@ public class DepublicationServiceTest {
                         .expectedRecordsNumber(EXPECTED_SET_SIZE)
                         .build())
                 .task(task).build();
-        when(metisIndexerFactory.openIndexer(anyBoolean())).thenReturn(indexer);
+        when(metisIndexerFactory.openIndexer()).thenReturn(indexer);
         when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
         when(indexer.remove(anyString())).thenReturn(true);
     }
-
-    @Test
-    public void shouldUseValidEnvironmentIfNoAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
-
-        service.depublishDataset(parameters);
-
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(false);
-        verify(metisIndexerFactory, never()).openIndexer(true);
-    }
-
-    @Test
-    public void shouldUseAlternativeEnvironmentIfAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
-        task.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "true");
-
-        service.depublishDataset(parameters);
-
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(true);
-        verify(metisIndexerFactory, never()).openIndexer(false);
-    }
-
 
     @Test
     public void shouldInvokeTaskRemoveOnIndexer() throws IndexingException {

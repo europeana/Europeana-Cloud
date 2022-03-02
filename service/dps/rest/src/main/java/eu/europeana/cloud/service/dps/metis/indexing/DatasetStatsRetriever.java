@@ -4,11 +4,10 @@ import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 enum DatabaseLocation {
     DEFAULT_PREVIEW,
     DEFAULT_PUBLISH,
-    ALT_PREVIEW,
-    ALT_PUBLISH,
 }
 
 /**

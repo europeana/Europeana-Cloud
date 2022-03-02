@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * Created by pwozniak on 5/29/18
  */
+@Deprecated
 public enum TargetIndexingEnvironment {
     DEFAULT,
     ALTERNATIVE;

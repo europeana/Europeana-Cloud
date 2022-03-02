@@ -23,23 +23,15 @@ public class MetisIndexerFactoryITest {
 
     @Test
     public void shouldOpenIndexerReturnValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
-        try (Indexer indexer = factory.openIndexer(false)) {
+        try (Indexer indexer = factory.openIndexer()) {
             long count = indexer.countRecords("109");
             assertEquals(1614L, count);
         }
     }
 
     @Test
-    public void shouldOpenIndexerOnAlternativeEnvironmentReturnValidCountOfSet109() throws IOException, IndexingException, URISyntaxException {
-        try (Indexer indexer = factory.openIndexer(true)) {
-            long count = indexer.countRecords("109");
-            assertEquals(401L, count);
-        }
-    }
-
-    @Test
     public void shouldReturnValidBigSetCount() throws IOException, IndexingException, URISyntaxException {
-        try (Indexer indexer = factory.openIndexer(true)) {
+        try (Indexer indexer = factory.openIndexer()) {
             long count = indexer.countRecords("165");
             assertEquals(219947L, count);
         }
@@ -47,7 +39,7 @@ public class MetisIndexerFactoryITest {
 
     @Test
     public void shouldSmallSetCountReturn11Elements() throws IOException, IndexingException, URISyntaxException {
-        try (Indexer indexer = factory.openIndexer(true)) {
+        try (Indexer indexer = factory.openIndexer()) {
             long count = indexer.countRecords("198");
             assertEquals(11L, count);
         }
@@ -55,7 +47,7 @@ public class MetisIndexerFactoryITest {
 
     @Test
     public void testFin() throws IOException, IndexingException, URISyntaxException {
-        try (Indexer indexer = factory.openIndexer(true)) {
+        try (Indexer indexer = factory.openIndexer()) {
             long count = indexer.countRecords("194");
             assertEquals(80889L, count);
         }

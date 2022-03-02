@@ -26,6 +26,8 @@ public final class PluginParameterKeys {
     public static final String METIS_DATASET_COUNTRY = "METIS_DATASET_COUNTRY";
     public static final String METIS_DATASET_LANGUAGE = "METIS_DATASET_LANGUAGE";
     public static final String METIS_TARGET_INDEXING_DATABASE = "TARGET_INDEXING_DATABASE";
+
+    @Deprecated
     public static final String METIS_USE_ALT_INDEXING_ENV = "USE_ALT_INDEXING_ENV";
     public static final String METIS_RECORD_DATE = "RECORD_DATE";
     public static final String METIS_PRESERVE_TIMESTAMPS = "PRESERVE_TIMESTAMPS";

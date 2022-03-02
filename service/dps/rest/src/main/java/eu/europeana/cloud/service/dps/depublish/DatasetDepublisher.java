@@ -23,19 +23,19 @@ public class DatasetDepublisher {
 
     @Async
     public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
+        try (Indexer indexer = indexerFactory.openIndexer()) {
             int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
             return CompletableFuture.completedFuture(removedCount);
         }
     }
 
     public boolean removeRecord(SubmitTaskParameters parameters, String recordId) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
+        try (Indexer indexer = indexerFactory.openIndexer()) {
             return indexer.remove(recordId);
         }
     }
     public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer(parameters.getUseAlternativeEnvironment())) {
+        try (Indexer indexer = indexerFactory.openIndexer()) {
             return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
         }
     }

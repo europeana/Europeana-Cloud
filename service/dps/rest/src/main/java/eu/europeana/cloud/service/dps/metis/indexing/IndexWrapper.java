@@ -12,9 +12,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Wraps operations on the index
@@ -24,6 +22,16 @@ public abstract class IndexWrapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexWrapper.class);
     protected final Properties properties = new Properties();
     protected final Map<DatabaseLocation, Indexer> indexers = new EnumMap<>(DatabaseLocation.class);
+    private final static Map<TargetIndexingDatabase, DatabaseLocation> databaseLocationMap;
+
+    static {
+        Map<TargetIndexingDatabase, DatabaseLocation> tmpMap = new HashMap<>();
+        tmpMap.put(TargetIndexingDatabase.PUBLISH, DatabaseLocation.DEFAULT_PUBLISH);
+        tmpMap.put(TargetIndexingDatabase.PREVIEW, DatabaseLocation.DEFAULT_PREVIEW);
+
+        databaseLocationMap = Collections.unmodifiableMap(tmpMap);
+    }
+
 
     protected IndexWrapper() {
         try {
@@ -53,33 +61,11 @@ public abstract class IndexWrapper {
         indexers.put(DatabaseLocation.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
         indexingSettings = indexingSettingsGenerator.generateForPublish();
         indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
-        //
-        //
-        indexingSettingsGenerator = new IndexingSettingsGenerator(TargetIndexingEnvironment.ALTERNATIVE, properties);
-
-        indexingSettings = indexingSettingsGenerator.generateForPreview();
-        if(indexingSettings != null) {
-            indexers.put(DatabaseLocation.ALT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
-        }
-        indexingSettings = indexingSettingsGenerator.generateForPublish();
-        if(indexingSettings != null) {
-            indexers.put(DatabaseLocation.ALT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
-        }
     }
 
     protected DatabaseLocation evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
-        if (metisDataSetParameters.getTargetIndexingDatabase().equals(TargetIndexingDatabase.PUBLISH)) {
-            if (metisDataSetParameters.getTargetIndexingEnvironment().equals(TargetIndexingEnvironment.ALTERNATIVE)) {
-                return DatabaseLocation.ALT_PUBLISH;
-            } else {
-                return DatabaseLocation.DEFAULT_PUBLISH;
-            }
-        } else if (metisDataSetParameters.getTargetIndexingDatabase().equals(TargetIndexingDatabase.PREVIEW)) {
-            if (metisDataSetParameters.getTargetIndexingEnvironment().equals(TargetIndexingEnvironment.ALTERNATIVE)) {
-                return DatabaseLocation.ALT_PREVIEW;
-            } else {
-                return DatabaseLocation.DEFAULT_PREVIEW;
-            }
+        if(databaseLocationMap.containsKey(metisDataSetParameters.getTargetIndexingDatabase())) {
+            return databaseLocationMap.get(metisDataSetParameters.getTargetIndexingDatabase());
         }
         throw new NullPointerException("Indexer not found");
     }

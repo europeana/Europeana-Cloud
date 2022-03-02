@@ -51,8 +51,6 @@ public class DatasetCleaner extends IndexWrapper {
         return evaluateDatabaseLocation(MetisDataSetParameters.builder()
                 .dataSetId(cleanerParameters.getDataSetId())
                 .targetIndexingDatabase(TargetIndexingDatabase.valueOf(cleanerParameters.getTargetIndexingEnv()))
-                .targetIndexingEnvironment(cleanerParameters.isUsingAltEnv() ?
-                        TargetIndexingEnvironment.ALTERNATIVE : TargetIndexingEnvironment.DEFAULT)
                 .build());
     }
 

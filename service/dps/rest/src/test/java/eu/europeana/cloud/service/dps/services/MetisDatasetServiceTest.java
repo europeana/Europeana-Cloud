@@ -24,7 +24,6 @@ public class MetisDatasetServiceTest {
                         MetisDataSetParameters.builder()
                                 .dataSetId("1")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PREVIEW)
-                                .targetIndexingEnvironment(TargetIndexingEnvironment.DEFAULT)
                                 .build())));
 
         MetisDatasetService metisDatasetService = new MetisDatasetService(datasetStatsRetriever);
@@ -32,8 +31,7 @@ public class MetisDatasetServiceTest {
                 MetisDataset.builder()
                         .id("1")
                         .build(),
-                TargetIndexingDatabase.PREVIEW,
-                TargetIndexingEnvironment.DEFAULT);
+                TargetIndexingDatabase.PREVIEW);
         Assert.assertEquals(10, metisDataset.getSize());
     }
 
@@ -45,7 +43,6 @@ public class MetisDatasetServiceTest {
                         MetisDataSetParameters.builder()
                                 .dataSetId("2")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PREVIEW)
-                                .targetIndexingEnvironment(TargetIndexingEnvironment.ALTERNATIVE)
                                 .build())));
 
         MetisDatasetService metisDatasetService = new MetisDatasetService(datasetStatsRetriever);
@@ -53,8 +50,7 @@ public class MetisDatasetServiceTest {
                 MetisDataset.builder()
                         .id("2")
                         .build(),
-                TargetIndexingDatabase.PREVIEW,
-                TargetIndexingEnvironment.ALTERNATIVE);
+                TargetIndexingDatabase.PREVIEW);
         Assert.assertEquals(10, metisDataset.getSize());
     }
 
@@ -66,7 +62,6 @@ public class MetisDatasetServiceTest {
                         MetisDataSetParameters.builder()
                                 .dataSetId("3")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PUBLISH)
-                                .targetIndexingEnvironment(TargetIndexingEnvironment.DEFAULT)
                                 .build())));
 
         MetisDatasetService metisDatasetService = new MetisDatasetService(datasetStatsRetriever);
@@ -74,8 +69,7 @@ public class MetisDatasetServiceTest {
                 MetisDataset.builder()
                         .id("3")
                         .build(),
-                TargetIndexingDatabase.PUBLISH,
-                TargetIndexingEnvironment.DEFAULT);
+                TargetIndexingDatabase.PUBLISH);
         Assert.assertEquals(10, metisDataset.getSize());
     }
 
@@ -87,16 +81,17 @@ public class MetisDatasetServiceTest {
                         MetisDataSetParameters.builder()
                                 .dataSetId("4")
                                 .targetIndexingDatabase(TargetIndexingDatabase.PUBLISH)
-                                .targetIndexingEnvironment(TargetIndexingEnvironment.ALTERNATIVE)
-                                .build())));
+                                .build()
+                        )
+                )
+        );
 
         MetisDatasetService metisDatasetService = new MetisDatasetService(datasetStatsRetriever);
         MetisDataset metisDataset = metisDatasetService.prepareStatsFor(
                 MetisDataset.builder()
                         .id("4")
                         .build(),
-                TargetIndexingDatabase.PUBLISH,
-                TargetIndexingEnvironment.ALTERNATIVE);
+                TargetIndexingDatabase.PUBLISH);
         Assert.assertEquals(10, metisDataset.getSize());
     }
 }

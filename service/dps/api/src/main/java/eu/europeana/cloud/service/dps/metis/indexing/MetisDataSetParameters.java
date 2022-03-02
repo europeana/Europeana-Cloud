@@ -23,15 +23,13 @@ public class MetisDataSetParameters implements Serializable {
 
     private String dataSetId;
     private TargetIndexingDatabase targetIndexingDatabase;
-    private TargetIndexingEnvironment targetIndexingEnvironment;
 
     @XmlElement(name = "cleaningDate", required = true)
     @XmlJavaTypeAdapter(DateAdapter.class)
     private Date cleaningDate;
 
-    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment, Date cleaningDate) {
+    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, Date cleaningDate) {
         this.dataSetId = dataSetId;
-        this.targetIndexingEnvironment = targetIndexingEnvironment;
         this.targetIndexingDatabase = targetIndexingDatabase;
         this.cleaningDate = cleaningDate;
     }
