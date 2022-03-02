@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.CassandraContainer;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ public final class CassandraTestInstance {
         try {
             LOGGER.info("Starting Cassandra container in docker");
             container = new CassandraContainer("cassandra:3.11.2");
+            container.withStartupTimeout(Duration.ofSeconds(180));
             container.setStartupAttempts(1);
             container.start();
             cluster = container.getCluster();
