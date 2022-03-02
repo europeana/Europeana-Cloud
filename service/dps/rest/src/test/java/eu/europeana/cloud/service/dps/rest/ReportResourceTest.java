@@ -19,13 +19,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
@@ -35,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, ReportResource.class, TaskStatusUpdater.class,
         MCSTaskSubmitter.class})
-@TestPropertySource(properties = {"numberOfElementsOnPage=100","maxIdentifiersCount=100"})
+@TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
 public class ReportResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
@@ -50,7 +49,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     private final static String[] ERROR_TYPES = {"bd0c7280-db47-11e7-ada4-e2f54b49d956", "bd0ac4d0-db47-11e7-ada4-e2f54b49d956", "4bb74640-db48-11e7-af3d-e2f54b49d956"};
     private final static int[] ERROR_COUNTS = {5, 2, 7};
     private final static String ERROR_RESOURCE_IDENTIFIER = "Resource id ";
-    private final static String ADDITIONAL_INFORMATIONS = "Additional informations ";
+    private final static String ADDITIONAL_INFORMATION = "Additional information";
     public final static String PATH = "path";
     public final static String PATH_VALUE = "ELEMENT";
 
@@ -71,9 +70,9 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 1, 100)).thenReturn(subTaskInfoList);
 
         ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
 
@@ -83,9 +82,9 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(1), eq(100))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 1, 100)).thenReturn(subTaskInfoList);
 
         ResultActions response = mockMvc.perform(
                 get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -97,9 +96,9 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
         List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-        when(reportService.getDetailedTaskReport(eq(Long.toString(TASK_ID)), eq(120), eq(150))).thenReturn(subTaskInfoList);
+        when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 120, 150)).thenReturn(subTaskInfoList);
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
         ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
         assertDetailedReportResponse(subTaskInfoList.get(0), response);
     }
@@ -109,7 +108,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(10))).thenReturn(errorsInfo);
+        when(reportService.getGeneralTaskErrorReport(Long.toString(TASK_ID), 10)).thenReturn(errorsInfo);
 
         ResultActions response = mockMvc.perform(
                 get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -125,8 +124,8 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldCheckIfReportExists() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        when(reportService.checkIfReportExists(eq(Long.toString(TASK_ID)))).thenReturn(true);
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
+        when(reportService.checkIfReportExists(Long.toString(TASK_ID))).thenReturn(true);
         ResultActions response = mockMvc.perform(head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
         response.andExpect(status().isOk());
     }
@@ -135,8 +134,8 @@ public class ReportResourceTest extends AbstractResourceTest {
     @Test
     public void shouldReturn405InCaseOfException() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(reportService).checkIfTaskExists(eq(Long.toString(TASK_ID)), eq(TOPOLOGY_NAME));
-        when(reportService.checkIfReportExists(eq(Long.toString(TASK_ID)))).thenReturn(false);
+        doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
+        when(reportService.checkIfReportExists(Long.toString(TASK_ID))).thenReturn(false);
 
         ResultActions response = mockMvc.perform(
                 head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -149,7 +148,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     public void shouldGetSpecificErrorReport() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-        when(reportService.getSpecificTaskErrorReport(eq(Long.toString(TASK_ID)), eq(ERROR_TYPES[0]), eq(100))).thenReturn(errorsInfo);
+        when(reportService.getSpecificTaskErrorReport(Long.toString(TASK_ID), ERROR_TYPES[0], 100)).thenReturn(errorsInfo);
 
         ResultActions response = mockMvc.perform(get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("error", ERROR_TYPES[0]));
         TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),TaskErrorsInfo.class);
@@ -161,7 +160,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     public void shouldGetGeneralErrorReport() throws Exception {
         when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
         TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
-        when(reportService.getGeneralTaskErrorReport(eq(Long.toString(TASK_ID)), eq(0))).thenReturn(errorsInfo);
+        when(reportService.getGeneralTaskErrorReport(Long.toString(TASK_ID), 0)).thenReturn(errorsInfo);
 
         ResultActions response = mockMvc.perform(
                 get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -203,8 +202,8 @@ public class ReportResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetElementReport() throws Exception {
-        NodeReport nodeReport = new NodeReport("VALUE", 5, Arrays.asList(new AttributeStatistics("Attr1", "Value1", 10)));
-        when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Arrays.asList(nodeReport));
+        NodeReport nodeReport = new NodeReport("VALUE", 5, Collections.singletonList(new AttributeStatistics("Attr1", "Value1", 10)));
+        when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Collections.singletonList(nodeReport));
         when(topologyManager.containsTopology(anyString())).thenReturn(true);
         ResultActions response = mockMvc.perform(get(ELEMENT_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam(PATH, PATH_VALUE));
 
@@ -216,7 +215,7 @@ public class ReportResourceTest extends AbstractResourceTest {
 
     private List<SubTaskInfo> createDummySubTaskInfoList() {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, TEST_RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
+        SubTaskInfo subTaskInfo = new SubTaskInfo(1, TEST_RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL, 0L);
         subTaskInfoList.add(subTaskInfo);
         return subTaskInfoList;
     }
@@ -225,7 +224,8 @@ public class ReportResourceTest extends AbstractResourceTest {
         detailedReportResponse.andExpect(status().isOk());
         String resultString = detailedReportResponse.andReturn().getResponse().getContentAsString();
 
-        List<SubTaskInfo> resultedSubTaskInfoList = new ObjectMapper().readValue(resultString,new TypeReference<List<SubTaskInfo>>() {
+        List<SubTaskInfo> resultedSubTaskInfoList = new ObjectMapper().readValue(
+                resultString,new TypeReference<>() {
         });
         assertThat(resultedSubTaskInfoList.get(0), is(subTaskInfo));
     }
@@ -243,7 +243,7 @@ public class ReportResourceTest extends AbstractResourceTest {
                 List<ErrorDetails> errorDetails = new ArrayList<>();
                 error.setErrorDetails(errorDetails);
                 for (int j = 0; j < ERROR_COUNTS[i]; j++) {
-                    errorDetails.add(new ErrorDetails(ERROR_RESOURCE_IDENTIFIER + j, ADDITIONAL_INFORMATIONS + j));
+                    errorDetails.add(new ErrorDetails(ERROR_RESOURCE_IDENTIFIER + j, ADDITIONAL_INFORMATION + j));
                 }
             }
             errors.add(error);

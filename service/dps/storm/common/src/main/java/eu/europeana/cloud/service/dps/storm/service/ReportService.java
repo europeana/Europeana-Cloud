@@ -1,6 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -8,18 +11,18 @@ import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 
 import java.util.*;
 
 /**
  * Report service powered by Cassandra.
- *
- * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ReportService implements TaskExecutionReportService {
-    private CassandraConnectionProvider cassandra;
+    private static final String RETRIEVING_ERROR_MESSAGE = "Specified task or error type does not exist!";
+    private static final String TASK_NOT_EXISTS_ERROR_MESSAGE = "The task with the provided id doesn't exist!";
+    private final CassandraConnectionProvider cassandra;
 
     private static final int FETCH_ONE = 1;
     private PreparedStatement selectErrorsStatement;
@@ -32,7 +35,7 @@ public class ReportService implements TaskExecutionReportService {
     /**
      * Constructor of Cassandra report service.
      *
-     * @param hosts        Cassandra hosts separated by comma (e.g. localhost,192.168.47.129)
+     * @param hosts        Cassandra hosts separated by comma (e.g. localhost,WWW.XXX.YYY.ZZZ,...)
      * @param port         Cassandra port
      * @param keyspaceName Cassandra keyspace name
      * @param userName     Cassandra username
@@ -44,26 +47,46 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     private void prepareStatements() {
-        selectErrorsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?");
+        selectErrorsStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ?",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
+                )
+        );
         selectErrorsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        selectErrorStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT ?");
+        selectErrorStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? and %s = ? limit ?",
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID,
+                        CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE
+                )
+        );
         selectErrorStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        selectErrorCounterStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?");
+        selectErrorCounterStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? and %s = ?",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
+                )
+        );
         selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkIfTaskExistsStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        checkIfTaskExistsStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ?",
+                        CassandraTablesAndColumnsNames.TASK_INFO_TABLE,
+                        CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID
+                )
+        );
         checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
-        checkErrorExistStatement = cassandra.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? LIMIT 1");
+        checkErrorExistStatement = cassandra.getSession().prepare(
+                String.format("select * from %s where %s = ? limit 1",
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE,
+                        CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
+                )
+        );
         checkErrorExistStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
     }
@@ -79,14 +102,14 @@ public class ReportService implements TaskExecutionReportService {
         if (taskInfo != null) {
             return TaskInfoConverter.fromDBRow(taskInfo);
         }
-        throw new AccessDeniedOrObjectDoesNotExistException("The task with the provided id doesn't exist!");
+        throw new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE);
     }
 
 
     @Override
     public List<SubTaskInfo> getDetailedTaskReport(String taskId, int from, int to) {
         List<SubTaskInfo> result = new ArrayList<>();
-        for (int i = CassandraSubTaskInfoDAO.bucketNumber(to); i >= CassandraSubTaskInfoDAO.bucketNumber(from); i--) {
+        for (int i = NotificationsDAO.bucketNumber(to); i >= NotificationsDAO.bucketNumber(from); i--) {
             Statement selectFromNotification = QueryBuilder.select()
                     .from(CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE)
                     .where(QueryBuilder.eq(CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID, Long.parseLong(taskId)))
@@ -102,15 +125,18 @@ public class ReportService implements TaskExecutionReportService {
     }
 
     private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
-
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
+            Map<String, String> additionalInformationMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
+
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
                     RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-                    row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS),
+                    additionalInformationMap.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
+                    additionalInformationMap.get(NotificationsDAO.EUROPEANA_ID_KEY),
+                    additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY) != null ? Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
             subTaskInfoList.add(subTaskInfo);
         }
@@ -170,7 +196,7 @@ public class ReportService implements TaskExecutionReportService {
 
         ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), idsCount));
         if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
+            throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
         }
 
         while (rs.iterator().hasNext()) {
@@ -196,7 +222,7 @@ public class ReportService implements TaskExecutionReportService {
         if (message == null) {
             ResultSet rs = cassandra.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType), FETCH_ONE));
             if (!rs.iterator().hasNext()) {
-                throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
+                throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
             }
             message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
             errorMessages.put(errorType, message);
@@ -206,7 +232,7 @@ public class ReportService implements TaskExecutionReportService {
 
 
     /**
-     * Retrieve sample of identifiers (max {@value #FETCH_SIZE}) for the given error type
+     * Retrieve sample of identifiers for the given error type
      *
      * @param task      task identifier
      * @param errorType type of error
@@ -217,9 +243,9 @@ public class ReportService implements TaskExecutionReportService {
         long taskId = Long.parseLong(task);
         TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
         taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
-        String message = getErrorMessage(taskId, new HashMap<String, String>(), errorType);
+        String message = getErrorMessage(taskId, new HashMap<>(), errorType);
         taskErrorInfo.setMessage(message);
-        return new TaskErrorsInfo(taskId, Arrays.asList(taskErrorInfo));
+        return new TaskErrorsInfo(taskId, List.of(taskErrorInfo));
     }
 
 
@@ -235,7 +261,7 @@ public class ReportService implements TaskExecutionReportService {
     private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
         ResultSet rs = cassandra.getSession().execute(selectErrorCounterStatement.bind(taskId, UUID.fromString(errorType)));
         if (!rs.iterator().hasNext()) {
-            throw new AccessDeniedOrObjectDoesNotExistException("Specified task or error type does not exist!");
+            throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
         }
 
         TaskErrorInfo taskErrorInfo = new TaskErrorInfo();
@@ -252,7 +278,7 @@ public class ReportService implements TaskExecutionReportService {
     public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
         Row taskInfo = cassandra.getSession().execute(checkIfTaskExistsStatement.bind(Long.parseLong(taskId))).one();
         if (taskInfo == null || !taskInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME).equals(topologyName)) {
-            throw new AccessDeniedOrObjectDoesNotExistException("The specified task does not exist in this service!");
+            throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
         }
     }
 

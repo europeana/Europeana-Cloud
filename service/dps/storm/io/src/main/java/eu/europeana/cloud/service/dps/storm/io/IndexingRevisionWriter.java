@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import com.google.gson.Gson;
+import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -17,28 +17,19 @@ import java.net.MalformedURLException;
 public class IndexingRevisionWriter extends RevisionWriterBolt {
     private static final long serialVersionUID = 1L;
 
-    private String successNotificationMessage;
+    private final String successNotificationMessage;
 
     public IndexingRevisionWriter(String ecloudMcsAddress, String successNotificationMessage) {
         super(ecloudMcsAddress);
         this.successNotificationMessage = successNotificationMessage;
     }
 
-    /**
-     * @param anchorTuple
-     * @param stormTaskTuple
-     */
     @Override
     protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("{} executed", getClass().getSimpleName());
         try {
             addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
-            emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                    new Gson().fromJson(stormTaskTuple.getParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS),
-                            DataSetCleanerParameters.class),
-                    stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER),
-                    stormTaskTuple.getFileUrl(), successNotificationMessage, "", "",
-                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
@@ -51,6 +42,24 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
     }
+
+    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(
+                stormTaskTuple.getTaskId(),
+                stormTaskTuple.isMarkedAsDeleted(),
+                stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER),
+                stormTaskTuple.getFileUrl(),
+                RecordState.SUCCESS,
+                successNotificationMessage,
+                "",
+                stormTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID),
+                "",
+                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple)
+        );
+        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+    }
+
+
 
 }
 

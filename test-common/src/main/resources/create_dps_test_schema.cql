@@ -35,15 +35,16 @@ CREATE TABLE task_diagnostic_info (
 );
 
 CREATE TABLE notifications (
-    resource_num int,
     task_id bigint,
+    bucket_number int,
+    resource_num int,
     topology_name varchar,
     resource varchar,
     state varchar,
     info_text text,
-    additional_informations text,
+    additional_information map<text,text>,
     result_resource varchar,
-    PRIMARY KEY(task_id,resource_num)
+    PRIMARY KEY((task_id,bucket_number),resource_num)
 ) WITH CLUSTERING ORDER BY (resource_num DESC)
   AND default_time_to_live = 2592000;
 

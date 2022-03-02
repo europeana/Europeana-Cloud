@@ -195,8 +195,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public CassandraSubTaskInfoDAO subTaskInfoDAO() {
-        return new CassandraSubTaskInfoDAO(dpsCassandraProvider());
+    public NotificationsDAO subTaskInfoDAO() {
+        return new NotificationsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -215,7 +215,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RecordStatusUpdater recordStatusUpdater(CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO) {
+    public RecordStatusUpdater recordStatusUpdater(NotificationsDAO cassandraSubTaskInfoDAO) {
         return new RecordStatusUpdater(cassandraSubTaskInfoDAO);
     }
 
