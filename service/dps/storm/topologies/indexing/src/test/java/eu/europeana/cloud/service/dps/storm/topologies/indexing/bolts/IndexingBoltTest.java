@@ -5,7 +5,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
@@ -102,8 +102,6 @@ public class IndexingBoltTest {
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
@@ -137,8 +135,6 @@ public class IndexingBoltTest {
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
@@ -173,8 +169,6 @@ public class IndexingBoltTest {
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(8, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
@@ -202,8 +196,6 @@ public class IndexingBoltTest {
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
@@ -219,11 +211,11 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        var val = (Map <String, String>) capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").contains("Error while indexing"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+                val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
     }
 
     @Test
@@ -239,11 +231,11 @@ public class IndexingBoltTest {
         verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        var val = (Map<String,String>)capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").contains("Error while indexing"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+                val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
 
     }
 
@@ -261,12 +253,11 @@ public class IndexingBoltTest {
         verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        var val = (Map<String, String>)capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("info_text").contains("Could not parse RECORD_DATE parameter"));
-        assertEquals("ERROR", val.get("state"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Could not parse RECORD_DATE parameter"));
+        assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
     }
 
     @Test
@@ -282,11 +273,11 @@ public class IndexingBoltTest {
         verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        var val = (Map<String, String>)capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        assertEquals("ERROR", val.get("state"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+                val.get(NotificationParameterKeys.RESOURCE));
+        assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
     }
 
     @Test

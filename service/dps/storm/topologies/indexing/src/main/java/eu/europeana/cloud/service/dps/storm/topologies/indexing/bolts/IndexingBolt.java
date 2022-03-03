@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -112,7 +110,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             }
             updateHarvestedRecord(stormTaskTuple, europeanaId);
 
-            prepareTuple(stormTaskTuple, datasetId, database, recordDate);
+            prepareTuple(stormTaskTuple, datasetId, database, recordDate, europeanaId);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
@@ -150,8 +148,7 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     private void prepareIndexer() {
         try {
-            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS,
-                    IDLE_TIME_CHECK_INTERVAL_IN_SECS);
+            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS, IDLE_TIME_CHECK_INTERVAL_IN_SECS);
         } catch (IndexingException | URISyntaxException e) {
             var message = "Unable to initialize indexer";
             LOGGER.error(message, e);
@@ -166,11 +163,11 @@ public class IndexingBolt extends AbstractDpsBolt {
         indexerPool.index(document, properties);
     }
 
-    private void prepareTuple(StormTaskTuple stormTaskTuple, String datasetId, String database, Date recordDate) {
+    @SuppressWarnings("unused")
+    private void prepareTuple(StormTaskTuple stormTaskTuple, String datasetId,
+                              String database, Date recordDate, String europeanaId) {
         stormTaskTuple.setFileData((byte[]) null);
-        var dataSetCleanerParameters = new DataSetCleanerParameters(datasetId, database, recordDate);
-        stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
-                new Gson().toJson(dataSetCleanerParameters));
+        stormTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
     }
 
     private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {

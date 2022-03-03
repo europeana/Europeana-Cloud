@@ -2,22 +2,24 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
-public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
+public class NotificationsDAOTest extends CassandraTestBase {
 
     private static final long TASK_ID = 111;
-    private CassandraSubTaskInfoDAO subtaskInfoDao;
+    private NotificationsDAO subtaskInfoDao;
 
     @Before
     public void setup() {
         CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
-        subtaskInfoDao = CassandraSubTaskInfoDAO.getInstance(db);
+        subtaskInfoDao = NotificationsDAO.getInstance(db);
     }
 
     @Test
@@ -29,36 +31,31 @@ public class CassandraSubTaskInfoDAOTest extends CassandraTestBase {
 
     @Test
     public void shouldReturn1WhenExecuteGetProcessedFilesCountOnOneRecord(){
-        insertNotifications(1);
-
-        int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
-
-        assertEquals(1,result);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(1);
     }
 
     @Test
     public void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountOnOneBucketData(){
-        insertNotifications(100);
-
-        int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
-
-        assertEquals(100,result);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(100);
     }
 
     @Test
     public void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountManyBucketsData(){
-        insertNotifications(34567);
+        shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(34567);
+    }
+
+    private void shouldReturnValidNumberWhenExecuteGetProcessedFilesCountTemplate(int count) {
+        insertNotifications(count);
 
         int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
 
-        assertEquals(34567,result);
+        assertEquals(count, result);
     }
 
     private void insertNotifications(int count) {
-        for(int i=1;i<=count;i++) {
-            subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(), "infoTxt", "additionalInformations", "resultResource" + i);
+        for(int i=1; i<=count; i++) {
+            subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(),
+                    "infoTxt", Map.of(NotificationsDAO.STATE_DESCRIPTION_KEY, "additionalInformation"), "resultResource" + i);
         }
     }
-
-
 }

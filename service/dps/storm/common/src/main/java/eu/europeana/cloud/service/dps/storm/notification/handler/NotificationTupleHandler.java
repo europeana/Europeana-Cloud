@@ -22,7 +22,7 @@ public class NotificationTupleHandler {
 
     protected final ProcessedRecordsDAO processedRecordsDAO;
     protected final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
-    protected final CassandraSubTaskInfoDAO subTaskInfoDAO;
+    protected final NotificationsDAO subTaskInfoDAO;
     protected final CassandraTaskErrorsDAO taskErrorDAO;
     protected final CassandraTaskInfoDAO taskInfoDAO;
     protected final TasksByStateDAO tasksByStateDAO;
@@ -31,7 +31,7 @@ public class NotificationTupleHandler {
 
     public NotificationTupleHandler(ProcessedRecordsDAO processedRecordsDAO,
                                            TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-                                           CassandraSubTaskInfoDAO subTaskInfoDAO,
+                                           NotificationsDAO subTaskInfoDAO,
                                            CassandraTaskErrorsDAO taskErrorDAO,
                                            CassandraTaskInfoDAO taskInfoDAO,
                                            TasksByStateDAO tasksByStateDAO,
@@ -52,9 +52,9 @@ public class NotificationTupleHandler {
     public void handle(NotificationTuple notificationTuple, NotificationHandlerConfig config) {
         LOGGER.debug("Executing notification handler");
         long taskId = notificationTuple.getTaskId();
-        var recordId = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+        var resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         //
-        if (tupleShouldBeProcessed(taskId, recordId)) {
+        if (tupleShouldBeProcessed(taskId, resource)) {
             config.getNotificationCacheEntry().incrementCounters(notificationTuple);
             Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getProcessed());
             List<BoundStatement> statementsToBeExecutedInBatch = new ArrayList<>();
@@ -139,7 +139,7 @@ public class NotificationTupleHandler {
         //
         //store notification errror
         var errorMessage = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.INFO_TEXT));
-        var additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
+        var additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE_DESCRIPTION));
         if (!isErrorTuple(notificationTuple) && notificationTuple.getParameters().get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {
             errorMessage = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE));
             additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -191,11 +191,15 @@ public class NotificationTupleHandler {
         return prepareStatementsForTupleContainingLastRecord(notificationTuple,newState, newState.getDefaultMessage());
     }
 
-    private String prepareAdditionalInfo(Map<String, Object> parameters) {
-        var additionalInfo = String.valueOf(parameters.get(NotificationParameterKeys.ADDITIONAL_INFORMATIONS));
-        var now = Instant.now().toEpochMilli();
-        var processingTime = now - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
-        return additionalInfo + " Processing time: " + processingTime;
+    private Map<String, String> prepareAdditionalInfo(Map<String, Object> parameters) {
+        var processingTime = Instant.now().toEpochMilli()
+                - (Long) parameters.get(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS);
+
+        return Map.of(
+                NotificationsDAO.STATE_DESCRIPTION_KEY, String.valueOf(parameters.get(NotificationParameterKeys.STATE_DESCRIPTION)),
+                NotificationsDAO.PROCESSING_TIME_KEY, String.valueOf(processingTime),
+                NotificationsDAO.EUROPEANA_ID_KEY, String.valueOf(parameters.get(NotificationParameterKeys.EUROPEANA_ID))
+        );
     }
 
     private boolean maximumNumberOfErrorsReached(ErrorType errorType) {

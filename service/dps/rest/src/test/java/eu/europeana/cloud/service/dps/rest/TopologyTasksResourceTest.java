@@ -2,8 +2,6 @@ package eu.europeana.cloud.service.dps.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -45,7 +43,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
@@ -53,9 +54,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.isA;
@@ -79,18 +78,17 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private final static String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
     private final static String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
     private final static String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
-    private final static String CLEAN_DATASET_WEB_TARGET = WEB_TARGET + "/{taskId}/cleaner";
 
     /* Constants */
-    private final static String DATA_SET_URL = "http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
+    private final static String DATA_SET_URL = "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
     private final static String IMAGE_TIFF = "image/tiff";
     private final static String IMAGE_JP2 = "image/jp2";
     private final static String IC_TOPOLOGY = "ic_topology";
     private final static  String TASK_NAME = "TASK_NAME";
 
-    private final static String OAI_PMH_REPOSITORY_END_POINT = "http://example.com/oai-pmh-repository.xml";
-    private final static String HTTP_COMPRESSED_FILE_URL = "http://example.com/zipFile.zip";
-    private final static String WRONG_DATA_SET_URL = "http://wrongDataSet.com";
+    private final static String OAI_PMH_REPOSITORY_END_POINT = "https://example.com/oai-pmh-repository.xml";
+    private final static String HTTP_COMPRESSED_FILE_URL = "https://example.com/zipFile.zip";
+    private final static String WRONG_DATA_SET_URL = "https://wrongDataSet.com";
 
     private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
     public static final String SAMPLE_DATASE_METIS_ID = "sampleDS";
@@ -98,7 +96,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Beans (or mocked beans) */
     private ApplicationContext context;
-    private CassandraTaskInfoDAO taskDAO;
     private DataSetServiceClient dataSetServiceClient;
     private FileServiceClient fileServiceClient;
     private FilesCounter filesCounter;
@@ -121,7 +118,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         super.init();
 
         context = applicationContext.getBean(ApplicationContext.class);
-        taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
+        var taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         filesCounter = applicationContext.getBean(FilesCounter.class);
@@ -263,7 +260,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
 
     @Test
-    public void shouldProperlySendTaskWhithOutputDataSet() throws Exception {
+    public void shouldProperlySendTaskWithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(PluginParameterKeys.REPRESENTATION_NAME,"exampleParamName");
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
@@ -497,7 +494,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(HTTP_TOPOLOGY);
         ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
-        assertSuccessfulHttpTopologyRequest(response, HTTP_TOPOLOGY);
+        assertSuccessfulHttpTopologyRequest(response);
     }
 
 
@@ -548,7 +545,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldProperlySendTaskWithPublishsAsTargetIndexingDatabase() throws Exception {
+    public void shouldProperlySendTaskWithPublishAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
 
@@ -913,7 +910,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldPassParameteresWhenNoRecordsSelected() throws Exception {
+    public void shouldPassParametersWhenNoRecordsSelected() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
@@ -933,13 +930,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         setCorrectlyFormulatedOutputRevision(task);
     }
 
-    private void assertSuccessfulHttpTopologyRequest(ResultActions response, String topologyName) throws Exception {
+    private void assertSuccessfulHttpTopologyRequest(ResultActions response) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
         verifyNoInteractions(recordKafkaSubmitService);
     }
 
-    private void assertSuccessfulRequest(ResultActions response, String topologyName) throws Exception {
+    @SuppressWarnings("unused")
+    private void assertSuccessfulRequest(ResultActions response, String ignoredTopologyName) throws Exception {
         assertNotNull(response);
         response.andExpect(status().isCreated());
     }
@@ -986,13 +984,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         return task;
     }
 
-    private List<SubTaskInfo> createDummySubTaskInfoList() {
-        List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
-        SubTaskInfo subTaskInfo = new SubTaskInfo(1, RESOURCE_URL, RecordState.SUCCESS, EMPTY_STRING, EMPTY_STRING, RESULT_RESOURCE_URL);
-        subTaskInfoList.add(subTaskInfo);
-        return subTaskInfoList;
-    }
-
     private void prepareCompleteParametersForIcTask(DpsTask task) {
         task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
@@ -1011,6 +1002,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         mockECloudClients();
     }
 
+    @SuppressWarnings("unchecked")
     private void mockSecurity(String topologyName) {
         MutableAcl mutableAcl = mock(MutableAcl.class);
         //Mock

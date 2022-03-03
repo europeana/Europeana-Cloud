@@ -31,7 +31,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Date;
 
 /**
@@ -82,7 +81,6 @@ public class TopologyTasksResource {
      * (number of records of the specified task that have been fully processed).
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Get Task Progress
      */
 
     @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
@@ -110,8 +108,6 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return URI with information about the submitted task execution.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Submit Task
-     * @summary Submit Task
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -134,8 +130,6 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return URI with information about the submitted task execution.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Submit Task
-     * @summary Submit Task
      */
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -166,7 +160,6 @@ public class TopologyTasksResource {
      * @param username     <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @summary Grant task permissions to user
      */
 
     @PostMapping(path = "{taskId}/permit")
@@ -202,7 +195,6 @@ public class TopologyTasksResource {
      * @return Status code indicating whether the operation was successful or not.
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology
-     * @summary Kill task
      */
 
     @PostMapping(path = "{taskId}/kill")
@@ -225,9 +217,9 @@ public class TopologyTasksResource {
      * @param authorizationHeader Header for authorisation
      * @param restart Mode (submit = <code>false</code> / restart = <code>true</code>) flag
      * @return Respons for rest call
-     * @throws AccessDeniedOrTopologyDoesNotExistException
-     * @throws DpsTaskValidationException
-     * @throws IOException
+     * @throws AccessDeniedOrTopologyDoesNotExistException Throws if access is denied or topology does not exist
+     * @throws DpsTaskValidationException Throws if some validation error occurred
+     * @throws IOException Just IOException
      */
     private ResponseEntity<Void> doSubmitTask(
             final HttpServletRequest request,
@@ -278,8 +270,7 @@ public class TopologyTasksResource {
                 taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
                 throw e;
             } catch(Exception e) {
-                result = handleFailedSubmission(e, "Task submission failed. Internal server error.",
-                        HttpStatus.INTERNAL_SERVER_ERROR, parameters);
+                result = handleFailedSubmission(e, "Task submission failed. Internal server error.", parameters);
             }
         } else {
             LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
@@ -289,11 +280,10 @@ public class TopologyTasksResource {
         return result;
     }
 
-    private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage, HttpStatus httpStatus,
-                                                        SubmitTaskParameters parameters) {
+    private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage, SubmitTaskParameters parameters) {
         LOGGER.error(loggedMessage);
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
-        return ResponseEntity.status(httpStatus).build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
     private URI buildTaskURI(HttpServletRequest httpServletRequest, DpsTask task) {
