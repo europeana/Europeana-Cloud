@@ -39,21 +39,13 @@ public class IndexingSettingsGenerator {
     public static final String DELIMITER = ".";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingSettingsGenerator.class);
     private final Properties properties;
-    //private final TargetIndexingEnvironment environmentPrefix;
 
-    public IndexingSettingsGenerator(/*TargetIndexingEnvironment environment, */Properties properties) {
-      //  this.environmentPrefix = environment;
+    public IndexingSettingsGenerator(Properties properties) {
         this.properties = properties;
     }
 
-/*
-    public IndexingSettingsGenerator(Properties properties) {
-        this(TargetIndexingEnvironment.DEFAULT, properties);
-    }
-*/
-
     public IndexingSettings generateForPreview() throws IndexingException, URISyntaxException {
-        if (!isDefinedFor(IndexingSettingsGenerator.PREVIEW_PREFIX)) {
+        if (isNotDefinedFor(IndexingSettingsGenerator.PREVIEW_PREFIX)) {
             return null;
         }
         IndexingSettings indexingSettings = new IndexingSettings();
@@ -62,7 +54,7 @@ public class IndexingSettingsGenerator {
     }
 
     public IndexingSettings generateForPublish() throws IndexingException, URISyntaxException {
-        if (!isDefinedFor(IndexingSettingsGenerator.PUBLISH_PREFIX)) {
+        if (isNotDefinedFor(IndexingSettingsGenerator.PUBLISH_PREFIX)) {
             return null;
         }
         IndexingSettings indexingSettings = new IndexingSettings();
@@ -70,8 +62,8 @@ public class IndexingSettingsGenerator {
         return indexingSettings;
     }
 
-    private boolean isDefinedFor(String prefix) {
-        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null;
+    private boolean isNotDefinedFor(String prefix) {
+        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) == null;
     }
 
     private void prepareSettingFor(String environment, IndexingSettings indexingSettings)
@@ -115,13 +107,9 @@ public class IndexingSettingsGenerator {
     }
 
     private boolean mongoCredentialsProvidedFor(String prefix) {
-        if (!"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
-                !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
-                !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB))) {
-            return true;
-        } else {
-            return false;
-        }
+        return !"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
+               !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
+               !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB));
     }
 
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix)

@@ -13,11 +13,9 @@ import java.util.Date;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@Getter
-@Setter
-@ToString
 @Data
 @Builder
+@NoArgsConstructor
 public class MetisDataSetParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
@@ -33,7 +31,4 @@ public class MetisDataSetParameters implements Serializable {
         this.targetIndexingDatabase = targetIndexingDatabase;
         this.cleaningDate = cleaningDate;
     }
-    public MetisDataSetParameters() {
-    }
-
 }

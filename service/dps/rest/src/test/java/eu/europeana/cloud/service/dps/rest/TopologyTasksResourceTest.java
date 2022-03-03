@@ -91,7 +91,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private final static String WRONG_DATA_SET_URL = "https://wrongDataSet.com";
 
     private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
-    public static final String SAMPLE_DATASE_METIS_ID = "sampleDS";
+    public static final String SAMPLE_DATASET_METIS_ID = "sampleDS";
     public static final String SAMPLE_RECORD_LIST = "/1/item1,/1/item2";
 
     /* Beans (or mocked beans) */
@@ -851,7 +851,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldSupportDepublication() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
@@ -897,7 +897,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldPassValidParametersToDepublicationService() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(RECORD_IDS_TO_DEPUBLISH, SAMPLE_RECORD_LIST);
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
@@ -905,7 +905,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishIndividualRecords(captor.capture());
-        assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
+        assertEquals(SAMPLE_DATASET_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
         assertEquals(SAMPLE_RECORD_LIST, captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
     }
 
@@ -913,14 +913,14 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     public void shouldPassParametersWhenNoRecordsSelected() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
-        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishDataset(captor.capture());
-        assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
+        assertEquals(SAMPLE_DATASET_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
         assertNull(captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
     }
     /* Utilities */
@@ -945,7 +945,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     private DpsTask getDpsTaskWithDataSetEntry() {
         DpsTask task = new DpsTask(TASK_NAME);
         task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
-        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
+        task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
 
         task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
         task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");

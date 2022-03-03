@@ -26,7 +26,9 @@ public class DatasetCleaner extends IndexWrapper {
     }
 
     public int getRecordsCount() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
-        return (int) indexers.get(databaseLocation).countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+        return (int) indexers
+                .get(databaseLocation)
+                .countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
     public Stream<String> getRecordIds() {

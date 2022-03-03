@@ -29,7 +29,7 @@ public class DatasetDepublisher {
         }
     }
 
-    public boolean removeRecord(SubmitTaskParameters parameters, String recordId) throws IndexingException, URISyntaxException, IOException {
+    public boolean removeRecord(String recordId) throws IndexingException, URISyntaxException, IOException {
         try (Indexer indexer = indexerFactory.openIndexer()) {
             return indexer.remove(recordId);
         }

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
