@@ -37,13 +37,14 @@ public class DpsTaskValidatorTest {
     private DpsTask dpsTaskWithIncorrectRevision_10;
     private DpsTask dpsTaskWithNullOutputRevision;
 
-    private static final String TASK_NAME = "taksName";
+    private static final String TASK_NAME = "taskName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
     private static final String EXISTING_PARAMETER_VALUE = "param_1_value";
     private static final String EMPTY_PARAMETER_NAME = "empty_param";
 
     private static final InputDataType EXISTING_DATA_ENTRY_NAME = DATASET_URLS;
-    private static final List<String> EXISTING_DATA_ENTRY_VALUE = Arrays.asList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
+    private static final List<String> EXISTING_DATA_ENTRY_VALUE =
+            Collections.singletonList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
     private static final Revision correctRevision = new Revision("sampleRevisionName", "sampleRevisionProvider");
 
@@ -54,12 +55,11 @@ public class DpsTaskValidatorTest {
         dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
         dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        dpsTask.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "TRUE");
         dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
         dpsTask.setOutputRevision(correctRevision);
         //
         icTopologyTask = new DpsTask();
-        icTopologyTask.addDataEntry(FILE_URLS, Arrays.asList("http://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+        icTopologyTask.addDataEntry(FILE_URLS, Arrays.asList("https://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c", "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
         icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
         icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
         //
@@ -187,7 +187,6 @@ public class DpsTaskValidatorTest {
     @Test
     public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
         new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
-        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, Arrays.asList("TRUE", "FALSE")).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
@@ -224,13 +223,13 @@ public class DpsTaskValidatorTest {
 
     @Test
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Arrays.asList
-                ("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt")).validate(dpsTask);
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Collections.singletonList(
+                "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt")).validate(dpsTask);
     }
 
     @Test(expected = DpsTaskValidationException.class)
     public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndWrongValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Arrays.asList("someWrongValue"))
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Collections.singletonList("someWrongValue"))
                 .validate(dpsTask);
     }
 
@@ -256,16 +255,15 @@ public class DpsTaskValidatorTest {
     }
 
     @Test(expected = DpsTaskValidationException.class)
-    @Parameters({"domainbroken/paht",
-            "http://domainlondon/paht/some.xml", "domainlon.com/paht/some.xml"})
-    public void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) throws
-            DpsTaskValidationException {
+    @Parameters({"domain.broken/path",
+            "https://domainlondon/paht/some.xml", "domainlon.com/path/some.xml"})
+    public void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
         commonOaiPmhValidation(url);
     }
 
     @Test
-    @Parameters({"http://domain.com/paht",
-            "http://domain.com/paht/some.xml", "https://domain.com/paht/some.xml"})
+    @Parameters({"https://domain.com/paht",
+            "https://domain.com/paht/some.xml", "https://domain.com/paht/some.xml"})
     public void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
         commonOaiPmhValidation(url);
     }

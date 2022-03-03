@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
@@ -17,7 +16,6 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -77,7 +75,7 @@ public class DpsClient implements AutoCloseable {
      * @param dpsUrl                 Url where the DPS service is located.
      * @param username               THe username to perform authenticated requests.
      * @param password               THe username to perform authenticated requests.
-     * @param connectTimeoutInMillis The connect timeout in milliseconds (timeout for establishing the
+     * @param connectTimeoutInMillis The connection timeout in milliseconds (timeout for establishing the
      *                               remote connection).
      * @param readTimeoutInMillis    The read timeout in milliseconds (timeout for obtaining/1reading the
      *                               result).
@@ -108,7 +106,7 @@ public class DpsClient implements AutoCloseable {
      * Creates a new instance of this class.
      *
      * @param dpsUrl                 Url where the DPS service is located.
-     * @param connectTimeoutInMillis The connect timeout in milliseconds (timeout for establishing the
+     * @param connectTimeoutInMillis The connection timeout in milliseconds (timeout for establishing the
      *                               remote connection).
      * @param readTimeoutInMillis    The read timeout in milliseconds (timeout for obtaining/1reading the
      *                               result).
@@ -199,31 +197,17 @@ public class DpsClient implements AutoCloseable {
      * Retrieves number of elements in the Metis dataset
      *
      * @param datasetId dataset identifier
-     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW
+     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
      * @return number of elements in the dataset
      * @throws DpsException throws common {@link DpsException} if something went wrong
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
-        return getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
-    }
-
-    /**
-     * Retrieves number of elements in the Metis dataset
-     *
-     * @param datasetId dataset identifier
-     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
-     * @param environment value indicating which environment will be used. Allowed values are DEFAULT and ALTERNATIVE {@link TargetIndexingEnvironment}. This is temporary solution when there is one eCloud for both test and acceptance Metis environment
-     * @return number of elements in the dataset
-     * @throws DpsException throws common {@link DpsException} if something went wrong
-     */
-    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
         MetisDataset metisDataset = manageResponse(new ResponseParams<>(MetisDataset.class),
                 () -> client
                         .target(dpsUrl)
                         .path(RestInterfaceConstants.METIS_DATASETS)
                         .resolveTemplate("datasetId", datasetId)
                         .queryParam("database", database)
-                        .queryParam("altEnv", environment)
                         .request()
                         .get(),
                 "Error while retrieving total metis database records");

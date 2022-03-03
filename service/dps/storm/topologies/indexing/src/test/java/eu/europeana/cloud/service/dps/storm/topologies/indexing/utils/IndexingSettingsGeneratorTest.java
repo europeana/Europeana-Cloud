@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.utils;
 
 import com.mongodb.ServerAddress;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
@@ -13,7 +12,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class IndexingSettingsGeneratorTest {
 

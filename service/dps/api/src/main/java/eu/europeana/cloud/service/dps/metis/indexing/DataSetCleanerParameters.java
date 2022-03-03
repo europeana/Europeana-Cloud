@@ -23,16 +23,14 @@ public class DataSetCleanerParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;
-    private boolean usingAltEnv;
     private String targetIndexingEnv;
 
     @XmlElement(name = "cleaningDate", required = true)
     @XmlJavaTypeAdapter(DateAdapter.class)
     private Date cleaningDate;
 
-    public DataSetCleanerParameters(String dataSetId, boolean usingAltEnv, String targetIndexingEnv, Date cleaningDate) {
+    public DataSetCleanerParameters(String dataSetId, String targetIndexingEnv, Date cleaningDate) {
         this.dataSetId = dataSetId;
-        this.usingAltEnv = usingAltEnv;
         this.targetIndexingEnv = targetIndexingEnv;
         this.cleaningDate = cleaningDate;
     }
@@ -52,14 +50,13 @@ public class DataSetCleanerParameters implements Serializable {
         DataSetCleanerParameters cleanerParameters = (DataSetCleanerParameters) o;
 
         return Objects.equal(dataSetId, cleanerParameters.dataSetId) &&
-                usingAltEnv == cleanerParameters.usingAltEnv &&
                 Objects.equal(targetIndexingEnv, cleanerParameters.targetIndexingEnv) &&
                 Objects.equal(cleaningDate, cleanerParameters.cleaningDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(dataSetId, usingAltEnv, targetIndexingEnv, cleaningDate);
+        return Objects.hashCode(dataSetId, targetIndexingEnv, cleaningDate);
     }
 
 }

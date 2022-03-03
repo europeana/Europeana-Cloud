@@ -8,7 +8,6 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -85,8 +84,6 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
-        final var useAltEnv = stormTaskTuple
-                .getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV);
         final var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final var database = stormTaskTuple
                 .getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
@@ -109,17 +106,17 @@ public class IndexingBolt extends AbstractDpsBolt {
             String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
             String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
             if (!stormTaskTuple.isMarkedAsDeleted()) {
-                indexRecord(stormTaskTuple, useAltEnv, database, properties);
+                indexRecord(stormTaskTuple, database, properties);
             } else{
-                removeIndexedRecord(stormTaskTuple, useAltEnv, database, europeanaId);
+                removeIndexedRecord(stormTaskTuple, database, europeanaId);
             }
             updateHarvestedRecord(stormTaskTuple, europeanaId);
 
-            prepareTuple(stormTaskTuple, useAltEnv, datasetId, database, recordDate);
+            prepareTuple(stormTaskTuple, datasetId, database, recordDate);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
-                    "Indexing bolt executed for: {} (alternative environment: {}, record date: {}, preserve timestamps: {}).",
-                    database, useAltEnv, recordDate, preserveTimestampsString);
+                    "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
+                    database, recordDate, preserveTimestampsString);
         } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
         } catch (ParseException e) {
@@ -130,10 +127,10 @@ public class IndexingBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, String europeanaId) throws IndexingException {
-        LOGGER.info("Removing indexed record europeanaId: {}, database: {} useAltEnv: {}, taskId: {}, recordId: {}",
-                europeanaId, database, useAltEnv, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        indexerPoolWrapper.getIndexerPool(useAltEnv, database).remove(europeanaId);
+    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String database, String europeanaId) throws IndexingException {
+        LOGGER.info("Removing indexed record europeanaId: {}, database: {}, taskId: {}, recordId: {}",
+                europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+        indexerPoolWrapper.getIndexerPool(database).remove(europeanaId);
     }
 
     private void prepareDao() {
@@ -162,18 +159,16 @@ public class IndexingBolt extends AbstractDpsBolt {
         }
     }
 
-    private void indexRecord(StormTaskTuple stormTaskTuple, String useAltEnv, String database, IndexingProperties properties) throws IndexingException {
-        final var indexerPool = indexerPoolWrapper.getIndexerPool(useAltEnv, database);
+    private void indexRecord(StormTaskTuple stormTaskTuple, String database, IndexingProperties properties) throws IndexingException {
+        final var indexerPool = indexerPoolWrapper.getIndexerPool(database);
 
         final var document = new String(stormTaskTuple.getFileData());
         indexerPool.index(document, properties);
     }
 
-    private void prepareTuple(StormTaskTuple stormTaskTuple, String useAltEnv, String datasetId,
-                              String database, Date recordDate) {
+    private void prepareTuple(StormTaskTuple stormTaskTuple, String datasetId, String database, Date recordDate) {
         stormTaskTuple.setFileData((byte[]) null);
-        var dataSetCleanerParameters = new DataSetCleanerParameters(datasetId,
-                Boolean.parseBoolean(useAltEnv), database, recordDate);
+        var dataSetCleanerParameters = new DataSetCleanerParameters(datasetId, database, recordDate);
         stormTaskTuple.addParameter(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS,
                 new Gson().toJson(dataSetCleanerParameters));
     }
@@ -224,11 +219,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
     class IndexerPoolWrapper implements Closeable {
 
-        private IndexerPool indexerPoolForPreviewDbInDefaultEnv;
-        private IndexerPool indexerPoolForPublishDbInDefaultEnv;
-
-        private IndexerPool indexerPoolForPreviewDbInAnotherEnv;
-        private IndexerPool indexerPoolForPublishDbInAnotherEnv;
+        private IndexerPool indexerPoolForPreviewDb;
+        private IndexerPool indexerPoolForPublishDb;
 
         public IndexerPoolWrapper(long maxIdleTimeForIndexerInSecs,
                                   long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
@@ -237,49 +229,22 @@ public class IndexingBolt extends AbstractDpsBolt {
 
         @Override
         public void close() {
-            if (indexerPoolForPreviewDbInDefaultEnv != null) {
-                indexerPoolForPreviewDbInDefaultEnv.close();
+            if (indexerPoolForPreviewDb != null) {
+                indexerPoolForPreviewDb.close();
             }
-            if (indexerPoolForPublishDbInDefaultEnv != null) {
-                indexerPoolForPublishDbInDefaultEnv.close();
-            }
-            if (indexerPoolForPreviewDbInAnotherEnv != null) {
-                indexerPoolForPreviewDbInAnotherEnv.close();
-            }
-            if (indexerPoolForPublishDbInAnotherEnv != null) {
-                indexerPoolForPublishDbInAnotherEnv.close();
+            if (indexerPoolForPublishDb != null) {
+                indexerPoolForPublishDb.close();
             }
         }
 
-        private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs)
-                throws IndexingException, URISyntaxException {
-            var settingsGeneratorForDefaultEnv = new IndexingSettingsGenerator(indexingProperties);
-            var settingsGeneratorForAnotherEnv = new IndexingSettingsGenerator(
-                    TargetIndexingEnvironment.ALTERNATIVE, indexingProperties);
+        private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
+            var settingsGenerator = new IndexingSettingsGenerator(indexingProperties);
 
-            var indexingSettingsForPreviewDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPreview();
-            var indexingSettingsForPublishDbInDefaultEnv = settingsGeneratorForDefaultEnv.generateForPublish();
+            indexerPoolForPreviewDb = initIndexerPool(
+                    settingsGenerator.generateForPreview(), maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
 
-            var indexingSettingsForPreviewDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPreview();
-            var indexingSettingsForPublishDbInAnotherEnv = settingsGeneratorForAnotherEnv.generateForPublish();
-
-            indexerPoolForPreviewDbInDefaultEnv = initIndexerPool(
-                    indexingSettingsForPreviewDbInDefaultEnv,
-                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-            indexerPoolForPublishDbInDefaultEnv = initIndexerPool(
-                    indexingSettingsForPublishDbInDefaultEnv,
-                    maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-
-            if (indexingSettingsForPreviewDbInAnotherEnv != null) {
-                indexerPoolForPreviewDbInAnotherEnv = initIndexerPool(
-                        indexingSettingsForPreviewDbInAnotherEnv,
-                        maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-            }
-            if (indexingSettingsForPublishDbInAnotherEnv != null) {
-                indexerPoolForPublishDbInAnotherEnv = initIndexerPool(
-                        indexingSettingsForPublishDbInAnotherEnv,
-                        maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-            }
+            indexerPoolForPublishDb = initIndexerPool(
+                    settingsGenerator.generateForPublish(), maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
         }
 
         private IndexerPool initIndexerPool(IndexingSettings indexingSettings,
@@ -288,19 +253,11 @@ public class IndexingBolt extends AbstractDpsBolt {
                     idleTimeCheckIntervalInSecs);
         }
 
-        IndexerPool getIndexerPool(String altEnv, String database) {
-            if (Boolean.parseBoolean(altEnv)) {
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database)) {
-                    return indexerPoolForPreviewDbInAnotherEnv;
-                } else if (TargetIndexingDatabase.PUBLISH.toString().equals(database)) {
-                    return indexerPoolForPublishDbInAnotherEnv;
-                }
-            } else {
-                if (TargetIndexingDatabase.PREVIEW.toString().equals(database)) {
-                    return indexerPoolForPreviewDbInDefaultEnv;
-                } else if (TargetIndexingDatabase.PUBLISH.toString().equals(database)) {
-                    return indexerPoolForPublishDbInDefaultEnv;
-                }
+        IndexerPool getIndexerPool(String database) {
+            if (TargetIndexingDatabase.PREVIEW.toString().equals(database)) {
+                return indexerPoolForPreviewDb;
+            } else if (TargetIndexingDatabase.PUBLISH.toString().equals(database)) {
+                return indexerPoolForPublishDb;
             }
             throw new TopologyGeneralException("Specified environment and/or database is not recognized");
         }

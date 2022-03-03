@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
-import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
+import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.indexing.exception.IndexingException;
 import org.junit.Assert;
 import org.junit.Test;

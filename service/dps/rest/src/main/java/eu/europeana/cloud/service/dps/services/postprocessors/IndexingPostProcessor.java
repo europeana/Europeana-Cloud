@@ -70,7 +70,6 @@ public class IndexingPostProcessor extends TaskPostProcessor {
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         return new DataSetCleanerParameters(
                 dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID),
-                Boolean.parseBoolean(dpsTask.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV)),
                 dpsTask.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE),
                 dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
@@ -115,7 +114,7 @@ public class IndexingPostProcessor extends TaskPostProcessor {
     private void cleanInMetis(DataSetCleanerParameters cleanerParameters, DatasetCleaner datasetCleaner) throws DatasetCleaningException {
         LOGGER.info("cleaning dataset {} based on date: {}",
                 cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-        //The retry number and delay are relatively big cause, do not executing this task would cause inconsistency
+        //The retry number and delay are relatively big cause, do not execute this task would cause inconsistency
         //between harvested_records table and state of Metis.
         RetryableMethodExecutor.execute("Could not clean old records in Metis", DELETE_ATTEMPTS,
                 DELAY_BETWEEN_DELETE_ATTEMPTS_MS, () -> {

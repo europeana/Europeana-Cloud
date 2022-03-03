@@ -64,11 +64,6 @@ public class SubmitTaskParameters {
         return task.getParameter(parameterKey);
     }
 
-    @Deprecated
-    public boolean getUseAlternativeEnvironment() {
-        return Boolean.parseBoolean(task.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
-    }
-
     public String getSchemaName() {
         return task.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }

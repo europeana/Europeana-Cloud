@@ -296,7 +296,6 @@ public class IndexingPostProcessorTest {
     private DpsTask prepareTaskForPreviewEnv() {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "false");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
         return dpsTask;
@@ -305,7 +304,6 @@ public class IndexingPostProcessorTest {
     private DpsTask prepareTaskForPublishEnv() {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "false");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
         dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
 
@@ -316,7 +314,6 @@ public class IndexingPostProcessorTest {
     private DpsTask prepareTaskForNotUnknownEnv() {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "false");
         dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "Unknown_env");
         dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2021-06-14T16:47:00.000Z");
         return dpsTask;

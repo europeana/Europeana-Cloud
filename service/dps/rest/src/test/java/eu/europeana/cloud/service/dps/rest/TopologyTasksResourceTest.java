@@ -901,7 +901,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         DpsTask task = new DpsTask(TASK_NAME);
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASE_METIS_ID);
-        task.addParameter(METIS_USE_ALT_INDEXING_ENV, "true");
         task.addParameter(RECORD_IDS_TO_DEPUBLISH, SAMPLE_RECORD_LIST);
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
@@ -909,7 +908,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishIndividualRecords(captor.capture());
-        assertEquals("true", captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
         assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
         assertEquals(SAMPLE_RECORD_LIST, captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
     }
@@ -925,7 +923,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationService).depublishDataset(captor.capture());
-        assertNull(captor.getValue().getTask().getParameter(METIS_USE_ALT_INDEXING_ENV));
         assertEquals(SAMPLE_DATASE_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
         assertNull(captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
     }

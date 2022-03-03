@@ -25,8 +25,8 @@ import java.util.Map;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 public class IndexingRevisionWriterTest {
@@ -112,19 +112,15 @@ public class IndexingRevisionWriterTest {
     }
 
     private StormTaskTuple prepareTuple() {
-
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
-        return tuple;
+        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
-        return tuple;
+        return new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
     }
 
     private StormTaskTuple prepareTupleWithEmptyRevisions() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
-        return tuple;
+        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
     }
 
 
@@ -132,7 +128,6 @@ public class IndexingRevisionWriterTest {
         DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
         dataSetCleanerParameters.setCleaningDate(new Date());
         dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setUsingAltEnv(true);
         dataSetCleanerParameters.setTargetIndexingEnv("PREVIEW");
         return dataSetCleanerParameters;
     }

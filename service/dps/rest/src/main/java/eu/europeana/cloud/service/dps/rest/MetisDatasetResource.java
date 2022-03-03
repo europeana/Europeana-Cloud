@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
@@ -25,8 +24,7 @@ public class MetisDatasetResource {
     }
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public MetisDataset getMetisDatasetStats(@PathVariable String datasetId,
-                                             @RequestParam(value = "database") TargetIndexingDatabase targetIndexingDatabase /*,
-                                             @RequestParam(required = false, value = "altEnv",defaultValue = "DEFAULT") TargetIndexingEnvironment targetIndexingEnvironment*/) throws IndexingException {
+                                             @RequestParam(value = "database") TargetIndexingDatabase targetIndexingDatabase) throws IndexingException {
         LOGGER.info("Reading dataset stats for datasetId: {}", datasetId);
         MetisDataset metisDataset = MetisDataset.builder()
                 .id(datasetId)
