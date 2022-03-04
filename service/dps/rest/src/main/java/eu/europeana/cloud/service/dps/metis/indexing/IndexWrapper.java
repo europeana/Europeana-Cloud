@@ -21,17 +21,7 @@ public abstract class IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexWrapper.class);
     protected final Properties properties = new Properties();
-    protected final Map<DatabaseLocation, Indexer> indexers = new EnumMap<>(DatabaseLocation.class);
-    private final static Map<TargetIndexingDatabase, DatabaseLocation> databaseLocationMap;
-
-    static {
-        Map<TargetIndexingDatabase, DatabaseLocation> tmpMap = new HashMap<>();
-        tmpMap.put(TargetIndexingDatabase.PUBLISH, DatabaseLocation.DEFAULT_PUBLISH);
-        tmpMap.put(TargetIndexingDatabase.PREVIEW, DatabaseLocation.DEFAULT_PREVIEW);
-
-        databaseLocationMap = Collections.unmodifiableMap(tmpMap);
-    }
-
+    protected final Map<TargetIndexingDatabase, Indexer> indexers = new EnumMap<>(TargetIndexingDatabase.class);
 
     protected IndexWrapper() {
         try {
@@ -58,16 +48,9 @@ public abstract class IndexWrapper {
         indexingSettingsGenerator = new IndexingSettingsGenerator(properties);
 
         indexingSettings = indexingSettingsGenerator.generateForPreview();
-        indexers.put(DatabaseLocation.DEFAULT_PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+        indexers.put(TargetIndexingDatabase.PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
         indexingSettings = indexingSettingsGenerator.generateForPublish();
-        indexers.put(DatabaseLocation.DEFAULT_PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
-    }
-
-    protected DatabaseLocation evaluateDatabaseLocation(MetisDataSetParameters metisDataSetParameters) {
-        if(databaseLocationMap.containsKey(metisDataSetParameters.getTargetIndexingDatabase())) {
-            return databaseLocationMap.get(metisDataSetParameters.getTargetIndexingDatabase());
-        }
-        throw new NullPointerException("Indexer not found");
+        indexers.put(TargetIndexingDatabase.PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
     }
 
     @PreDestroy

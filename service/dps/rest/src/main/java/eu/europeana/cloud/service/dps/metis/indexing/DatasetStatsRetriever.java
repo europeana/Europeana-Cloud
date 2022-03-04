@@ -4,12 +4,6 @@ import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Deprecated
-enum DatabaseLocation {
-    DEFAULT_PREVIEW,
-    DEFAULT_PUBLISH,
-}
-
 /**
  * Retrieves statistics related with Metis dataset.
  */
@@ -19,7 +13,6 @@ public class DatasetStatsRetriever extends IndexWrapper {
 
     public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
         LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
-        DatabaseLocation databaseLocation = evaluateDatabaseLocation(metisDataSetParameters);
-        return indexers.get(databaseLocation).countRecords(metisDataSetParameters.getDataSetId());
+        return indexers.get(metisDataSetParameters.getTargetIndexingDatabase()).countRecords(metisDataSetParameters.getDataSetId());
     }
 }
