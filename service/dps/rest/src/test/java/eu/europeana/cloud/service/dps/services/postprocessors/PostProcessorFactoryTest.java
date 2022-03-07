@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -42,7 +43,8 @@ public class PostProcessorFactoryTest {
         indexingPostProcessor = new IndexingPostProcessor (
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(HarvestedRecordsDAO.class),
-                Mockito.mock(TaskStatusChecker.class)
+                Mockito.mock(TaskStatusChecker.class),
+                Mockito.mock(IndexWrapper.class)
         );
 
         postProcessorFactory = new PostProcessorFactory(Arrays.asList(harvestingPostProcessor, indexingPostProcessor));

@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -32,9 +33,12 @@ public class IndexingPostProcessor extends TaskPostProcessor {
     private static final int DELETE_ATTEMPTS = 20;
     private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
     private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
+    private IndexWrapper indexWrapper;
 
-    public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO, TaskStatusChecker taskStatusChecker) {
+    public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO,
+                                 TaskStatusChecker taskStatusChecker, IndexWrapper indexWrapper) {
         super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
+        this.indexWrapper = indexWrapper;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class IndexingPostProcessor extends TaskPostProcessor {
             DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
             LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);
             if (!areParametersNull(cleanerParameters)) {
-                var datasetCleaner = new DatasetCleaner(cleanerParameters);
+                var datasetCleaner = new DatasetCleaner(indexWrapper, cleanerParameters);
                 taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(), datasetCleaner.getRecordsCount());
                 Stream<String> recordIdsThatWillBeRemoved = datasetCleaner.getRecordIds();
                 int deletedCount = cleanInECloud(cleanerParameters, recordIdsThatWillBeRemoved, dpsTask);

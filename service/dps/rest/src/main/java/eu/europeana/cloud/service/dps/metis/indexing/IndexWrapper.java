@@ -17,13 +17,13 @@ import java.util.*;
 /**
  * Wraps operations on the index
  */
-public abstract class IndexWrapper {
+public class IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexWrapper.class);
     protected final Properties properties = new Properties();
     protected final Map<TargetIndexingDatabase, Indexer> indexers = new EnumMap<>(TargetIndexingDatabase.class);
 
-    protected IndexWrapper() {
+    public IndexWrapper() {
         try {
             loadProperties();
             prepareIndexers();
@@ -62,5 +62,9 @@ public abstract class IndexWrapper {
                 LOGGER.error("Unable to close indexer", e);
             }
         });
+    }
+
+    public Indexer getIndexer(TargetIndexingDatabase targetIndexingDatabase) {
+        return indexers.get(targetIndexingDatabase);
     }
 }

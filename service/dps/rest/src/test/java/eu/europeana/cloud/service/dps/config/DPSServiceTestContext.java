@@ -6,7 +6,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.depublish.DepublicationService;
-import eu.europeana.cloud.service.dps.depublish.MetisIndexerFactory;
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
@@ -151,8 +151,8 @@ public class DPSServiceTestContext {
     }
 
     @Bean
-    public MetisIndexerFactory metisIndexerFactory() {
-        return Mockito.mock(MetisIndexerFactory.class);
+    public IndexWrapper indexWrapper() {
+        return Mockito.mock(IndexWrapper.class);
     }
 
     @Bean

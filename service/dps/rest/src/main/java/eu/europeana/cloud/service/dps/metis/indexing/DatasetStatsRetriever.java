@@ -7,12 +7,18 @@ import org.slf4j.LoggerFactory;
 /**
  * Retrieves statistics related with Metis dataset.
  */
-public class DatasetStatsRetriever extends IndexWrapper {
+public class DatasetStatsRetriever {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStatsRetriever.class);
+    private IndexWrapper indexWrapper;
+
+    public DatasetStatsRetriever(IndexWrapper indexWrapper) {
+        this.indexWrapper = indexWrapper;
+    }
 
     public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
         LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
-        return indexers.get(metisDataSetParameters.getTargetIndexingDatabase()).countRecords(metisDataSetParameters.getDataSetId());
+        return indexWrapper.getIndexer(metisDataSetParameters.getTargetIndexingDatabase())
+                .countRecords(metisDataSetParameters.getDataSetId());
     }
 }

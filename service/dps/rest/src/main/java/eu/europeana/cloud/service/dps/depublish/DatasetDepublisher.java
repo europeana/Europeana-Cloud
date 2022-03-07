@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
@@ -15,29 +17,24 @@ import java.util.concurrent.Future;
 @Service
 public class DatasetDepublisher {
 
-    private final MetisIndexerFactory indexerFactory;
+    private final Indexer indexer;
 
-    public DatasetDepublisher(MetisIndexerFactory indexerFactory) {
-        this.indexerFactory = indexerFactory;
+    public DatasetDepublisher(IndexWrapper indexWrapper) {
+        this.indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
     }
 
     @Async
-    public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer()) {
-            int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
-            return CompletableFuture.completedFuture(removedCount);
-        }
+    public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException {
+        int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
+        return CompletableFuture.completedFuture(removedCount);
     }
 
-    public boolean removeRecord(String recordId) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer()) {
-            return indexer.remove(recordId);
-        }
+    public boolean removeRecord(String recordId) throws IndexingException {
+        return indexer.remove(recordId);
     }
+
     public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException, URISyntaxException, IOException {
-        try (Indexer indexer = indexerFactory.openIndexer()) {
-            return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
-        }
+        return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
     }
 
 }

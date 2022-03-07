@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -24,8 +25,8 @@ public class TestContext {
     }
 
     @Bean
-    public MetisIndexerFactory metisIndexerFactory() {
-        return Mockito.mock(MetisIndexerFactory.class);
+    public IndexWrapper indexWrapper() {
+        return Mockito.mock(IndexWrapper.class);
     }
 
     @Bean

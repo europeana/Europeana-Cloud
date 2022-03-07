@@ -11,34 +11,31 @@ import java.util.stream.Stream;
  * <p>
  * Created by pwozniak on 10/2/18
  */
-public class DatasetCleaner extends IndexWrapper {
+public class DatasetCleaner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
+    private final IndexWrapper indexWrapper;
     private final DataSetCleanerParameters cleanerParameters;
     private final TargetIndexingDatabase databaseLocation;
 
-    public DatasetCleaner(DataSetCleanerParameters cleanerParameters) {
+    public DatasetCleaner(IndexWrapper indexWrapper, DataSetCleanerParameters cleanerParameters) {
+        this.indexWrapper = indexWrapper;
         this.cleanerParameters = cleanerParameters;
-        loadProperties();
         databaseLocation = TargetIndexingDatabase.valueOf(this.cleanerParameters.getTargetIndexingEnv());
     }
 
     public int getRecordsCount() {
-        return (int) indexers
-                .get(databaseLocation)
+        return (int) indexWrapper.getIndexer(databaseLocation)
                 .countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
     }
 
     public Stream<String> getRecordIds() {
-        return indexers.get(databaseLocation).getRecordIds(this.cleanerParameters.getDataSetId(),
-                this.cleanerParameters.getCleaningDate());
+        return indexWrapper.getIndexer(databaseLocation)
+                .getRecordIds(this.cleanerParameters.getDataSetId(), this.cleanerParameters.getCleaningDate());
     }
 
     public void execute() throws DatasetCleaningException {
         LOGGER.info("Executing initial actions for indexing topology");
-        if (properties.isEmpty()) {
-            return;
-        }
         try {
             removeDataSet(cleanerParameters.getDataSetId());
         } catch (IndexingException e) {
@@ -50,7 +47,7 @@ public class DatasetCleaner extends IndexWrapper {
 
     private void removeDataSet(String datasetId) throws IndexingException {
         LOGGER.info("Removing data set {} from solr and mongo", datasetId);
-        indexers.get(databaseLocation).removeAll(datasetId, cleanerParameters.getCleaningDate());
+        indexWrapper.getIndexer(databaseLocation).removeAll(datasetId, cleanerParameters.getCleaningDate());
         LOGGER.info("Data set removed");
     }
 }
