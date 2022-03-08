@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.depublish;
 
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.storm.metis.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.metis.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
