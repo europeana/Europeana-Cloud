@@ -6,7 +6,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
@@ -14,18 +14,14 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
-import eu.europeana.indexing.IndexerPool;
 import eu.europeana.indexing.IndexingProperties;
-import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,9 +36,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     public static final String PARSE_RECORD_DATE_ERROR_MESSAGE = "Could not parse RECORD_DATE parameter";
     public static final String INDEXING_FILE_ERROR_MESSAGE = "Unable to index file";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
-    private static final int MAX_IDLE_TIME_FOR_INDEXER_IN_SECS = 600;
-    private static final int IDLE_TIME_CHECK_INTERVAL_IN_SECS = 60;
-    private transient IndexerPoolWrapper indexerPoolWrapper;
+    private transient IndexWrapper indexWrapper;
     private final DbConnectionDetails dbConnectionDetails;
 
     private final Properties indexingProperties;
@@ -71,20 +65,10 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     @Override
-    public void cleanup() {
-        // This is just to close the connections in the pool and to prevent memory leaks.
-        if (indexerPoolWrapper != null) {
-            indexerPoolWrapper.close();
-        }
-        super.cleanup();
-    }
-
-    @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
         final var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        final var database = stormTaskTuple
-                .getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE);
+        final var database = getDatabase(stormTaskTuple);
         final var preserveTimestampsString = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));
         final var datasetIdsToRedirectFrom = stormTaskTuple
@@ -110,7 +94,7 @@ public class IndexingBolt extends AbstractDpsBolt {
             }
             updateHarvestedRecord(stormTaskTuple, europeanaId);
 
-            prepareTuple(stormTaskTuple, datasetId, database, recordDate, europeanaId);
+            prepareTuple(stormTaskTuple, europeanaId);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
             LOGGER.info(
                     "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
@@ -125,10 +109,11 @@ public class IndexingBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, String database, String europeanaId) throws IndexingException {
+    private void removeIndexedRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database, String europeanaId)
+            throws IndexingException {
         LOGGER.info("Removing indexed record europeanaId: {}, database: {}, taskId: {}, recordId: {}",
                 europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        indexerPoolWrapper.getIndexerPool(database).remove(europeanaId);
+        indexWrapper.getIndexer(database).remove(europeanaId);
     }
 
     private void prepareDao() {
@@ -147,25 +132,17 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void prepareIndexer() {
-        try {
-            indexerPoolWrapper = new IndexerPoolWrapper(MAX_IDLE_TIME_FOR_INDEXER_IN_SECS, IDLE_TIME_CHECK_INTERVAL_IN_SECS);
-        } catch (IndexingException | URISyntaxException e) {
-            var message = "Unable to initialize indexer";
-            LOGGER.error(message, e);
-            throw new TopologyGeneralException(message, e);
-        }
+        indexWrapper = IndexWrapper.getInstance(indexingProperties);
     }
 
-    private void indexRecord(StormTaskTuple stormTaskTuple, String database, IndexingProperties properties) throws IndexingException {
-        final var indexerPool = indexerPoolWrapper.getIndexerPool(database);
+    private void indexRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database,
+                             IndexingProperties properties) throws IndexingException {
 
         final var document = new String(stormTaskTuple.getFileData());
-        indexerPool.index(document, properties);
+        indexWrapper.getIndexer(database).index(document, properties);
     }
 
-    @SuppressWarnings("unused")
-    private void prepareTuple(StormTaskTuple stormTaskTuple, String datasetId,
-                              String database, Date recordDate, String europeanaId) {
+    private void prepareTuple(StormTaskTuple stormTaskTuple, String europeanaId) {
         stormTaskTuple.setFileData((byte[]) null);
         stormTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
     }
@@ -187,8 +164,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         Date latestHarvestDate = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestDate();
         UUID latestHarvestMd5 = stormTaskTuple.isMarkedAsDeleted() ? null : harvestedRecord.getLatestHarvestMd5();
 
-        var database = TargetIndexingDatabase.valueOf(
-                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
+        var database = getDatabase(stormTaskTuple);
         switch (database) {
             case PREVIEW:
                 harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
@@ -214,49 +190,9 @@ public class IndexingBolt extends AbstractDpsBolt {
                 Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
     }
 
-    class IndexerPoolWrapper implements Closeable {
-
-        private IndexerPool indexerPoolForPreviewDb;
-        private IndexerPool indexerPoolForPublishDb;
-
-        public IndexerPoolWrapper(long maxIdleTimeForIndexerInSecs,
-                                  long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
-            init(maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-        }
-
-        @Override
-        public void close() {
-            if (indexerPoolForPreviewDb != null) {
-                indexerPoolForPreviewDb.close();
-            }
-            if (indexerPoolForPublishDb != null) {
-                indexerPoolForPublishDb.close();
-            }
-        }
-
-        private void init(long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) throws IndexingException, URISyntaxException {
-            var settingsGenerator = new IndexingSettingsGenerator(indexingProperties);
-
-            indexerPoolForPreviewDb = initIndexerPool(
-                    settingsGenerator.generateForPreview(), maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-
-            indexerPoolForPublishDb = initIndexerPool(
-                    settingsGenerator.generateForPublish(), maxIdleTimeForIndexerInSecs, idleTimeCheckIntervalInSecs);
-        }
-
-        private IndexerPool initIndexerPool(IndexingSettings indexingSettings,
-                                            long maxIdleTimeForIndexerInSecs, long idleTimeCheckIntervalInSecs) {
-            return new IndexerPool(indexingSettings, maxIdleTimeForIndexerInSecs,
-                    idleTimeCheckIntervalInSecs);
-        }
-
-        IndexerPool getIndexerPool(String database) {
-            if (TargetIndexingDatabase.PREVIEW.toString().equals(database)) {
-                return indexerPoolForPreviewDb;
-            } else if (TargetIndexingDatabase.PUBLISH.toString().equals(database)) {
-                return indexerPoolForPublishDb;
-            }
-            throw new TopologyGeneralException("Specified environment and/or database is not recognized");
-        }
+    private TargetIndexingDatabase getDatabase(StormTaskTuple stormTaskTuple) {
+        return TargetIndexingDatabase.valueOf(
+                stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
     }
+
 }

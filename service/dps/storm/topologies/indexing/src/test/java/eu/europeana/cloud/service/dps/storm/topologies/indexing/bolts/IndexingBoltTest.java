@@ -7,9 +7,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import org.apache.storm.task.OutputCollector;
@@ -45,11 +45,11 @@ public class IndexingBoltTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
-    @Mock(name = "indexerPoolWrapper")
-    private IndexerPoolWrapper indexerPoolWrapper;
+    @Mock
+    private IndexWrapper indexWrapper;
 
     @Mock
-    private IndexerPool indexerPool;
+    private Indexer indexer;
 
     @Mock
     private Properties indexingProperties;
@@ -88,7 +88,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -121,7 +121,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -154,9 +154,9 @@ public class IndexingBoltTest {
 
         indexingBolt.execute(anchorTuple, tuple);
 
-        verify(indexerPool).remove(LOCAL_ID);
+        verify(indexer).remove(LOCAL_ID);
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
-        verify(indexerPool, never()).index(Mockito.anyString(), Mockito.any());
+        verify(indexer, never()).index(Mockito.anyString(), Mockito.any());
         verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
@@ -184,7 +184,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -289,7 +289,7 @@ public class IndexingBoltTest {
 
         verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
-        verifyNoInteractions(indexerPool);
+        verifyNoInteractions(indexer);
     }
 
 
@@ -303,7 +303,7 @@ public class IndexingBoltTest {
 
         verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
-        verifyNoInteractions(indexerPool);
+        verifyNoInteractions(indexer);
     }
 
 
@@ -332,9 +332,9 @@ public class IndexingBoltTest {
     }
 
     private void mockIndexerFactoryFor(Class<? extends Throwable> clazz) throws IndexingException {
-        when(indexerPoolWrapper.getIndexerPool(Mockito.any())).thenReturn(indexerPool);
+        when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
         if (clazz != null) {
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any());
+            doThrow(clazz).when(indexer).index(Mockito.anyString(), Mockito.any());
         }
     }
 }

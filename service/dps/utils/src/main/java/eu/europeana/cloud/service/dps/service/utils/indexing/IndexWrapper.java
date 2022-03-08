@@ -1,6 +1,6 @@
-package eu.europeana.cloud.service.dps.metis.indexing;
+package eu.europeana.cloud.service.dps.service.utils.indexing;
 
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexingSettingsGenerator;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
@@ -20,24 +20,38 @@ import java.util.*;
 public class IndexWrapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexWrapper.class);
-    protected final Properties properties = new Properties();
+    private static IndexWrapper instance;
+    protected final Properties properties;
     protected final Map<TargetIndexingDatabase, Indexer> indexers = new EnumMap<>(TargetIndexingDatabase.class);
 
-    public IndexWrapper() {
+    public static synchronized IndexWrapper getInstance(Properties properties) {
+        if (instance == null) {
+            instance = new IndexWrapper(properties);
+        }
+        return instance;
+    }
+
+    public IndexWrapper(Properties properties) {
+        this.properties = properties;
         try {
-            loadProperties();
             prepareIndexers();
         } catch (IndexingException | URISyntaxException e) {
-            LOGGER.error("Unable to load indexers", e);
+            throw new IndexWrapperException("Unable to load indexers", e);
         }
     }
 
-    protected void loadProperties() {
+    public IndexWrapper() {
+        this(loadProperties());
+    }
+
+    private static Properties loadProperties() {
         try {
-            InputStream input = DatasetCleaner.class.getClassLoader().getResourceAsStream(IndexingSettingsGenerator.DEFAULT_PROPERTIES_FILENAME);
+            Properties properties=new Properties();
+            InputStream input = IndexWrapper.class.getClassLoader().getResourceAsStream(IndexingSettingsGenerator.DEFAULT_PROPERTIES_FILENAME);
             properties.load(input);
+            return properties;
         } catch (Exception e) {
-            LOGGER.warn("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.");
+            throw new IndexWrapperException("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.",e);
         }
     }
 
