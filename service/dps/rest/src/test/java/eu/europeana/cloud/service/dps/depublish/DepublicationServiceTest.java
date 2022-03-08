@@ -73,12 +73,12 @@ public class DepublicationServiceTest {
     @Autowired
     private IndexWrapper indexWrapper;
 
-    @Mock
     private Indexer indexer;
 
     @Before
     public void setup() throws IndexingException {
-        Mockito.reset(updater, taskStatusChecker, indexWrapper, recordStatusUpdater);
+        indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
+        Mockito.reset(updater, taskStatusChecker, indexer, recordStatusUpdater);
         MockitoAnnotations.initMocks(this);
         DpsTask task = new DpsTask();
         task.setTaskId(TASK_ID);
@@ -89,7 +89,6 @@ public class DepublicationServiceTest {
                         .expectedRecordsNumber(EXPECTED_SET_SIZE)
                         .build())
                 .task(task).build();
-        when(indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH)).thenReturn(indexer);
         when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
         when(indexer.remove(anyString())).thenReturn(true);
