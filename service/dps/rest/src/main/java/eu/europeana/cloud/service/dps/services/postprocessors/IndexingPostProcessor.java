@@ -33,7 +33,7 @@ public class IndexingPostProcessor extends TaskPostProcessor {
     private static final int DELETE_ATTEMPTS = 20;
     private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
     private static final Set<String> PROCESSED_TOPOLOGIES = Set.of(TopologiesNames.INDEXING_TOPOLOGY);
-    private IndexWrapper indexWrapper;
+    private final IndexWrapper indexWrapper;
 
     public IndexingPostProcessor(TaskStatusUpdater taskStatusUpdater, HarvestedRecordsDAO harvestedRecordsDAO,
                                  TaskStatusChecker taskStatusChecker, IndexWrapper indexWrapper) {

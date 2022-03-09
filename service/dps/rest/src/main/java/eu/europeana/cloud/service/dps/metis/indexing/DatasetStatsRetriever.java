@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class DatasetStatsRetriever {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStatsRetriever.class);
-    private IndexWrapper indexWrapper;
+    private final IndexWrapper indexWrapper;
 
     public DatasetStatsRetriever(IndexWrapper indexWrapper) {
         this.indexWrapper = indexWrapper;
