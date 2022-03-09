@@ -259,8 +259,7 @@ public class IndexingBoltTest {
         assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -268,15 +267,6 @@ public class IndexingBoltTest {
         mockIndexerFactoryFor(RuntimeException.class);
         //when
         indexingBolt.execute(anchorTuple, tuple);
-
-        verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
-        verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        var val = (Map<String, String>) captor.getValue().get(1);
-
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-                val.get(NotificationParameterKeys.RESOURCE));
-        assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
     }
 
     @Test

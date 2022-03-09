@@ -41,7 +41,7 @@ public class DepublicationFilesCounter extends FilesCounter {
                 throw new TaskSubmissionException("Not found any publicised records of dataset for task " + task.getTaskId());
             }
             return (int) expectedSize;
-        } catch (IOException | URISyntaxException | IndexingException e) {
+        } catch (IndexingException e) {
             throw new TaskSubmissionException("Can't evaluate task expected size!", e);
         }
     }
