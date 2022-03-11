@@ -67,7 +67,6 @@ public class IndexingBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         // Get variables.
-        final var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         final var database = getDatabase(stormTaskTuple);
         final var preserveTimestampsString = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));

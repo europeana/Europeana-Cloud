@@ -53,10 +53,10 @@ public class PostProcessorFactoryTest {
     @Test
     public void shouldChooseValidPostProcessor() {
         Set<String> topologiesForIndexing =  indexingPostProcessor.getProcessedTopologies();
-        topologiesForIndexing.forEach(topologyName -> shouldReturnApropriatePostProcessor(indexingPostProcessor, topologyName));
+        topologiesForIndexing.forEach(topologyName -> shouldReturnAppropriatePostProcessor(indexingPostProcessor, topologyName));
 
         Set<String> topologiesForHarvesting =  harvestingPostProcessor.getProcessedTopologies();
-        topologiesForHarvesting.forEach(topologyName -> shouldReturnApropriatePostProcessor(harvestingPostProcessor, topologyName));
+        topologiesForHarvesting.forEach(topologyName -> shouldReturnAppropriatePostProcessor(harvestingPostProcessor, topologyName));
     }
 
     @Test(expected = PostProcessingException.class)
@@ -65,7 +65,7 @@ public class PostProcessorFactoryTest {
         postProcessorFactory.getPostProcessor(taskByTaskState);
     }
 
-    private void shouldReturnApropriatePostProcessor(TaskPostProcessor expectedPostProcessor, String topologyName) {
+    private void shouldReturnAppropriatePostProcessor(TaskPostProcessor expectedPostProcessor, String topologyName) {
         var taskByTaskState = TaskByTaskState.builder().topologyName(topologyName).build();
         var postProcessorFromFactory = postProcessorFactory.getPostProcessor(taskByTaskState);
 
