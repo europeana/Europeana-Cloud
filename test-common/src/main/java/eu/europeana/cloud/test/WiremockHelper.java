@@ -1,5 +1,6 @@
 package eu.europeana.cloud.test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -13,9 +14,10 @@ public class WiremockHelper {
     private static final String LOCATION_HEADER_NAME = "Location";
     private static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
     private static final String APPLICATION_XML = "application/xml";
+    private static final String APPLICATION_JSON = "application/json";
 
 
-    private WireMockRule wireMockRule;
+    private final WireMockRule wireMockRule;
 
     public WiremockHelper(WireMockRule wireMockRule) {
         this.wireMockRule = wireMockRule;
@@ -38,7 +40,7 @@ public class WiremockHelper {
         wireMockRule.stubFor(get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withStatus(responseStatus)
-                        .withHeader(CONTENT_TYPE_HEADER_NAME, "application/json")
+                        .withHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON)
                         .withBody(responseBody)));
     }
 
@@ -70,6 +72,15 @@ public class WiremockHelper {
                         .withHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_XML)
                         .withHeader(LOCATION_HEADER_NAME, locationHeader)
                         .withBody(responseBody)));
+    }
+
+    public void stubPost(String url, JsonNode requestBody, int responseStatus, JsonNode responseBody){
+        wireMockRule.stubFor(post(urlEqualTo(url))
+                .withRequestBody(containing(requestBody.toString()))
+                .willReturn(aResponse()
+                        .withStatus(responseStatus)
+                        .withHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON)
+                        .withJsonBody(responseBody)));
     }
 
     public void stubPost(String url, int responseStatus, String locationHeader, String eTag, String responseBody){
