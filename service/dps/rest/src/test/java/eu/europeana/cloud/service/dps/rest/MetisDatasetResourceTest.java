@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASET_PUBLISHED_RECORDS_SEARCH;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class MetisDatasetResourceTest {
@@ -24,11 +25,22 @@ public class MetisDatasetResourceTest {
     }
 
     @Test
-    public void shouldReturnBadRequestInCaseOfEmptyListOfRecords() throws Exception {
+    public void shouldReturnBadRequestInCaseOfNonExistingListOfRecords() throws Exception {
 
         mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldReturnBadRequestInCaseOfEmptyListOfRecords() throws Exception {
+
+        mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
+                        .content("[]")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().json("[]"));
     }
 
 }
