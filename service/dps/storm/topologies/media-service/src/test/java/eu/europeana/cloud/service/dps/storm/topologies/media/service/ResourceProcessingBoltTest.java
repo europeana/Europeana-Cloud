@@ -27,12 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
 public class ResourceProcessingBoltTest {
@@ -219,7 +213,7 @@ public class ResourceProcessingBoltTest {
         for (int i = 0; i < thumbnailCount; i++) {
             Thumbnail thumbnail = mock(Thumbnail.class);
             String thumbnailName = "TargetName" + i;
-            when(thumbnail.getContentSize()).thenReturn(1l);
+            when(thumbnail.getContentSize()).thenReturn(1L);
             when(thumbnail.getTargetName()).thenReturn(thumbnailName);
             when(thumbnail.getContentStream()).thenReturn(Mockito.mock(InputStream.class));
             list.add(thumbnail);

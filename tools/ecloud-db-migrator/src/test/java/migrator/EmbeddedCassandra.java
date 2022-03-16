@@ -38,7 +38,7 @@ public class EmbeddedCassandra extends ExternalResource {
      * CassandraTestBase CASSANDRA_CONFIG_FILE
      */
     public static final String CASSANDRA_CONFIG_FILE = "cassandra_config.yaml";
-    private static final long TIME_FOR_BOOT_UP_CASSANDRA = 10000l;
+    private static final long TIME_FOR_BOOT_UP_CASSANDRA = 10000L;
 
     /**
      * Creates a new instance of this class.

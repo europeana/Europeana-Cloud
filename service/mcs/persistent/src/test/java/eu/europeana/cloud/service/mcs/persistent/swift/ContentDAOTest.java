@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.junit.Assert.*;
@@ -26,7 +27,7 @@ public abstract class ContentDAOTest {
     public void shouldPutAndGetContent()
             throws Exception {
         String fileName = "someFileName";
-        byte[] content = ("This is a test content").getBytes("UTF-8");
+        byte[] content = ("This is a test content").getBytes(StandardCharsets.UTF_8);
         InputStream is = new ByteArrayInputStream(content);
 
         File file = new File();
@@ -53,7 +54,7 @@ public abstract class ContentDAOTest {
             throws Exception {
         String fileName = "rangeFile";
         String content = "This is a test content";
-        InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+        InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 
         File file = new File();
         PutResult result = instance.putContent(fileName, is);
@@ -141,9 +142,9 @@ public abstract class ContentDAOTest {
         String sourceObjectId = "srcObjId";
         String trgObjectId = "trgObjId";
         String content = "This is a test content";
-        InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+        InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         instance.putContent(sourceObjectId, is);
-        is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+        is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         instance.putContent(trgObjectId, is);
 
         instance.copyContent(sourceObjectId, trgObjectId);
@@ -155,7 +156,7 @@ public abstract class ContentDAOTest {
         String sourceObjectId = "sourceObjectId";
         String trgObjectId = "trgObjectId";
         String content = "This is a test content";
-        InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+        InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 
         File file = new File();
         //input source object
@@ -167,7 +168,7 @@ public abstract class ContentDAOTest {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         instance.getContent(trgObjectId, -1, -1, os);
-        String result = os.toString("utf-8");
+        String result = os.toString(StandardCharsets.UTF_8);
         assertEquals(content, result);
     }
 }

@@ -48,6 +48,13 @@
 			<version>${version.lombok}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.cloud</groupId>
+			<artifactId>test-common</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<properties>

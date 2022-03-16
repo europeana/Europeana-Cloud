@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.List;
 
 import static eu.europeana.cloud.service.commons.urls.RepresentationParser.parseResultUrl;

@@ -39,7 +39,7 @@ public class CassandraDataProviderService implements DataProviderService {
         }
         LOGGER.info("getProviders() returning providers={} and nextProvider={} for thresholdProviderId='{}', limit='{}'", 
         		providerSize, nextProvider, thresholdProviderId, limit);
-        return new ResultSlice<DataProvider>(nextProvider, providers);
+        return new ResultSlice<>(nextProvider, providers);
     }
 
 

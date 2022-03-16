@@ -28,7 +28,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 

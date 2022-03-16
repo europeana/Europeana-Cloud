@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -63,7 +64,7 @@ public class EuropeanaNewspapersResourceProvider
         BufferedReader reader = null;
 
         try {
-            reader = Files.newBufferedReader(mappingPath, Charset.forName("UTF-8"));
+            reader = Files.newBufferedReader(mappingPath, StandardCharsets.UTF_8);
             for (; ; ) {
                 String line = reader.readLine();
                 if (line == null)

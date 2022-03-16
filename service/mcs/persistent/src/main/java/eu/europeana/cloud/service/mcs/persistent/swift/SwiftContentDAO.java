@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.persistent.swift;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CountingInputStream;
-import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import org.jclouds.blobstore.BlobStore;

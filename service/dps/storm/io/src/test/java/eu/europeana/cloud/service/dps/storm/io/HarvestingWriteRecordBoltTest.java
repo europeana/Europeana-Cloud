@@ -35,9 +35,6 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.anyListOf;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 public class HarvestingWriteRecordBoltTest {

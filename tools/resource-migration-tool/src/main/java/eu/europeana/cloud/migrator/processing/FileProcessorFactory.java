@@ -26,15 +26,7 @@ public class FileProcessorFactory {
             newClass = Class.forName(processingClass);
             return (FileProcessor) newClass.getConstructor(String.class).newInstance(processingConfig);
         }
-        catch (ClassNotFoundException e) {
-            return null;
-        } catch (NoSuchMethodException e) {
-            return null;
-        } catch (InstantiationException e) {
-            return null;
-        } catch (IllegalAccessException e) {
-            return null;
-        } catch (InvocationTargetException e) {
+        catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             return null;
         }
     }

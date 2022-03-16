@@ -36,7 +36,6 @@ import java.util.*;
 import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.when;

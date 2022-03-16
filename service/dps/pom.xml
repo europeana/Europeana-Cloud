@@ -36,4 +36,13 @@
         <module>storm/topologies/media-service</module>
         <module>storm/topologies/link-check</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

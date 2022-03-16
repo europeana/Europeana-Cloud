@@ -18,8 +18,6 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
 public class ReadFileBoltTest {

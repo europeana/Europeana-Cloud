@@ -25,4 +25,12 @@
         <module>harvested-records-table-updater</module>
         <module>record-ids-extractor</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>6-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

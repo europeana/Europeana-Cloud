@@ -84,8 +84,8 @@ public abstract class DefaultResourceProvider
             throw new IllegalArgumentException("Representation name cannot be null!");
         this.representationName = representationName;
         this.mappingFile = mappingFile;
-        this.locations = new ArrayList<URI>();
-        this.providersLocation = new HashMap<String, URI>();
+        this.locations = new ArrayList<>();
+        this.providersLocation = new HashMap<>();
         this.local = detectLocations(locations);
         this.dataProviderId = dataProviderId != null ? (dataProviderId.isEmpty() ? null : dataProviderId) : null;
     }
@@ -170,7 +170,7 @@ public abstract class DefaultResourceProvider
 
     @Override
     public Map<String, List<FilePaths>> scan() {
-        Map<String, List<FilePaths>> paths = new HashMap<String, List<FilePaths>>();
+        Map<String, List<FilePaths>> paths = new HashMap<>();
         if (!local) {
             logger.warn("Location is not local. Scanning is not possible.");
             return paths;
@@ -229,7 +229,7 @@ public abstract class DefaultResourceProvider
 
     protected FilePaths getProviderPaths(String location, String providerId, Map<String, List<FilePaths>> paths) {
         if (paths.get(providerId) == null)
-            paths.put(providerId, new ArrayList<FilePaths>());
+            paths.put(providerId, new ArrayList<>());
         for (FilePaths p : paths.get(providerId)) {
             if (p.getLocation().equals(location))
                 return p;
@@ -294,7 +294,7 @@ public abstract class DefaultResourceProvider
      */
     @Override
     public List<FilePaths> split(List<FilePaths> paths) {
-        List<FilePaths> result = new ArrayList<FilePaths>();
+        List<FilePaths> result = new ArrayList<>();
         for (FilePaths fp : paths) {
             result.addAll(split(fp));
         }
@@ -309,7 +309,7 @@ public abstract class DefaultResourceProvider
         // size of the last part
         int rest = size % DEFAULT_LIST_SIZE;
 
-        List<FilePaths> result = new ArrayList<FilePaths>();
+        List<FilePaths> result = new ArrayList<>();
 
         // when no need to split return the same file paths object
         if (size <= DEFAULT_LIST_SIZE)
@@ -340,6 +340,6 @@ public abstract class DefaultResourceProvider
 
     @Override
     public Map<String, String> getReversedMapping() {
-        return new HashMap<String, String>();
+        return new HashMap<>();
     }
 }

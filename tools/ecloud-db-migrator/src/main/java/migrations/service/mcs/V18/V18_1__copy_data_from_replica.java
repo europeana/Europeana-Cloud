@@ -6,9 +6,7 @@ import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import migrations.service.mcs.V18.jobs.DataCopier;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.*;
 
 import static migrations.common.TableCopier.hasNextRow;
