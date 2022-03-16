@@ -24,22 +24,24 @@ public class TopologiesTopicsParser {
 
     private List<String> extractTopologies(String inputTopicsList) {
         List<String> topologies = new ArrayList<>();
-        Scanner scanner = new Scanner(inputTopicsList).useDelimiter(";");
-        while (scanner.hasNext()) {
-            topologies.add(scanner.next());
+        try(Scanner scanner = new Scanner(inputTopicsList).useDelimiter(";")){
+            while (scanner.hasNext()) {
+                topologies.add(scanner.next());
+            }
+            return topologies;
         }
-        return topologies;
     }
 
     private Map<String, List<String>> extractTopics(List<String> topologies) {
         Map<String, List<String>> resultsMap = new HashMap<>();
 
         for (String topology : topologies) {
-            Scanner scanner = new Scanner(topology).useDelimiter(":");
-            String topologyName = scanner.next();
-            resultsMap.put(topologyName, Collections.EMPTY_LIST);
-            while (scanner.hasNext()) {
-                resultsMap.put(topologyName, Arrays.asList(scanner.next().split(",")));
+            try(Scanner scanner = new Scanner(topology).useDelimiter(":")){
+                String topologyName = scanner.next();
+                resultsMap.put(topologyName, Collections.emptyList());
+                while (scanner.hasNext()) {
+                    resultsMap.put(topologyName, Arrays.asList(scanner.next().split(",")));
+                }
             }
         }
         return resultsMap;

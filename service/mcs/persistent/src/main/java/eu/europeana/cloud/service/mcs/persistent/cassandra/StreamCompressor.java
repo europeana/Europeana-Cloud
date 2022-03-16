@@ -24,10 +24,10 @@ public class StreamCompressor {
     }
 
     byte[] compress(final InputStream is) throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        GZIPOutputStream gos = new GZIPOutputStream(os);
-        IOUtils.copy(is, gos);
-        gos.close();
-        return os.toByteArray();
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream();
+             GZIPOutputStream gos = new GZIPOutputStream(os)) {
+            IOUtils.copy(is, gos);
+            return os.toByteArray();
+        }
     }
 }
