@@ -76,7 +76,7 @@ public class WiremockHelper {
 
     public void stubPost(String url, JsonNode requestBody, int responseStatus, JsonNode responseBody){
         wireMockRule.stubFor(post(urlEqualTo(url))
-                .withRequestBody(containing(requestBody.toString()))
+                .withRequestBody(requestBody != null ? containing(requestBody.toString()) : null)
                 .willReturn(aResponse()
                         .withStatus(responseStatus)
                         .withHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON)

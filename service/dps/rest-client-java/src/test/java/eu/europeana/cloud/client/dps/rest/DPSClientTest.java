@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.test.WiremockHelper;
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,8 +28,7 @@ import static org.junit.Assert.*;
 
 public class DPSClientTest {
 
-    private static final String BASE_URL_LOCALHOST = "http://localhost:8181/services/";
-    private static final String BASE_URL = BASE_URL_LOCALHOST;
+    private static final String BASE_URL = "http://localhost:8181/services/";
     private static final String USERNAME_ADMIN = "admin";
     private static final String ADMIN_PASSWORD = "ecloud_admin";
     private static final String REGULAR_USER_NAME = "user";
@@ -374,14 +374,64 @@ public class DPSClientTest {
     public void shouldReturnFoundPublishedDatasetRecords() throws DpsException {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         //
-        var objectMapper = new ObjectMapper();
-        JsonNode requestBody = objectMapper.convertValue(Arrays.asList("id1", "id2", "id3", "id4"), JsonNode.class);
-        JsonNode responseBody = objectMapper.convertValue(Arrays.asList("id1", "id3"), JsonNode.class);
-        new WiremockHelper(wireMockRule).stubPost("/services/metis-datasets/12345/records/published/search", requestBody, 200, responseBody);
+        prepareMocksForSearchPublishedDatasetRecords(false, "12345");
         //
         var foundRecords = dpsClient.searchPublishedDatasetRecords("12345", Arrays.asList("id1", "id2", "id3", "id4"));
         //
         assertEquals(2, foundRecords.size());
+    }
+
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowNPEForNullDatasetId() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(false, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords(null, Arrays.asList("id1", "id2", "id3", "id4"));
+        //
+        assertTrue(true);
+    }
+
+    @Test(expected = DpsException.class)
+    public void shouldThrowDPSExceptionForNullRecordIds() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(true, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords("12345", null);
+        //
+        assertTrue(true);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldReturnNPEForNullDatasetIdAndRecordIds() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(true, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords(null, null);
+        //
+        assertTrue(true);
+    }
+
+    @Test
+    public void shouldReturnForAtypicalDatasetIdChars() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(false, "!@#/$%^");
+        //
+        var foundRecords = dpsClient.searchPublishedDatasetRecords("!@#/$%^", Arrays.asList("id1", "id2", "id3", "id4"));
+        //
+        assertEquals(2, foundRecords.size());
+    }
+
+    private void prepareMocksForSearchPublishedDatasetRecords(boolean requestBodyAsNull, String datasetId) {
+        String urlString = "/services/metis-datasets/"+UriComponent.contextualEncode(datasetId, UriComponent.Type.PATH_SEGMENT)+"/records/published/search";
+        var objectMapper = new ObjectMapper();
+        JsonNode requestBody = !requestBodyAsNull ?  objectMapper.convertValue(Arrays.asList("id1", "id2", "id3", "id4"), JsonNode.class) : null;
+        JsonNode responseBody = objectMapper.convertValue(Arrays.asList("id1", "id3"), JsonNode.class);
+        new WiremockHelper(wireMockRule).stubPost(urlString , requestBody, 200, responseBody);
     }
 
     private DpsTask prepareDpsTask() {
