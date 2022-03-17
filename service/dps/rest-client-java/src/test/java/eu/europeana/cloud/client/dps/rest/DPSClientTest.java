@@ -1,5 +1,7 @@
 package eu.europeana.cloud.client.dps.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -8,11 +10,13 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.test.WiremockHelper;
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -24,8 +28,7 @@ import static org.junit.Assert.*;
 
 public class DPSClientTest {
 
-    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/services/";
-    private static final String BASE_URL = BASE_URL_LOCALHOST;
+    private static final String BASE_URL = "http://localhost:8181/services/";
     private static final String USERNAME_ADMIN = "admin";
     private static final String ADMIN_PASSWORD = "ecloud_admin";
     private static final String REGULAR_USER_NAME = "user";
@@ -36,11 +39,11 @@ public class DPSClientTest {
     private static final String ERROR_MESSAGE = "Message";
     private static final int ERROR_OCCURRENCES = 5;
     private static final String RESOURCE_ID = "Resource id ";
-    private static final String ADDITIONAL_INFORMATIONS = "Additional informations ";
+    private static final String ADDITIONAL_INFORMATION = "Additional information ";
     private static final int TASK_ID = 12345;
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8181));
 
     private DpsClient dpsClient;
 
@@ -173,7 +176,6 @@ public class DPSClientTest {
         //
         String responseMessage = dpsClient.killTask(TOPOLOGY_NAME, TASK_ID, null);
         assertEquals("The task was killed because of Dropped by the user", responseMessage);
-
     }
 
     @Test
@@ -275,23 +277,23 @@ public class DPSClientTest {
                 200,
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><taskErrorsInfo>\n" +
                         "          <errors>    <errorDetails>\n" +
-                        "                  <additionalInfo>Additional informations 0</additionalInfo>\n" +
+                        "                  <additionalInfo>Additional information 0</additionalInfo>\n" +
                         "                  <identifier>Resource id 0</identifier>\n" +
                         "              </errorDetails>\n" +
                         "              <errorDetails>\n" +
-                        "                  <additionalInfo>Additional informations 1</additionalInfo>\n" +
+                        "                  <additionalInfo>Additional information 1</additionalInfo>\n" +
                         "                  <identifier>Resource id 1</identifier>\n" +
                         "              </errorDetails>\n" +
                         "              <errorDetails>\n" +
-                        "                  <additionalInfo>Additional informations 2</additionalInfo>\n" +
+                        "                  <additionalInfo>Additional information 2</additionalInfo>\n" +
                         "                  <identifier>Resource id 2</identifier>\n" +
                         "              </errorDetails>\n" +
                         "              <errorDetails>\n" +
-                        "                  <additionalInfo>Additional informations 3</additionalInfo>\n" +
+                        "                  <additionalInfo>Additional information 3</additionalInfo>\n" +
                         "                  <identifier>Resource id 3</identifier>\n" +
                         "              </errorDetails>\n" +
                         "              <errorDetails>\n" +
-                        "                  <additionalInfo>Additional informations 4</additionalInfo>\n" +
+                        "                  <additionalInfo>Additional information 4</additionalInfo>\n" +
                         "                  <identifier>Resource id 4</identifier>\n" +
                         "              </errorDetails>\n" +
                         "              <errorType>92f19f57-d173-4e07-8fc9-2a6f0df42549</errorType>\n" +
@@ -368,6 +370,70 @@ public class DPSClientTest {
         dpsClient.getTaskStatisticsReport(TOPOLOGY_NAME, TASK_ID);
     }
 
+    @Test
+    public void shouldReturnFoundPublishedDatasetRecords() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(false, "12345");
+        //
+        var foundRecords = dpsClient.searchPublishedDatasetRecords("12345", Arrays.asList("id1", "id2", "id3", "id4"));
+        //
+        assertEquals(2, foundRecords.size());
+    }
+
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowNPEForNullDatasetId() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(false, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords(null, Arrays.asList("id1", "id2", "id3", "id4"));
+        //
+        assertTrue(true);
+    }
+
+    @Test(expected = DpsException.class)
+    public void shouldThrowDPSExceptionForNullRecordIds() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(true, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords("12345", null);
+        //
+        assertTrue(true);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldReturnNPEForNullDatasetIdAndRecordIds() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(true, "12345");
+        //
+        dpsClient.searchPublishedDatasetRecords(null, null);
+        //
+        assertTrue(true);
+    }
+
+    @Test
+    public void shouldReturnForAtypicalDatasetIdChars() throws DpsException {
+        dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
+        //
+        prepareMocksForSearchPublishedDatasetRecords(false, "!@#/$%^");
+        //
+        var foundRecords = dpsClient.searchPublishedDatasetRecords("!@#/$%^", Arrays.asList("id1", "id2", "id3", "id4"));
+        //
+        assertEquals(2, foundRecords.size());
+    }
+
+    private void prepareMocksForSearchPublishedDatasetRecords(boolean requestBodyAsNull, String datasetId) {
+        String urlString = "/services/metis-datasets/"+UriComponent.contextualEncode(datasetId, UriComponent.Type.PATH_SEGMENT)+"/records/published/search";
+        var objectMapper = new ObjectMapper();
+        JsonNode requestBody = !requestBodyAsNull ?  objectMapper.convertValue(Arrays.asList("id1", "id2", "id3", "id4"), JsonNode.class) : null;
+        JsonNode responseBody = objectMapper.convertValue(Arrays.asList("id1", "id3"), JsonNode.class);
+        new WiremockHelper(wireMockRule).stubPost(urlString , requestBody, 200, responseBody);
+    }
+
     private DpsTask prepareDpsTask() {
         DpsTask task = new DpsTask("oaiPmhHarvestingTask");
         task.addDataEntry(REPOSITORY_URLS, List.of("http://example.com/oai-pmh-repository.xml"));
@@ -391,7 +457,7 @@ public class DPSClientTest {
             error.setErrorDetails(errorDetails);
 
             for (int i = 0; i < ERROR_OCCURRENCES; i++) {
-                errorDetails.add(new ErrorDetails(RESOURCE_ID + i, ADDITIONAL_INFORMATIONS + i));
+                errorDetails.add(new ErrorDetails(RESOURCE_ID + i, ADDITIONAL_INFORMATION + i));
             }
         }
         return info;

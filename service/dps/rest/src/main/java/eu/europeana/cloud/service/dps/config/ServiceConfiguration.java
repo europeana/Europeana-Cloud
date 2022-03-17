@@ -298,8 +298,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever) {
-        return new MetisDatasetService(datasetStatsRetriever);
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever, HarvestedRecordsDAO harvestedRecordsDAO) {
+        return new MetisDatasetService(datasetStatsRetriever, harvestedRecordsDAO);
     }
 
     @Bean
