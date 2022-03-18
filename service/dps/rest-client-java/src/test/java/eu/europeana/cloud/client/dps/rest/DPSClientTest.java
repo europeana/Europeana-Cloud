@@ -382,37 +382,33 @@ public class DPSClientTest {
     }
 
 
-    @Test(expected = NullPointerException.class)
-    public void shouldThrowNPEForNullDatasetId() throws DpsException {
+    @Test
+    public void shouldThrowNPEForNullDatasetId() {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         //
-        prepareMocksForSearchPublishedDatasetRecords(false, "12345");
-        //
-        dpsClient.searchPublishedDatasetRecords(null, Arrays.asList("id1", "id2", "id3", "id4"));
-        //
-        assertTrue(true);
+        var list = Arrays.asList("id1", "id2", "id3", "id4");
+        assertThrows(NullPointerException.class,
+                () -> dpsClient.searchPublishedDatasetRecords(null, list) );
     }
 
-    @Test(expected = DpsException.class)
-    public void shouldThrowDPSExceptionForNullRecordIds() throws DpsException {
+    @Test
+    public void shouldThrowDPSExceptionForNullRecordIds() {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         //
         prepareMocksForSearchPublishedDatasetRecords(true, "12345");
         //
-        dpsClient.searchPublishedDatasetRecords("12345", null);
-        //
-        assertTrue(true);
+        assertThrows(DpsException.class,
+                () -> dpsClient.searchPublishedDatasetRecords("12345", null) );
     }
 
-    @Test(expected = NullPointerException.class)
-    public void shouldReturnNPEForNullDatasetIdAndRecordIds() throws DpsException {
+    @Test
+    public void shouldReturnNPEForNullDatasetIdAndRecordIds() {
         dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
         //
         prepareMocksForSearchPublishedDatasetRecords(true, "12345");
         //
-        dpsClient.searchPublishedDatasetRecords(null, null);
-        //
-        assertTrue(true);
+        assertThrows(NullPointerException.class,
+                () -> dpsClient.searchPublishedDatasetRecords(null, null) );
     }
 
     @Test
@@ -429,9 +425,9 @@ public class DPSClientTest {
     private void prepareMocksForSearchPublishedDatasetRecords(boolean requestBodyAsNull, String datasetId) {
         String urlString = "/services/metis-datasets/"+UriComponent.contextualEncode(datasetId, UriComponent.Type.PATH_SEGMENT)+"/records/published/search";
         var objectMapper = new ObjectMapper();
-        JsonNode requestBody = !requestBodyAsNull ?  objectMapper.convertValue(Arrays.asList("id1", "id2", "id3", "id4"), JsonNode.class) : null;
+        JsonNode requestBody = (!requestBodyAsNull ? objectMapper.convertValue(Arrays.asList("id1", "id2", "id3", "id4"), JsonNode.class) : null);
         JsonNode responseBody = objectMapper.convertValue(Arrays.asList("id1", "id3"), JsonNode.class);
-        new WiremockHelper(wireMockRule).stubPost(urlString , requestBody, 200, responseBody);
+        new WiremockHelper(wireMockRule).stubPost(urlString , requestBody, (requestBodyAsNull ? 500 : 200), responseBody);
     }
 
     private DpsTask prepareDpsTask() {
