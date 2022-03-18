@@ -12,7 +12,7 @@ public class CassandraTablesAndColumnsNames {
     public static final String STATISTICS_REPORTS_TABLE = "statistics_reports";
     public static final String TASKS_BY_STATE_TABLE = "tasks_by_task_state";
     public static final String PROCESSED_RECORDS_TABLE = "processed_records";
-    public static final String HARVESTED_RECORD_TABLE = "harvested_records";
+    public static final String HARVESTED_RECORD_TABLE = "harvested_records_testy";
 
     //------- TASK INFO -------
     public static final String TASK_INFO_TASK_ID = "task_id";
