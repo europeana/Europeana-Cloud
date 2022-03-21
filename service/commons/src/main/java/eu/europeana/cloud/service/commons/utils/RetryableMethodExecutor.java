@@ -7,7 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class RetryableMethodExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
@@ -70,6 +72,9 @@ public class RetryableMethodExecutor {
                     () -> invokeWithThrowingOriginalException(target, method, args)
             );
         } else {
+            if (!Modifier.isPublic(method.getModifiers())) {
+                method.setAccessible(true);
+            }
             return invokeWithThrowingOriginalException(target, method, args);
         }
     }
@@ -78,7 +83,7 @@ public class RetryableMethodExecutor {
         try {
             return method.invoke(target, args);
         } catch (ReflectiveOperationException e) {
-            throw e.getCause();
+            throw Optional.ofNullable(e.getCause()).orElse(e);
         }
     }
 

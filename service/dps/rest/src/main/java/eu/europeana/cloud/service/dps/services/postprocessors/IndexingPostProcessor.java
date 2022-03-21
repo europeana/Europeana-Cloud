@@ -9,8 +9,8 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaningException;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -21,10 +21,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import static eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase.*;
 
 public class IndexingPostProcessor extends TaskPostProcessor {
 
@@ -88,31 +85,13 @@ public class IndexingPostProcessor extends TaskPostProcessor {
         return cleanDateAndMd5(recordIds, cleanerParameters.getDataSetId(), indexingDatabase, dpsTask);
     }
 
-    private int cleanDateAndMd5(Stream<String> recordIds, String datasetId, TargetIndexingDatabase indexingDatabase, DpsTask dpsTask) {
-        var deletedCount = new AtomicInteger();
-        recordIds
-                .map(recordId -> harvestedRecordsDAO.findRecord(datasetId, recordId))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(harvestedRecord -> doCleaning(harvestedRecord, indexingDatabase))
-                .takeWhile(harvestedRecord -> !taskIsDropped(dpsTask))
-                .forEach(theRecord -> {
-                    harvestedRecordsDAO.insertHarvestedRecord(theRecord);
-                    deletedCount.incrementAndGet();
-                });
-        LOGGER.info("Cleaned indexing columns in Harvested records table for {} records.", deletedCount.get());
-        return deletedCount.get();
-    }
-
-    private HarvestedRecord doCleaning(HarvestedRecord harvestedRecord, TargetIndexingDatabase indexingDatabase) {
-        if (indexingDatabase == PREVIEW) {
-            harvestedRecord.setPreviewHarvestDate(null);
-            harvestedRecord.setPreviewHarvestMd5(null);
-        } else if (indexingDatabase == PUBLISH) {
-            harvestedRecord.setPublishedHarvestDate(null);
-            harvestedRecord.setPublishedHarvestMd5(null);
+    private int cleanDateAndMd5(Stream<String> recordIds, String metisDatasetId, TargetIndexingDatabase indexingDatabase, DpsTask dpsTask) {
+        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(harvestedRecordsDAO, metisDatasetId, indexingDatabase);
+        try (cleaner) {
+            recordIds.takeWhile(harvestedRecord -> !taskIsDropped(dpsTask)).forEach(cleaner::cleanRecord);
         }
-        return harvestedRecord;
+        LOGGER.info("Cleaned indexing columns in Harvested records table for {} records.", cleaner.getCleanedCount());
+        return cleaner.getCleanedCount();
     }
 
     private void cleanInMetis(DataSetCleanerParameters cleanerParameters, DatasetCleaner datasetCleaner) throws DatasetCleaningException {

@@ -4,17 +4,16 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.SetupRelatedIndexingException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
@@ -27,9 +26,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.mockito.Mockito.*;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(IndexingPostProcessor.class)
@@ -42,6 +39,9 @@ public class IndexingPostProcessorTest {
     public static final String METIS_DATASET_ID = "metisDS_id";
     @Mock
     private HarvestedRecordsDAO harvestedRecordsDAO;
+
+    @Mock
+    private HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner;
 
     @Mock
     private TaskStatusUpdater taskStatusUpdater;
@@ -73,6 +73,7 @@ public class IndexingPostProcessorTest {
     @Before
     public void setup() throws Exception {
         PowerMockito.whenNew(DatasetCleaner.class).withAnyArguments().thenReturn(datasetCleaner);
+        PowerMockito.whenNew(HarvestedRecordsBatchCleaner.class).withAnyArguments().thenReturn(harvestedRecordsBatchCleaner);
     }
 
     @Test
@@ -88,25 +89,14 @@ public class IndexingPostProcessorTest {
                 .previewHarvestDate(previewHarvestDateForRecord_1)
                 .previewHarvestMd5(previewHarvestMd5ForRecord_1)
                 .build();
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
+        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
         when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
         service.execute(taskInfo, prepareTaskForPreviewEnv());
         //then
-        verify(harvestedRecordsDAO).findRecord(any(), any());
-        verify(harvestedRecordsDAO).insertHarvestedRecord(argThat(samePropertyValuesAs(
-                HarvestedRecord.builder()
-                        .metisDatasetId(METIS_DATASET_ID)
-                        .recordLocalId(RECORD_ID_1)
-                        .latestHarvestDate(latestHarvestDateForRecord_1)
-                        .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                        .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                        .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                        .previewHarvestDate(null)
-                        .previewHarvestMd5(null)
-                        .build())
-        ));
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+        verify(harvestedRecordsBatchCleaner).close();
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
@@ -135,40 +125,15 @@ public class IndexingPostProcessorTest {
                 .previewHarvestDate(previewHarvestDateForRecord_2)
                 .previewHarvestMd5(previewHarvestMd5ForRecord_2)
                 .build();
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(record1));
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
+        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
         when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
         service.execute(taskInfo,  prepareTaskForPreviewEnv());
         //then
-        ArgumentCaptor<HarvestedRecord> argument = ArgumentCaptor.forClass(HarvestedRecord.class);
-        verify(harvestedRecordsDAO, times(2)).insertHarvestedRecord(argument.capture());
-        List<HarvestedRecord> values = argument.getAllValues();
-
-        Assert.assertTrue(values.contains(HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                .previewHarvestDate(null)
-                .previewHarvestMd5(null)
-                .build()));
-
-        Assert.assertTrue(values.contains(HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_2)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_2)
-                .publishedHarvestDate(publishedHarvestDateForRecord_2)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_2)
-                .previewHarvestDate(null)
-                .previewHarvestMd5(null)
-                .build()));
-
-        verify(harvestedRecordsDAO, times(2)).findRecord(any(), any());
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+        verify(harvestedRecordsBatchCleaner).close();
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
@@ -187,25 +152,14 @@ public class IndexingPostProcessorTest {
                 .previewHarvestDate(previewHarvestDateForRecord_1)
                 .previewHarvestMd5(previewHarvestMd5ForRecord_1)
                 .build();
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(oneRecord));
+        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
         when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
         //when
         service.execute(taskInfo,  prepareTaskForPublishEnv());
         //then
-        verify(harvestedRecordsDAO).findRecord(any(), any());
-        verify(harvestedRecordsDAO).insertHarvestedRecord(argThat(samePropertyValuesAs(
-                HarvestedRecord.builder()
-                        .metisDatasetId(METIS_DATASET_ID)
-                        .recordLocalId(RECORD_ID_1)
-                        .latestHarvestDate(latestHarvestDateForRecord_1)
-                        .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                        .publishedHarvestDate(null)
-                        .publishedHarvestMd5(null)
-                        .previewHarvestDate(previewHarvestDateForRecord_1)
-                        .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                        .build())
-        ));
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+        verify(harvestedRecordsBatchCleaner).close();
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
@@ -234,40 +188,15 @@ public class IndexingPostProcessorTest {
                 .previewHarvestDate(previewHarvestDateForRecord_2)
                 .previewHarvestMd5(previewHarvestMd5ForRecord_2)
                 .build();
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_1)).thenReturn(Optional.of(record1));
-        when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, RECORD_ID_2)).thenReturn(Optional.of(record2));
+        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
         when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         //when
         service.execute(taskInfo, prepareTaskForPublishEnv());
         //then
-        ArgumentCaptor<HarvestedRecord> argument = ArgumentCaptor.forClass(HarvestedRecord.class);
-        verify(harvestedRecordsDAO, times(2)).insertHarvestedRecord(argument.capture());
-        List<HarvestedRecord> values = argument.getAllValues();
-
-        Assert.assertTrue(values.contains(HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(null)
-                .publishedHarvestMd5(null)
-                .previewHarvestDate(previewHarvestDateForRecord_1)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                .build()));
-
-        Assert.assertTrue(values.contains(HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_2)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_2)
-                .publishedHarvestDate(null)
-                .publishedHarvestMd5(null)
-                .previewHarvestDate(previewHarvestDateForRecord_2)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_2)
-                .build()));
-
-        verify(harvestedRecordsDAO, times(2)).findRecord(any(), any());
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+        verify(harvestedRecordsBatchCleaner).close();
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
         verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
         verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
