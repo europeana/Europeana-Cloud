@@ -19,9 +19,8 @@ public class TopologySubmitter {
             throws Exception {
         if (START_ON_LOCAL_CLUSTER) {
             LOGGER.warn("Cause \"{}\" property is set true, topology is started in LocalCluster!!!\nThis could be use for tests only!!!\n", START_TOPOLOGY_ON_LOCAL_CLUSTER_PROPERTY);
-            try (LocalCluster localCluster = new LocalCluster()) {
-                localCluster.submitTopology(name, stormConf, topology);
-            }
+            //Do not close LocalCluster, this would stop the topology just after several seconds.
+            new LocalCluster().submitTopology(name, stormConf, topology);
         } else {
             StormSubmitter.submitTopology(name, stormConf, topology);
         }
