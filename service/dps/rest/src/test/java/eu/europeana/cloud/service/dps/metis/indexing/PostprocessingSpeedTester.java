@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.System.exit;
 
@@ -59,27 +58,15 @@ public class PostprocessingSpeedTester {
     
     private void doFullTraverse(Date recordDate, Indexer indexer) {
         Date latestHarvestDate=new Date();
-//        Stream<String> strame = indexer.getRecordIds(METIS_DATASET_ID, recordDate);
-//        strame.forEach(e->{
-//            System.out.println("S"+e);
-//        });
-        List<String> list = indexer.getRecordIds(METIS_DATASET_ID, recordDate).collect(Collectors.toList());
-        list.sort(Comparator.comparing(r -> dao.bucketNoFor(r)));
+        List<String> list = indexer.getRecordIds(METIS_DATASET_ID, recordDate)
+                .sorted(Comparator.comparing(dao::bucketNoFor))
+                .collect(Collectors.toList());
         LOGGER.info("Rows ready to insert count: {} " , list.size());
         int i = 0;
         Stopwatch w=Stopwatch.createStarted();
         BatchStatement batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
         int lastBucket=-1;
         for (String id : list) {
-
-//            Optional<HarvestedRecord> found = dao.findRecord(METIS_DATASET_ID, id);
-//            LOGGER.info("Found record no: {} : {}", i, found);
-//            HarvestedRecord r = HarvestedRecord.builder()
-//                    .metisDatasetId(METIS_DATASET_ID)
-//                    .recordLocalId(id)
-//                    .latestHarvestDate(latestHarvestDate).build();
-//            batch.add(dao.prepareInsertStatement(r));
-
             int currentBucket = dao.bucketNoFor(id);
             if (lastBucket != currentBucket) {
                 saveBatch(i, batch);

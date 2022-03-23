@@ -8,7 +8,6 @@ import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static java.lang.System.exit;
-
 
 public class FetchTester extends PostprocessingSpeedTester {
     private static final Logger LOGGER = LoggerFactory.getLogger(FetchTester.class);
@@ -41,15 +39,9 @@ public class FetchTester extends PostprocessingSpeedTester {
         MorphiaCursor cursor = extractCursor(strame);
 
         strame.forEach(e -> {
-//            System.out.print(".");
-//            if (i.get() % 200 == 0) {
-//                System.out.println();
-//            }
             MongoBatchCursorAdapter wrapped = extractWrapped(cursor);
-
             ArrayList curBatch = getCurBatch(wrapped);
             LOGGER.info("Stream element: {} cached size: {}",i.get(), curBatch!=null?curBatch.size():null);
-
             i.incrementAndGet();
         });
 
@@ -84,7 +76,6 @@ public class FetchTester extends PostprocessingSpeedTester {
             sourceIteratorField.setAccessible(true);
             Object sourceIterator = sourceIteratorField.get(sourceStage);
             Field cursorField = sourceIterator.getClass().getDeclaredField("it");
-
 
             cursorField.setAccessible(true);
             MorphiaCursor cursor = (MorphiaCursor) cursorField.get(sourceIterator);
