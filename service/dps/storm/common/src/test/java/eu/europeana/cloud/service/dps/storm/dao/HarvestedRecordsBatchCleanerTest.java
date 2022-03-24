@@ -48,7 +48,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldUdpatePreviewColumnsInTheRecord() {
+    public void shouldUpdatePreviewColumnsInTheRecord() {
         String recordId = generateRandomRecordId();
         dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
                 .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
@@ -64,7 +64,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldUdpatePublishedColumnsInTheRecord() {
+    public void shouldUpdatePublishedColumnsInTheRecord() {
         String recordId = generateRandomRecordId();
         dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
                 .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)

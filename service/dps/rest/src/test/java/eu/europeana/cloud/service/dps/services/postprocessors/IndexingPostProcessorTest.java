@@ -6,11 +6,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
-import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +18,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -55,19 +50,6 @@ public class IndexingPostProcessorTest {
     @InjectMocks
     private IndexingPostProcessor service;
 
-    private static final Date latestHarvestDateForRecord_1 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final Date publishedHarvestDateForRecord_1 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final Date previewHarvestDateForRecord_1 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final UUID latestHarvestMd5ForRecord_1 = UUID.fromString("28dcf591-d007-11eb-92d1-fa163e64bb83");
-    private static final UUID publishHarvestMd5ForRecord_1 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000001");
-    private static final UUID previewHarvestMd5ForRecord_1 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000002");
-
-    private static final Date latestHarvestDateForRecord_2 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final Date publishedHarvestDateForRecord_2 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final Date previewHarvestDateForRecord_2 = Date.from(LocalDateTime.of(1990, 1, 20, 10, 15).toInstant(ZoneOffset.UTC));
-    private static final UUID latestHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-fa163e64bb83");
-    private static final UUID publishHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000001");
-    private static final UUID previewHarvestMd5ForRecord_2 = UUID.fromString("28dcf591-d007-11eb-92d1-000000000002");
     private final TaskInfo taskInfo=new TaskInfo();
 
     @Before
@@ -77,18 +59,8 @@ public class IndexingPostProcessorTest {
     }
 
     @Test
-    public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+    public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
         //given
-        HarvestedRecord oneRecord = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                .previewHarvestDate(previewHarvestDateForRecord_1)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                .build();
         when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
         when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
@@ -103,28 +75,8 @@ public class IndexingPostProcessorTest {
     }
 
     @Test
-    public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+    public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
         //given
-        HarvestedRecord record1 = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                .previewHarvestDate(previewHarvestDateForRecord_1)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                .build();
-        HarvestedRecord record2 = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_2)
-                .latestHarvestDate(latestHarvestDateForRecord_2)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_2)
-                .publishedHarvestDate(publishedHarvestDateForRecord_2)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_2)
-                .previewHarvestDate(previewHarvestDateForRecord_2)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_2)
-                .build();
         when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
         when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
@@ -140,18 +92,8 @@ public class IndexingPostProcessorTest {
     }
 
     @Test
-    public void shouldCleanDateAndMd5ForPublishAndForOneRecord() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+    public void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
         //given
-        HarvestedRecord oneRecord = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                .previewHarvestDate(previewHarvestDateForRecord_1)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                .build();
         when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
         when(datasetCleaner.getRecordsCount()).thenReturn(1);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
@@ -166,28 +108,8 @@ public class IndexingPostProcessorTest {
     }
 
     @Test
-    public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() throws SetupRelatedIndexingException, IndexerRelatedIndexingException {
+    public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
         //given
-        HarvestedRecord record1 = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_1)
-                .latestHarvestDate(latestHarvestDateForRecord_1)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_1)
-                .publishedHarvestDate(publishedHarvestDateForRecord_1)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_1)
-                .previewHarvestDate(previewHarvestDateForRecord_1)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_1)
-                .build();
-        HarvestedRecord record2 = HarvestedRecord.builder()
-                .metisDatasetId(METIS_DATASET_ID)
-                .recordLocalId(RECORD_ID_2)
-                .latestHarvestDate(latestHarvestDateForRecord_2)
-                .latestHarvestMd5(latestHarvestMd5ForRecord_2)
-                .publishedHarvestDate(publishedHarvestDateForRecord_2)
-                .publishedHarvestMd5(publishHarvestMd5ForRecord_2)
-                .previewHarvestDate(previewHarvestDateForRecord_2)
-                .previewHarvestMd5(previewHarvestMd5ForRecord_2)
-                .build();
         when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
         when(datasetCleaner.getRecordsCount()).thenReturn(2);
         when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));

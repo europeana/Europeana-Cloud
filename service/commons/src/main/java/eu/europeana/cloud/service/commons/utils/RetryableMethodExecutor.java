@@ -30,6 +30,9 @@ public class RetryableMethodExecutor {
         return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
     }
 
+    @SuppressWarnings("unchecked")
+    //Suppress for throw (E), This cast does not matter on runtime level. But it is possible that it could be exception
+    // of type E or RuntimeException, cause of callable type. Both are expected to be thrown by this method.
     public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
         while (true) {
             try {
@@ -50,10 +53,12 @@ public class RetryableMethodExecutor {
         try {
             Thread.sleep(milliSecond);
         } catch (InterruptedException e) {
-            throw new RuntimeException("Stop waiting for retry because interrupted flag set on Thread!", e);
+            Thread.currentThread().interrupt();
+            throw new RetryInterruptedException(e);
         }
     }
 
+    @SuppressWarnings("unchecked") //For "(T) enhancer.create()" - We know that method always returns valid type.
     public static <T> T createRetryProxy(T target) {
         Enhancer enhancer = new Enhancer();
         enhancer.setClassLoader(target.getClass().getClassLoader());
@@ -65,6 +70,7 @@ public class RetryableMethodExecutor {
         return (T) enhancer.create();
     }
 
+    @SuppressWarnings("java:S3011") //for execution: method.setAccessible(true)
     static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
         Retryable retryAnnotation = method.getAnnotation(Retryable.class);
         if (retryAnnotation != null) {
@@ -73,12 +79,18 @@ public class RetryableMethodExecutor {
             );
         } else {
             if (!Modifier.isPublic(method.getModifiers())) {
+                //We need to set accessibility for wrapped package scope methods, which are accessible from proxy class,
+                // and could be wrapped with retry mechanism, but are not accessible here.
                 method.setAccessible(true);
             }
             return invokeWithThrowingOriginalException(target, method, args);
         }
     }
 
+    @SuppressWarnings("java:S112")
+    //Suppress for "throws Throwable" - we need to support every Throwable here, because it is general solution used
+    // in generated proxies, which could contain methods with different exception types.
+    //The proxies are constructed so, that only exceptions declared in given method could be thrown by that method.
     private static <T> Object invokeWithThrowingOriginalException(T target, Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);
