@@ -52,12 +52,15 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
         LOGGER.info("PersistentUniqueIdentifierService started successfully...");
     }
 
+    @Override
+    public CloudId createCloudId(String providerId) throws RecordExistsException, DatabaseConnectionException, ProviderDoesNotExistException, CloudIdAlreadyExistException {
+        return createCloudId(providerId, IdGenerator.timeEncode(providerId));
+    }
+
 
     @Override
-    public CloudId createCloudId(String... recordInfo)
+    public CloudId createCloudId(String providerId, String recordId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException, CloudIdAlreadyExistException {
-        LOGGER.info("createCloudId() creating cloudId");
-        String providerId = recordInfo[0];
         LOGGER.info("createCloudId() creating cloudId providerId={}", providerId);
         if (dataProviderDao.getProvider(providerId) == null) {
             LOGGER.warn("ProviderDoesNotExistException for providerId={}", providerId);
@@ -65,7 +68,6 @@ public class CassandraUniqueIdentifierService implements UniqueIdentifierService
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
         }
-        String recordId = recordInfo.length > 1 ? recordInfo[1] : IdGenerator.timeEncode(providerId);
         LOGGER.info("createCloudId() creating cloudId providerId='{}', recordId='{}'", providerId, recordId);
         if (localIdDao.searchById(providerId, recordId).isPresent()) {
             LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);

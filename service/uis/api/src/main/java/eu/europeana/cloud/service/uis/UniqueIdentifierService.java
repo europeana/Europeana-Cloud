@@ -28,10 +28,23 @@ public interface UniqueIdentifierService {
      * @throws RecordDatasetEmptyException
      * @throws CloudIdDoesNotExistException
      */
-    CloudId createCloudId(String... recordInfo)
+    CloudId createCloudId(String providerId, String recordInfo)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
             RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException;
 
+    /**
+     * Create a Unique Identifier from the given providerId
+     *
+     * @return The unique identifier for this record
+     * @throws DatabaseConnectionException
+     * @throws RecordExistsException
+     * @throws ProviderDoesNotExistException
+     * @throws RecordDatasetEmptyException
+     * @throws CloudIdDoesNotExistException
+     */
+    CloudId createCloudId(String providerId)
+            throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
+            RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException;
 
     /**
      * Search for a unique identifier based on the providerId and recordId

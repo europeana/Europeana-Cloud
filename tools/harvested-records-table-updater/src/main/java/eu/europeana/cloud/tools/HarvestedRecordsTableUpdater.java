@@ -3,6 +3,7 @@ package eu.europeana.cloud.tools;
 import com.datastax.driver.core.BatchStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,22 +46,30 @@ public class HarvestedRecordsTableUpdater {
 
     private static final int BATCH_SIZE = 10000;
 
-    private CassandraConnectionProvider dbConnectionProvider;
-    private HarvestedRecordsDAO harvestedRecordsDAO;
+    private final CassandraConnectionProvider dbConnectionProvider;
+    private final HarvestedRecordsDAO harvestedRecordsDAO;
 
-    public static void main(String[] args) throws IOException {
-        var thisApplication = new HarvestedRecordsTableUpdater();
-        thisApplication.run(args);
+    public HarvestedRecordsTableUpdater(DbConnectionDetails details){
+        dbConnectionProvider = prepareConnectionProvider(details);
+        harvestedRecordsDAO = new HarvestedRecordsDAO(dbConnectionProvider);
     }
 
-    private void run(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         checkArgs(args);
 
-        dbConnectionProvider = prepareConnectionProvider(args);
-        harvestedRecordsDAO = new HarvestedRecordsDAO(dbConnectionProvider);
+        var thisApplication = new HarvestedRecordsTableUpdater(DbConnectionDetails
+                .builder()
+                .hosts(args[1])
+                .port(Integer.parseInt(args[2]))
+                .keyspaceName(args[3])
+                .userName(args[4])
+                .password(args[5])
+                .build());
+        thisApplication.run(args[0]);
+    }
 
-        processFile(args[0]);
-
+    private void run(String fileName) throws IOException {
+        processFile(fileName);
         dbConnectionProvider.closeConnections();
     }
 
@@ -73,9 +82,14 @@ public class HarvestedRecordsTableUpdater {
         }
     }
 
-    private CassandraConnectionProvider prepareConnectionProvider(String[] args) {
+    private CassandraConnectionProvider prepareConnectionProvider(DbConnectionDetails dbConnectionDetails) {
         LOGGER.info("Connecting to database...");
-        return new CassandraConnectionProvider(args[1], Integer.parseInt(args[2]), args[3], args[4], args[5]);
+        return new CassandraConnectionProvider(
+                dbConnectionDetails.getHosts(),
+                dbConnectionDetails.getPort(),
+                dbConnectionDetails.getKeyspaceName(),
+                dbConnectionDetails.getUserName(),
+                dbConnectionDetails.getPassword());
     }
 
     private void processFile(String filename) throws IOException {

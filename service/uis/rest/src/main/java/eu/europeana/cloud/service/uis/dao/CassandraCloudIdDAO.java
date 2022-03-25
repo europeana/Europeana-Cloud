@@ -77,21 +77,16 @@ public class CassandraCloudIdDAO {
         return this.port;
     }
 
-    public List<CloudId> searchById(String... args) throws DatabaseConnectionException {
+    public List<CloudId> searchById(String cloudId) throws DatabaseConnectionException {
         try {
-            ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args[0]));
+            ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(cloudId));
             List<CloudId> cloudIds = new ArrayList<>();
             if (!rs.iterator().hasNext()) {
                 return cloudIds;
             }
 
             for (Row row : rs.all()) {
-                CloudId cId = new CloudId();
-                cId.setId(args[0]);
-                LocalId lId = new LocalId();
-                lId.setProviderId(row.getString("provider_Id"));
-                lId.setRecordId(row.getString("record_Id"));
-                cId.setLocalId(lId);
+                CloudId cId = createFrom(row);
                 cloudIds.add(cId);
             }
 
@@ -107,37 +102,32 @@ public class CassandraCloudIdDAO {
      * Search for all the Cloud Identifiers regardless if they are deleted or
      * not
      *
-     * @param args The cloudId to search on
+     * @param cloudId The cloudId to search on
      * @return A list of cloudIds
      */
-    public List<CloudId> searchAll(String args) {
-        ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(args));
+    public List<CloudId> searchAll(String cloudId) {
+        ResultSet rs = dbService.getSession().execute(searchStatementNonActive.bind(cloudId));
         List<Row> results = rs.all();
         List<CloudId> cloudIds = new ArrayList<>();
         for (Row row : results) {
-            CloudId cId = new CloudId();
-            cId.setId(args);
-            LocalId lId = new LocalId();
-            lId.setProviderId(row.getString("provider_Id"));
-            lId.setRecordId(row.getString("record_Id"));
-            cId.setLocalId(lId);
+            CloudId cId = createFrom(row);
             cloudIds.add(cId);
         }
         return cloudIds;
     }
 
-    public List<CloudId> insert(boolean insertOnlyIfNoExist, String... args) throws DatabaseConnectionException {
+    public List<CloudId> insert(boolean insertOnlyIfNoExist, String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
         List<CloudId> result = new ArrayList<>();
 
         try {
             if (insertOnlyIfNoExist) {
-                ResultSet rs = dbService.getSession().execute(insertIfNoExistsStatement.bind(args[0], args[1], args[2]));
+                ResultSet rs = dbService.getSession().execute(insertIfNoExistsStatement.bind(cloudId, providerId, recordId));
                 Row row = rs.one();
                 if (!row.getBool("[applied]")) {
                     return result;
                 }
             } else {
-                dbService.getSession().execute(insertStatement.bind(args[0], args[1], args[2]));
+                dbService.getSession().execute(insertStatement.bind(cloudId, providerId, recordId));
             }
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
@@ -147,17 +137,17 @@ public class CassandraCloudIdDAO {
 
         CloudId cId = new CloudId();
         LocalId lId = new LocalId();
-        lId.setProviderId(args[1]);
-        lId.setRecordId(args[2]);
+        lId.setProviderId(providerId);
+        lId.setRecordId(recordId);
         cId.setLocalId(lId);
-        cId.setId(args[0]);
+        cId.setId(cloudId);
         result.add(cId);
         return result;
     }
 
-    public void delete(String... args) throws DatabaseConnectionException {
+    public void delete(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
         try {
-            dbService.getSession().execute(deleteStatement.bind(args[0], args[1], args[2]));
+            dbService.getSession().execute(deleteStatement.bind(cloudId, providerId, recordId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
                     new IdentifierErrorInfo(
@@ -165,5 +155,15 @@ public class CassandraCloudIdDAO {
                             IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port,e.getMessage()))
             );
         }
+    }
+
+    private CloudId createFrom(Row row){
+        CloudId cId = new CloudId();
+        cId.setId(row.getString("cloud_id"));
+        LocalId lId = new LocalId();
+        lId.setProviderId(row.getString("provider_Id"));
+        lId.setRecordId(row.getString("record_Id"));
+        cId.setLocalId(lId);
+        return  cId;
     }
 }
