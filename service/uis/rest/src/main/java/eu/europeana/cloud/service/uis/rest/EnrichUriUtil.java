@@ -18,7 +18,7 @@ final class EnrichUriUtil {
     private EnrichUriUtil() {
     }
 
-    static void enrich(HttpServletRequest httpServletRequest, DataProvider provider) throws URISyntaxException {
+    static void enrich(HttpServletRequest httpServletRequest, DataProvider provider) {
         HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
         URI newUri = UriComponentsBuilder.fromHttpRequest(httpRequest).pathSegment(provider.getId()).build().toUri();
         provider.setUri(newUri);
