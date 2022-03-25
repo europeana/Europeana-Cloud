@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
@@ -47,7 +48,7 @@ public abstract class MCSClient implements AutoCloseable {
 
     public static String getAuthorisationValue(String user, String password) {
         String userPasswordToken = user + ":" + password;
-        return AUTHORIZATION_VALUE_PREFIX + Base64.encodeBytes(userPasswordToken.getBytes());
+        return AUTHORIZATION_VALUE_PREFIX + Base64.encodeBytes(userPasswordToken.getBytes(StandardCharsets.UTF_8));
     }
 
     public void close() {

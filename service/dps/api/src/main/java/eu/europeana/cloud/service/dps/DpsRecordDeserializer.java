@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -26,7 +27,7 @@ public class DpsRecordDeserializer implements Deserializer<DpsRecord> {
         try {
             return objectMapper.readValue(bytes, DpsRecord.class);
         } catch (IOException e) {
-            LOGGER.error("Exception happened because of {} for the object {}", e.getMessage(), new String(bytes));
+            LOGGER.error("Exception happened because of {} for the object {}", e.getMessage(), new String(bytes, StandardCharsets.UTF_8));
         }
         return null;
     }

@@ -7,6 +7,7 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import org.apache.commons.lang.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class IdentifierSupplier {
@@ -56,7 +57,7 @@ public class IdentifierSupplier {
     }
 
     private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(StormTaskTuple stormTaskTuple, String datasetId) throws EuropeanaIdException {
-        String document = new String(stormTaskTuple.getFileData());
+        String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
         EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
         return europeanIdCreator.constructEuropeanaId(document, datasetId);
     }

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -137,7 +138,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     private void indexRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database,
                              IndexingProperties properties) throws IndexingException {
 
-        final var document = new String(stormTaskTuple.getFileData());
+        final var document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
         indexWrapper.getIndexer(database).index(document, properties);
     }
 

@@ -86,7 +86,7 @@ public class XsltBolt extends AbstractDpsBolt {
     //Prepare europeana identifiers
     EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
     if (!StringUtils.isBlank(metisDatasetId)) {
-      String fileDataString = new String(stormTaskTuple.getFileData());
+      String fileDataString = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
       europeanaGeneratedIdsMap = europeanIdCreator
           .constructEuropeanaId(fileDataString, metisDatasetId);
