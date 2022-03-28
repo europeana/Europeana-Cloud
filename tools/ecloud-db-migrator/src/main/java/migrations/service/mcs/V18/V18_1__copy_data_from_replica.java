@@ -48,7 +48,8 @@ public class V18_1__copy_data_from_replica implements JavaMigration {
             executorService.shutdown();
             executorService.awaitTermination(100, TimeUnit.DAYS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("The migration was not completed successfully:" + e.getMessage() + ". Because of :" + e + ". Please clean and restart again!!");
+            Thread.currentThread().interrupt();
         }
     }
 }

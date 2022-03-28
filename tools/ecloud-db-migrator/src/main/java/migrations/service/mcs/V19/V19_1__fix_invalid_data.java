@@ -5,6 +5,7 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.ReadTimeoutException;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 
 import java.util.*;
 
@@ -94,7 +95,8 @@ public class V19_1__fix_invalid_data implements JavaMigration {
                             LOG.info("Waiting 10s ...");
                             Thread.sleep(10*1000);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            Thread.currentThread().interrupt();
+                            throw new RetryInterruptedException(e);
                         }
                     }
                 }
