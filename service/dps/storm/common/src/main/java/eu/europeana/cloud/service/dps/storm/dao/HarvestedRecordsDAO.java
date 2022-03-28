@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.BucketRecordIterator;
 import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
@@ -34,6 +36,8 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement findRecordStatement;
     private PreparedStatement findAllRecordInDatasetStatement;
     private PreparedStatement deleteRecordStatement;
+    private PreparedStatement updatePreviewColumnsForExistingStatement;
+    private PreparedStatement updatePublishedColumnsForExistingStatement;
 
     public static synchronized HarvestedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
@@ -99,6 +103,33 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         );
 
         updatePreviewHarvestDateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+
+        updatePreviewColumnsForExistingStatement = dbService.getSession().prepare("UPDATE "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + " = ? "
+                + ","+ CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5 + " = ? "
+                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+                + " IF EXISTS"
+
+        );
+
+        updatePreviewColumnsForExistingStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+        updatePublishedColumnsForExistingStatement = dbService.getSession().prepare("UPDATE "
+                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
+                + ","+ CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 + " = ? "
+                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+                + " IF EXISTS"
+
+        );
+
+        updatePublishedColumnsForExistingStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updatePublishedHarvestDateStatement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -172,6 +203,25 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         dbService.getSession().execute(updatePublishedHarvestDateStatement.bind(indexingDate, metisDatasetId, bucketNoFor(recordId), recordId));
     }
 
+    BoundStatement prepareCleanIndexedColumns(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
+        switch (targetDb) {
+            case PREVIEW:
+                return prepareUpdatePreviewColumnsForExisting(metisDatasetId, recordId, null, null);
+            case PUBLISH:
+                return prepareUpdatePublishedColumnsForExisting(metisDatasetId, recordId, null, null);
+            default:
+                throw new IllegalArgumentException("Unsupported TargetIndexingDatabase: " + targetDb);
+        }
+    }
+
+    private BoundStatement prepareUpdatePreviewColumnsForExisting(String metisDatasetId, String recordId, Date indexingDate, UUID md5) {
+        return updatePreviewColumnsForExistingStatement.bind(indexingDate, md5, metisDatasetId, bucketNoFor(recordId), recordId);
+    }
+
+    private BoundStatement prepareUpdatePublishedColumnsForExisting(String metisDatasetId, String recordId, Date indexingDate, UUID md5) {
+        return updatePublishedColumnsForExistingStatement.bind(indexingDate, md5, metisDatasetId, bucketNoFor(recordId), recordId);
+    }
+
     @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
     public void deleteRecord(String metisDatasetId, String recordId) {
         dbService.getSession().execute(deleteRecordStatement.bind(metisDatasetId, bucketNoFor(recordId), recordId));
@@ -183,6 +233,11 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 findRecordStatement.bind(metisDatasetId, bucketNoFor(recordId), recordId))
                 .one())
                 .map(HarvestedRecord::from);
+    }
+
+    @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
+    public void executeBatch(BatchStatement batch) {
+        dbService.getSession().execute(batch);
     }
 
     public Iterator<HarvestedRecord> findDatasetRecords(String metisDatasetId) {
@@ -201,7 +256,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         );
     }
 
-    private int bucketNoFor(String recordId) {
+    int bucketNoFor(String recordId) {
         return BucketUtils.bucketNumber(recordId, MAX_NUMBER_OF_BUCKETS);
     }
 

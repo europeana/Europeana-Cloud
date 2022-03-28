@@ -25,8 +25,7 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker);
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DpsRecordSerializer.class.getName());
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.ACKS_CONFIG, "1");
-
+        properties.put(ProducerConfig.ACKS_CONFIG, "all");
         producer = new KafkaProducer<>(properties);
         this.taskStatusUpdater = taskStatusUpdater;
     }
