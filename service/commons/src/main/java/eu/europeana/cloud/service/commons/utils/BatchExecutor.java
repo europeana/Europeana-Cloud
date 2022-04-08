@@ -1,9 +1,8 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.commons.utils;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 
 import java.util.List;
 

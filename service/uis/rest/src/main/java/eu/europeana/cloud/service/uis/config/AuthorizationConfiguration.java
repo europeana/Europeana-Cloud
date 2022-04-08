@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.aas.acl.CassandraMutableAclService;
+import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.aas.acl.repository.AclRepository;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -15,7 +16,6 @@ import org.springframework.security.acls.domain.ConsoleAuditLogger;
 import org.springframework.security.acls.domain.DefaultPermissionFactory;
 import org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy;
 import org.springframework.security.acls.model.AclService;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Configuration
@@ -83,8 +83,8 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public ACLServiceWrapper aclServiceWrapper(MutableAclService mutableAclService) {
-        return new ACLServiceWrapper(mutableAclService);
+    public ACLServiceWrapper aclServiceWrapper(ExtendedAclService extendedAclService) {
+        return new ACLServiceWrapper(extendedAclService);
     }
 
 }

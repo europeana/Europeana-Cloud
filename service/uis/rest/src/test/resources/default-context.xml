@@ -16,23 +16,28 @@
         <constructor-arg name="password" type="java.lang.String" value="" />
     </bean>
 
-    <bean id="cassandraDataProviderService"
-          class="eu.europeana.cloud.service.uis.service.CassandraDataProviderService" />
-    <bean id="dataProviderDao"
-          class="eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO">
+    <bean id="cassandraDataProviderService" class="eu.europeana.cloud.service.uis.service.CassandraDataProviderService" />
+    <bean id="dataProviderDao" class="eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO">
+        <constructor-arg name="dbService" ref="dbService" />
+    </bean>
+
+    <bean id="cloudIdLocalIdBatches" class="eu.europeana.cloud.service.uis.dao.CloudIdLocalIdBatches">
+        <constructor-arg name="cloudIdDao" ref="cloudIdDao" />
+        <constructor-arg name="localIdDao" ref="localIdDao" />
         <constructor-arg name="dbService" ref="dbService" />
     </bean>
 
     <bean id="service"
-          class="eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService">
+          class="eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl">
         <constructor-arg name="cloudIdDao" ref="cloudIdDao" />
         <constructor-arg name="localIdDao" ref="localIdDao" />
         <constructor-arg name="dataProviderDao" ref="dataProviderDao" />
+        <constructor-arg name="cloudIdLocalIdBatches" ref="cloudIdLocalIdBatches" />
     </bean>
-    <bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.dao.CassandraCloudIdDAO">
+    <bean id="cloudIdDao" class="eu.europeana.cloud.service.uis.dao.CloudIdDAO">
         <constructor-arg name="dbService" ref="dbService" />
     </bean>
-    <bean id="localIdDao" class="eu.europeana.cloud.service.uis.dao.CassandraLocalIdDAO">
+    <bean id="localIdDao" class="eu.europeana.cloud.service.uis.dao.LocalIdDAO">
         <constructor-arg name="dbService" ref="dbService" />
     </bean>
     <bean id="bucketsHandler" class="eu.europeana.cloud.service.commons.utils.BucketsHandler">

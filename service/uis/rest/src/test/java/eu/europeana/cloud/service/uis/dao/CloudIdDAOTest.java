@@ -10,34 +10,20 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {TestAAConfiguration.class})
-public class CassandraCloudIdDAOTest extends CassandraTestBase {
+public class CloudIdDAOTest extends CassandraTestBase {
 
     @Autowired
-    private CassandraLocalIdDAO localIdDao;
+    private LocalIdDAO localIdDao;
 
     @Autowired
-    private CassandraCloudIdDAO service;
+    private CloudIdDAO service;
 
     @Autowired
     private CassandraDataProviderDAO dataProviderDao;
-
-    @Test
-    public void insert_tryInsertTheSameContentTwice_ThrowsCloudIdAlreadyExistException() throws Exception {
-        // given
-        final String providerId = "providerId";
-        final String recordId = "recordId";
-        final String id = "id";
-
-        service.insert(true, id, providerId, recordId);
-        // when
-        int n = service.insert(true, id, providerId, recordId).size();
-        // then
-        assertEquals(0, n);
-        assertEquals(1, service.searchById(id).size());
-    }
 
     @Test
     public void deleteCloudIdShouldRemoveCloudId() throws Exception {
@@ -48,12 +34,9 @@ public class CassandraCloudIdDAOTest extends CassandraTestBase {
         dataProviderDao.createDataProvider(providerId, new DataProviderProperties());
         localIdDao.insert(id, providerId, recordId);
 
-        final int size = service.insert(false, id, providerId, recordId).size();
-        assertEquals(1, size);
+        assertTrue(service.insert(id, providerId, recordId).isPresent());
         assertEquals(1, service.searchById(id).size());
         service.delete(id, providerId, recordId);
         assertEquals(0, service.searchById(id).size());
     }
-
-
 }

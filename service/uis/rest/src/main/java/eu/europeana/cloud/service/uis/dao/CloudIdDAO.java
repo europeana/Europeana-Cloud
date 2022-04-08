@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.uis.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -14,14 +15,13 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Dao providing access to database operations on Cloud id database
- *
- * @author Yorgos.Mamakis@ kb.nl
+ * DAO providing access to operations on CloudId in the database
  */
 @Retryable
-public class CassandraCloudIdDAO {
+public class CloudIdDAO {
 
     private final String hostList;
     private final String keyspaceName;
@@ -29,16 +29,15 @@ public class CassandraCloudIdDAO {
     private final CassandraConnectionProvider dbService;
 
     private PreparedStatement insertStatement;
-    private PreparedStatement insertIfNoExistsStatement;
     private PreparedStatement searchStatementNonActive;
     private PreparedStatement deleteStatement;
 
     /**
-     * The Cloud Id Dao
+     * The DAO for Cloud identifiers
      *
      * @param dbService The service exposing the connection and session
      */
-    public CassandraCloudIdDAO(CassandraConnectionProvider dbService) {
+    public CloudIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         this.hostList = dbService.getHosts();
         this.port = dbService.getPort();
@@ -47,21 +46,13 @@ public class CassandraCloudIdDAO {
     }
 
     private void prepareStatements() {
-        insertIfNoExistsStatement = dbService
-                .getSession()
-                .prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?) IF NOT EXISTS");
-
-        insertStatement = dbService
-                .getSession()
-                .prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
+        insertStatement = dbService.getSession().prepare("insert into cloud_id(cloud_id,provider_id,record_id) values(?,?,?)");
         insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        searchStatementNonActive = dbService.getSession().prepare("SELECT * FROM Cloud_Id WHERE cloud_id=?");
+        searchStatementNonActive = dbService.getSession().prepare("select * from cloud_id where cloud_id=?");
         searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
 
-        deleteStatement = dbService
-                .getSession()
-                .prepare("Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
+        deleteStatement = dbService.getSession().prepare("delete from cloud_id where cloud_id=? and provider_id=? and record_id=?");
         deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
@@ -116,33 +107,20 @@ public class CassandraCloudIdDAO {
         return cloudIds;
     }
 
-    public List<CloudId> insert(boolean insertOnlyIfNoExist, String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
-        List<CloudId> result = new ArrayList<>();
-
+    public Optional<CloudId> insert(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
         try {
-            if (insertOnlyIfNoExist) {
-                ResultSet rs = dbService.getSession().execute(insertIfNoExistsStatement.bind(cloudId, providerId, recordId));
-                Row row = rs.one();
-                if (!row.getBool("[applied]")) {
-                    return result;
-                }
-            } else {
-                dbService.getSession().execute(insertStatement.bind(cloudId, providerId, recordId));
-            }
+            dbService.getSession().execute(bindInsertStatement(cloudId, providerId, recordId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
 
-        CloudId cId = new CloudId();
-        LocalId lId = new LocalId();
-        lId.setProviderId(providerId);
-        lId.setRecordId(recordId);
-        cId.setLocalId(lId);
-        cId.setId(cloudId);
-        result.add(cId);
-        return result;
+        return Optional.of(new CloudId(cloudId, new LocalId(providerId, recordId)));
+    }
+
+    public BoundStatement bindInsertStatement(String cloudId, String providerId, String recordId) {
+        return insertStatement.bind(cloudId, providerId, recordId);
     }
 
     public void delete(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
@@ -158,12 +136,12 @@ public class CassandraCloudIdDAO {
     }
 
     private CloudId createFrom(Row row){
-        CloudId cId = new CloudId();
-        cId.setId(row.getString("cloud_id"));
-        LocalId lId = new LocalId();
-        lId.setProviderId(row.getString("provider_Id"));
-        lId.setRecordId(row.getString("record_Id"));
-        cId.setLocalId(lId);
-        return  cId;
+        return CloudId.builder()
+                .id(row.getString("cloud_id"))
+                .localId(LocalId.builder()
+                        .providerId(row.getString("provider_Id"))
+                        .recordId(row.getString("record_Id"))
+                        .build())
+                .build();
     }
 }

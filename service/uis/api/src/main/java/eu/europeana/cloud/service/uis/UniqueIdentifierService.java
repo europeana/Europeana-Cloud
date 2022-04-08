@@ -22,11 +22,11 @@ public interface UniqueIdentifierService {
      * @param recordInfo
      *            providerId and optionally recordId
      * @return The unique identifier for this record
-     * @throws DatabaseConnectionException
-     * @throws RecordExistsException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     * @throws CloudIdDoesNotExistException
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws RecordExistsException Given record exists
+     * @throws ProviderDoesNotExistException Provider does not exist
+     * @throws RecordDatasetEmptyException Dataset for record is empty
+     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
      */
     CloudId createCloudId(String providerId, String recordInfo)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
@@ -36,11 +36,11 @@ public interface UniqueIdentifierService {
      * Create a Unique Identifier from the given providerId
      *
      * @return The unique identifier for this record
-     * @throws DatabaseConnectionException
-     * @throws RecordExistsException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
-     * @throws CloudIdDoesNotExistException
+     * @throws  DatabaseConnectionException Problems with connection to database
+     * @throws  RecordExistsException Given record exists
+     * @throws  ProviderDoesNotExistException Provider does not exist
+     * @throws  RecordDatasetEmptyException Dataset for record is empty
+     * @throws  CloudIdDoesNotExistException Cloud identifier does not exist
      */
     CloudId createCloudId(String providerId)
             throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
@@ -49,13 +49,13 @@ public interface UniqueIdentifierService {
     /**
      * Search for a unique identifier based on the providerId and recordId
      * 
-     * @param providerId
-     * @param recordId
+     * @param providerId Provider identifier
+     * @param recordId Record identifier
      * @return The unique identifier of the record
-     * @throws DatabaseConnectionException
-     * @throws RecordDoesNotExistException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws RecordDoesNotExistException Record does not exist
+     * @throws ProviderDoesNotExistException Provider does not exist
+     * @throws RecordDatasetEmptyException Dataset for record is empty
      */
     CloudId getCloudId(String providerId, String recordId)
             throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
@@ -65,13 +65,13 @@ public interface UniqueIdentifierService {
     /**
      * Search all the records that are linked to a unique identifier
      * 
-     * @param cloudId
+     * @param cloudId Cloud identifier
      * @return A list of providerIds with the records that have been linked to
      *         the unique identifier provided
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
+     * @throws ProviderDoesNotExistException Provider does not exist
+     * @throws RecordDatasetEmptyException Dataset for record is empty
      */
     List<CloudId> getLocalIdsByCloudId(String cloudId)
             throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
@@ -80,67 +80,62 @@ public interface UniqueIdentifierService {
     /**
      * Create a mapping between a new providerId and recordId and an existing
      * cloud identifier
-     * 
-     * @param cloudId
-     * @param providerId
-     * @param recordId
+     *
+     * @param cloudId Cloud identifier
+     * @param providerId Provider identifier
+     * @param recordId Record identifier
      * @return The newly created CloudId
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws IdHasBeenMappedException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
+     * @throws ProviderDoesNotExistException Provider does not exist
+     * @throws RecordDatasetEmptyException Dataset for record is empty
      */
     CloudId createIdMapping(String cloudId, String providerId, String recordId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
+            throws DatabaseConnectionException, CloudIdDoesNotExistException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException;
 
 
     /**
      * Create a mapping between a new providerId and recordId and an existing
      * cloud identifier
-     * 
-     * @param cloudId
-     * @param providerId
+     *
+     * @param cloudId Cloud identifier
+     * @param providerId Provider identifier
      * @return The newly created CloudId
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws IdHasBeenMappedException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordDatasetEmptyException
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
+     * @throws ProviderDoesNotExistException Provider does not exist
+     * @throws RecordDatasetEmptyException Dataset for record is empty
      */
     CloudId createIdMapping(String cloudId, String providerId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
+            throws DatabaseConnectionException, CloudIdDoesNotExistException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException;
 
 
     /**
      * Remove the mapping between the providerId/recordId and the cloud
      * identifier The mapping is soft-deleted
-     * 
-     * @param providerId
-     * @param recordId
-     * @throws DatabaseConnectionException
-     * @throws ProviderDoesNotExistException
-     * @throws RecordIdDoesNotExistException
+     *
+     * @param providerId Provider identifier
+     * @param recordId Record identifier
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws ProviderDoesNotExistException Provider does not exist
      */
     void removeIdMapping(String providerId, String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException;
+            throws DatabaseConnectionException, ProviderDoesNotExistException;
 
 
     /**
      * Delete a cloud Identifier and all of its relevant mappings. Everything is
      * soft-deleted
-     * 
-     * @param cloudId
-     * @throws DatabaseConnectionException
-     * @throws CloudIdDoesNotExistException
-     * @throws RecordIdDoesNotExistException
-     * @throws ProviderDoesNotExistException
+     *
+     * @param cloudId Cloud identifier
+     * @throws DatabaseConnectionException Problems with connection to database
+     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
+     * @throws ProviderDoesNotExistException Provider does not exist
      */
     List<CloudId> deleteCloudId(String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
-            RecordIdDoesNotExistException;
+            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException;
 
 
     /**
