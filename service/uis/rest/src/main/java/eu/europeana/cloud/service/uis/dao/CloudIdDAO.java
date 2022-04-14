@@ -15,7 +15,6 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * DAO providing access to operations on CloudId in the database
@@ -107,7 +106,7 @@ public class CloudIdDAO {
         return cloudIds;
     }
 
-    public Optional<CloudId> insert(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
+    public CloudId insert(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
         try {
             dbService.getSession().execute(bindInsertStatement(cloudId, providerId, recordId));
         } catch (NoHostAvailableException e) {
@@ -116,7 +115,7 @@ public class CloudIdDAO {
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port, e.getMessage())));
         }
 
-        return Optional.of(new CloudId(cloudId, new LocalId(providerId, recordId)));
+        return new CloudId(cloudId, new LocalId(providerId, recordId));
     }
 
     public BoundStatement bindInsertStatement(String cloudId, String providerId, String recordId) {

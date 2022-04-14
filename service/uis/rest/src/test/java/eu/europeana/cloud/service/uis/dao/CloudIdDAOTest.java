@@ -34,7 +34,7 @@ public class CloudIdDAOTest extends CassandraTestBase {
         dataProviderDao.createDataProvider(providerId, new DataProviderProperties());
         localIdDao.insert(id, providerId, recordId);
 
-        assertTrue(service.insert(id, providerId, recordId).isPresent());
+        service.insert(id, providerId, recordId);
         assertEquals(1, service.searchById(id).size());
         service.delete(id, providerId, recordId);
         assertEquals(0, service.searchById(id).size());

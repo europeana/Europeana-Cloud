@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.dao.CloudIdDAO;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
@@ -19,7 +20,7 @@ import java.util.List;
 /**
  * Cassandra implementation of the Unique Identifier Service
  */
-public class UniqueIdentifierServiceImpl implements eu.europeana.cloud.service.uis.UniqueIdentifierService {
+public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UniqueIdentifierServiceImpl.class);
 
@@ -75,7 +76,7 @@ public class UniqueIdentifierServiceImpl implements eu.europeana.cloud.service.u
 
         var cloudIdOpt = localIdDao.searchById(providerId, recordId);
         if(cloudIdOpt.isPresent()) {
-            LOGGER.warn("RecordExistsException for providerId={}, recordId={}", providerId, recordId);
+            LOGGER.debug("Record already exists providerId={}, recordId={}", providerId, recordId);
             return cloudIdOpt.get();
         }
 
@@ -146,7 +147,7 @@ public class UniqueIdentifierServiceImpl implements eu.europeana.cloud.service.u
 
         var cloudIdOpt = localIdDao.searchById(providerId, recordId);
         if (cloudIdOpt.isPresent()) {
-            LOGGER.warn("IdHasBeenMappedException for cloudId='{}', providerId='{}', recordId='{}'", cloudId, providerId, recordId);
+            LOGGER.debug("Record already exists cloudId='{}', providerId='{}', recordId='{}'", cloudId, providerId, recordId);
             return cloudIdOpt.get();
         }
 

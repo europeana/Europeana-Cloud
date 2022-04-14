@@ -249,35 +249,6 @@ public class DataProviderResourceTest {
     }
 
     @Test
-    public void testCreateMappingIdHasBeenMapped() throws Exception {
-        Throwable exception = new IdHasBeenMappedException(
-                new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-                                .getHttpCode(),
-                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-                                .getErrorInfo("local1", "providerId", "cloudId")));
-
-        Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-                "cloudId", "providerId", "local1");
-
-        MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
-                .param(UISParamConstants.Q_RECORD_ID, "local1")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError()).andReturn();
-
-        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
-
-        assertEquals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-                        "local1", "providerId", "cloudId").getErrorCode());
-        assertEquals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-                        "local1", "providerId", "cloudId").getDetails());
-    }
-
-    @Test
     public void testRemoveMapping() throws Exception {
         CloudId gid = createCloudId("providerId", "recordId");
         Mockito.reset(uniqueIdentifierService);
@@ -349,33 +320,5 @@ public class DataProviderResourceTest {
         assertEquals(errorInfo.getDetails(),
                 IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
                         "providerId").getDetails());
-    }
-
-    @Test
-    public void testRemoveMappingRecordIdDoesNotExistException()
-            throws Exception {
-        Throwable exception = new RecordIdDoesNotExistException(
-                new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-                                .getHttpCode(),
-                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-                                .getErrorInfo("recordId")));
-
-        Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
-                "providerId", "recordId");
-
-        MvcResult mvcResult = mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound()).andReturn();
-
-        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
-
-        assertEquals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-                        "recordId").getErrorCode());
-        assertEquals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-                        "recordId").getDetails());
     }
 }

@@ -71,7 +71,7 @@ public class LocalIdDAO {
         }
     }
 
-    public Optional<CloudId> insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
+    public CloudId insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
             dbService.getSession().execute(bindInsertStatement(providerId, recordId, cloudId));
         } catch (NoHostAvailableException e) {
@@ -82,7 +82,7 @@ public class LocalIdDAO {
             ));
         }
 
-        return Optional.of(new CloudId(cloudId, new LocalId(providerId, recordId)));
+        return new CloudId(cloudId, new LocalId(providerId, recordId));
     }
 
     public BoundStatement bindInsertStatement(String providerId, String recordId, String cloudId) {
