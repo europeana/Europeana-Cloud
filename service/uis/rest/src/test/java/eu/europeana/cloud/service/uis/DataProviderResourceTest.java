@@ -9,8 +9,6 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +53,9 @@ public class DataProviderResourceTest {
         return localId;
     }
 
-    private static CloudId createCloudId(String providerId, String recordId) {
+    private static CloudId createCloudId() {
+        var providerId = "providerId";
+        var recordId = "recordId";
         CloudId cloudId = new CloudId();
         cloudId.setLocalId(createLocalId(providerId, recordId));
         cloudId.setId(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId));
@@ -87,7 +87,7 @@ public class DataProviderResourceTest {
         dp.setId(providerName);
         // when the provider is updated
         DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
+        properties.setOrganisationName("Organisation");
         properties.setRemarks("Remarks");
         dp.setProperties(properties);
         Mockito.doReturn(dp).when(dataProviderService).updateProvider(providerName, properties);
@@ -113,7 +113,7 @@ public class DataProviderResourceTest {
     public void shouldGetProvider() throws Exception {
         // given certain provider in service
         DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
+        properties.setOrganisationName("Organisation");
         properties.setRemarks("Remarks");
         String providerName = "provident";
 
@@ -166,7 +166,7 @@ public class DataProviderResourceTest {
 
     @Test
     public void testCreateMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
+        CloudId gid = createCloudId();
 
         Mockito.doReturn(gid).when(uniqueIdentifierService).createCloudId("providerId", "recordId");
         Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString());
@@ -250,7 +250,7 @@ public class DataProviderResourceTest {
 
     @Test
     public void testRemoveMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
+        CloudId gid = createCloudId();
         Mockito.reset(uniqueIdentifierService);
         Mockito.when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
 
