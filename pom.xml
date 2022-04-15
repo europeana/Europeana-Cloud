@@ -133,9 +133,6 @@
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.32</version.slf4j>
-<!--
-        <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
--->
         <version.spring-framework>5.2.20.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
 
@@ -167,7 +164,7 @@
         <version.elasticsearch>1.7.0</version.elasticsearch>
         <version.lucene>4.10.4</version.lucene>
 
-        <version.tika>1.14</version.tika>
+        <version.tika>2.2.1</version.tika>
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
@@ -242,12 +239,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.5.1</version>
-<!--
-                    <configuration>
-                        <source>${version.jdk}</source>
-                        <target>${version.jdk}</target>
-                    </configuration>
--->
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
