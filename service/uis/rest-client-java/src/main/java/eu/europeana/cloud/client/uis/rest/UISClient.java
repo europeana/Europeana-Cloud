@@ -333,7 +333,7 @@ public class UISClient implements AutoCloseable {
                 .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
                 .resolveTemplate(P_PROVIDER_ID, providerId)
                 .resolveTemplate(P_CLOUD_ID, cloudId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
                 .post(null)
         );
     }
