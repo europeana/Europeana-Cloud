@@ -31,7 +31,7 @@ public class TaskStatusChecker {
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
         TaskStatusChecker.cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
-                    public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
+                    public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
                         return isDroppedTask(taskId);
                     }
                 });
@@ -41,7 +41,7 @@ public class TaskStatusChecker {
     public TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
         TaskStatusChecker.cache = CacheBuilder.newBuilder().refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS).concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
                 .build(new CacheLoader<Long, Boolean>() {
-                    public Boolean load(Long taskId) throws ExecutionException, TaskInfoDoesNotExistException {
+                    public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
                         return isDroppedTask(taskId);
                     }
                 });

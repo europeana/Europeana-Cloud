@@ -4,7 +4,7 @@ import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.Constants;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.BatchExecutor;
+import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -137,7 +137,7 @@ public class NotificationTupleHandler {
     private ErrorNotification prepareErrorNotification(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {
         var resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
         //
-        //store notification errror
+        //store notification error
         var errorMessage = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.INFO_TEXT));
         var additionalInformation = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE_DESCRIPTION));
         if (!isErrorTuple(notificationTuple) && notificationTuple.getParameters().get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null) {

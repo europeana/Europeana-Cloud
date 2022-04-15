@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -97,7 +98,7 @@ public class ResourceMigratorApp {
             return null;
 
         try {
-            String content = new String(Files.readAllBytes(FileSystems.getDefault().getPath(".", "spring-config.xml")));
+            String content = Files.readString(FileSystems.getDefault().getPath(".", "spring-config.xml"));
             
             Iterator<Entry<Object, Object>> iterator = config.entrySet().iterator();
             while(iterator.hasNext()) {
@@ -110,7 +111,7 @@ public class ResourceMigratorApp {
                 content = content.replace(key, value);
             }
             
-            Files.write(FileSystems.getDefault().getPath(".", "spring-config-configured.xml"), content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+            Files.write(FileSystems.getDefault().getPath(".", "spring-config-configured.xml"), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
         } catch (IOException e) {
             return null;
         }

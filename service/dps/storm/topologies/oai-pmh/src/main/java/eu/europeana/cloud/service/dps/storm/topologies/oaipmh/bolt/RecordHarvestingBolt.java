@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
@@ -113,7 +114,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
     private void useEuropeanaId(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
         var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        var document = new String(stormTaskTuple.getFileData());
+        var document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
         var europeanaIdCreator = new EuropeanaIdCreator();
         var europeanaIdMap = europeanaIdCreator.constructEuropeanaId(document, datasetId);
         var europeanaId = europeanaIdMap.getEuropeanaGeneratedId();

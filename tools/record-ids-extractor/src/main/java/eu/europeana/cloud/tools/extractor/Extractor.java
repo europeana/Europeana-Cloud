@@ -87,7 +87,7 @@ public class Extractor implements AutoCloseable {
         } while (startFrom != null);
     }
 
-    private void extractFromChunk(String metisDatasetId, ResultSlice<CloudTagsResponse> slice) throws IOException, CloudException, ExecutionException, InterruptedException {
+    private void extractFromChunk(String metisDatasetId, ResultSlice<CloudTagsResponse> slice) throws IOException, ExecutionException, InterruptedException {
         log.debug("Start extracting from the chunk of {} records...", slice.getResults().size());
         List<Future<String>> rowsResults = prepareRows(metisDatasetId, slice);
         writeRowsToFile(rowsResults);

@@ -287,8 +287,8 @@ public enum IdentifierErrorTemplate {
 		}
 
 		@Override
-		public IdHasBeenMappedException getException(ErrorInfo e) {
-			return new IdHasBeenMappedException(e);
+		public GenericException getException(ErrorInfo e) {
+			return new GenericException(e);
 		}
 	};
 

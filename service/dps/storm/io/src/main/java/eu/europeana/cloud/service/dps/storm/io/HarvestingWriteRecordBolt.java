@@ -3,12 +3,9 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 
 /**
  * Stores a Record on the cloud for the harvesting topology.
@@ -19,9 +16,8 @@ import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     public static final String ERROR_MSG_WHILE_CREATING_CLOUD_ID = "Error while creating CloudId";
     public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
-    public static final String ERROR_MSG_WHILE_GETTING_CLOUD_ID = "Error while getting CloudId";
     private static final long serialVersionUID = 1L;
-    private String ecloudUisAddress;
+    private final String ecloudUisAddress;
     private transient UISClient uisClient;
 
     public HarvestingWriteRecordBolt(String ecloudMcsAddress, String ecloudUisAddress) {
@@ -41,44 +37,19 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     }
 
     private String getCloudId(String authorizationHeader, String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
-        String result;
-        CloudId cloudId;
-        cloudId = getCloudId(providerId, localId, authorizationHeader);
-        if (cloudId != null) {
-            result = cloudId.getId();
-        } else {
-            result = createCloudId(providerId, localId, authorizationHeader);
-        }
+        String result = createCloudId(providerId, localId, authorizationHeader);
+
         if (additionalLocalIdentifier != null)
             attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId, authorizationHeader);
+
         return result;
 
     }
 
-    private boolean attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader)
-            throws CloudException {
-        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () -> {
-            try {
-                return uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader);
-            } catch (Exception e) {
-                if (e.getCause() instanceof IdHasBeenMappedException)
-                    return true;
-                throw e;
-            }
-        });
-    }
-
-    private CloudId getCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {
-        return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_GETTING_CLOUD_ID, () -> {
-            try {
-                return uisClient.getCloudId(providerId, localId, AUTHORIZATION, authenticationHeader);
-            } catch (Exception e) {
-                if (e.getCause() instanceof RecordDoesNotExistException) {
-                    return null;
-                }
-                throw e;
-            }
-        });
+    private void attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId, String authorizationHeader) throws CloudException {
+        RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () ->
+            uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier, AUTHORIZATION, authorizationHeader)
+        );
     }
 
     private String createCloudId(String providerId, String localId, String authenticationHeader) throws CloudException {

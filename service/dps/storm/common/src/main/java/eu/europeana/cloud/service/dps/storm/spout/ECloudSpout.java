@@ -183,7 +183,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return tasksCache.getTaskInfo(message);
         }
 
-        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord, ProcessedRecord aRecord) throws IOException {
+        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord, ProcessedRecord aRecord) {
             //
             var stormTaskTuple = new StormTaskTuple(
                     dpsTask.getTaskId(),

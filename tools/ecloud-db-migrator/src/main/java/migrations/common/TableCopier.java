@@ -2,6 +2,7 @@ package migrations.common;
 
 import java.util.Iterator;
 import com.datastax.driver.core.*;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 
 /**
  * @author krystian.
@@ -48,7 +49,8 @@ public abstract class TableCopier {
                         System.out.println("Sleeping");
                         Thread.sleep(SLEEP_TIME * (DEFAULT_RETRIES - retries));
                     } catch (InterruptedException e1) {
-                        e1.printStackTrace();
+                        Thread.currentThread().interrupt();
+                        throw new RetryInterruptedException(e);
                     }
                 } else {
                     System.out.println("Exception while copying table.\n" + e.getMessage());
