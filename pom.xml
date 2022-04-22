@@ -164,7 +164,7 @@
         <version.elasticsearch>1.7.0</version.elasticsearch>
         <version.lucene>4.10.4</version.lucene>
 
-        <version.tika>2.2.1</version.tika>
+        <version.tika>2.3.0</version.tika>
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
