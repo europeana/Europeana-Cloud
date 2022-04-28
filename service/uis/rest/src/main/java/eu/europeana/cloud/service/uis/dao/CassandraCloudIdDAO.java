@@ -54,15 +54,12 @@ public class CassandraCloudIdDAO {
         insertStatement = dbService
                 .getSession()
                 .prepare("INSERT INTO Cloud_Id(cloud_id,provider_id,record_id) VALUES(?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchStatementNonActive = dbService.getSession().prepare("SELECT * FROM Cloud_Id WHERE cloud_id=?");
-        searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteStatement = dbService
                 .getSession()
                 .prepare("Delete from Cloud_Id WHERE cloud_Id=? AND provider_id=? AND record_id=?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public String getHostList() {

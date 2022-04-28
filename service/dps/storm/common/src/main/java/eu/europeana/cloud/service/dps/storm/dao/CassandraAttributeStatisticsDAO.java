@@ -55,19 +55,16 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE + " = ?");
-        updateAttributeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectAttributesStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT ?");
-        selectAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteAttributesStatement = dbService.getSession().prepare("DELETE FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ?");
-        deleteAttributesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         countDistinctAttributeValues = dbService.getSession().prepare("SELECT count(*)" +
                 " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
@@ -75,7 +72,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME + " = ?");
-        countDistinctAttributeValues.setConsistencyLevel(dbService.getConsistencyLevel());
 
         countSpecificAttributeValue = dbService.getSession().prepare("SELECT count(*)" +
                 " FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE +
@@ -84,7 +80,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NAME + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_VALUE + " = ?");
-        countSpecificAttributeValue.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
 

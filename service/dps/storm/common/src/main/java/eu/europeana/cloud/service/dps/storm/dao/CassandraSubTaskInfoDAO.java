@@ -56,15 +56,12 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATIONS
                 + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
                 + ") VALUES (?,?,?,?,?,?,?,?,?)");
-        subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
 
         processedFilesCountStatement = dbService.getSession().prepare(
                 "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
                         " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
                         " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?" +
                         " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1");
-        processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeNotificationsByTaskId = dbService.getSession().prepare(
                 "delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +

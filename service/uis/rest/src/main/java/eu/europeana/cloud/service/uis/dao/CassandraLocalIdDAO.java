@@ -43,16 +43,12 @@ public class CassandraLocalIdDAO {
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare(
                 "INSERT INTO cloud_ids_by_record_id(provider_id, record_id, cloud_id) VALUES(?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteStatement = dbService.getSession().prepare(
                 "DELETE FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchByRecordIdStatement = dbService.getSession().prepare(
                 "SELECT * FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
-        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
     }
 
     @Retryable
