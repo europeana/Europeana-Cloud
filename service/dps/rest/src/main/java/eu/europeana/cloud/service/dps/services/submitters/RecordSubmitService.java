@@ -47,9 +47,8 @@ public class RecordSubmitService {
         if (alreadySubmittedRecord.isEmpty()) {
             kafkaSubmitService.submitRecord(dpsRecord, submitParameters.getTopicName());
             LOGGER.debug("Updating record in processed_records table: {}", dpsRecord);
-            processedRecordsDAO.insert(dpsRecord.getTaskId(), dpsRecord.getRecordId(), 0,
+            return processedRecordsDAO.insertIfNotExists(dpsRecord.getTaskId(), dpsRecord.getRecordId(), 0,
                     "", submitParameters.getTaskInfo().getTopologyName(), RecordState.QUEUED.toString(), "", "");
-            return true;
         } else if (isResendingAfterFail(alreadySubmittedRecord.get(), submitParameters)) {
             LOGGER.info("Omitting record already sent to Kafka {}", dpsRecord);
             processedRecordsDAO.updateStartTime(dpsRecord.getTaskId(), dpsRecord.getRecordId(), new Date());

@@ -29,6 +29,7 @@ public class ProcessedRecordsDAO extends CassandraDAO {
     private static final int BUCKETS_COUNT = 128;
 
     private PreparedStatement insertStatement;
+    private PreparedStatement insertStatementForNonExistingRow;
     private PreparedStatement updateRecordStateStatement;
     private PreparedStatement updateRecordStartTime;
     private PreparedStatement updateAttemptNumberStatement;
@@ -66,6 +67,20 @@ public class ProcessedRecordsDAO extends CassandraDAO {
                 + PROCESSED_RECORDS_INFO_TEXT + ","
                 + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?)");
+
+        insertStatementForNonExistingRow = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                "("
+                + PROCESSED_RECORDS_TASK_ID + ","
+                + PROCESSED_RECORDS_RECORD_ID + ","
+                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
+                + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
+                + PROCESSED_RECORDS_DST_IDENTIFIER + ","
+                + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
+                + PROCESSED_RECORDS_STATE + ","
+                + PROCESSED_RECORDS_START_TIME + ","
+                + PROCESSED_RECORDS_INFO_TEXT + ","
+                + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
+                ") VALUES (?,?,?,?,?,?,?,?,?,?) IF NOT EXISTS");
 
         updateRecordStateStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
                 "("
@@ -109,6 +124,15 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         dbService.getSession().execute(insertStatement.bind(taskId, recordId,
                 BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attemptNumber, dstResource, topologyName,
                 state, Calendar.getInstance().getTime(), infoText, additionalInformations));
+    }
+
+    public boolean insertIfNotExists(long taskId, String recordId, int attemptNumber, String dstResource, String topologyName,
+                          String state, String infoText, String additionalInformation)
+            throws NoHostAvailableException, QueryExecutionException {
+        ResultSet result = dbService.getSession().execute(insertStatementForNonExistingRow.bind(taskId, recordId,
+                BucketUtils.bucketNumber(recordId, BUCKETS_COUNT), attemptNumber, dstResource, topologyName,
+                state, Calendar.getInstance().getTime(), infoText, additionalInformation));
+        return result.wasApplied();
     }
 
     public void insert(ProcessedRecord theRecord)
