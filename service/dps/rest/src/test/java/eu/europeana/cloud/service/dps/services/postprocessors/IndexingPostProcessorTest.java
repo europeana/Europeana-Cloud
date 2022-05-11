@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -11,6 +12,8 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
@@ -18,9 +21,11 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -51,6 +56,9 @@ public class IndexingPostProcessorTest {
     private IndexingPostProcessor service;
 
     private final TaskInfo taskInfo=new TaskInfo();
+
+    @Captor
+    private ArgumentCaptor<DataSetCleanerParameters> captor;
 
     @Before
     public void setup() throws Exception {
@@ -142,6 +150,33 @@ public class IndexingPostProcessorTest {
         verifyNoInteractions(taskStatusUpdater);
         verifyNoInteractions(harvestedRecordsDAO);
     }
+
+    @Test
+    public void shouldParseIsoRecordDateProperly() throws Exception {
+        DpsTask dpsTask = new DpsTask();
+        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
+
+        service.execute(taskInfo, dpsTask);
+
+        PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
+        assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
+    }
+
+    @Test
+    public void shouldParseIsoRecordDateWithoutMillisecondsProperly() throws Exception {
+        DpsTask dpsTask = new DpsTask();
+        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00Z");
+
+        service.execute(taskInfo, dpsTask);
+
+        PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
+        assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
+    }
+
 
     private DpsTask prepareTaskForPreviewEnv() {
         DpsTask dpsTask = new DpsTask();

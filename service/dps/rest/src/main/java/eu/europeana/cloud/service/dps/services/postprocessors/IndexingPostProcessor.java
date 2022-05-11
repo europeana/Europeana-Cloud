@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -17,15 +18,12 @@ import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
 public class IndexingPostProcessor extends TaskPostProcessor {
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingPostProcessor.class);
     private static final int DELETE_ATTEMPTS = 20;
     private static final int DELAY_BETWEEN_DELETE_ATTEMPTS_MS = 30000;
@@ -67,12 +65,11 @@ public class IndexingPostProcessor extends TaskPostProcessor {
         return PROCESSED_TOPOLOGIES;
     }
 
-    private DataSetCleanerParameters prepareParameters(DpsTask dpsTask) throws ParseException {
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+    private DataSetCleanerParameters prepareParameters(DpsTask dpsTask) {
         return new DataSetCleanerParameters(
                 dpsTask.getParameter(PluginParameterKeys.METIS_DATASET_ID),
                 dpsTask.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE),
-                dateFormat.parse(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
+                DateHelper.parseISODate(dpsTask.getParameter(PluginParameterKeys.METIS_RECORD_DATE)));
     }
 
     private int cleanInECloud(DataSetCleanerParameters cleanerParameters, Stream<String> recordIds, DpsTask dpsTask) {

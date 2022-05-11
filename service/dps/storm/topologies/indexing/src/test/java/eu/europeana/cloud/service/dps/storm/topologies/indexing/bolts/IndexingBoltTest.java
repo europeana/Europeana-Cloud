@@ -22,8 +22,6 @@ import org.junit.Test;
 import org.mockito.*;
 
 import java.net.MalformedURLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -311,8 +309,7 @@ public class IndexingBoltTest {
                 new HashMap<>() {
                     {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
-                        DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
-                        put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
+                        put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
                         put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
                         put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
                         put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");

@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
@@ -33,7 +31,6 @@ import java.util.*;
  */
 public class IndexingBolt extends AbstractDpsBolt {
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
     public static final String PARSE_RECORD_DATE_ERROR_MESSAGE = "Could not parse RECORD_DATE parameter";
     public static final String INDEXING_FILE_ERROR_MESSAGE = "Unable to index file";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
@@ -77,11 +74,9 @@ public class IndexingBolt extends AbstractDpsBolt {
                 : Arrays.asList(datasetIdsToRedirectFrom.trim().split("\\s*,\\s*"));
         final var performRedirects = Boolean
                 .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
         final Date recordDate;
         try {
-            recordDate = dateFormat
-                    .parse(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+            recordDate = DateHelper.parseISODate(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
             final var properties = new IndexingProperties(recordDate,
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
 
@@ -99,10 +94,10 @@ public class IndexingBolt extends AbstractDpsBolt {
             LOGGER.info(
                     "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
                     database, recordDate, preserveTimestampsString);
+        } catch (DateTimeParseException e) {
+            logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
-        } catch (ParseException e) {
-            logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
         } catch (IndexingException e) {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
         }
