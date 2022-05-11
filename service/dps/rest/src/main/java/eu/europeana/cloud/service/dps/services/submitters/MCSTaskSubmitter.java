@@ -103,7 +103,7 @@ public class MCSTaskSubmitter {
         return count;
     }
 
-    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException, MCSException {
+    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, MCSException {
         var expectedSize = 0;
         for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
             expectedSize += executeForOneDataSet(dataSetUrl, submitParameters);
@@ -111,7 +111,7 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, ExecutionException, MCSException {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, MCSException {
         try (var reader = createMcsReader(submitParameters)) {
             var urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
@@ -142,7 +142,7 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, ExecutionException, MCSException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, MCSException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -176,7 +176,11 @@ public class MCSTaskSubmitter {
                 count += getCountAndWait(futures);
 
             return count;
-        } finally {
+        } catch (ExecutionException e) {
+            LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
+            throw new SubmitingTaskWasKilled(submitParameters.getTask());
+        }
+        finally {
             executor.shutdown();
         }
     }
