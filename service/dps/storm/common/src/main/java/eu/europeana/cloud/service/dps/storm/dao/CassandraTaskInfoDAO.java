@@ -60,7 +60,6 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     protected void prepareStatements() {
         taskSearchStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        taskSearchStatement.setConsistencyLevel(dbService.getConsistencyLevel());
         updateCounters = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
         updateCounters = dbService.getSession().prepare(
                 "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "
@@ -70,7 +69,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                         + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , "
                         + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + " = ?" +
                         " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateCounters.setConsistencyLevel(dbService.getConsistencyLevel());
+
         taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
                 "(" + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
@@ -89,16 +88,12 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION +
                 ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        taskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        finishTask.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateStatusExpectedSizeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateStateStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-        updateStateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateSubmitParameters=prepare(
                 "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "

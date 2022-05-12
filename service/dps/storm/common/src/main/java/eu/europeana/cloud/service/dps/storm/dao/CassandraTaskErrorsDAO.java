@@ -68,47 +68,38 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
                 + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS +
                 ") VALUES (?,?,?,?,?)");
-        insertErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         insertErrorCounterStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 "(" + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + ","
                 + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + ","
                 + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
                 + ") VALUES (?,?,?)");
-        insertErrorCounterStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorCountsStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER +
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
-        selectErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER +
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?" +
                 " AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?");
-        selectErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE +
                 " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
-        selectErrorTypeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorsStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?");
-        selectErrorsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         selectErrorStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1");
-        selectErrorStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeErrorCountsStatement = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
-        removeErrorCountsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeErrorNotifications = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? and " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?");
-        removeErrorNotifications.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public void insertErrorCounter(long taskId, String errorType, int number) {

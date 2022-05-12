@@ -50,23 +50,18 @@ public class StatisticsReportDAO extends CassandraDAO {
                 " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
                 CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
                 " VALUES (?,textasblob(?))");
-        storeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         checkStatisticsReportStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID +
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
-        checkStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getStatisticsReportStatement = dbService.getSession().prepare("SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
-        getStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
 
         removeStatisticsReportStatement = dbService.getSession().prepare("DELETE " +
                 " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
-        removeStatisticsReportStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public void storeReport(long taskId, StatisticsReport report) {

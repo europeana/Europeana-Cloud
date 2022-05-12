@@ -20,17 +20,13 @@ public class CassandraConnectionProvider {
 
     private final Session session;
 
-    private final ConsistencyLevel consistencyLevel = ConsistencyLevel.QUORUM;
+    private static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL = ConsistencyLevel.QUORUM;
 
-    private String hosts;
+    private final String hosts;
 
-    private String port;
+    private final String port;
 
-    private String keyspaceName;
-
-    private String userName;
-
-    private String password;
+    private final String keyspaceName;
 
     /**
      * Constructor. Use it when your Cassandra cluster does not support
@@ -67,8 +63,6 @@ public class CassandraConnectionProvider {
         this.hosts = hosts;
         this.port = String.valueOf(port);
         this.keyspaceName = keyspaceName;
-        this.userName = userName;
-        this.password = password;
 
         String[] contactPoints = hosts.split(",");
         cluster = getClusterBuilder(port, contactPoints)
@@ -98,6 +92,8 @@ public class CassandraConnectionProvider {
     private Cluster.Builder getClusterBuilder(int port, String[] contactPoints) {
         return Cluster.builder().addContactPoints(contactPoints).withPort(port)
                 .withProtocolVersion(ProtocolVersion.V3)
+                .withQueryOptions(new QueryOptions()
+                        .setConsistencyLevel(DEFAULT_CONSISTENCY_LEVEL))
                 .withTimestampGenerator(new AtomicMonotonicTimestampGenerator());
     }
 
@@ -125,7 +121,7 @@ public class CassandraConnectionProvider {
      * @return the consistencyLevel
      */
     public ConsistencyLevel getConsistencyLevel() {
-        return consistencyLevel;
+        return DEFAULT_CONSISTENCY_LEVEL;
     }
 
 
@@ -160,17 +156,5 @@ public class CassandraConnectionProvider {
 
     public Metadata getMetadata() {
         return cluster.getMetadata();
-    }
-
-    private String getUserName() {
-        return userName;
-    }
-
-    private String getPassword() {
-        return password;
-    }
-
-    public CassandraConnectionProvider(final CassandraConnectionProvider cassandraConnectionProvider) {
-        this(cassandraConnectionProvider.getHosts(), Integer.parseInt(cassandraConnectionProvider.getPort()), cassandraConnectionProvider.getKeyspaceName(), cassandraConnectionProvider.getUserName(), cassandraConnectionProvider.getPassword());
     }
 }

@@ -51,29 +51,23 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
                 "WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ?");
-        updateNodeStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
         searchNodesStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? limit ?");
-        searchNodesStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
 
         searchNodesStatementAll = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
-        searchNodesStatementAll.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteNodesStatisticsStatement = dbService.getSession().prepare("DELETE " +
                 " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
-        deleteNodesStatisticsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-
     }
 
     /**

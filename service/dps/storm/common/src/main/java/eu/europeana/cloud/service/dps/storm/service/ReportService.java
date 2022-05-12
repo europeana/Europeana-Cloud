@@ -53,7 +53,6 @@ public class ReportService implements TaskExecutionReportService {
                         CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
                 )
         );
-        selectErrorsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         selectErrorStatement = cassandra.getSession().prepare(
                 String.format("select * from %s where %s = ? and %s = ? limit ?",
@@ -62,7 +61,6 @@ public class ReportService implements TaskExecutionReportService {
                         CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE
                 )
         );
-        selectErrorStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         selectErrorCounterStatement = cassandra.getSession().prepare(
                 String.format("select * from %s where %s = ? and %s = ?",
@@ -71,7 +69,6 @@ public class ReportService implements TaskExecutionReportService {
                         CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
                 )
         );
-        selectErrorCounterStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         checkIfTaskExistsStatement = cassandra.getSession().prepare(
                 String.format("select * from %s where %s = ?",
@@ -79,7 +76,6 @@ public class ReportService implements TaskExecutionReportService {
                         CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID
                 )
         );
-        checkIfTaskExistsStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
         checkErrorExistStatement = cassandra.getSession().prepare(
                 String.format("select * from %s where %s = ? limit 1",
@@ -87,7 +83,6 @@ public class ReportService implements TaskExecutionReportService {
                         CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
                 )
         );
-        checkErrorExistStatement.setConsistencyLevel(cassandra.getConsistencyLevel());
 
     }
 

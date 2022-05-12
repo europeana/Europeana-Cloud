@@ -43,23 +43,18 @@ public class CassandraDataProviderDAO {
     private void prepareStatements() {
         createDataProviderStatement = dbService.getSession().prepare(
                 "INSERT INTO data_providers(provider_id, active, properties, creation_date, partition_key) VALUES (?,true,?,?,?);");
-        createDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updateDataProviderStatement = dbService.getSession().prepare(
                 "UPDATE data_providers SET active=?, properties=? where provider_id = ?;");
-        updateDataProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getProviderStatement = dbService.getSession().prepare(
                 "SELECT provider_id, partition_key, active, properties FROM data_providers WHERE provider_id = ?;");
-        getProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteProviderStatement = dbService.getSession().prepare(
                 "DELETE FROM data_providers WHERE provider_id = ?;");
-        deleteProviderStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         getAllProvidersStatement = dbService.getSession().prepare(
                 "SELECT provider_id, active, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
-        getAllProvidersStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**

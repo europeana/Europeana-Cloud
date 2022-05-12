@@ -68,8 +68,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 + ") VALUES(?,?,?,?,?,?,?,?,?);"
         );
 
-        insertHarvestedRecordStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         updateLatestHarvestDateAndMd5Statement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                 + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE + " = ? ,"
@@ -78,21 +76,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
-
-        updateLatestHarvestDateAndMd5Statement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-        updatePreviewColumnsForExistingStatement = dbService.getSession().prepare("UPDATE "
-                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + " = ? "
-                + ","+ CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5 + " = ? "
-                + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
-                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
-                + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
-                + " IF EXISTS"
-
-        );
-
-        updatePreviewColumnsForExistingStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         updatePublishedColumnsForExistingStatement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -105,8 +88,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
         );
 
-        updatePublishedColumnsForExistingStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         updatePublishedHarvestDateStatement = dbService.getSession().prepare("UPDATE "
                 + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                 + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
@@ -115,8 +96,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                 + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
-        updatePublishedHarvestDateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         findRecordStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
@@ -124,15 +103,11 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
 
-        findRecordStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
         findAllRecordInDatasetStatement = dbService.getSession().prepare(
                 "SELECT * FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
         );
-
-        findAllRecordInDatasetStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteRecordStatement = dbService.getSession().prepare(
                 "DELETE FROM " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
@@ -140,8 +115,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
                         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
         );
-
-        deleteRecordStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
     }
 

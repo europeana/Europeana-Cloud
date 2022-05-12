@@ -46,13 +46,10 @@ public class CloudIdDAO {
 
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare("insert into cloud_id(cloud_id,provider_id,record_id) values(?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchStatementNonActive = dbService.getSession().prepare("select * from cloud_id where cloud_id=?");
-        searchStatementNonActive.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteStatement = dbService.getSession().prepare("delete from cloud_id where cloud_id=? and provider_id=? and record_id=?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     public String getHostList() {

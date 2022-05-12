@@ -39,7 +39,6 @@ public abstract class CassandraDAO {
 
     protected PreparedStatement prepare(String query) {
         PreparedStatement statement = dbService.getSession().prepare(query);
-        statement.setConsistencyLevel(dbService.getConsistencyLevel());
         return statement;
     }
 }

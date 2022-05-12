@@ -55,21 +55,17 @@ public class CassandraUserDAO {
     private void prepareStatements() {
         selectUserStatement = provider.getSession().prepare(
                 "SELECT * FROM users WHERE username = ?");
-        selectUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         createUserStatement = provider
                 .getSession()
                 .prepare(
                         "INSERT INTO users(username, password, roles) VALUES (?,?,?) IF NOT EXISTS;");
-        createUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         updateUserStatement = provider.getSession().prepare(
                 "UPDATE users SET password = ? WHERE username = ?;");
-        updateUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
 
         deleteUserStatement = provider.getSession().prepare(
                 "DELETE FROM users WHERE username = ?;");
-        deleteUserStatement.setConsistencyLevel(provider.getConsistencyLevel());
     }
 
     public SpringUser getUser(final String username)

@@ -92,14 +92,12 @@ public class CassandraRecordDAO {
                         "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) " +
                         "VALUES (?,?,?,?,?,?);"
         );
-        insertRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getRepresentationVersionStatement = session.prepare(
                 "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        getRepresentationVersionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listRepresentationVersionsStatement = session.prepare(
                 "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions " +
@@ -107,28 +105,24 @@ public class CassandraRecordDAO {
                         "WHERE cloud_id = ? AND schema_id = ? " +
                         "ORDER BY schema_id DESC, version_id DESC;"
         );
-        listRepresentationVersionsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listRepresentationVersionsAllSchemasStatement = session.prepare(
                 "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ?;"
         );
-        listRepresentationVersionsAllSchemasStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         persistRepresentationStatement = session.prepare(
                 "UPDATE representation_versions " +
                         "SET persistent = TRUE, creation_date = ? " +
                         "WHERE cloud_id = ? AND schema_id=? AND version_id = ?;"
         );
-        persistRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         insertFileStatement = session.prepare(
                 "UPDATE representation_versions " +
                         "SET files[?] = ? " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        insertFileStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
 
         insertRevisionStatement = session.prepare(
@@ -136,22 +130,18 @@ public class CassandraRecordDAO {
                         "SET revisions[?] = ? " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        insertRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeFileStatement = session.prepare(
                 "DELETE files[?] " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        removeFileStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
-
 
         removeRevisionFromRepresentationVersion = session.prepare(
                 "DELETE revisions[?] " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        removeRevisionFromRepresentationVersion.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeFileFromRepresentationRevisionsTableStatement = session.prepare(
                 "DELETE files[?] " +
@@ -163,14 +153,12 @@ public class CassandraRecordDAO {
                             "revision_timestamp = ? AND " +
                             "version_id = ?;"
         );
-        removeFileFromRepresentationRevisionsTableStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getFilesStatement = session.prepare(
                 "SELECT files " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        getFilesStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getAllRepresentationsForRecordStatement = session.prepare(
                 "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files " +
@@ -178,21 +166,18 @@ public class CassandraRecordDAO {
                         "WHERE cloud_id = ? " +
                         "ORDER BY schema_id DESC, version_id DESC;"
         );
-        getAllRepresentationsForRecordStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteRepresentationStatement = session.prepare(
                 "DELETE " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ?;"
         );
-        deleteRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteRepresentationVersionStatement = session.prepare(
                 "DELETE " +
                         "FROM representation_versions " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
         );
-        deleteRepresentationVersionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getRepresentationRevisionStatement = session.prepare(
                 "SELECT version_id, files, revision_timestamp " +
@@ -203,7 +188,6 @@ public class CassandraRecordDAO {
                             "revision_name = ? AND " +
                             "revision_timestamp = ?;"
         );
-        getRepresentationRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getLatestRepresentationRevisionStatement = session.prepare(
                 "SELECT version_id, files, revision_timestamp " +
@@ -211,7 +195,6 @@ public class CassandraRecordDAO {
                         "WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? " +
                         "LIMIT 1;"
         );
-        getLatestRepresentationRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getAllVersionsForRevisionNameStatement = session.prepare(
                 "SELECT cloud_id, representation_id, revision_provider_id, revision_name, revision_timestamp, version_id " +
@@ -223,14 +206,12 @@ public class CassandraRecordDAO {
                             "revision_timestamp > ? " +
                         "LIMIT 100"
         );
-        getAllVersionsForRevisionNameStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         insertRepresentationRevisionStatement = session.prepare(
                 "INSERT " +
                         "INTO representation_revisions (cloud_id, representation_id, version_id, revision_provider_id, revision_name, revision_timestamp) " +
                         "VALUES (?,?,?,?,?,?);"
         );
-        insertRepresentationRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         insertRepresentationRevisionFileStatement = session.prepare(
                 "UPDATE representation_revisions " +
@@ -242,7 +223,6 @@ public class CassandraRecordDAO {
                             "revision_timestamp = ? AND " +
                             "version_id = ?;"
         );
-        insertRepresentationRevisionFileStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteRepresentationRevisionStatement = session.prepare(
                 "DELETE " +
@@ -254,7 +234,6 @@ public class CassandraRecordDAO {
                             "revision_timestamp = ? AND " +
                             "version_id = ?"
         );
-        deleteRepresentationRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
     /**
