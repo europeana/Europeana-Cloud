@@ -194,7 +194,6 @@ public class MCSTaskSubmitter {
 
     private Integer executeGettingFileUrlsForCloudIdList(List<CloudTagsResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
         var count = 0;
-        checkIfTaskIsKilled(submitParameters.getTask());
         for (CloudTagsResponse response : responseList) {
             count += executeGettingFileUrlsForOneCloudId(response, submitParameters, reader);
         }
@@ -205,6 +204,7 @@ public class MCSTaskSubmitter {
     private int executeGettingFileUrlsForOneCloudId(CloudTagsResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
 
         var count = 0;
+        checkIfTaskIsKilled(submitParameters.getTask());
         List<Representation> representations = reader.getRepresentationsByRevision(
                 submitParameters.getRepresentationName(),
                 submitParameters.getInputRevision().getRevisionName(),
