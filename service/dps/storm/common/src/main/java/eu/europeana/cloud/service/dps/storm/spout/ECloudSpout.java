@@ -60,7 +60,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient TasksCache tasksCache;
     protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
     private ECloudOutputCollector eCloudOutputCollector;
-    private long maxTaskPending = Long.MAX_VALUE;
+    protected long maxTaskPending = Long.MAX_VALUE;
 
     public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -267,17 +267,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             var taskInfo = getTaskInfo(message);
             var dpsTask = DpsTask.fromTaskInfo(taskInfo);
-            setMaxTaskPending(dpsTask);
             updateDiagnosticCounters(aRecord);
             var stormTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);
+            performThrottling(dpsTask, stormTaskTuple);
             LOGGER.info("Emitting a record to the subsequent bolt");
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
-        }
-
-        private void setMaxTaskPending(DpsTask dpsTask) {
-            maxTaskPending = Optional.ofNullable(dpsTask.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
-                    .map(Long::parseLong)
-                    .orElse(Long.MAX_VALUE);
         }
 
         List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
@@ -380,6 +374,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         private String getSpoutString() {
             return ECloudSpout.this.toString();
         }
+    }
+
+    protected void performThrottling(DpsTask dpsTask, StormTaskTuple tuple) {
+        maxTaskPending = readParallelizationParam(dpsTask).orElse(Integer.MAX_VALUE);
+    }
+
+    protected Optional<Integer> readParallelizationParam(DpsTask dpsTask) {
+        return Optional.ofNullable(dpsTask.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
+                .map(Integer::parseInt);
     }
 
     public void nextTuple() {

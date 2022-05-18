@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
+import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
@@ -123,12 +124,17 @@ public final class TopologyHelper {
     }
 
     public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, String topic) {
-        return createECloudSpout(topologyName, topologyProperties, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE);
+        return new ECloudSpout(
+                topologyName, topic,
+                createKafkaSpoutConfig(topologyName, topologyProperties, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
 
-    public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, String topic,
-                                                KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
-
+    private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, Properties topologyProperties, String topic, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder<String, DpsRecord>(
                         topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)
@@ -140,14 +146,7 @@ public final class TopologyHelper {
                         .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getValue(topologyProperties, FETCH_MAX_BYTES, DEFAULT_FETCH_MAX_BYTES))
                         .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
-        return new ECloudSpout(
-                topologyName, topic,
-                configBuilder.build(),
-                topologyProperties.getProperty(CASSANDRA_HOSTS),
-                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+        return configBuilder.build();
     }
 
     public static List<String> addSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
@@ -162,6 +161,30 @@ public final class TopologyHelper {
         return result;
     }
 
+    public static List<String> addMediaSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
+        String[] topics = getTopics(topologyProperties);
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < topics.length; i++) {
+            String spoutName = SPOUT_NAME_PREFIX + (i + 1);
+            ECloudSpout eCloudSpout = TopologyHelper.createMediaSpout(topology, topologyProperties, topics[i]);
+            builder.setSpout(spoutName, eCloudSpout, 1).setNumTasks(1);
+            result.add(spoutName);
+        }
+        return result;
+    }
+
+    public static ECloudSpout createMediaSpout(String topologyName, Properties topologyProperties, String topic) {
+        return new MediaSpout(
+                topologyName, topic,
+                createKafkaSpoutConfig(topologyName, topologyProperties, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
+                topologyProperties.getProperty(CASSANDRA_HOSTS),
+                Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                topologyProperties.getProperty(CASSANDRA_USERNAME),
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+    }
+
+
     public static void addSpoutShuffleGrouping(List<String> spoutNames, BoltDeclarer boltDeclarer) {
         for (String spout : spoutNames) {
             boltDeclarer.shuffleGrouping(spout);
@@ -169,13 +192,20 @@ public final class TopologyHelper {
     }
 
     public static void addSpoutsGroupingToNotificationBolt(List<String> spoutNames, BoltDeclarer boltDeclarer) {
-        addSpoutFieldGrouping(boltDeclarer, spoutNames, NOTIFICATION_STREAM_NAME, NotificationTuple.TASK_ID_FIELD_NAME);
+        addSpoutFieldGrouping(spoutNames, boltDeclarer, NOTIFICATION_STREAM_NAME, NotificationTuple.TASK_ID_FIELD_NAME);
     }
 
-    private static void addSpoutFieldGrouping(BoltDeclarer boltDeclarer, List<String> spoutNames,
+    private static void addSpoutFieldGrouping(List<String> spoutNames, BoltDeclarer boltDeclarer,
                                               String streamName, String fieldName) {
         for (String spout : spoutNames) {
             boltDeclarer.fieldsGrouping(spout, streamName, new Fields(fieldName));
+        }
+    }
+
+    public static void addSpoutFieldGrouping(List<String> spoutNames, BoltDeclarer boltDeclarer,
+                                              String fieldName) {
+        for (String spout : spoutNames) {
+            boltDeclarer.fieldsGrouping(spout, new Fields(fieldName));
         }
     }
 

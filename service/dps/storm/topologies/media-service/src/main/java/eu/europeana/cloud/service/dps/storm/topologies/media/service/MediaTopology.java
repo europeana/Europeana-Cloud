@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import eu.europeana.cloud.service.dps.storm.*;
 import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
@@ -42,17 +39,18 @@ public class MediaTopology {
     public final StormTopology buildTopology(String ecloudMcsAddress) {
         TopologyBuilder builder = new TopologyBuilder();
 
-        List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
+        List<String> spoutNames = TopologyHelper.addMediaSpouts(builder, TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
 
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                 topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
 
-        TopologyHelper.addSpoutShuffleGrouping(spoutNames,
+        TopologyHelper.addSpoutFieldGrouping(spoutNames,
                 builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(ecloudMcsAddress, amazonClient),
                                 (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
-                        .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS))));
+                        .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
+                , StormTupleKeys.THROTTLING_ATTRIBUTE);
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(ecloudMcsAddress),
                         (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
@@ -62,7 +60,7 @@ public class MediaTopology {
         builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(amazonClient),
                         (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(PARSE_FILE_BOLT, new ShuffleGrouping());
+                .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.THROTTLING_ATTRIBUTE));
 
         builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(ecloudMcsAddress),
                         (getAnInt(EDM_ENRICHMENT_BOLT_PARALLEL)))
