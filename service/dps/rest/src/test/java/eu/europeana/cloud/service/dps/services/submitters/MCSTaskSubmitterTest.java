@@ -149,8 +149,6 @@ public class MCSTaskSubmitterTest {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
         RecordSubmitService recordSubmitService = new RecordSubmitService(processedRecordsDAO, recordKafkaSubmitService);
-        when(processedRecordsDAO.insertIfNotExists(anyLong(), anyString(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(true);
         submitter = new MCSTaskSubmitter(taskStatusChecker, taskStatusUpdater, recordSubmitService, null);
         whenNew(DataSetServiceClient.class).withAnyArguments().thenReturn(dataSetServiceClient);
         whenNew(FileServiceClient.class).withAnyArguments().thenReturn(fileServiceClient);
