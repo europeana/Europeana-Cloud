@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -19,7 +18,10 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -42,11 +44,11 @@ public class RecordSubmitServiceTest {
     @Mock
     private RecordExecutionSubmitService kafkaSubmitService;
 
-    private final ProcessedRecord alreadyProcessedRecord = ProcessedRecord.builder().recordId(RECORD_ID).build();
+    private ProcessedRecord alreadyProcessedRecord = ProcessedRecord.builder().recordId(RECORD_ID).build();
 
-    private final DpsRecord record = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID).build();
+    private DpsRecord record = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID).build();
 
-    private final SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+    private SubmitTaskParameters parameters = SubmitTaskParameters.builder()
             .taskInfo(TaskInfo.builder()
                     .topologyName(TOPOLOGY)
                     .startTimestamp(CURRENT_EXECUTION_START_TIME)
@@ -77,11 +79,8 @@ public class RecordSubmitServiceTest {
     public void shouldSaveRecordThatNotAlreadyExists() {
         service.submitRecord(record, parameters);
 
-        verify(processedRecordsDAO).insertIfNotExists(anyLong(), anyString(), eq(0), anyString(),
+        verify(processedRecordsDAO).insert(anyLong(), anyString(), eq(0), anyString(),
                 anyString(), eq(RecordState.QUEUED.toString()), anyString(), anyString());
-
-        verify(processedRecordsDAO, never()).insert(anyLong(), anyString(), ArgumentMatchers.anyInt(), anyString(),
-                anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -92,17 +91,11 @@ public class RecordSubmitServiceTest {
 
         verify(processedRecordsDAO, never()).insert(anyLong(), anyString(), anyInt(), anyString(),
                 anyString(), anyString(), anyString(), anyString());
-
-        verify(processedRecordsDAO, never()).insertIfNotExists(anyLong(), anyString(), anyInt(), anyString(),
-                anyString(), anyString(), anyString(), anyString());
     }
 
 
     @Test
-    public void shouldReturnTrueWhenSubmittingNewRecord() {
-        when(processedRecordsDAO.insertIfNotExists(anyLong(),anyString(),anyInt(),anyString(),anyString(),anyString(),anyString(),anyString()))
-                .thenReturn(true);
-
+    public void shouldReturnTrueWhenSubmitingNewRecord() {
         boolean result = service.submitRecord(record, parameters);
 
         assertTrue(result);
@@ -117,15 +110,6 @@ public class RecordSubmitServiceTest {
         assertFalse(result);
     }
 
-    @Test
-    public void shouldReturnFalseWhenSubmitRecordThatAppearedInDBDuringProcessing() {
-        when(processedRecordsDAO.insertIfNotExists(anyLong(), anyString(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(false);
-
-        boolean result = service.submitRecord(record, parameters);
-
-        assertFalse(result);
-    }
 
     @Test
     public void shouldReturnTrueWhenSubmitRetriedRecord() {
