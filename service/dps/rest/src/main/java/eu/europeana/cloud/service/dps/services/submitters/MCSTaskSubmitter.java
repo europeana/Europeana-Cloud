@@ -25,10 +25,7 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
@@ -103,7 +100,7 @@ public class MCSTaskSubmitter {
         return count;
     }
 
-    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, MCSException {
+    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, MCSException, ExecutionException {
         var expectedSize = 0;
         for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
             expectedSize += executeForOneDataSet(dataSetUrl, submitParameters);
@@ -111,7 +108,7 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, MCSException {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, MCSException, ExecutionException {
         try (var reader = createMcsReader(submitParameters)) {
             var urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
@@ -142,7 +139,7 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, MCSException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -177,11 +174,16 @@ public class MCSTaskSubmitter {
 
             return count;
         } catch (ExecutionException e) {
-            LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
-            throw new SubmitingTaskWasKilled(submitParameters.getTask());
+            if (e.getCause() instanceof SubmitingTaskWasKilled) {
+                LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
+                throw new SubmitingTaskWasKilled(submitParameters.getTask());
+            } else {
+                throw e;
+            }
         }
         finally {
             executor.shutdown();
+            executor.awaitTermination(1, TimeUnit.MINUTES);
         }
     }
 
@@ -234,6 +236,7 @@ public class MCSTaskSubmitter {
     }
 
     private int submitRecordForDeletedRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+        checkIfTaskIsKilled(submitParameters.getTask());
         if (submitRecord(representation.getUri().toString(), submitParameters, true)) {
             return 1;
         } else {

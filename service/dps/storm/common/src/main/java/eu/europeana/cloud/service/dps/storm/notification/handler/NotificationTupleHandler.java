@@ -150,8 +150,15 @@ public class NotificationTupleHandler {
                 .errorType(nCache.getErrorType(errorMessage).getUuid())
                 .errorMessage(errorMessage)
                 .resource(resource)
-                .additionalInformations(additionalInformation.substring(0, Math.min(MAX_STACKTRACE_LENGTH, additionalInformation.length())))
+                .additionalInformations(prepareAdditionalInformation(additionalInformation))
                 .build();
+    }
+
+    private String prepareAdditionalInformation(String additionalInformation) {
+        if (additionalInformation == null)
+            return "";
+        else
+            return additionalInformation.substring(0, Math.min(MAX_STACKTRACE_LENGTH, additionalInformation.length()));
     }
 
     private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, NotificationHandlerConfig config){
