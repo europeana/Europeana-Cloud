@@ -37,12 +37,16 @@ public class SubmitTaskService {
             taskDiagnosticInfoDAO.updateQueuedTime(parameters.getTask().getTaskId(), Instant.now());
         } catch (TaskSubmissionException e) {
             LOGGER.error("Task submission failed: {}", e.getMessage(), e);
-            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),e.getMessage());
+            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), prepareExceptionMessage(e));
         } catch (Exception e) {
             String fullStacktrace = ExceptionUtils.getStackTrace(e);
             LOGGER.error("Task submission failed: {}", fullStacktrace);
             taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),fullStacktrace);
         }
+    }
+
+    private String prepareExceptionMessage(TaskSubmissionException exception){
+        return String.format("%s (Source issue: %s)", exception.getMessage(), exception.getCause().getMessage());
     }
 }
 

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm;
 
-
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -11,6 +10,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class NotificationBoltTest extends CassandraTestBase {
 
@@ -425,6 +426,34 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertEquals(2, taskProgress.getExpectedRecordsNumber());
     }
 
+    @Test
+    public void shouldProperlyExecuteTupleWithHugeErrorsList() throws AccessDeniedOrObjectDoesNotExistException {
+
+        insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
+        NotificationTuple notificationTuple = NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1, RecordState.SUCCESS, "",
+                "", "", 1L);
+        notificationTuple.addParameter(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE,"Unified_error_message");
+        notificationTuple.addParameter(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE, LARGE_STACK_TRACE);
+
+        Tuple tuple = createTestTuple(notificationTuple);
+
+        testedBolt.execute(tuple);
+
+        TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
+        List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
+        assertThat(notifications, hasSize(1));
+        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(1, taskProgress.getProcessedRecordsCount());
+        assertEquals(0, taskProgress.getIgnoredRecordsCount());
+        assertEquals(0, taskProgress.getDeletedRecordsCount());
+        assertEquals(0, taskProgress.getProcessedErrorsCount());
+        assertEquals(0, taskProgress.getDeletedErrorsCount());
+        TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport("1", 1000);
+        errorsInfo.getErrors().forEach(
+                taskErrorInfo -> taskErrorInfo.getErrorDetails().forEach(
+                        errorDetails -> assertTrue(errorDetails.getAdditionalInfo().length() <= NotificationTupleHandler.MAX_STACKTRACE_LENGTH)));
+    }
+
     private void insertTaskToDB(long taskId, String topologyName, int expectedSize, TaskState state,
                                 String info)
             throws NoHostAvailableException, QueryExecutionException {
@@ -496,4 +525,273 @@ public class NotificationBoltTest extends CassandraTestBase {
         };
         return new TupleImpl(topologyContext, testValue, "BoltTest", 1, "");
     }
+
+    private static final String LARGE_STACK_TRACE =
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vd678p31s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:v9807s475/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:25152890c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k930rm42j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zp399303w/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zs269z87s/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:7p88s5953/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:td96zr90z/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:vq28cb83b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:66839t35g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:bg25n4476/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:57130w96c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:t148v655j/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3x81mb046/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qn603t39b/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gb19tw222/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:qf862170h/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:hq388b99g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:n2979n54g/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Exception while processing the resource: https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:xd07wh11t/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:zc786d51j/full/full/0/default.jpg because of: java.net.SocketTimeoutException:\n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:mc883d67p/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1r66xq549/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg. \n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:2b894260c/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:c534vc358/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg.\n" +
+            "The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:3b59dz992/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1z410h23x/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:fx71q9867/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:1n79wt71q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:k643qq586/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg.\n" +
+            " The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:gq67zf59q/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out, Exception while processing the resource: https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg. The full error is: Problem while processing https://repository.dri.ie/images/1831s834g:sn00qn183/full/full/0/default.jpg because of: java.net.SocketTimeoutException: \n" +
+            "Read timed out";
 }

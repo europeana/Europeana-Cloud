@@ -19,6 +19,7 @@ import java.util.*;
 public class NotificationTupleHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationTupleHandler.class);
+    public static final int MAX_STACKTRACE_LENGTH = 6000;
 
     protected final ProcessedRecordsDAO processedRecordsDAO;
     protected final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
@@ -149,8 +150,15 @@ public class NotificationTupleHandler {
                 .errorType(nCache.getErrorType(errorMessage).getUuid())
                 .errorMessage(errorMessage)
                 .resource(resource)
-                .additionalInformations(additionalInformation)
+                .additionalInformations(prepareAdditionalInformation(additionalInformation))
                 .build();
+    }
+
+    private String prepareAdditionalInformation(String additionalInformation) {
+        if (additionalInformation == null)
+            return "";
+        else
+            return additionalInformation.substring(0, Math.min(MAX_STACKTRACE_LENGTH, additionalInformation.length()));
     }
 
     private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, NotificationHandlerConfig config){
