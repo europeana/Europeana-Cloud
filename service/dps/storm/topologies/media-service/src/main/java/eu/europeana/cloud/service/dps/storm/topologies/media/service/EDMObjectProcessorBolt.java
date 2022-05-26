@@ -5,6 +5,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -63,7 +64,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
             LOGGER.debug("Searching for main thumbnail in the resource");
+            logStatistics(true, "getMainThumbnailResourceForMediaExtraction", processingStartTime.toString());
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
+            logStatistics(false, "getMainThumbnailResourceForMediaExtraction", processingStartTime.toString());
             LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
@@ -73,7 +76,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
                 LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
+
+                logStatistics(true, "performMediaExtraction", processingStartTime.toString());
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
+                logStatistics(false, "performMediaExtraction", processingStartTime.toString());
+
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;
                     Set<String> thumbnailTargetNames = null;
@@ -142,7 +149,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             thumbnailUploader = new ThumbnailUploader(taskStatusChecker, amazonClient);
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
-            throw new RuntimeException(e);
+            throw new TopologyGeneralException(e);
         }
     }
 

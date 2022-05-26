@@ -5,6 +5,10 @@ public class TopologyGeneralException extends RuntimeException {
         super(message);
     }
 
+    public TopologyGeneralException(Throwable throwable) {
+        super(throwable);
+    }
+
     public TopologyGeneralException(String message, Throwable cause) {
         super(message, cause);
     }
