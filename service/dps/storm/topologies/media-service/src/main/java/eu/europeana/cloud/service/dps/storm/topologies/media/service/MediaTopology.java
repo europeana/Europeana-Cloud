@@ -48,8 +48,8 @@ public class MediaTopology {
 
         TopologyHelper.addSpoutFieldGrouping(spoutNames,
                 builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(ecloudMcsAddress, amazonClient),
-                                (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
-                        .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
+                                (getAnInt(EDM_OBJECT_PROCESSOR_BOLT_PARALLEL)))
+                        .setNumTasks((getAnInt(EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS)))
                 , StormTupleKeys.THROTTLING_ATTRIBUTE);
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(ecloudMcsAddress),
