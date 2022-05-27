@@ -181,7 +181,8 @@ public final class TopologyHelper {
                 Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                 topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
+                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN),
+                topologyProperties.getProperty(DEFAULT_MAXIMUM_PARALLELIZATION));
     }
 
 

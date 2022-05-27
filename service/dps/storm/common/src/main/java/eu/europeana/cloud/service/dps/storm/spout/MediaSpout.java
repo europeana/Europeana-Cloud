@@ -15,14 +15,19 @@ import java.util.Map;
 public class MediaSpout extends ECloudSpout {
 
     private ThrottlingAttributeGenerator generator;
+    private String defaultMaximumParallelization;
 
     public MediaSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig,
-                      String hosts, int port, String keyspaceName, String userName, String password) {
+                      String hosts, int port, String keyspaceName, String userName, String password,
+                      String defaultMaximumParallelization) {
         super(topologyName, topic, kafkaSpoutConfig, hosts, port, keyspaceName, userName, password);
+        this.defaultMaximumParallelization = defaultMaximumParallelization;
     }
 
     protected void performThrottling(DpsTask dpsTask, StormTaskTuple tuple) {
-        int parallelizationParam = readParallelizationParam(dpsTask).orElse(Integer.MAX_VALUE);
+        applyDefaultMaximumParallelizationIfNotSet(tuple);
+
+        int parallelizationParam = tuple.readParallelizationParam();
         if (parallelizationParam == 1) {
             maxTaskPending = 1;
         } else {
@@ -30,6 +35,12 @@ public class MediaSpout extends ECloudSpout {
         }
         tuple.setThrottlingAttribute(generator.generate(dpsTask.getTaskId(),
                 MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(parallelizationParam)));
+    }
+
+    private void applyDefaultMaximumParallelizationIfNotSet(StormTaskTuple tuple) {
+        if (tuple.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION) == null) {
+            tuple.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, defaultMaximumParallelization);
+        }
     }
 
 

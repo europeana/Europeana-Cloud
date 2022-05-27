@@ -8,7 +8,6 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 
 import java.util.List;
-import java.util.Optional;
 
 public class ParseFileForMediaBolt extends ParseFileBolt {
 
@@ -38,12 +37,7 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
 
     private void applyThrottling(StormTaskTuple tuple) {
         tuple.setThrottlingAttribute(generator.generate(tuple.getTaskId(),
-                MediaThrottlingFractionEvaluator.evalForResourceProcessing(readParallelizationParam(tuple))));
-    }
-
-    private Integer readParallelizationParam(StormTaskTuple tuple) {
-        return Optional.ofNullable(tuple.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
-                .map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+                MediaThrottlingFractionEvaluator.evalForResourceProcessing(tuple.readParallelizationParam())));
     }
 
     @Override

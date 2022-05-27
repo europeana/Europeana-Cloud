@@ -15,6 +15,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
 
@@ -173,4 +174,8 @@ public class StormTaskTuple implements Serializable {
         this.throttlingAttribute = throttlingAttribute;
     }
 
+    public int readParallelizationParam() {
+        return Optional.ofNullable(getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
+                .map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+    }
 }

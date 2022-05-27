@@ -377,12 +377,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     protected void performThrottling(DpsTask dpsTask, StormTaskTuple tuple) {
-        maxTaskPending = readParallelizationParam(dpsTask).orElse(Integer.MAX_VALUE);
-    }
-
-    protected Optional<Integer> readParallelizationParam(DpsTask dpsTask) {
-        return Optional.ofNullable(dpsTask.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
-                .map(Integer::parseInt);
+        maxTaskPending = tuple.readParallelizationParam();
     }
 
     public void nextTuple() {
