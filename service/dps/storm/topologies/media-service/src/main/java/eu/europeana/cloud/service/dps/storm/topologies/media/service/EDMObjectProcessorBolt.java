@@ -16,6 +16,7 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
@@ -26,6 +27,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Set;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
@@ -56,30 +60,33 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.debug("Starting edm:object processing");
-        Instant processingStartTime = Instant.now();
-        StringBuilder exception = new StringBuilder();
+        var processingStartTime = Instant.now();
+        var exception = new StringBuilder();
+        var opId = RandomStringUtils.random(12, "0123456789abcdef");
 
-        int resourcesToBeProcessed = 0;
+        var resourcesToBeProcessed = 0;
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
             LOGGER.debug("Searching for main thumbnail in the resource");
-            logStatistics(true, "getMainThumbnailResourceForMediaExtraction", processingStartTime.toString());
+            logStatistics(BEGIN, "getMainThumbnailResourceForMediaExtraction", opId);
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
-            logStatistics(false, "getMainThumbnailResourceForMediaExtraction", processingStartTime.toString());
+            logStatistics(END, "getMainThumbnailResourceForMediaExtraction", opId);
             LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
             //  to collect all the resources instead of just counting them
+            logStatistics(BEGIN, "getRemainingResourcesForMediaExtraction", opId);
             resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
+            logStatistics(END, "getRemainingResourcesForMediaExtraction", opId);
 
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
                 LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
 
-                logStatistics(true, "performMediaExtraction", processingStartTime.toString());
+                logStatistics(BEGIN, "performMediaExtraction", opId);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
-                logStatistics(false, "performMediaExtraction", processingStartTime.toString());
+                logStatistics(END, "performMediaExtraction", opId);
 
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;

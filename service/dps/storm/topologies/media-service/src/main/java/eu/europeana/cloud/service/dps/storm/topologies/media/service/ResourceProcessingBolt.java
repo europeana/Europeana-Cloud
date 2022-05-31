@@ -19,6 +19,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
+
 public class ResourceProcessingBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
@@ -48,9 +51,9 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             }
             LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
 
-            logStatistics(true, "performMediaExtraction", rdfResourceEntry.getResourceUrl() );
+            logStatistics(BEGIN, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
             ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
-            logStatistics(false, "performMediaExtraction", rdfResourceEntry.getResourceUrl() );
+            logStatistics(END, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
 
             if (resourceExtractionResult != null) {
                 LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);

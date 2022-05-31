@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import org.apache.logging.log4j.message.Message;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -37,7 +38,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
 
     protected static final Logger STATISTICS_LOGGER = LoggerFactory.getLogger("STATISTICS_LOGGER");
-    protected static final String STATISTICS_LOGGER_SEPARATOR = ",";
+    protected static final String STATISTICS_LOGGER_MESSAGE_PATTERN = "[{}],{},{}";
 
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
@@ -215,7 +216,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         // nothing to clean here when the message is reprocessed
     }
 
-    protected void logStatistics(boolean begin, String opName, String opId) {
-        STATISTICS_LOGGER.debug("[{}]{}{}{}{}", begin ? "BEGIN" : "END", STATISTICS_LOGGER_SEPARATOR, opName, STATISTICS_LOGGER_SEPARATOR, opId);
+    protected void logStatistics(LogStatisticsPosition position, String opName, String opId) {
+        STATISTICS_LOGGER.debug(STATISTICS_LOGGER_MESSAGE_PATTERN, position, opName, opId);
+    }
+
+    public enum LogStatisticsPosition {
+        BEGIN,
+        END
     }
 }
