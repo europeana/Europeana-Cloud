@@ -11,18 +11,15 @@ public class MediaThrottlingFractionEvaluatorTest {
         assertEquals(1, MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(1));
     }
 
-
     @Test
     public void shouldProperlyEvalForResourceProcessingWithMaxParallelization1() {
         assertEquals(1, MediaThrottlingFractionEvaluator.evalForResourceProcessing(1));
     }
 
-
     @Test
     public void shouldProperlyEvalForEdmObjectProcessingWithMaxParallelization2() {
         assertEquals(1, MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(2));
     }
-
 
     @Test
     public void shouldProperlyEvalForResourceProcessingWithMaxParallelization2() {
@@ -34,7 +31,6 @@ public class MediaThrottlingFractionEvaluatorTest {
         assertEquals(1, MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(3));
     }
 
-
     @Test
     public void shouldProperlyEvalForResourceProcessingWithMaxParallelization3() {
         assertEquals(2, MediaThrottlingFractionEvaluator.evalForResourceProcessing(3));
@@ -45,7 +41,6 @@ public class MediaThrottlingFractionEvaluatorTest {
         assertEquals(2, MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(4));
     }
 
-
     @Test
     public void shouldProperlyEvalForResourceProcessingWithMaxParallelization4() {
         assertEquals(2, MediaThrottlingFractionEvaluator.evalForResourceProcessing(4));
@@ -55,7 +50,6 @@ public class MediaThrottlingFractionEvaluatorTest {
     public void shouldProperlyEvalForEdmObjectProcessingWithMaxParallelization5() {
         assertEquals(2, MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(5));
     }
-
 
     @Test
     public void shouldProperlyEvalForResourceProcessingWithMaxParallelization5() {
