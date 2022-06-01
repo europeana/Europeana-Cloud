@@ -31,5 +31,5 @@ public final class StormTupleKeys {
 
 	public static final String RECORD_ATTEMPT_NUMBER = "RECORD_ATTEMPT_NUMBER";
 
-	public static final String THROTTLING_ATTRIBUTE = "THROTTLING_ATTRIBUTE";
+	public static final String THROTTLING_GROUPING_ATTRIBUTE = "THROTTLING_ATTRIBUTE";
 }

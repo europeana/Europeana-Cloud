@@ -50,7 +50,7 @@ public class MediaTopology {
                 builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(ecloudMcsAddress, amazonClient),
                                 (getAnInt(EDM_OBJECT_PROCESSOR_BOLT_PARALLEL)))
                         .setNumTasks((getAnInt(EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS)))
-                , StormTupleKeys.THROTTLING_ATTRIBUTE);
+                , StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE);
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(ecloudMcsAddress),
                         (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
@@ -60,7 +60,7 @@ public class MediaTopology {
         builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(amazonClient),
                         (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
-                .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.THROTTLING_ATTRIBUTE));
+                .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE));
 
         builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(ecloudMcsAddress),
                         (getAnInt(EDM_ENRICHMENT_BOLT_PARALLEL)))

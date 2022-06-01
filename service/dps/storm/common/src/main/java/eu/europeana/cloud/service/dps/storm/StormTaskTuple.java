@@ -43,7 +43,7 @@ public class StormTaskTuple implements Serializable {
     private OAIPMHHarvestingDetails sourceDetails;
     private int recordAttemptNumber;
 
-    private String throttlingAttribute;
+    private String throttlingGroupingAttribute;
 
     public StormTaskTuple() {
         this(0L, "", null, null, new HashMap<>(), null);
@@ -142,7 +142,7 @@ public class StormTaskTuple implements Serializable {
 
     public Values toStormTuple() {
         return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails,
-                recordAttemptNumber, throttlingAttribute);
+                recordAttemptNumber, throttlingGroupingAttribute);
     }
 
     public static Fields getFields() {
@@ -155,7 +155,7 @@ public class StormTaskTuple implements Serializable {
                 REVISIONS,
                 SOURCE_TO_HARVEST,
                 RECORD_ATTEMPT_NUMBER,
-                THROTTLING_ATTRIBUTE);
+                THROTTLING_GROUPING_ATTRIBUTE);
     }
 
     public boolean isMarkedAsDeleted() {
@@ -170,8 +170,8 @@ public class StormTaskTuple implements Serializable {
         }
     }
 
-    public void setThrottlingAttribute(String throttlingAttribute) {
-        this.throttlingAttribute = throttlingAttribute;
+    public void setThrottlingGroupingAttribute(String throttlingGroupingAttribute) {
+        this.throttlingGroupingAttribute = throttlingGroupingAttribute;
     }
 
     public int readParallelizationParam() {

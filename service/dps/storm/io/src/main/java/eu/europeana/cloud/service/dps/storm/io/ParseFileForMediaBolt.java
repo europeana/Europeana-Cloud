@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingAttributeGenerator;
+import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ParseFileForMediaBolt extends ParseFileBolt {
 
-    private ThrottlingAttributeGenerator generator;
+    private ThrottlingTupleGroupSelector generator;
 
     public ParseFileForMediaBolt(String ecloudMcsAddress) {
         super(ecloudMcsAddress);
@@ -34,12 +34,12 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
     }
 
     private void applyThrottling(StormTaskTuple tuple) {
-        tuple.setThrottlingAttribute(generator.generateForResourceProcessingBolt(tuple));
+        tuple.setThrottlingGroupingAttribute(generator.generateForResourceProcessingBolt(tuple));
     }
 
     @Override
     public void prepare() {
         super.prepare();
-        generator=new ThrottlingAttributeGenerator();
+        generator=new ThrottlingTupleGroupSelector();
     }
 }

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.spout;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingAttributeGenerator;
+import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class MediaSpout extends ECloudSpout {
 
-    private transient ThrottlingAttributeGenerator generator;
+    private transient ThrottlingTupleGroupSelector generator;
     private final String defaultMaximumParallelization;
 
     @SuppressWarnings("java:S107")
@@ -33,7 +33,7 @@ public class MediaSpout extends ECloudSpout {
         } else {
             maxTaskPending = parallelizationParam * 2L;
         }
-        tuple.setThrottlingAttribute(generator.generateForEdmObjectProcessingBolt(tuple));
+        tuple.setThrottlingGroupingAttribute(generator.generateForEdmObjectProcessingBolt(tuple));
     }
 
     private void applyDefaultMaximumParallelizationIfNotSet(StormTaskTuple tuple) {
@@ -46,6 +46,6 @@ public class MediaSpout extends ECloudSpout {
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         super.open(conf, context, collector);
-        generator = new ThrottlingAttributeGenerator();
+        generator = new ThrottlingTupleGroupSelector();
     }
 }
