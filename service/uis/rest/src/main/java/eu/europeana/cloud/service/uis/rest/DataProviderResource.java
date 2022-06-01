@@ -91,38 +91,6 @@ public class DataProviderResource {
         return ResponseEntity.noContent().build();
     }
 
-
-    /**
-     * Deletes data provider from database
-     *
-     * <br/>
-     * <br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
-     * 6px;'> <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Admin role</li>
-     * </ul>
-     * </div>
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> data provider id
-     *
-     * @return Empty response with http status code indicating whether the
-     *         operation was successful or not
-     *
-     * @throws ProviderDoesNotExistException
-     *             The supplied provider does not exist
-     *
-     */
-    @DeleteMapping(value = RestInterfaceConstants.DATA_PROVIDER)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteProvider(@PathVariable String providerId)
-            throws ProviderDoesNotExistException {
-        providerService.deleteProvider(providerId);
-        deleteProviderAcl(providerId);
-        return ResponseEntity.ok().build();
-    }
-
     /**
      *
      * Create a mapping between a cloud identifier and a record identifier for a
@@ -242,9 +210,4 @@ public class DataProviderResource {
         aclWrapper.deleteAcl(providerIdentity, false);
     }
 
-
-    private void deleteProviderAcl(String dataProviderId) {
-        ObjectIdentity providerIdentity = new ObjectIdentityImpl(DataProvider.class.getName(), dataProviderId);
-        aclWrapper.deleteAcl(providerIdentity, false);
-    }
 }

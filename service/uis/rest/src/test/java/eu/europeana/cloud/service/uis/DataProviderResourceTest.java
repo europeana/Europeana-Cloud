@@ -159,12 +159,6 @@ public class DataProviderResourceTest {
     }
 
     @Test
-    public void shouldDeleteProvider() throws Exception {
-        mockMvc.perform(delete(RestInterfaceConstants.DATA_PROVIDER, "provident").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     public void testCreateMapping() throws Exception {
         CloudId gid = createCloudId();
 

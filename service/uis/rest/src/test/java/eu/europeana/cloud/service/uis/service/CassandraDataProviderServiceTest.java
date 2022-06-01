@@ -123,25 +123,6 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 		assertThat(insertedProviderIds, is(fetchedProviderIds));
 	}
 
-	@Test(expected = ProviderDoesNotExistException.class)
-	public void shouldDeleteProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException{
-		String id = "sampleProvider";
-		DataProvider dp = cassandraDataProviderService
-				.createProvider(id, createRandomDataProviderProperties());
-
-		DataProvider dpFromService = cassandraDataProviderService.getProvider("sampleProvider");
-		assertThat(dp, is(dpFromService));
-		assertThat(dp.getPartitionKey(), is(id.hashCode()));
-		//
-		cassandraDataProviderService.deleteProvider("sampleProvider");
-		cassandraDataProviderService.deleteProvider("sampleProvider");
-	}
-	
-	@Test(expected = ProviderDoesNotExistException.class)
-	public void shouldThrowExceptionWhenDeletingNonExistingProvider() throws ProviderDoesNotExistException {
-		cassandraDataProviderService.deleteProvider("not existing provident");
-	}
-
 	private DataProviderProperties createRandomDataProviderProperties() {
 		DataProviderProperties properties = new DataProviderProperties();
 		properties.setContactPerson("Contact_Person_" + randomString());
