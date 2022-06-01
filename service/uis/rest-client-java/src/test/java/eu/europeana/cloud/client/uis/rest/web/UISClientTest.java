@@ -332,27 +332,6 @@ public class UISClientTest {
         assertEquals(cloudIdIhave, cloudIdIGotBack);
     }
 
-    @Test(expected = CloudException.class)
-    public final void deleteRecordTest() throws Exception {
-
-        UISClient uisClient = new UISClient(BASE_URL, username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/cloudIds?providerId=PROVIDER_1&recordId=TEST_RECORD_1",
-                404,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>The supplied provider identifier PROVIDER_1 does not exist</details><errorCode>PROVIDER_DOES_NOT_EXIST</errorCode></errorInfo>");
-
-    	// create a record
-        final CloudId cloudIdIhave = uisClient.createCloudId(PROVIDER_ID, RECORD_ID);
-        
-        // delete it
-        final boolean isDeleted = uisClient.deleteCloudId(cloudIdIhave.getId());
-        assertTrue(isDeleted);
-
-        // try to get it back => should throw CloudIdDoesNotExist exception
-        uisClient.getRecordId(cloudIdIhave.getId());
-    }
-
     @Test
     public final void createCloudIdandRetrieveCloudIdTest() throws Exception {
 	  

@@ -17,8 +17,6 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * Implementation of the Unique Identifier Service.
  *
@@ -139,45 +137,4 @@ public class UniqueIdentifierResource {
         return ResponseEntity.ok(pList);
     }
 
-
-    /**
-     * Remove a cloud identifier and all the associations to its record
-     * identifiers
-     * <p>
-     * <br/>
-     * <br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
-     * 6px;'> <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Admin role</li>
-     * </ul>
-     * </div>
-     *
-     * @param cloudId <strong>REQUIRED</strong> cloud identifier which will be
-     *                removed
-     * @return Empty response with http status code indicating whether the
-     * operation was successful or not
-     * @throws DatabaseConnectionException   database error
-     * @throws CloudIdDoesNotExistException  cloud identifier does not exist
-     * @throws ProviderDoesNotExistException provider does not exist
-     */
-    @DeleteMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteCloudId(@PathVariable String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException {
-
-        //usuwanie cloudId local id tworznego przy tworznie clouId
-        //sprawdzić co się stanie po dodaniu mapowania wiele razy i uunięcu cloudId
-        //dopisac
-
-        List<CloudId> removedCloudIds = uniqueIdentifierService.deleteCloudId(cloudId);
-        for (CloudId cId : removedCloudIds) {
-            dataProviderResource.deleteLocalIdAcl(cId.getLocalId().getRecordId(), cId.getLocalId().getProviderId());
-        }
-
-        // let's delete the permissions as well
-        ObjectIdentity cloudIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cloudId);
-        aclWrapper.deleteAcl(cloudIdentity, false);
-        return ResponseEntity.ok("CloudId marked as deleted");
-    }
 }

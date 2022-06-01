@@ -357,27 +357,6 @@ public class UISClient implements AutoCloseable {
         );
     }
 
-
-    /**
-     * Delete a cloud id and all its mapped record ids.
-     *
-     * @param cloudId The cloud id to remove
-     * @return A confirmation message that the mappings have been removed
-     * correctly
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public boolean deleteCloudId(String cloudId) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl())
-                .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
-                .resolveTemplate(P_CLOUD_ID, cloudId)
-                .request()
-                .delete()
-        );
-    }
-
-
-
     /**
      * Create a data provider.
      *

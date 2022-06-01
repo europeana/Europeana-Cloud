@@ -126,19 +126,6 @@ public interface UniqueIdentifierService {
 
 
     /**
-     * Delete a cloud Identifier and all of its relevant mappings. Everything is
-     * soft-deleted
-     *
-     * @param cloudId Cloud identifier
-     * @throws DatabaseConnectionException Problems with connection to database
-     * @throws CloudIdDoesNotExistException Cloud identifier does not exist
-     * @throws ProviderDoesNotExistException Provider does not exist
-     */
-    List<CloudId> deleteCloudId(String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException;
-
-
-    /**
      * Expose information about the database host entry;
      * 
      * @return The host IP

@@ -156,9 +156,4 @@ public class UISClientTestIT {
         boolean result = c.removeMappingByLocalId("providerId", "startRecordId1");
     }
 
-    @Test
-    public void shouldDeleteCloudId() throws CloudException {
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        boolean result = c.deleteCloudId("FN4JFCFKTZNLC4YZRLRIMOKJBMH37U55XDTA5ZWUGWOICO6S5PNQ");
-    }
 }

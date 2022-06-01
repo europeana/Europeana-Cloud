@@ -29,7 +29,6 @@ public class CloudIdDAO {
 
     private PreparedStatement insertStatement;
     private PreparedStatement searchStatementNonActive;
-    private PreparedStatement deleteStatement;
 
     /**
      * The DAO for Cloud identifiers
@@ -46,10 +45,7 @@ public class CloudIdDAO {
 
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare("insert into cloud_id(cloud_id,provider_id,record_id) values(?,?,?)");
-
         searchStatementNonActive = dbService.getSession().prepare("select * from cloud_id where cloud_id=?");
-
-        deleteStatement = dbService.getSession().prepare("delete from cloud_id where cloud_id=? and provider_id=? and record_id=?");
     }
 
     public String getHostList() {
@@ -117,18 +113,6 @@ public class CloudIdDAO {
 
     public BoundStatement bindInsertStatement(String cloudId, String providerId, String recordId) {
         return insertStatement.bind(cloudId, providerId, recordId);
-    }
-
-    public void delete(String cloudId, String providerId, String recordId) throws DatabaseConnectionException {
-        try {
-            dbService.getSession().execute(deleteStatement.bind(cloudId, providerId, recordId));
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(hostList, port,e.getMessage()))
-            );
-        }
     }
 
     private CloudId createFrom(Row row){
