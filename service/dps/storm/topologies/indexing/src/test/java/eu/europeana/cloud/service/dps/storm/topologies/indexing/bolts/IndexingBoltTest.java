@@ -95,7 +95,7 @@ public class IndexingBoltTest {
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
                 .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
@@ -128,7 +128,7 @@ public class IndexingBoltTest {
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
                 .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
@@ -162,7 +162,7 @@ public class IndexingBoltTest {
                 .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
                 .publishedHarvestDate(null).publishedHarvestMd5(null).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(8, parameters.size());
@@ -189,7 +189,7 @@ public class IndexingBoltTest {
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID).latestHarvestDate(HARVEST_DATE)
                 .publishedHarvestDate(HARVEST_DATE).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
