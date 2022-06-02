@@ -37,7 +37,6 @@ public class CassandraUserDAO {
     private PreparedStatement selectUserStatement;
     private PreparedStatement createUserStatement;
     private PreparedStatement updateUserStatement;
-    private PreparedStatement deleteUserStatement;
 
     /**
      * Constructs a new <code>CassandraUserDAO</code>.
@@ -64,8 +63,6 @@ public class CassandraUserDAO {
         updateUserStatement = provider.getSession().prepare(
                 "UPDATE users SET password = ? WHERE username = ?;");
 
-        deleteUserStatement = provider.getSession().prepare(
-                "DELETE FROM users WHERE username = ?;");
     }
 
     public SpringUser getUser(final String username)
@@ -111,23 +108,6 @@ public class CassandraUserDAO {
         try {
             var boundStatement = updateUserStatement.bind(
                     user.getPassword(), user.getUsername());
-            provider.getSession().execute(boundStatement);
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                                    .getErrorInfo(provider.getHosts(),
-                                            provider.getPort(), e.getMessage())));
-        }
-    }
-
-    public void deleteUser(final String username)
-            throws DatabaseConnectionException {
-
-        try {
-            var boundStatement = deleteUserStatement.bind(username);
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(

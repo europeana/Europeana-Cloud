@@ -84,17 +84,4 @@ public class CassandraAuthenticationService implements UserDetailsService, Authe
         }
     }
 
-    @Override
-    public void deleteUser(final String userName) throws DatabaseConnectionException, UserDoesNotExistException {
-        if (userDao.getUser(userName) == null) {
-            throw new UserDoesNotExistException(
-                    new IdentifierErrorInfo(
-                            IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                    .getHttpCode(),
-                            IdentifierErrorTemplate.USER_DOES_NOT_EXIST
-                                    .getErrorInfo(userName)));
-        } else {
-            userDao.deleteUser(userName);
-        }
-    }
 }

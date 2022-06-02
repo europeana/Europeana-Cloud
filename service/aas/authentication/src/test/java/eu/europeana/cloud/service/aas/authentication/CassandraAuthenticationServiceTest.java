@@ -55,28 +55,6 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
         service.getUser("test2");
     }
 
-    /**
-     * Test delete user
-     *
-     * @throws Exception
-     */
-    @Test(expected = UserDoesNotExistException.class)
-    public void testDeleteUser() throws Exception {
-        dao.createUser(new SpringUser("test3", "test3"));
-        service.deleteUser("test3");
-        service.getUser("test3");
-    }
-
-    /**
-     * Test UserDoesNotExistException when deleting
-     *
-     * @throws Exception
-     */
-    @Test(expected = UserDoesNotExistException.class)
-    public void testDeleteUserException() throws Exception {
-        service.deleteUser("test4");
-    }
-
     @Test(expected = UserDoesNotExistException.class)
     public void shouldThrowExceptionInCaseOfUpdatingNonExistingUser() throws Exception{
         service.updateUser(new SpringUser("user1","password1"));

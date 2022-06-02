@@ -17,7 +17,5 @@ public interface AuthenticationService {
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException;
 
-    void deleteUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
-
     User getUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
 }

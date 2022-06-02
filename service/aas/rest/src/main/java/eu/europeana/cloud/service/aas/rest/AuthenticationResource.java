@@ -36,19 +36,6 @@ public class AuthenticationResource {
     }
 
     /**
-     * Deletes a user with the specified username.
-     */
-    @PostMapping(value = "/delete-user", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteCloudUser(
-            @RequestParam(AASParamConstants.P_USER_NAME) String username)
-            throws DatabaseConnectionException, UserDoesNotExistException {
-
-        authenticationService.deleteUser(username);
-        return ResponseEntity.ok("Cloud user is gone. Bye bye.");
-    }
-
-    /**
      * Updates an ecloud-user with the specified username + password.
      */
     @PostMapping(value = "/update-user", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
