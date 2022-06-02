@@ -14,4 +14,6 @@ public interface ECloudSpoutMXBean {
     String getLastAckedMessageId();
 
     String getLastFailedMessageId();
+
+    long getMaxSpoutPending();
 }

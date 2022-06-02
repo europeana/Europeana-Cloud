@@ -34,6 +34,12 @@ public class DpsTaskValidatorTest {
     private DpsTask dpsTaskWithIncorrectRevision_9;
     private DpsTask dpsTaskWithIncorrectRevision_10;
     private DpsTask dpsTaskWithNullOutputRevision;
+    private DpsTask dpsTaskWithValidMaximumParallelization;
+    private DpsTask dpsTaskWithNotNumberMaximumParallelization;
+    private DpsTask dpsTaskWithTooBigPossibleMaximumParallelization;
+    private DpsTask dpsTaskWithZeroMaximumParallelization;
+    private DpsTask dpsTaskWithNegativeMaximumParallelization;
+    private DpsTask dpsTaskWithMinimalValidMaximumParallelization;
 
     private static final String TASK_NAME = "taskName";
     private static final String EXISTING_PARAMETER_NAME = "param_1";
@@ -45,6 +51,7 @@ public class DpsTaskValidatorTest {
             Collections.singletonList("http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
 
     private static final Revision correctRevision = new Revision("sampleRevisionName", "sampleRevisionProvider");
+
 
     @Before
     public void init() {
@@ -120,6 +127,26 @@ public class DpsTaskValidatorTest {
         dpsTaskWithIncorrectRevision_10.addParameter(PluginParameterKeys.REVISION_NAME,"sampleRevisionName");
 
         dpsTaskWithNullOutputRevision = new DpsTask(TASK_NAME);
+
+        dpsTaskWithMinimalValidMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithMinimalValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "1");
+
+        dpsTaskWithValidMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "10");
+
+        dpsTaskWithNegativeMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithNegativeMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "-2");
+
+        dpsTaskWithZeroMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithZeroMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "0");
+
+        dpsTaskWithTooBigPossibleMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithTooBigPossibleMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION,
+                String.valueOf(1L + Integer.MAX_VALUE));
+
+        dpsTaskWithNotNumberMaximumParallelization = new DpsTask(TASK_NAME);
+        dpsTaskWithNotNumberMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION,"a");
+
     }
 
     @Test
@@ -352,6 +379,36 @@ public class DpsTaskValidatorTest {
     @Test
     public void validatorShouldValidateDpsTaskWithCorrectOutputRevision() throws DpsTaskValidationException {
         new DpsTaskValidator().validate(dpsTask);
+    }
+
+    @Test
+    public void validatorShouldValidateDpsTaskWithValidMaximumParallelization() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithValidMaximumParallelization);
+    }
+
+    @Test
+    public void validatorShouldValidateDpsTaskWithMinimalValidMaximumParallelization() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithMinimalValidMaximumParallelization);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatNegativeMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithNegativeMaximumParallelization);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatZeroMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithZeroMaximumParallelization);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatTooBigPossibleMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithTooBigPossibleMaximumParallelization);
+    }
+
+    @Test(expected = DpsTaskValidationException.class)
+    public void validatorShouldValidateThatNotNumberMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithNotNumberMaximumParallelization);
     }
 
 }

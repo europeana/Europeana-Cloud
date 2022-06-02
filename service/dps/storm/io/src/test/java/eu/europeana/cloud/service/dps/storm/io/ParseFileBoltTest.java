@@ -100,7 +100,7 @@ public class ParseFileBoltTest {
             List<Values> capturedValuesList = captor.getAllValues();
             assertEquals(4, capturedValuesList.size());
             for (Values values : capturedValuesList) {
-                assertEquals(8, values.size());
+                assertEquals(9, values.size());
                 var val = (Map<String, String>) values.get(4);
                 assertNotNull(val);
                 for (String parameterKey : val.keySet()) {

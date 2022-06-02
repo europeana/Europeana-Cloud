@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.MaximumParallelizationValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.net.MalformedURLException;
@@ -28,6 +29,7 @@ public class DpsTaskValidator {
 
     public DpsTaskValidator(String validatorName) {
         this.validatorName = validatorName;
+        withCustomValidator(new MaximumParallelizationValidator());
     }
 
     public DpsTaskValidator withParameter(String parameterName) {

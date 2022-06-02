@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -59,8 +58,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
     protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
-    private ECloudOutputCollector eCloudOutputCollector;
-    private long maxTaskPending = Long.MAX_VALUE;
+    private transient ECloudOutputCollector eCloudOutputCollector;
+    protected long maxTaskPending = Long.MAX_VALUE;
 
     public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -267,17 +266,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             var taskInfo = getTaskInfo(message);
             var dpsTask = DpsTask.fromTaskInfo(taskInfo);
-            setMaxTaskPending(dpsTask);
             updateDiagnosticCounters(aRecord);
             var stormTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);
-            LOGGER.info("Emitting a record to the subsequent bolt");
+            performThrottling(stormTaskTuple);
+            LOGGER.info("Emitting a record to the subsequent bolt maxPending: {}", maxTaskPending);
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
-        }
-
-        private void setMaxTaskPending(DpsTask dpsTask) {
-            maxTaskPending = Optional.ofNullable(dpsTask.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
-                    .map(Long::parseLong)
-                    .orElse(Long.MAX_VALUE);
         }
 
         List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
@@ -347,6 +340,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         @Override
+        public long getMaxSpoutPending() {
+            return maxTaskPending;
+        }
+
+        @Override
         public String showSpoutToString() {
             return getSpoutString();
         }
@@ -382,6 +380,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
     }
 
+    protected void performThrottling(StormTaskTuple tuple) {
+        maxTaskPending = tuple.readParallelizationParam();
+    }
+
+    @Override
     public void nextTuple() {
         if (eCloudOutputCollector.getPendingCount() < maxTaskPending) {
             super.nextTuple();
