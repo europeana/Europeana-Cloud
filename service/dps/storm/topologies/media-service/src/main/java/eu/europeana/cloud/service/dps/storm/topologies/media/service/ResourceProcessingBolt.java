@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
@@ -18,12 +19,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
+
 public class ResourceProcessingBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceProcessingBolt.class);
+
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
-    private AmazonClient amazonClient;
+    private final AmazonClient amazonClient;
 
     private transient Gson gson;
     private transient MediaExtractor mediaExtractor;
@@ -45,7 +50,11 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
                 return;
             }
             LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
+
+            logStatistics(BEGIN, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
             ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
+            logStatistics(END, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
+
             if (resourceExtractionResult != null) {
                 LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
                 if (resourceExtractionResult.getMetadata() != null)
@@ -83,7 +92,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             thumbnailUploader = new ThumbnailUploader(taskStatusChecker, amazonClient);
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
-            throw new RuntimeException(e);
+            throw new TopologyGeneralException(e);
         }
     }
 
