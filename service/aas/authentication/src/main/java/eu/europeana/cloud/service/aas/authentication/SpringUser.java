@@ -20,8 +20,9 @@ public class SpringUser extends User implements UserDetails {
 
 	private List<GrantedAuthority> roles  = new ArrayList<GrantedAuthority>(0);
 
-    public SpringUser(final String username, final String password, final Set<String> userRoles) {
+    public SpringUser(final String username, final String password, final Set<String> userRoles, boolean locked) {
         super(username, password);
+        this.setLocked(locked);
         this.roles = mapToStringRoles(userRoles);
     }
 

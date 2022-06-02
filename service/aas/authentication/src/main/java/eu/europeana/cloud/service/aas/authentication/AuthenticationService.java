@@ -18,4 +18,8 @@ public interface AuthenticationService {
             InvalidPasswordException;
 
     User getUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
+
+    void lockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
+
+    void unlockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
 }

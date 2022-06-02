@@ -15,6 +15,8 @@ public class User {
     private String username;
 
     private String password;
+
+    private boolean locked = false;
     
     /** for example: 'ROLE_ADMIN' if the current user is an admin */
     private Set<String> roles = new HashSet<String>(0);
@@ -54,6 +56,14 @@ public class User {
     public Set<String> getRoles() {
 		return roles;
 	}
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
 
     @Override
     public int hashCode() {

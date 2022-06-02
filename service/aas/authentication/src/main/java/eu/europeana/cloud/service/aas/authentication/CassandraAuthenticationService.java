@@ -58,6 +58,28 @@ public class CassandraAuthenticationService implements UserDetailsService, Authe
     }
 
     @Override
+    public void lockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException {
+        if (userDao.getUser(userName) == null) {
+            throw new UserDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.USER_EXISTS.getHttpCode(),
+                    IdentifierErrorTemplate.USER_EXISTS.getErrorInfo(userName)));
+        } else {
+            userDao.lockUser(userName);
+        }
+    }
+
+    @Override
+    public void unlockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException {
+        if (userDao.getUser(userName) == null) {
+            throw new UserDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.USER_EXISTS.getHttpCode(),
+                    IdentifierErrorTemplate.USER_EXISTS.getErrorInfo(userName)));
+        } else {
+            userDao.unlockUser(userName);
+        }
+    }
+
+    @Override
     public void createUser(final User user) throws DatabaseConnectionException, UserExistsException {
         if (userDao.getUser(user.getUsername()) != null) {
             throw new UserExistsException(new IdentifierErrorInfo(
