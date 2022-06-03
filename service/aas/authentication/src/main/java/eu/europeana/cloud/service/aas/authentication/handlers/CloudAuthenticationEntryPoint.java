@@ -1,11 +1,16 @@
 package eu.europeana.cloud.service.aas.authentication.handlers;
 
+import eu.europeana.cloud.common.response.ErrorInfo;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Authentication should only be done by a request to the correct URI and proper
@@ -18,6 +23,23 @@ public class CloudAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setHeader("Content-Type","application/xml");
+        writeErrorInfo(
+                response.getWriter(),
+                authException);
+    }
+
+    private void writeErrorInfo(PrintWriter writer, Exception exception){
+        JAXBContext contextObj;
+        try {
+            contextObj = JAXBContext.newInstance(ErrorInfo.class);
+            Marshaller marshallerObj = contextObj.createMarshaller();
+            marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            ErrorInfo e = new ErrorInfo("ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION", exception.getMessage());
+            marshallerObj.marshal(e, writer);
+        } catch (JAXBException e) {
+            writer.println("<errorInfo><errorCode>Other</errorCode><details>" + e.getMessage() + "</details></errorInfo>");
+        }
     }
 }

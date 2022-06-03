@@ -30,6 +30,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
+                .authenticationEntryPoint(cloudAuthenticationEntryPoint())
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -46,7 +47,6 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
         return new CloudAuthenticationEntryPoint();
     }
-
 
     @Bean
     public LoggerListener loggerListener() {
