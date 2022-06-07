@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
@@ -58,7 +59,7 @@ public class DataSetResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(
             @PathVariable String dataSetId,
-            @PathVariable String providerId) throws DataSetNotExistsException {
+            @PathVariable String providerId) throws DataSetDeletionException, DataSetNotExistsException {
 
         dataSetService.deleteDataSet(providerId, dataSetId);
 

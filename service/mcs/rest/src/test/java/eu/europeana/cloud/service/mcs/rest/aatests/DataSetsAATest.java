@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
@@ -108,8 +109,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteDataset()
-			throws
-			DataSetNotExistsException {
+			throws DataSetDeletionException, DataSetNotExistsException {
 
 		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
 	}
@@ -125,8 +125,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteDataset()
-			throws
-			DataSetNotExistsException {
+			throws DataSetDeletionException, DataSetNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
@@ -134,8 +133,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 	@Test
 	public void shouldBeAbleToDeleteDatasetIfHeIsTheOwner()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException {
+			throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
@@ -148,8 +146,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 	 */
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
-			throws ProviderNotExistsException, DataSetAlreadyExistsException,
-			DataSetNotExistsException {
+			throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
 
 		login(RONALDO, RONALD_PASSWORD);
 		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);

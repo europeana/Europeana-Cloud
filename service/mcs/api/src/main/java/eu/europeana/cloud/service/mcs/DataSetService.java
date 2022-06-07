@@ -5,10 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 
 import java.util.Date;
 import java.util.List;
@@ -113,7 +110,7 @@ public interface DataSetService {
      * @throws DataSetNotExistsException no such data set exists (data provider does not have one or data provider not exist)
      */
     void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException;
+            throws DataSetDeletionException, DataSetNotExistsException;
 
     /**
      * Lists all representations names that are included in given dataSet

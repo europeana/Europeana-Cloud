@@ -97,7 +97,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         mockMvc.perform( delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
 
         // than deleted dataset should not be in service and non-deleted should remain
-        assertTrue("Expecting no dataset for provier service",
+        assertTrue("Expecting no dataset for provider service",
                 dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
         assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults()
                 .size());

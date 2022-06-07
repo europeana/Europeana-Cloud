@@ -8,10 +8,7 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils;
@@ -285,24 +282,18 @@ public class CassandraDataSetService implements DataSetService {
 
     @Override
     public void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException {
-        checkIfDatasetExists(dataSetId, providerId);
-        String nextToken = null;
-        int maxSize = 10000;
+            throws DataSetDeletionException, DataSetNotExistsException {
 
-        List<Properties> representations = dataSetDAO.listDataSet(providerId, dataSetId, null, maxSize);
-        for (Properties representation : representations) {
-            removeAssignment(providerId, dataSetId, representation.getProperty("cloudId"), representation.getProperty("schema"), representation.getProperty("versionId"));
+        checkIfDatasetExists(dataSetId,providerId);
+        if (datasetIsEmpty(providerId, dataSetId)) {
+            dataSetDAO.deleteDataSet(providerId, dataSetId);
+        } else {
+            throw new DataSetDeletionException("Can't do it. Dataset is not empty");
         }
+    }
 
-        while (representations.size() == maxSize + 1) {
-            nextToken = representations.get(maxSize).getProperty("nextSlice");
-            representations = dataSetDAO.listDataSet(providerId, dataSetId, nextToken, maxSize);
-            for (Properties representation : representations) {
-                removeAssignment(providerId, dataSetId, representation.getProperty("cloudId"), representation.getProperty("schema"), representation.getProperty("versionId"));
-            }
-        }
-        dataSetDAO.deleteDataSet(providerId, dataSetId);
+    private boolean datasetIsEmpty(String providerId, String dataSetId) {
+        return dataSetDAO.listDataSet(providerId, dataSetId, null, 1).isEmpty();
     }
 
     @Override
