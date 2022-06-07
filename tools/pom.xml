@@ -24,6 +24,7 @@
         <module>ecloud-db-migrator</module>
         <module>harvested-records-table-updater</module>
         <module>record-ids-extractor</module>
+        <module>proc-stats-tool</module>
     </modules>
 
     <dependencies>
