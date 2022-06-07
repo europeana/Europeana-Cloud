@@ -23,10 +23,12 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpHarvestingBolt.class);
     private static int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
     private transient IdentifierSupplier identifierSupplier;
+    private transient HttpClient httpClient;
 
     @Override
     public void prepare() {
         identifierSupplier = new IdentifierSupplier();
+        httpClient = HttpClient.newBuilder().build();
     }
 
 
@@ -78,9 +80,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     }
 
     private HttpResponse<byte[]> loadHttpFile(StormTaskTuple tuple) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getFileUrl())).GET().build();
-        HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
         if (response.statusCode() != 200) {
             throw new IOException("Bad return status code: " + response.statusCode());
         }
