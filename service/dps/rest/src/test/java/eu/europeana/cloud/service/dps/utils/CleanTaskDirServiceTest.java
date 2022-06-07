@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 public class CleanTaskDirServiceTest {
     private static final String TEST_ANY_DIR = "/any/dir";
     static final String TEST_BASE_DIR = "./test_http_harvest";
-    private static final long TASK_ID_BOUND = 10000000L;
     private static final int TEST_COUNTER = 1000;
     private static final int SUB_DIRS_COUNT = 3;
 
@@ -49,11 +48,11 @@ public class CleanTaskDirServiceTest {
 
     @Test
     public void constructValidDir() {
-        String dirName1 = CleanTaskDirService.getDirName(TEST_ANY_DIR, TASK_ID_BOUND);
-        String dirName2 = CleanTaskDirService.getDirName(TEST_ANY_DIR+ File.separatorChar, TASK_ID_BOUND);
+        String dirName1 = CleanTaskDirService.getDirName(TEST_ANY_DIR, Long.MAX_VALUE);
+        String dirName2 = CleanTaskDirService.getDirName(TEST_ANY_DIR + File.separatorChar, Long.MAX_VALUE);
 
-        String dirName3 = CleanTaskDirService.getDirName(TEST_ANY_DIR, -TASK_ID_BOUND);
-        String dirName4 = CleanTaskDirService.getDirName(TEST_ANY_DIR+ File.separatorChar, -TASK_ID_BOUND);
+        String dirName3 = CleanTaskDirService.getDirName(TEST_ANY_DIR, Long.MIN_VALUE);
+        String dirName4 = CleanTaskDirService.getDirName(TEST_ANY_DIR + File.separatorChar, Long.MIN_VALUE);
 
         assertEquals(dirName1, dirName2);
         assertEquals(dirName3, dirName4);
@@ -62,7 +61,7 @@ public class CleanTaskDirServiceTest {
     @Test
     public void extractTaskIdFromPath() {
         for(int index = 0; index < TEST_COUNTER; index++) {
-            long taskId = ThreadLocalRandom.current().nextLong(-TASK_ID_BOUND, TASK_ID_BOUND);
+            long taskId = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, Long.MAX_VALUE);
 
             String dirName = CleanTaskDirService.getDirName(TEST_ANY_DIR, taskId);
             long restoredTaskId = CleanTaskDirService.getTaskId(new File(dirName));
@@ -82,7 +81,7 @@ public class CleanTaskDirServiceTest {
         when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(createTaskInfo(anyLong(),  TaskState.PENDING)));
 
         for(int index = 0; index <TEST_COUNTER; index++) {
-            long taskId = ThreadLocalRandom.current().nextLong(-TASK_ID_BOUND, TASK_ID_BOUND);
+            long taskId = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, Long.MAX_VALUE);
 
             String taskDirName = CleanTaskDirService.getDirName(baseDir.getAbsolutePath(), taskId);
             File taskDir = new File(taskDirName);
