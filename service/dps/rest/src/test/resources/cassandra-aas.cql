@@ -1,7 +1,7 @@
 CREATE KEYSPACE IF NOT EXISTS ecloud_aas_tests WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
 USE ecloud_aas_tests;
 
-CREATE TABLE users(
+CREATE TABLE IF NOT EXISTS users(
             username varchar,
             password varchar,
             roles set<text>,

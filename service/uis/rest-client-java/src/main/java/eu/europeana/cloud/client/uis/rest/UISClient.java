@@ -2,6 +2,7 @@ package eu.europeana.cloud.client.uis.rest;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
+import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
@@ -459,9 +460,7 @@ public class UISClient implements AutoCloseable {
                 return (responseParameters.getExpectedClass() == Boolean.class) ? (T)Boolean.TRUE : response.readEntity(responseParameters.getExpectedClass());
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(errorInfo.getErrorCode());
-
-            throw  createException(errorInfo.getDetails(), errorInfo.getErrorCode(), error.getException(errorInfo));
+            throw  createException(errorInfo.getDetails(), errorInfo.getErrorCode(), new GenericException(errorInfo));
         } catch(CloudException cloudException) {
             throw cloudException; //re-throw just created CloudException
         } catch(ProcessingException processingException) {

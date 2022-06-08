@@ -39,7 +39,7 @@ public class CloudAuthenticationEntryPoint implements AuthenticationEntryPoint {
             ErrorInfo e = new ErrorInfo("ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION", exception.getMessage());
             marshallerObj.marshal(e, writer);
         } catch (JAXBException e) {
-            writer.println("<errorInfo><errorCode>Other</errorCode><details>" + e.getMessage() + "</details></errorInfo>");
+            writer.println("<errorInfo><errorCode>OTHER</errorCode><details>" + e.getMessage() + "</details></errorInfo>");
         }
     }
 }

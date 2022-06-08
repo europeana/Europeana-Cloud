@@ -35,7 +35,7 @@ public class AuthenticationResource {
         return ResponseEntity.ok("Cloud user was created!");
     }
 
-    @PostMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PutMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> lockUser(
             @PathVariable(AASParamConstants.P_USER_NAME) String username)
