@@ -608,33 +608,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertTrue(r.getFiles().isEmpty());
     }
 
-    // @Test TODO
-    public void shouldCopyRepresentation() throws Exception {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        // given
-        Representation r = insertDummyPersistentRepresentation("globalId",
-                "dc", PROVIDER_1_ID);
-        // when
-        Representation copy = cassandraRecordService.copyRepresentation(
-                r.getCloudId(), r.getRepresentationName(), r.getVersion());
-        // that
-        assertThat(copy.getCloudId(), is(r.getCloudId()));
-        assertThat(copy.getDataProvider(), is(r.getDataProvider()));
-        assertThat(copy.getRepresentationName(), is(r.getRepresentationName()));
-        for (File f : r.getFiles()) {
-            ByteArrayOutputStream rContent = new ByteArrayOutputStream();
-            ByteArrayOutputStream copyContent = new ByteArrayOutputStream();
-            cassandraRecordService.getContent(r.getCloudId(),
-                    r.getRepresentationName(), r.getVersion(), f.getFileName(),
-                    rContent);
-            cassandraRecordService.getContent(copy.getCloudId(),
-                    copy.getRepresentationName(), copy.getVersion(),
-                    f.getFileName(), copyContent);
-            assertThat(rContent.toByteArray(), is(copyContent.toByteArray()));
-        }
-    }
-
     @Test
     public void addRevision() throws Exception {
         makeUISSuccess();

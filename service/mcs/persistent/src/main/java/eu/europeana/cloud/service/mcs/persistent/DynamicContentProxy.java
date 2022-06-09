@@ -30,13 +30,6 @@ public class DynamicContentProxy {
         this.contentDAOs.putAll(contentDAOs);
     }
 
-    public void copyContent(String sourceObjectId, String trgObjectId, Storage stored)
-            throws FileNotExistsException, FileAlreadyExistsException, IOException {
-
-        getContentDAO(stored).copyContent(sourceObjectId,trgObjectId);
-    }
-
-
     public void deleteContent(String fileName, Storage stored) throws FileNotExistsException {
         getContentDAO(stored).deleteContent(fileName);
     }

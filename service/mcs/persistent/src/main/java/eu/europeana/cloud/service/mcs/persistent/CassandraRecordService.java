@@ -390,42 +390,6 @@ public class CassandraRecordService implements RecordService {
         contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
     }
 
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public Representation copyRepresentation(String globalId, String schema, String version)
-            throws RepresentationNotExistsException {
-        Date now = Calendar.getInstance().getTime();
-        Representation srcRep = recordDAO.getRepresentation(globalId, schema, version);
-        if (srcRep == null) {
-            throw new RepresentationNotExistsException();
-        }
-
-        Representation copiedRep = recordDAO.createRepresentation(globalId, schema, srcRep.getDataProvider(), now, generateTimeUUID());
-        for (File srcFile : srcRep.getFiles()) {
-            File copiedFile = new File(srcFile);
-            try {
-                contentDAO.copyContent(FileUtils.generateKeyForFile(globalId, schema, version, srcFile.getFileName()),
-                        FileUtils.generateKeyForFile(globalId, schema, copiedRep.getVersion(), copiedFile.getFileName()),
-                        srcFile.getFileStorage());
-            } catch (FileNotExistsException ex) {
-                LOGGER.warn("File '{}' was found in representation {}-{}-{} but no content of such file was found",
-                        srcFile.getFileName(), globalId, schema, version);
-            } catch (FileAlreadyExistsException ex) {
-                LOGGER.warn("File '{}' already exists in newly created representation? {}-{}-{}",
-                        copiedFile.getFileName(), globalId, schema, copiedRep.getVersion());
-            } catch (IOException e) {
-                LOGGER.error(Throwables.getStackTraceAsString(e));
-            }
-            recordDAO.addOrReplaceFileInRepresentation(globalId, schema, copiedRep.getVersion(), copiedFile);
-        }
-        // get version after all modifications
-        return recordDAO.getRepresentation(globalId, schema, copiedRep.getVersion());
-    }
-
-
     /**
      * @inheritDoc
      */

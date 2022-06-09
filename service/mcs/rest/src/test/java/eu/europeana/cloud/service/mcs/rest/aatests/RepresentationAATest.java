@@ -90,11 +90,6 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representation.setRepresentationName(REPRESENTATION_NAME);
 		representation.setVersion(VERSION);
 
-		copiedRepresentation = new Representation();
-		copiedRepresentation.setCloudId(GLOBAL_ID);
-		copiedRepresentation.setRepresentationName(REPRESENTATION_NAME);
-		copiedRepresentation.setVersion(COPIED_REPRESENTATION_VERSION);
-
 		representationYouDontHavePermissionsFor = new Representation();
 		representationYouDontHavePermissionsFor.setCloudId(GLOBAL_ID);
 		representationYouDontHavePermissionsFor.setRepresentationName(REPRESENTATION_NO_PERMISSIONS_NAME);
@@ -115,7 +110,6 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(representation).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 		Mockito.doReturn(representation).when(recordService).persistRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-		Mockito.doReturn(copiedRepresentation).when(recordService).copyRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 		Mockito.doReturn(recordWithManyRepresentations).when(recordService).getRecord(Mockito.anyString());
 	}
@@ -341,53 +335,4 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
-	// -- COPY -- //
-
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCopyRepresentation()
-			throws RepresentationNotExistsException {
-
-		representationVersionResource.copyRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
-	}
-
-	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenRandomUserTriesToCopyRepresentation()
-			throws RepresentationNotExistsException {
-
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationVersionResource.copyRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
-	}
-
-	@Test
-	public void shouldBeAbleToCopyRepresentationIfHeIsTheOwner()
-			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException {
-
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
-		representationVersionResource.copyRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
-	}
-
-	@Test
-	public void shouldBeAbleDeleteCopiedRepresentation()
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-			RecordNotExistsException, ProviderNotExistsException {
-
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
-		representationVersionResource.copyRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
-
-		representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, COPIED_REPRESENTATION_VERSION);
-	}
-
-	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenVanPersieTriesToCopyRonaldosRepresentations()
-			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException	 {
-
-		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationVersionResource.copyRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
-	}
 }

@@ -188,36 +188,4 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
                         McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
     }
 
-
-    @Test
-    public void testCopyRepresentation()
-            throws Exception {
-        when(recordService.copyRepresentation(globalId, schema, version))
-                .thenReturn(new Representation(representation));
-
-        mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
-
-        verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
-        verifyNoMoreInteractions(recordService);
-    }
-
-
-    @Test
-    @Parameters(method = "errors")
-    public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(Throwable exception,
-                                                                                               String errorCode, int statusCode)
-            throws Exception {
-        when(recordService.copyRepresentation(globalId, schema, version)).thenThrow(exception);
-
-        ResultActions response = mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().is(statusCode));
-
-        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
-        assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
-        verifyNoMoreInteractions(recordService);
-    }
-
 }
