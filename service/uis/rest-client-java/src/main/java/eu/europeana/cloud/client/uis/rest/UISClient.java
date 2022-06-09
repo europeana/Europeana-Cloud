@@ -460,7 +460,9 @@ public class UISClient implements AutoCloseable {
                 return (responseParameters.getExpectedClass() == Boolean.class) ? (T)Boolean.TRUE : response.readEntity(responseParameters.getExpectedClass());
             }
             ErrorInfo errorInfo = response.readEntity(ErrorInfo.class);
-            throw  createException(errorInfo.getDetails(), errorInfo.getErrorCode(), new GenericException(errorInfo));
+            IdentifierErrorTemplate error = IdentifierErrorTemplate.valueOf(errorInfo.getErrorCode());
+
+            throw  createException(errorInfo.getDetails(), errorInfo.getErrorCode(), error.getException(errorInfo));
         } catch(CloudException cloudException) {
             throw cloudException; //re-throw just created CloudException
         } catch(ProcessingException processingException) {

@@ -269,6 +269,24 @@ public enum IdentifierErrorTemplate {
 	}
     },
 
+	ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION {
+		@Override
+		public ErrorInfo getErrorInfo(String... args) {
+			return new ErrorInfo(
+					"ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION",
+					"Access is denied");
+		}
+
+		@Override
+		public Status getHttpCode() {
+			return Status.FORBIDDEN;
+		}
+
+		@Override
+		public GenericException getException(ErrorInfo e) {
+			return new GenericException(e);
+		}
+	},
 
 	OTHER {
 
