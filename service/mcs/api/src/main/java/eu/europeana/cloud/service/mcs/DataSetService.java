@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -184,4 +185,10 @@ public interface DataSetService {
      */
     void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
+
+    /**
+     *
+     * @return
+     */
+    List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation) throws RepresentationNotExistsException;
 }

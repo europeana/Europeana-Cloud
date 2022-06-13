@@ -141,8 +141,7 @@ public class FileResource {
      * with the specified name.
      */
     @GetMapping
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-    		+ " 'eu.europeana.cloud.common.model.Representation', read)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StreamingResponseBody> getFile(
             @PathVariable String cloudId,
             @PathVariable String representationName,
@@ -203,8 +202,7 @@ public class FileResource {
      * @throws FileNotExistsException
      */
     @RequestMapping(method = RequestMethod.HEAD)
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-            + " 'eu.europeana.cloud.common.model.Representation', read)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> getFileHeaders(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,

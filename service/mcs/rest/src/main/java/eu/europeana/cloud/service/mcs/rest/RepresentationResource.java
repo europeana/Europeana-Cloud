@@ -56,10 +56,7 @@ public class RepresentationResource {
 	 *             this representation exists.
 	 */
 	@GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    @PostAuthorize("hasPermission"
-    	    + "( "
-    	    + " (#cloudId).concat('/').concat(#representationName).concat('/').concat(returnObject.version) ,"
-    	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
+	@PreAuthorize("isAuthenticated()")
 	@ResponseBody
 	public Representation getRepresentation(
 			HttpServletRequest httpServletRequest,

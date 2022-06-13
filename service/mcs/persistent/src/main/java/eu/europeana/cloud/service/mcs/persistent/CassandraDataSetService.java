@@ -281,6 +281,16 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     @Override
+    public List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation) throws RepresentationNotExistsException {
+        return new ArrayList<>(
+                dataSetDAO.getDataSetAssignmentsByRepresentationVersion(
+                        representation.getCloudId(),
+                        representation.getRepresentationName(),
+                        representation.getVersion())
+        );
+    }
+
+    @Override
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetDeletionException, DataSetNotExistsException {
 

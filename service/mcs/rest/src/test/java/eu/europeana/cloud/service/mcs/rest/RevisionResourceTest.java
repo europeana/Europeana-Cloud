@@ -25,15 +25,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -110,7 +104,8 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
         removeRevisionWebTarget = UriComponentsBuilder.fromUriString(removeRevisionPath).build(removeRevisionPathParams);
 
-
+        Mockito.doReturn(true).when(permissionEvaluator)
+                .hasPermission(any(), any(), any(), any());
     }
 
     @After
@@ -123,6 +118,12 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     @Test
     public void shouldAddRevision() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTarget)
                 .contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
                 .andExpect(status().isCreated());
@@ -153,18 +154,36 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     @Test
     public void shouldAddRevisionWithAcceptedTag() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.ACCEPTANCE.getTag()))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithPublishedTag() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.PUBLISHED.getTag()))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void shouldAddRevisionWithDeletedTag() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.DELETED.getTag()))
                 .andExpect(status().isCreated());
     }
@@ -178,6 +197,12 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     @Test
     public void shouldAddRevisionWithMultipleTags() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
                 .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
                 .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.DELETED.getTag()))
@@ -186,6 +211,12 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     @Test
     public void shouldAddRevisionWithMultipleTags2() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
                 .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
                 .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()))
@@ -194,6 +225,12 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
     @Test
     public void shouldAddRevisionWithEmptyTags() throws Exception {
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
                 .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isCreated());
