@@ -12,6 +12,9 @@ public class RestInterfaceConstants {
     public static final String DATA_SET_RESOURCE =
             "/data-providers/{providerId}/data-sets/{dataSetId}";
 
+    public static final String DATA_SET_PERMISSIONS_RESOURCE =
+            "/data-providers/{providerId}/data-sets/{dataSetId}/permissions";
+
     public static final String DATA_SET_REPRESENTATIONS_NAMES =
             "/data-providers/{providerId}/data-sets/{dataSetId}/representationsNames";
 

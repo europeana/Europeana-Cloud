@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.commons.permissions;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
@@ -59,6 +61,24 @@ public class PermissionsGrantingManager {
             }
         }
         mutableAclService.updateAcl(objectAcl);
+    }
+
+    public boolean grantFullAccess(String objectType, String objectIdentifier) {
+        ObjectIdentity versionIdentity = new ObjectIdentityImpl(objectType, objectIdentifier);
+
+        MutableAcl versionAcl = (MutableAcl) mutableAclService.readAclById(versionIdentity);
+
+        Sid anonRole = new GrantedAuthoritySid("ROLE_ANONYMOUS");
+        Sid userRole = new GrantedAuthoritySid("ROLE_USER");
+
+        if (versionAcl != null) {
+            versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, anonRole, true);
+            versionAcl.insertAce(versionAcl.getEntries().size(), BasePermission.READ, userRole, true);
+            mutableAclService.updateAcl(versionAcl);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean isPermissionOnTheList(Permission permission, List<Permission> listOfPermissions) {
