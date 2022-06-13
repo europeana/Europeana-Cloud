@@ -36,6 +36,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMObjectProcessorBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
     public static final String EDM_OBJECT_ENRICHMENT_STREAM_NAME = "EdmObjectEnrichmentStream";
+    private static final String STATISTIC_OPERATION_NAME = EDMObjectProcessorBolt.class.getName() + ".execute()";
 
     private final AmazonClient amazonClient;
 
@@ -63,30 +64,25 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         var processingStartTime = Instant.now();
         var exception = new StringBuilder();
         var opId = RandomStringUtils.random(12, "0123456789abcdef");
+        logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
 
         var resourcesToBeProcessed = 0;
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
             LOGGER.debug("Searching for main thumbnail in the resource");
-            logStatistics(BEGIN, "getMainThumbnailResourceForMediaExtraction", opId);
             RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
-            logStatistics(END, "getMainThumbnailResourceForMediaExtraction", opId);
             LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
             boolean mainThumbnailAvailable = false;
             // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
             //  to collect all the resources instead of just counting them
-            logStatistics(BEGIN, "getRemainingResourcesForMediaExtraction", opId);
             resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
-            logStatistics(END, "getRemainingResourcesForMediaExtraction", opId);
 
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
                 LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
 
-                logStatistics(BEGIN, "performMediaExtraction", opId);
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
-                logStatistics(END, "performMediaExtraction", opId);
 
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;
@@ -130,6 +126,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             tuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
         } finally {
+            logStatistics(END, STATISTIC_OPERATION_NAME, opId);
             if (exception.length() > 0) {
                 stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);

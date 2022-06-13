@@ -11,6 +11,7 @@ import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
 
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
 
+    private static final String STATISTIC_OPERATION_NAME = ResourceProcessingBolt.class.getName() + ".execute()";
+
     private final AmazonClient amazonClient;
 
     private transient Gson gson;
@@ -43,6 +46,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         LOGGER.info("Starting resource processing");
         Instant processingStartTime = Instant.now();
         StringBuilder exception = new StringBuilder();
+        var opId = RandomStringUtils.random(12, "0123456789abcdef");
+        logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
         try {
             RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
             LOGGER.info("The following resource will be processed: {}", rdfResourceEntry);
@@ -51,9 +56,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             }
             LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
 
-            logStatistics(BEGIN, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
             ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
-            logStatistics(END, "performMediaExtraction", rdfResourceEntry.getResourceUrl());
 
             if (resourceExtractionResult != null) {
                 LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
@@ -65,6 +68,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
             buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
         } finally {
+            logStatistics(END, STATISTIC_OPERATION_NAME, opId);
             stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
             if (exception.length() > 0) {
                 stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
