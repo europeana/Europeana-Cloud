@@ -1,21 +1,29 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
@@ -26,13 +34,19 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 @RestController
 public class RepresentationVersionResource {
 
-    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
-    private final RecordService recordService;
-    private final MutableAclService mutableAclService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionResource.class.getName());
 
-    public RepresentationVersionResource(RecordService recordService, MutableAclService mutableAclService) {
+    private final RecordService recordService;
+    private final DataSetService dataSetService;
+    private final PermissionEvaluator permissionEvaluator;
+
+    public RepresentationVersionResource(
+            RecordService recordService,
+            DataSetService dataSetService,
+            PermissionEvaluator permissionEvaluator) {
         this.recordService = recordService;
-        this.mutableAclService = mutableAclService;
+        this.dataSetService = dataSetService;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     /**
@@ -73,20 +87,19 @@ public class RepresentationVersionResource {
      *                                                       specified version is persistent and as such cannot be removed.
      */
     @DeleteMapping(value = REPRESENTATION_VERSION)
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version)," +
-            " 'eu.europeana.cloud.common.model.Representation', delete)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRepresentation(
             @PathVariable String cloudId,
             @PathVariable String representationName,
-            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
 
-        recordService.deleteRepresentation(cloudId, representationName, version);
+        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
 
-        // let's delete the permissions as well
-        ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-                cloudId + "/" + representationName + "/" + version);
-        mutableAclService.deleteAcl(dataSetIdentity, false);
+        if (isUserAllowedToDelete(representation)) {
+            recordService.deleteRepresentation(cloudId, representationName, version);
+        }else{
+            throw new AccessDeniedOrObjectDoesNotExistException();
+        }
     }
 
     /**
@@ -107,18 +120,50 @@ public class RepresentationVersionResource {
      * @statuscode 201 representation is made persistent.
      */
     @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-            + " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<Void> persistRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
             @PathVariable String representationName,
             @PathVariable String version) throws RepresentationNotExistsException,
-                        CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException {
+            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException {
 
-        Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
-        EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
-        return ResponseEntity.created(persistentRepresentation.getUri()).build();
+        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+
+        if (isUserAllowedToPersistRepresentation(representation)) {
+            Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
+            EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
+            return ResponseEntity.created(persistentRepresentation.getUri()).build();
+        }else{
+            throw new AccessDeniedOrObjectDoesNotExistException();
+        }
+
+    }
+
+    private Representation buildRepresentationFromRequestParameters(String cloudId, String representationName, String version) {
+        Representation representation = new Representation();
+        representation.setCloudId(cloudId);
+        representation.setRepresentationName(representationName);
+        representation.setVersion(version);
+        return representation;
+    }
+
+    private boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException {
+        List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
+        if (representationDataSets.size() != 1) {
+            LOGGER.error("Should never happen");
+        } else {
+            SecurityContext ctx = SecurityContextHolder.getContext();
+            Authentication authentication = ctx.getAuthentication();
+            //
+            String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
+            return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
+        }
+        return false;
+    }
+
+    private boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException {
+        return isUserAllowedToDelete(representation);
+
     }
 
 }
