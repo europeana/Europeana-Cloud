@@ -112,7 +112,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
@@ -172,7 +172,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void updateAuthorization_throwsMCSException() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
         //given
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         login(RONALDO, RONALD_PASSWORD);
@@ -213,7 +213,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     public void randomPersonShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenForEveryone()
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileAlreadyExistsException, FileNotExistsException,
-            WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+            WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
@@ -239,7 +239,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     public void unknownUserShouldBeAbleToGetFileAfterAccessWasGivenForEveryone()
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
             FileNotExistsException, WrongContentRangeException,
-            RecordNotExistsException, ProviderNotExistsException {
+            RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
@@ -287,7 +287,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test(expected = AccessDeniedException.class)
     public void ronaldoShouldBeAbleToDeletePermissionsForVanPersieToHisFile() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		/* Add file to eCloud */
         login(RONALDO, RONALD_PASSWORD);

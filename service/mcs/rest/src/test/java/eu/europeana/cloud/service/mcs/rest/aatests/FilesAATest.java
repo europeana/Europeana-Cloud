@@ -113,9 +113,9 @@ public class FilesAATest extends AbstractSecurityTest {
 	}
 
 	@Test
-	public void shouldBeAbleToGetAllFilesIfHeIsTheOwner() 
+	public void shouldBeAbleToGetAllFilesIfHeIsTheOwner()
 			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
+			FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
@@ -132,9 +132,9 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	
 	@Test
-	public void shouldBeAbleToGetFileIfHeIsTheOwner() 
+	public void shouldBeAbleToGetFileIfHeIsTheOwner()
 			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
+			FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
@@ -151,14 +151,14 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAddFile() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException {
 	
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, null, FILE_NAME);
 	}
 	
 	@Test
 	public void shouldBeAbleToAddFileWhenAuthenticated() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -170,7 +170,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		

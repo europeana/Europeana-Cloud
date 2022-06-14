@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
@@ -23,12 +24,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     private RecordService recordService;
+    private DataSetService dataSetService;
 
     private Representation rep;
 
@@ -56,6 +61,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     public void mockUp()
             throws Exception {
         recordService = applicationContext.getBean(RecordService.class);
+        dataSetService = applicationContext.getBean(DataSetService.class);
 
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
@@ -64,11 +70,17 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         dp.setId("1");
 
         rep = recordService.createRepresentation("1", "1", "1");
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+
         file = new File();
         file.setFileName("fileName");
         file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
         filesWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/versions/" + rep.getVersion() + "/files";
+
+        Mockito.doReturn(true).when(permissionEvaluator)
+                .hasPermission(any(), any(), any(), any());
     }
 
 
