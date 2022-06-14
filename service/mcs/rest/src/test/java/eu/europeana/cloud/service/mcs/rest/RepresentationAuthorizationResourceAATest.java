@@ -142,7 +142,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException {
+            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
@@ -202,6 +202,8 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
             fail("Expected AccessDeniedException");
         } catch (AccessDeniedException e) {
 
+        } catch (AccessDeniedOrObjectDoesNotExistException e) {
+            e.printStackTrace();
         }
     }
 

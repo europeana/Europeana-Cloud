@@ -1,11 +1,12 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.CompoundDataSetId;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
@@ -17,7 +18,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriUtils;
@@ -28,6 +33,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,12 +50,18 @@ public class FileResource {
 
     private static final String HEADER_RANGE = "Range";
     private final RecordService recordService;
+    private final DataSetService dataSetService;
+    private final PermissionEvaluator permissionEvaluator;
     private final Integer objectStoreSizeThreshold;
 
     public FileResource(RecordService recordService,
-                        Integer objectStoreSizeThreshold) {
+                        Integer objectStoreSizeThreshold,
+                        DataSetService dataSetService,
+                        PermissionEvaluator permissionEvaluator) {
         this.recordService = recordService;
         this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+        this.dataSetService = dataSetService;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     /**
@@ -77,8 +89,6 @@ public class FileResource {
      * @statuscode 204 object has been updated.
      */
     @PutMapping
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
     public ResponseEntity<Void> sendFile(
             HttpServletRequest httpServletRequest,
     		@PathVariable String cloudId,
@@ -87,30 +97,49 @@ public class FileResource {
             HttpServletRequest request,
     		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
             InputStream data) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, FileNotExistsException {
+            CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
-        String fileName = extractFileNameFromURL(request);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
+        if (isUserAllowedToUploadFileFor(representation)) {
+            String fileName = extractFileNameFromURL(request);
 
-        File f = new File();
-        f.setMimeType(mimeType);
-        f.setFileName(fileName);
+            File f = new File();
+            f.setMimeType(mimeType);
+            f.setFileName(fileName);
 
-        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data, objectStoreSizeThreshold);
-        f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
+            PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data, objectStoreSizeThreshold);
+            f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
 
-        // For throw  FileNotExistsException if specified file does not exist.
-        recordService.getFile(cloudId, representationName, version, fileName);
-        recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
-        IOUtils.closeQuietly(prebufferedInputStream);
-        EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
+            // For throw  FileNotExistsException if specified file does not exist.
+            recordService.getFile(cloudId, representationName, version, fileName);
+            recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
+            IOUtils.closeQuietly(prebufferedInputStream);
+            EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-        ResponseEntity.BodyBuilder response = ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .location(f.getContentUri());
-        if (f.getMd5() != null) {
-            response.eTag(f.getMd5());
+            ResponseEntity.BodyBuilder response = ResponseEntity
+                    .status(HttpStatus.NO_CONTENT)
+                    .location(f.getContentUri());
+            if (f.getMd5() != null) {
+                response.eTag(f.getMd5());
+            }
+            return response.build();
+        } else {
+            throw new AccessDeniedOrObjectDoesNotExistException();
         }
-        return response.build();
+    }
+
+    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException {
+        List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
+        if (representationDataSets.size() != 1) {
+            LOGGER.error("Should never happen");
+        } else {
+            SecurityContext ctx = SecurityContextHolder.getContext();
+            Authentication authentication = ctx.getAuthentication();
+            //
+            String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
+            return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
+        }
+        return false;
     }
 
     /**
@@ -254,17 +283,24 @@ public class FileResource {
      * allowed.
      */
     @DeleteMapping
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-    		+ " 'eu.europeana.cloud.common.model.Representation', delete)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFile(
             @PathVariable String cloudId,
             @PathVariable String representationName,
     		@PathVariable String version,
             HttpServletRequest httpServletRequest) throws RepresentationNotExistsException, FileNotExistsException,
-                                                                    CannotModifyPersistentRepresentationException {
+            CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
 
-        recordService.deleteContent(cloudId, representationName, version, extractFileNameFromURL(httpServletRequest));
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
+        if (isUserAllowedToDeleteFileFor(representation)) {
+            recordService.deleteContent(cloudId, representationName, version, extractFileNameFromURL(httpServletRequest));
+        } else {
+            throw new AccessDeniedOrObjectDoesNotExistException();
+        }
+    }
+
+    private boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException {
+        return isUserAllowedToUploadFileFor(representation);
     }
 
     private String extractFileNameFromURL(HttpServletRequest request) {

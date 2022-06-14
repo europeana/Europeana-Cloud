@@ -185,15 +185,15 @@ public class FilesAATest extends AbstractSecurityTest {
 	// -- DELETE FILE -- //
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException, 
-		FileNotExistsException, CannotModifyPersistentRepresentationException {
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException,
+			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
 
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteFile() throws RepresentationNotExistsException,
-			FileNotExistsException, CannotModifyPersistentRepresentationException {
+			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
@@ -201,7 +201,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test
 	public void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -214,7 +214,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test
 	public void shouldBeAbleToRecreateDeletedFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -228,7 +228,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosFiles() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -242,14 +242,14 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileNotExistsException {
+			CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileNotExistsException {
+			CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
