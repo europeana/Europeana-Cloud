@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.mcs.exception.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -191,4 +192,14 @@ public interface DataSetService {
      * @return
      */
     List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation) throws RepresentationNotExistsException;
+
+    /**
+     * Returns one (usually the first one from DB) for the given representation
+     *
+     * @param cloudId cloud identifier to be used
+     * @param representationName representation name to be used
+     * @return found data set
+     * @throws RepresentationNotExistsException in case of non-existing representation version
+     */
+    Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
 }

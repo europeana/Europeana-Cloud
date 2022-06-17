@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
@@ -77,12 +78,12 @@ public class RevisionResource {
             @PathVariable final String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @PathVariable String tag) throws RepresentationNotExistsException, RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException {
+            @PathVariable String tag) throws RepresentationNotExistsException, RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         ParamUtil.validate("tag", tag,
                 Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         //
-        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
         Revision revision = buildRevisionFromRequestParams(revisionName, revisionProviderId, tag);
         //
         if (isUserAllowedToAddRevisionTo(representation)) {
@@ -108,10 +109,10 @@ public class RevisionResource {
             @PathVariable final String cloudId,
             @PathVariable final String representationName,
             @PathVariable final String version,
-            @RequestBody Revision revision) throws RevisionIsNotValidException, RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            @RequestBody Revision revision) throws RevisionIsNotValidException, RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         //
-        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
         //
         if (isUserAllowedToAddRevisionTo(representation)) {
             addRevisionToRepresentationVersion(revision, representation);
@@ -146,11 +147,11 @@ public class RevisionResource {
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
             @RequestParam(defaultValue = "") Set<String> tags ) throws RepresentationNotExistsException,
-            RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException {
+            RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
         //
-        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
         Revision revision = buildRevisionFromRequestParams(revisionName, revisionProviderId, tags);
         //
         if (isUserAllowedToAddRevisionTo(representation)) {
@@ -181,10 +182,10 @@ public class RevisionResource {
             @PathVariable String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @RequestParam String revisionTimestamp ) throws RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            @RequestParam String revisionTimestamp ) throws RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         //
-        Representation representation = buildRepresentationFromRequestParameters(cloudId,representationName,version);
+        Representation representation = Representation.fromFields(cloudId,representationName,version);
         //
         if (isUserAllowedToAddRevisionTo(representation)) {
             DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
@@ -193,14 +194,6 @@ public class RevisionResource {
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
 
-    }
-
-    private Representation buildRepresentationFromRequestParameters(String cloudId, String representationName, String version){
-        Representation representation = new Representation();
-        representation.setCloudId(cloudId);
-        representation.setRepresentationName(representationName);
-        representation.setVersion(version);
-        return representation;
     }
 
     private Revision buildRevisionFromRequestParams(String revisionName, String revisionProviderId, String tag){
@@ -232,10 +225,11 @@ public class RevisionResource {
                 revision.getCreationTimeStamp());
     }
 
-    private boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException {
+    private boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
         if (representationDataSets.size() != 1) {
-            LOGGER.error("Should never happen");
+            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
+            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
         } else {
             SecurityContext ctx = SecurityContextHolder.getContext();
             Authentication authentication = ctx.getAuthentication();
@@ -243,7 +237,6 @@ public class RevisionResource {
             String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
             return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
         }
-        return false;
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision)

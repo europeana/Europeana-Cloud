@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
@@ -50,17 +51,22 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
     private UISClientHandler uisHandler;
 
+    private DataSetService dataSetService;
+
     @Before
     public void mockUp() throws Exception {
         recordService = applicationContext.getBean(RecordService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        dataSetService = applicationContext.getBean(DataSetService.class);
         DataProvider dataProvider = new DataProvider();
         dataProvider.setId("1");
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider("1");
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
-        rep = recordService.createRepresentation("1", "1", "1");
+
+        dataSetService.createDataSet("1","s","desc");
+        rep = recordService.createRepresentation("1", "1", "1","s");
         file = new File();
         file.setFileName("fileName");
         file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());

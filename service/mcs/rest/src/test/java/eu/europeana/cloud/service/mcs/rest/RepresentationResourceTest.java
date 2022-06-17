@@ -168,7 +168,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     @Test
     public void createRepresentationInGivenVersion()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, "datasetName")).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
@@ -179,14 +179,14 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION);
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION, "datasetName");
         verifyNoMoreInteractions(recordService);
     }
 
     @Test
     public void createRepresentationInGivenVersionTwice()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID, VERSION)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, "datasetName")).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
@@ -205,7 +205,7 @@ public class RepresentationResourceTest extends AbstractResourceTest {
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION);
+        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION, "datasetName");
         verifyNoMoreInteractions(recordService);
     }
 

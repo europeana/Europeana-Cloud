@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.google.common.base.Throwables;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
@@ -137,17 +136,20 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public Representation createRepresentation(String globalId, String schema, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException {
-        return createRepresentation(globalId, schema, providerId, null);
+    public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
+        return createRepresentation(globalId, schema, providerId, null, dataSetId);
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version)
-            throws ProviderNotExistsException, RecordNotExistsException {
+    public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version, String dataSetId)
+            throws ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
+
+        checkIfDatasetExists(dataSetId, providerId);
+
         Date now = Calendar.getInstance().getTime();
         if (version == null) {
             version = generateTimeUUID();
@@ -160,10 +162,25 @@ public class CassandraRecordService implements RecordService {
 
         boolean cloudExists = uis.existsCloudId(cloudId);
         LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
-
+        //
+        Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
+        if (oneDatasetFor.isPresent()) {
+            if (!oneDatasetFor.get().getDataSetId().equals(dataSetId) || !oneDatasetFor.get().getDataSetProviderId().equals(providerId)) {
+                LOGGER.error("DataSetId provided and recordId doesn't match. It should never happen");
+                throw new DataSetAssignmentException("providerId and/or datasetId doesn't match. It is not allowed to assign representations of same record" +
+                        " to more than one dataset.");
+            }
+        }
+        //
         if (cloudExists) {
             Representation representation =
                     recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
+            dataSetDAO.addAssignment(
+                    providerId,
+                    dataSetId,
+                    representation.getCloudId(),
+                    representation.getRepresentationName(),
+                    representation.getVersion());
             LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}"
                     , cloudId, representationName, providerId, version);
             return representation;
@@ -172,6 +189,13 @@ public class CassandraRecordService implements RecordService {
         }
     }
 
+
+    private void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
+        DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
+        if (ds == null) {
+            throw new DataSetNotExistsException();
+        }
+    }
 
     /**
      * @inheritDoc

@@ -121,12 +121,12 @@ public interface RecordService {
      * @throws RecordNotExistsException   provided id of a record is not registered in eCloud system.
      * @throws ProviderNotExistsException there is no such provider
      */
-    Representation createRepresentation(String globalId, String schema, String providerId, UUID version)
-            throws RecordNotExistsException, ProviderNotExistsException;
+    Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId)
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
 
 
-    Representation createRepresentation(String globalId, String schema, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException ;
+    Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
 
 
     /**

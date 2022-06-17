@@ -52,6 +52,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	private static final String VERSION = "KIT_KAT";
 	private static final String PROVIDER_ID = "provider";
 
+	private static final String DATASET_NAME = "datasetName";
+
 	private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
 	private static final String REPRESENTATION_NO_PERMISSIONS_NAME = "REPRESENTATION_NO_PERMISSIONS_NAME";
 
@@ -119,10 +121,10 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToGetRepresentationIfHeIsTheOwner()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException	 {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
 	}
 
@@ -130,10 +132,10 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException	 {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
@@ -151,20 +153,20 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToGetRepresentationVersionIfHeIsTheOwner()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException	 {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME,  null);
 		representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentationVersion()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException	 {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
 	}
@@ -178,10 +180,10 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 
 
-	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException  {
+	public void shouldOnlyGetRepresentationsHeCanReadTest1() throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 
 		logoutEveryone();
 		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
@@ -189,47 +191,47 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		assertEquals(0, r.getRepresentations().size());
 	}
 
-	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException  {
+	public void shouldOnlyGetRepresentationsHeCanReadTest2() throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 
 		assertEquals(1, r.getRepresentations().size());
 	}
 
-	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException  {
+	public void shouldOnlyGetRepresentationsHeCanReadTest3() throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
 		Mockito.doReturn(representation).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 
 		Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(RONALD_PASSWORD, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 		assertEquals(0, r.getRepresentations().size());
 	}
 
-	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException  {
+	public void shouldOnlyGetRepresentationsHeCanReadTest4() throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
 		Mockito.doReturn(representation).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
 
 		Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
 		login(RONALD_PASSWORD, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
@@ -240,24 +242,24 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 	@Test
 	public void shouldBeAbleToAddRepresentationWhenAuthenticated()
-			throws RecordNotExistsException, ProviderNotExistsException  {
+			throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 	}
 
 	// -- DELETE -- //
 
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteRepresentation()
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         representationVersionResource.deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteRepresentation()
-			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		representationVersionResource.deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
@@ -266,31 +268,31 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToDeleteRepresentationIfHeIsTheOwner()
 			throws RecordNotExistsException, ProviderNotExistsException,
-			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
         representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}
 
 	@Test
 	public void shouldBeAbleToRecreateDeletedRepresentation()
 			throws RecordNotExistsException, ProviderNotExistsException,
-			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
         representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosRepresentations()
 			throws RecordNotExistsException, ProviderNotExistsException,
-			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}
@@ -300,7 +302,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToPersistRepresentation()
 			throws RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
@@ -308,7 +310,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToPersistRepresentation()
 			throws RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
@@ -317,20 +319,20 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToPersistRepresentationIfHeIsTheOwner()
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToPersistRonaldosRepresentations()
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
 		login(RONALDO, RONALD_PASSWORD);
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}

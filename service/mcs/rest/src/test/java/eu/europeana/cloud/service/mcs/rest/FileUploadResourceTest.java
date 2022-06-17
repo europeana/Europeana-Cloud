@@ -90,7 +90,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION));
+        verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION), any());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION));
+        verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION), any());
     }
 
 }

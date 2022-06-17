@@ -83,15 +83,16 @@ public class FileUploadResource {
             @RequestParam String fileName,
             @RequestParam String providerId,
             @RequestParam String mimeType ,
+            @RequestParam String dataSetId,
             @RequestParam MultipartFile data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, RecordNotExistsException,
-            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException {
+            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
         LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
                 cloudId, representationName, version, fileName, providerId, mimeType);
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
         LOGGER.trace("File {} buffered", fileName);
-        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
+        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
         addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);

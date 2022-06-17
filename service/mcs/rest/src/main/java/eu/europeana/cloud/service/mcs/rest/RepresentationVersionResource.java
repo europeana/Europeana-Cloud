@@ -5,10 +5,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,9 +88,9 @@ public class RepresentationVersionResource {
     public void deleteRepresentation(
             @PathVariable String cloudId,
             @PathVariable String representationName,
-            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
 
         if (isUserAllowedToDelete(representation)) {
             recordService.deleteRepresentation(cloudId, representationName, version);
@@ -125,9 +122,9 @@ public class RepresentationVersionResource {
             @PathVariable String cloudId,
             @PathVariable String representationName,
             @PathVariable String version) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-        Representation representation = buildRepresentationFromRequestParameters(cloudId, representationName, version);
+        Representation representation = Representation.fromFields(cloudId, representationName, version);
 
         if (isUserAllowedToPersistRepresentation(representation)) {
             Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
@@ -139,18 +136,11 @@ public class RepresentationVersionResource {
 
     }
 
-    private Representation buildRepresentationFromRequestParameters(String cloudId, String representationName, String version) {
-        Representation representation = new Representation();
-        representation.setCloudId(cloudId);
-        representation.setRepresentationName(representationName);
-        representation.setVersion(version);
-        return representation;
-    }
-
-    private boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException {
+    private boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
         if (representationDataSets.size() != 1) {
-            LOGGER.error("Should never happen");
+            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
+            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
         } else {
             SecurityContext ctx = SecurityContextHolder.getContext();
             Authentication authentication = ctx.getAuthentication();
@@ -158,10 +148,9 @@ public class RepresentationVersionResource {
             String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
             return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
         }
-        return false;
     }
 
-    private boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException {
+    private boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         return isUserAllowedToDelete(representation);
 
     }

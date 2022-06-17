@@ -69,7 +69,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         DataProvider dp = new DataProvider();
         dp.setId("1");
 
-        rep = recordService.createRepresentation("1", "1", "1");
+        rep = recordService.createRepresentation("1", "1", "1","dsf");
         dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 

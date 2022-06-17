@@ -274,6 +274,12 @@ public class UnifiedExceptionsMapper {
         return buildResponse(HttpStatus.BAD_REQUEST, McsErrorCode.DATASET_NOT_EMPTY, exception);
     }
 
+    @ExceptionHandler(DataSetAssignmentException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorInfo> handleDataSetAssignmentException(DataSetAssignmentException exception) {
+        return buildResponse(HttpStatus.BAD_REQUEST, McsErrorCode.DATASET_ASSIGNMENT_MISMATCH, exception);
+    }
+
     /**
      * Method below is instead {@link eu.europeana.cloud.service.mcs.utils.ParamUtil#require(String, Object)}
      */

@@ -112,13 +112,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void vanPersieShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            FileNotExistsException, WrongContentRangeException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         login(RONALDO, RONALD_PASSWORD);
 
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
@@ -142,13 +142,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void vanPersieShouldBeAbleToModifyRonaldosFilesAfterAccessWasGivenToHim() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            FileNotExistsException, WrongContentRangeException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         login(RONALDO, RONALD_PASSWORD);
 
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
@@ -172,11 +172,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test
     public void updateAuthorization_throwsMCSException() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            FileNotExistsException, WrongContentRangeException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
         //given
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         login(RONALDO, RONALD_PASSWORD);
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
         File f = new File();
         f.setFileName(FILE_NAME);
@@ -196,7 +196,7 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
         assertUserDontHaveAccessToFile();
     }
 
-    private void assertUserDontHaveAccessToFile() throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException {
+    private void assertUserDontHaveAccessToFile() throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileNotExistsException, DataSetAssignmentException {
         try {
             fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, new ByteArrayInputStream(ANY_DATA.getBytes()));
             fail("Expected AccessDeniedException");
@@ -213,13 +213,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     public void randomPersonShouldBeAbleToGetRonaldosFilesAfterAccessWasGivenForEveryone()
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             FileAlreadyExistsException, FileNotExistsException,
-            WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            WrongContentRangeException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         login(RONALDO, RONALD_PASSWORD);
 
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
@@ -239,13 +239,13 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     public void unknownUserShouldBeAbleToGetFileAfterAccessWasGivenForEveryone()
             throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
             FileNotExistsException, WrongContentRangeException,
-            RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         login(RONALDO, RONALD_PASSWORD);
 
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 
         File f = new File();
@@ -287,11 +287,11 @@ public class RepresentationAuthorizationResourceAATest extends AbstractSecurityT
     @Test(expected = AccessDeniedException.class)
     public void ronaldoShouldBeAbleToDeletePermissionsForVanPersieToHisFile() throws IOException, RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, FileAlreadyExistsException,
-            FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            FileNotExistsException, WrongContentRangeException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		/* Add file to eCloud */
         login(RONALDO, RONALD_PASSWORD);
-        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+//        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
         filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
         /* Grant access to this file for Van Persie */
         //TODO: has to be updated when authorization will be switched to datastets.

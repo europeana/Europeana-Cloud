@@ -68,7 +68,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 .getProvider("1");
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
-        rep = recordService.createRepresentation("1", "1", "1");
+        rep = recordService.createRepresentation("1", "1", "1","datasetName");
         revision = new Revision(TEST_REVISION_NAME, PROVIDER_ID);
         revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap

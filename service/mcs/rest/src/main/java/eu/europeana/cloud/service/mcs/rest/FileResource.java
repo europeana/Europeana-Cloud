@@ -97,7 +97,7 @@ public class FileResource {
             HttpServletRequest request,
     		@RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
             InputStream data) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException {
+            CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
         if (isUserAllowedToUploadFileFor(representation)) {
@@ -128,10 +128,11 @@ public class FileResource {
         }
     }
 
-    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException {
+    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
         if (representationDataSets.size() != 1) {
-            LOGGER.error("Should never happen");
+            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
+            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
         } else {
             SecurityContext ctx = SecurityContextHolder.getContext();
             Authentication authentication = ctx.getAuthentication();
@@ -139,7 +140,6 @@ public class FileResource {
             String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
             return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
         }
-        return false;
     }
 
     /**
@@ -289,7 +289,7 @@ public class FileResource {
             @PathVariable String representationName,
     		@PathVariable String version,
             HttpServletRequest httpServletRequest) throws RepresentationNotExistsException, FileNotExistsException,
-            CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException {
+            CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
         if (isUserAllowedToDeleteFileFor(representation)) {
@@ -299,9 +299,10 @@ public class FileResource {
         }
     }
 
-    private boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException {
+    private boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         return isUserAllowedToUploadFileFor(representation);
     }
+
 
     private String extractFileNameFromURL(HttpServletRequest request) {
         return UriUtils.decode(request.getRequestURI().split("/files/")[1], StandardCharsets.UTF_8);
