@@ -251,9 +251,9 @@ public class TaskStatisticsAccumulatorTest {
     }
 
 
-    private Line getLine(boolean startLine, int secondsOffset, String opId) {
-        return Line.builder()
-                .startLine(startLine)
+    private LogLine getLine(boolean startLine, int secondsOffset, String opId) {
+        return LogLine.builder()
+                .operationBegin(startLine)
                 .dateTime(LocalDateTime.of(2022, 1, 1, 12, 0, secondsOffset))
                 .opId(opId)
                 .opName("opName1")

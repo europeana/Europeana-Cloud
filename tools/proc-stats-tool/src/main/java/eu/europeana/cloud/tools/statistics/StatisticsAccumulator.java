@@ -7,7 +7,7 @@ import java.util.Map;
 public class StatisticsAccumulator {
     private final Map<Long, TaskStatisticsAccumulator> taskStatistics = new HashMap<>();
 
-    public void process(Line line) {
+    public void process(LogLine line) {
         taskStatistics.compute(line.getTaskId(),
                 (key, value) -> value == null ? new TaskStatisticsAccumulator(line) : value.process(line) );
     }

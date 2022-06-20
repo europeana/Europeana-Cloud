@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-public class StatisticsCollector implements Collector<Line, StatisticsAccumulator, Map<Long, Statistic>> {
+public class StatisticsCollector implements Collector<LogLine, StatisticsAccumulator, Map<Long, Statistic>> {
 
     @Override
     public Supplier<StatisticsAccumulator> supplier() {
@@ -17,7 +17,7 @@ public class StatisticsCollector implements Collector<Line, StatisticsAccumulato
     }
 
     @Override
-    public BiConsumer<StatisticsAccumulator, Line> accumulator() {
+    public BiConsumer<StatisticsAccumulator, LogLine> accumulator() {
         return (StatisticsAccumulator::process);
     }
 

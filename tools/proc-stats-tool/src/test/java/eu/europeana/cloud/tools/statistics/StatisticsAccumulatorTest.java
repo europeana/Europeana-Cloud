@@ -1,11 +1,12 @@
 package eu.europeana.cloud.tools.statistics;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+
+import static org.junit.Assert.assertEquals;
 
 public class StatisticsAccumulatorTest {
     private static final Logger LOG = LoggerFactory.getLogger(StatisticsAccumulatorTest.class);
@@ -65,14 +66,13 @@ public class StatisticsAccumulatorTest {
     }
 
 
-    private Line getLine(Long taskId, boolean startLine, int secondsOffset, String opId) {
-        return Line.builder()
-                .startLine(startLine)
+    private LogLine getLine(Long taskId, boolean startLine, int secondsOffset, String opId) {
+        return LogLine.builder()
+                .operationBegin(startLine)
                 .dateTime(LocalDateTime.of(2022, 1, 1, 12, 0, secondsOffset))
                 .opId(opId)
                 .opName("opName1")
                 .taskId(taskId)
                 .build();
     }
-
 }
