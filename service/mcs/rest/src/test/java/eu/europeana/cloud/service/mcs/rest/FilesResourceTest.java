@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
@@ -53,6 +54,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     private UISClientHandler uisHandler;
 
+    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
+
     private static final byte[] XSLT_CONTENT = "<?xml version=\"1.0\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"></xsl:stylesheet>".getBytes();
     private static final byte[] XML_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?><sample></sample>".getBytes();
     private static final byte[] RDF_CONTENT = "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:si=\"https://www.w3schools.com/rdf/\"></rdf:RDF>".getBytes();
@@ -64,13 +67,18 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         dataSetService = applicationContext.getBean(DataSetService.class);
 
         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
+
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+
         DataProvider dp = new DataProvider();
         dp.setId("1");
 
-        rep = recordService.createRepresentation("1", "1", "1","dsf");
         dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         file = new File();

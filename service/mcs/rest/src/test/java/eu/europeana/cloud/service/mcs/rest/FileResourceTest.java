@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.After;
 import org.junit.Before;
@@ -53,17 +54,24 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
     private DataSetService dataSetService;
 
+    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
+
     @Before
     public void mockUp() throws Exception {
         recordService = applicationContext.getBean(RecordService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
+        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         DataProvider dataProvider = new DataProvider();
         dataProvider.setId("1");
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider("1");
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
+
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
 
         dataSetService.createDataSet("1","s","desc");
         rep = recordService.createRepresentation("1", "1", "1","s");
@@ -273,9 +281,11 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
 
+        Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+
         // when content is added to record representation
         mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), content))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test

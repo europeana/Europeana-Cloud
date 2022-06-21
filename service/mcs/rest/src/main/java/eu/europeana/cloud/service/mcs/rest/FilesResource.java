@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
@@ -15,17 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
@@ -39,18 +32,15 @@ public class FilesResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
 	private final RecordService recordService;
-	private final DataSetService dataSetService;
-	private final PermissionEvaluator permissionEvaluator;
+	private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 	private final Integer objectStoreSizeThreshold;
 
 	public FilesResource(
 			RecordService recordService,
-			DataSetService dataSetService,
-			PermissionEvaluator permissionEvaluator,
+			DataSetPermissionsVerifier dataSetPermissionsVerifier,
 			Integer objectStoreSizeThreshold) {
 		this.recordService = recordService;
-		this.dataSetService = dataSetService;
-		this.permissionEvaluator = permissionEvaluator;
+		this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
 		this.objectStoreSizeThreshold = objectStoreSizeThreshold;
 	}
 
@@ -143,16 +133,6 @@ public class FilesResource {
 	}
 
 	private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-		List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
-		if (representationDataSets.size() != 1) {
-			LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
-			throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
-		} else {
-			SecurityContext ctx = SecurityContextHolder.getContext();
-			Authentication authentication = ctx.getAuthentication();
-			//
-			String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
-			return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
-		}
+		return dataSetPermissionsVerifier.hasReadPermissionFor(representation);
 	}
 }

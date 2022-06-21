@@ -1,14 +1,14 @@
 package eu.europeana.cloud.service.mcs.rest.aatests;
 
 import com.google.common.collect.ImmutableList;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.RecordsResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationsResource;
+import eu.europeana.cloud.service.mcs.rest.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
@@ -21,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import javax.validation.constraints.NotNull;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 
 
 //@RunWith(SpringJUnit4ClassRunner.class)
@@ -46,6 +47,15 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Autowired
 	@NotNull
 	private RepresentationVersionResource representationVersionResource;
+
+	@Autowired
+	private DataSetService dataSetService;
+
+	@Autowired
+	private DataSetsResource dataSetsResource;
+
+	@Autowired
+	private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
 	private static final String GLOBAL_ID = "GLOBAL_ID";
 	private static final String SCHEMA = "CIRCLE";
@@ -111,6 +121,8 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		Mockito.doReturn(representation).when(recordService).getRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(representation).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+		Mockito.doReturn(representation).when(recordService)
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), any());
 		Mockito.doReturn(representation).when(recordService).persistRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
 		Mockito.doReturn(recordWithManyRepresentations).when(recordService).getRecord(Mockito.anyString());
@@ -121,9 +133,20 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToGetRepresentationIfHeIsTheOwner()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(RONALDO, RONALD_PASSWORD);
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
 		representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
 	}
@@ -153,9 +176,21 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToGetRepresentationVersionIfHeIsTheOwner()
 			throws RepresentationNotExistsException,
-			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
+			RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(RONALDO, RONALD_PASSWORD);
+
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME,  null);
 		representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
 	}
@@ -242,35 +277,59 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 	@Test
 	public void shouldBeAbleToAddRepresentationWhenAuthenticated()
-			throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
+			throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
+
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID,  DATASET_NAME, null);
 	}
 
 	// -- DELETE -- //
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteRepresentation()
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         representationVersionResource.deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteRepresentation()
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
 		representationVersionResource.deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 	}
 
 	@Test
 	public void shouldBeAbleToDeleteRepresentationIfHeIsTheOwner()
 			throws RecordNotExistsException, ProviderNotExistsException,
-			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
+			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
         representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}
@@ -278,9 +337,23 @@ public class RepresentationAATest extends AbstractSecurityTest {
 	@Test
 	public void shouldBeAbleToRecreateDeletedRepresentation()
 			throws RecordNotExistsException, ProviderNotExistsException,
-			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
+			RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.reset(dataSetPermissionsVerifier);
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
         representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
@@ -299,29 +372,45 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 	// -- PERSIST -- //
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToPersistRepresentation()
 			throws RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
+		Mockito.reset(dataSetPermissionsVerifier);
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToPersistRepresentation()
 			throws RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		Mockito.reset(dataSetPermissionsVerifier);
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID , SCHEMA, VERSION);
 	}
 
 	@Test
 	public void shouldBeAbleToPersistRepresentationIfHeIsTheOwner()
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
+			CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+		DataSet d = new DataSet();
+		d.setId(DATASET_NAME);
+		d.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.reset(dataSetPermissionsVerifier);
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID,  DATASET_NAME, null);
 		representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
 	}

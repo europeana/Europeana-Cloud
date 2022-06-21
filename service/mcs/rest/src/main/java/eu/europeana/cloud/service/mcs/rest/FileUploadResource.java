@@ -74,7 +74,7 @@ public class FileUploadResource {
      * @summary Upload file for non existing representation
      */
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
@@ -93,7 +93,6 @@ public class FileUploadResource {
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
         LOGGER.trace("File {} buffered", fileName);
         Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
-        addPrivilegesToRepresentation(representation);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
         persistRepresentation(representation);
@@ -106,26 +105,6 @@ public class FileUploadResource {
                 .build();
     }
     
-    private void addPrivilegesToRepresentation(Representation representation) {
-        String creatorName = SpringUserUtils.getUsername();
-
-        if (creatorName != null) {
-            ObjectIdentity versionIdentity = new ObjectIdentityImpl(
-                    REPRESENTATION_CLASS_NAME,
-                    representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion());
-
-            MutableAcl versionAcl = aclService.createOrUpdateAcl(versionIdentity);
-
-            versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            aclService.updateAcl(versionAcl);
-            LOGGER.debug("Privileges were added to representation {} ", representation);
-        }
-    }
-
     private File addFileToRepresentation(
             Representation representation, InputStream data,  String mimeType, String fileName, Storage storage)
                 throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {

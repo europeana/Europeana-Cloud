@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
@@ -151,48 +152,51 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     @Test
     public void createRepresentation()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID, null)).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID,null,  DATA_SET_ID)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param(ParamConstants.F_PROVIDER, providerID))
+                .param(ParamConstants.F_PROVIDER, providerID)
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, null);
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, null, DATA_SET_ID);
         verifyNoMoreInteractions(recordService);
     }
 
     @Test
     public void createRepresentationInGivenVersion()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, "datasetName")).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, DATA_SET_ID)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param(ParamConstants.F_PROVIDER, providerID)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION, "datasetName");
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID, VERSION, DATA_SET_ID);
         verifyNoMoreInteractions(recordService);
     }
 
     @Test
     public void createRepresentationInGivenVersionTwice()
             throws Exception {
-        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, "datasetName")).thenReturn(
+        when(recordService.createRepresentation(globalId, schema, providerID, VERSION, DATA_SET_ID)).thenReturn(
                 new Representation(representation));
 
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param(ParamConstants.F_PROVIDER, providerID)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
@@ -200,12 +204,13 @@ public class RepresentationResourceTest extends AbstractResourceTest {
         mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param(ParamConstants.F_PROVIDER, providerID)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
 
-        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION, "datasetName");
+        verify(recordService, times(2)).createRepresentation(globalId, schema, providerID, VERSION, DATA_SET_ID);
         verifyNoMoreInteractions(recordService);
     }
 
@@ -214,16 +219,17 @@ public class RepresentationResourceTest extends AbstractResourceTest {
     public void createRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
             String errorCode)
             throws Exception {
-        Mockito.doThrow(exception).when(recordService).createRepresentation(globalId, schema, providerID,null);
+        Mockito.doThrow(exception).when(recordService).createRepresentation(globalId, schema, providerID,null, DATA_SET_ID);
 
         ResultActions response = mockMvc.perform(post(URITools.getRepresentationPath(globalId, schema))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param(ParamConstants.F_PROVIDER, providerID))
+                .param(ParamConstants.F_PROVIDER, providerID)
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 .andExpect(status().isNotFound());
 
         ErrorInfo errorInfo = responseContentAsErrorInfo(response);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID,null);
+        verify(recordService, times(1)).createRepresentation(globalId, schema, providerID,null, DATA_SET_ID);
         verifyNoMoreInteractions(recordService);
     }
 

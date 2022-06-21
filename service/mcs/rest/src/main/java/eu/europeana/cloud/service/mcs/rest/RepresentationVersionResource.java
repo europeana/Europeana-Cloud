@@ -1,26 +1,19 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
@@ -34,16 +27,13 @@ public class RepresentationVersionResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionResource.class.getName());
 
     private final RecordService recordService;
-    private final DataSetService dataSetService;
-    private final PermissionEvaluator permissionEvaluator;
+    private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
     public RepresentationVersionResource(
             RecordService recordService,
-            DataSetService dataSetService,
-            PermissionEvaluator permissionEvaluator) {
+            DataSetPermissionsVerifier dataSetPermissionsVerifier) {
         this.recordService = recordService;
-        this.dataSetService = dataSetService;
-        this.permissionEvaluator = permissionEvaluator;
+        this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
     }
 
     /**
@@ -133,26 +123,14 @@ public class RepresentationVersionResource {
         }else{
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
-
     }
 
     private boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
-        if (representationDataSets.size() != 1) {
-            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
-            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
-        } else {
-            SecurityContext ctx = SecurityContextHolder.getContext();
-            Authentication authentication = ctx.getAuthentication();
-            //
-            String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
-            return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
-        }
+        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
     }
 
     private boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return isUserAllowedToDelete(representation);
-
+        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
     }
 
 }

@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import com.google.common.collect.Sets;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
@@ -12,6 +10,7 @@ import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -22,10 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -47,12 +42,13 @@ public class RevisionResource {
 
     private final RecordService recordService;
     private final DataSetService dataSetService;
-    private final PermissionEvaluator permissionEvaluator;
+    private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-    public RevisionResource(RecordService recordService, DataSetService dataSetService, PermissionEvaluator permissionEvaluator) {
+    public RevisionResource(RecordService recordService, DataSetService dataSetService,
+                            DataSetPermissionsVerifier dataSetPermissionsVerifier) {
         this.recordService = recordService;
         this.dataSetService = dataSetService;
-        this.permissionEvaluator = permissionEvaluator;
+        this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
     }
 
     /**
@@ -122,7 +118,6 @@ public class RevisionResource {
         }
     }
 
-
     /**
      * Adds a new revision to representation version.
      * <strong>Read permissions required.</strong>
@@ -187,13 +182,12 @@ public class RevisionResource {
         //
         Representation representation = Representation.fromFields(cloudId,representationName,version);
         //
-        if (isUserAllowedToAddRevisionTo(representation)) {
+        if (isUserAllowedToDeleteRevisionFor(representation)) {
             DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
             dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
         } else {
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
-
     }
 
     private Revision buildRevisionFromRequestParams(String revisionName, String revisionProviderId, String tag){
@@ -226,17 +220,11 @@ public class RevisionResource {
     }
 
     private boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
-        if (representationDataSets.size() != 1) {
-            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
-            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
-        } else {
-            SecurityContext ctx = SecurityContextHolder.getContext();
-            Authentication authentication = ctx.getAuthentication();
-            //
-            String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
-            return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
-        }
+        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
+    }
+
+    private boolean isUserAllowedToDeleteRevisionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
     }
 
     private void addRevision(String globalId, String schema, String version, Revision revision)

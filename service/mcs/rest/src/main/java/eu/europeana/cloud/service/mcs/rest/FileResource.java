@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
@@ -18,11 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriUtils;
@@ -33,7 +27,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,18 +43,15 @@ public class FileResource {
 
     private static final String HEADER_RANGE = "Range";
     private final RecordService recordService;
-    private final DataSetService dataSetService;
-    private final PermissionEvaluator permissionEvaluator;
+    private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
     private final Integer objectStoreSizeThreshold;
 
     public FileResource(RecordService recordService,
                         Integer objectStoreSizeThreshold,
-                        DataSetService dataSetService,
-                        PermissionEvaluator permissionEvaluator) {
+                        DataSetPermissionsVerifier dataSetPermissionsVerifier) {
         this.recordService = recordService;
         this.objectStoreSizeThreshold = objectStoreSizeThreshold;
-        this.dataSetService = dataSetService;
-        this.permissionEvaluator = permissionEvaluator;
+        this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
     }
 
     /**
@@ -125,20 +115,6 @@ public class FileResource {
             return response.build();
         } else {
             throw new AccessDeniedOrObjectDoesNotExistException();
-        }
-    }
-
-    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        List<CompoundDataSetId> representationDataSets = dataSetService.getAllDatasetsForRepresentationVersion(representation);
-        if (representationDataSets.size() != 1) {
-            LOGGER.error("Representation assigned to more than one dataset. Should never happen. {}", representation.getCloudId());
-            throw new DataSetAssignmentException("Representation assigned to more than one dataset. It is not allowed");
-        } else {
-            SecurityContext ctx = SecurityContextHolder.getContext();
-            Authentication authentication = ctx.getAuthentication();
-            //
-            String targetId = representationDataSets.get(0).getDataSetId() + "/" + representationDataSets.get(0).getDataSetProviderId();
-            return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), "read");
         }
     }
 
@@ -300,9 +276,12 @@ public class FileResource {
     }
 
     private boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return isUserAllowedToUploadFileFor(representation);
+        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
     }
 
+    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
+    }
 
     private String extractFileNameFromURL(HttpServletRequest request) {
         return UriUtils.decode(request.getRequestURI().split("/files/")[1], StandardCharsets.UTF_8);

@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.After;
@@ -55,20 +56,25 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     private DataSetService dataSetService;
     private DataProvider dataProvider;
     private Revision revisionForDataProvider;
-
+    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
     @Before
     public void mockUp() throws Exception {
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         dataProvider = new DataProvider();
         dataProvider.setId("1");
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider("1");
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
-        rep = recordService.createRepresentation("1", "1", "1","datasetName");
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
         revision = new Revision(TEST_REVISION_NAME, PROVIDER_ID);
         revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap
@@ -121,7 +127,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTarget)
@@ -157,7 +162,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.ACCEPTANCE.getTag()))
@@ -169,7 +173,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.PUBLISHED.getTag()))
@@ -181,7 +184,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithTag, Tags.DELETED.getTag()))
@@ -200,7 +202,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
@@ -214,7 +215,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
@@ -228,7 +228,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
         Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
         mockMvc.perform(post(revisionWebTargetWithMultipleTags)
