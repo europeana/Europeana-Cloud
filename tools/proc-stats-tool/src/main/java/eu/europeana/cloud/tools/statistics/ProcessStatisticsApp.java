@@ -93,7 +93,7 @@ public class ProcessStatisticsApp {
                 var currentReaderLine = readers.get(index).peek();
 
                 if (currentReaderLine == null) {
-                    readers.remove(index--);
+                    readers.remove(index--).close();
                 } else {
                     bestLineInfo.checkEarliest(currentReaderLine, index);
                 }
@@ -110,10 +110,6 @@ public class ProcessStatisticsApp {
                     bestLineInfo.reset();
                     index = 0;
                 }
-            }
-        } finally {
-            for(LogReader logReader: readers) {
-                logReader.close();
             }
         }
     }
