@@ -113,19 +113,6 @@ public interface UniqueIdentifierService {
 
 
     /**
-     * Remove the mapping between the providerId/recordId and the cloud
-     * identifier The mapping is soft-deleted
-     *
-     * @param providerId Provider identifier
-     * @param recordId Record identifier
-     * @throws DatabaseConnectionException Problems with connection to database
-     * @throws ProviderDoesNotExistException Provider does not exist
-     */
-    void removeIdMapping(String providerId, String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException;
-
-
-    /**
      * Expose information about the database host entry;
      * 
      * @return The host IP

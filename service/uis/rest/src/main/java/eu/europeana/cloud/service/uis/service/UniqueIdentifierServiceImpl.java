@@ -169,20 +169,6 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
         return newCloudId;
     }
 
-
-    @Override
-    public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException, ProviderDoesNotExistException {
-        LOGGER.info("removeIdMapping() removing Id mapping for providerId='{}', recordId='{}' ...", providerId, recordId);
-        if (dataProviderDao.getProvider(providerId) == null) {
-            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', recordId='{}'", providerId, recordId);
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
-        }
-        localIdDao.delete(providerId, recordId);
-        LOGGER.info("Id mapping removed for providerId='{}', recordId='{}'", providerId, recordId);
-    }
-
     @Override
     public String getHostList() {
         return this.hostList;

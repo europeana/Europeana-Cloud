@@ -114,20 +114,6 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
     }
 
     /**
-     * Test RecordDoesNotExistException
-     *
-     * @throws Exception expected RecordDoesNotExistException
-     */
-    @Test(expected = RecordDoesNotExistException.class)
-    public void testRemoveIdMapping() throws Exception {
-        dataProviderDao.createDataProvider("test16",
-                new DataProviderProperties());
-        service.createCloudId("test16", "test16");
-        service.removeIdMapping("test16", "test16");
-        service.getCloudId("test16", "test16");
-    }
-
-    /**
      * CreateCloudId collision test. Related to jira issue ECL-392.
      */
     @Test
