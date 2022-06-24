@@ -58,10 +58,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
                 stormTaskTuple.setFileData(oaiRecord.getRecord());
 
-                if (useHeaderIdentifier(stormTaskTuple))
-                    trimLocalId(stormTaskTuple); //Added for the time of migration - MET-1189
-                else
-                    useEuropeanaId(stormTaskTuple);
+                generateIdentifiers(stormTaskTuple);
                 addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
 
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
@@ -103,16 +100,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
     }
 
-    private void trimLocalId(StormTaskTuple stormTaskTuple) {
-        String europeanaIdPrefix = stormTaskTuple.getParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX);
-        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        if (europeanaIdPrefix != null && localId.startsWith(europeanaIdPrefix)) {
-            String trimmed = localId.replace(europeanaIdPrefix, "");
-            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, trimmed);
-        }
-    }
-
-    private void useEuropeanaId(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
+    private void generateIdentifiers(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
         var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
         var document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
         var europeanaIdCreator = new EuropeanaIdCreator();
@@ -145,11 +133,4 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }
 
-    private boolean useHeaderIdentifier(StormTaskTuple stormTaskTuple) {
-        var useHeaderIdentifiers = false;
-        if ("true".equals(stormTaskTuple.getParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS))) {
-            useHeaderIdentifiers = true;
-        }
-        return useHeaderIdentifiers;
-    }
 }
