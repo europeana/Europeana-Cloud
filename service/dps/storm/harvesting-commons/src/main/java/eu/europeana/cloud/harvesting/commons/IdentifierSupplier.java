@@ -1,4 +1,4 @@
-package eu.europeana.cloud.http.bolts;
+package eu.europeana.cloud.harvesting.commons;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
