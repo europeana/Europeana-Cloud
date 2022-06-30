@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -12,10 +13,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +33,9 @@ public class RecordHarvestingBoltTest {
 
     @Mock
     private OaiHarvester harvester;
+
+    @Spy
+    private IdentifierSupplier identifierSupplier;
 
     @InjectMocks
     private final RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
