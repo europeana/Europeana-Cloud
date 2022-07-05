@@ -3,9 +3,9 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.HarvestNotificationBolt;
-import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForOAI;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
@@ -34,7 +34,7 @@ import static java.lang.Integer.parseInt;
  *
  */
 public class OAIPHMHarvestingTopology {
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
 
@@ -51,9 +51,7 @@ public class OAIPHMHarvestingTopology {
         String uisServer = topologyProperties.getProperty(UIS_URL);
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(mcsServer, uisServer);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
-        HarvestingAddToDatasetBolt addResultToDataSetBolt = new HarvestingAddToDatasetBolt(mcsServer);
-
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForOAI(mcsServer);
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
@@ -79,11 +77,6 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(DUPLICATES_DETECTOR_BOLT, new ShuffleGrouping());
-
         TopologyHelper.addSpoutsGroupingToNotificationBolt(
                 spoutNames,
                 builder.setBolt(NOTIFICATION_BOLT, new HarvestNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
@@ -103,8 +96,6 @@ public class OAIPHMHarvestingTopology {
                         .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
         return builder.createTopology();

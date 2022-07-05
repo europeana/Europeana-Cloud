@@ -3,7 +3,6 @@ package eu.europeana.cloud.normalization;
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -32,7 +31,7 @@ public class NormalizationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
     private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
@@ -73,13 +72,6 @@ public class NormalizationTopology {
                         getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                        getAnInt(ADD_TO_DATASET_BOLT_PARALLEL))
-                .setNumTasks(
-                        getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))
-                .shuffleGrouping(REVISION_WRITER_BOLT);
-
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
                 builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                                         getAnInt(CASSANDRA_PORT),
@@ -96,10 +88,7 @@ public class NormalizationTopology {
                         .fieldsGrouping(WRITE_RECORD_BOLT, NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(REVISION_WRITER_BOLT, NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
-
 
         return builder.createTopology();
     }
