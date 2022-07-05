@@ -363,7 +363,7 @@ public class CassandraDataSetService implements DataSetService {
         }
     }
 
-    private void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
+    public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
         DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
         if (ds == null) {
             throw new DataSetNotExistsException();

@@ -417,52 +417,53 @@ public class ResourceMigrator {
      * @return URI of the created representation and version
      */
     private URI createRepresentationName(String providerId, String cloudId) {
-        int retries = DEFAULT_RETRIES;
-        // get the mapped identifier if any
-        String dataProviderId = getProviderId(providerId);
-        while (retries-- > 0) {
-            try {
-                // get all representations
-                List<Representation> representations;
-
-                try {
-                    representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
-                } catch (RepresentationNotExistsException e) {
-                    // when there are no representations add a new one
-                    return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
-                }
-
-                // when there are some old representations it means that somebody had to add them, delete non persistent ones
-                for (Representation representation : representations) {
-                    if (representation.isPersistent())
-                        return null;
-                    else
-                        mcs.deleteRepresentation(cloudId, resourceProvider.getRepresentationName(), representation.getVersion());
-                }
-                // when there are no representations add a new one
-                return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
-            } catch (ProcessingException e) {
-                logger.warn("Error processing HTTP request while creating representation for record {}, provider {}. Retries left: {}",
-                        cloudId,
-                        dataProviderId,
-                        retries,
-                        e);
-            } catch (ProviderNotExistsException e) {
-                logger.error("Provider {} does not exist!", dataProviderId);
-                break;
-            } catch (RecordNotExistsException e) {
-                logger.error("Record {} does not exist!", cloudId);
-                break;
-            } catch (MCSException e) {
-                logger.error("Problem with creating representation name!");
-            } catch (Exception e) {
-                logger.error("Exception when creating representation occured.", e);
-            }
-        }
-        logger.warn("All attempts to create representation failed. ProviderId: {} CloudId: {} Representation: {}",
-                providerId,
-                cloudId,
-                resourceProvider.getRepresentationName());
+        //TODO Adjust migrator to current API
+//        int retries = DEFAULT_RETRIES;
+//        // get the mapped identifier if any
+//        String dataProviderId = getProviderId(providerId);
+//        while (retries-- > 0) {
+//            try {
+//                // get all representations
+//                List<Representation> representations;
+//
+//                try {
+//                    representations = mcs.getRepresentations(cloudId, resourceProvider.getRepresentationName());
+//                } catch (RepresentationNotExistsException e) {
+//                    // when there are no representations add a new one
+//                    return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
+//                }
+//
+//                // when there are some old representations it means that somebody had to add them, delete non persistent ones
+//                for (Representation representation : representations) {
+//                    if (representation.isPersistent())
+//                        return null;
+//                    else
+//                        mcs.deleteRepresentation(cloudId, resourceProvider.getRepresentationName(), representation.getVersion());
+//                }
+//                // when there are no representations add a new one
+//                return mcs.createRepresentation(cloudId, resourceProvider.getRepresentationName(), dataProviderId);
+//            } catch (ProcessingException e) {
+//                logger.warn("Error processing HTTP request while creating representation for record {}, provider {}. Retries left: {}",
+//                        cloudId,
+//                        dataProviderId,
+//                        retries,
+//                        e);
+//            } catch (ProviderNotExistsException e) {
+//                logger.error("Provider {} does not exist!", dataProviderId);
+//                break;
+//            } catch (RecordNotExistsException e) {
+//                logger.error("Record {} does not exist!", cloudId);
+//                break;
+//            } catch (MCSException e) {
+//                logger.error("Problem with creating representation name!");
+//            } catch (Exception e) {
+//                logger.error("Exception when creating representation occured.", e);
+//            }
+//        }
+//        logger.warn("All attempts to create representation failed. ProviderId: {} CloudId: {} Representation: {}",
+//                providerId,
+//                cloudId,
+//                resourceProvider.getRepresentationName());
         return null;
     }
 
@@ -1099,22 +1100,23 @@ public class ResourceMigrator {
         int retries = DEFAULT_RETRIES;
         while (retries-- > 0) {
             try {
-                mcs.permitVersion(cloudId, resourceProvider.getRepresentationName(), version);
+                //TODO Adjust migrator to current API
+              //  mcs.permitVersion(cloudId, resourceProvider.getRepresentationName(), version);
                 return true;
             } catch (ProcessingException e) {
                 logger.warn("Error processing HTTP request while granting permissions to version: " + version + " for record: " + cloudId + ". Retries left: " + retries, e);
-            } catch (MCSException e) {
-                logger.error("ECloud error when granting permissions to version: " + version + " for record: " + cloudId, e);
-                if (e.getCause() instanceof ConnectException) {
-                    logger.warn("Connection timeout error when granting permissions to version: {} for record: {}. Retries left: {}",
-                            version, cloudId, retries);
-                } else if (e.getCause() instanceof SocketTimeoutException) {
-                    logger.warn("Read time out error when granting permissions to version: {} for record: {}. Retries left: {}",
-                            version,
-                            cloudId,
-                            retries);
-                } else
-                    break;
+//            } catch (MCSException e) {
+//                logger.error("ECloud error when granting permissions to version: " + version + " for record: " + cloudId, e);
+//                if (e.getCause() instanceof ConnectException) {
+//                    logger.warn("Connection timeout error when granting permissions to version: {} for record: {}. Retries left: {}",
+//                            version, cloudId, retries);
+//                } else if (e.getCause() instanceof SocketTimeoutException) {
+//                    logger.warn("Read time out error when granting permissions to version: {} for record: {}. Retries left: {}",
+//                            version,
+//                            cloudId,
+//                            retries);
+//                } else
+//                    break;
             }
         }
         return false;
@@ -1783,7 +1785,8 @@ public class ResourceMigrator {
                             if (!accessible(representation)) {
                                 // in this case there are no permissions
                                 if (!simulate) {
-                                    mcs.permitVersion(cloudId, representation.getRepresentationName(), representation.getVersion());
+                                    //TODO Adjust migrator to current API
+                                    //mcs.permitVersion(cloudId, representation.getRepresentationName(), representation.getVersion());
                                 }
                                 strings.add(localId + ";no permissions for persistent version");
                                 break;

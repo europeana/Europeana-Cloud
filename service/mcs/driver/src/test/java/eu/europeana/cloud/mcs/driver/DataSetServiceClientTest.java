@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -25,6 +26,8 @@ import static org.junit.Assert.*;
 
 public class DataSetServiceClientTest {
 
+    public static final String PROVIDER_ID = "Provider001";
+    public static final String DATASET_ID = "dataset000002";
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
 
@@ -52,6 +55,7 @@ public class DataSetServiceClientTest {
         assertEquals(result.getResults().size(), resultSize);
         assertEquals(result.getNextSlice(), startFrom);
     }
+
 
     @Test
     public void shouldRetrieveDataSetsSecondChunk()
@@ -245,15 +249,60 @@ public class DataSetServiceClientTest {
     }
 
     @Test
+    public void shouldDatasetExistsReturnTrueIfDatasetExists() throws MCSException {
+        wireMockRule.stubFor(head(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        ));
+        //
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        assertTrue(instance.datasetExists(PROVIDER_ID, DATASET_ID));
+    }
+
+    @Test
+    public void shouldDatasetExistsReturnFalseIfDatasetNotExists() throws MCSException {
+        wireMockRule.stubFor(head(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                ));
+        //
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        assertFalse(instance.datasetExists(PROVIDER_ID, DATASET_ID));
+    }
+
+    @Test
+    public void shouldUpdateDataSetPermissionsForUser() throws MCSException {
+        wireMockRule.stubFor(put(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID +
+                "/permissions?permission=write&username=user"))
+                .willReturn(aResponse()
+                        .withStatus(204)));
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.updateDataSetPermissionsForUser(PROVIDER_ID, DATASET_ID, Permission.WRITE, "user");
+    }
+
+    @Test
+    public void shouldRemoveDataSetPermissionsForUser() throws MCSException {
+        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID +
+                "/permissions?permission=write&username=user"))
+                .willReturn(aResponse()
+                        .withStatus(204)));
+
+        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+        instance.removeDataSetPermissionsForUser(PROVIDER_ID, DATASET_ID, Permission.WRITE, "user");
+    }
+
+
+    @Test
     public void shouldRetrieveRepresentationsFirstChunk() throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000002";
         //the tape was recorded when the result chunk was 100
         int resultSize = 100;
         String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI=";
 
         //
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
+        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/xml")
@@ -261,7 +310,7 @@ public class DataSetServiceClientTest {
         //
 
         DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
+        ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(PROVIDER_ID, DATASET_ID, null);
         assertNotNull(result.getResults());
         assertEquals(result.getResults().size(), resultSize);
         assertEquals(result.getNextSlice(), startFrom);
@@ -623,315 +672,8 @@ public class DataSetServiceClientTest {
 
     }
 
-    @Test
-    public void shouldAssignRepresentation() throws MCSException {
-        String providerId = "Provider002";
-        String dataSetId = "dataset000008";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        //this is the last persistent version
-        String versionId = "b95fcda0-994a-11e3-bfe1-1c6f653f6012";
 
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=schema66"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
 
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-19T11:47:09.647+01:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>9</contentLength><date>2014-02-19T11:42:34.954+01:00</date><fileName>a429fd08-85a3-430f-b581-fb89a050a2e8</fileName><md5>74ca7d8366edda0a6c27e7985baef82a</md5><mimeType>text/html</mimeType></files><persistent>true</persistent><cloudId>1DZ6HTS415W</cloudId><representationName>schema66</representationName><version>b95fcda0-994a-11e3-bfe1-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:22.941+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>RV4XP676J01</cloudId><representationName>schema1</representationName><version>8e2cb0e0-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:22.806+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>970S30ZQCTX</cloudId><representationName>schema1</representationName><version>8e17c950-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:22.870+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>W55MS26HJHZ</cloudId><representationName>schema1</representationName><version>8e222990-9886-11e3-bf48-1c6f653f6012</version></results></resultSlice>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, null);
-
-        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId));
-    }
-
-    @Test
-    public void shouldAssignTheSameRepresentation()
-            throws MCSException {
-
-        shouldAssignRepresentation();
-        shouldAssignRepresentation();
-    }
-
-    @Test
-    public void shouldAssignRepresentationVersion() throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000066";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema77";
-        String versionId1 = "49398390-9a3f-11e3-9690-1c6f653f6012";
-
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=schema77&version=49398390-9a3f-11e3-9690-1c6f653f6012"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-20T15:57:14.969+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>1DZ6HTS415W</cloudId><representationName>schema77</representationName><version>49398390-9a3f-11e3-9690-1c6f653f6012</version></results></resultSlice>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId1);
-        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId1));
-
-    }
-
-    @Test
-    public void shouldOverrideAssignedRepresentationVersion() throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000066";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema77";
-        String versionId2 = "97dd0b70-9a3f-11e3-9690-1c6f653f6012";
-
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=schema77&version=97dd0b70-9a3f-11e3-9690-1c6f653f6012"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-20T15:59:27.199+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>1DZ6HTS415W</cloudId><representationName>schema77</representationName><version>97dd0b70-9a3f-11e3-9690-1c6f653f6012</version></results></resultSlice>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId2);
-        assertEquals(1, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, versionId2));
-
-    }
-
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForAssingRepresentation()
-            throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000015";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        String versionId = "b929f090-994a-11e3-bfe1-1c6f653f6012";
-
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=schema66&version=b929f090-994a-11e3-bfe1-1c6f653f6012"))
-                .willReturn(aResponse()
-                        .withStatus(500)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>All host(s) tried for query failed (tried: localhost/127.0.0.1 (com.datastax.driver.core.ConnectionException: [localhost/127.0.0.1] Write attempt on defunct connection))</details><errorCode>OTHER</errorCode></errorInfo>")));
-        //
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId);
-
-    }
-
-    @Test(expected = RepresentationNotExistsException.class)
-    public void shouldThrowRepresentationNotExistsForAssingRepresentation() throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000016";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "noSuchSchema";
-        String versionId = null;
-
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=noSuchSchema"))
-                .willReturn(aResponse()
-                        .withStatus(404)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId);
-
-    }
-
-    @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistsForAssigningRepresentation()
-            throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "noSuchDataSet";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        String versionId = null;
-
-        //
-        wireMockRule.stubFor(post(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments"))
-                .withHeader("Content-Type", matching("application/x-www-form-urlencoded"))
-                .withRequestBody(matching("cloudId=1DZ6HTS415W&representationName=schema66"))
-                .willReturn(aResponse()
-                        .withStatus(404)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>DATASET_NOT_EXISTS</errorCode></errorInfo>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, versionId);
-
-    }
-
-    @Test
-    public void shouldUnassignRepresentation()
-            throws MCSException {
-        String providerId = "Provider002";
-        String dataSetId = "dataset000002";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=schema66&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.510+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>BDC7GDQKGRQ</cloudId><representationName>schema1</representationName><version>8d52cba0-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.386+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>3PD0GGK3VNB</cloudId><representationName>schema1</representationName><version>8d4006f0-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.452+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>3VPKRJ3QB48</cloudId><representationName>schema1</representationName><version>8d49f200-9886-11e3-bf48-1c6f653f6012</version></results></resultSlice>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-
-        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
-    }
-
-    @Test
-    public void shouldUnassignNotAssignedRepresentation()
-            throws MCSException {
-        String providerId = "Provider002";
-        String dataSetId = "dataset000002";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.510+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>BDC7GDQKGRQ</cloudId><representationName>schema1</representationName><version>8d52cba0-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.386+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>3PD0GGK3VNB</cloudId><representationName>schema1</representationName><version>8d4006f0-9886-11e3-bf48-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T11:22:21.452+01:00</creationDate><dataProvider>Provider002</dataProvider><persistent>false</persistent><cloudId>3VPKRJ3QB48</cloudId><representationName>schema1</representationName><version>8d49f200-9886-11e3-bf48-1c6f653f6012</version></results></resultSlice>")));
-
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=schema66&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-
-    }
-
-    @Test
-    public void shouldUnassignRepresentationWithVersion()
-            throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000023";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema66";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=schema66&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-
-        wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice/>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-        assertEquals(0, TestUtils.howManyThisRepresentationVersion(instance, providerId, dataSetId, representationName, null));
-
-    }
-
-    @Test
-    public void shouldUnassignNonExistingRepresentation()
-            throws MCSException {
-        String providerId = "Provider002";
-        String dataSetId = "dataset000007";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "noSuchSchema";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=noSuchSchema&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(204)));
-        //
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-
-        assertTrue(true);
-    }
-
-    @Test(expected = DriverException.class)
-    public void shouldThrowDriverExceptionForUnassingRepresentation()
-            throws MCSException {
-        String providerId = "Provider001";
-        String dataSetId = "dataset000058";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema77";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=schema77&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(500)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>All host(s) tried for query failed (tried: localhost/127.0.0.1 (com.datastax.driver.core.ConnectionException: [localhost/127.0.0.1] Write attempt on defunct connection))</details><errorCode>OTHER</errorCode></errorInfo>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-
-    }
-
-    @Test(expected = DataSetNotExistsException.class)
-    public void shouldThrowDataSetNotExistsForUnassingRepresentation()
-            throws MCSException {
-        String providerId = "Provider002";
-        String dataSetId = "noSuchDataSet";
-        String cloudId = "1DZ6HTS415W";
-        String representationName = "schema77";
-        String representationVersion = "66404040-0307-11e6-a5cb-0050568c62b8";
-
-        //
-        wireMockRule.stubFor(delete(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "/assignments?cloudId=1DZ6HTS415W&representationName=schema77&version=66404040-0307-11e6-a5cb-0050568c62b8"))
-                .willReturn(aResponse()
-                        .withStatus(404)
-                        .withHeader("Content-Type", "application/xml")
-                        .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>DATASET_NOT_EXISTS</errorCode></errorInfo>")));
-        //
-
-        DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-        instance.unassignRepresentationFromDataSet(providerId, dataSetId, cloudId, representationName, representationVersion);
-
-    }
 
     @Test
     public void shouldProvideDataSetIterator() {
