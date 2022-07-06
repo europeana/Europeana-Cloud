@@ -202,4 +202,6 @@ public interface DataSetService {
      * @throws RepresentationNotExistsException in case of non-existing representation version
      */
     Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
+
+    public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }

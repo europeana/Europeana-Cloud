@@ -121,21 +121,26 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
-        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
-                recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
-                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
-                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+        //TODO Use new api with dataset assignment
+        return null;
+//        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
+//                recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
+//                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
+//                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating new representation");
-        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
-                recordServiceClient.createRepresentation(
-                        writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
-                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
-                        writeParams.getNewFileName(),
-                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
-                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+        //TODO Use new api with dataset assignment
+        return null;
+//        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
+//                recordServiceClient.createRepresentation(
+//                        writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
+//                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
+//                        writeParams.getNewFileName(),
+//                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
+//                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+
     }
 
     protected UUID generateNewVersionId(StormTaskTuple tuple) {

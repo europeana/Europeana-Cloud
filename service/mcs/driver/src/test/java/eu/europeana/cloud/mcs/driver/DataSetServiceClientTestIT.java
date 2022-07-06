@@ -38,22 +38,6 @@ public class DataSetServiceClientTestIT {
     }
 
     @Test
-    public void assignRepresentationToDataSet() throws MCSException {
-        String providerId = "<enter_provider_id_here>";
-        String dataSetId = "<enter_data_set_id_here>";
-        String cloudId = "<enter_cloud_id_here>";
-        String representationName = "<enter_representation_name_here>";
-        String version = "<enter_version_here>";
-
-        DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL);
-
-        mcsClient.assignRepresentationToDataSet(providerId, dataSetId, cloudId, representationName, version,
-                MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
-
-        assertTrue(true);
-    }
-
-    @Test
     public void getDataSetRevisionsChunk() throws MCSException {
         String providerId = "<enter_provider_id_here>";
         String dataSetId = "<enter_data_set_id_here>";

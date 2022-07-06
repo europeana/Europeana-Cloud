@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 
 public class RecordServiceClientTest {
 
+    private static final String DATASET_ID = "31ad3e70-be5f-45bc-b60e-f102ff24fa88";
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
 
@@ -273,7 +274,7 @@ public class RecordServiceClientTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>There is no record with provided global id: noSuchRecord</details><errorCode>RECORD_NOT_EXISTS</errorCode></errorInfo>");
         //
 
-        instance.createRepresentation(cloudId, representationName, providerId);
+        instance.createRepresentation(cloudId, representationName, providerId, DATASET_ID);
     }
 
     @Test
@@ -309,7 +310,7 @@ public class RecordServiceClientTest {
         assertTrue(noRepresentationName);
 
         URI uri = instance.createRepresentation(CLOUD_ID,
-                NON_EXISTING_REPRESENTATION_NAME, PROVIDER_ID);
+                NON_EXISTING_REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
         TestUtils.assertCorrectlyCreatedRepresentation(instance, uri,
                 PROVIDER_ID, CLOUD_ID, NON_EXISTING_REPRESENTATION_NAME);
     }
@@ -329,7 +330,7 @@ public class RecordServiceClientTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Provider noSuchProvider does not exist.</details><errorCode>PROVIDER_NOT_EXISTS</errorCode></errorInfo>");
         //
 
-        instance.createRepresentation(cloudId, representationName, providerId);
+        instance.createRepresentation(cloudId, representationName, providerId, DATASET_ID);
     }
 
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
@@ -512,11 +513,9 @@ public class RecordServiceClientTest {
 
         //
         // create representation A
-        URI uriA = instance.createRepresentation(CLOUD_ID, REPRESENTATION_NAME,
-                PROVIDER_ID);
+        URI uriA = instance.createRepresentation(CLOUD_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
         // create representation B
-        URI uriB = instance.createRepresentation(CLOUD_ID, REPRESENTATION_NAME,
-                PROVIDER_ID);
+        URI uriB = instance.createRepresentation(CLOUD_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
         // obtain version codes
         String versionA = TestUtils.obtainRepresentationFromURI(instance, uriA)
                 .getVersion();
@@ -619,8 +618,7 @@ public class RecordServiceClientTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
         //
 
-        URI newReprURI = instance.createRepresentation(CLOUD_ID,
-                REPRESENTATION_NAME, PROVIDER_ID);
+        URI newReprURI = instance.createRepresentation(CLOUD_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
         Representation repr = TestUtils.parseRepresentationFromUri(newReprURI);
 
         instance.deleteRepresentation(CLOUD_ID, REPRESENTATION_NAME,
@@ -735,188 +733,6 @@ public class RecordServiceClientTest {
     }
 
     // copyRepresentation
-    @Test
-    public void shouldCopyNonPersistentRepresentation() throws MCSException {
-
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/copy",
-                201,
-                "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8",
-                null);
-        new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T14:26:55.816+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</contentUri><date>2014-09-22T16:30:11.800+02:00</date><fileName>11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</fileName><md5>0b083eb6ea615b11f86211c90fe733ae</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/3345c8e4-bc57-4d41-8bd0-afeb8b221b98</contentUri><date>2014-09-22T16:30:11.065+02:00</date><fileName>3345c8e4-bc57-4d41-8bd0-afeb8b221b98</fileName><md5>819b4221a033c38d69bde0169d62720b</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</contentUri><date>2014-09-22T16:30:11.964+02:00</date><fileName>4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</fileName><md5>7fc41079b286e06f033991cf9e1a3cd9</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/6480a4db-9f8f-424b-bbc3-7706198dd16a</contentUri><date>2014-09-22T16:30:12.493+02:00</date><fileName>6480a4db-9f8f-424b-bbc3-7706198dd16a</fileName><md5>a2eff66ac1e4c540eb182ee32551041e</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</contentUri><date>2014-09-22T16:30:12.325+02:00</date><fileName>8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</fileName><md5>b6cf0a0b31943991ee92a71c1e081185</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/8927ce4c-5982-4e16-9cab-35fb40005a14</contentUri><date>2014-09-22T16:30:11.630+02:00</date><fileName>8927ce4c-5982-4e16-9cab-35fb40005a14</fileName><md5>c8a9994f45739425e5b6ad5f7f0394fa</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/b43c1512-d05a-4302-aeed-1b0b811df2e1</contentUri><date>2014-09-22T16:30:11.464+02:00</date><fileName>b43c1512-d05a-4302-aeed-1b0b811df2e1</fileName><md5>b7aa921bb68bf0a1f2b2a952bfb0902d</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/c5a33850-363e-419b-9804-e3697c5c81c6</contentUri><date>2014-09-22T16:30:12.129+02:00</date><fileName>c5a33850-363e-419b-9804-e3697c5c81c6</fileName><md5>4742b09e415f28826236b6b5638e30dd</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/ddf05e89-d0d5-420c-8b96-4971801cf0a7</contentUri><date>2014-09-22T16:30:11.284+02:00</date><fileName>ddf05e89-d0d5-420c-8b96-4971801cf0a7</fileName><md5>cc3dedabc38bdafc5a5fd53b5485544f</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/files/f5b0cd7f-f8ec-4834-8537-b7ff3171279b</contentUri><date>2014-09-22T16:30:12.653+02:00</date><fileName>f5b0cd7f-f8ec-4834-8537-b7ff3171279b</fileName><md5>3dff79dbbb0a78108d6b99657b10428d</md5><mimeType>text/plain</mimeType></files><persistent>false</persistent><representationName>schema66</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8</uri><version>e7fc62a0-431c-11e4-8576-00163eefc9c8</version></representation>");
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e7fc62a0-431c-11e4-8576-00163eefc9c8/copy",
-                201,
-                "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8",
-                null);
-        new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T14:26:57.710+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</contentUri><date>2014-09-22T16:30:11.800+02:00</date><fileName>11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</fileName><md5>0b083eb6ea615b11f86211c90fe733ae</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/3345c8e4-bc57-4d41-8bd0-afeb8b221b98</contentUri><date>2014-09-22T16:30:11.065+02:00</date><fileName>3345c8e4-bc57-4d41-8bd0-afeb8b221b98</fileName><md5>819b4221a033c38d69bde0169d62720b</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</contentUri><date>2014-09-22T16:30:11.964+02:00</date><fileName>4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</fileName><md5>7fc41079b286e06f033991cf9e1a3cd9</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/6480a4db-9f8f-424b-bbc3-7706198dd16a</contentUri><date>2014-09-22T16:30:12.493+02:00</date><fileName>6480a4db-9f8f-424b-bbc3-7706198dd16a</fileName><md5>a2eff66ac1e4c540eb182ee32551041e</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</contentUri><date>2014-09-22T16:30:12.325+02:00</date><fileName>8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</fileName><md5>b6cf0a0b31943991ee92a71c1e081185</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/8927ce4c-5982-4e16-9cab-35fb40005a14</contentUri><date>2014-09-22T16:30:11.630+02:00</date><fileName>8927ce4c-5982-4e16-9cab-35fb40005a14</fileName><md5>c8a9994f45739425e5b6ad5f7f0394fa</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/b43c1512-d05a-4302-aeed-1b0b811df2e1</contentUri><date>2014-09-22T16:30:11.464+02:00</date><fileName>b43c1512-d05a-4302-aeed-1b0b811df2e1</fileName><md5>b7aa921bb68bf0a1f2b2a952bfb0902d</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/c5a33850-363e-419b-9804-e3697c5c81c6</contentUri><date>2014-09-22T16:30:12.129+02:00</date><fileName>c5a33850-363e-419b-9804-e3697c5c81c6</fileName><md5>4742b09e415f28826236b6b5638e30dd</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/ddf05e89-d0d5-420c-8b96-4971801cf0a7</contentUri><date>2014-09-22T16:30:11.284+02:00</date><fileName>ddf05e89-d0d5-420c-8b96-4971801cf0a7</fileName><md5>cc3dedabc38bdafc5a5fd53b5485544f</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/f5b0cd7f-f8ec-4834-8537-b7ff3171279b</contentUri><date>2014-09-22T16:30:12.653+02:00</date><fileName>f5b0cd7f-f8ec-4834-8537-b7ff3171279b</fileName><md5>3dff79dbbb0a78108d6b99657b10428d</md5><mimeType>text/plain</mimeType></files><persistent>false</persistent><representationName>schema66</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8</uri><version>e91d6300-431c-11e4-8576-00163eefc9c8</version></representation>");
-
-        // make a non persistent version
-        URI sourceReprURI = instance.copyRepresentation(CLOUD_ID,
-                REPRESENTATION_NAME, VERSION);
-        assertNotNull(sourceReprURI);
-        Representation sourceRepr = TestUtils.obtainRepresentationFromURI(
-                instance, sourceReprURI);
-        // make sure is not persistent
-        assertFalse(sourceRepr.isPersistent());
-
-        int currentFileSize = sourceRepr.getFiles().size();
-        assertTrue(currentFileSize > 0);
-
-        // make a copy of the Non persistent version
-        URI targetURI = instance.copyRepresentation(CLOUD_ID,
-                REPRESENTATION_NAME, sourceRepr.getVersion());
-
-        // get copying result
-        Representation targetRepresentation = TestUtils
-                .obtainRepresentationFromURI(instance, targetURI);
-
-        // check that is has two files in it
-        assertEquals(targetRepresentation.getFiles().size(), currentFileSize);
-        // get the source version
-        Representation sourceRepresentation = instance.getRepresentation(
-                CLOUD_ID, REPRESENTATION_NAME, sourceRepr.getVersion());
-        // check the versions differ
-        assertNotEquals(targetRepresentation.getVersion(),
-                sourceRepresentation.getVersion());
-        // check both versions are not persistent
-        assertFalse(sourceRepresentation.isPersistent());
-        assertFalse(targetRepresentation.isPersistent());
-        // check that files content does not differ
-        TestUtils.assertSameFiles(targetRepresentation, sourceRepresentation);
-
-    }
-
-    @Test
-    public void shouldCopyPersistentRepresentation() throws MCSException {
-
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T13:52:23.474+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</contentUri><date>2014-09-22T16:30:11.800+02:00</date><fileName>11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</fileName><md5>0b083eb6ea615b11f86211c90fe733ae</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/3345c8e4-bc57-4d41-8bd0-afeb8b221b98</contentUri><date>2014-09-22T16:30:11.065+02:00</date><fileName>3345c8e4-bc57-4d41-8bd0-afeb8b221b98</fileName><md5>819b4221a033c38d69bde0169d62720b</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</contentUri><date>2014-09-22T16:30:11.964+02:00</date><fileName>4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</fileName><md5>7fc41079b286e06f033991cf9e1a3cd9</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/6480a4db-9f8f-424b-bbc3-7706198dd16a</contentUri><date>2014-09-22T16:30:12.493+02:00</date><fileName>6480a4db-9f8f-424b-bbc3-7706198dd16a</fileName><md5>a2eff66ac1e4c540eb182ee32551041e</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</contentUri><date>2014-09-22T16:30:12.325+02:00</date><fileName>8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</fileName><md5>b6cf0a0b31943991ee92a71c1e081185</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/8927ce4c-5982-4e16-9cab-35fb40005a14</contentUri><date>2014-09-22T16:30:11.630+02:00</date><fileName>8927ce4c-5982-4e16-9cab-35fb40005a14</fileName><md5>c8a9994f45739425e5b6ad5f7f0394fa</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/b43c1512-d05a-4302-aeed-1b0b811df2e1</contentUri><date>2014-09-22T16:30:11.464+02:00</date><fileName>b43c1512-d05a-4302-aeed-1b0b811df2e1</fileName><md5>b7aa921bb68bf0a1f2b2a952bfb0902d</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/c5a33850-363e-419b-9804-e3697c5c81c6</contentUri><date>2014-09-22T16:30:12.129+02:00</date><fileName>c5a33850-363e-419b-9804-e3697c5c81c6</fileName><md5>4742b09e415f28826236b6b5638e30dd</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/ddf05e89-d0d5-420c-8b96-4971801cf0a7</contentUri><date>2014-09-22T16:30:11.284+02:00</date><fileName>ddf05e89-d0d5-420c-8b96-4971801cf0a7</fileName><md5>cc3dedabc38bdafc5a5fd53b5485544f</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files/f5b0cd7f-f8ec-4834-8537-b7ff3171279b</contentUri><date>2014-09-22T16:30:12.653+02:00</date><fileName>f5b0cd7f-f8ec-4834-8537-b7ff3171279b</fileName><md5>3dff79dbbb0a78108d6b99657b10428d</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>schema66</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8</uri><version>881c5c00-4259-11e4-9c35-00163eefc9c8</version></representation>");
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/copy",
-                201,
-                "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8",
-                null);
-
-        new WiremockHelper(wireMockRule).stubGet(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T14:27:02.115+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</contentUri><date>2014-09-22T16:30:11.800+02:00</date><fileName>11ed22b2-89f7-4ba5-8967-65dc0b77bb9d</fileName><md5>0b083eb6ea615b11f86211c90fe733ae</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/3345c8e4-bc57-4d41-8bd0-afeb8b221b98</contentUri><date>2014-09-22T16:30:11.065+02:00</date><fileName>3345c8e4-bc57-4d41-8bd0-afeb8b221b98</fileName><md5>819b4221a033c38d69bde0169d62720b</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</contentUri><date>2014-09-22T16:30:11.964+02:00</date><fileName>4e79e8ae-1bcd-444b-a7cb-efacf2ab815e</fileName><md5>7fc41079b286e06f033991cf9e1a3cd9</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/6480a4db-9f8f-424b-bbc3-7706198dd16a</contentUri><date>2014-09-22T16:30:12.493+02:00</date><fileName>6480a4db-9f8f-424b-bbc3-7706198dd16a</fileName><md5>a2eff66ac1e4c540eb182ee32551041e</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</contentUri><date>2014-09-22T16:30:12.325+02:00</date><fileName>8896ecee-fa3a-44f4-ad7c-dc6ae3d78e0d</fileName><md5>b6cf0a0b31943991ee92a71c1e081185</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/8927ce4c-5982-4e16-9cab-35fb40005a14</contentUri><date>2014-09-22T16:30:11.630+02:00</date><fileName>8927ce4c-5982-4e16-9cab-35fb40005a14</fileName><md5>c8a9994f45739425e5b6ad5f7f0394fa</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/b43c1512-d05a-4302-aeed-1b0b811df2e1</contentUri><date>2014-09-22T16:30:11.464+02:00</date><fileName>b43c1512-d05a-4302-aeed-1b0b811df2e1</fileName><md5>b7aa921bb68bf0a1f2b2a952bfb0902d</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/c5a33850-363e-419b-9804-e3697c5c81c6</contentUri><date>2014-09-22T16:30:12.129+02:00</date><fileName>c5a33850-363e-419b-9804-e3697c5c81c6</fileName><md5>4742b09e415f28826236b6b5638e30dd</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/ddf05e89-d0d5-420c-8b96-4971801cf0a7</contentUri><date>2014-09-22T16:30:11.284+02:00</date><fileName>ddf05e89-d0d5-420c-8b96-4971801cf0a7</fileName><md5>cc3dedabc38bdafc5a5fd53b5485544f</md5><mimeType>text/plain</mimeType></files><files><contentLength>16</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8/files/f5b0cd7f-f8ec-4834-8537-b7ff3171279b</contentUri><date>2014-09-22T16:30:12.653+02:00</date><fileName>f5b0cd7f-f8ec-4834-8537-b7ff3171279b</fileName><md5>3dff79dbbb0a78108d6b99657b10428d</md5><mimeType>text/plain</mimeType></files><persistent>false</persistent><representationName>schema66</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/ebbd8950-431c-11e4-8576-00163eefc9c8</uri><version>ebbd8950-431c-11e4-8576-00163eefc9c8</version></representation>");
-
-        Representation currentRepresentation = instance.getRepresentation(
-                CLOUD_ID, REPRESENTATION_NAME, VERSION);
-        assertTrue(currentRepresentation.isPersistent());
-        int currentFileSize = currentRepresentation.getFiles().size();
-        assertTrue(currentFileSize > 0);
-
-        // now copy the persistent repr
-        URI copiedRerpURI = instance.copyRepresentation(CLOUD_ID,
-                REPRESENTATION_NAME, currentRepresentation.getVersion());
-        Representation copiedRerp = TestUtils.obtainRepresentationFromURI(
-                instance, copiedRerpURI);
-
-        // check the copy is not perst
-        assertFalse(copiedRerp.isPersistent());
-
-        // check that is has the same files in it
-        assertEquals(copiedRerp.getFiles().size(), currentFileSize);
-        // get the source version
-        // check the versions differ
-        assertNotEquals(copiedRerp.getVersion(),
-                currentRepresentation.getVersion());
-        // check the source is persistent and target not
-        assertTrue(currentRepresentation.isPersistent());
-        assertFalse(copiedRerp.isPersistent());
-        // check that files content does not differ
-        TestUtils.assertSameFiles(copiedRerp, currentRepresentation);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRecord()
-            throws MCSException {
-        String cloudId = "noSuchRecord";
-        String representationName = "schema22";
-        String version = "88edb4d0-a2ef-11e3-89f5-1c6f653f6012";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/noSuchRecord/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/copy",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-
-        instance.copyRepresentation(cloudId, representationName, version);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowRepresentationNotExistsForCopyRepresentationWhenNoRepresentationName()
-            throws MCSException {
-        String cloudId = "J93T5R6615H";
-        String representationName = "noSuchSchema";
-        String version = "88edb4d0-a2ef-11e3-89f5-1c6f653f6012";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/J93T5R6615H/representations/noSuchSchema/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6012/copy",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-
-        instance.copyRepresentation(cloudId, representationName, version);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowRepresentationNotExistsForCopyRepresentationVersionWhenNoSuchVersion()
-            throws MCSException {
-        String cloudId = "J93T5R6615H";
-        String representationName = "schema22";
-        // there is no such version, but the UUID is valid
-        String version = "88edb4d0-a2ef-11e3-89f5-1c6f653f6013";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/J93T5R6615H/representations/schema22/versions/88edb4d0-a2ef-11e3-89f5-1c6f653f6013/copy",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-
-
-        instance.copyRepresentation(cloudId, representationName, version);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowAccessDeniedForCopyRepresentationVersionWhenInvalidVersion()
-            throws MCSException {
-        String cloudId = "J93T5R6615H";
-        String representationName = "schema22";
-        // there is no such version and the UUID is invalid
-        String version = "noSuchVersion";
-        RecordServiceClient instance = new RecordServiceClient(baseUrl,
-                username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/J93T5R6615H/representations/schema22/versions/noSuchVersion/copy",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-
-        instance.copyRepresentation(cloudId, representationName, version);
-    }
-
 
     // persistRepresentation
     @Test
@@ -952,8 +768,7 @@ public class RecordServiceClientTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representation><allVersionsUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions</allVersionsUri><cloudId>W3KBLNZDKNQ</cloudId><creationDate>2014-09-23T14:26:51.645+02:00</creationDate><dataProvider>Provider001</dataProvider><files><contentLength>24</contentLength><contentUri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8/files/efedee6f-e592-448a-b4d0-41eba6ec9d32</contentUri><date>2014-09-23T14:26:51.416+02:00</date><fileName>efedee6f-e592-448a-b4d0-41eba6ec9d32</fileName><md5>fad216b328837cadf9f7ae0ba54a8340</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>schema33</representationName><uri>http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema33/versions/e542e7f0-431c-11e4-8576-00163eefc9c8</uri><version>e542e7f0-431c-11e4-8576-00163eefc9c8</version></representation>");
         //
         // create representation
-        URI uriCreated = instance.createRepresentation(CLOUD_ID,
-                representationName, PROVIDER_ID);
+        URI uriCreated = instance.createRepresentation(CLOUD_ID, representationName, PROVIDER_ID, DATASET_ID);
         Representation coordinates = TestUtils
                 .parseRepresentationFromUri(uriCreated);
 
@@ -996,8 +811,7 @@ public class RecordServiceClientTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_PERSIST_EMPTY_REPRESENTATION</errorCode></errorInfo>");
 
         // create new representation version
-        URI uri = instance.createRepresentation(CLOUD_ID, representationName,
-                PROVIDER_ID);
+        URI uri = instance.createRepresentation(CLOUD_ID, representationName, PROVIDER_ID, DATASET_ID);
         // obtain the version
         String version = TestUtils.parseRepresentationFromUri(uri).getVersion();
         // try to persist
@@ -1101,84 +915,6 @@ public class RecordServiceClientTest {
         instance.persistRepresentation(cloudId, representationName, version);
     }
 
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToUpdatePermissions()
-            throws MCSException {
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-
-        //
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-        //
-
-        client.grantPermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
-    }
-
-    @Test
-    public void shouldUpdatePermissionsWhenAuthorizationHeaderIsCorrect()
-            throws MCSException {
-        String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-        client.useAuthorizationHeader(correctHeaderValue);
-
-        //
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/permissions/read/users/user",
-                200,
-                "Authorization has been updated!");
-        //
-
-        client.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
-        assertTrue(true);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowAccessDeniedExceptionWhenAuthorizationHeaderIsNotCorrect()
-            throws MCSException {
-        String headerValue = "Basic wrongHeaderValue";
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-        client.useAuthorizationHeader(headerValue);
-        //
-        new WiremockHelper(wireMockRule).stubPost(
-                "/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/permissions/read/users/user",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-        //
-        client.grantPermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
-    }
-
-    @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-    public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionWhileTryingToRevokePermissions()
-            throws MCSException {
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-        //
-        new WiremockHelper(wireMockRule).stubDelete(
-                "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/permissions/read/users/user",
-                405,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-        //
-        client.revokePermissionsToVersion(CLOUD_ID, REPRESENTATION_NAME, VERSION, "user", Permission.READ);
-    }
-
-    @Test
-    public void shouldRevokePermissionsWhenAuthorizationHeaderIsCorrect()
-            throws MCSException {
-        String correctHeaderValue = "Basic YWRtaW46YWRtaW4=";
-        RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs");
-        client.useAuthorizationHeader(correctHeaderValue);
-
-        //
-        new WiremockHelper(wireMockRule).stubDelete(
-                "/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/permissions/read/users/user",
-                204);
-        //
-
-        client.revokePermissionsToVersion("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", "TIFF", "86318b00-6377-11e5-a1c6-90e6ba2d09ef", "user", Permission.READ);
-        assertTrue(true);
-    }
-
     @Test
     public void shouldCreateNewRepresentationAndUploadAFile() throws IOException, MCSException {
         RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
@@ -1190,7 +926,8 @@ public class RecordServiceClientTest {
                 "http://localhost:8080/mcs/records/FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA/representations/sampleRepresentationName9/versions/7a1ca2f0-5958-11e6-8345-90e6ba2d09ef/files/fileName",
                 null);
         //
-        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9", "sampleProvider", stream, "fileName", "mediaType");
+        client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA", "sampleRepresentationName9",
+                "sampleProvider", DATASET_ID, stream, "fileName", "mediaType");
         assertTrue(true);
     }
 
@@ -1207,7 +944,7 @@ public class RecordServiceClientTest {
                 null);
         //
         client.createRepresentation("FGDNTHPJQAUTEIGAHOALM2PMFSDRD726U5LNGMPYZZ34ZNVT5YGA",
-                "sampleRepresentationName9", "sampleProvider", stream, "mediaType");
+                "sampleRepresentationName9", "sampleProvider", DATASET_ID, stream, "mediaType");
 
         assertTrue(true);
     }

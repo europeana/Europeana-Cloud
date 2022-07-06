@@ -122,6 +122,13 @@ public class DataSetResource {
         return representations;
     }
 
+    @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
+    @ResponseBody
+    public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
+            throws DataSetNotExistsException {
+        dataSetService.checkIfDatasetExists(dataSetId, providerId);
+    }
+
     /**
      * Updates description of a data set.
      * <p>

@@ -4,10 +4,6 @@ public class RestInterfaceConstants {
 
     private RestInterfaceConstants() {}
 
-    //DataSetAssignmentsResource
-    public static final String DATA_SET_ASSIGNMENTS =
-            "/data-providers/{providerId}/data-sets/{dataSetId}/assignments";
-
     //DataSetResource
     public static final String DATA_SET_RESOURCE =
             "/data-providers/{providerId}/data-sets/{dataSetId}";
@@ -50,10 +46,6 @@ public class RestInterfaceConstants {
 
     public static final String REPRESENTATION_VERSION_COPY =
             "/records/{cloudId}/representations/{representationName}/versions/{version}/copy";
-
-    //RepresentationAuthorizationResource
-    public static final String REPRESENTATION_PERMISSION =
-            "/records/{cloudId}/representations/{representationName}/versions/{version}/permissions/{permission}/users/{userName}";
 
     public static final String REPRESENTATION_PERMIT =
             "/records/{cloudId}/representations/{representationName}/versions/{version}/permit";
