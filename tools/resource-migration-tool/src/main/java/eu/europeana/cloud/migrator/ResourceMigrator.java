@@ -1694,7 +1694,6 @@ public class ResourceMigrator {
                     while (retries-- > 0) {
                         try {
                             mcs.deleteRecord(id);
-                            uis.deleteCloudId(id);
                             break;
                         } catch (ProcessingException e) {
                             logger.warn("Error processing HTTP request while deleting record: " + id + ". Retries left: " + retries, e);

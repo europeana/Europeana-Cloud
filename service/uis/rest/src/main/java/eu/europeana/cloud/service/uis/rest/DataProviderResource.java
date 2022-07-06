@@ -91,38 +91,6 @@ public class DataProviderResource {
         return ResponseEntity.noContent().build();
     }
 
-
-    /**
-     * Deletes data provider from database
-     *
-     * <br/>
-     * <br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
-     * 6px;'> <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Admin role</li>
-     * </ul>
-     * </div>
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> data provider id
-     *
-     * @return Empty response with http status code indicating whether the
-     *         operation was successful or not
-     *
-     * @throws ProviderDoesNotExistException
-     *             The supplied provider does not exist
-     *
-     */
-    @DeleteMapping(value = RestInterfaceConstants.DATA_PROVIDER)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteProvider(@PathVariable String providerId)
-            throws ProviderDoesNotExistException {
-        providerService.deleteProvider(providerId);
-        deleteProviderAcl(providerId);
-        return ResponseEntity.ok().build();
-    }
-
     /**
      *
      * Create a mapping between a cloud identifier and a record identifier for a
@@ -192,59 +160,5 @@ public class DataProviderResource {
             MutableAcl providerAcl = aclWrapper.createOrUpdateAcl(creatorName, providerIdentity);
             aclWrapper.updateAcl(providerAcl);
         }
-    }
-
-
-    /**
-     *
-     * Remove the mapping between a record identifier and a cloud identifier
-     *
-     * <br/>
-     * <br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding:
-     * 6px;'> <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Write permissions for selected data provider and local identifier
-     * (granted at the mapping creation)</li>
-     * </ul>
-     * </div>
-     *
-     * @param providerId
-     *            <strong>REQUIRED</strong> identifier of the provider, owner of
-     *            the record
-     *
-     * @param recordId
-     *            <strong>REQUIRED</strong> record identifier which will be
-     *            detached from selected provider identifier.
-     *
-     * @return Confirmation that the mapping has been removed
-     *
-     * @throws DatabaseConnectionException
-     *             database error
-     * @throws ProviderDoesNotExistException
-     *             provider does not exist
-     */
-    @DeleteMapping(value = RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#recordId.concat('/').concat(#providerId),'" + LOCAL_ID_CLASS_NAME + "', write)")
-    public ResponseEntity<String> removeIdMapping(@PathVariable String providerId, @PathVariable String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException {
-        uniqueIdentifierService.removeIdMapping(providerId, recordId);
-        deleteLocalIdAcl(recordId, providerId);
-        return ResponseEntity.ok("Mapping marked as deleted");
-    }
-
-
-    protected void deleteLocalIdAcl(String localId, String providerId)
-            throws ChildrenExistException {
-        String key = localId + "/" + providerId;
-        ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-        aclWrapper.deleteAcl(providerIdentity, false);
-    }
-
-
-    private void deleteProviderAcl(String dataProviderId) {
-        ObjectIdentity providerIdentity = new ObjectIdentityImpl(DataProvider.class.getName(), dataProviderId);
-        aclWrapper.deleteAcl(providerIdentity, false);
     }
 }

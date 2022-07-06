@@ -121,10 +121,9 @@ public class ProviderRemover {
                         }
                     }
 
-                    uisClient.deleteCloudId(id);
                     LOGGER.info("Record with cloudId = '{}' removed", id);
                     removedRecords.add(id);
-                } catch(MCSException | CloudException | DriverException serviceException) {
+                } catch(MCSException | DriverException serviceException) {
                     LOGGER.error(String.format("Error while removing record '%s' : %s", id, serviceException.getMessage()));
                 }
             }

@@ -45,8 +45,6 @@ public class UISClientTest {
     private static final String duplicateProviderRecordTest_PROVIDER_ID = "duplicateProviderRecordTest_PROVIDERID";
     private static final String createAndRetrieveProviderTest_PROVIDER_ID = "createAndRetrieveProviderTest_PROVIDERID";
     private static final String createAndRetrieveRecordTest_PROVIDER_ID = "createAndRetrieveRecordTest_PROVIDERID";
-    private static final String removeMappingTest_PROVIDER_ID = "removeMappingTest_PROVIDERID";
-    private static final String removeAndRecreateMappingTest_PROVIDER_ID = "removeAndRecreateMappingTest_PROVIDERID";
 	private static final String createCloudIdandRetrieveCloudIdTest_PROVIDER_ID = "createCloudIdandRetrieveCloudIdTest_PROVIDERID";
 	private static final String updateProviderTest_PROVIDER_ID = "updateProviderTest_PROVIDERID";
 	
@@ -192,110 +190,6 @@ public class UISClientTest {
         ResultSlice<CloudId> resultSliceWithResults = uisClient.getRecordId(cloudId.getId());
         assertFalse(resultSliceWithResults.getResults().isEmpty());
     }
-    
-    @Test
-    public final void removeMappingTest() throws Exception {
-    	
-        UISClient uisClient = new UISClient(BASE_URL, username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/data-providers?providerId=removeMappingTest_PROVIDERID",
-                201,
-                "http://localhost:8080/ecloud-service-uis-rest/data-providers/removeMappingTest_PROVIDERID",
-                null);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/cloudIds?providerId=removeMappingTest_PROVIDERID&recordId=TEST_RECORD_1",
-                200,
-                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>15G2L35ZK6G</id><localId><providerId>removeMappingTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
-
-        new WiremockHelper(wireMockRule).stubDelete(
-                "/uis/data-providers/removeMappingTest_PROVIDERID/localIds/TEST_RECORD_1",
-                200,
-                "Mapping marked as deleted");
-
-        new WiremockHelper(wireMockRule).stubGet(
-                "/uis/cloudIds/15G2L35ZK6G",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice/>");
-
-    	// Create a provider with some random properties
-        DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
-        		"url", "url", "url", "person", "remarks");
-        uisClient.createProvider(removeMappingTest_PROVIDER_ID, providerProperties);
-
-        // create a mapping
-        final CloudId cloudId = uisClient.createCloudId(removeMappingTest_PROVIDER_ID, RECORD_ID);
-        final LocalId localId = cloudId.getLocalId(); // local Id was created automatically
-        
-        // remove the mapping
-        final boolean removedSuccesfully = uisClient.removeMappingByLocalId(localId.getProviderId(), localId.getRecordId());
-        assertTrue(removedSuccesfully);
-        
-        // mapping was removed => we should get no results
-        ResultSlice<CloudId> resultSliceNoResults = uisClient.getRecordId(cloudId.getId());
-        assertTrue(resultSliceNoResults.getResults().isEmpty());
-    }
-    
-
-    @Test
-    public final void removeAndRecreateMappingTest() throws Exception {
-    	
-        UISClient uisClient = new UISClient(BASE_URL, username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/data-providers?providerId=removeAndRecreateMappingTest_PROVIDERID",
-                201,
-                Map.of("Location","/data-providers?providerId=removeAndRecreateMappingTest_PROVIDERID"),
-                null);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/cloudIds?providerId=removeAndRecreateMappingTest_PROVIDERID",
-                200,
-                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>");
-
-        new WiremockHelper(wireMockRule).stubDelete(
-                "/uis/data-providers/removeAndRecreateMappingTest_PROVIDERID/localIds/C5M2JGHNCXQ",
-                200,
-                "Mapping marked as deleted");
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/data-providers/removeAndRecreateMappingTest_PROVIDERID/cloudIds/1VP8GL0D73Z?recordId=C5M2JGHNCXQ",
-                200,
-                "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></cloudId>");
-
-        new WiremockHelper(wireMockRule).stubGet(
-                "/uis/cloudIds/1VP8GL0D73Z",
-                200,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>1VP8GL0D73Z</id><localId><providerId>removeAndRecreateMappingTest_PROVIDERID</providerId><recordId>C5M2JGHNCXQ</recordId></localId></results></resultSlice>");
-
-
-    	// Create a provider with some random properties
-        DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
-        		"url", "url", "url", "person", "remarks");
-        uisClient.createProvider(removeAndRecreateMappingTest_PROVIDER_ID, providerProperties);
-
-        // create a mapping
-        final CloudId cloudId = uisClient.createCloudId(removeAndRecreateMappingTest_PROVIDER_ID);
-        final LocalId localId = cloudId.getLocalId(); // local Id was created automatically
-
-        assertNotNull(localId.getProviderId());
-        assertNotNull(localId.getRecordId());
-        
-        // remove the mapping
-        final boolean removedSuccesfully = uisClient.removeMappingByLocalId(localId.getProviderId(), localId.getRecordId());
-        assertTrue(removedSuccesfully);
-        
-        // lets create the mapping again
-        uisClient.createMapping(cloudId.getId(), localId.getProviderId(), localId.getRecordId());
-        
-        // lets test that we can get some results back
-        ResultSlice<CloudId> resultSliceWithResults = uisClient.getRecordId(cloudId.getId());
-        assertFalse(resultSliceWithResults.getResults().isEmpty());
-    }
 
     @Test
     public final void createAndRetrieveRecordTest() throws Exception {
@@ -330,27 +224,6 @@ public class UISClientTest {
         // get back the record
         CloudId cloudIdIGotBack = resultsSlice.getResults().iterator().next();
         assertEquals(cloudIdIhave, cloudIdIGotBack);
-    }
-
-    @Test(expected = CloudException.class)
-    public final void deleteRecordTest() throws Exception {
-
-        UISClient uisClient = new UISClient(BASE_URL, username, password);
-
-        new WiremockHelper(wireMockRule).stubPost(
-                "/uis/cloudIds?providerId=PROVIDER_1&recordId=TEST_RECORD_1",
-                404,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>The supplied provider identifier PROVIDER_1 does not exist</details><errorCode>PROVIDER_DOES_NOT_EXIST</errorCode></errorInfo>");
-
-    	// create a record
-        final CloudId cloudIdIhave = uisClient.createCloudId(PROVIDER_ID, RECORD_ID);
-        
-        // delete it
-        final boolean isDeleted = uisClient.deleteCloudId(cloudIdIhave.getId());
-        assertTrue(isDeleted);
-
-        // try to get it back => should throw CloudIdDoesNotExist exception
-        uisClient.getRecordId(cloudIdIhave.getId());
     }
 
     @Test
