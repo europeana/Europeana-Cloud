@@ -118,8 +118,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     private String extractDatasetId(StormTaskTuple stormTaskTuple) throws CloudException {
         try {
-            List<DataSet> datasets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            return datasets.get(0).getId();
+            DataSet dataset = DataSetUrlParser.parse(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            return dataset.getId();
         } catch (Exception e) {
             LOGGER.error("Unable to extract dataset id from task parameter");
             throw new CloudException("Unable to extract dataset id from task parameter", e);
@@ -136,20 +136,23 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
-        //TODO add datasetId to the request
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
-                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
+                        writeParams.getProviderId(),
+                        writeParams.getNewVersion(),
+                        writeParams.getDataSetId(),
+                        AUTHORIZATION,
                         stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating new representation");
-        //TODO add datasetId to the request
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
                         writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
-                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
+                        writeParams.getNewVersion(),
+                        writeParams.getDataSetId(),
+                        stormTaskTuple.getFileByteDataAsStream(),
                         writeParams.getNewFileName(),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));

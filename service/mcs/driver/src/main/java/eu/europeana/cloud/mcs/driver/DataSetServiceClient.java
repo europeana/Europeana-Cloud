@@ -464,26 +464,4 @@ public class DataSetServiceClient extends MCSClient {
                         .delete()
         );
     }
-
-    /**
-     * Gives read access to everyone (even anonymous users) for the specified dataset.
-     * <p/>
-     * <strong>Write permissions required.</strong>
-     *
-     * @param dataSetId dataset identifier
-     * @param providerId provider that is assigned to the dataset
-     * @return response tells you if authorization has been updated or not
-     * @statuscode 200 object has been updated.
-     */
-    public void giveReadAccessToEveryone(String providerId, String dataSetId) {
-        //TODO Repair method when the resource will be repaired.
-    }
-
-    private Form getForm(String cloudId, String representationName, String version) {
-        Form form = new Form();
-        form.param(CLOUD_ID, cloudId);
-        form.param(REPRESENTATION_NAME, representationName);
-        form.param(VERSION, version);
-        return form;
-    }
 }
