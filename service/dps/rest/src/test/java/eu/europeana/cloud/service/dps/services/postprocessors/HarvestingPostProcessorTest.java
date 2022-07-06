@@ -129,6 +129,7 @@ public class HarvestingPostProcessorTest {
         task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
         task.addParameter(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_STRING);
         task.addParameter(PluginParameterKeys.PROVIDER_ID, PROVIDER_ID);
+        task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
         task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
         task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);

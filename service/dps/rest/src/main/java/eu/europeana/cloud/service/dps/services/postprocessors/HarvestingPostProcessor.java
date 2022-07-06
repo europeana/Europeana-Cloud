@@ -159,8 +159,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
         String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
         var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
-        var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, datasetId,
-                providerId, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
+                datasetId, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         return RepresentationParser.parseResultUrl(representationUri);
     }
 

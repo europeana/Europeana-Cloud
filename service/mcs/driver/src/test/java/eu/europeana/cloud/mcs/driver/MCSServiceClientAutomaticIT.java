@@ -9,8 +9,6 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
@@ -31,27 +29,23 @@ public class MCSServiceClientAutomaticIT {
     private static final String USER_NAME = Config.ECLOUD_USER;
     private static final String USER_PASSWORD = Config.ECLOUD_PASSWORD;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MCSServiceClientAutomaticIT.class);
     public static final String DATASET_ID = "e2e_api_tests";
     private static final String DATASET_DESCRIPTION = "Dataset for automatic tests";
     public static final String PROVIDER = "xxx";
-    private static final String RECORD_1 = "/99991/recrods1";
-    private static final String RECORD_2 = "/99991/recrods2";
-    private static final String REPRESENTATION_NAME = "xxx";
+    private static final String RECORD_1 = "/99991/records1";
+    private static final String REPRESENTATION_NAME = "rrr";
     private static final String FILE_NAME = "test.txt";
     private static final String FILE_MEDIA_TYPE = MediaType.TEXT_PLAIN;
 
-    private UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+    private final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
     private DataSetServiceClient dataSetServiceClient;
 
     private RecordServiceClient recordServiceClient;
     private UISClient uisClient;
     private String cloudId1;
-    private String cloudId2;
     private final InputStream fileData = new ByteArrayInputStream("It is test uploaded file content."
             .getBytes(StandardCharsets.UTF_8));
 
-    //TODO uzupelnić inne metody
     @Before
     public void setup() throws MCSException, CloudException {
         uisClient = new UISClient(UIS_URL, USER_NAME, USER_PASSWORD);
@@ -60,7 +54,6 @@ public class MCSServiceClientAutomaticIT {
         clearDateFromPreviousTests();
 
         cloudId1 = uisClient.createCloudId(PROVIDER, RECORD_1).getId();
-        cloudId2 = uisClient.createCloudId(PROVIDER, RECORD_1).getId();
         dataSetServiceClient.createDataSet(PROVIDER, DATASET_ID, DATASET_DESCRIPTION);
     }
 
@@ -78,7 +71,9 @@ public class MCSServiceClientAutomaticIT {
 
     @After
     public void close() {
+        recordServiceClient.close();
         dataSetServiceClient.close();
+        uisClient.close();
     }
 
     @Test

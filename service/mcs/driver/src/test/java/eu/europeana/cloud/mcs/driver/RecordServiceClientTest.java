@@ -604,7 +604,7 @@ public class RecordServiceClientTest {
         //
         new WiremockHelper(wireMockRule).stubPost(
                 "/mcs/records/W3KBLNZDKNQ/representations/schema66",
-                "providerId=Provider001",
+                "providerId=Provider001&dataSetId="+DATASET_ID,
                 "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/f30eb490-431c-11e4-8576-00163eefc9c8",
                 201,
                 null);
