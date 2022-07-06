@@ -31,6 +31,30 @@ public class DataSetPermissionsVerifier {
         this.permissionEvaluator = permissionEvaluator;
     }
 
+    public boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasDeletePermissionFor(representation);
+    }
+
+    public boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasWritePermissionFor(representation);
+    }
+
+    public boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasDeletePermissionFor(representation);
+    }
+
+    public boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasWritePermissionFor(representation);
+    }
+
+    public boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasWritePermissionFor(representation);
+    }
+
+    public boolean isUserAllowedToDeleteRevisionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
+        return this.hasDeletePermissionFor(representation);
+    }
+
     public boolean hasReadPermissionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         return hasPermissionFor(representation, Permission.READ);
     }

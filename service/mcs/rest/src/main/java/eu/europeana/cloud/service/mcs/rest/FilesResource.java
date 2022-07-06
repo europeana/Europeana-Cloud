@@ -92,7 +92,7 @@ public class FilesResource {
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		Representation representation = Representation.fromFields(cloudId, representationName, version);
-		if (isUserAllowedToUploadFileFor(representation)) {
+		if (dataSetPermissionsVerifier.isUserAllowedToUploadFileFor(representation)) {
 			File f = new File();
 			f.setMimeType(mimeType);
 			PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
@@ -130,9 +130,5 @@ public class FilesResource {
 		} else {
 			throw new AccessDeniedOrObjectDoesNotExistException();
 		}
-	}
-
-	private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-		return dataSetPermissionsVerifier.hasReadPermissionFor(representation);
 	}
 }

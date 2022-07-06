@@ -82,7 +82,7 @@ public class RepresentationVersionResource {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
 
-        if (isUserAllowedToDelete(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToDelete(representation)) {
             recordService.deleteRepresentation(cloudId, representationName, version);
         }else{
             throw new AccessDeniedOrObjectDoesNotExistException();
@@ -116,21 +116,13 @@ public class RepresentationVersionResource {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
 
-        if (isUserAllowedToPersistRepresentation(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToPersistRepresentation(representation)) {
             Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
             EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
             return ResponseEntity.created(persistentRepresentation.getUri()).build();
         }else{
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
-    }
-
-    private boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
-    }
-
-    private boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
     }
 
 }

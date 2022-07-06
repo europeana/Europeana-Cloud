@@ -104,14 +104,14 @@ public class DataSetsAATest extends AbstractSecurityTest {
 			throws
 			DataSetNotExistsException {
 
-		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
+		datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION);
 	}
 	
 	@Test(expected = AuthenticationCredentialsNotFoundException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteDataset()
 			throws DataSetDeletionException, DataSetNotExistsException {
 
-		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
+		datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -120,7 +120,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 			DataSetNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		datasetResource.updateDataSet(DATASET_ID, PROVIDER_ID, DESCRIPTION);
+		datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -128,7 +128,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 			throws DataSetDeletionException, DataSetNotExistsException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
+		datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
 	}
 
 	@Test
@@ -137,7 +137,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
-		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
+		datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
 	}
 
 	/**
@@ -151,6 +151,6 @@ public class DataSetsAATest extends AbstractSecurityTest {
 		login(RONALDO, RONALD_PASSWORD);
 		datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-		datasetResource.deleteDataSet(DATASET_ID, PROVIDER_ID);
+		datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
 	}
 }

@@ -48,8 +48,6 @@ public class DataSetResource {
     );
 
     private static final String DATASET_PERMISSION_KEY ="eu.europeana.cloud.common.model.DataSet";
-    private static final String UPDATED_MESSAGE = "Authorization has been updated!";
-    private static final String NO_UPDATED_MESSAGE = "Authorization has NOT been updated!";
 
     private final DataSetService dataSetService;
 
@@ -81,8 +79,8 @@ public class DataSetResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws DataSetDeletionException, DataSetNotExistsException {
+            @PathVariable String providerId,
+            @PathVariable String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
 
         dataSetService.deleteDataSet(providerId, dataSetId);
 
@@ -111,8 +109,8 @@ public class DataSetResource {
     @ResponseBody
     public ResultSlice<Representation> getDataSetContents(
             HttpServletRequest httpServletRequest,
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam(required = false) String startFrom) throws DataSetNotExistsException {
 
         ResultSlice<Representation> representations =
@@ -148,8 +146,8 @@ public class DataSetResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam String description) throws DataSetNotExistsException {
 
         dataSetService.updateDataSet(providerId, dataSetId, description);
@@ -172,8 +170,8 @@ public class DataSetResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
             "or hasRole('ROLE_ADMIN')")
     public void updateDataSetPermissionsForUser(
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam String permission,
             @RequestParam String username
     ) {
@@ -190,8 +188,8 @@ public class DataSetResource {
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
             "or hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> removeDataSetPermissionsForUser(
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam String permission,
             @RequestParam String username
     ) {
@@ -210,31 +208,5 @@ public class DataSetResource {
         permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);
 
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Gives read access to everyone (even anonymous users) for the specified dataset.
-     * <p/>
-     * <strong>Write permissions required.</strong>
-     *
-     * @param dataSetId dataset identifier
-     * @param providerId provider that is assigned to the dataset
-     * @return response tells you if authorization has been updated or not
-     * @statuscode 200 object has been updated.
-     */
-    @PostMapping(value = REPRESENTATION_PERMIT)
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
-            "or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> giveReadAccessToEveryone(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) {
-
-        if (permissionsGrantingManager.grantFullAccess(DATASET_PERMISSION_KEY, dataSetId + "/" + providerId)) {
-            return ResponseEntity.ok(UPDATED_MESSAGE);
-        } else {
-            return ResponseEntity
-                    .ok()
-                    .body(NO_UPDATED_MESSAGE);
-        }
     }
 }

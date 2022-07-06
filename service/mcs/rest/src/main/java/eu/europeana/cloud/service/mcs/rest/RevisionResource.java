@@ -80,9 +80,9 @@ public class RevisionResource {
                 Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
         //
         Representation representation = Representation.fromFields(cloudId, representationName, version);
-        Revision revision = buildRevisionFromRequestParams(revisionName, revisionProviderId, tag);
         //
-        if (isUserAllowedToAddRevisionTo(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToAddRevisionTo(representation)) {
+            Revision revision = Revision.fromParams(revisionName, revisionProviderId, tag);
             addRevisionToRepresentationVersion(revision, representation);
             return createResponseEntity(httpServletRequest, null);
         } else {
@@ -110,7 +110,7 @@ public class RevisionResource {
         //
         Representation representation = Representation.fromFields(cloudId, representationName, version);
         //
-        if (isUserAllowedToAddRevisionTo(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToAddRevisionTo(representation)) {
             addRevisionToRepresentationVersion(revision, representation);
             return createResponseEntity(httpServletRequest, null);
         } else {
@@ -147,9 +147,9 @@ public class RevisionResource {
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
         //
         Representation representation = Representation.fromFields(cloudId, representationName, version);
-        Revision revision = buildRevisionFromRequestParams(revisionName, revisionProviderId, tags);
         //
-        if (isUserAllowedToAddRevisionTo(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToAddRevisionTo(representation)) {
+            Revision revision = Revision.fromParams(revisionName, revisionProviderId, tags);
             addRevisionToRepresentationVersion(revision, representation);
             return createResponseEntity(httpServletRequest, revision);
         } else {
@@ -182,24 +182,12 @@ public class RevisionResource {
         //
         Representation representation = Representation.fromFields(cloudId,representationName,version);
         //
-        if (isUserAllowedToDeleteRevisionFor(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToDeleteRevisionFor(representation)) {
             DateTime timestamp = new DateTime(revisionTimestamp, DateTimeZone.UTC);
             dataSetService.deleteRevision(cloudId, representationName, version, revisionName, revisionProviderId, timestamp.toDate());
         } else {
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
-    }
-
-    private Revision buildRevisionFromRequestParams(String revisionName, String revisionProviderId, String tag){
-        Revision revision = new Revision(revisionName, revisionProviderId);
-        setRevisionTags(revision, new HashSet<>(List.of(tag)));
-        return revision;
-    }
-
-    private Revision buildRevisionFromRequestParams(String revisionName, String revisionProviderId, Set<String> tags){
-        Revision revision = new Revision(revisionName, revisionProviderId);
-        setRevisionTags(revision, tags);
-        return revision;
     }
 
     private void addRevisionToRepresentationVersion(Revision revision, Representation representation) throws RepresentationNotExistsException, RevisionIsNotValidException {
@@ -219,14 +207,6 @@ public class RevisionResource {
                 revision.getCreationTimeStamp());
     }
 
-    private boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
-    }
-
-    private boolean isUserAllowedToDeleteRevisionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
-    }
-
     private void addRevision(String globalId, String schema, String version, Revision revision)
             throws RevisionIsNotValidException, RepresentationNotExistsException {
 
@@ -236,21 +216,6 @@ public class RevisionResource {
                 revision.getRevisionName(), version, revision.getCreationTimeStamp());
 
         dataSetService.updateAllRevisionDatasetsEntries(globalId, schema, version, revision);
-    }
-
-    private void setRevisionTags(Revision revision, Set<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return;
-        }
-        if (tags.contains(Tags.ACCEPTANCE.getTag())) {
-            revision.setAcceptance(true);
-        }
-        if (tags.contains(Tags.PUBLISHED.getTag())) {
-            revision.setPublished(true);
-        }
-        if (tags.contains(Tags.DELETED.getTag())) {
-            revision.setDeleted(true);
-        }
     }
 
     private <T> ResponseEntity<T> createResponseEntity(HttpServletRequest httpServletRequest, T entity) {

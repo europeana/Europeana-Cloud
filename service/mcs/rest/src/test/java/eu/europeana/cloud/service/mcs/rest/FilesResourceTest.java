@@ -16,6 +16,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
@@ -71,8 +72,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
 
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
 
         DataProvider dp = new DataProvider();
         dp.setId("1");

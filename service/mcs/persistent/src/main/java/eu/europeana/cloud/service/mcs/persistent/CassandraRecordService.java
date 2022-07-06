@@ -165,7 +165,7 @@ public class CassandraRecordService implements RecordService {
         //
         Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
         if (oneDatasetFor.isPresent()) {
-            if (!oneDatasetFor.get().getDataSetId().equals(dataSetId) || !oneDatasetFor.get().getDataSetProviderId().equals(providerId)) {
+            if (!oneDatasetFor.get().equals(new CompoundDataSetId(providerId, dataSetId))) {
                 LOGGER.error("DataSetId provided and recordId doesn't match. It should never happen");
                 throw new DataSetAssignmentException("providerId and/or datasetId doesn't match. It is not allowed to assign representations of same record" +
                         " to more than one dataset.");
