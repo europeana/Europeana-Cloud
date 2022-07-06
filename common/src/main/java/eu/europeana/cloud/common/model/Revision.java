@@ -54,18 +54,17 @@ public class Revision implements Serializable {
 
     public static Revision fromParams(String revisionName, String revisionProviderId, String tag){
         Revision revision = new Revision(revisionName, revisionProviderId);
-        setRevisionTags(revision, new HashSet<>(List.of(tag)));
+        revision.setRevisionTags(revision, new HashSet<>(List.of(tag)));
         return revision;
     }
 
     public static Revision fromParams(String revisionName, String revisionProviderId, Set<String> tags){
         Revision revision = new Revision(revisionName, revisionProviderId);
-        setRevisionTags(revision, tags);
+        revision.setRevisionTags(revision, tags);
         return revision;
     }
 
-
-    private static void setRevisionTags(Revision revision, Set<String> tags) {
+    private void setRevisionTags(Revision revision, Set<String> tags) {
         if (tags == null || tags.isEmpty()) {
             return;
         }
