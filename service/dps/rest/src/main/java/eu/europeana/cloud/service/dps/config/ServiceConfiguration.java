@@ -291,10 +291,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     public PostProcessingScheduler postProcessingScheduler(
             PostProcessingService postProcessingService,
             TasksByStateDAO tasksByStateDAO,
+            CassandraTaskInfoDAO taskInfoDAO,
             TaskStatusUpdater taskStatusUpdater,
             String applicationIdentifier
     ) {
-        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
+        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskInfoDAO, taskStatusUpdater, applicationIdentifier);
     }
 
     @Bean

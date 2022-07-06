@@ -14,8 +14,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,6 +75,31 @@ public class PostProcessingServiceTest {
         verify(taskPostProcessor, never()).execute(any(), any());
     }
 
+    @Test
+    public void shouldNeedsPostProcessingReturnFalseIfFactoryNotFoundForGivenTopology() throws IOException {
+
+        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_2, TASK_INFO_1);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnFalseIfPostProcessorReturnFalse() throws IOException {
+
+        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnTrueIfPostProcessorReturnTrue() throws IOException {
+        when(taskPostProcessor.needsPostProcessing(any())).thenReturn(true);
+
+        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+
+        assertTrue(result);
+    }
+
     private void initTaskInfoDAOMock() {
         TASK_INFO_1.setId(TASK_ID_1);
         TASK_INFO_1.setDefinition(String.format(TASK_DETAILS_PATTERN, TASK_ID_1));
@@ -81,6 +109,8 @@ public class PostProcessingServiceTest {
 
     private void initPostProcessorFactory() {
         when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(taskPostProcessor);
+        when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(Optional.of(taskPostProcessor));
         when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_2)).thenThrow(PostProcessingException.class);
+        when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_2)).thenReturn(Optional.empty());
     }
 }

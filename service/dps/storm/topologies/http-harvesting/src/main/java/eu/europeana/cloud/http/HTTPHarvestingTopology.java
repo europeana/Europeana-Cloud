@@ -3,7 +3,7 @@ package eu.europeana.cloud.http;
 import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.HarvestNotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
@@ -33,7 +33,7 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 3/22/2018.
  */
 public class HTTPHarvestingTopology {
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
@@ -79,7 +79,7 @@ public class HTTPHarvestingTopology {
                 .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
-                builder.setBolt(NOTIFICATION_BOLT, new HarvestNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                                         topologyProperties.getProperty(CASSANDRA_USERNAME),

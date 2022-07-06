@@ -25,7 +25,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -177,6 +178,34 @@ public class IndexingPostProcessorTest {
         assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
     }
 
+    @Test
+    public void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
+        DpsTask task = new DpsTask();
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnTrueForFullIndexing() {
+        DpsTask task = new DpsTask();
+        task.addParameter(INCREMENTAL_INDEXING,"false");
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnFalseForIncrementalIndexing() {
+        DpsTask task = new DpsTask();
+        task.addParameter(INCREMENTAL_INDEXING,"true");
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertFalse(result);
+    }
 
     private DpsTask prepareTaskForPreviewEnv() {
         DpsTask dpsTask = new DpsTask();

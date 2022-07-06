@@ -18,7 +18,6 @@ import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -114,5 +113,13 @@ public class IndexingPostProcessor extends TaskPostProcessor {
                 (cleanerParameters.getDataSetId() == null
                         && cleanerParameters.getTargetIndexingEnv() == null
                         && cleanerParameters.getCleaningDate() == null);
+    }
+
+    public boolean needsPostProcessing(DpsTask task) {
+        return !isIncrementalIndexing(task);
+    }
+
+    private boolean isIncrementalIndexing(DpsTask task) {
+        return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_INDEXING));
     }
 }
