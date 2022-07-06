@@ -308,7 +308,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 			throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToDelete(Mockito.any());
 		representationVersionResource.deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 	}
 
@@ -325,7 +325,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 		d.setProviderId(PROVIDER_ID);
 
 		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 
@@ -348,8 +348,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
 		Mockito.reset(dataSetPermissionsVerifier);
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 
@@ -407,7 +406,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
 		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
 		Mockito.reset(dataSetPermissionsVerifier);
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 

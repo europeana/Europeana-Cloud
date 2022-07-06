@@ -90,7 +90,7 @@ public class FileResource {
             CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
-        if (isUserAllowedToUploadFileFor(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToUploadFileFor(representation)) {
             String fileName = extractFileNameFromURL(request);
 
             File f = new File();
@@ -268,19 +268,11 @@ public class FileResource {
             CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
-        if (isUserAllowedToDeleteFileFor(representation)) {
+        if (dataSetPermissionsVerifier.isUserAllowedToDeleteFileFor(representation)) {
             recordService.deleteContent(cloudId, representationName, version, extractFileNameFromURL(httpServletRequest));
         } else {
             throw new AccessDeniedOrObjectDoesNotExistException();
         }
-    }
-
-    private boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasDeletePermissionFor(representation);
-    }
-
-    private boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return dataSetPermissionsVerifier.hasWritePermissionFor(representation);
     }
 
     private String extractFileNameFromURL(HttpServletRequest request) {

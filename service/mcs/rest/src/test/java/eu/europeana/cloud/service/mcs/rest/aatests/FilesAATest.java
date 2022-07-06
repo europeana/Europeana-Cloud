@@ -82,6 +82,8 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	private final static String ADMIN = "admin";
 	private final static String ADMIN_PASSWORD = "admin";
+
+	private DataSet testDataSet;
 	
 	private File file;
 	private File file2;
@@ -107,11 +109,11 @@ public class FilesAATest extends AbstractSecurityTest {
 		Mockito.doReturn(representation).when(recordService)
 				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), any());
 
-		DataSet d = new DataSet();
-		d.setId(DATASET_NAME);
-		d.setProviderId(PROVIDER_ID);
+		testDataSet = new DataSet();
+		testDataSet.setId(DATASET_NAME);
+		testDataSet.setProviderId(PROVIDER_ID);
 
-		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
+		Mockito.doReturn(testDataSet).when(dataSetService).createDataSet(any(), any(), any());
 	}
 	
 	// -- GET FILE -- //
@@ -131,13 +133,6 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		DataSet d = new DataSet();
-		d.setId(DATASET_NAME);
-		d.setProviderId(PROVIDER_ID);
-
-		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME,null);
@@ -154,7 +149,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAddFile() throws IOException, RepresentationNotExistsException,
 			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
 
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, null, FILE_NAME);
 	}
@@ -167,11 +162,6 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-		DataSet d = new DataSet();
-		d.setId(DATASET_NAME);
-		d.setProviderId(PROVIDER_ID);
-
-		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
 		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
@@ -200,7 +190,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException,
 			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
@@ -209,8 +199,7 @@ public class FilesAATest extends AbstractSecurityTest {
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteFile() throws RepresentationNotExistsException,
 			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
@@ -224,13 +213,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		DataSet d = new DataSet();
-		d.setId(DATASET_NAME);
-		d.setProviderId(PROVIDER_ID);
-
-		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 
@@ -247,13 +231,8 @@ public class FilesAATest extends AbstractSecurityTest {
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		DataSet d = new DataSet();
-		d.setId(DATASET_NAME);
-		d.setProviderId(PROVIDER_ID);
-
-		Mockito.doReturn(d).when(dataSetService).createDataSet(any(), any(), any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
 		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
@@ -289,7 +268,7 @@ public class FilesAATest extends AbstractSecurityTest {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-		Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
 
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
 	}

@@ -69,9 +69,9 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
 
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToAddRevisionTo(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
         dataSetService.createDataSet("1","s","desc");
         rep = recordService.createRepresentation("1", "1", "1","s");
@@ -281,7 +281,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
         byte[] content = new byte[1000];
         ThreadLocalRandom.current().nextBytes(content);
 
-        Mockito.doReturn(false).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
+        Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
 
         // when content is added to record representation
         mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), content))
