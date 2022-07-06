@@ -121,12 +121,12 @@ public interface RecordService {
      * @throws RecordNotExistsException   provided id of a record is not registered in eCloud system.
      * @throws ProviderNotExistsException there is no such provider
      */
-    Representation createRepresentation(String globalId, String schema, String providerId, UUID version)
-            throws RecordNotExistsException, ProviderNotExistsException;
+    Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId)
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
 
 
-    Representation createRepresentation(String globalId, String schema, String providerId)
-            throws RecordNotExistsException, ProviderNotExistsException ;
+    Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
 
 
     /**
@@ -144,22 +144,6 @@ public interface RecordService {
     Representation persistRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException;
-
-
-    /**
-     * Creates a new temporary representation version from already existing version. The new representation version will
-     * have all the same properties and files as the base one but will be temporary and new version id will be assigned
-     * to it.
-     *
-     * @param globalId id of the record
-     * @param schema   schema of the representation
-     * @param version  version of the representation which will be the base of the new version.
-     * @return copied representation
-     * @throws RepresentationNotExistsException representation does not exist in specified version.
-     */
-    Representation copyRepresentation(String globalId, String schema, String version)
-            throws RepresentationNotExistsException;
-
 
     /**
      * Creates or overrides file with specific name in specified representation version.

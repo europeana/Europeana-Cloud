@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -37,6 +38,9 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
     @Autowired
     private UISClientHandler uisHandler;
 
+    @Autowired
+    private CassandraDataSetService cassandraDataSetService;
+
     private static final String providerId = "provider";
 
     @After
@@ -55,10 +59,13 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 	Mockito.doThrow(new MockException()).when(swiftContentDAO)
 		.putContent(anyString(), any(InputStream.class));
 	// given representation
+        DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds_name",
+                "description of this set");
+
 	byte[] dummyContent = { 1, 2, 3 };
 	File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
 	Representation r = cassandraRecordService.createRepresentation("id",
-		"dc", providerId);
+		"dc", providerId,"ds_name");
 
 	// when content is put
 	try {

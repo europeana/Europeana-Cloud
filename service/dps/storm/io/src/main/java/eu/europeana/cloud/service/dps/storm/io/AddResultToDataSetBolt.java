@@ -98,15 +98,16 @@ public class AddResultToDataSetBolt extends AbstractDpsBolt {
     }
 
     private void assignRepresentationToDataSet(DataSet dataSet, Representation resultRepresentation, String authorizationHeader) throws MCSException {
-        RetryableMethodExecutor.executeOnRest("Error while assigning record to dataset", () ->
-                dataSetServiceClient.assignRepresentationToDataSet(
-                        dataSet.getProviderId(),
-                        dataSet.getId(),
-                        resultRepresentation.getCloudId(),
-                        resultRepresentation.getRepresentationName(),
-                        resultRepresentation.getVersion(),
-                        AUTHORIZATION,
-                        authorizationHeader));
+        //TODO Temporary commented but bolt would be deleted anyway
+//        RetryableMethodExecutor.executeOnRest("Error while assigning record to dataset", () ->
+//                dataSetServiceClient.assignRepresentationToDataSet(
+//                        dataSet.getProviderId(),
+//                        dataSet.getId(),
+//                        resultRepresentation.getCloudId(),
+//                        resultRepresentation.getRepresentationName(),
+//                        resultRepresentation.getVersion(),
+//                        AUTHORIZATION,
+//                        authorizationHeader));
 
     }
 

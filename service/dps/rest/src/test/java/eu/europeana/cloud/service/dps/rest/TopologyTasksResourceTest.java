@@ -1020,7 +1020,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
         doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
-        doNothing().when(recordServiceClient).grantPermissionsToVersion(anyString(), anyString(), anyString(), anyString(), any(eu.europeana.cloud.common.model.Permission.class));
     }
 
 }

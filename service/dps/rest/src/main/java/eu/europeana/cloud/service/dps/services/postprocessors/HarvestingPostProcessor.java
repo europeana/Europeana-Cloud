@@ -136,7 +136,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
             String cloudId = findCloudId(dpsTask, harvestedRecord);
             var representation = createRepresentationVersion(dpsTask, cloudId);
             addRevisionToRepresentation(dpsTask, representation);
-            assignRepresentationToDatasets(dpsTask, representation);
         } catch (CloudException | MCSException | MalformedURLException e) {
             throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
                     + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
@@ -159,8 +158,9 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
         String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
         var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
-                AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                datasetId, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
         return RepresentationParser.parseResultUrl(representationUri);
     }
 
@@ -169,15 +169,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         revision.setDeleted(true);
         revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
                 representation.getVersion(), revision, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-    }
-
-    private void assignRepresentationToDatasets(DpsTask dpsTask, Representation representation) throws MalformedURLException, MCSException {
-        List<DataSet> datasets = DataSetUrlParser.parseList(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        for (DataSet dataset : datasets) {
-            dataSetServiceClient.assignRepresentationToDataSet(dataset.getProviderId(), dataset.getId(),
-                    representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
-                    AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-        }
     }
 
     private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {

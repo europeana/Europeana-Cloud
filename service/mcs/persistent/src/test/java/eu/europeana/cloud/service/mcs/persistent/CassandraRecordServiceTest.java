@@ -2,9 +2,7 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -32,6 +30,8 @@ import static org.junit.Assert.*;
 public class CassandraRecordServiceTest extends CassandraTestBase {
 
     private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+    private static final String DATA_SET_NAME = "dataset1";
+    private static final String DATA_SET_DESCRIPTION = "description of this set";
 
     @Autowired
     private CassandraRecordService cassandraRecordService;
@@ -63,8 +63,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         makeUISSuccess();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
 
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc", r.getVersion());
@@ -76,8 +79,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         makeUISSuccess();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID, VERSION);
+                "globalId", "dc", PROVIDER_1_ID, VERSION, DATA_SET_NAME);
 
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc", VERSION.toString());
@@ -89,10 +95,13 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         makeUISSuccess();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         Representation r1 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID, VERSION);
+                "globalId", "dc", PROVIDER_1_ID, VERSION, DATA_SET_NAME);
         Representation r2 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID, VERSION);
+                "globalId", "dc", PROVIDER_1_ID, VERSION, DATA_SET_NAME);
 
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc", VERSION.toString());
@@ -106,8 +115,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         makeUISThrowIllegalStateException();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
     }
 
     @Test(expected = SystemException.class)
@@ -116,8 +127,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         makeUISThrowSystemException();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -153,8 +166,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
         cassandraRecordService.getRepresentation("globalId", "dc");
     }
 
@@ -170,15 +185,17 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldGetLatestPersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation("globalId", "dc", PROVIDER_1_ID);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
         Representation r4 = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
 
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc");
@@ -190,26 +207,30 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             throws Exception {
         makeUISFailure();
         makeUISProviderFailure();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                "not-existing");
+                "not-existing", DATA_SET_NAME);
     }
 
     @Test
     public void shouldListAllRepresentationVersionsInOrder() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r1 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
         Representation r2 = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
         Representation r3 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
         Representation r4 = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
         Representation r5 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
         cassandraRecordService.createRepresentation("globalId", "jpg",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
 
         List<Representation> representationVersions = cassandraRecordService
                 .listRepresentationVersions("globalId", "dc");
@@ -222,18 +243,20 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         // only temp representation
-        cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID);
+        cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
 
         // only persistent representation
         Representation jpg = insertDummyPersistentRepresentation("globalId", "jpg", PROVIDER_1_ID);
 
         // mixture of persistent and temp representations
-        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID);
+        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation("globalId", "edm", PROVIDER_1_ID);
-        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID);
+        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Representation edm4 = insertDummyPersistentRepresentation("globalId", "edm", PROVIDER_1_ID);
-        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID);
+        cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
 
         Record record = cassandraRecordService.getRecord("globalId");
         Set<Representation> expectedRepresentations = new HashSet<>(Arrays.asList(jpg, edm4));
@@ -247,14 +270,16 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         mockUISProvider2Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r1 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
         Representation r2 = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
         Representation r3 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
         Representation r4 = cassandraRecordService.createRepresentation(
-                "globalId", "dc", PROVIDER_1_ID);
+                "globalId", "dc", PROVIDER_1_ID, DATA_SET_NAME);
 
         // when
         cassandraRecordService.deleteRepresentation(r1.getCloudId(),
@@ -273,12 +298,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         // given
         final String globalId = "globalId";
         final String represntationName = "dc";
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation(globalId,
-                represntationName, PROVIDER_1_ID);
+                represntationName, PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation(globalId, represntationName,
-                PROVIDER_2_ID);
+                PROVIDER_1_ID);
         cassandraRecordService.createRepresentation(globalId,
-                represntationName, PROVIDER_1_ID);
+                represntationName, PROVIDER_1_ID, DATA_SET_NAME);
 
         // when
         cassandraRecordService
@@ -298,12 +325,14 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         // given
         final String globalId = "globalId";
         final String representationName = "dc";
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation(globalId,
-                representationName, PROVIDER_1_ID);
+                representationName, PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation(globalId, representationName,
-                PROVIDER_2_ID);
+                PROVIDER_1_ID);
         cassandraRecordService.createRepresentation(globalId,
-                representationName, PROVIDER_1_ID);
+                representationName, PROVIDER_1_ID, DATA_SET_NAME);
 
         // when
         cassandraRecordService
@@ -320,9 +349,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         String cloudId = "cloud-2";
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         // create new representation
         Representation r = cassandraRecordService.createRepresentation(cloudId,
-                "representation-1", PROVIDER_1_ID);
+                "representation-1", PROVIDER_1_ID, DATA_SET_NAME);
 
         // create and add new revision
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
@@ -355,51 +386,6 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertEquals(0, response.size());
     }
 
-
-    @Test
-    public void shouldDeleteRepresentationRevisionsFromDataSetsRevisionsTablesWhenRecordIsDeleted()
-            throws Exception {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        String cloudId = "cloud-2";
-        String representationName = "representation-1";
-
-        // create new representation
-        Representation r = cassandraRecordService.createRepresentation(cloudId,
-                "representation-1", PROVIDER_1_ID);
-
-        // create and add new revision
-        Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-        revision.setPublished(true);
-        cassandraRecordService.addRevision(r.getCloudId(),
-                r.getRepresentationName(), r.getVersion(), revision);
-
-        // add files to representation version
-        byte[] dummyContent = {1, 2, 3};
-        File f = new File("content.xml", "application/xml", null, null, 0, null);
-        cassandraRecordService.putContent(cloudId, representationName, r.getVersion(), f,
-                new ByteArrayInputStream(dummyContent));
-
-
-        // given particular data set and representations in it
-        String dsName = "ds";
-        DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_1_ID, dsName,
-                "description of this set");
-        cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(),
-                r.getCloudId(), r.getRepresentationName(), r.getVersion());
-
-        ResultSlice<CloudTagsResponse> responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, null, 100);
-        assertNotNull(responseResultSlice.getResults());
-        assertEquals(1, responseResultSlice.getResults().size());
-
-        cassandraRecordService.deleteRecord(cloudId);
-
-        responseResultSlice = cassandraDataSetService.getDataSetsRevisions(ds.getProviderId(), ds.getId(), revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, null, 100);
-        assertNotNull(responseResultSlice.getResults());
-        assertEquals(0, responseResultSlice.getResults().size());
-    }
-
-
     @Test()
     public void shouldDeleteAllRecord() throws Exception {
         makeUISSuccess();
@@ -409,15 +395,17 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         final String globalId = "globalId";
         final String represntationName1 = "edm";
         final String represntationName2 = "dc";
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+        cassandraDataSetService.createDataSet(PROVIDER_2_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation(globalId,
-                represntationName2, PROVIDER_1_ID);
+                represntationName2, PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation(globalId, "jpg", PROVIDER_1_ID);
         cassandraRecordService.createRepresentation(globalId,
-                represntationName1, PROVIDER_1_ID);
+                represntationName1, PROVIDER_1_ID, DATA_SET_NAME);
         insertDummyPersistentRepresentation(globalId, represntationName1,
                 PROVIDER_1_ID);
-        insertDummyPersistentRepresentation(globalId, represntationName1,
-                PROVIDER_2_ID);
 
         // when
         cassandraRecordService.deleteRecord(globalId);
@@ -459,8 +447,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         cassandraRecordService.createRepresentation("globalId", "dc",
-                PROVIDER_1_ID);
+                PROVIDER_1_ID, DATA_SET_NAME);
         // delete record
         cassandraRecordService.deleteRecord("globalId");
         // when deleting for the second time
@@ -472,6 +462,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldDeletePersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = insertDummyPersistentRepresentation("globalId", "dc", PROVIDER_1_ID);
         cassandraRecordService.deleteRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
 
@@ -482,6 +474,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldNotAddFileToPersistentRepresentation() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
         byte[] dummyContent = {1, 2, 3};
@@ -496,6 +490,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = insertDummyPersistentRepresentation("globalId",
                 "dc", PROVIDER_1_ID);
 
@@ -508,8 +504,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldNotPersistRepresentationWithoutFile() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         cassandraRecordService.persistRepresentation(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion());
     }
@@ -518,8 +516,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldPutAndGetFile() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
 
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
@@ -543,8 +543,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldPutAndGetFileStoredInDb() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
 
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null, DATA_BASE);
@@ -568,8 +570,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     public void shouldGetContent() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
 
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
@@ -589,8 +593,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
 
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
@@ -608,40 +614,15 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         assertTrue(r.getFiles().isEmpty());
     }
 
-    // @Test TODO
-    public void shouldCopyRepresentation() throws Exception {
-        makeUISSuccess();
-        mockUISProvider1Success();
-        // given
-        Representation r = insertDummyPersistentRepresentation("globalId",
-                "dc", PROVIDER_1_ID);
-        // when
-        Representation copy = cassandraRecordService.copyRepresentation(
-                r.getCloudId(), r.getRepresentationName(), r.getVersion());
-        // that
-        assertThat(copy.getCloudId(), is(r.getCloudId()));
-        assertThat(copy.getDataProvider(), is(r.getDataProvider()));
-        assertThat(copy.getRepresentationName(), is(r.getRepresentationName()));
-        for (File f : r.getFiles()) {
-            ByteArrayOutputStream rContent = new ByteArrayOutputStream();
-            ByteArrayOutputStream copyContent = new ByteArrayOutputStream();
-            cassandraRecordService.getContent(r.getCloudId(),
-                    r.getRepresentationName(), r.getVersion(), f.getFileName(),
-                    rContent);
-            cassandraRecordService.getContent(copy.getCloudId(),
-                    copy.getRepresentationName(), copy.getVersion(),
-                    f.getFileName(), copyContent);
-            assertThat(rContent.toByteArray(), is(copyContent.toByteArray()));
-        }
-    }
-
     @Test
     public void addRevision() throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
@@ -659,8 +640,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
@@ -680,8 +663,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), null);
     }
@@ -691,8 +676,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(null, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
@@ -703,8 +690,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(REVISION_NAME, null);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
@@ -715,8 +704,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         revision.setCreationTimeStamp(null);
         cassandraRecordService.addRevision(r.getCloudId(),
@@ -728,8 +719,11 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), true, false, true);
         cassandraRecordService.addRevision(r.getCloudId(),
                 r.getRepresentationName(), r.getVersion(), revision);
@@ -747,8 +741,10 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
         // given
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = cassandraRecordService.createRepresentation(
-                "globalId", "edm", PROVIDER_1_ID);
+                "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
         // then
         String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME, new Date().getTime());
         cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey);
@@ -765,7 +761,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
     private Representation insertDummyPersistentRepresentation(String cloudId,
                                                                String schema, String providerId) throws Exception {
         Representation r = cassandraRecordService.createRepresentation(cloudId,
-                schema, providerId);
+                schema, providerId, DATA_SET_NAME);
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
         cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
@@ -826,9 +822,12 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         // create new representation
         Representation r = cassandraRecordService.createRepresentation("cloud-1",
-                "representation-1", PROVIDER_1_ID);
+                "representation-1", PROVIDER_1_ID, DATA_SET_NAME);
 
         // create and add new revision
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
@@ -871,9 +870,12 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         // create new representation
         Representation r = cassandraRecordService.createRepresentation("cloud-1",
-                "representation-1", PROVIDER_1_ID);
+                "representation-1", PROVIDER_1_ID, DATA_SET_NAME);
 
         // create and add new revision
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
@@ -922,9 +924,12 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         makeUISSuccess();
         mockUISProvider1Success();
 
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
+
         // create new representation
         Representation r = cassandraRecordService.createRepresentation("cloud-1",
-                "representation-1", PROVIDER_1_ID);
+                "representation-1", PROVIDER_1_ID, DATA_SET_NAME);
 
         // create and add new revision
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
@@ -966,6 +971,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
             throws Exception {
         makeUISSuccess();
         mockUISProvider1Success();
+        cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                DATA_SET_DESCRIPTION);
         Representation r = insertDummyPersistentRepresentation("cloud-1", "representation-1", PROVIDER_1_ID);
         Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
         cassandraRecordService.addRevision(r.getCloudId(),

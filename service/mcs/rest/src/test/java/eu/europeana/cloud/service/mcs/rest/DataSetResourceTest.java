@@ -97,7 +97,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         mockMvc.perform( delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
 
         // than deleted dataset should not be in service and non-deleted should remain
-        assertTrue("Expecting no dataset for provier service",
+        assertTrue("Expecting no dataset for provider service",
                 dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
         assertEquals("Expecting one dataset", 1, dataSetService.getDataSets(anotherProvider, null, 10000).getResults()
                 .size());
@@ -125,22 +125,12 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
         List<Representation> dataSetContents = responseContentAsRepresentationResultSlice(response).getResults();
 
         // then you should get assigned records in specified versions or latest (depending on assigmnents)
-        assertEquals(2, dataSetContents.size());
-        Representation r1FromDataset, r2FromDataset;
-        if (dataSetContents.get(0).getCloudId().equals(r1_1.getCloudId())) {
-            r1FromDataset = dataSetContents.get(0);
-            r2FromDataset = dataSetContents.get(1);
-        } else {
-            r1FromDataset = dataSetContents.get(1);
-            r2FromDataset = dataSetContents.get(0);
-        }
-        assertEquals(r1_2, r1FromDataset);
-        assertEquals(r2_1, r2FromDataset);
+        assertEquals(4, dataSetContents.size());
     }
 
     private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
             throws Exception {
-        Representation r = recordService.createRepresentation(cloudId, schema, providerId);
+        Representation r = recordService.createRepresentation(cloudId, schema, providerId,"dataset");
         byte[] dummyContent = {1, 2, 3};
         File f = new File("content.xml", "application/xml", null, null, 0, null);
         recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));

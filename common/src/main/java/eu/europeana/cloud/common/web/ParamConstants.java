@@ -87,4 +87,8 @@ public interface ParamConstants {
     //header paramiters' names
     String H_RANGE = "Range";
 
+    String F_PERMISSION = "permission";
+
+    String F_USERNAME = "username";
+
 }

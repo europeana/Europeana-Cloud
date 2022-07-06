@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.utils.testcontexts.CassandraBasedTestConte
 import org.junit.Before;
 import org.junit.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
@@ -30,6 +31,9 @@ public abstract class CassandraBasedAbstractResourceTest {
 
     @Autowired
     protected WebApplicationContext applicationContext;
+
+    @Autowired
+    protected PermissionEvaluator permissionEvaluator;
 
     protected MockMvc mockMvc;
 

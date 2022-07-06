@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,12 +32,15 @@ public class FilesResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FilesResource.class.getName());
 	private final RecordService recordService;
+	private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 	private final Integer objectStoreSizeThreshold;
 
 	public FilesResource(
 			RecordService recordService,
+			DataSetPermissionsVerifier dataSetPermissionsVerifier,
 			Integer objectStoreSizeThreshold) {
 		this.recordService = recordService;
+		this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
 		this.objectStoreSizeThreshold = objectStoreSizeThreshold;
 	}
 
@@ -80,8 +81,6 @@ public class FilesResource {
 	 *             specified file already exist.
 	 */
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version),"
-    		+ " 'eu.europeana.cloud.common.model.Representation', write)")
 	public ResponseEntity<URI> sendFile(
 			HttpServletRequest httpServletRequest,
 			@PathVariable final String cloudId,
@@ -90,42 +89,46 @@ public class FilesResource {
 			@RequestParam String mimeType,
 			@RequestParam MultipartFile data,
 			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-		File f = new File();
-		f.setMimeType(mimeType);
-		PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
-		f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
-		if (fileName != null) {
-			try {
-				File temp = recordService.getFile(cloudId, representationName, version, fileName);
-				if (temp != null) {
-					throw new FileAlreadyExistsException(fileName);
+		Representation representation = Representation.fromFields(cloudId, representationName, version);
+		if (dataSetPermissionsVerifier.isUserAllowedToUploadFileFor(representation)) {
+			File f = new File();
+			f.setMimeType(mimeType);
+			PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
+			f.setFileStorage(new StorageSelector(prebufferedInputStream, mimeType).selectStorage());
+			if (fileName != null) {
+				try {
+					File temp = recordService.getFile(cloudId, representationName, version, fileName);
+					if (temp != null) {
+						throw new FileAlreadyExistsException(fileName);
+					}
+				} catch (FileNotExistsException e) {
+					// file does not exist, so continue and add it
 				}
-			} catch (FileNotExistsException e) {
-				// file does not exist, so continue and add it
 			}
-		}
 
-		if (fileName == null) {
-			fileName = UUID.randomUUID().toString();
-		}
-		f.setFileName(fileName);
+			if (fileName == null) {
+				fileName = UUID.randomUUID().toString();
+			}
+			f.setFileName(fileName);
 
-		recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
-		IOUtils.closeQuietly(prebufferedInputStream);
-		EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
+			recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
+			IOUtils.closeQuietly(prebufferedInputStream);
+			EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
 
-		if(LOGGER.isDebugEnabled()) {
-			LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
-					cloudId, representationName, version, f.getContentUri()));
-		}
+			if(LOGGER.isDebugEnabled()) {
+				LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",
+						cloudId, representationName, version, f.getContentUri()));
+			}
 
-		ResponseEntity.BodyBuilder response = ResponseEntity.created(f.getContentUri());
-		if (f.getMd5() != null) {
-			response.eTag(f.getMd5());
+			ResponseEntity.BodyBuilder response = ResponseEntity.created(f.getContentUri());
+			if (f.getMd5() != null) {
+				response.eTag(f.getMd5());
+			}
+			return response.build();
+		} else {
+			throw new AccessDeniedOrObjectDoesNotExistException();
 		}
-		return response.build();
 	}
-
 }

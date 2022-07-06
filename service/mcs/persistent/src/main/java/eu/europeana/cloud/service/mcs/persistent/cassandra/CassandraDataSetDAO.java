@@ -68,6 +68,8 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getDataSetsForRepresentationVersionStatement;
 
+    private PreparedStatement getOneDataSetForRepresentationStatement;
+
     private PreparedStatement getDataSetsRepresentationsNamesListStatement;
 
     private PreparedStatement addDataSetsRepresentationNameStatement;
@@ -154,6 +156,12 @@ public class CassandraDataSetDAO {
                 "SELECT provider_dataset_id " +
                         "FROM data_set_assignments_by_representations " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;"
+        );
+
+        getOneDataSetForRepresentationStatement = connectionProvider.getSession().prepare(
+                "SELECT provider_dataset_id " +
+                        "FROM data_set_assignments_by_representations " +
+                        "WHERE cloud_id = ? AND schema_id = ? LIMIT 1;"
         );
 
         getDataSetsRepresentationsNamesListStatement = connectionProvider.getSession().prepare(
@@ -405,6 +413,29 @@ public class CassandraDataSetDAO {
         return ids;
     }
 
+    /**
+     * Returns one (first) data set to which representation (regardless version) is assigned to.
+     *
+     * @param cloudId  record id
+     * @param schemaId representation schema
+     * @return one dataset
+     */
+    @Retryable
+    public Optional<CompoundDataSetId> getOneDataSetFor(String cloudId, String schemaId)
+            throws NoHostAvailableException, QueryExecutionException {
+
+        BoundStatement boundStatement = getOneDataSetForRepresentationStatement.bind(cloudId, schemaId);
+
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        Row row = rs.one();
+        if (row != null) {
+            String providerDataSetId = row.getString(PROVIDER_DATASET_ID);
+            return Optional.of(createCompoundDataSetId(providerDataSetId));
+        } else {
+            return Optional.empty();
+        }
+    }
 
     /**
      * Returns data sets to which representation in specific version

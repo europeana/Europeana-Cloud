@@ -162,6 +162,14 @@ public class Representation {
         return clonedRevisions;
     }
 
+    public static Representation fromFields(String cloudId, String representationName, String version){
+        Representation r = new Representation();
+        r.setCloudId(cloudId);
+        r.setRepresentationName(representationName);
+        r.setVersion(version);
+        return  r;
+    }
+
 
     public String getCloudId() {
         return cloudId;

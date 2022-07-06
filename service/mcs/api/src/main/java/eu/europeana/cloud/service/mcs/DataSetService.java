@@ -1,17 +1,16 @@
 package eu.europeana.cloud.service.mcs;
 
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -113,7 +112,7 @@ public interface DataSetService {
      * @throws DataSetNotExistsException no such data set exists (data provider does not have one or data provider not exist)
      */
     void deleteDataSet(String providerId, String dataSetId)
-            throws DataSetNotExistsException;
+            throws DataSetDeletionException, DataSetNotExistsException;
 
     /**
      * Lists all representations names that are included in given dataSet
@@ -187,4 +186,22 @@ public interface DataSetService {
      */
     void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
             throws RepresentationNotExistsException;
+
+    /**
+     *
+     * @return
+     */
+    List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation) throws RepresentationNotExistsException;
+
+    /**
+     * Returns one (usually the first one from DB) for the given representation
+     *
+     * @param cloudId cloud identifier to be used
+     * @param representationName representation name to be used
+     * @return found data set
+     * @throws RepresentationNotExistsException in case of non-existing representation version
+     */
+    Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
+
+    public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }
