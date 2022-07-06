@@ -21,7 +21,8 @@ import java.time.Instant;
 import java.util.Date;
 
 /**
- * Adds defined revisions to given representationVersion
+ * Adds defined revisions to given representationVersion.
+ * This is default implementation where simply 'SuccessNotification' is emitted at the end to the {@link eu.europeana.cloud.service.dps.storm.NotificationBolt}.
  */
 public class RevisionWriterBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
@@ -52,7 +53,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         String resourceURL = getResourceUrl(stormTaskTuple);
         try {
             addRevisionToSpecificResource(stormTaskTuple, resourceURL);
-            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            emitTuple(anchorTuple, stormTaskTuple);
+
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", resourceURL);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
@@ -65,6 +67,12 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
+    }
+
+    protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+        emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                stormTaskTuple.getFileUrl(), "The record is processed correctly", "", "",
+                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {

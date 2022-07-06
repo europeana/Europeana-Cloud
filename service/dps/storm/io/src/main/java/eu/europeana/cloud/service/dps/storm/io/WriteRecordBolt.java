@@ -2,9 +2,11 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -23,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
@@ -99,6 +102,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         String providerId;
         UUID newVersion;
         String newFileName;
+        String dataSetId;
     }
 
     protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
@@ -108,7 +112,18 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         writeParams.setProviderId(getProviderId(tuple));
         writeParams.setNewVersion(generateNewVersionId(tuple));
         writeParams.setNewFileName(generateNewFileName(tuple));
+        writeParams.setDataSetId(extractDatasetId(tuple));
         return writeParams;
+    }
+
+    private String extractDatasetId(StormTaskTuple stormTaskTuple) throws CloudException {
+        try {
+            List<DataSet> datasets = DataSetUrlParser.parseList(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+            return datasets.get(0).getId();
+        } catch (Exception e) {
+            LOGGER.error("Unable to extract dataset id from task parameter");
+            throw new CloudException("Unable to extract dataset id from task parameter", e);
+        }
     }
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
@@ -121,26 +136,23 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
-        //TODO Use new api with dataset assignment
-        return null;
-//        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
-//                recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
-//                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
-//                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+        //TODO add datasetId to the request
+        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
+                recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
+                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
+                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating new representation");
-        //TODO Use new api with dataset assignment
-        return null;
-//        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
-//                recordServiceClient.createRepresentation(
-//                        writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
-//                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
-//                        writeParams.getNewFileName(),
-//                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
-//                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
-
+        //TODO add datasetId to the request
+        return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
+                recordServiceClient.createRepresentation(
+                        writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
+                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
+                        writeParams.getNewFileName(),
+                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
+                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
     protected UUID generateNewVersionId(StormTaskTuple tuple) {

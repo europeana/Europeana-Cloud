@@ -140,6 +140,7 @@ public class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/exampleDataset");
         parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }
