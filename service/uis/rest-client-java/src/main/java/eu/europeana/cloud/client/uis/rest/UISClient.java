@@ -2,6 +2,7 @@ package eu.europeana.cloud.client.uis.rest;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
+import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;

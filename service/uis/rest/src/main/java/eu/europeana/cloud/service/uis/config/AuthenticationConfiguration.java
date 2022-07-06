@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
+import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,9 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.
-                httpBasic().and().
+                httpBasic()
+                .authenticationEntryPoint(cloudAuthenticationEntryPoint())
+                .and().
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 csrf().disable();
     }
@@ -50,5 +53,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public CassandraAuthenticationService authenticationService() {
         return new CassandraAuthenticationService();
+    }
+
+    @Bean
+    public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
+        return new CloudAuthenticationEntryPoint();
     }
 }

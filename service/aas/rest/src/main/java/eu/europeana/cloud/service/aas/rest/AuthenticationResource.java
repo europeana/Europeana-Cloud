@@ -35,18 +35,24 @@ public class AuthenticationResource {
         return ResponseEntity.ok("Cloud user was created!");
     }
 
-    /**
-     * Deletes a user with the specified username.
-     */
-    @PostMapping(value = "/delete-user", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PutMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteCloudUser(
-            @RequestParam(AASParamConstants.P_USER_NAME) String username)
+    public ResponseEntity<String> lockUser(
+            @PathVariable(AASParamConstants.P_USER_NAME) String username)
             throws DatabaseConnectionException, UserDoesNotExistException {
-
-        authenticationService.deleteUser(username);
-        return ResponseEntity.ok("Cloud user is gone. Bye bye.");
+        authenticationService.lockUser(username);
+        return ResponseEntity.ok("Cloud user is locked.");
     }
+
+    @DeleteMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> unlockUser(
+            @PathVariable(AASParamConstants.P_USER_NAME) String username)
+            throws DatabaseConnectionException, UserDoesNotExistException {
+        authenticationService.unlockUser(username);
+        return ResponseEntity.ok("Cloud user is unlocked.");
+    }
+
 
     /**
      * Updates an ecloud-user with the specified username + password.
