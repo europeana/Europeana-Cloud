@@ -159,10 +159,4 @@ public class MCSServiceClientAutomaticIT {
             //OK
         }
     }
-
-    public void shouldProperlyGiveReadAccessToEveryone() {
-        //TODO Repair method when the resource will be repaired, and client updated
-    }
-
-
 }

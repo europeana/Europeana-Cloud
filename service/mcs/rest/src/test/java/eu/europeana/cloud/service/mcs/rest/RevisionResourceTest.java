@@ -72,8 +72,8 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 .existsCloudId(Mockito.anyString());
         Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
         Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasWritePermissionFor(Mockito.any());
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToAddRevisionTo(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
         Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
         dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
         rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
