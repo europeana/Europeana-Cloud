@@ -294,7 +294,7 @@ public class RecordServiceClient extends MCSClient {
                                     String datasetId, InputStream data, String fileName, String mediaType,
                                     String key, String value) throws IOException, MCSException {
 
-        var multiPart = prepareRequestBody(providerId,datasetId, data, fileName, mediaType);
+        var multiPart = prepareRequestBody(providerId, datasetId, data, fileName, mediaType);
         if (version != null) {
             multiPart.field(VERSION, version.toString());
         }

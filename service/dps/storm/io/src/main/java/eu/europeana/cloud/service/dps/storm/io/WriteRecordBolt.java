@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
@@ -105,25 +106,15 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         String dataSetId;
     }
 
-    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
+    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException, MalformedURLException {
         var writeParams = new RecordWriteParams();
         writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
         writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
         writeParams.setProviderId(getProviderId(tuple));
         writeParams.setNewVersion(generateNewVersionId(tuple));
         writeParams.setNewFileName(generateNewFileName(tuple));
-        writeParams.setDataSetId(extractDatasetId(tuple));
+        writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(tuple));
         return writeParams;
-    }
-
-    private String extractDatasetId(StormTaskTuple stormTaskTuple) throws CloudException {
-        try {
-            DataSet dataset = DataSetUrlParser.parse(stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-            return dataset.getId();
-        } catch (Exception e) {
-            LOGGER.error("Unable to extract dataset id from task parameter");
-            throw new CloudException("Unable to extract dataset id from task parameter", e);
-        }
     }
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {

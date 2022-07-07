@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -16,11 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,7 +76,7 @@ public class FileUploadResource {
             @RequestParam(required = false) UUID version,
             @RequestParam String fileName,
             @RequestParam String providerId,
-            @RequestParam String mimeType ,
+            @RequestParam String mimeType,
             @RequestParam String dataSetId,
             @RequestParam MultipartFile data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, RecordNotExistsException,
