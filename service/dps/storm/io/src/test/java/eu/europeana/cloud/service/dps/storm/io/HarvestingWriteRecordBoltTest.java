@@ -234,6 +234,7 @@ public class HarvestingWriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
+        parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS, "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/sampleDataset");
         parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }

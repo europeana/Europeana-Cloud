@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
-import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForMediaTopology;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -45,7 +44,7 @@ public class MediaTopology {
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
 
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForMediaTopology(ecloudMcsAddress);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
         AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                 topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
 

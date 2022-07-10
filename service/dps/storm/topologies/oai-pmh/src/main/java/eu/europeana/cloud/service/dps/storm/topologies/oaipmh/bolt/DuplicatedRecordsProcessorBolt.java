@@ -57,7 +57,10 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 handleDuplicatedRepresentation(anchorTuple, tuple, representation);
                 return;
             }
-            emitSuccessNotification(anchorTuple, tuple);
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                    tuple.getFileUrl(), "", "",
+                    tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
         } catch (MalformedURLException | MCSException e) {
             logger.error("Error while detecting duplicates", e);
@@ -129,13 +132,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             return representation;
         }
         throw new MCSException("Output URL is not URL to the representation version file");
-    }
-
-    private void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple tuple) {
-        String resultUrl = tuple.getParameter(PluginParameterKeys.OUTPUT_URL);
-        emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-                tuple.getFileUrl(), "", "", resultUrl,
-                StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
     }
 
     @Override

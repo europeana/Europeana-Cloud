@@ -2,11 +2,9 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -26,7 +24,6 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;

@@ -16,11 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -43,12 +38,10 @@ public class SimplifiedFileAccessResource {
 
     private final RecordService recordService;
     private final UISClientHandler uisClientHandler;
-    private final PermissionEvaluator permissionEvaluator;
 
-    public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler, PermissionEvaluator permissionEvaluator) {
+    public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler) {
         this.recordService = recordService;
         this.uisClientHandler = uisClientHandler;
-        this.permissionEvaluator = permissionEvaluator;
     }
 
     /**
@@ -83,32 +76,29 @@ public class SimplifiedFileAccessResource {
         if (representation == null) {
             throw new RepresentationNotExistsException();
         }
-        if (userHasRightsToReadFile(cloudId, representation.getRepresentationName(), representation.getVersion())) {
-            final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
-            String md5 = requestedFile.getMd5();
-            MediaType fileMimeType = null;
-            if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
-            }
-            EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
-            final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
-            Consumer<OutputStream> downloadingMethod = recordService.getContent(cloudId, representationName, representation.getVersion(),
-                    fileName, contentRange.getStart(), contentRange.getEnd());
+        final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
-            ResponseEntity.BodyBuilder response = ResponseEntity
-                    .status(HttpStatus.OK)
-                    .location(requestedFile.getContentUri());
-            if (md5 != null) {
-                response.eTag(md5);
-            }
-            if (fileMimeType != null) {
-                response.contentType(fileMimeType);
-            }
-            return response.body(output -> downloadingMethod.accept(output));
-        } else {
-            throw new AccessDeniedException("Access is denied");
+        String md5 = requestedFile.getMd5();
+        MediaType fileMimeType = null;
+        if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
+            fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
         }
+        EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
+        final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
+        Consumer<OutputStream> downloadingMethod = recordService.getContent(cloudId, representationName, representation.getVersion(),
+                fileName, contentRange.getStart(), contentRange.getEnd());
+
+        ResponseEntity.BodyBuilder response = ResponseEntity
+                .status(HttpStatus.OK)
+                .location(requestedFile.getContentUri());
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if (fileMimeType != null) {
+            response.contentType(fileMimeType);
+        }
+        return response.body(output -> downloadingMethod.accept(output));
     }
 
     /**
@@ -148,38 +138,25 @@ public class SimplifiedFileAccessResource {
             throw new RepresentationNotExistsException();
         }
 
-        if (userHasRightsToReadFile(cloudId, representation.getRepresentationName(), representation.getVersion())) {
-            final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
+        final File requestedFile = readFile(cloudId, representationName, representation.getVersion(), fileName);
 
-            String md5 = requestedFile.getMd5();
-            MediaType fileMimeType = null;
-            if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
-                fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
-            }
-            EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
-
-            ResponseEntity.BodyBuilder response = ResponseEntity
-                    .status(HttpStatus.OK)
-                    .location(requestedFile.getContentUri());
-            if (md5 != null) {
-                response.eTag(md5);
-            }
-            if (fileMimeType != null) {
-                response.contentType(fileMimeType);
-            }
-            return response.build();
-        } else {
-            throw new AccessDeniedException("Access is denied");
+        String md5 = requestedFile.getMd5();
+        MediaType fileMimeType = null;
+        if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
+            fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
         }
-    }
+        EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
 
-    private boolean userHasRightsToReadFile(String cloudId, String representationName, String representationVersion) {
-
-        SecurityContext ctx = SecurityContextHolder.getContext();
-        Authentication authentication = ctx.getAuthentication();
-        //
-        String targetId = cloudId + "/" + representationName + "/" + representationVersion;
-        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
+        ResponseEntity.BodyBuilder response = ResponseEntity
+                .status(HttpStatus.OK)
+                .location(requestedFile.getContentUri());
+        if (md5 != null) {
+            response.eTag(md5);
+        }
+        if (fileMimeType != null) {
+            response.contentType(fileMimeType);
+        }
+        return response.build();
     }
 
     private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {

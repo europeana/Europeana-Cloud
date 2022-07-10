@@ -69,10 +69,28 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
-    protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        emitSuccessNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                stormTaskTuple.getFileUrl(), "The record is processed correctly", "", "",
-                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    protected void emitTuple(Tuple anchorTuple, StormTaskTuple tuple) {
+        if (tupleContainsErrors(tuple)) {
+            emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
+        } else {
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                    tuple.getFileUrl(), "", "",
+                    tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+        }
+    }
+
+    private boolean tupleContainsErrors(StormTaskTuple tuple) {
+        return tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null;
+    }
+
+    private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, StormTaskTuple tuple) {
+        emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                tuple.getFileUrl(), "", "",
+                tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+                tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
+                StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {
