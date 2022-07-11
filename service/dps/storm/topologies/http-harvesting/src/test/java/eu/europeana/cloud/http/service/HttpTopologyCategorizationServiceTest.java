@@ -17,11 +17,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public class HttpTopologyCategorizationServiceTest {

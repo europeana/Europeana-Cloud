@@ -14,6 +14,8 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Call the remote enrichment service in order to dereference and enrich a file.
  * <p/>
@@ -37,7 +39,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
-            String fileContent = new String(stormTaskTuple.getFileData());
+            String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
             LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
             String output = enrichmentWorker.process(fileContent);
             LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());

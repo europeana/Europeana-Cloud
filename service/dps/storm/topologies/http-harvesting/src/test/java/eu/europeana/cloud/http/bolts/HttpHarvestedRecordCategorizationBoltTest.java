@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class HttpHarvestedRecordCategorizationBoltTest {

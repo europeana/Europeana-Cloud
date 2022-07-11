@@ -3,6 +3,8 @@ package eu.europeana.cloud.service.dps.depublish;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
@@ -18,14 +20,12 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,7 +33,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,7 +53,6 @@ public class DepublicationServiceTest {
     private static final UUID RECORD1_MD5 = UUID.fromString("0acbca5d-f561-31a8-ab40-27521caadbc4");
 
     private SubmitTaskParameters parameters;
-    private DpsTask task;
 
     @Autowired
     private DepublicationService service;
@@ -72,16 +70,16 @@ public class DepublicationServiceTest {
     private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @Autowired
-    private MetisIndexerFactory metisIndexerFactory;
+    private IndexWrapper indexWrapper;
 
-    @Mock
     private Indexer indexer;
 
     @Before
-    public void setup() throws IndexingException, URISyntaxException {
-        Mockito.reset(updater, taskStatusChecker, metisIndexerFactory, recordStatusUpdater);
+    public void setup() throws IndexingException {
+        indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
+        Mockito.reset(updater, taskStatusChecker, indexer, recordStatusUpdater);
         MockitoAnnotations.initMocks(this);
-        task = new DpsTask();
+        DpsTask task = new DpsTask();
         task.setTaskId(TASK_ID);
         task.addParameter(PluginParameterKeys.METIS_DATASET_ID, DATASET_METIS_ID);
         task.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD1 + "," + RECORD2);
@@ -90,31 +88,10 @@ public class DepublicationServiceTest {
                         .expectedRecordsNumber(EXPECTED_SET_SIZE)
                         .build())
                 .task(task).build();
-        when(metisIndexerFactory.openIndexer(anyBoolean())).thenReturn(indexer);
         when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
         when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
         when(indexer.remove(anyString())).thenReturn(true);
     }
-
-    @Test
-    public void shouldUseValidEnvironmentIfNoAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
-
-        service.depublishDataset(parameters);
-
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(false);
-        verify(metisIndexerFactory, never()).openIndexer(true);
-    }
-
-    @Test
-    public void shouldUseAlternativeEnvironmentIfAlternativeEnvironmentParameterSet() throws IndexingException, URISyntaxException {
-        task.addParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV, "true");
-
-        service.depublishDataset(parameters);
-
-        verify(metisIndexerFactory, atLeast(1)).openIndexer(true);
-        verify(metisIndexerFactory, never()).openIndexer(false);
-    }
-
 
     @Test
     public void shouldInvokeTaskRemoveOnIndexer() throws IndexingException {

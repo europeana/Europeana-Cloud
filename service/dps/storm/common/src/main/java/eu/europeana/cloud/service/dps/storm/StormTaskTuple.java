@@ -15,6 +15,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
 
@@ -41,6 +42,8 @@ public class StormTaskTuple implements Serializable {
     private Revision revisionToBeApplied;
     private OAIPMHHarvestingDetails sourceDetails;
     private int recordAttemptNumber;
+
+    private String throttlingGroupingAttribute;
 
     public StormTaskTuple() {
         this(0L, "", null, null, new HashMap<>(), null);
@@ -122,7 +125,6 @@ public class StormTaskTuple implements Serializable {
                 (Revision) tuple.getValueByField(REVISIONS),
                 (OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST),
                 tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER));
-
     }
 
     public static StormTaskTuple fromValues(List<Object> list) {
@@ -136,11 +138,11 @@ public class StormTaskTuple implements Serializable {
                 (Revision) list.get(5),
                 (OAIPMHHarvestingDetails) list.get(6),
                 (Integer) list.get(7));
-
     }
 
     public Values toStormTuple() {
-        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, recordAttemptNumber);
+        return new Values(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails,
+                recordAttemptNumber, throttlingGroupingAttribute);
     }
 
     public static Fields getFields() {
@@ -152,7 +154,8 @@ public class StormTaskTuple implements Serializable {
                 PARAMETERS_TUPLE_KEY,
                 REVISIONS,
                 SOURCE_TO_HARVEST,
-                RECORD_ATTEMPT_NUMBER);
+                RECORD_ATTEMPT_NUMBER,
+                THROTTLING_GROUPING_ATTRIBUTE);
     }
 
     public boolean isMarkedAsDeleted() {
@@ -161,10 +164,18 @@ public class StormTaskTuple implements Serializable {
 
     public void setMarkedAsDeleted(boolean markedAsDeleted) {
         if(markedAsDeleted){
-            parameters.put(PluginParameterKeys.MARKED_AS_DELETED,"true");
+            parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
         }else{
             parameters.remove(PluginParameterKeys.MARKED_AS_DELETED);
         }
     }
 
+    public void setThrottlingGroupingAttribute(String throttlingGroupingAttribute) {
+        this.throttlingGroupingAttribute = throttlingGroupingAttribute;
+    }
+
+    public int readParallelizationParam() {
+        return Optional.ofNullable(getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
+                .map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+    }
 }

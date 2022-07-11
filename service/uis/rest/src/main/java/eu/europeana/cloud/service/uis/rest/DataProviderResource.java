@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Resource for DataProvider.
- *
- * @author
  */
 @RestController
 public class DataProviderResource {
@@ -38,14 +36,11 @@ public class DataProviderResource {
         this.aclWrapper = aclWrapper;
     }
 
-    protected final String LOCAL_ID_CLASS_NAME = "LocalId";
+    protected static final String LOCAL_ID_CLASS_NAME = "LocalId";
 
 
     /**
      * Retrieves details about selected data provider
-     *
-     * @summary Data provider details retrieval
-     *
      *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of the provider that will
@@ -57,8 +52,7 @@ public class DataProviderResource {
      *             The supplied provider does not exist
      */
     @GetMapping(value = RestInterfaceConstants.DATA_PROVIDER, produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    public DataProvider getProvider(@PathVariable String providerId)
-            throws ProviderDoesNotExistException {
+    public DataProvider getProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
         return providerService.getProvider(providerId);
     }
 
@@ -74,8 +68,6 @@ public class DataProviderResource {
      * <li>Write permission for the selected data provider</li>
      * </ul>
      * </div>
-     *
-     * @summary Data provider information update
      *
      * @param dataProviderProperties
      *            <strong>REQUIRED</strong> data provider properties.
@@ -93,8 +85,7 @@ public class DataProviderResource {
     @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
     public ResponseEntity<Void> updateProvider(
             @RequestBody DataProviderProperties dataProviderProperties,
-            @PathVariable String providerId)
-            throws ProviderDoesNotExistException {
+            @PathVariable String providerId) throws ProviderDoesNotExistException {
 
         providerService.updateProvider(providerId, dataProviderProperties);
         return ResponseEntity.noContent().build();
@@ -112,8 +103,6 @@ public class DataProviderResource {
      * <li>Admin role</li>
      * </ul>
      * </div>
-     *
-     * @summary Data provider deletion
      *
      * @param providerId
      *            <strong>REQUIRED</strong> data provider id
@@ -148,8 +137,6 @@ public class DataProviderResource {
      * </ul>
      * </div>
      *
-     * @summary Cloud identifier to record identifier mapping creation
-     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of data provider, owner
      *            of the record
@@ -166,8 +153,6 @@ public class DataProviderResource {
      *             database connection error
      * @throws CloudIdDoesNotExistException
      *             cloud identifier does not exist
-     * @throws IdHasBeenMappedException
-     *             identifier already mapped
      * @throws ProviderDoesNotExistException
      *             provider does not exist
      * @throws RecordDatasetEmptyException
@@ -183,10 +168,10 @@ public class DataProviderResource {
             @PathVariable String providerId,
             @PathVariable String cloudId,
             @RequestParam(required = false) String recordId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
+            throws DatabaseConnectionException, CloudIdDoesNotExistException,
             ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
 
-        CloudId result = null;
+        CloudId result;
         if (recordId != null) {
             result = uniqueIdentifierService.createIdMapping(cloudId, providerId, recordId);
         } else {
@@ -204,7 +189,7 @@ public class DataProviderResource {
         String key = result.getLocalId().getRecordId() + "/" + providerId;
         if (creatorName != null) {
             ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-            MutableAcl providerAcl = aclWrapper.getAcl(creatorName, providerIdentity);
+            MutableAcl providerAcl = aclWrapper.createOrUpdateAcl(creatorName, providerIdentity);
             aclWrapper.updateAcl(providerAcl);
         }
     }
@@ -225,8 +210,6 @@ public class DataProviderResource {
      * </ul>
      * </div>
      *
-     * @summary Mapping between record and cloud identifier removal
-     *
      * @param providerId
      *            <strong>REQUIRED</strong> identifier of the provider, owner of
      *            the record
@@ -241,13 +224,11 @@ public class DataProviderResource {
      *             database error
      * @throws ProviderDoesNotExistException
      *             provider does not exist
-     * @throws RecordIdDoesNotExistException
-     *             record does not exist
      */
     @DeleteMapping(value = RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#recordId.concat('/').concat(#providerId),'" + LOCAL_ID_CLASS_NAME + "', write)")
     public ResponseEntity<String> removeIdMapping(@PathVariable String providerId, @PathVariable String recordId)
-            throws DatabaseConnectionException, ProviderDoesNotExistException, RecordIdDoesNotExistException {
+            throws DatabaseConnectionException, ProviderDoesNotExistException {
         uniqueIdentifierService.removeIdMapping(providerId, recordId);
         deleteLocalIdAcl(recordId, providerId);
         return ResponseEntity.ok("Mapping marked as deleted");

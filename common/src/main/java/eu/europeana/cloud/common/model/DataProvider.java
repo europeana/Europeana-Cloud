@@ -2,7 +2,6 @@ package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;

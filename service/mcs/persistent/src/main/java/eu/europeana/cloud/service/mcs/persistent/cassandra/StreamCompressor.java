@@ -25,9 +25,9 @@ public class StreamCompressor {
 
     byte[] compress(final InputStream is) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        GZIPOutputStream gos = new GZIPOutputStream(os);
-        IOUtils.copy(is, gos);
-        gos.close();
+        try (os; GZIPOutputStream gos = new GZIPOutputStream(os)) {
+            IOUtils.copy(is, gos);
+        }
         return os.toByteArray();
     }
 }

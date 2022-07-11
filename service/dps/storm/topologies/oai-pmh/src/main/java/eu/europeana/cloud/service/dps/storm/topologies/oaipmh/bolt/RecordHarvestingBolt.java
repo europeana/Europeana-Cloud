@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.common.utils.Clock;
+import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -11,7 +12,6 @@ import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -19,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.Date;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
@@ -33,6 +31,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordHarvestingBolt.class);
 
     private transient OaiHarvester harvester;
+    private transient IdentifierSupplier identifierSupplier;
 
     /**
      * For given: <br/>
@@ -59,10 +58,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
                 var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
                 stormTaskTuple.setFileData(oaiRecord.getRecord());
 
-                if (useHeaderIdentifier(stormTaskTuple))
-                    trimLocalId(stormTaskTuple); //Added for the time of migration - MET-1189
-                else
-                    useEuropeanaId(stormTaskTuple);
+                generateIdentifiers(stormTaskTuple);
                 addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
 
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
@@ -104,29 +100,14 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
     }
 
-    private void trimLocalId(StormTaskTuple stormTaskTuple) {
-        String europeanaIdPrefix = stormTaskTuple.getParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX);
-        String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        if (europeanaIdPrefix != null && localId.startsWith(europeanaIdPrefix)) {
-            String trimmed = localId.replace(europeanaIdPrefix, "");
-            stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, trimmed);
-        }
-    }
-
-    private void useEuropeanaId(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
-        var datasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-        var document = new String(stormTaskTuple.getFileData());
-        var europeanaIdCreator = new EuropeanaIdCreator();
-        var europeanaIdMap = europeanaIdCreator.constructEuropeanaId(document, datasetId);
-        var europeanaId = europeanaIdMap.getEuropeanaGeneratedId();
-        var localIdFromProvider = europeanaIdMap.getSourceProvidedChoAbout();
-        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, europeanaId);
-        stormTaskTuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, localIdFromProvider);
+    private void generateIdentifiers(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
+        identifierSupplier.prepareIdentifiers(stormTaskTuple);
     }
 
 
     @Override
     public void prepare() {
+        identifierSupplier = new IdentifierSupplier();
         harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
     }
 
@@ -146,11 +127,4 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
     }
 
-    private boolean useHeaderIdentifier(StormTaskTuple stormTaskTuple) {
-        var useHeaderIdentifiers = false;
-        if ("true".equals(stormTaskTuple.getParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS))) {
-            useHeaderIdentifiers = true;
-        }
-        return useHeaderIdentifiers;
-    }
 }

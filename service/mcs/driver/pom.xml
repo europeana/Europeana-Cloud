@@ -4,10 +4,10 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>6.1</version>
+        <version>7</version>
     </parent>
     <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-    <version>6.1</version>
+    <version>7</version>
     <name>Europeana Cloud: Metadata and Content Service Java Client</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -21,13 +21,6 @@
             <version>${version.wiremock}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>test-common</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <artifactId>jaxb-api</artifactId>
             <groupId>javax.xml.bind</groupId>

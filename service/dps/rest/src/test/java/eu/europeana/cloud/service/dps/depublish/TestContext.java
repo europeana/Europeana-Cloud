@@ -1,13 +1,18 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import org.mockito.Mockito;
+import eu.europeana.indexing.Indexer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Configuration
 @EnableAsync
@@ -15,26 +20,28 @@ public class TestContext {
 
     @Bean
     public TaskStatusChecker taskStatusChecker() {
-        return Mockito.mock(TaskStatusChecker.class);
+        return mock(TaskStatusChecker.class);
     }
 
     @Bean
     public TaskStatusUpdater taskStatusUpdater() {
-        return Mockito.mock(TaskStatusUpdater.class);
+        return mock(TaskStatusUpdater.class);
     }
 
     @Bean
-    public MetisIndexerFactory metisIndexerFactory() {
-        return Mockito.mock(MetisIndexerFactory.class);
+    public IndexWrapper indexWrapper() {
+        IndexWrapper wrapper = mock(IndexWrapper.class);
+        when(wrapper.getIndexer(TargetIndexingDatabase.PUBLISH)).thenReturn(mock(Indexer.class));
+        return wrapper;
     }
 
     @Bean
     public RecordStatusUpdater recordStatusUpdater() {
-        return Mockito.mock(RecordStatusUpdater.class);
+        return mock(RecordStatusUpdater.class);
     }
 
     @Bean
     public HarvestedRecordsDAO harvestedRecordsDAO() {
-        return Mockito.mock(HarvestedRecordsDAO.class);
+        return mock(HarvestedRecordsDAO.class);
     }
 }

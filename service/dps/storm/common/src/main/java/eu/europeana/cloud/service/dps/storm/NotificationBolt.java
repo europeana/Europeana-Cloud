@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -102,7 +103,7 @@ public class NotificationBolt extends BaseRichBolt {
                         hosts, port, keyspaceName, userName, password);
 
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        CassandraSubTaskInfoDAO subTaskInfoDAO = CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        NotificationsDAO subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
         ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
         TasksByStateDAO tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
@@ -112,7 +113,7 @@ public class NotificationBolt extends BaseRichBolt {
         notificationTupleHandler = new NotificationTupleHandler(
                 processedRecordsDAO,
                 TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider),
-                CassandraSubTaskInfoDAO.getInstance(cassandraConnectionProvider),
+                NotificationsDAO.getInstance(cassandraConnectionProvider),
                 taskErrorDAO,
                 taskInfoDAO,
                 tasksByStateDAO,

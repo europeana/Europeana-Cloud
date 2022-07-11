@@ -68,7 +68,6 @@ public class UniqueIdentifierResource {
      * @throws RecordDatasetEmptyException   dataset is empty
      * @throws CloudIdDoesNotExistException  cloud identifier does not exist
      * @throws CloudIdAlreadyExistException  Cloud identifier was created previously
-     * @summary Cloud identifier generation
      */
     @PostMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
@@ -86,9 +85,8 @@ public class UniqueIdentifierResource {
         String creatorName = SpringUserUtils.getUsername();
 
         if (creatorName != null) {
-
             ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cId.getId());
-            MutableAcl cloudIdAcl = aclWrapper.getAcl(creatorName, cloudIdIdentity);
+            MutableAcl cloudIdAcl = aclWrapper.createOrUpdateAcl(creatorName, cloudIdIdentity);
             aclWrapper.updateAcl(cloudIdAcl);
         }
         dataProviderResource.grantPermissionsToLocalId(cId, providerId);
@@ -107,7 +105,6 @@ public class UniqueIdentifierResource {
      * @throws RecordDoesNotExistException   record does not exist
      * @throws ProviderDoesNotExistException provider does not exist
      * @throws RecordDatasetEmptyException   dataset is empty
-     * @summary Cloud identifier retrieval
      */
     @GetMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.model.CloudId")
@@ -130,8 +127,7 @@ public class UniqueIdentifierResource {
      * @throws DatabaseConnectionException   database error
      * @throws CloudIdDoesNotExistException  cloud identifier does not exist
      * @throws ProviderDoesNotExistException provider does not exist
-     * @throws RecordDatasetEmptyException   datset is empty
-     * @summary List of record identifiers retrieval
+     * @throws RecordDatasetEmptyException   dataset is empty
      */
     @GetMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
@@ -164,16 +160,13 @@ public class UniqueIdentifierResource {
      * @throws DatabaseConnectionException   database error
      * @throws CloudIdDoesNotExistException  cloud identifier does not exist
      * @throws ProviderDoesNotExistException provider does not exist
-     * @throws RecordIdDoesNotExistException record identifier does not exist
-     * @summary Cloud identifier removal
      */
     @DeleteMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteCloudId(@PathVariable String cloudId)
-            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
-            RecordIdDoesNotExistException {
+            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException {
 
-        // usuwanie cloudId local id tworznego przy tworznie clouId
+        //usuwanie cloudId local id tworznego przy tworznie clouId
         //sprawdzić co się stanie po dodaniu mapowania wiele razy i uunięcu cloudId
         //dopisac
 

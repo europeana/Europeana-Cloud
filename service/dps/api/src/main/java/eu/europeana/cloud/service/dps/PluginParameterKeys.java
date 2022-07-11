@@ -11,8 +11,6 @@ public final class PluginParameterKeys {
     public static final String XSLT_URL = "XSLT_URL";
     public static final String OUTPUT_URL = "OUTPUT_URL";
 
-    public static final String DATASET_URL = "DATASET_URL";
-
     public static final String DPS_TASK_INPUT_DATA = "DPS_TASK_INPUT_DATA";
 
     public static final String PREVIOUS_TASK_ID = "PREVIOUS_TASK_ID";
@@ -26,17 +24,16 @@ public final class PluginParameterKeys {
     public static final String METIS_DATASET_COUNTRY = "METIS_DATASET_COUNTRY";
     public static final String METIS_DATASET_LANGUAGE = "METIS_DATASET_LANGUAGE";
     public static final String METIS_TARGET_INDEXING_DATABASE = "TARGET_INDEXING_DATABASE";
-    public static final String METIS_USE_ALT_INDEXING_ENV = "USE_ALT_INDEXING_ENV";
     public static final String METIS_RECORD_DATE = "RECORD_DATE";
     public static final String METIS_PRESERVE_TIMESTAMPS = "PRESERVE_TIMESTAMPS";
     public static final String DATASET_IDS_TO_REDIRECT_FROM = "DATASET_IDS_TO_REDIRECT_FROM";
     public static final String PERFORM_REDIRECTS = "PERFORM_REDIRECTS";
-    public static final String DATA_SET_CLEANING_PARAMETERS = "DATA_SET_CLEANING_PARAMETERS";
     public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
 
     // ---------  eCloud  -----------
     public static final String PROVIDER_ID = "PROVIDER_ID";
     public static final String CLOUD_ID = "CLOUD_ID";
+    public static final String EUROPEANA_ID = "EUROPEANA_ID";
 
     public static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
     public static final String NEW_REPRESENTATION_NAME = "NEW_REPRESENTATION_NAME";
@@ -54,7 +51,6 @@ public final class PluginParameterKeys {
     //----------  DPS task  ----
 
 
-    public static final String REPRESENTATION = "REPRESENTATION";
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
     public static final String SENT_DATE = "SENT_DATE";
 
@@ -69,9 +65,6 @@ public final class PluginParameterKeys {
 
     public static final String GENERATE_STATS = "GENERATE_STATS";
 
-    //----------  OAI-PMH harvesting DPS task  ----
-
-
     //----------Revision ---------------
 
     public static final String REVISION_NAME = "REVISION_NAME";
@@ -81,14 +74,10 @@ public final class PluginParameterKeys {
     // ---------- OAI-PMH ----------
     public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
     public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
-    public static final String USE_DEFAULT_IDENTIFIERS = "USE_DEFAULT_IDENTIFIERS";
     public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
     public static final String INCREMENTAL_INDEXING = "INCREMENTAL_INDEXING";
     public static final String HARVEST_DATE = "HARVEST_DATE";
     public static final String RECORD_DATESTAMP = "RECORD_DATESTAMP";
-
-    // -----------MIGRATION----------
-    public static final String MIGRATION_IDENTIFIER_PREFIX = "MIGRATION_IDENTIFIER_PREFIX";
 
     //Media
     public static final String RESOURCE_LINKS_COUNT = "RESOURCE_LINKS_COUNT";
@@ -101,11 +90,10 @@ public final class PluginParameterKeys {
 
     public static final String MAIN_THUMBNAIL_AVAILABLE = "MAIN_THUMBNAIL_AVAILABLE";
 
-
     public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
-    public static final String FILES_ROOT_URL = "FILES_ROOT_URL";
     public static final String MARKED_AS_DELETED = "DELETED_RECORD";
     public static final String IGNORED_RECORD = "IGNORED_RECORD";
+    public static final String MAXIMUM_PARALLELIZATION = "MAXIMUM_PARALLELIZATION";
 
     static {
         //the default value for output mimeType

@@ -1,21 +1,20 @@
 package eu.europeana.cloud.persisted;
 
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraSubTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class RemoverImplTest {
 
 
     @Mock(name = "subTaskInfoDAO")
-    private CassandraSubTaskInfoDAO subTaskInfoDAO;
+    private NotificationsDAO subTaskInfoDAO;
 
 
     @Mock(name = "taskErrorDAO")

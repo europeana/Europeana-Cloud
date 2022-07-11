@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
-import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,7 +73,7 @@ public class HttpHarvestingBoltTest {
     }
 
     @Test
-    public void shouldHarvestEdmFileWhenExecutedWithoutUseDefaultIdentifiersParam() throws IOException {
+    public void shouldHarvestEdmFile() throws IOException {
         mockFileOnHttpServer("record.xml");
 
         bolt.execute(anchorTuple,tuple);
@@ -88,24 +87,6 @@ public class HttpHarvestingBoltTest {
         assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
                 anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
     }
-
-    @Test
-    public void shouldHarvestEdmFileWhenExecutedWithUseDefaultIdentifiersParamSetToTrue() throws IOException {
-        tuple.addParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, "true");
-        mockFileOnHttpServer("record.xml");
-
-        bolt.execute(anchorTuple,tuple);
-
-        verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-        StormTaskTuple resultTuple = getResultStormTaskTuple();
-        assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
-        assertThat(resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER), StringStartsWith.startsWith("record.xml"));
-        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
-        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
-                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
-
-    }
-
 
     @Test
     public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {

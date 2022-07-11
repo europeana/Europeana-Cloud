@@ -89,6 +89,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         mockUISProvider1Success();
         makeUISSuccess();
 
+
         Representation r1 = cassandraRecordService.createRepresentation(
                 "globalId", "dc", PROVIDER_1_ID, VERSION);
         Representation r2 = cassandraRecordService.createRepresentation(
@@ -96,6 +97,15 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
         Representation rFetched = cassandraRecordService.getRepresentation(
                 "globalId", "dc", VERSION.toString());
+
+
+        assertNotNull(r1.getCreationDate());
+        assertNotNull(r2.getCreationDate());
+        assertNotNull(rFetched.getCreationDate());
+        //Setting all dates to the same value, they could differ a bit, and in such case test would fail.
+        r1.setCreationDate(rFetched.getCreationDate());
+        r2.setCreationDate(rFetched.getCreationDate());
+
         assertThat(rFetched, is(r1));
         assertThat(rFetched, is(r2));
     }

@@ -1098,7 +1098,8 @@ public class DataSetServiceClientTest {
     }
 
     @Test(expected = DataSetNotExistsException.class)
-    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider() throws Throwable {
+    public void shouldProvideRepresentationIteratorThatThrowsExceptionWhenNoProvider()
+            throws Throwable {
         String providerId = "noSuchProvider";
         String dataSetId = "dataset3";
 

@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
@@ -17,7 +16,6 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -35,6 +33,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.*;
+
 /**
  * The REST API client for the Data Processing service.
  */
@@ -42,25 +42,6 @@ public class DpsClient implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DpsClient.class);
 
-    private static final String ERROR = "error";
-    private static final String IDS_COUNT = "idsCount";
-    private static final String TOPOLOGY_NAME = "TopologyName";
-    private static final String TASK_ID = "TaskId";
-    private static final String TASKS_URL = "/{" + TOPOLOGY_NAME + "}/tasks";
-    private static final String PERMIT_TOPOLOGY_URL = "/{" + TOPOLOGY_NAME + "}/permit";
-    private static final String TASK_URL = TASKS_URL + "/{" + TASK_ID + "}";
-    private static final String REPORTS_RESOURCE = "reports";
-    private static final String STATISTICS_RESOURCE = "statistics";
-    private static final String KILL_TASK = "kill";
-    private static final String TASK_PROGRESS_URL = TASK_URL + "/progress";
-    private static final String TASK_CLEAN_DATASET_URL = TASK_URL + "/cleaner";
-    private static final String DETAILED_TASK_REPORT_URL =
-            TASK_URL + "/" + REPORTS_RESOURCE + "/details";
-    private static final String ERRORS_TASK_REPORT_URL =
-            TASK_URL + "/" + REPORTS_RESOURCE + "/errors";
-    private static final String STATISTICS_REPORT_URL = TASK_URL + "/" + STATISTICS_RESOURCE;
-    private static final String KILL_TASK_URL = TASK_URL + "/" + KILL_TASK;
-    private static final String ELEMENT_REPORT = TASK_URL + "/" + REPORTS_RESOURCE + "/element";
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
     public static final String TASK_CANT_BE_KILLED_MESSAGE = "Task Can't be killed";
@@ -77,7 +58,7 @@ public class DpsClient implements AutoCloseable {
      * @param dpsUrl                 Url where the DPS service is located.
      * @param username               THe username to perform authenticated requests.
      * @param password               THe username to perform authenticated requests.
-     * @param connectTimeoutInMillis The connect timeout in milliseconds (timeout for establishing the
+     * @param connectTimeoutInMillis Connection timeout in milliseconds (timeout for establishing the
      *                               remote connection).
      * @param readTimeoutInMillis    The read timeout in milliseconds (timeout for obtaining/1reading the
      *                               result).
@@ -108,7 +89,7 @@ public class DpsClient implements AutoCloseable {
      * Creates a new instance of this class.
      *
      * @param dpsUrl                 Url where the DPS service is located.
-     * @param connectTimeoutInMillis The connect timeout in milliseconds (timeout for establishing the
+     * @param connectTimeoutInMillis Connection timeout in milliseconds (timeout for establishing the
      *                               remote connection).
      * @param readTimeoutInMillis    The read timeout in milliseconds (timeout for obtaining/1reading the
      *                               result).
@@ -199,31 +180,17 @@ public class DpsClient implements AutoCloseable {
      * Retrieves number of elements in the Metis dataset
      *
      * @param datasetId dataset identifier
-     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW
+     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
      * @return number of elements in the dataset
      * @throws DpsException throws common {@link DpsException} if something went wrong
      */
     public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database) throws DpsException {
-        return getTotalMetisDatabaseRecords(datasetId, database, TargetIndexingEnvironment.DEFAULT);
-    }
-
-    /**
-     * Retrieves number of elements in the Metis dataset
-     *
-     * @param datasetId dataset identifier
-     * @param database database that will be used as source of true. Allowed values are PUBLISH and PREVIEW {@link TargetIndexingDatabase}
-     * @param environment value indicating which environment will be used. Allowed values are DEFAULT and ALTERNATIVE {@link TargetIndexingEnvironment}. This is temporary solution when there is one eCloud for both test and acceptance Metis environment
-     * @return number of elements in the dataset
-     * @throws DpsException throws common {@link DpsException} if something went wrong
-     */
-    public long getTotalMetisDatabaseRecords(String datasetId, TargetIndexingDatabase database, TargetIndexingEnvironment environment) throws DpsException {
         MetisDataset metisDataset = manageResponse(new ResponseParams<>(MetisDataset.class),
                 () -> client
                         .target(dpsUrl)
                         .path(RestInterfaceConstants.METIS_DATASETS)
                         .resolveTemplate("datasetId", datasetId)
                         .queryParam("database", database)
-                        .queryParam("altEnv", environment)
                         .request()
                         .get(),
                 "Error while retrieving total metis database records");
@@ -265,7 +232,7 @@ public class DpsClient implements AutoCloseable {
         return manageResponse(new ResponseParams<>(new GenericType<List<NodeReport>>(){}),
                 () -> client
                         .target(dpsUrl)
-                        .path(ELEMENT_REPORT)
+                        .path(ELEMENT_REPORT_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
                         .resolveTemplate(TASK_ID, taskId)
                         .queryParam("path", elementPath)
@@ -338,6 +305,17 @@ public class DpsClient implements AutoCloseable {
                         .request()
                         .post(null),
                 TASK_CANT_BE_KILLED_MESSAGE);
+    }
+
+    public List<String> searchPublishedDatasetRecords(final String datasetId, final List<String> recordsIds) throws DpsException {
+        return manageResponse(new ResponseParams<>(new GenericType<List<String>>(){}),
+                () -> client.target(dpsUrl)
+                        .path(METIS_DATASET_PUBLISHED_RECORDS_SEARCH)
+                        .resolveTemplate(DATASET_ID, datasetId)
+                        .request()
+                        .post(Entity.json(recordsIds)),
+                "Error while searching published dataset records"
+        );
     }
 
     @Override

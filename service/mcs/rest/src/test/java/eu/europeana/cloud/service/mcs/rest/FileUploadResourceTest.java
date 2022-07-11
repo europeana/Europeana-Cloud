@@ -54,7 +54,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         file.setFileName("fileName");
         file.setMimeType("application/octet-stream");
 
-        fileWebTarget = "/records/{"+rep.getCloudId()+"/representations/"+rep.getRepresentationName()+"/files";
+        fileWebTarget = "/records/"+rep.getCloudId()+"/representations/"+rep.getRepresentationName()+"/files";
     }
     
     @Test

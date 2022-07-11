@@ -3,12 +3,12 @@ package eu.europeana.cloud.service.uis.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
-import eu.europeana.cloud.service.uis.UniqueIdentifierService;
+import eu.europeana.cloud.service.uis.dao.CloudIdDAO;
+import eu.europeana.cloud.service.uis.dao.CloudIdLocalIdBatches;
+import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
-import eu.europeana.cloud.service.uis.service.CassandraUniqueIdentifierService;
-import eu.europeana.cloud.service.uis.dao.CassandraCloudIdDAO;
+import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.dao.CassandraLocalIdDAO;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -48,24 +48,32 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public UniqueIdentifierService uniqueIdentifierService(
-            CassandraCloudIdDAO cassandraCloudIdDAO,
-            CassandraLocalIdDAO cassandraLocalIdDAO,
-            CassandraDataProviderDAO cassandraDataProviderDAO) {
-        return new CassandraUniqueIdentifierService(
+    public eu.europeana.cloud.service.uis.UniqueIdentifierService uniqueIdentifierService(
+            CloudIdDAO cassandraCloudIdDAO,
+            LocalIdDAO cassandraLocalIdDAO,
+            CassandraDataProviderDAO cassandraDataProviderDAO,
+            CloudIdLocalIdBatches cloudIdLocalIdBatches) {
+
+        return new UniqueIdentifierServiceImpl(
                 cassandraCloudIdDAO,
                 cassandraLocalIdDAO,
-                cassandraDataProviderDAO);
+                cassandraDataProviderDAO,
+                cloudIdLocalIdBatches);
     }
 
     @Bean
-    public CassandraCloudIdDAO cassandraCloudIdDAO(CassandraConnectionProvider dataProviderDao){
-        return new CassandraCloudIdDAO(dataProviderDao);
+    public CloudIdDAO cloudIdDAO(CassandraConnectionProvider dataProviderDao){
+        return new CloudIdDAO(dataProviderDao);
     }
 
     @Bean
-    public CassandraLocalIdDAO cassandraLocalIdDAO(CassandraConnectionProvider dataProviderDao) {
-        return new CassandraLocalIdDAO(dataProviderDao);
+    public LocalIdDAO localIdDAO(CassandraConnectionProvider dataProviderDao) {
+        return new LocalIdDAO(dataProviderDao);
+    }
+
+    @Bean
+    public CloudIdLocalIdBatches cloudIdLocalIdBatches(CloudIdDAO cloudIdDAO, LocalIdDAO localIdDAO, CassandraConnectionProvider dataProviderDao) {
+        return new CloudIdLocalIdBatches(cloudIdDAO, localIdDAO, dataProviderDao);
     }
 
     @Bean

@@ -1,16 +1,14 @@
 package eu.europeana.cloud.service.dps.service.utils.indexing;
 
-import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingEnvironment;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by pwozniak on 4/11/18
@@ -41,53 +39,32 @@ public class IndexingSettingsGenerator {
     public static final String DELIMITER = ".";
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexingSettingsGenerator.class);
     private final Properties properties;
-    private final TargetIndexingEnvironment environmentPrefix;
 
-    public IndexingSettingsGenerator(TargetIndexingEnvironment environment, Properties properties) {
-        this.environmentPrefix = environment;
+    public IndexingSettingsGenerator(Properties properties) {
         this.properties = properties;
     }
 
-    public IndexingSettingsGenerator(Properties properties) {
-        this(TargetIndexingEnvironment.DEFAULT, properties);
-    }
-
     public IndexingSettings generateForPreview() throws IndexingException, URISyntaxException {
-        if (!isDefinedFor(preparePreviewPrefix())) {
+        if (isNotDefinedFor(IndexingSettingsGenerator.PREVIEW_PREFIX)) {
             return null;
         }
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(preparePreviewPrefix(), indexingSettings);
+        prepareSettingFor(IndexingSettingsGenerator.PREVIEW_PREFIX, indexingSettings);
         return indexingSettings;
     }
 
     public IndexingSettings generateForPublish() throws IndexingException, URISyntaxException {
-        if (!isDefinedFor(preparePublishPrefix())) {
+        if (isNotDefinedFor(IndexingSettingsGenerator.PUBLISH_PREFIX)) {
             return null;
         }
         IndexingSettings indexingSettings = new IndexingSettings();
-        prepareSettingFor(preparePublishPrefix(), indexingSettings);
+        prepareSettingFor(IndexingSettingsGenerator.PUBLISH_PREFIX, indexingSettings);
         return indexingSettings;
     }
 
-    private boolean isDefinedFor(String prefix) {
-        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) != null;
+    private boolean isNotDefinedFor(String prefix) {
+        return properties.get(prefix + DELIMITER + MONGO_INSTANCES) == null;
     }
-
-    private String preparePreviewPrefix() {
-        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
-            return environmentPrefix + DELIMITER + PREVIEW_PREFIX;
-        }
-        return PREVIEW_PREFIX;
-    }
-
-    private String preparePublishPrefix() {
-        if (environmentPrefix != TargetIndexingEnvironment.DEFAULT) {
-            return environmentPrefix + DELIMITER + PUBLISH_PREFIX;
-        }
-        return PUBLISH_PREFIX;
-    }
-
 
     private void prepareSettingFor(String environment, IndexingSettings indexingSettings)
             throws IndexingException, URISyntaxException {
@@ -130,13 +107,9 @@ public class IndexingSettingsGenerator {
     }
 
     private boolean mongoCredentialsProvidedFor(String prefix) {
-        if (!"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
-                !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
-                !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB))) {
-            return true;
-        } else {
-            return false;
-        }
+        return !"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
+               !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
+               !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB));
     }
 
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix)

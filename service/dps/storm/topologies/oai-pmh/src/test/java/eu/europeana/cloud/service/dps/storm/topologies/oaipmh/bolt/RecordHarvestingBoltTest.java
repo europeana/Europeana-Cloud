@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -12,10 +13,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +21,6 @@ import java.time.Instant;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -36,6 +33,9 @@ public class RecordHarvestingBoltTest {
 
     @Mock
     private OaiHarvester harvester;
+
+    @Spy
+    private IdentifierSupplier identifierSupplier;
 
     @InjectMocks
     private final RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
@@ -98,72 +98,6 @@ public class RecordHarvestingBoltTest {
             }
             return null;
         };
-    }
-
-    @Test
-    public void shouldHarvestRecordInEDMAndNotUseHeaderIdentifierIfParameterIsDifferentThanTrue() throws IOException, HarvesterException {
-        //given
-        Tuple anchorTuple = mock(TupleImpl.class);
-
-        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-
-        StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("blablaba");
-        StormTaskTuple spiedTask = spy(task);
-
-        //when
-        recordHarvestingBolt.execute(anchorTuple, spiedTask);
-
-        //then
-        verifySuccessfulEmit();
-
-        verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertEquals("http://more.locloud.eu/object/DCU/24927017", spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-    }
-
-    @Test
-    public void shouldHarvestRecordInEDMAndUseHeaderIdentifierIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
-        //given
-        Tuple anchorTuple = mock(TupleImpl.class);
-
-        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-
-        StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersParameter("true");
-        StormTaskTuple spiedTask = spy(task);
-
-        //when
-        recordHarvestingBolt.execute(anchorTuple, spiedTask);
-
-        //then
-        verifySuccessfulEmit();
-
-        verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertNull(spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals("http://data.europeana.eu/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-    }
-
-    @Test
-    public void shouldHarvestRecordInEDMAndUseHeaderIdentifierAndTrimItIfSpecifiedInTaskParameters() throws IOException, HarvesterException {
-        //given
-        Tuple anchorTuple = mock(TupleImpl.class);
-
-        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
-        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-
-        StormTaskTuple task = taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix("true");
-        StormTaskTuple spiedTask = spy(task);
-
-        //when
-        recordHarvestingBolt.execute(anchorTuple, spiedTask);
-
-        //then
-        verifySuccessfulEmit();
-
-        verify(spiedTask).setFileData(Mockito.any(InputStream.class));
-        assertNull(spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        assertEquals("/item/2064203/o_aj_kk_tei_3", spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     }
 
     @Test
@@ -236,19 +170,6 @@ public class RecordHarvestingBoltTest {
 
         //then
         verifyErrorEmit();
-    }
-
-    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersAndTrimmingPrefix(String paramValue) {
-        StormTaskTuple stormTaskTuple = taskWithGivenValueOfUseHeaderIdentifiersParameter(paramValue);
-        stormTaskTuple.addParameter(PluginParameterKeys.MIGRATION_IDENTIFIER_PREFIX, "http://data.europeana.eu");
-        return stormTaskTuple;
-    }
-
-    private StormTaskTuple taskWithGivenValueOfUseHeaderIdentifiersParameter(String paramValue) {
-        StormTaskTuple stormTaskTuple = taskWithAllNeededParameters();
-        stormTaskTuple.addParameter(PluginParameterKeys.USE_DEFAULT_IDENTIFIERS, paramValue);
-        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "http://data.europeana.eu/item/2064203/o_aj_kk_tei_3");
-        return stormTaskTuple;
     }
 
     private StormTaskTuple taskWithAllNeededParameters() {

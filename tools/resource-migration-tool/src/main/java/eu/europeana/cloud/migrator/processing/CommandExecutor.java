@@ -20,7 +20,7 @@ public class CommandExecutor {
 
     private static final int BUFFER_SIZE = 1024;
 
-    private List<String> commandTemplates = new ArrayList<String>();
+    private List<String> commandTemplates = new ArrayList<>();
 
     protected String workingDirectory;
 

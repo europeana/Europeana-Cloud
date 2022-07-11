@@ -99,42 +99,36 @@ public class CassandraDataSetDAO {
                         "data_sets(provider_id, dataset_id, description, creation_date) " +
                         "VALUES (?,?,?,?);"
         );
-        createDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteDataSetStatement = connectionProvider.getSession().prepare(
                 "DELETE FROM " +
                         "data_sets " +
                         "WHERE provider_id = ? AND dataset_id = ?;"
         );
-        deleteDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         addAssignmentStatement = connectionProvider.getSession().prepare(
                 "INSERT " +
                         "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) " +
                         "VALUES (?,?,?,?,?,?);"
         );
-        addAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         addAssignmentByRepresentationStatement = connectionProvider.getSession().prepare(
                 "INSERT " +
                         "INTO data_set_assignments_by_representations (cloud_id, schema_id, version_id, provider_dataset_id, creation_date) " +
                         "VALUES (?,?,?,?,?);"
         );
-        addAssignmentByRepresentationStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeAssignmentStatement = connectionProvider.getSession().prepare(
                 "DELETE " +
                         "FROM data_set_assignments_by_data_set " +
                         "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;"
         );
-        removeAssignmentStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeAssignmentByRepresentationsStatement = connectionProvider.getSession().prepare(
                 "DELETE " +
                         "FROM data_set_assignments_by_representations " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id = ? AND provider_dataset_id = ? IF EXISTS;"
         );
-        removeAssignmentByRepresentationsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
                 "SELECT cloud_id, schema_id, version_id " +
@@ -142,7 +136,6 @@ public class CassandraDataSetDAO {
                         "WHERE provider_dataset_id = ? AND bucket_id = ? " +
                         "LIMIT ?;"
         );
-        listDataSetRepresentationsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         listDataSetsStatement = connectionProvider.getSession().prepare(
                 "SELECT provider_id, dataset_id, description " +
@@ -150,49 +143,42 @@ public class CassandraDataSetDAO {
                         "WHERE provider_id = ? AND dataset_id >= ?" +
                         "LIMIT ?;"
         );
-        listDataSetsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetStatement = connectionProvider.getSession().prepare(
                 "SELECT provider_id, dataset_id, description " +
                         "FROM data_sets " +
                         "WHERE provider_id = ? AND dataset_id = ?;"
         );
-        getDataSetStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetsForRepresentationVersionStatement = connectionProvider.getSession().prepare(
                 "SELECT provider_dataset_id " +
                         "FROM data_set_assignments_by_representations " +
                         "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;"
         );
-        getDataSetsForRepresentationVersionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetsRepresentationsNamesListStatement = connectionProvider.getSession().prepare(
                 "SELECT representation_names " +
                         "FROM data_set_representation_names " +
                         "WHERE provider_id = ? and dataset_id = ?;"
         );
-        getDataSetsRepresentationsNamesListStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         addDataSetsRepresentationNameStatement = connectionProvider.getSession().prepare(
                 "UPDATE data_set_representation_names " +
                         "SET representation_names = representation_names + ? " +
                         "WHERE provider_id = ? and dataset_id = ?"
         );
-        addDataSetsRepresentationNameStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeDataSetsRepresentationNameStatement = connectionProvider.getSession().prepare(
                 "UPDATE data_set_representation_names " +
                         "SET representation_names = representation_names - ? " +
                         "WHERE provider_id = ? and dataset_id = ?;"
         );
-        removeDataSetsRepresentationNameStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeDataSetsAllRepresentationsNamesStatement = connectionProvider.getSession().prepare(
                 "DELETE " +
                         "FROM data_set_representation_names " +
                         "WHERE provider_id = ? and dataset_id = ?;"
         );
-        removeDataSetsAllRepresentationsNamesStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         hasProvidedRepresentationNameStatement = connectionProvider.getSession().prepare(
                 "SELECT schema_id, cloud_id " +
@@ -200,7 +186,6 @@ public class CassandraDataSetDAO {
                         "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? " +
                         "LIMIT 1;"
         );
-        hasProvidedRepresentationNameStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
                 "INSERT " +
@@ -209,7 +194,6 @@ public class CassandraDataSetDAO {
                                 "representation_id, cloud_id, published, acceptance, mark_deleted) " +
                         "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
         );
-        addDataSetsRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
                 "DELETE " +
@@ -224,7 +208,6 @@ public class CassandraDataSetDAO {
                             "AND cloud_id = ? " +
                         "IF EXISTS;"
         );
-        removeDataSetsRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
                 "SELECT cloud_id, published, acceptance, mark_deleted " +
@@ -238,14 +221,12 @@ public class CassandraDataSetDAO {
                             "AND representation_id = ? " +
                         "LIMIT ?;"
         );
-        getDataSetsRevisionStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getProviderDatasetBucketCountStatement = connectionProvider.getSession().prepare(
                 "SELECT bucket_id, rows_count " +
                         "FROM datasets_buckets " +
                         "WHERE provider_id = ? AND dataset_id = ?;"
         );
-        getProviderDatasetBucketCountStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getNextProviderDatasetBucketStatement = connectionProvider.getSession().prepare(
                 "SELECT bucket_id " +
@@ -253,7 +234,6 @@ public class CassandraDataSetDAO {
                         "WHERE provider_id = ? AND dataset_id = ? AND bucket_id > ? " +
                         "LIMIT 1;"
         );
-        getNextProviderDatasetBucketStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         getFirstProviderDatasetBucketStatement = connectionProvider.getSession().prepare(
                 "SELECT bucket_id " +
@@ -261,14 +241,12 @@ public class CassandraDataSetDAO {
                         "WHERE provider_id = ? AND dataset_id = ? " +
                         "LIMIT 1;"
         );
-        getFirstProviderDatasetBucketStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
 
         deleteProviderDatasetBucketsStatement = connectionProvider.getSession().prepare(
                 "DELETE " +
                         "FROM datasets_buckets " +
                         "WHERE provider_id = ? AND dataset_id = ? AND bucket_id = ?;"
         );
-        deleteProviderDatasetBucketsStatement.setConsistencyLevel(connectionProvider.getConsistencyLevel());
     }
 
     /**

@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.Optional;
 
@@ -83,7 +84,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
     }
 
     private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
-        String document = new String(stormTaskTuple.getFileData());
+        String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
         RecordStatisticsGenerator statisticsGenerator = new RecordStatisticsGenerator(document);
         statisticsService.insertNodeStatistics(stormTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
     }

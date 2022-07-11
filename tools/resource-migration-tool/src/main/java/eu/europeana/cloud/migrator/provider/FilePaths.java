@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +132,7 @@ public class FilePaths {
     private void addPathToFile(String path) {
         try {
             Path dest = FileSystems.getDefault().getPath(".", prefix + fileName + ResourceMigrator.TEXT_EXTENSION);
-            Files.write(dest, String.valueOf(path + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+            Files.write(dest, String.valueOf(path + "\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             size++;
         } catch (IOException e) {
             logger.error("Cannot store path {} in file {}",
@@ -143,7 +144,7 @@ public class FilePaths {
     public BufferedReader getPathsReader() {
         if (useFile && fileName != null) {
             try {
-                return Files.newBufferedReader(FileSystems.getDefault().getPath(".", prefix + fileName + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"));
+                return Files.newBufferedReader(FileSystems.getDefault().getPath(".", prefix + fileName + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 logger.error("Error while reading a file", e);
             }
@@ -172,7 +173,7 @@ public class FilePaths {
                         size--;
                         continue;
                     }
-                    Files.write(dest, String.valueOf(line + "\n").getBytes(Charset.forName("UTF-8")), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+                    Files.write(dest, String.valueOf(line + "\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
                 }
             } catch (IOException e) {
                 // do nothing, all paths will be used

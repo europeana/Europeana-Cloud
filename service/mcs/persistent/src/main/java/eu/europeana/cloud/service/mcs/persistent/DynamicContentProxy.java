@@ -6,8 +6,6 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.ContentDaoNotFoundException;
 import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.InputStream;

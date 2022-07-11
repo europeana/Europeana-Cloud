@@ -58,6 +58,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     protected transient ProcessedRecordsDAO processedRecordsDAO;
     protected transient TasksCache tasksCache;
     protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
+    private transient ECloudOutputCollector eCloudOutputCollector;
+    protected long maxTaskPending = Long.MAX_VALUE;
 
     public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts, int port, String keyspaceName,
                        String userName, String password) {
@@ -90,7 +92,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         eCloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();
-        super.open(conf, context, new ECloudOutputCollector(collector));
+        eCloudOutputCollector = new ECloudOutputCollector(collector);
+        super.open(conf, context, eCloudOutputCollector);
 
         var cassandraConnectionProvider =
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
@@ -146,6 +149,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                     return omitAlreadyProcessedRecord(messageId);
                 }
 
+
                 if (maxTriesReached(aRecord)) {
                     return emitMaxTriesReachedNotification(message, messageId);
                 } else {
@@ -178,9 +182,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return tasksCache.getTaskInfo(message);
         }
 
-        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord aRecord) throws IOException {
+        private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord, ProcessedRecord aRecord) {
             //
-            var dpsTask = DpsTask.fromTaskInfo(taskInfo);
             var stormTaskTuple = new StormTaskTuple(
                     dpsTask.getTaskId(),
                     dpsTask.getTaskName(),
@@ -262,9 +265,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
         List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             var taskInfo = getTaskInfo(message);
+            var dpsTask = DpsTask.fromTaskInfo(taskInfo);
             updateDiagnosticCounters(aRecord);
-            var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
-            LOGGER.info("Emitting a record to the subsequent bolt");
+            var stormTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);
+            performThrottling(stormTaskTuple);
+            LOGGER.info("Emitting a record to the subsequent bolt maxPending: {}", maxTaskPending);
             return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
         }
 
@@ -335,6 +340,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         }
 
         @Override
+        public long getMaxSpoutPending() {
+            return maxTaskPending;
+        }
+
+        @Override
         public String showSpoutToString() {
             return getSpoutString();
         }
@@ -369,4 +379,16 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return ECloudSpout.this.toString();
         }
     }
+
+    protected void performThrottling(StormTaskTuple tuple) {
+        maxTaskPending = tuple.readParallelizationParam();
+    }
+
+    @Override
+    public void nextTuple() {
+        if (eCloudOutputCollector.getPendingCount() < maxTaskPending) {
+            super.nextTuple();
+        }
+    }
+
 }

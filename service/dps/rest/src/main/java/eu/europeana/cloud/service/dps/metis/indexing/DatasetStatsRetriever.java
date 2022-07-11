@@ -1,26 +1,25 @@
 package eu.europeana.cloud.service.dps.metis.indexing;
 
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-enum DatabaseLocation {
-    DEFAULT_PREVIEW,
-    DEFAULT_PUBLISH,
-    ALT_PREVIEW,
-    ALT_PUBLISH,
-}
-
 /**
  * Retrieves statistics related with Metis dataset.
  */
-public class DatasetStatsRetriever extends IndexWrapper {
+public class DatasetStatsRetriever {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStatsRetriever.class);
+    private final IndexWrapper indexWrapper;
+
+    public DatasetStatsRetriever(IndexWrapper indexWrapper) {
+        this.indexWrapper = indexWrapper;
+    }
 
     public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
         LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
-        DatabaseLocation databaseLocation = evaluateDatabaseLocation(metisDataSetParameters);
-        return indexers.get(databaseLocation).countRecords(metisDataSetParameters.getDataSetId());
+        return indexWrapper.getIndexer(metisDataSetParameters.getTargetIndexingDatabase())
+                .countRecords(metisDataSetParameters.getDataSetId());
     }
 }

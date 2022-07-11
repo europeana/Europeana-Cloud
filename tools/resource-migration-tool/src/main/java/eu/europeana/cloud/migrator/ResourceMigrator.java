@@ -28,7 +28,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -666,8 +665,6 @@ public class ResourceMigrator {
                 logger.error("Could not open input stream to file!", e);
             } catch (IOException e) {
                 logger.error("Problem with detecting mime type from file (" + path + ")", e);
-            } catch (MCSException e) {
-                logger.error("ECloud error when uploading file.", e);
             } catch (Exception e) {
                 logger.error("ECloud error when uploading file.", e);
             } finally {
@@ -782,7 +779,7 @@ public class ResourceMigrator {
     private void removeProcessedPaths(String providerId, FilePaths paths) {
         try {
             List<String> processed = new ArrayList<String>();
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8)) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     processed.add(st.nextToken());

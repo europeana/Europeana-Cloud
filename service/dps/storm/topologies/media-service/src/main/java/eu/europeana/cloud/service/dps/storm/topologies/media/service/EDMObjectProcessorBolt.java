@@ -5,6 +5,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -15,6 +16,7 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
@@ -26,11 +28,15 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.Set;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
+
 public class EDMObjectProcessorBolt extends ReadFileBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMObjectProcessorBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
     public static final String EDM_OBJECT_ENRICHMENT_STREAM_NAME = "EdmObjectEnrichmentStream";
+    private static final String STATISTIC_OPERATION_NAME = EDMObjectProcessorBolt.class.getName() + ".execute()";
 
     private final AmazonClient amazonClient;
 
@@ -55,10 +61,12 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.debug("Starting edm:object processing");
-        Instant processingStartTime = Instant.now();
-        StringBuilder exception = new StringBuilder();
+        var processingStartTime = Instant.now();
+        var exception = new StringBuilder();
+        var opId = RandomStringUtils.random(12, "0123456789abcdef");
+        logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
 
-        int resourcesToBeProcessed = 0;
+        var resourcesToBeProcessed = 0;
         try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             byte[] fileContent = IOUtils.toByteArray(stream);
 
@@ -73,7 +81,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             if (edmObjectResourceEntry != null) {
                 resourcesToBeProcessed++;
                 LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
+
                 ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry, mainThumbnailAvailable);
+
                 if (resourceExtractionResult != null) {
                     StormTaskTuple tuple = null;
                     Set<String> thumbnailTargetNames = null;
@@ -116,6 +126,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             tuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
         } finally {
+            logStatistics(END, STATISTIC_OPERATION_NAME, opId);
             if (exception.length() > 0) {
                 stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
                 stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
@@ -142,7 +153,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             thumbnailUploader = new ThumbnailUploader(taskStatusChecker, amazonClient);
         } catch (Exception e) {
             LOGGER.error("Error while initialization", e);
-            throw new RuntimeException(e);
+            throw new TopologyGeneralException(e);
         }
     }
 

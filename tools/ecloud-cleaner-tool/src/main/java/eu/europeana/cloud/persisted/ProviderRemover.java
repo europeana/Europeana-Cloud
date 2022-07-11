@@ -47,27 +47,28 @@ public class ProviderRemover {
     }
 
     public void removeRecordsFromFile(String filename) throws IOException {
-        UISClient uisClient = new UISClient(url, username, password);
-        CloudIdReader reader = new CloudIdReader(filename);
+        try (UISClient uisClient = new UISClient(url, username, password)) {
+            CloudIdReader reader = new CloudIdReader(filename);
 
-        List<String> cloudIds;
-        int counter = 0;
-        do {
-            cloudIds = reader.getNextCloudId(FETCH_LIMIT);
-            counter = removeRecords(uisClient, cloudIds, counter);
-        } while(cloudIds.size() == FETCH_LIMIT);
-        reader.close();
+            List<String> cloudIds;
+            int counter = 0;
+            do {
+                cloudIds = reader.getNextCloudId(FETCH_LIMIT);
+                counter = removeRecords(uisClient, cloudIds, counter);
+            } while (cloudIds.size() == FETCH_LIMIT);
+            reader.close();
+        }
     }
 
     public void removeRecordsForProvider(String providerId) throws CloudException {
-        UISClient uisClient = new UISClient(url, username, password);
-        String startRecordId = "";
-        ResultSlice<CloudId> records = null;
-        int counter = 0;
+        try (UISClient uisClient = new UISClient(url, username, password)) {
+            String startRecordId = "";
+            ResultSlice<CloudId> records = null;
+            int counter = 0;
 
-        do {
-            //TODO this code was removed from UIS. Because of that the tool is not usable anymore.
-            //TODO if it will be needed we will have to modify this tool;
+            do {
+                //TODO this code was removed from UIS. Because of that the tool is not usable anymore.
+                //TODO if it will be needed we will have to modify this tool;
 //            try {
 //                records = uisClient.getCloudIdsByProviderWithPagination(providerId, startRecordId, FETCH_LIMIT);
 //            }catch(CloudException ce) {
@@ -78,15 +79,16 @@ public class ProviderRemover {
 //                }
 //            }
 
-            if (records != null && records.getResults() != null && !records.getResults().isEmpty()) {
-                startRecordId = records.getNextSlice();
-                counter = removeRecords(uisClient, records.getResults(), counter);
-            } else {
-                startRecordId = null;
-            }
-        } while (startRecordId != null);
+                if (records != null && records.getResults() != null && !records.getResults().isEmpty()) {
+                    startRecordId = records.getNextSlice();
+                    counter = removeRecords(uisClient, records.getResults(), counter);
+                } else {
+                    startRecordId = null;
+                }
+            } while (startRecordId != null);
 
-        LOGGER.info("Total processed records for provider '{}' : {}}", providerId, counter);
+            LOGGER.info("Total processed records for provider '{}' : {}}", providerId, counter);
+        }
     }
 
     private int removeRecords(UISClient uisClient, List<?> records, int counter) {

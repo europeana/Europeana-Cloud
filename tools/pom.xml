@@ -4,11 +4,11 @@
     <parent>
         <artifactId>ecloud-parent</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>6.1</version>
+        <version>7</version>
     </parent>
 
     <artifactId>ecloud-tools</artifactId>
-    <version>6.1</version>
+    <version>7</version>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Tools</name>
 
@@ -25,4 +25,12 @@
         <module>harvested-records-table-updater</module>
         <module>record-ids-extractor</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>test-common</artifactId>
+            <version>6-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -9,8 +9,6 @@ import migrations.service.mcs.V17.jobs.DataCopier;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static migrations.common.TableCopier.hasNextRow;
-
 /**
  * Created by pwozniak on 4/24/19
  */
@@ -53,7 +51,8 @@ public class V17_2__copy_data implements JavaMigration {
             executorService.shutdown();
             executorService.awaitTermination(100, TimeUnit.DAYS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("The migration was not completed successfully:" + e.getMessage() + ". Because of :" + e + ". Please clean and restart again!!");
+            Thread.currentThread().interrupt();
         }
     }
 

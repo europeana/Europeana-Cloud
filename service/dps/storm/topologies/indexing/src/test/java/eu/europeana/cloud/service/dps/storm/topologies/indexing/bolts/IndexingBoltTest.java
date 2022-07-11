@@ -1,29 +1,17 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
-
-import com.google.gson.Gson;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt.IndexerPoolWrapper;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.indexing.IndexerPool;
+import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
-
-import java.net.MalformedURLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -31,12 +19,14 @@ import org.apache.storm.tuple.Values;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+
+import java.net.MalformedURLException;
+import java.util.*;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class IndexingBoltTest {
 
@@ -53,11 +43,11 @@ public class IndexingBoltTest {
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
 
-    @Mock(name = "indexerPoolWrapper")
-    private IndexerPoolWrapper indexerPoolWrapper;
+    @Mock
+    private IndexWrapper indexWrapper;
 
     @Mock
-    private IndexerPool indexerPool;
+    private Indexer indexer;
 
     @Mock
     private Properties indexingProperties;
@@ -80,6 +70,7 @@ public class IndexingBoltTest {
     private ArgumentCaptor<Values> captor;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldIndexFileForPreviewEnv() throws Exception {
         //given
         mockEuropeanaIdFinder();
@@ -95,7 +86,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -104,16 +95,14 @@ public class IndexingBoltTest {
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
                 .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldIndexFilePublishEnv() throws Exception {
         //given
         mockEuropeanaIdFinder();
@@ -130,7 +119,7 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -139,16 +128,14 @@ public class IndexingBoltTest {
                 .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
                 .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldRemoveDeletedRecordFromIndex() throws Exception {
         mockEuropeanaIdFinder();
         when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
@@ -165,9 +152,9 @@ public class IndexingBoltTest {
 
         indexingBolt.execute(anchorTuple, tuple);
 
-        verify(indexerPool).remove(LOCAL_ID);
+        verify(indexer).remove(LOCAL_ID);
         Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
-        verify(indexerPool, never()).index(Mockito.anyString(), Mockito.any());
+        verify(indexer, never()).index(Mockito.anyString(), Mockito.any());
         verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
@@ -175,16 +162,14 @@ public class IndexingBoltTest {
                 .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
                 .publishedHarvestDate(null).publishedHarvestMd5(null).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(8, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldInsertNewHarvestedRecordsIfNotExist() throws Exception {
         //given
         mockEuropeanaIdFinder();
@@ -197,23 +182,21 @@ public class IndexingBoltTest {
         //when
         indexingBolt.execute(anchorTuple, tuple);
         //then
-        verify(indexerPool).index(anyString(), any());
+        verify(indexer).index(anyString(), any());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Mockito.verify(harvestedRecordsDAO).findRecord(anyString(),anyString());
         Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                 .metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID).latestHarvestDate(HARVEST_DATE)
                 .publishedHarvestDate(HARVEST_DATE).build());
         Values capturedValues = captor.getValue();
-        assertEquals(8, capturedValues.size());
+        assertEquals(9, capturedValues.size());
         assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", capturedValues.get(2));
         Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
         assertEquals(7, parameters.size());
-        DataSetCleanerParameters dataSetCleanerParameters = new Gson().fromJson(parameters.get(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS), DataSetCleanerParameters.class);
-        assertFalse(dataSetCleanerParameters.isUsingAltEnv());
-        assertEquals(targetIndexingEnv, dataSetCleanerParameters.getTargetIndexingEnv());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -225,14 +208,15 @@ public class IndexingBoltTest {
         Mockito.verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+                val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldEmitErrorNotificationForIndexing() throws IndexingException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -244,15 +228,16 @@ public class IndexingBoltTest {
         verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("additionalInfo").toString().contains("Error while indexing"));
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+                val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
 
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldThrowExceptionWhenDateIsUnparsable() {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -265,15 +250,14 @@ public class IndexingBoltTest {
         verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
         verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
+        var val = (Map<String, String>) captor.getValue().get(1);
 
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        Assert.assertTrue(val.get("info_text").toString().contains("Could not parse RECORD_DATE parameter"));
-        assertEquals("ERROR", val.get("state").toString());
+        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get(NotificationParameterKeys.RESOURCE));
+        Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Could not parse RECORD_DATE parameter"));
+        assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
@@ -281,15 +265,6 @@ public class IndexingBoltTest {
         mockIndexerFactoryFor(RuntimeException.class);
         //when
         indexingBolt.execute(anchorTuple, tuple);
-
-        verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
-        verify(harvestedRecordsDAO, never()).findRecord(anyString(), anyString());
-        verify(harvestedRecordsDAO, never()).updatePublishedHarvestDate(anyString(), anyString(), any(Date.class));
-        Values capturedValues = captor.getValue();
-        Map val = (Map) capturedValues.get(1);
-
-        assertEquals("https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b", val.get("resource"));
-        assertEquals("ERROR", val.get("state").toString());
     }
 
     @Test
@@ -302,7 +277,7 @@ public class IndexingBoltTest {
 
         verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
-        verifyNoInteractions(indexerPool);
+        verifyNoInteractions(indexer);
     }
 
 
@@ -316,7 +291,7 @@ public class IndexingBoltTest {
 
         verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         verify(harvestedRecordsDAO, never()).insertHarvestedRecord(any());
-        verifyNoInteractions(indexerPool);
+        verifyNoInteractions(indexer);
     }
 
 
@@ -334,8 +309,7 @@ public class IndexingBoltTest {
                 new HashMap<>() {
                     {
                         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
-                        DateFormat dateFormat = new SimpleDateFormat(IndexingBolt.DATE_FORMAT, Locale.US);
-                        put(PluginParameterKeys.METIS_RECORD_DATE, dateFormat.format(new Date()));
+                        put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
                         put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
                         put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
                         put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
@@ -344,10 +318,10 @@ public class IndexingBoltTest {
                 }, new Revision());
     }
 
-    private void mockIndexerFactoryFor(Class clazz) throws IndexingException {
-        when(indexerPoolWrapper.getIndexerPool(Mockito.any(), Mockito.any())).thenReturn(indexerPool);
+    private void mockIndexerFactoryFor(Class<? extends Throwable> clazz) throws IndexingException {
+        when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
         if (clazz != null) {
-            doThrow(clazz).when(indexerPool).index(Mockito.anyString(), Mockito.any());
+            doThrow(clazz).when(indexer).index(Mockito.anyString(), Mockito.any());
         }
     }
 }

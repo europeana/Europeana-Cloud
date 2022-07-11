@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.StringTokenizer;
@@ -23,7 +23,7 @@ public class Cleaner {
 
     public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8)) {
                 StringTokenizer st = new StringTokenizer(line, ";");
                 if (st.hasMoreTokens()) {
                     st.nextToken();
@@ -46,7 +46,7 @@ public class Cleaner {
 
     public void cleanRecords(String providerId, RecordServiceClient mcs, UISClient uis) {
         try {
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"), Charset.forName("UTF-8"))) {
+            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"), StandardCharsets.UTF_8)) {
                 String id = line.trim();
                 logger.info("Cleaning record: {}", id);
                 mcs.deleteRecord(id);

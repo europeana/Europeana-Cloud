@@ -5,22 +5,19 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
- * Exception thrown when the providerId/recordId combo has already been mapped
- * to another unique identifier
+ * Exception thrown when the providerId/recordId combo has already been mapped to another unique identifier
  * 
- * @author Yorgos.Mamakis@ kb.nl
- * 
+ * @deprecated
  */
+@Deprecated(since = "7-SNAPSHOT")
 public class IdHasBeenMappedException extends GenericException {
-
-	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 3035751589004362690L;
 	/**
 	 * Creates a new instance of this class.
-	 * @param e
+	 * @param e error info
 	 */
 	public IdHasBeenMappedException(ErrorInfo e){
 		super(e);
@@ -28,7 +25,7 @@ public class IdHasBeenMappedException extends GenericException {
 	
 	/**
 	 * Creates a new instance of this class.
-	 * @param errorInfo
+	 * @param errorInfo error info
 	 */
 	public IdHasBeenMappedException(IdentifierErrorInfo errorInfo) {
 		super(errorInfo);

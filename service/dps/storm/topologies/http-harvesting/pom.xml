@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>6.1</version>
+        <version>7</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -69,7 +69,7 @@
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-common</artifactId>
+            <artifactId>harvesting-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -77,22 +77,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-dps-storm-io</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.metis</groupId>
-            <artifactId>metis-transformation-service</artifactId>
-            <version>${version.metis}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>org.springframework</artifactId>
-                    <groupId>*</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>org.springframework.security</artifactId>
-                    <groupId>*</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->

@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -36,6 +35,9 @@ import static java.lang.Integer.parseInt;
  */
 public abstract class AbstractDpsBolt extends BaseRichBolt {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDpsBolt.class);
+
+    protected static final Logger STATISTICS_LOGGER = LoggerFactory.getLogger("STATISTICS_LOGGER");
+    protected static final String STATISTICS_LOGGER_MESSAGE_PATTERN = "[{}],{},{}";
 
     public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     protected static final String AUTHORIZATION = "Authorization";
@@ -79,7 +81,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
             }
 
             if(ignoreDeleted() && stormTaskTuple.isMarkedAsDeleted()){
-                LOGGER.debug("Ingornigng and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                LOGGER.debug("Ignoring and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
                 outputCollector.ack(tuple);
                 return;
@@ -162,13 +164,13 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
      * @param taskId                 task ID
      * @param resource               affected resource (e.g. file URL)
      * @param message                short text
-     * @param additionalInformations the rest of informations (e.g. stack trace)
+     * @param additionalInformation the rest of information (e.g. stack trace)
      */
 
     protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
-                                         String message, String additionalInformations, long processingStartTime) {
+                                         String message, String additionalInformation, long processingStartTime) {
         NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDeleted, resource, RecordState.ERROR,
-                message, additionalInformations, processingStartTime);
+                message, additionalInformation, processingStartTime);
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
     }
 
@@ -199,17 +201,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
     }
 
-
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, long taskId, boolean markedAsDeleted,
-                                                      DataSetCleanerParameters dataSetCleanerParameters,
-                                                      String authenticationHeader, String resource, String message,
-                                                      String additionalInformation, String resultResource,
-                                                      long processingStartTime) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(taskId, markedAsDeleted, dataSetCleanerParameters, authenticationHeader,
-                resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-    }
-
     protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString) throws MalformedURLException {
         stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
         final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
@@ -218,18 +209,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
     }
 
-    protected void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(ie.getMessage());
-        }
-    }
-
     protected void cleanInvalidData(StormTaskTuple tuple) {
         int attemptNumber = tuple.getRecordAttemptNumber();
         LOGGER.info("Attempt number {} to process this message. No cleaning done here.", attemptNumber);
         // nothing to clean here when the message is reprocessed
+    }
+
+    protected void logStatistics(LogStatisticsPosition position, String opName, String opId) {
+        STATISTICS_LOGGER.debug(STATISTICS_LOGGER_MESSAGE_PATTERN, position, opName, opId);
+    }
+
+    public enum LogStatisticsPosition {
+        BEGIN,
+        END
     }
 }

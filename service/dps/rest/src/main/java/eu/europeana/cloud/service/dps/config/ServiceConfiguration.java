@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
@@ -195,8 +196,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public CassandraSubTaskInfoDAO subTaskInfoDAO() {
-        return new CassandraSubTaskInfoDAO(dpsCassandraProvider());
+    public NotificationsDAO subTaskInfoDAO() {
+        return new NotificationsDAO(dpsCassandraProvider());
     }
 
     @Bean
@@ -215,7 +216,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RecordStatusUpdater recordStatusUpdater(CassandraSubTaskInfoDAO cassandraSubTaskInfoDAO) {
+    public RecordStatusUpdater recordStatusUpdater(NotificationsDAO cassandraSubTaskInfoDAO) {
         return new RecordStatusUpdater(cassandraSubTaskInfoDAO);
     }
 
@@ -249,7 +250,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public IndexingPostProcessor indexingPostProcessor() {
-        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker());
+        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker(), indexWrapper());
     }
 
     @Bean
@@ -297,13 +298,18 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever) {
-        return new MetisDatasetService(datasetStatsRetriever);
+    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever, HarvestedRecordsDAO harvestedRecordsDAO) {
+        return new MetisDatasetService(datasetStatsRetriever, harvestedRecordsDAO);
     }
 
     @Bean
-    public DatasetStatsRetriever datasetStatsRetriever() {
-        return new DatasetStatsRetriever();
+    public DatasetStatsRetriever datasetStatsRetriever(IndexWrapper indexWrapper) {
+        return new DatasetStatsRetriever(indexWrapper);
+    }
+
+    @Bean
+    public IndexWrapper indexWrapper(){
+        return new IndexWrapper();
     }
 
     @Bean

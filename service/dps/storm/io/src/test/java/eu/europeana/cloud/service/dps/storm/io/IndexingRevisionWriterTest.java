@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -12,21 +10,19 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
+import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 public class IndexingRevisionWriterTest {
@@ -37,18 +33,20 @@ public class IndexingRevisionWriterTest {
     private RevisionServiceClient revisionServiceClient;
 
     @InjectMocks
-    private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter("http://sample.ecloud.com/", "sampleMessage");
+    private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter("https://sample.ecloud.com/", "sampleMessage");
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
     }
 
-    final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+    @Captor
+    private ArgumentCaptor<Values> captor;
 
 
     @Test
-    public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
+    @SuppressWarnings("unchecked")
+    public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTupleWithEmptyRevisions());
@@ -56,18 +54,18 @@ public class IndexingRevisionWriterTest {
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
-        List list = captor.getValue();
+        var list = captor.getValue();
         assertNotNull(list);
         assertEquals(2, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
 
     }
 
     @Test
-    public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
+    @SuppressWarnings("unchecked")
+    public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
@@ -75,34 +73,33 @@ public class IndexingRevisionWriterTest {
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
-        List list = captor.getValue();
+        var list = captor.getValue();
         assertNotNull(list);
         assertEquals(2, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.DATA_SET_CLEANING_PARAMETERS));
         assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
     }
 
     @Test
-    public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
+    @SuppressWarnings("unchecked")
+    public void malformedUrlExceptionShouldBeHandled() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
         Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
-        List list = captor.getValue();
+        var list = captor.getValue();
         assertNotNull(list);
         assertEquals(2, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(1);
-        assertEquals("ERROR", parameters.get("state"));
-
-
+        assertEquals("ERROR", parameters.get(NotificationParameterKeys.STATE));
     }
 
     @Test
-    public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
+    @SuppressWarnings("unchecked")
+    public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any())).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
@@ -112,34 +109,19 @@ public class IndexingRevisionWriterTest {
     }
 
     private StormTaskTuple prepareTuple() {
-
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
-        return tuple;
+        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
-        return tuple;
+        return new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
     }
 
     private StormTaskTuple prepareTupleWithEmptyRevisions() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
-        return tuple;
-    }
-
-
-    private DataSetCleanerParameters prepareDataSetCleanerParameters() {
-        DataSetCleanerParameters dataSetCleanerParameters = new DataSetCleanerParameters();
-        dataSetCleanerParameters.setCleaningDate(new Date());
-        dataSetCleanerParameters.setDataSetId("DATASET_ID");
-        dataSetCleanerParameters.setUsingAltEnv(true);
-        dataSetCleanerParameters.setTargetIndexingEnv("PREVIEW");
-        return dataSetCleanerParameters;
+        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
     }
 
     Map<String, String> prepareTaskParameters() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.DATA_SET_CLEANING_PARAMETERS, new Gson().toJson(prepareDataSetCleanerParameters()));
         parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;

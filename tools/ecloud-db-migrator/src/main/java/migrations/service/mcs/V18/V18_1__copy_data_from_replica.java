@@ -6,9 +6,7 @@ import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import migrations.service.mcs.V18.jobs.DataCopier;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.*;
 
 import static migrations.common.TableCopier.hasNextRow;
@@ -50,7 +48,8 @@ public class V18_1__copy_data_from_replica implements JavaMigration {
             executorService.shutdown();
             executorService.awaitTermination(100, TimeUnit.DAYS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("The migration was not completed successfully:" + e.getMessage() + ". Because of :" + e + ". Please clean and restart again!!");
+            Thread.currentThread().interrupt();
         }
     }
 }

@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-aas</artifactId>
-        <version>6.1</version>
+        <version>7</version>
     </parent>
 
     <artifactId>ecloud-service-aas-authentication</artifactId>
@@ -113,12 +113,6 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
             <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>test-common</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.jpountz.lz4</groupId>

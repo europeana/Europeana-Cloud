@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.uis.dao;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -13,18 +14,13 @@ import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Dao providing access to the search based on record id and provider id
- * operations
- *
- * @author Yorgos.Mamakis@ kb.nl
+ * DAO providing access to operations on LocalId in the database
  */
-public class CassandraLocalIdDAO {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLocalIdDAO.class);
+public class LocalIdDAO {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalIdDAO.class);
     private final CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
     private PreparedStatement deleteStatement;
@@ -35,7 +31,7 @@ public class CassandraLocalIdDAO {
      *
      * @param dbService The service that exposes the database connection
      */
-    public CassandraLocalIdDAO(CassandraConnectionProvider dbService) {
+    public LocalIdDAO(CassandraConnectionProvider dbService) {
         this.dbService = dbService;
         prepareStatements();
     }
@@ -43,16 +39,12 @@ public class CassandraLocalIdDAO {
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare(
                 "INSERT INTO cloud_ids_by_record_id(provider_id, record_id, cloud_id) VALUES(?,?,?)");
-        insertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         deleteStatement = dbService.getSession().prepare(
                 "DELETE FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
-        deleteStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchByRecordIdStatement = dbService.getSession().prepare(
                 "SELECT * FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
-        searchByRecordIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
     }
 
     @Retryable
@@ -75,9 +67,9 @@ public class CassandraLocalIdDAO {
         }
     }
 
-    public List<CloudId> insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
+    public CloudId insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
-            dbService.getSession().execute(insertStatement.bind(providerId, recordId, cloudId));
+            dbService.getSession().execute(bindInsertStatement(providerId, recordId, cloudId));
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(new IdentifierErrorInfo(
                     IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
@@ -85,16 +77,14 @@ public class CassandraLocalIdDAO {
                             dbService.getHosts(), dbService.getPort(), e.getMessage())
             ));
         }
-        List<CloudId> cIds = new ArrayList<>();
-        CloudId cId = new CloudId();
-        LocalId lId = new LocalId();
-        lId.setProviderId(providerId);
-        lId.setRecordId(recordId);
-        cId.setLocalId(lId);
-        cId.setId(cloudId);
-        cIds.add(cId);
-        return cIds;
+
+        return new CloudId(cloudId, new LocalId(providerId, recordId));
     }
+
+    public BoundStatement bindInsertStatement(String providerId, String recordId, String cloudId) {
+        return insertStatement.bind(providerId, recordId, cloudId);
+    }
+
 
     public void delete(String providerId, String recordId) throws DatabaseConnectionException {
         try {

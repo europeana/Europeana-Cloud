@@ -20,14 +20,12 @@ public class CassandraHelper {
     public static BoundStatement prepareBoundStatementForMatchingTargetTable(CassandraConnectionProvider cassandraConnectionProvider, String targetTableName, List<String> primaryKeys) {
         String matchCountStatementCQL = CQLBuilder.getMatchCountStatementFromTargetTable(targetTableName, primaryKeys);
         PreparedStatement matchCountStatementCQLStatement = cassandraConnectionProvider.getSession().prepare(matchCountStatementCQL);
-        matchCountStatementCQLStatement.setConsistencyLevel(cassandraConnectionProvider.getConsistencyLevel());
         return matchCountStatementCQLStatement.bind();
     }
 
     public static ResultSet getPrimaryKeysFromSourceTable(CassandraConnectionProvider cassandraConnectionProvider, String sourceTableName, List<String> primaryKeys) {
         String selectPrimaryKeysFromSourceTable = CQLBuilder.constructSelectPrimaryKeysFromSourceTable(sourceTableName, primaryKeys);
         PreparedStatement sourceSelectStatement = cassandraConnectionProvider.getSession().prepare(selectPrimaryKeysFromSourceTable);
-        sourceSelectStatement.setConsistencyLevel(cassandraConnectionProvider.getConsistencyLevel());
         BoundStatement boundStatement = sourceSelectStatement.bind();
         return cassandraConnectionProvider.getSession().execute(boundStatement);
     }
@@ -35,7 +33,6 @@ public class CassandraHelper {
     public static List<String> getPrimaryKeysNames(CassandraConnectionProvider cassandraConnectionProvider, String tableName, String selectColumnNames) {
         List<String> names = new LinkedList<>();
         PreparedStatement selectStatement = cassandraConnectionProvider.getSession().prepare(selectColumnNames);
-        selectStatement.setConsistencyLevel(cassandraConnectionProvider.getConsistencyLevel());
         BoundStatement boundStatement = selectStatement.bind(cassandraConnectionProvider.getKeyspaceName(), tableName);
         ResultSet rs = cassandraConnectionProvider.getSession().execute(boundStatement);
         Iterator<Row> iterator = rs.iterator();

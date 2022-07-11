@@ -39,7 +39,6 @@ public class DPSClientTestIT {
         inputData.put(REPOSITORY_URLS, Collections.singletonList("http://test117.ait.co.at/oai-provider-edm/oai/"));
         task.setInputData(inputData);
         task.addParameter("PROVIDER_ID", "metis_test5");
-        task.addParameter("USE_DEFAULT_IDENTIFIERS", "true");
         OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
         details.setSchema("edm");
         details.setSet("ZFMK");

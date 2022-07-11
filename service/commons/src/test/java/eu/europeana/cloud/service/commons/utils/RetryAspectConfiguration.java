@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.commons.utils;
 
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.ContextConfiguration;

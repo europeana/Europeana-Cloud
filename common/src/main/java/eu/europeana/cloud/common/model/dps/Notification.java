@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Map;
+
 /**
  * Describes fields in <b>'notifications'</b> table
  */
@@ -13,7 +15,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class Notification {
-
     private long taskId;
     private int bucketNumber;
     private int resourceNum;
@@ -21,6 +22,6 @@ public class Notification {
     private String resource;
     private String state;
     private String infoText;
-    private String additionalInformation;
+    private Map<String, String> additionalInformation;
     private String resultResource;
 }

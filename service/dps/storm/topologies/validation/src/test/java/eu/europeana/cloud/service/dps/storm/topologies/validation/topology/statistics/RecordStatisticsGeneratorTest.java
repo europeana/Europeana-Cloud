@@ -138,13 +138,13 @@ public class RecordStatisticsGeneratorTest {
 
     private static void initXpathOccurrenceMap() {
         xpathOccurrenceMap = ArrayListMultimap.create();
-        xpathOccurrenceMap.put("//root/father1", 1l);
-        xpathOccurrenceMap.put("//root/father3/childA", 2l);
-        xpathOccurrenceMap.put("//root/father1/childA", 1l);
-        xpathOccurrenceMap.put("//root/father3", 2l);
-        xpathOccurrenceMap.put("//root", 1l);
-        xpathOccurrenceMap.put("//root/father1/childA", 1l);
-        xpathOccurrenceMap.put("//root/father1", 1l);
+        xpathOccurrenceMap.put("//root/father1", 1L);
+        xpathOccurrenceMap.put("//root/father3/childA", 2L);
+        xpathOccurrenceMap.put("//root/father1/childA", 1L);
+        xpathOccurrenceMap.put("//root/father3", 2L);
+        xpathOccurrenceMap.put("//root", 1L);
+        xpathOccurrenceMap.put("//root/father1/childA", 1L);
+        xpathOccurrenceMap.put("//root/father1", 1L);
     }
 
     private static void initXpathValueMap() {

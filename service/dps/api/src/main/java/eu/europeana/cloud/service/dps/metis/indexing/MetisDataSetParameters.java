@@ -13,29 +13,22 @@ import java.util.Date;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@Getter
-@Setter
-@ToString
 @Data
 @Builder
+@NoArgsConstructor
 public class MetisDataSetParameters implements Serializable {
     private static final long serialVersionUID = 123456789L;
 
     private String dataSetId;
     private TargetIndexingDatabase targetIndexingDatabase;
-    private TargetIndexingEnvironment targetIndexingEnvironment;
 
     @XmlElement(name = "cleaningDate", required = true)
     @XmlJavaTypeAdapter(DateAdapter.class)
     private Date cleaningDate;
 
-    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, TargetIndexingEnvironment targetIndexingEnvironment, Date cleaningDate) {
+    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, Date cleaningDate) {
         this.dataSetId = dataSetId;
-        this.targetIndexingEnvironment = targetIndexingEnvironment;
         this.targetIndexingDatabase = targetIndexingDatabase;
         this.cleaningDate = cleaningDate;
     }
-    public MetisDataSetParameters() {
-    }
-
 }

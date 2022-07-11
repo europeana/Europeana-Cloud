@@ -46,7 +46,7 @@ public class SubmitTaskParameters {
     private String topicName;
 
     /**
-     * Flag if task is subimtted <code>false<code/> or restarted <code>true<code/>
+     * Flag if task is submitted <code>false<code/> or restarted <code>true<code/>
      */
     private boolean restarted;
 
@@ -62,10 +62,6 @@ public class SubmitTaskParameters {
 
     public String getTaskParameter(String parameterKey){
         return task.getParameter(parameterKey);
-    }
-
-    public boolean getUseAlternativeEnvironment() {
-        return Boolean.parseBoolean(task.getParameter(PluginParameterKeys.METIS_USE_ALT_INDEXING_ENV));
     }
 
     public String getSchemaName() {

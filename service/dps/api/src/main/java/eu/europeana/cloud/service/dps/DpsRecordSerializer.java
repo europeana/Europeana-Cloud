@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -27,13 +28,13 @@ public class DpsRecordSerializer implements Serializer<DpsRecord> {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
         try {
-            return objectMapper.writeValueAsString(dpsRecord).getBytes();
+            return objectMapper.writeValueAsString(dpsRecord).getBytes(StandardCharsets.UTF_8);
         } catch (JsonProcessingException e) {
             LOGGER.error(String.format("Json processing failed for object: %s", dpsRecord.getClass().getName()), e);
         } catch (IOException e) {
             LOGGER.error("Exception happened because of {} for the object {} ", e.getMessage(), dpsRecord.getClass().getName());
         }
-        return "".getBytes();
+        return "".getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

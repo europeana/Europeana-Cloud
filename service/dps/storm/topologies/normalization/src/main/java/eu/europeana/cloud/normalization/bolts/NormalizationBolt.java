@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Call the remote normalization service in order to normalize and clean an edm record.
@@ -47,7 +48,7 @@ public class NormalizationBolt extends AbstractDpsBolt {
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         try {
             final Normalizer normalizer = normalizerFactory.getNormalizer();
-            String document = new String(stormTaskTuple.getFileData());
+            String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
 
             NormalizationResult normalizationResult = normalizer.normalize(document);
 

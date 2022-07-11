@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>6.1</version>
+        <version>7</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -84,14 +84,6 @@
             <artifactId>ecloud-service-dps-storm-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <artifactId>test-common</artifactId>
-            <groupId>${project.groupId}</groupId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>

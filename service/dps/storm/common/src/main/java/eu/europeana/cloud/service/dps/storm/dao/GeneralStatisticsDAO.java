@@ -44,17 +44,14 @@ public class GeneralStatisticsDAO extends CassandraDAO {
                 "WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ? " +
                 "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH + " = ?");
-        updateStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         removeGeneralStatisticsStatement = dbService.getSession().prepare("DELETE " +
                 " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
-        removeGeneralStatisticsStatement.setConsistencyLevel(dbService.getConsistencyLevel());
 
         searchGeneralStatistcsByTaskIdStatement = dbService.getSession().prepare("SELECT *" +
                 " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
                 " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
-        searchGeneralStatistcsByTaskIdStatement.setConsistencyLevel(dbService.getConsistencyLevel());
     }
 
     /**

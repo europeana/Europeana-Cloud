@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>6.1</version>
+    <version>7</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v6</tag>
+        <tag>v7</tag>
     </scm>
     <developers>
         <developer>
@@ -80,7 +80,6 @@
         <module>service/commons</module>
         <module>tools</module>
         <module>test-common</module>
-        <module>test-logging-config</module>
         <module>service/ecloud-web-commons</module>
     </modules>
     <repositories>
@@ -134,9 +133,6 @@
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.32</version.slf4j>
-<!--
-        <version.spring-framework>3.2.9.RELEASE</version.spring-framework>
--->
         <version.spring-framework>5.2.20.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
 
@@ -157,7 +153,7 @@
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.log4j>2.17.0</version.log4j>
+        <version.log4j>2.17.2</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
         <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
@@ -168,13 +164,13 @@
         <version.elasticsearch>1.7.0</version.elasticsearch>
         <version.lucene>4.10.4</version.lucene>
 
-        <version.tika>1.14</version.tika>
+        <version.tika>2.3.0</version.tika>
         <version.corelib>2.1-SNAPSHOT</version.corelib>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
         <version.jackson>2.12.5</version.jackson>
         <version.jacoco>0.8.7</version.jacoco>
-        <version.metis>6</version.metis>
+        <version.metis>7</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>30.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
@@ -243,12 +239,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.5.1</version>
-<!--
-                    <configuration>
-                        <source>${version.jdk}</source>
-                        <target>${version.jdk}</target>
-                    </configuration>
--->
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -429,12 +419,6 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${version.log4j}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>test-logging-config</artifactId>
-            <scope>test</scope>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

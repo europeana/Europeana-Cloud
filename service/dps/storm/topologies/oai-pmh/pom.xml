@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>6.1</version>
+        <version>7</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -70,7 +70,7 @@
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-dps-storm-common</artifactId>
+            <artifactId>harvesting-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -103,22 +103,6 @@
             <groupId>uk.com.robust-it</groupId>
             <artifactId>cloning</artifactId>
             <version>1.9.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.metis</groupId>
-            <artifactId>metis-transformation-service</artifactId>
-            <version>${version.metis}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>org.springframework</artifactId>
-                    <groupId>*</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>org.springframework.security</artifactId>
-                    <groupId>*</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!--metis-harvesting - lyncode needs it-->

@@ -9,8 +9,6 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException;
-import eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +53,9 @@ public class DataProviderResourceTest {
         return localId;
     }
 
-    private static CloudId createCloudId(String providerId, String recordId) {
+    private static CloudId createCloudId() {
+        var providerId = "providerId";
+        var recordId = "recordId";
         CloudId cloudId = new CloudId();
         cloudId.setLocalId(createLocalId(providerId, recordId));
         cloudId.setId(IdGenerator.encodeWithSha256AndBase32("/" + providerId + "/" + recordId));
@@ -87,7 +87,7 @@ public class DataProviderResourceTest {
         dp.setId(providerName);
         // when the provider is updated
         DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
+        properties.setOrganisationName("Organisation");
         properties.setRemarks("Remarks");
         dp.setProperties(properties);
         Mockito.doReturn(dp).when(dataProviderService).updateProvider(providerName, properties);
@@ -113,7 +113,7 @@ public class DataProviderResourceTest {
     public void shouldGetProvider() throws Exception {
         // given certain provider in service
         DataProviderProperties properties = new DataProviderProperties();
-        properties.setOrganisationName("Organizacja");
+        properties.setOrganisationName("Organisation");
         properties.setRemarks("Remarks");
         String providerName = "provident";
 
@@ -166,7 +166,7 @@ public class DataProviderResourceTest {
 
     @Test
     public void testCreateMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
+        CloudId gid = createCloudId();
 
         Mockito.doReturn(gid).when(uniqueIdentifierService).createCloudId("providerId", "recordId");
         Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString());
@@ -249,37 +249,8 @@ public class DataProviderResourceTest {
     }
 
     @Test
-    public void testCreateMappingIdHasBeenMapped() throws Exception {
-        Throwable exception = new IdHasBeenMappedException(
-                new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-                                .getHttpCode(),
-                        IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED
-                                .getErrorInfo("local1", "providerId", "cloudId")));
-
-        Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-                "cloudId", "providerId", "local1");
-
-        MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
-                .param(UISParamConstants.Q_RECORD_ID, "local1")
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError()).andReturn();
-
-        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
-
-        assertEquals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-                        "local1", "providerId", "cloudId").getErrorCode());
-        assertEquals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.ID_HAS_BEEN_MAPPED.getErrorInfo(
-                        "local1", "providerId", "cloudId").getDetails());
-    }
-
-    @Test
     public void testRemoveMapping() throws Exception {
-        CloudId gid = createCloudId("providerId", "recordId");
+        CloudId gid = createCloudId();
         Mockito.reset(uniqueIdentifierService);
         Mockito.when(uniqueIdentifierService.createCloudId("providerId", "recordId")).thenReturn(gid);
 
@@ -349,33 +320,5 @@ public class DataProviderResourceTest {
         assertEquals(errorInfo.getDetails(),
                 IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(
                         "providerId").getDetails());
-    }
-
-    @Test
-    public void testRemoveMappingRecordIdDoesNotExistException()
-            throws Exception {
-        Throwable exception = new RecordIdDoesNotExistException(
-                new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-                                .getHttpCode(),
-                        IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST
-                                .getErrorInfo("recordId")));
-
-        Mockito.doThrow(exception).when(uniqueIdentifierService).removeIdMapping(
-                "providerId", "recordId");
-
-        MvcResult mvcResult = mockMvc.perform(delete(RestInterfaceConstants.RECORD_ID_MAPPING_REMOVAL, "providerId", "recordId").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound()).andReturn();
-
-        ErrorInfo errorInfo = readErrorInfoFromResponse(mvcResult.getResponse().getContentAsString());
-
-        assertEquals(
-                errorInfo.getErrorCode(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-                        "recordId").getErrorCode());
-        assertEquals(
-                errorInfo.getDetails(),
-                IdentifierErrorTemplate.RECORDID_DOES_NOT_EXIST.getErrorInfo(
-                        "recordId").getDetails());
     }
 }

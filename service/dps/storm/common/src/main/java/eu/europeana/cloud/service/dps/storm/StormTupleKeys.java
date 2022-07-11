@@ -5,8 +5,8 @@ package eu.europeana.cloud.service.dps.storm;
  * Parameters shared between Bolts and Spouts
  */
 public final class StormTupleKeys {
-	
-	private StormTupleKeys() {
+
+    private StormTupleKeys() {
 	}
 
 	// e.g: "54698435894"
@@ -30,4 +30,6 @@ public final class StormTupleKeys {
 	public static final String SOURCE_TO_HARVEST = "SOURCE";
 
 	public static final String RECORD_ATTEMPT_NUMBER = "RECORD_ATTEMPT_NUMBER";
+
+	public static final String THROTTLING_GROUPING_ATTRIBUTE = "THROTTLING_ATTRIBUTE";
 }

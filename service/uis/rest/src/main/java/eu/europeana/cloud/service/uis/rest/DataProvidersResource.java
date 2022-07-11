@@ -17,7 +17,6 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URISyntaxException;
 
 /**
  * Resource for DataProviders.
@@ -31,7 +30,7 @@ public class DataProvidersResource {
 	private final ACLServiceWrapper aclWrapper;
 
 	private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
-	private final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
+	private static final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
 
 	public DataProvidersResource(
 			DataProviderService providerService,
@@ -42,8 +41,6 @@ public class DataProvidersResource {
     /**
      * Lists all providers stored in eCloud. Result is returned in slices.
      *
-	 * @summary All providers list
-	 *
      * @param from
      *            data provider identifier from which returned slice of results will be generated.
 	 *            If not provided then result list will contain data providers from the first one.
@@ -60,8 +57,6 @@ public class DataProvidersResource {
      * Creates a new data provider. Response contains uri to created resource in
      * as content location.
      *
-	 * @summary Data provider creation
-	 *
      * @param dataProviderProperties
      *            <strong>REQUIRED</strong> data provider properties.
      * @param providerId
@@ -76,8 +71,7 @@ public class DataProvidersResource {
 	@PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> createProvider(HttpServletRequest servletRequest,
                                                  @RequestBody DataProviderProperties dataProviderProperties,
-                                                 @RequestParam String providerId)
-			throws ProviderAlreadyExistsException, URISyntaxException {
+                                                 @RequestParam String providerId) throws ProviderAlreadyExistsException {
 	DataProvider provider = providerService.createProvider(providerId,
 		dataProviderProperties);
 	EnrichUriUtil.enrich(servletRequest, provider);
@@ -88,7 +82,7 @@ public class DataProvidersResource {
 	    ObjectIdentity providerIdentity = new ObjectIdentityImpl(
 		    DATA_PROVIDER_CLASS_NAME, providerId);
 
-	    MutableAcl providerAcl = aclWrapper.getAcl(creatorName, providerIdentity);
+	    MutableAcl providerAcl = aclWrapper.createAcl(creatorName, providerIdentity);
 	    aclWrapper.updateAcl(providerAcl);
 	}
 
