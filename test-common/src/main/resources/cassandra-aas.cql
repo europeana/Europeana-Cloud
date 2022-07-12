@@ -1,6 +1,6 @@
 CREATE KEYSPACE IF NOT EXISTS aas_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
 USE aas_test;
 CREATE TABLE IF NOT EXISTS users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
-INSERT INTO users (username, password, roles) VALUES('Robin_Van_Persie', 'Feyenoord', {'ROLE_USER'});
-INSERT INTO users (username, password, roles) VALUES('Cristiano', 'Ronaldo', {'ROLE_USER'});
-INSERT INTO users (username, password, roles) VALUES('admin', 'admin', {'ROLE_ADMIN'});
+INSERT INTO users (username, password, roles) VALUES('Robin_Van_Persie', '$2a$04$QPmt/FlIU5DVQ3Ls4xAr9u6zMeJZVcJw3/H1TpCpTm2j9F.JBiwwW', {'ROLE_USER'});
+INSERT INTO users (username, password, roles) VALUES('Cristiano', '$2a$04$RD1mMlpVzOr3qr.tunzweeikDEbCHBImEfcwy5/C6hkQq4QrtVR8e', {'ROLE_USER'});
+INSERT INTO users (username, password, roles) VALUES('admin', '$2a$04$hh7IGdQPKBsauzYLS13PC.wR5sJAcOaP57AGPWjQd23gCls4q5NKa', {'ROLE_ADMIN'});
