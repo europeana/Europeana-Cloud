@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>test-common</artifactId>
-			<version>6-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
