@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.aas.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
+import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.LoggerListener;
@@ -12,11 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 
 @Configuration
 @EnableWebSecurity
@@ -41,11 +38,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        try {
-            return new BCryptPasswordEncoder(4, SecureRandom.getInstance("PKCS11"));
-        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-            return new BCryptPasswordEncoder(4);
-        }
+        return PasswordEncoderFactory.getPasswordEncoder();
     }
 
     @Bean

@@ -19,11 +19,12 @@ public class AASAppInitializer extends AbstractAnnotationConfigDispatcherServlet
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        LOGGER.info("DPS Rest Application starting...");
+        LOGGER.info("AAS Rest Application starting...");
         return new Class<?>[]{
                 ServiceConfiguration.class,
                 AuthenticationConfiguration.class,
-                AuthorizationConfiguration.class};
+                AuthorizationConfiguration.class
+        };
     }
 
     @Override

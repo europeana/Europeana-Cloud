@@ -17,10 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/")
 public class AuthenticationResource {
 
-    //@Autowired
     private final AuthenticationService authenticationService;
 
-    //@Autowired
     private final PasswordEncoder passwordEncoder;
 
     public AuthenticationResource(AuthenticationService authenticationService, PasswordEncoder passwordEncoder) {
@@ -67,7 +65,7 @@ public class AuthenticationResource {
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException {
 
-        authenticationService.updateUser(new User(username, password));
+        authenticationService.updateUser(new User(username, passwordEncoder.encode(password)));
         return ResponseEntity.ok("Cloud user updated.");
     }
 }
