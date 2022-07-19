@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
+import eu.europeana.cloud.service.dps.services.TaskFinishService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
@@ -288,14 +289,23 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
+    public TaskFinishService taskFinishService(PostProcessingService postProcessingService,
+                                               TasksByStateDAO tasksByStateDAO,
+                                               CassandraTaskInfoDAO taskInfoDAO,
+                                               TaskStatusUpdater taskStatusUpdater,
+                                               String applicationIdentifier
+    ) {
+        return new TaskFinishService(postProcessingService, tasksByStateDAO,taskInfoDAO, taskStatusUpdater, applicationIdentifier);
+    }
+
+    @Bean
     public PostProcessingScheduler postProcessingScheduler(
             PostProcessingService postProcessingService,
             TasksByStateDAO tasksByStateDAO,
-            CassandraTaskInfoDAO taskInfoDAO,
             TaskStatusUpdater taskStatusUpdater,
             String applicationIdentifier
     ) {
-        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskInfoDAO, taskStatusUpdater, applicationIdentifier);
+        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
     }
 
     @Bean
