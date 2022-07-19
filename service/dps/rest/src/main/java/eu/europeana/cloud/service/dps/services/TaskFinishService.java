@@ -19,6 +19,12 @@ import java.util.stream.Collectors;
 import static eu.europeana.cloud.common.model.dps.TaskState.*;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
 
+/**
+ * Class is responsible for finishing tasks that, were processed on Storm. It periodically checks number of performed
+ * records for tasks. If all records are done, task state is set to PROCESSED or READY_FOR_POST_PROCESSING, for tasks
+ * that need post-processing.
+ * Class operates only on tasks assigned to current server, based on application_id column in task_by_task_state table.
+ */
 public class TaskFinishService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskFinishService.class);
     private final String applicationId;
