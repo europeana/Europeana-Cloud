@@ -2,6 +2,7 @@ package eu.europeana.cloud.client.uis.rest;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
+import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
@@ -35,7 +36,6 @@ public class UISClient implements AutoCloseable {
     private static final String P_CLOUD_ID = "CLOUD_ID";
     private static final String P_PROVIDER_ID = "PROVIDER_ID";
     private static final String DATA_PROVIDERS_PATH_WITH_PROVIDER_ID = "/data-providers/{PROVIDER_ID}";
-    private static final String P_LOCAL_ID = "LOCAL_ID";
     private static final String DATA_PROVIDERS_PATH = "/data-providers";
     private static final String CLOUD_IDS_PATH_WITH_CLOUD_ID = "/cloudIds/{CLOUD_ID}";
 
@@ -337,46 +337,6 @@ public class UISClient implements AutoCloseable {
                 .post(null)
         );
     }
-
-
-    /**
-     * Remove the association of a record id to a cloud id.
-     *
-     * @param providerId The provider id to use
-     * @param recordId   The record id to use
-     * @return A confirmation that the mapping has removed correctly
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public boolean removeMappingByLocalId(String providerId, String recordId) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
-                .resolveTemplate(P_PROVIDER_ID, providerId)
-                .resolveTemplate(P_LOCAL_ID, recordId)
-                .request()
-                .delete()
-        );
-    }
-
-
-    /**
-     * Delete a cloud id and all its mapped record ids.
-     *
-     * @param cloudId The cloud id to remove
-     * @return A confirmation message that the mappings have been removed
-     * correctly
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public boolean deleteCloudId(String cloudId) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl())
-                .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
-                .resolveTemplate(P_CLOUD_ID, cloudId)
-                .request()
-                .delete()
-        );
-    }
-
-
 
     /**
      * Create a data provider.

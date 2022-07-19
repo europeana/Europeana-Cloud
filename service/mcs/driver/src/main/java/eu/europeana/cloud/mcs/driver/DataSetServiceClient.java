@@ -2,6 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.DataSet;
+import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -16,6 +17,7 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.ArrayList;
@@ -222,6 +224,19 @@ public class DataSetServiceClient extends MCSClient {
         );
     }
 
+    public boolean datasetExists(String providerId, String dataSetId) throws MCSException {
+        return manageResponse(
+                new ResponseParams<>(Response.Status.class, new Response.Status[]{Status.OK, Status.NOT_FOUND}),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .request()
+                        .head()
+        ) == Status.OK;
+    }
+
     public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
         return getDataSetRepresentationsChunk(providerId, dataSetId, null);
     }
@@ -313,115 +328,6 @@ public class DataSetServiceClient extends MCSClient {
                         .path(DATA_SET_RESOURCE)
                         .resolveTemplate(PROVIDER_ID, providerId)
                         .resolveTemplate(DATA_SET_ID, dataSetId)
-                        .request()
-                        .delete()
-        );
-    }
-
-    /**
-     * Assigns representation into data set.
-     * <p/>
-     * If specific version is assigned, and then other version of the same
-     * representation name assigned again, the old version is overridden. You
-     * can also assign the representation without version in this case the old
-     * version will also be overridden. Note that the version number will be
-     * then set to null in Cassandra, but
-     * {@link #getDataSetRepresentations(java.lang.String, java.lang.String)}
-     * method will return the last persistent version with
-     * {@link Representation#setVersion(String)} filled.
-     *
-     * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (required)
-     * @param cloudId            cloudId of the record (required)
-     * @param representationName name of the representation (required)
-     * @param version            version of representation; if not provided, the latest one latest
-     *                           persistent version will be assigned to data set
-     * @throws DataSetNotExistsException        if data set does not exist
-     * @throws RepresentationNotExistsException if no such representation exists
-     * @throws MCSException                     on unexpected situations
-     */
-    public void assignRepresentationToDataSet(String providerId, String dataSetId,
-                                              String cloudId, String representationName, String version) throws MCSException {
-
-        Form form = getForm(cloudId, representationName, version);
-
-        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
-                () -> client
-                        .target(this.baseUrl)
-                        .path(DATA_SET_ASSIGNMENTS)
-                        .resolveTemplate(PROVIDER_ID, providerId)
-                        .resolveTemplate(DATA_SET_ID, dataSetId)
-                        .request()
-                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-        );
-    }
-
-    /**
-     * Assigns representation into data set.
-     * <p/>
-     * If specific version is assigned, and then other version of the same
-     * representation name assigned again, the old version is overridden. You
-     * can also assign the representation without version in this case the old
-     * version will also be overridden. Note that the version number will be
-     * then set to null in Cassandra, but
-     * {@link #getDataSetRepresentations(java.lang.String, java.lang.String)}
-     * method will return the last persistent version with
-     * {@link Representation#setVersion(String)} filled.
-     *
-     * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (required)
-     * @param cloudId            cloudId of the record (required)
-     * @param representationName name of the representation (required)
-     * @param version            version of representation; if not provided, the latest one
-     *                           persistent version will be assigned to data set
-     * @param key                key of header request
-     * @param value              value of header request
-     * @throws DataSetNotExistsException        if data set does not exist
-     * @throws RepresentationNotExistsException if no such representation exists
-     * @throws MCSException                     on unexpected situations
-     */
-    public void assignRepresentationToDataSet(String providerId, String dataSetId, String cloudId,
-                                              String representationName, String version, String key, String value) throws MCSException {
-
-        Form form = getForm(cloudId, representationName, version);
-        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
-                () -> client
-                        .target(this.baseUrl)
-                        .path(DATA_SET_ASSIGNMENTS)
-                        .resolveTemplate(PROVIDER_ID, providerId)
-                        .resolveTemplate(DATA_SET_ID, dataSetId)
-                        .request()
-                        .header(key, value)
-                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-        );
-    }
-
-    /**
-     * Un-assigns representation from data set.
-     * <p/>
-     * If representation was not assigned to data set, nothing happens. If
-     * representation does not exist, nothing happens.
-     *
-     * @param providerId         provider identifier (required)
-     * @param dataSetId          data set identifier (required)
-     * @param cloudId            cloudId of the record (required)
-     * @param representationName name of the representation (required)
-     * @param version            version of the representation
-     * @throws DataSetNotExistsException if data set does not exist
-     * @throws MCSException              on unexpected situations
-     */
-    public void unassignRepresentationFromDataSet(String providerId, String dataSetId, String cloudId,
-                                                  String representationName, String version) throws MCSException {
-
-        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
-                () -> client
-                        .target(this.baseUrl)
-                        .path(DATA_SET_ASSIGNMENTS)
-                        .resolveTemplate(PROVIDER_ID, providerId)
-                        .resolveTemplate(DATA_SET_ID, dataSetId)
-                        .queryParam(CLOUD_ID, cloudId)
-                        .queryParam(REPRESENTATION_NAME, representationName)
-                        .queryParam(VERSION, version)
                         .request()
                         .delete()
         );
@@ -529,11 +435,33 @@ public class DataSetServiceClient extends MCSClient {
         return resultList;
     }
 
-    private Form getForm(String cloudId, String representationName, String version) {
-        Form form = new Form();
-        form.param(CLOUD_ID, cloudId);
-        form.param(REPRESENTATION_NAME, representationName);
-        form.param(VERSION, version);
-        return form;
+    public void updateDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
+                                                String username) throws MCSException {
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_PERMISSIONS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .queryParam(F_PERMISSION, permission.toString().toLowerCase())
+                        .queryParam(F_USERNAME, username)
+                        .request()
+                        .put(Entity.entity("", MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        );
+    }
+
+    public void removeDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
+                                                String username) throws MCSException {
+        manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+                () -> client
+                        .target(this.baseUrl)
+                        .path(DATA_SET_PERMISSIONS_RESOURCE)
+                        .resolveTemplate(PROVIDER_ID, providerId)
+                        .resolveTemplate(DATA_SET_ID, dataSetId)
+                        .queryParam(F_PERMISSION, permission.toString().toLowerCase())
+                        .queryParam(F_USERNAME, username)
+                        .request()
+                        .delete()
+        );
     }
 }

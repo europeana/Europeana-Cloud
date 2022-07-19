@@ -1,12 +1,13 @@
 package eu.europeana.cloud.service.mcs.rest.aatests;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.FileResource;
-import eu.europeana.cloud.service.mcs.rest.FilesResource;
-import eu.europeana.cloud.service.mcs.rest.RepresentationResource;
+import eu.europeana.cloud.service.mcs.rest.*;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 public class FilesAATest extends AbstractSecurityTest {
@@ -42,6 +44,15 @@ public class FilesAATest extends AbstractSecurityTest {
 	@NotNull
 	private RepresentationResource representationResource;
 
+	@Autowired
+	private DataSetsResource dataSetsResource;
+
+	@Autowired
+	private DataSetService dataSetService;
+
+	@Autowired
+	private DataSetPermissionsVerifier dataSetPermissionsVerifier;
+
 	private static final String FILE_NAME = "FILE_NAME";
 	private static final String FILE_NAME_2 = "FILE_NAME_2";
 	private static final String MIME_TYPE = APPLICATION_OCTET_STREAM_TYPE.toString();
@@ -49,7 +60,9 @@ public class FilesAATest extends AbstractSecurityTest {
 	private static final String GLOBAL_ID = "GLOBAL_ID";
 	private static final String SCHEMA = "CIRCLE";
 	private static final String VERSION = "KIT_KAT";
-	
+
+	private static final String DATASET_NAME = "datasetName";
+
 	private static final String PROVIDER_ID = "provider";
 	
 	private Representation representation;
@@ -69,6 +82,8 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	private final static String ADMIN = "admin";
 	private final static String ADMIN_PASSWORD = "admin";
+
+	private DataSet testDataSet;
 	
 	private File file;
 	private File file2;
@@ -92,7 +107,13 @@ public class FilesAATest extends AbstractSecurityTest {
 		file2.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());
 
 		Mockito.doReturn(representation).when(recordService)
-				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+				.createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), any());
+
+		testDataSet = new DataSet();
+		testDataSet.setId(DATASET_NAME);
+		testDataSet.setProviderId(PROVIDER_ID);
+
+		Mockito.doReturn(testDataSet).when(dataSetService).createDataSet(any(), any(), any());
 	}
 	
 	// -- GET FILE -- //
@@ -104,42 +125,17 @@ public class FilesAATest extends AbstractSecurityTest {
 		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
 	}
 
-	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenRandomUserTriesToGetFile()
-			throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
-
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
-	}
-
 	@Test
-	public void shouldBeAbleToGetAllFilesIfHeIsTheOwner() 
+	public void shouldBeAbleToGetFileIfHeIsTheOwner()
 			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
-
-		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME_2);
-		
-		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(FILE_NAME));
-		Mockito.doReturn(file2).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(FILE_NAME_2));
-		
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), null);
-		fileResource.getFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME_2), null);
-	}
-	
-	
-	@Test
-	public void shouldBeAbleToGetFileIfHeIsTheOwner() 
-			throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-				FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException  {
+			FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME,null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		
 		Mockito.doReturn(file).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -149,34 +145,40 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	// -- ADD FILE -- //
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToAddFile() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException {
-	
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, null, FILE_NAME);
 	}
 	
 	@Test
 	public void shouldBeAbleToAddFileWhenAuthenticated() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
 	@Test(expected = AccessDeniedException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToAddFileToRonaldoRepresentations() throws IOException, RepresentationNotExistsException,
-		CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
 
 		login(RONALDO, RONALD_PASSWORD);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
@@ -184,16 +186,20 @@ public class FilesAATest extends AbstractSecurityTest {
 
 	// -- DELETE FILE -- //
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException, 
-		FileNotExistsException, CannotModifyPersistentRepresentationException {
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteFile() throws RepresentationNotExistsException,
+			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 
-	@Test(expected = AccessDeniedException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenRandomUserTriesToDeleteFile() throws RepresentationNotExistsException,
-			FileNotExistsException, CannotModifyPersistentRepresentationException {
+			FileNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
@@ -201,34 +207,43 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	@Test
 	public void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 	}
 	
 	@Test
 	public void shouldBeAbleToRecreateDeletedFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
 		login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
-		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, null);
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+		Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
+
+		dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME,"");
+		representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 		fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
 		filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
 	}
 	
-	@Test(expected = AccessDeniedException.class)
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
 	public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosFiles() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		Mockito.doThrow(new FileNotExistsException()).when(recordService).getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		
@@ -240,24 +255,28 @@ public class FilesAATest extends AbstractSecurityTest {
 	
 	// -- UPDATE FILE -- //
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileNotExistsException {
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateFile() throws RepresentationNotExistsException,
+			CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
 	}
 	
-	@Test(expected = AccessDeniedException.class)
-	public void shouldThrowExceptionWhenRandomUserTriesToUpdateFile() throws IOException, RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileNotExistsException {
+	@Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
+	public void shouldThrowExceptionWhenRandomUserTriesToUpdateFile() throws RepresentationNotExistsException,
+			CannotModifyPersistentRepresentationException, FileNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		login(RANDOM_PERSON, RANDOM_PASSWORD);
+
+		Mockito.doReturn(false).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
+
 		fileResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME), MIME_TYPE, null);
 	}
 
 	private HttpServletRequest prepareRequestMock(String fileName) {
 		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 		when(request.getRequestURI()).thenReturn("/files/" + fileName);
+		when(request.getRequestURL()).thenReturn(new StringBuffer("/files/" + fileName));
 		return request;
 	}
 }

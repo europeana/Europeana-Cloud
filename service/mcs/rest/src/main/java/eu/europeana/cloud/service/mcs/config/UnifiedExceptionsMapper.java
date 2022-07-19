@@ -268,6 +268,17 @@ public class UnifiedExceptionsMapper {
         return buildResponse(HttpStatus.NOT_FOUND, McsErrorCode.REVISION_NOT_EXISTS, exception);
     }
 
+    @ExceptionHandler(DataSetDeletionException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorInfo> handleDataSetDeletionException(DataSetDeletionException exception) {
+        return buildResponse(HttpStatus.BAD_REQUEST, McsErrorCode.DATASET_NOT_EMPTY, exception);
+    }
+
+    @ExceptionHandler(DataSetAssignmentException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorInfo> handleDataSetAssignmentException(DataSetAssignmentException exception) {
+        return buildResponse(HttpStatus.BAD_REQUEST, McsErrorCode.DATASET_ASSIGNMENT_MISMATCH, exception);
+    }
 
     /**
      * Method below is instead {@link eu.europeana.cloud.service.mcs.utils.ParamUtil#require(String, Object)}

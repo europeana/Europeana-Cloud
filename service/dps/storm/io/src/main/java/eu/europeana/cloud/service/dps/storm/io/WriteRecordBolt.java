@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
@@ -99,15 +100,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         String providerId;
         UUID newVersion;
         String newFileName;
+        String dataSetId;
     }
 
-    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException {
+    protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple) throws CloudException, MCSException, MalformedURLException {
         var writeParams = new RecordWriteParams();
         writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
         writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
         writeParams.setProviderId(getProviderId(tuple));
         writeParams.setNewVersion(generateNewVersionId(tuple));
         writeParams.setNewFileName(generateNewFileName(tuple));
+        writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(tuple));
         return writeParams;
     }
 
@@ -123,7 +126,10 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
-                        writeParams.getProviderId(), writeParams.getNewVersion(), AUTHORIZATION,
+                        writeParams.getProviderId(),
+                        writeParams.getNewVersion(),
+                        writeParams.getDataSetId(),
+                        AUTHORIZATION,
                         stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
     }
 
@@ -132,7 +138,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
                         writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
-                        writeParams.getNewVersion(), stormTaskTuple.getFileByteDataAsStream(),
+                        writeParams.getNewVersion(),
+                        writeParams.getDataSetId(),
+                        stormTaskTuple.getFileByteDataAsStream(),
                         writeParams.getNewFileName(),
                         TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
                         AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));

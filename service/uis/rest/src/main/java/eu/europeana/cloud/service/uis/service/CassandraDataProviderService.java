@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class CassandraDataProviderService implements DataProviderService {
 
-    private CassandraDataProviderDAO dataProviderDao;
+    private final CassandraDataProviderDAO dataProviderDao;
 
     public CassandraDataProviderService(CassandraDataProviderDAO dataProviderDao) {
         this.dataProviderDao = dataProviderDao;
@@ -101,18 +101,5 @@ public class CassandraDataProviderService implements DataProviderService {
                     IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(dataProvider.getId())));
         }
         return dataProviderDao.updateDataProvider(dataProvider);
-    }
-
-    @Override
-    public void deleteProvider(String providerId) throws ProviderDoesNotExistException {
-        LOGGER.info("Deleting provider {}", providerId);
-        DataProvider dp = dataProviderDao.getProvider(providerId);
-        if (dp == null) {
-            LOGGER.warn("ProviderDoesNotExistException providerId='{}'", providerId);
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
-        }
-        dataProviderDao.deleteProvider(providerId);
     }
 }

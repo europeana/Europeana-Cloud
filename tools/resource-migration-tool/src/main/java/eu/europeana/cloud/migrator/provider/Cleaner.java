@@ -1,6 +1,5 @@
 package eu.europeana.cloud.migrator.provider;
 
-import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.migrator.ResourceMigrator;
@@ -34,10 +33,9 @@ public class Cleaner {
                     String id = url.substring(pos + "/records/".length());
                     id = id.substring(0, id.indexOf("/"));
                     mcs.deleteRecord(id);
-                    uis.deleteCloudId(id);
                 }
             }
-        } catch (IOException | MCSException | CloudException e) {
+        } catch (IOException | MCSException e) {
             logger.error("Error while cleaning ", e);
         }
 
@@ -50,9 +48,8 @@ public class Cleaner {
                 String id = line.trim();
                 logger.info("Cleaning record: {}", id);
                 mcs.deleteRecord(id);
-                uis.deleteCloudId(id);
             }
-        } catch (IOException |MCSException | CloudException e) {
+        } catch (IOException |MCSException e) {
             logger.error("Error while cleaning records ", e);
         }
 

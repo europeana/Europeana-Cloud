@@ -169,41 +169,6 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
         return newCloudId;
     }
 
-
-    @Override
-    public void removeIdMapping(String providerId, String recordId) throws DatabaseConnectionException, ProviderDoesNotExistException {
-        LOGGER.info("removeIdMapping() removing Id mapping for providerId='{}', recordId='{}' ...", providerId, recordId);
-        if (dataProviderDao.getProvider(providerId) == null) {
-            LOGGER.warn("ProviderDoesNotExistException for providerId='{}', recordId='{}'", providerId, recordId);
-            throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getErrorInfo(providerId)));
-        }
-        localIdDao.delete(providerId, recordId);
-        LOGGER.info("Id mapping removed for providerId='{}', recordId='{}'", providerId, recordId);
-    }
-
-
-    @Override
-    public List<CloudId> deleteCloudId(String cloudId) throws DatabaseConnectionException, CloudIdDoesNotExistException {
-
-        LOGGER.info("deleteCloudId() deleting cloudId='{}' ...", cloudId);
-        if (cloudIdDao.searchById(cloudId).isEmpty()) {
-            LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}'", cloudId);
-            throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
-                    IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
-        }
-        List<CloudId> localIds = cloudIdDao.searchAll(cloudId);
-        for (CloudId cId : localIds) {
-            localIdDao.delete(cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-            cloudIdDao.delete(cloudId, cId.getLocalId().getProviderId(), cId.getLocalId().getRecordId());
-        }
-        LOGGER.info("CloudId deleted for cloudId='{}'", cloudId);
-        return localIds;
-    }
-
-
     @Override
     public String getHostList() {
         return this.hostList;

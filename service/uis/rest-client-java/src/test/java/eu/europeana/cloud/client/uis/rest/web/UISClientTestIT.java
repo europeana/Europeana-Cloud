@@ -148,17 +148,4 @@ public class UISClientTestIT {
         boolean result = c.createMapping("AD2A6DWBPNSUSIM5FXFW7RXFJKI4LY3BZJGZ336XFPVCHX6G2HKA", "providerId", "startRecordId1", "Authorization", authHeader);
     }
 
-    @Test
-    public void shouldRemoveMappingByLocalId()
-            throws CloudException {
-
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        boolean result = c.removeMappingByLocalId("providerId", "startRecordId1");
-    }
-
-    @Test
-    public void shouldDeleteCloudId() throws CloudException {
-        UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        boolean result = c.deleteCloudId("FN4JFCFKTZNLC4YZRLRIMOKJBMH37U55XDTA5ZWUGWOICO6S5PNQ");
-    }
 }

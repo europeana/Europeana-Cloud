@@ -2,7 +2,12 @@ CREATE KEYSPACE IF NOT EXISTS junit_aas WITH replication = {'class':'SimpleStrat
 
 USE junit_aas;
 
-CREATE TABLE users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
+CREATE TABLE users(
+    username varchar,
+    password varchar,
+    roles set<text>,
+    locked boolean,
+    PRIMARY KEY (username));
  
 CREATE TABLE aois (
                     id varchar,

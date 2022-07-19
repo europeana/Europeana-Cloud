@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
+import java.util.Collections;
+
+import static org.junit.Assert.*;
 
 /**
  * Authentication Service Unit tests
@@ -55,28 +57,6 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
         service.getUser("test2");
     }
 
-    /**
-     * Test delete user
-     *
-     * @throws Exception
-     */
-    @Test(expected = UserDoesNotExistException.class)
-    public void testDeleteUser() throws Exception {
-        dao.createUser(new SpringUser("test3", "test3"));
-        service.deleteUser("test3");
-        service.getUser("test3");
-    }
-
-    /**
-     * Test UserDoesNotExistException when deleting
-     *
-     * @throws Exception
-     */
-    @Test(expected = UserDoesNotExistException.class)
-    public void testDeleteUserException() throws Exception {
-        service.deleteUser("test4");
-    }
-
     @Test(expected = UserDoesNotExistException.class)
     public void shouldThrowExceptionInCaseOfUpdatingNonExistingUser() throws Exception{
         service.updateUser(new SpringUser("user1","password1"));
@@ -90,5 +70,34 @@ public class CassandraAuthenticationServiceTest extends CassandraTestBase {
         assertEquals("test4", user.getPassword());
     }
 
+    @Test
+    public void shouldLockTheUser() throws Exception{
+        service.createUser(new SpringUser("user1", "user1"));
+        User user = service.getUser("user1");
+        assertFalse(user.isLocked());
+        service.lockUser("user1");
+        user = service.getUser("user1");
+        assertTrue(user.isLocked());
+    }
+
+    @Test
+    public void shouldUnlockTheUser() throws Exception{
+        service.createUser(new SpringUser("user1", "user1", Collections.emptySet(),true));
+        User user = service.getUser("user1");
+        assertTrue(user.isLocked());
+        service.unlockUser("user1");
+        user = service.getUser("user1");
+        assertFalse(user.isLocked());
+    }
+
+    @Test(expected = UserDoesNotExistException.class)
+    public void shouldThrowExceptionInCaseOfLockingNonExistingUser() throws Exception{
+        service.lockUser("nonExistingUser");
+    }
+
+    @Test(expected = UserDoesNotExistException.class)
+    public void shouldThrowExceptionInCaseOfUnLockingNonExistingUser() throws Exception{
+        service.unlockUser("nonExistingUser");
+    }
 
 }

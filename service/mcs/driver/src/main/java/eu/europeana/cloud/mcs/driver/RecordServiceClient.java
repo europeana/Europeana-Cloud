@@ -175,8 +175,9 @@ public class RecordServiceClient extends MCSClient {
         );
     }
 
-    public URI createRepresentation(String cloudId, String representationName, String providerId, String key, String value) throws MCSException {
-        return createRepresentation(cloudId, representationName, providerId, (UUID) null, key, value);
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId,
+                                    String key, String value) throws MCSException {
+        return createRepresentation(cloudId, representationName, providerId, (UUID) null, datasetId, key, value);
     }
 
     /**
@@ -194,9 +195,11 @@ public class RecordServiceClient extends MCSClient {
      *                                    Service
      * @throws MCSException               on unexpected situations
      */
-    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version, String key, String value) throws MCSException {
+    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                    String datasetId, String key, String value) throws MCSException {
         var form = new Form();
         form.param(PROVIDER_ID, providerId);
+        form.param(DATA_SET_ID, datasetId);
         if (version != null) {
             form.param(VERSION, version.toString());
         }
@@ -228,8 +231,9 @@ public class RecordServiceClient extends MCSClient {
     }
 
 
-    public URI createRepresentation(String cloudId, String representationName, String providerId) throws MCSException {
-        return createRepresentation(cloudId, representationName, providerId, (String) null, null);
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
+            throws MCSException {
+        return createRepresentation(cloudId, representationName, providerId, datasetId, (String) null, null);
     }
 
     /**
@@ -245,15 +249,10 @@ public class RecordServiceClient extends MCSClient {
      * @param mediaType          mimeType of uploaded file
      * @return URI to created file
      */
-    public URI createRepresentation(String cloudId,
-                                    String representationName,
-                                    String providerId,
-                                    InputStream data,
-                                    String fileName,
-                                    String mediaType) throws IOException, MCSException {
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId,
+                                    InputStream data, String fileName, String mediaType) throws IOException, MCSException {
 
-        var multiPart = prepareRequestBody(providerId, data, fileName, mediaType);
-
+        var multiPart = prepareRequestBody(providerId, datasetId, data, fileName, mediaType);
         try {
             return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
                     () -> client
@@ -269,9 +268,11 @@ public class RecordServiceClient extends MCSClient {
         }
     }
 
-    public URI createRepresentation(String cloudId, String representationName, String providerId, InputStream data,
-                                    String fileName, String mediaType, String key, String value) throws IOException, MCSException {
-        return createRepresentation(cloudId, representationName, providerId, null, data, fileName, mediaType, key, value);
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId,
+                                    InputStream data, String fileName, String mediaType, String key, String value)
+            throws IOException, MCSException {
+        return createRepresentation(cloudId, representationName, providerId, null, datasetId, data, fileName, mediaType,
+                key, value);
     }
 
     /**
@@ -289,16 +290,11 @@ public class RecordServiceClient extends MCSClient {
      * @param value              value to header request
      * @return URI to created file
      */
-    public URI createRepresentation(String cloudId,
-                                    String representationName,
-                                    String providerId,
-                                    UUID version,
-                                    InputStream data,
-                                    String fileName,
-                                    String mediaType,
+    public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                    String datasetId, InputStream data, String fileName, String mediaType,
                                     String key, String value) throws IOException, MCSException {
 
-        var multiPart = prepareRequestBody(providerId, data, fileName, mediaType);
+        var multiPart = prepareRequestBody(providerId, datasetId, data, fileName, mediaType);
         if (version != null) {
             multiPart.field(VERSION, version.toString());
         }
@@ -333,10 +329,10 @@ public class RecordServiceClient extends MCSClient {
      * @return URI to created file
      * @throws MCSException throws if something went wrong
      */
-    public URI createRepresentation(String cloudId, String representationName, String providerId,
+    public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId,
                                     InputStream data, String mediaType) throws IOException, MCSException {
 
-        return this.createRepresentation(cloudId, representationName, providerId, data, null, mediaType);
+        return this.createRepresentation(cloudId, representationName, providerId, datasetId, data, null, mediaType);
     }
 
     /**
@@ -486,33 +482,6 @@ public class RecordServiceClient extends MCSClient {
     }
 
     /**
-     * Copies all information from one representation version to another.
-     * <p/>
-     * Copies all information with all files and their content from one
-     * representation version to a new temporary one.
-     *
-     * @param cloudId            id of the record that holds representation (required)
-     * @param representationName name of the copied representation (required)
-     * @param version            version of the copied representation (required)
-     * @return URI to the created copy of representation
-     * @throws RepresentationNotExistsException if specified representation
-     *                                          version does not exist
-     * @throws MCSException                     on unexpected situations
-     */
-    public URI copyRepresentation(String cloudId, String representationName, String version) throws MCSException {
-        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-                () -> client
-                        .target(baseUrl)
-                        .path(REPRESENTATION_VERSION_COPY)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .request()
-                        .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-        );
-    }
-
-    /**
      * Makes specified temporary representation version persistent.
      *
      * @param cloudId            id of the record that holds representation (required)
@@ -538,83 +507,6 @@ public class RecordServiceClient extends MCSClient {
                         .resolveTemplate(VERSION, version)
                         .request()
                         .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-        );
-    }
-
-    /**
-     * Adds selected permission(s) to selected representation version.
-     *
-     * @param cloudId            record identifier
-     * @param representationName representation name
-     * @param version            representation version
-     * @param userName           user who will get access to representation version
-     * @param permission         permission that will be granted
-     * @throws MCSException throws if something went wrong
-     */
-    public void grantPermissionsToVersion(String cloudId, String representationName, String version,
-                                          String userName, Permission permission) throws MCSException {
-        Response.Status status = manageResponse(new ResponseParams<>(Response.Status.class, new Response.Status[]{Response.Status.NOT_MODIFIED, Response.Status.OK}),
-                () -> client
-                        .target(baseUrl)
-                        .path(REPRESENTATION_PERMISSION)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .resolveTemplate(PERMISSION, permission.getValue())
-                        .resolveTemplate(USER_NAME, userName)
-                        .request()
-                        .post(null)
-        );
-
-        if (status == Response.Status.NOT_MODIFIED) {
-            throw new MCSException("Permissions not modified");
-        }
-    }
-
-    /**
-     * Revokes permission(s) to selected representation version.
-     *
-     * @param cloudId            record identifier
-     * @param representationName representation name
-     * @param version            representation version
-     * @param userName           user who will get access to representation version
-     * @param permission         permission that will be granted
-     * @throws MCSException throws if something went wrong
-     */
-    public void revokePermissionsToVersion(String cloudId, String representationName, String version,
-                                           String userName, Permission permission) throws MCSException {
-
-        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-                () -> client
-                        .target(baseUrl)
-                        .path(REPRESENTATION_PERMISSION)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .resolveTemplate(PERMISSION, permission.getValue())
-                        .resolveTemplate(USER_NAME, userName)
-                        .request()
-                        .delete());
-    }
-
-    /**
-     * Adds selected permission(s) to selected representation version.
-     *
-     * @param cloudId            record identifier
-     * @param representationName representation name
-     * @param version            representation version
-     * @throws MCSException throws if something went wrong
-     */
-    public void permitVersion(String cloudId, String representationName, String version) throws MCSException {
-        manageResponse(new ResponseParams<>(Void.class),
-                () -> client
-                        .target(baseUrl)
-                        .path(REPRESENTATION_PERMIT)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .request()
-                        .post(null)
         );
     }
 
@@ -707,10 +599,12 @@ public class RecordServiceClient extends MCSClient {
         );
     }
 
-    private FormDataMultiPart prepareRequestBody(String providerId, InputStream data, String fileName, String mediaType) {
+    private FormDataMultiPart prepareRequestBody(String providerId, String datasetId,
+                                                 InputStream data, String fileName, String mediaType) {
         FormDataMultiPart requestBody = new FormDataMultiPart();
         requestBody
                 .field(ParamConstants.F_PROVIDER, providerId)
+                .field(F_DATASET, datasetId)
                 .field(ParamConstants.F_FILE_MIME, mediaType)
                 .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 

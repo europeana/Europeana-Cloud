@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.aas.authentication;
 
 import com.google.common.collect.ImmutableSet;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.junit.Before;
@@ -15,8 +14,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
@@ -25,11 +24,6 @@ public class CassandraUserDAOTest extends CassandraTestBase {
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private static final Set<String> DEFAULT_USER_ROLES = ImmutableSet
             .of(ROLE_USER);
-
-
-
-    @Autowired
-    private CassandraConnectionProvider provider;
 
     @Autowired
     private CassandraUserDAO dao;
@@ -55,7 +49,7 @@ public class CassandraUserDAOTest extends CassandraTestBase {
     public void testUserWithRoles() throws Exception {
 
         SpringUser robinVanPersie = dao.getUser("Robin_Van_Persie");
-        assertTrue(!isAdmin(robinVanPersie));
+        assertFalse(isAdmin(robinVanPersie));
 
         SpringUser admin = dao.getUser("admin");
         assertTrue(isAdmin(admin));
@@ -77,6 +71,7 @@ public class CassandraUserDAOTest extends CassandraTestBase {
     private void assertUser(String password, String username, SpringUser user) {
         assertThat(user.getUsername(),is(username));
         assertThat(user.getPassword(),is(password));
+        assertThat(user.isLocked(),is(false));
     }
 
     private boolean isAdmin(final SpringUser u) {
