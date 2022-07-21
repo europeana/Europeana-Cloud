@@ -5,6 +5,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -13,6 +14,7 @@ import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheB
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
+import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -75,6 +77,8 @@ public class NotificationBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         var notificationTuple = NotificationTuple.fromStormTuple(tuple);
         try {
+            LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), notificationTuple);
+            prepareDiagnosticContext(notificationTuple);
             var cachedCounters = readCachedCounters(notificationTuple);
             NotificationHandlerConfig notificationHandlerConfig =
                     NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(
@@ -82,6 +86,10 @@ public class NotificationBolt extends BaseRichBolt {
                             cachedCounters,
                             needsPostProcessing(notificationTuple));
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
+            outputCollector.ack(tuple);
+        } catch (RetryInterruptedException ex) {
+            LOGGER.error("Notification interrupted: {}", ex.getMessage(), ex);
+            outputCollector.fail(tuple);
         } catch (Exception ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
             batchExecutor.executeAll(
@@ -89,8 +97,9 @@ public class NotificationBolt extends BaseRichBolt {
                             notificationTuple,
                             TaskState.DROPPED,
                             ex.getMessage()));
-        } finally {
             outputCollector.ack(tuple);
+        } finally {
+            clearDiagnosticContext();
         }
     }
 
@@ -156,4 +165,11 @@ public class NotificationBolt extends BaseRichBolt {
         return cachedCounters;
     }
 
+    private void prepareDiagnosticContext(NotificationTuple stormTaskTuple) {
+        DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
+    }
+
+    private void clearDiagnosticContext() {
+        DiagnosticContextWrapper.clear();
+    }
 }

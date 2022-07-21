@@ -175,7 +175,7 @@ public class NotificationTupleHandler {
 
     private List<BoundStatement> prepareStatementsForRecordState(NotificationTuple notificationTuple, RecordState recordState) {
         return Collections.singletonList(processedRecordsDAO.updateProcessedRecordStateStatement(notificationTuple.getTaskId(),
-                String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)),
+                notificationTuple.getResource(),
                 recordState));
     }
 
