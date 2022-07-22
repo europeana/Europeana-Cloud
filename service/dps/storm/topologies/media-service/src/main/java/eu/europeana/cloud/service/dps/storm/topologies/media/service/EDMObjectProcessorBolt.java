@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
@@ -107,6 +108,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                 }
             }
             stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
+            return;
         } catch (RdfDeserializationException e) {
             LOGGER.error("Unable to deserialize the file it will be dropped. The full error is:{} ", ExceptionUtils.getStackTrace(e));
             emitErrorNotification(
@@ -127,14 +131,15 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
         } finally {
             logStatistics(END, STATISTIC_OPERATION_NAME, opId);
-            if (exception.length() > 0) {
-                stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-                stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
-            }
-            stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
-            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-            outputCollector.ack(anchorTuple);
         }
+        if (exception.length() > 0) {
+            stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+            stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+        }
+        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        outputCollector.ack(anchorTuple);
+
         LOGGER.info("Processing edm:object finished in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 

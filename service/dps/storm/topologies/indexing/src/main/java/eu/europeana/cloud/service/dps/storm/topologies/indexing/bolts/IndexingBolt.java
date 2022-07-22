@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -94,14 +95,19 @@ public class IndexingBolt extends AbstractDpsBolt {
             LOGGER.info(
                     "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
                     database, recordDate, preserveTimestampsString);
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (DateTimeParseException e) {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         } catch (IndexingException e) {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private void removeIndexedRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database, String europeanaId)

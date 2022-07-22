@@ -6,6 +6,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
@@ -91,20 +92,41 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
                     stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
             execute(tuple, stormTaskTuple);
 
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, tuple);
         } catch (Exception e) {
-            LOGGER.info("AbstractDpsBolt error: {}", e.getMessage(), e);
-            if (stormTaskTuple != null) {
-                var stack = new StringWriter();
-                e.printStackTrace(new PrintWriter(stack));
-                emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                        stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
-                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-                outputCollector.ack(tuple);
+            if (Thread.currentThread().isInterrupted()) {
+                handleInterruptedFlag(e, tuple);
+            } else {
+                handleException(tuple, stormTaskTuple, e);
             }
         } finally {
             clearDiagnosticContext();
         }
     }
+
+    private void handleException(Tuple tuple, StormTaskTuple stormTaskTuple, Exception e) {
+        LOGGER.warn("{} error: {}", boltName(), e.getMessage(), e);
+        if (stormTaskTuple != null) {
+            var stack = new StringWriter();
+            e.printStackTrace(new PrintWriter(stack));
+            emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                    stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(tuple);
+        }
+    }
+
+    protected void handleInterruptedFlag(Exception e, Tuple tuple) {
+        LOGGER.error("{} thread was interrupted, and an exception caught: {}", boltName(), e.getMessage(), e);
+        outputCollector.fail(tuple);
+    }
+
+    protected void handleInterruption(RetryInterruptedException e, Tuple tuple) {
+        LOGGER.error("{} execution interrupted: {}", boltName(), e.getMessage(), e);
+        outputCollector.fail(tuple);
+    }
+
 
     private void prepareDiagnosticContext(StormTaskTuple stormTaskTuple) {
         DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
@@ -217,6 +239,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     protected void logStatistics(LogStatisticsPosition position, String opName, String opId) {
         STATISTICS_LOGGER.debug(STATISTICS_LOGGER_MESSAGE_PATTERN, position, opName, opId);
+    }
+
+    private String boltName() {
+        return getClass().getSimpleName();
     }
 
     public enum LogStatisticsPosition {
