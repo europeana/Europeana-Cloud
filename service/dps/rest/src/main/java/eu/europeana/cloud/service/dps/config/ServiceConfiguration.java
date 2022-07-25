@@ -245,7 +245,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public HarvestingPostProcessor harvestingPostProcessor() {
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater(),
+                recordServiceClient(), revisionServiceClient(), uisClient(), taskStatusUpdater(),
                 taskStatusChecker());
     }
 

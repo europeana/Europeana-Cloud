@@ -63,6 +63,6 @@ public class PostProcessingService {
         DpsTask task = DpsTask.fromTaskInfo(taskInfo);
         return postProcessorFactory.findPostProcessor(taskByTaskState)
                 .map(postProcessor -> postProcessor.needsPostProcessing(task))
-                .orElse(false);
+                .orElse(Boolean.FALSE);
     }
 }

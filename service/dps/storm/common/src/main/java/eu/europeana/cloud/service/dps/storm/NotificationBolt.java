@@ -40,7 +40,6 @@ public class NotificationBolt extends BaseRichBolt {
     protected LRUCache<Long, NotificationCacheEntry> cache = new LRUCache<>(50);
 
     protected String topologyName;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
     private transient NotificationTupleHandler notificationTupleHandler;
     private transient NotificationEntryCacheBuilder notificationEntryCacheBuilder;
     private transient BatchExecutor batchExecutor;
@@ -93,7 +92,7 @@ public class NotificationBolt extends BaseRichBolt {
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         hosts, port, keyspaceName, userName, password);
 
-        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        CassandraTaskInfoDAO taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         NotificationsDAO subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
         ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);

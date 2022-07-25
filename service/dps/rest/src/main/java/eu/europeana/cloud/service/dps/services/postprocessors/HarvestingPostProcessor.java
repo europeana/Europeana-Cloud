@@ -64,8 +64,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
     private final RevisionServiceClient revisionServiceClient;
 
-    private final DataSetServiceClient dataSetServiceClient;
-
     private final UISClient uisClient;
 
     public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
@@ -73,7 +71,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
                                    RecordServiceClient recordServiceClient,
                                    RevisionServiceClient revisionServiceClient,
                                    UISClient uisClient,
-                                   DataSetServiceClient dataSetServiceClient,
                                    TaskStatusUpdater taskStatusUpdater,
                                    TaskStatusChecker taskStatusChecker) {
         super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
@@ -81,7 +78,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         this.recordServiceClient = recordServiceClient;
         this.revisionServiceClient = revisionServiceClient;
         this.uisClient = uisClient;
-        this.dataSetServiceClient = dataSetServiceClient;
     }
 
     @Override

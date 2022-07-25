@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -33,17 +32,13 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 public class FileUploadResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
-    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
     private final RecordService recordService;
-    private final ExtendedAclService aclService;
     private final Integer objectStoreSizeThreshold;
 
     public FileUploadResource(
             RecordService recordService,
-            ExtendedAclService aclService,
             Integer objectStoreSizeThreshold) {
         this.recordService = recordService;
-        this.aclService = aclService;
         this.objectStoreSizeThreshold = objectStoreSizeThreshold;
     }
 

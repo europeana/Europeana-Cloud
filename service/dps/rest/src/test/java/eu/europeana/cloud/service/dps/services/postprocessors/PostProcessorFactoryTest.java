@@ -36,7 +36,6 @@ public class PostProcessorFactoryTest {
                 Mockito.mock(RecordServiceClient.class),
                 Mockito.mock(RevisionServiceClient.class),
                 Mockito.mock(UISClient.class),
-                Mockito.mock(DataSetServiceClient.class),
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(TaskStatusChecker.class)
         );

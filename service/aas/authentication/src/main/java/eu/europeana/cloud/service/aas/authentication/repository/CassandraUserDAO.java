@@ -125,7 +125,7 @@ public class CassandraUserDAO {
 
     public void lockUser(String userName) throws DatabaseConnectionException {
         try {
-            var boundStatement = blockageUserStatement.bind(true, userName);
+            var boundStatement = blockageUserStatement.bind(Boolean.TRUE, userName);
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
@@ -140,7 +140,7 @@ public class CassandraUserDAO {
 
     public void unlockUser(String userName) throws DatabaseConnectionException {
         try {
-            var boundStatement = blockageUserStatement.bind(false, userName);
+            var boundStatement = blockageUserStatement.bind(Boolean.FALSE, userName);
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(

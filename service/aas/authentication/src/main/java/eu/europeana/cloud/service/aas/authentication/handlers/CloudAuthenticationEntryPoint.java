@@ -35,7 +35,7 @@ public class CloudAuthenticationEntryPoint implements AuthenticationEntryPoint {
         try {
             contextObj = JAXBContext.newInstance(ErrorInfo.class);
             Marshaller marshallerObj = contextObj.createMarshaller();
-            marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             ErrorInfo e = new ErrorInfo("ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION", exception.getMessage());
             marshallerObj.marshal(e, writer);
         } catch (JAXBException e) {
