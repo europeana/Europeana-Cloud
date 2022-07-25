@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.common.model.dps.TaskState.*;
-import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
 
 /**
  * Class is responsible for finishing tasks that, were processed on Storm. It periodically checks number of performed
@@ -57,6 +56,8 @@ public class TaskFinishService {
         TaskInfo task = taskInfoDAO.findById(taskByTaskState.getId()).orElseThrow();
         if (taskInQueueStateAlsoInTaskInfoTable(task) && task.isProcessedOnStorm()) {
             handleTaskProcessedOnStorm(taskByTaskState, task);
+        } else {
+            LOGGER.info("Task {} not finished yet on Storm. Status will not be changed", task.getId());
         }
     }
 
