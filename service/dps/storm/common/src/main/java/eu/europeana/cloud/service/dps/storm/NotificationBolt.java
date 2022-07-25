@@ -1,12 +1,8 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheBuilder;
@@ -23,9 +19,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
@@ -77,10 +71,7 @@ public class NotificationBolt extends BaseRichBolt {
         try {
             var cachedCounters = readCachedCounters(notificationTuple);
             NotificationHandlerConfig notificationHandlerConfig =
-                    NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(
-                            notificationTuple,
-                            cachedCounters,
-                            needsPostProcessing(notificationTuple));
+                    NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(notificationTuple, cachedCounters);
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
         } catch (Exception ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
@@ -125,16 +116,6 @@ public class NotificationBolt extends BaseRichBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
         //last bolt in all topologies, nothing to declare
-    }
-
-    protected boolean needsPostProcessing(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
-        return false;
-    }
-
-    protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
-        Optional<TaskInfo> taskInfo = taskInfoDAO.findById(tuple.getTaskId());
-        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getDefinition();
-        return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
     }
 
     private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {

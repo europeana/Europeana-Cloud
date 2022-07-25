@@ -87,7 +87,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(0, taskProgress.getDeletedRecordsCount());
@@ -108,7 +108,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(0, taskProgress.getProcessedRecordsCount());
         assertEquals(1, taskProgress.getIgnoredRecordsCount());
         assertEquals(0, taskProgress.getDeletedRecordsCount());
@@ -127,7 +127,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(0, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(1, taskProgress.getDeletedRecordsCount());
@@ -146,7 +146,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(0, taskProgress.getDeletedRecordsCount());
@@ -165,7 +165,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(0, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(1, taskProgress.getDeletedRecordsCount());
@@ -239,7 +239,7 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         info = reportService.getTaskProgress(String.valueOf(taskId));
         assertEquals(expectedSize, info.getProcessedRecordsCount());
-        assertEquals(TaskState.PROCESSED, info.getState());
+        assertEquals(TaskState.QUEUED, info.getState());
 
     }
 
@@ -308,7 +308,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(6));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(3, taskProgress.getProcessedRecordsCount());
         assertEquals(1, taskProgress.getIgnoredRecordsCount());
         assertEquals(2, taskProgress.getDeletedRecordsCount());
@@ -372,7 +372,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         }
         int totalProcessed = expectedSize;
         assertEquals(afterExecute.getProcessedRecordsCount(), totalProcessed+(expectedSize - totalProcessed) );
-        assertThat(afterExecute.getState(), is(TaskState.PROCESSED));
+        assertThat(afterExecute.getState(), is(TaskState.QUEUED));
     }
 
     @Test
@@ -417,7 +417,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(2));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(2, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(0, taskProgress.getDeletedRecordsCount());
@@ -442,7 +442,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo taskProgress = reportService.getTaskProgress(String.valueOf((long) TASK_ID));
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport("" + (long) TASK_ID, 0, 100);
         assertThat(notifications, hasSize(1));
-        assertEquals(TaskState.PROCESSED, taskProgress.getState());
+        assertEquals(TaskState.QUEUED, taskProgress.getState());
         assertEquals(1, taskProgress.getProcessedRecordsCount());
         assertEquals(0, taskProgress.getIgnoredRecordsCount());
         assertEquals(0, taskProgress.getDeletedRecordsCount());

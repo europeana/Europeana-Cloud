@@ -35,6 +35,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_HARVEST;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -246,6 +249,32 @@ public class HarvestingPostProcessorTest {
         verifyNoInteractions(taskStatusUpdater);
         verifyNoInteractions(harvestedRecordsDAO);
 
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnFalseForNoIncrementalParamSet() {
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnFalseForFullHarvesting() {
+        task.addParameter(INCREMENTAL_HARVEST,"false");
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void shouldNeedsPostProcessingReturnTrueForIncrementalHarvesting() {
+        task.addParameter(INCREMENTAL_HARVEST,"true");
+
+        boolean result = service.needsPostProcessing(task);
+
+        assertTrue(result);
     }
 
     private HarvestedRecord createHarvestedRecord(Date date, String recordId) {

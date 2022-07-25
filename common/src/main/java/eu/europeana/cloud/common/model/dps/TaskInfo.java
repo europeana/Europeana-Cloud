@@ -1,11 +1,13 @@
 package eu.europeana.cloud.common.model.dps;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.Date;
 
 @XmlRootElement()
@@ -35,4 +37,11 @@ public class TaskInfo {
     private int postProcessedRecordsCount;
     /**Full definition of the task stored in Json format*/
     private String definition;
+
+    @JsonIgnore
+    @XmlTransient
+    public boolean isProcessedOnStorm() {
+        return (getProcessedRecordsCount() + getIgnoredRecordsCount() + getDeletedRecordsCount())
+                == getExpectedRecordsNumber();
+    }
 }

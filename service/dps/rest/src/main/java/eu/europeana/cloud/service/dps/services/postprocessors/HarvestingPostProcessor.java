@@ -181,4 +181,12 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
                 .map(theRecord -> theRecord.getState() == RecordState.SUCCESS)
                 .orElse(false);
     }
+
+    public boolean needsPostProcessing(DpsTask task) {
+        return isIncrementalHarvesting(task);
+    }
+
+    private boolean isIncrementalHarvesting(DpsTask task) {
+        return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
+    }
 }
