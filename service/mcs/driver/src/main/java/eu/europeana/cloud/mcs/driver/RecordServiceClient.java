@@ -467,20 +467,6 @@ public class RecordServiceClient extends MCSClient {
         );
     }
 
-    public void deleteRepresentation(String cloudId, String representationName, String version, String key, String value) throws MCSException {
-        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-                () -> client
-                        .target(baseUrl)
-                        .path(REPRESENTATION_VERSION)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .request()
-                        .header(key, value)
-                        .delete()
-        );
-    }
-
     /**
      * Makes specified temporary representation version persistent.
      *
@@ -565,36 +551,6 @@ public class RecordServiceClient extends MCSClient {
                         .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
                         .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()) )
                         .request()
-                        .get()
-        );
-    }
-
-
-
-    public List<Representation> getRepresentationsByRevision(
-            String cloudId,
-            String representationName,
-            String revisionName,
-            String revisionProviderId,
-            String revisionTimestamp,
-            String key,
-            String value)
-            throws MCSException {
-
-        if (revisionProviderId == null) {
-            throw new MCSException("RevisionProviderId is required");
-        }
-
-        return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {}),
-                () -> client.target(baseUrl)
-                        .path(REPRESENTATION_REVISIONS_RESOURCE)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(REVISION_NAME, revisionName)
-                        .queryParam(F_REVISION_PROVIDER_ID, revisionProviderId)
-                        .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                        .request()
-                        .header(key, value)
                         .get()
         );
     }

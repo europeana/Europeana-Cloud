@@ -50,7 +50,7 @@ public class IndexingRevisionWriterTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTupleWithEmptyRevisions());
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
+        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
@@ -69,7 +69,7 @@ public class IndexingRevisionWriterTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
+        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), Mockito.any(Revision.class));
         Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
@@ -87,7 +87,7 @@ public class IndexingRevisionWriterTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class), anyString(), anyString());
+        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
         Mockito.verify(outputCollector).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         var list = captor.getValue();
@@ -101,10 +101,10 @@ public class IndexingRevisionWriterTest {
     @SuppressWarnings("unchecked")
     public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
-        Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any())).thenThrow(MCSException.class);
+        Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class))).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
         testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), Mockito.any(Revision.class), any(), any());
+        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), Mockito.any(Revision.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), Mockito.any(List.class));
     }
 

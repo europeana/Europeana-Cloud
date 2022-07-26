@@ -164,7 +164,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         var revision = new Revision(dpsTask.getOutputRevision());
         revision.setDeleted(true);
         revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
-                representation.getVersion(), revision, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                representation.getVersion(), revision);
     }
 
     private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {

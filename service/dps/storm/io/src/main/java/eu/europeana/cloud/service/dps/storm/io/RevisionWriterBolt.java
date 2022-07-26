@@ -114,20 +114,19 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                 revisionToBeApplied.setDeleted(true);
             }
 
-            addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+            addRevision(urlParser, revisionToBeApplied);
         } else {
             LOGGER.info("Revisions list is empty");
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied, String authenticationHeader) throws MCSException {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied) throws MCSException {
         RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
                         urlParser.getPart(UrlPart.VERSIONS),
-                        revisionToBeApplied,
-                        AUTHORIZATION, authenticationHeader)
+                        revisionToBeApplied)
         );
     }
 

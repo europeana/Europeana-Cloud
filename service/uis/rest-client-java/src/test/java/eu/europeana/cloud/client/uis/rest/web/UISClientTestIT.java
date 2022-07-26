@@ -85,7 +85,7 @@ public class UISClientTestIT {
         UISClient c = new UISClient(UIS_LOCATION);
         String userPasswordToken = USER + ":" + PASSWORD;
         String authHeader = "Basic " + Base64.encodeBytes(userPasswordToken.getBytes());
-        CloudId createdCloudId = c.createCloudId("providerId", "recordId3", "Authorization", authHeader);
+        CloudId createdCloudId = c.createCloudId("providerId", "recordId3");
         assertThat(createdCloudId.getLocalId().getRecordId(), is("recordId3"));
     }
 
@@ -145,7 +145,7 @@ public class UISClientTestIT {
         String authHeader = "Basic " + Base64.encodeBytes(userPasswordToken.getBytes());
 
         UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
-        boolean result = c.createMapping("AD2A6DWBPNSUSIM5FXFW7RXFJKI4LY3BZJGZ336XFPVCHX6G2HKA", "providerId", "startRecordId1", "Authorization", authHeader);
+        boolean result = c.createMapping("AD2A6DWBPNSUSIM5FXFW7RXFJKI4LY3BZJGZ336XFPVCHX6G2HKA", "providerId", "startRecordId1");
     }
 
 }
