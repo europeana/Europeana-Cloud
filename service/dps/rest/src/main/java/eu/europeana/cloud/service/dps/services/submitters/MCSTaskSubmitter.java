@@ -84,9 +84,8 @@ public class MCSTaskSubmitter {
         }
     }
 
-    private MCSReader createMcsReader(SubmitTaskParameters submitParameters) {
-        String authorizationHeader = submitParameters.getTask().getParameter(PluginParameterKeys.AUTHORIZATION_HEADER);
-        return new MCSReader(mcsClientURL, authorizationHeader);
+    private MCSReader createMcsReader() {
+        return new MCSReader(mcsClientURL);
     }
 
     private int executeForFilesList(SubmitTaskParameters submitParameters) {
@@ -109,7 +108,7 @@ public class MCSTaskSubmitter {
     }
 
     private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, MCSException, ExecutionException {
-        try (var reader = createMcsReader(submitParameters)) {
+        try (var reader = createMcsReader()) {
             var urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
                 throw new TaskSubmitException("DataSet URL is not formulated correctly: " + dataSetUrl);

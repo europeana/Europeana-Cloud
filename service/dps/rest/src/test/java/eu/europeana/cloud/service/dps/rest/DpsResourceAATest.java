@@ -133,7 +133,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
         when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
         Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyString());
         when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
         when(filesCounterFactory.createFilesCounter(any(DpsTask.class), anyString())).thenReturn(filesCounter);
         request = new MockHttpServletRequest();
 

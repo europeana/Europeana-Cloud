@@ -60,7 +60,7 @@ public class WriteRecordBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any())).thenReturn(uri);
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
@@ -73,7 +73,7 @@ public class WriteRecordBoltTest {
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), eq(DATASET_NAME),
-                any(InputStream.class), eq(NEW_FILE_NAME), any(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
+                any(InputStream.class), eq(NEW_FILE_NAME), any());
 
 
     }
@@ -88,7 +88,7 @@ public class WriteRecordBoltTest {
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"))).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString())).thenReturn(uri);
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
@@ -100,7 +100,7 @@ public class WriteRecordBoltTest {
         Map<String, String> parameters = (Map<String, String>) value.get(4);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
-        verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), eq(AUTHORIZATION), eq("AUTHORIZATION_HEADER"));
+        verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString());
     }
 
     @Test
@@ -113,9 +113,9 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        doThrow(MCSException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
         writeRecordBolt.execute(anchorTuple, tuple);
-        verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
     }
 
     @Test
@@ -128,9 +128,9 @@ public class WriteRecordBoltTest {
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
-        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        doThrow(DriverException.class).when(recordServiceClient).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
         writeRecordBolt.execute(anchorTuple, tuple);
-        verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any(), any(), any());
+        verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
     }
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {

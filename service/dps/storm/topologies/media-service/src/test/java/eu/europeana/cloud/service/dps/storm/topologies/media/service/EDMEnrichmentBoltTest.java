@@ -60,7 +60,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldEnrichTheFileSuccessfullyAndSendItToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
             assertEquals(5, stormTaskTuple.getParameters().size());
@@ -82,7 +82,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldEnrichTheFileSuccessfullyOnMultipleBatchesAndSendItToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
 
             int resourceLinksCount = 10;
@@ -110,7 +110,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
             int expectedParametersSize = 8;
             Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
@@ -132,7 +132,7 @@ public class EDMEnrichmentBoltTest {
     public void shouldLogTheExceptionAndSendItAsParameterToTheNextBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             String brokenMetaData = "{\"textResourceMetadata\":{\"containsTe/xml\",\"resourceUrl\":\"RESOURCE_URL\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}";
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
             stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));

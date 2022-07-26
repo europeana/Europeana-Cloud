@@ -27,10 +27,10 @@ public class MCSReader implements AutoCloseable {
 
     private final RecordServiceClient recordServiceClient;
 
-    public MCSReader(String mcsClientURL, String authorizationHeader) {
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
-        recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
-        fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
+    public MCSReader(String mcsClientURL) {
+        dataSetServiceClient = new DataSetServiceClient(mcsClientURL);
+        recordServiceClient = new RecordServiceClient(mcsClientURL);
+        fileServiceClient = new FileServiceClient(mcsClientURL);
     }
 
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(

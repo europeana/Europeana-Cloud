@@ -45,7 +45,7 @@ public class ReadFileBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         when(outputCollector.emit(anyList())).thenReturn(null);
         readFileBolt.execute(anchorTuple, stormTaskTuple);
-        verify(fileServiceClient, times(expectedCalls)).getFile(eq(file), eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
+        verify(fileServiceClient, times(expectedCalls)).getFile(eq(file));
         verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME),any(Tuple.class), anyListOf(Object.class));
 
     }
@@ -54,21 +54,21 @@ public class ReadFileBoltTest {
     @Test
     public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException, IOException {
         //given
-        when(fileServiceClient.getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER))).thenReturn(null);
+        when(fileServiceClient.getFile(eq(FILE_URL))).thenReturn(null);
         verifyMethodExecutionNumber(1, 0, FILE_URL);
     }
 
     @Test
     public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
         //given
-        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
+        doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         verifyMethodExecutionNumber(8, 1, FILE_URL);
     }
 
     @Test
     public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
         //given
-        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL),eq(AUTHORIZATION), eq(AUTHORIZATION_HEADER));
+        doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         verifyMethodExecutionNumber(8, 1, FILE_URL);
     }
 

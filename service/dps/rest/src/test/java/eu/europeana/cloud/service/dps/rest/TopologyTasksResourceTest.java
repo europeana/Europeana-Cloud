@@ -1018,8 +1018,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
         when(filesCounterFactory.createFilesCounter(any(DpsTask.class),anyString())).thenReturn(filesCounter);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
-        doNothing().when(recordServiceClient).useAuthorizationHeader(anyString());
-        doNothing().when(dataSetServiceClient).useAuthorizationHeader(anyString());
     }
 
 }

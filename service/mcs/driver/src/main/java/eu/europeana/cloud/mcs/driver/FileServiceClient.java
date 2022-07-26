@@ -1,6 +1,5 @@
 package eu.europeana.cloud.mcs.driver;
 
-import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -35,7 +34,7 @@ public class FileServiceClient extends MCSClient {
      * @param baseUrl url of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl) {
-        this(baseUrl, null, null);
+        this(baseUrl, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
@@ -45,32 +44,25 @@ public class FileServiceClient extends MCSClient {
      * @param baseUrl URL of the MCS Rest Service
      */
     public FileServiceClient(String baseUrl, final String username, final String password) {
-        this(baseUrl, null, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
-    }
-
-    public FileServiceClient(String baseUrl, final String authorizationHeader) {
-        this(baseUrl, authorizationHeader, null, null, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
+        this(baseUrl, username, password, DEFAULT_CONNECT_TIMEOUT_IN_MILLIS, DEFAULT_READ_TIMEOUT_IN_MILLIS);
     }
 
     /**
      * All parameters' constructor used by another one
      *
      * @param baseUrl                URL of the MCS Rest Service
-     * @param authorizationHeader    Authorization header - used instead username/password pair
      * @param username               Username to HTTP authorisation  (use together with password)
      * @param password               Password to HTTP authorisation (use together with username)
      * @param connectTimeoutInMillis Timeout for waiting for connecting
      * @param readTimeoutInMillis    Timeout for getting data
      */
-    public FileServiceClient(String baseUrl, final String authorizationHeader,
+    public FileServiceClient(String baseUrl,
                              final String username, final String password,
                              final int connectTimeoutInMillis, final int readTimeoutInMillis) {
 
         super(baseUrl);
 
-        if (authorizationHeader != null) {
-            client.register(new ECloudBasicAuthFilter(authorizationHeader));
-        } else if (username != null || password != null) {
+        if (username != null || password != null) {
             client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());
         }
 
@@ -148,16 +140,6 @@ public class FileServiceClient extends MCSClient {
                 () -> client
                         .target(fileUrl)
                         .request()
-                        .get()
-        );
-    }
-
-    public InputStream getFile(String fileUrl, String key, String value) throws MCSException {
-        return manageResponse(new ResponseParams<>(InputStream.class),
-                () -> client
-                        .target(fileUrl)
-                        .request()
-                        .header(key, value)
                         .get()
         );
     }

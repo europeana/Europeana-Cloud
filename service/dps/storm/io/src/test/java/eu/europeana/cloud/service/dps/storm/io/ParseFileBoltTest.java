@@ -92,7 +92,7 @@ public class ParseFileBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(4)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
@@ -116,7 +116,7 @@ public class ParseFileBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(false).thenReturn(true);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
@@ -130,7 +130,7 @@ public class ParseFileBoltTest {
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
 
         try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
             Values values = captor.getValue();
@@ -149,7 +149,7 @@ public class ParseFileBoltTest {
     @SuppressWarnings("unchecked")
     public void shouldEmitErrorWhenDownloadFileFails() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        doThrow(MCSException.class).when(fileClient).getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION);
+        doThrow(MCSException.class).when(fileClient).getFile(FILE_URL);
         parseFileBolt.execute(anchorTuple, stormTaskTuple);
         verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         Values values = captor.getValue();
@@ -169,7 +169,7 @@ public class ParseFileBoltTest {
     public void shouldEmitErrorWhenGettingResourceLinksFails() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
-            when(fileClient.getFile(FILE_URL, AUTHORIZATION, AUTHORIZATION)).thenReturn(stream);
+            when(fileClient.getFile(FILE_URL)).thenReturn(stream);
             parseFileBolt.execute(anchorTuple, stormTaskTuple);
             verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
             Values values = captor.getValue();
