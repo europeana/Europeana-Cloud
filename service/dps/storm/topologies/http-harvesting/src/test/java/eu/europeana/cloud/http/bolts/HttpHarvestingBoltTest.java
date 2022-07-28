@@ -162,7 +162,6 @@ public class HttpHarvestingBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters()  {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         parameters.put(PluginParameterKeys.METIS_DATASET_ID, "100");
         return parameters;

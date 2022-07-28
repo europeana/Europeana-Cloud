@@ -38,15 +38,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
     private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
     protected transient RecordServiceClient recordServiceClient;
 
-    public WriteRecordBolt(String ecloudMcsAddress) {
+    public WriteRecordBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
     public void prepare() {
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override

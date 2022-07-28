@@ -29,7 +29,6 @@ import static org.mockito.Mockito.*;
 
 public class WriteRecordBoltTest {
 
-    public static final String AUTHORIZATION = "Authorization";
     private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
     private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-88029720479f");
     private static final String NEW_FILE_NAME = "0e7b8802-9720-379f-9abb-672abfa81076";
@@ -44,7 +43,7 @@ public class WriteRecordBoltTest {
     @Mock(name = "recordServiceClient")
     private RecordServiceClient recordServiceClient;
     @InjectMocks
-    private WriteRecordBolt writeRecordBolt = new WriteRecordBolt("http://localhost:8080/mcs");
+    private WriteRecordBolt writeRecordBolt = new WriteRecordBolt("http://localhost:8080/mcs", "user", "password");
 
     @Before
     public void init() {
@@ -57,7 +56,7 @@ public class WriteRecordBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any())).thenReturn(uri);
@@ -85,7 +84,7 @@ public class WriteRecordBoltTest {
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED,"true");
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString())).thenReturn(uri);
@@ -109,7 +108,7 @@ public class WriteRecordBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
@@ -124,7 +123,7 @@ public class WriteRecordBoltTest {
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(), new Revision());
 
         Representation representation = mock(Representation.class);
-        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION, AUTHORIZATION, "AUTHORIZATION_HEADER")).thenReturn(representation);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(representation);
         when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
 
@@ -135,7 +134,6 @@ public class WriteRecordBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);

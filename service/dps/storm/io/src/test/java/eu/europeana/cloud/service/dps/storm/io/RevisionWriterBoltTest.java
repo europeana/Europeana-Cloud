@@ -39,7 +39,7 @@ public class RevisionWriterBoltTest {
     private RevisionServiceClient revisionServiceClient;
 
     @InjectMocks
-    private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/");
+    private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/","","");
 
     @Captor
     private ArgumentCaptor<Revision> captor;

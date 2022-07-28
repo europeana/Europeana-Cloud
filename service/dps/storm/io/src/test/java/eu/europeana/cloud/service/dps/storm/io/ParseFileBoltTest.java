@@ -32,7 +32,6 @@ import static org.mockito.Mockito.*;
 public class ParseFileBoltTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBoltTest.class);
 
-    private static final String AUTHORIZATION = "Authorization";
     private static final String FILE_URL = "FILE_URL";
     private static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
     private static final long TASK_ID = 1;
@@ -52,7 +51,7 @@ public class ParseFileBoltTest {
 
 
     @InjectMocks
-    static ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt("localhost/mcs");
+    static ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt("localhost/mcs", "user", "password");
 
     private StormTaskTuple stormTaskTuple;
     private static List<String> expectedParametersKeysList;
@@ -62,7 +61,6 @@ public class ParseFileBoltTest {
 
         parseFileBolt.prepare();
         expectedParametersKeysList = Arrays.asList(
-                PluginParameterKeys.AUTHORIZATION_HEADER,
                 PluginParameterKeys.RESOURCE_LINK_KEY,
                 PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER,
                 PluginParameterKeys.RESOURCE_URL,
@@ -80,7 +78,6 @@ public class ParseFileBoltTest {
         stormTaskTuple.setTaskId(TASK_ID);
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
 //        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
@@ -138,7 +135,7 @@ public class ParseFileBoltTest {
             LOGGER.info("{}", values);
             var map = (Map<String, String>) values.get(4);
             LOGGER.info("{}", map);
-            assertEquals(4, map.size());
+            assertEquals(3, map.size());
             assertNotNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
             assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
         }

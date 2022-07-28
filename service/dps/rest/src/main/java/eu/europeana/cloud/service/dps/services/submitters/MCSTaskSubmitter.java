@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -43,12 +42,17 @@ public class MCSTaskSubmitter {
     private final RecordSubmitService recordSubmitService;
 
     private final String mcsClientURL;
+    private final String userName;
+    private final String password;
 
-    public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordSubmitService recordSubmitService, String mcsClientURL) {
+    public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordSubmitService recordSubmitService, String mcsClientURL,
+                            String userName, String password) {
         this.taskStatusChecker = taskStatusChecker;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordSubmitService = recordSubmitService;
         this.mcsClientURL = mcsClientURL;
+        this.userName = userName;
+        this.password = password;
     }
 
     public void execute(SubmitTaskParameters submitParameters) {
@@ -85,7 +89,7 @@ public class MCSTaskSubmitter {
     }
 
     private MCSReader createMcsReader() {
-        return new MCSReader(mcsClientURL);
+        return new MCSReader(mcsClientURL, userName, password);
     }
 
     private int executeForFilesList(SubmitTaskParameters submitParameters) {

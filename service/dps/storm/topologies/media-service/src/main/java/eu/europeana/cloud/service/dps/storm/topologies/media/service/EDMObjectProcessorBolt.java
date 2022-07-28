@@ -45,8 +45,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     private transient RdfDeserializer rdfDeserializer;
     private transient ThumbnailUploader thumbnailUploader;
 
-    public EDMObjectProcessorBolt(String ecloudMcsAddress, AmazonClient amazonClient) {
-        super(ecloudMcsAddress);
+    public EDMObjectProcessorBolt(String ecloudMcsAddress,
+                                  String ecloudMcsUser,
+                                  String ecloudMcsUserPassword,
+                                  AmazonClient amazonClient) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
         this.amazonClient = amazonClient;
     }
 

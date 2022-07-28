@@ -40,7 +40,6 @@ public final class PluginParameterKeys {
     public static final String REPRESENTATION_VERSION = "REPRESENTATION_VERSION";
     public static final String MIME_TYPE = "MIME_TYPE";
     public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
-    public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
     public static final String OUTPUT_DATA_SETS = "OUTPUT_DATA_SETS";
     public static final String MESSAGE_PROCESSING_START_TIME_IN_MS = "START_TIME";
 

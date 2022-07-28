@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForOAI;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
@@ -46,11 +47,17 @@ public class OAIPHMHarvestingTopology {
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.OAI_TOPOLOGY, topologyProperties);
 
-        String mcsServer = topologyProperties.getProperty(MCS_URL);
-        String uisServer = topologyProperties.getProperty(UIS_URL);
-
-        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(mcsServer, uisServer);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(UIS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForOAI(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
@@ -71,7 +78,11 @@ public class OAIPHMHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(mcsServer),
+        builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(MCS_USER_NAME),
+                                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                        ),
                         (getAnInt(DUPLICATES_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));

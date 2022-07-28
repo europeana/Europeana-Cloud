@@ -48,8 +48,15 @@ public class HTTPHarvestingTopology {
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.HTTP_TOPOLOGY, topologyProperties);
 
-        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
+                ecloudMcsAddress,
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD),
+                uisAddress);
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                ecloudMcsAddress,
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD));
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))

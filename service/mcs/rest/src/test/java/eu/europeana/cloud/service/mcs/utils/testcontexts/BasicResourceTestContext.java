@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -44,6 +45,11 @@ public class BasicResourceTestContext {
     @Bean
     public AclPermissionEvaluator aclPermissionEvaluator() {
         return mock(AclPermissionEvaluator.class);
+    }
+
+    @Bean
+    public DataSetPermissionsVerifier dataSetPermissionsVerifier(){
+        return mock(DataSetPermissionsVerifier.class);
     }
 
     @Bean

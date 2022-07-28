@@ -37,14 +37,25 @@ public class NormalizationTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public StormTopology buildTopology(String ecloudMcsAddress) {
+    public StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD));
         NormalizationBolt normalizationBolt = new NormalizationBolt();
 
         // TOPOLOGY STRUCTURE!
@@ -102,8 +113,7 @@ public class NormalizationTopology {
                 NormalizationTopology normalizationTopology =
                         new NormalizationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = normalizationTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = normalizationTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

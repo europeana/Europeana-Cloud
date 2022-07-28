@@ -149,28 +149,6 @@ public class UISClient implements AutoCloseable {
         );
     }
 
-
-    /**
-     * Invoke the retrieval of a cloud identifier.
-     *
-     * @param providerId The provider Id
-     * @param recordId   The record Id
-     * @param key        key for head request
-     * @param value      for head request
-     * @return The retrieved cloud Id
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public CloudId getCloudId(String providerId, String recordId, String key, String value) throws CloudException {
-        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
-                .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
-                .request()
-                .header(key, value)
-                .get()
-        );
-    }
-
     /**
      * Retrieve the local identifiers associated with a cloud identifier
      *
@@ -392,14 +370,6 @@ public class UISClient implements AutoCloseable {
 
     public void close() {
         client.close();
-    }
-    /**
-     * Client will use provided authorization header for all requests;
-     *
-     * @param headerValue authorization header value
-     */
-    public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter(headerValue));
     }
 
     /**

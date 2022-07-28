@@ -56,7 +56,11 @@ public class HarvestingWriteRecordBoltTest {
     ArgumentCaptor<Values> captor; /*= ArgumentCaptor.forClass(Values.class);*/
 
     @InjectMocks
-    private HarvestingWriteRecordBolt oaiWriteRecordBoltT = new HarvestingWriteRecordBolt("http://localhost:8080/mcs", "http://localhost:8080/uis");
+    private HarvestingWriteRecordBolt oaiWriteRecordBoltT = new HarvestingWriteRecordBolt(
+            "http://localhost:8080/mcs",
+            "http://localhost:8080/uis",
+            "user",
+            "password");
 
     @Before
     public void init() throws Exception {

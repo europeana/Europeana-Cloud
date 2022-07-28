@@ -44,12 +44,15 @@ public class ValidationTopology {
     }
 
 
-    public final StormTopology buildTopology(String ecloudMcsAddress) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD));
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
@@ -69,7 +72,11 @@ public class ValidationTopology {
                 .setNumTasks((getAnInt(STATISTICS_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(VALIDATION_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(REVISION_WRITER_BOLT, new RevisionWriterBolt(ecloudMcsAddress),
+        builder.setBolt(REVISION_WRITER_BOLT, new RevisionWriterBolt(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(MCS_USER_NAME),
+                                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                        ),
                         (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
@@ -111,8 +118,7 @@ public class ValidationTopology {
                         new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
                                 VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = validationTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = validationTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

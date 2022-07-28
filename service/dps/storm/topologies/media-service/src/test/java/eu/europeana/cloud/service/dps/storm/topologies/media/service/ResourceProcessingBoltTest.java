@@ -35,7 +35,6 @@ public class ResourceProcessingBoltTest {
     private static final long TASK_ID = 1;
 
     public static final String FILE_URL = "FILE_URL";
-    private static final String AUTHORIZATION = "Authorization";
 
 
     private StormTaskTuple stormTaskTuple;
@@ -72,7 +71,6 @@ public class ResourceProcessingBoltTest {
         stormTaskTuple = new StormTaskTuple();
         stormTaskTuple.setFileUrl(FILE_URL);
         stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION);
         stormTaskTuple.setTaskId(TASK_ID);
 
         setStaticField(ResourceProcessingBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
@@ -107,7 +105,7 @@ public class ResourceProcessingBoltTest {
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
-        assertEquals(4, parameters.size());
+        assertEquals(3, parameters.size());
         assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     }
 
@@ -158,7 +156,7 @@ public class ResourceProcessingBoltTest {
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
-        assertEquals(6, parameters.size());
+        assertEquals(5, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
         assertEquals(thumbNailCount, StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
@@ -183,7 +181,7 @@ public class ResourceProcessingBoltTest {
         Values value = captor.getValue();
         Map<String, String> parameters = (Map) value.get(4);
         assertNotNull(parameters);
-        assertEquals(5, parameters.size());
+        assertEquals(4, parameters.size());
         assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
         assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
         assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
@@ -197,7 +195,7 @@ public class ResourceProcessingBoltTest {
     public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
-        int expectedParametersSize = 2;
+        int expectedParametersSize = 1;
         assertEquals(expectedParametersSize, stormTaskTuple.getParameters().size());
         verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
         Values value = captor.getValue();

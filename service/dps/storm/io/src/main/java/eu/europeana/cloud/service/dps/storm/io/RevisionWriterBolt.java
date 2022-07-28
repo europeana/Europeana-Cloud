@@ -30,10 +30,14 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected transient RevisionServiceClient revisionsClient;
 
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
 
-    public RevisionWriterBolt(String ecloudMcsAddress) {
+    public RevisionWriterBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
@@ -135,7 +139,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         if(ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
         }
-        revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+        revisionsClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override

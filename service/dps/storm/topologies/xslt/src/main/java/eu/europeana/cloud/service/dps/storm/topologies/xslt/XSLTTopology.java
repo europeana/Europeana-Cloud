@@ -52,11 +52,21 @@ public class XSLTTopology {
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
-        String mcsServer = topologyProperties.getProperty(MCS_URL);
-
-        ReadFileBolt readFileBolt = new ReadFileBolt(mcsServer);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(mcsServer);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
 
         // TOPOLOGY STRUCTURE!
 

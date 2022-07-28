@@ -31,10 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 /**
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
@@ -147,8 +144,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
     private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-        return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId(),
-                AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)).getId();
+        return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
     }
 
     private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {

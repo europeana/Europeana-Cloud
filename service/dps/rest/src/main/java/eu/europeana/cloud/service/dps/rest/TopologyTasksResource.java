@@ -114,10 +114,9 @@ public class TopologyTasksResource {
     public ResponseEntity<Void> submitTask(
             final HttpServletRequest request,
             @RequestBody final DpsTask task,
-            @PathVariable final String topologyName,
-            @RequestHeader("Authorization") final String authorizationHeader
+            @PathVariable final String topologyName
     ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-        return doSubmitTask(request, task, topologyName, authorizationHeader, false);
+        return doSubmitTask(request, task, topologyName, false);
     }
 
     /**
@@ -136,12 +135,11 @@ public class TopologyTasksResource {
     public ResponseEntity<Void> restartTask(
             final HttpServletRequest request,
             @PathVariable final long taskId,
-            @PathVariable final String topologyName,
-            @RequestHeader("Authorization") final String authorizationHeader
+            @PathVariable final String topologyName
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
         var task = DpsTask.fromTaskInfo(taskInfo);
-        return doSubmitTask(request, task, topologyName, authorizationHeader, true);
+        return doSubmitTask(request, task, topologyName, true);
     }
 
     /**
@@ -214,7 +212,6 @@ public class TopologyTasksResource {
      * Common method for submit/restart task. Mode is given in restart parameter
      * @param task Task to process to
      * @param topologyName Name of processing topology
-     * @param authorizationHeader Header for authorisation
      * @param restart Mode (submit = <code>false</code> / restart = <code>true</code>) flag
      * @return Respons for rest call
      * @throws AccessDeniedOrTopologyDoesNotExistException Throws if access is denied or topology does not exist
@@ -224,14 +221,13 @@ public class TopologyTasksResource {
     private ResponseEntity<Void> doSubmitTask(
             final HttpServletRequest request,
             final DpsTask task, final String topologyName,
-            final String authorizationHeader, final boolean restart)
+            final boolean restart)
             throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
 
         ResponseEntity<Void> result;
 
         if (task != null) {
             LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
-            task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, authorizationHeader);
 
             Date sentTime = new Date();
 

@@ -6,7 +6,6 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -28,14 +27,17 @@ import java.util.List;
  */
 public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
-    protected static final String AUTHORIZATION = "Authorization";
     private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
     private transient RecordServiceClient recordServiceClient;
     private transient RevisionServiceClient revisionServiceClient;
     private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
 
-    public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress) {
+    public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
@@ -45,8 +47,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
-        revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+        revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override

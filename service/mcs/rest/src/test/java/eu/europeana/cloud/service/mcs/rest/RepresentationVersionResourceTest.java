@@ -8,9 +8,11 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -63,17 +65,18 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
     @Before
-    public void mockUp() throws RepresentationNotExistsException {
+    public void mockUp() throws RepresentationNotExistsException, DataSetAssignmentException {
         recordService = applicationContext.getBean(RecordService.class);
         CassandraDataSetDAO cassandraDataSetDAO = applicationContext.getBean(CassandraDataSetDAO.class);
-        PermissionEvaluator permissionEvaluator = applicationContext.getBean(PermissionEvaluator.class);
+        DataSetPermissionsVerifier dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         Mockito.reset(recordService);
 
         when(cassandraDataSetDAO.getDataSetAssignmentsByRepresentationVersion(any(), any(), any()))
                 .thenReturn(List.of(new CompoundDataSetId("dsProvId","datasetId")));
 
-        Mockito.doReturn(true).when(permissionEvaluator)
-                .hasPermission(any(), any(), any(), any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(any());
+
     }
 
 

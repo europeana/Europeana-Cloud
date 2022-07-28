@@ -38,14 +38,25 @@ public class EnrichmentTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public StormTopology buildTopology(String ecloudMcsAddress) {
+    public StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(MCS_USER_NAME),
+                topologyProperties.getProperty(MCS_USER_PASSWORD));
         EnrichmentBolt enrichmentBolt = new EnrichmentBolt(
                 topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
                 topologyProperties.getProperty(ENRICHMENT_SERVICE_URL));
@@ -110,8 +121,7 @@ public class EnrichmentTopology {
                 EnrichmentTopology enrichmentTopology =
                         new EnrichmentTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = enrichmentTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = enrichmentTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

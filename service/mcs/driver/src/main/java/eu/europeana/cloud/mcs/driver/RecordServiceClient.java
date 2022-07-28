@@ -192,18 +192,6 @@ public class RecordServiceClient extends MCSClient {
         );
     }
 
-    private URI createRepresentation(String cloudId, String representationName, Form form) throws MCSException {
-        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-                () -> client.target(baseUrl)
-                        .path(REPRESENTATION_RESOURCE)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .request()
-                        .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-        );
-    }
-
-
     public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
             throws MCSException {
         return createRepresentation(cloudId, representationName, providerId, (UUID) null, datasetId);

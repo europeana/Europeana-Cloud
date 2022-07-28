@@ -33,7 +33,7 @@ public class IndexingRevisionWriterTest {
     private RevisionServiceClient revisionServiceClient;
 
     @InjectMocks
-    private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter("https://sample.ecloud.com/", "sampleMessage");
+    private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter("https://sample.ecloud.com/","userName", "userPassword", "sampleMessage");
 
     @Before
     public void init() {
@@ -59,8 +59,6 @@ public class IndexingRevisionWriterTest {
         assertEquals(2, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
-
     }
 
     @Test
@@ -78,7 +76,6 @@ public class IndexingRevisionWriterTest {
         assertEquals(2, list.size());
         Map<String, String> parameters = (Map<String, String>) list.get(1);
         assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
-        assertNotNull(parameters.get(NotificationParameterKeys.AUTHORIZATION_HEADER));
     }
 
     @Test
@@ -122,7 +119,6 @@ public class IndexingRevisionWriterTest {
 
     Map<String, String> prepareTaskParameters() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
     }

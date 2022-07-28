@@ -55,7 +55,7 @@ public class EDMObjectProcessorBoltTest {
     private final AmazonClient amazonClient = Mockito.mock(AmazonClient.class);
 
     @InjectMocks
-    private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt("MCS_URL", amazonClient);
+    private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt("MCS_URL", "user", "password", amazonClient);
 
     @Before
     public void init() throws MediaProcessorException {
@@ -72,7 +72,6 @@ public class EDMObjectProcessorBoltTest {
             when(fileClient.getFile(anyString())).thenReturn(stream);
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -101,7 +100,6 @@ public class EDMObjectProcessorBoltTest {
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -131,7 +129,6 @@ public class EDMObjectProcessorBoltTest {
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -161,7 +158,6 @@ public class EDMObjectProcessorBoltTest {
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -187,7 +183,6 @@ public class EDMObjectProcessorBoltTest {
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 

@@ -23,8 +23,12 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     private final String ecloudUisAddress;
     private transient UISClient uisClient;
 
-    public HarvestingWriteRecordBolt(String ecloudMcsAddress, String ecloudUisAddress) {
-        super(ecloudMcsAddress);
+    public HarvestingWriteRecordBolt(
+            String ecloudMcsAddress,
+            String ecloudUisAddress,
+            String ecloudMcsUser,
+            String ecloudMcsUserPassword) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
         this.ecloudUisAddress = ecloudUisAddress;
     }
 
