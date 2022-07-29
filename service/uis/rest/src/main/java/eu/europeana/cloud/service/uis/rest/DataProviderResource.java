@@ -82,7 +82,7 @@ public class DataProviderResource {
      *             The supplied provider does not exist
      */
     @PutMapping(value = RestInterfaceConstants.DATA_PROVIDER, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasPermission(#providerId, 'eu.europeana.cloud.common.model.DataProvider', write)")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> updateProvider(
             @RequestBody DataProviderProperties dataProviderProperties,
             @PathVariable String providerId) throws ProviderDoesNotExistException {
