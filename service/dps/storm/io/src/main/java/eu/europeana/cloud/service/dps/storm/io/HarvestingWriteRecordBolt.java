@@ -21,14 +21,18 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
     private static final long serialVersionUID = 1L;
     private final String ecloudUisAddress;
+    private final String topologyUserName;
+    private final String topologyUserPassword;
     private transient UISClient uisClient;
 
     public HarvestingWriteRecordBolt(
             String ecloudMcsAddress,
             String ecloudUisAddress,
-            String ecloudMcsUser,
-            String ecloudMcsUserPassword) {
-        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+            String topologyUserName,
+            String topologyUserPassword) {
+        super(ecloudMcsAddress, topologyUserName, topologyUserPassword);
+        this.topologyUserName = topologyUserName;
+        this.topologyUserPassword = topologyUserPassword;
         this.ecloudUisAddress = ecloudUisAddress;
     }
 
@@ -39,7 +43,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
     @Override
     public void prepare() {
-        uisClient = new UISClient(ecloudUisAddress);
+        uisClient = new UISClient(ecloudUisAddress, topologyUserName, topologyUserPassword);
         super.prepare();
     }
 

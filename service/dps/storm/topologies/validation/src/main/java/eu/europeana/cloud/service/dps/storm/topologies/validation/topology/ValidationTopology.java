@@ -51,8 +51,8 @@ public class ValidationTopology {
 
         ReadFileBolt readFileBolt = new ReadFileBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD));
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
@@ -74,8 +74,8 @@ public class ValidationTopology {
 
         builder.setBolt(REVISION_WRITER_BOLT, new RevisionWriterBolt(
                                 topologyProperties.getProperty(MCS_URL),
-                                topologyProperties.getProperty(MCS_USER_NAME),
-                                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
                         ),
                         (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(

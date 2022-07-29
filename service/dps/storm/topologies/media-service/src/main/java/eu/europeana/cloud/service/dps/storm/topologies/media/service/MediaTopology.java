@@ -45,13 +45,13 @@ public class MediaTopology {
 
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
         AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                 topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
@@ -59,8 +59,8 @@ public class MediaTopology {
         TopologyHelper.addSpoutFieldGrouping(spoutNames,
                 builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(
                                         topologyProperties.getProperty(MCS_URL),
-                                        topologyProperties.getProperty(MCS_USER_NAME),
-                                        topologyProperties.getProperty(MCS_USER_PASSWORD),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
                                         amazonClient),
                                 (getAnInt(EDM_OBJECT_PROCESSOR_BOLT_PARALLEL)))
                         .setNumTasks((getAnInt(EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS)))
@@ -68,8 +68,8 @@ public class MediaTopology {
 
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(
                                 topologyProperties.getProperty(MCS_URL),
-                                topologyProperties.getProperty(MCS_USER_NAME),
-                                topologyProperties.getProperty(MCS_USER_PASSWORD)),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                         (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(EDM_OBJECT_PROCESSOR_BOLT, new ShuffleGrouping());
@@ -81,8 +81,8 @@ public class MediaTopology {
 
         builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(
                                 topologyProperties.getProperty(MCS_URL),
-                                topologyProperties.getProperty(MCS_USER_NAME),
-                                topologyProperties.getProperty(MCS_USER_PASSWORD)),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                         (getAnInt(EDM_ENRICHMENT_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY))

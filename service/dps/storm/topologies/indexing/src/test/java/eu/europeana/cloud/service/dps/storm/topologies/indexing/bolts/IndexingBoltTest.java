@@ -59,7 +59,7 @@ public class IndexingBoltTest {
     private HarvestedRecordsDAO harvestedRecordsDAO;
 
     @InjectMocks
-    private final IndexingBolt indexingBolt = new IndexingBolt(null, indexingProperties, "uisLocation");
+    private final IndexingBolt indexingBolt = new IndexingBolt(null, indexingProperties, "uisLocation", "user", "password");
 
     @Before
     public void init() {

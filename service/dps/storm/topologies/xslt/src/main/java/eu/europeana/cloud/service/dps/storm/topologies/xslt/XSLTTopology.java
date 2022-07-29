@@ -54,18 +54,18 @@ public class XSLTTopology {
 
         ReadFileBolt readFileBolt = new ReadFileBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
         WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
 
         // TOPOLOGY STRUCTURE!

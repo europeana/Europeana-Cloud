@@ -43,8 +43,8 @@ public class LinkCheckTopology {
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(
                                         topologyProperties.getProperty(MCS_URL),
-                                        topologyProperties.getProperty(MCS_USER_NAME),
-                                        topologyProperties.getProperty(MCS_USER_PASSWORD)),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                                 (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                         .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS))));
 

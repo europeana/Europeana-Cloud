@@ -24,7 +24,10 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -40,14 +43,21 @@ public class IndexingBolt extends AbstractDpsBolt {
     private final Properties indexingProperties;
     private transient HarvestedRecordsDAO harvestedRecordsDAO;
     private final String uisAddress;
+    private final String topologyUserName;
+    private final String topologyUserPassword;
     private transient EuropeanaIdFinder europeanaIdFinder;
 
 
-    public IndexingBolt(DbConnectionDetails dbConnectionDetails,
-                        Properties indexingProperties, String uisAddress) {
+    public IndexingBolt(
+            DbConnectionDetails dbConnectionDetails,
+            Properties indexingProperties,
+            String uisAddress, String topologyUserName,
+            String topologyUserPassword) {
         this.dbConnectionDetails = dbConnectionDetails;
         this.indexingProperties = indexingProperties;
         this.uisAddress = uisAddress;
+        this.topologyUserName = topologyUserName;
+        this.topologyUserPassword = topologyUserPassword;
     }
 
     @Override
@@ -123,7 +133,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void prepareEuropeanaIdFinder() {
-        europeanaIdFinder = new EuropeanaIdFinder(new UISClient(uisAddress), harvestedRecordsDAO);
+        europeanaIdFinder = new EuropeanaIdFinder(
+                new UISClient(uisAddress, topologyUserName, topologyUserPassword),
+                harvestedRecordsDAO);
     }
 
     private void prepareIndexer() {

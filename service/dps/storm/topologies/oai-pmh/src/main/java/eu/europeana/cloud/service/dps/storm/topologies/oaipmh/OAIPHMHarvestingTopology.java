@@ -50,13 +50,13 @@ public class OAIPHMHarvestingTopology {
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
                 topologyProperties.getProperty(MCS_URL),
                 topologyProperties.getProperty(UIS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForOAI(
                 topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(MCS_USER_NAME),
-                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
@@ -80,8 +80,8 @@ public class OAIPHMHarvestingTopology {
 
         builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                                 topologyProperties.getProperty(MCS_URL),
-                                topologyProperties.getProperty(MCS_USER_NAME),
-                                topologyProperties.getProperty(MCS_USER_PASSWORD)
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
                         ),
                         (getAnInt(DUPLICATES_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
