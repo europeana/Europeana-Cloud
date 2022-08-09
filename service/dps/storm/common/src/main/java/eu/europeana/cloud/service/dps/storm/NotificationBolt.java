@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheB
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
+import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -68,6 +69,8 @@ public class NotificationBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         var notificationTuple = NotificationTuple.fromStormTuple(tuple);
         try {
+            LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), notificationTuple);
+            prepareDiagnosticContext(notificationTuple);
             var cachedCounters = readCachedCounters(notificationTuple);
             NotificationHandlerConfig notificationHandlerConfig =
                     NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(notificationTuple, cachedCounters);
@@ -81,6 +84,7 @@ public class NotificationBolt extends BaseRichBolt {
                             ex.getMessage()));
         } finally {
             outputCollector.ack(tuple);
+            clearDiagnosticContext();
         }
     }
 
@@ -136,4 +140,11 @@ public class NotificationBolt extends BaseRichBolt {
         return cachedCounters;
     }
 
+    private void prepareDiagnosticContext(NotificationTuple stormTaskTuple) {
+        DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
+    }
+
+    private void clearDiagnosticContext() {
+        DiagnosticContextWrapper.clear();
+    }
 }

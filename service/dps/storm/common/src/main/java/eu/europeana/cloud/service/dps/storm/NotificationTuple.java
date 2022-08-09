@@ -117,4 +117,8 @@ public class NotificationTuple {
     public boolean isIgnoredRecord() {
         return "true".equals(parameters.get(PluginParameterKeys.IGNORED_RECORD));
     }
+
+    public String getResource() {
+        return String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
+    }
 }
