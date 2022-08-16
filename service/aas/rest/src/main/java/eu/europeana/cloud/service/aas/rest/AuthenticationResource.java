@@ -4,10 +4,10 @@ import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.common.web.AASParamConstants;
 import eu.europeana.cloud.service.aas.authentication.AuthenticationService;
 import eu.europeana.cloud.service.aas.authentication.exception.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -17,8 +17,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/")
 public class AuthenticationResource {
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthenticationResource(AuthenticationService authenticationService, PasswordEncoder passwordEncoder) {
+        this.authenticationService = authenticationService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Creates a new ecloud-user with the specified username + password.
@@ -31,7 +37,7 @@ public class AuthenticationResource {
             throws DatabaseConnectionException, UserExistsException,
             InvalidUsernameException, InvalidPasswordException {
 
-        authenticationService.createUser(new User(username, password));
+        authenticationService.createUser(new User(username, passwordEncoder.encode(password)));
         return ResponseEntity.ok("Cloud user was created!");
     }
 
@@ -65,7 +71,7 @@ public class AuthenticationResource {
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException {
 
-        authenticationService.updateUser(new User(username, password));
+        authenticationService.updateUser(new User(username, passwordEncoder.encode(password)));
         return ResponseEntity.ok("Cloud user updated.");
     }
 }
