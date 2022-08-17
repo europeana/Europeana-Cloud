@@ -21,8 +21,8 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraUserDAOTest extends CassandraTestBase {
-    private static final String ROLE_USER = Role.USER.toString();
-    private static final String ROLE_ADMIN = Role.ADMIN.toString();
+    private static final String ROLE_USER = Role.USER;
+    private static final String ROLE_ADMIN = Role.ADMIN;
     private static final Set<String> DEFAULT_USER_ROLES = ImmutableSet
             .of(ROLE_USER);
 

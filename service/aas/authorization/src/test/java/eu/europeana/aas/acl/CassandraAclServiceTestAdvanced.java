@@ -47,7 +47,7 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	private static final String sid2 = "sid2@system";
 	private static final String aoi_id = "123";
 	private static final String aoi_class = "a.b.c.Class";
-	private static final String ROLE_ADMIN = Role.ADMIN.toString();
+	private static final String ROLE_ADMIN = Role.ADMIN;
 
 	@Autowired
 	private CassandraMutableAclService service;

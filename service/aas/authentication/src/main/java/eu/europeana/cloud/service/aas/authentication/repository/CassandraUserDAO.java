@@ -32,7 +32,7 @@ public class CassandraUserDAO {
      * Default roles for all users of ecloud (that don't have admin, or other
      * superpowers)
      */
-    private static final Set<String> DEFAULT_USER_ROLES = Set.of(Role.USER.toString());
+    private static final Set<String> DEFAULT_USER_ROLES = Set.of(Role.USER);
     @Qualifier("dbService")
     private final CassandraConnectionProvider provider;
     private PreparedStatement selectUserStatement;

@@ -78,7 +78,7 @@ public class AuthorizationTestContext {
 
     @Bean
     public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority(Role.ADMIN.toString());
+        return new SimpleGrantedAuthority(Role.ADMIN);
     }
 
 

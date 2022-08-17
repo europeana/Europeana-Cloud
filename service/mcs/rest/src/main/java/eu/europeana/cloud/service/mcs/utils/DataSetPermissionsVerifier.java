@@ -68,9 +68,9 @@ public class DataSetPermissionsVerifier {
     private boolean isPrivilegedUser() {
         SecurityContext ctx = SecurityContextHolder.getContext();
         Authentication authentication = ctx.getAuthentication();
-        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.ADMIN.toString()))
+        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.ADMIN))
                 ||
-                authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.EXECUTOR.toString()));
+                authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.EXECUTOR));
     }
 
     private boolean hasPermissionFor(Representation representation, Permission permission) throws DataSetAssignmentException, RepresentationNotExistsException {

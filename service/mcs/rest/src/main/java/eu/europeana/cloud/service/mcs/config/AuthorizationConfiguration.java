@@ -95,7 +95,7 @@ public class AuthorizationConfiguration {
 
     @Bean
     public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority(Role.ADMIN.toString());
+        return new SimpleGrantedAuthority(Role.ADMIN);
     }
 
     @Bean

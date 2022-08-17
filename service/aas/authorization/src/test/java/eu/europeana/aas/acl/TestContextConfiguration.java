@@ -47,9 +47,9 @@ public class TestContextConfiguration {
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
         return new AclAuthorizationStrategyImpl(
-                new SimpleGrantedAuthority(Role.ADMIN.toString()),
-                new SimpleGrantedAuthority(Role.ADMIN.toString()),
-                new SimpleGrantedAuthority(Role.ADMIN.toString())
+                new SimpleGrantedAuthority(Role.ADMIN),
+                new SimpleGrantedAuthority(Role.ADMIN),
+                new SimpleGrantedAuthority(Role.ADMIN)
         );
     }
 }
