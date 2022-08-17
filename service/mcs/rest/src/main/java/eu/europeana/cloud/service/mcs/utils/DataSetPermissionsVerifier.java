@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Permission;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -71,9 +68,9 @@ public class DataSetPermissionsVerifier {
     private boolean isPrivilegedUser() {
         SecurityContext ctx = SecurityContextHolder.getContext();
         Authentication authentication = ctx.getAuthentication();
-        return authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.ADMIN.toString()))
                 ||
-                authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EXECUTOR"));
+                authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.EXECUTOR.toString()));
     }
 
     private boolean hasPermissionFor(Representation representation, Permission permission) throws DataSetAssignmentException, RepresentationNotExistsException {

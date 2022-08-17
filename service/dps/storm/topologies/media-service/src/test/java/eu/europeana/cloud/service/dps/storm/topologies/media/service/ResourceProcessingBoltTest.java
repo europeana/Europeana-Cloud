@@ -190,9 +190,8 @@ public class ResourceProcessingBoltTest {
 
     }
 
-
     @Test
-    public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
+    public void shouldForwardTheTupleWhenNoResourceLinkFound() {
         Tuple anchorTuple = mock(TupleImpl.class);
         resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
         int expectedParametersSize = 1;

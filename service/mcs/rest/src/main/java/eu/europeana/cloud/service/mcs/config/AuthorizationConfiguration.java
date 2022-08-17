@@ -4,6 +4,7 @@ import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
 import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import org.springframework.context.annotation.Bean;
@@ -94,7 +95,7 @@ public class AuthorizationConfiguration {
 
     @Bean
     public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority("ROLE_ADMIN");
+        return new SimpleGrantedAuthority(Role.ADMIN.toString());
     }
 
     @Bean

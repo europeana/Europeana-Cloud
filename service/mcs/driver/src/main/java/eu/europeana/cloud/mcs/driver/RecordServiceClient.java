@@ -194,7 +194,7 @@ public class RecordServiceClient extends MCSClient {
 
     public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
             throws MCSException {
-        return createRepresentation(cloudId, representationName, providerId, (UUID) null, datasetId);
+        return createRepresentation(cloudId, representationName, providerId, null, datasetId);
     }
 
     /**

@@ -996,7 +996,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
 
-    private void prepareMocks(String topologyName) throws MCSException, TaskSubmissionException {
+    private void prepareMocks(String topologyName) throws TaskSubmissionException {
         //Mock security
         mockSecurity(topologyName);
         mockECloudClients();
@@ -1013,7 +1013,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         when(context.getBean(RecordServiceClient.class)).thenReturn(recordServiceClient);
     }
 
-    private void mockECloudClients() throws TaskSubmissionException, MCSException {
+    private void mockECloudClients() throws TaskSubmissionException {
         when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
         when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
         when(filesCounterFactory.createFilesCounter(any(DpsTask.class),anyString())).thenReturn(filesCounter);

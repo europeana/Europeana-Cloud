@@ -181,7 +181,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
-        for (Tuple tuple : enrichedFile.sourceTupples) {
+        for (Tuple tuple : enrichedFile.sourceTuples) {
             outputCollector.ack(tuple);
         }
     }
@@ -191,7 +191,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
-        private List<Tuple> sourceTupples = new ArrayList<>();
+        private final List<Tuple> sourceTuples = new ArrayList<>();
 
         public TempEnrichedFile() {
             count = 0;
@@ -227,7 +227,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public void addSourceTuple(Tuple anchorTuple) {
-            sourceTupples.add(anchorTuple);
+            sourceTuples.add(anchorTuple);
         }
 
         public Long getTaskId() {

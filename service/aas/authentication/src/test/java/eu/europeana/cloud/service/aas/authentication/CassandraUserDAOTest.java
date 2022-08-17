@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.aas.authentication;
 
 import com.google.common.collect.ImmutableSet;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import org.junit.Before;
@@ -20,8 +21,8 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraUserDAOTest extends CassandraTestBase {
-    private static final String ROLE_USER = "ROLE_USER";
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private static final String ROLE_USER = Role.USER.toString();
+    private static final String ROLE_ADMIN = Role.ADMIN.toString();
     private static final Set<String> DEFAULT_USER_ROLES = ImmutableSet
             .of(ROLE_USER);
 

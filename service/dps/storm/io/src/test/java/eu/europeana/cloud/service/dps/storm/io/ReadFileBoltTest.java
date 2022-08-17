@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 
 import static org.mockito.Mockito.*;
@@ -40,7 +39,7 @@ public class ReadFileBoltTest {
         stormTaskTuple = prepareTuple();
     }
 
-    private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException, IOException {
+    private final void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         when(outputCollector.emit(anyList())).thenReturn(null);
         readFileBolt.execute(anchorTuple, stormTaskTuple);
@@ -49,23 +48,22 @@ public class ReadFileBoltTest {
 
     }
 
-
     @Test
-    public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException, IOException {
+    public void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException {
         //given
         when(fileServiceClient.getFile(eq(FILE_URL))).thenReturn(null);
         verifyMethodExecutionNumber(1, 0, FILE_URL);
     }
 
     @Test
-    public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws MCSException, IOException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws MCSException {
         //given
         doThrow(MCSException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         verifyMethodExecutionNumber(8, 1, FILE_URL);
     }
 
     @Test
-    public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws MCSException, IOException {
+    public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws MCSException {
         //given
         doThrow(DriverException.class).when(fileServiceClient).getFile(eq(FILE_URL));
         verifyMethodExecutionNumber(8, 1, FILE_URL);
@@ -77,6 +75,4 @@ public class ReadFileBoltTest {
         stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return stormTaskTuple;
     }
-
-
 }

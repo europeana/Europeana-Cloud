@@ -18,8 +18,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +25,6 @@ import java.util.Map;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 
 public class RevisionWriterBoltTest {
@@ -50,7 +47,7 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException, URISyntaxException, MalformedURLException {
+    public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         StormTaskTuple stormTaskTuple = new StormTaskTuple();
@@ -62,7 +59,7 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void methodForAddingRevisionsShouldBeExecuted() throws MalformedURLException, MCSException {
+    public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTuple());
@@ -71,7 +68,7 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MalformedURLException, MCSException {
+    public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         StormTaskTuple stormTaskTuple = prepareTuple();
@@ -86,7 +83,7 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void malformedUrlExceptionShouldBeHandled() throws MalformedURLException, MCSException {
+    public void malformedUrlExceptionShouldBeHandled() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
@@ -95,7 +92,7 @@ public class RevisionWriterBoltTest {
     }
 
     @Test
-    public void mcsExceptionShouldBeHandledWithRetries() throws MalformedURLException, MCSException {
+    public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class))).thenThrow(MCSException.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);

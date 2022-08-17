@@ -224,8 +224,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public MCSTaskSubmitter mcsTaskSubmitter() {
         return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean

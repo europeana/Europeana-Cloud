@@ -33,12 +33,12 @@ import static java.lang.Integer.parseInt;
 /**
  *
  */
-public class OAIPHMHarvestingTopology {
+public class OAIPMHHarvestingTopology {
     private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAIPHMHarvestingTopology.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAIPMHHarvestingTopology.class);
 
-    public OAIPHMHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
+    public OAIPMHHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
@@ -131,10 +131,10 @@ public class OAIPHMHarvestingTopology {
             if (args.length <= 1) {
                 String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
-                OAIPHMHarvestingTopology oaiphmHarvestingTopology =
-                        new OAIPHMHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
+                OAIPMHHarvestingTopology OAIPMHHarvestingTopology =
+                        new OAIPMHHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                StormTopology stormTopology = oaiphmHarvestingTopology.buildTopology();
+                StormTopology stormTopology = OAIPMHHarvestingTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
 
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));

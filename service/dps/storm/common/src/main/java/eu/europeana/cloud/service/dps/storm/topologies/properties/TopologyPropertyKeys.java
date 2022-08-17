@@ -17,8 +17,6 @@ public final class TopologyPropertyKeys {
     public static final String MCS_URL = "MCS_URL";
     public static final String TOPOLOGY_USER_NAME = "TOPOLOGY_USER_NAME";
     public static final String TOPOLOGY_USER_PASSWORD = "TOPOLOGY_USER_PASSWORD";
-    public static final String DPS_URL = "DPS_URL";
-    public static final String INDEXING_TOPOLOGY_NAME = "INDEXING_TOPOLOGY_NAME";
     public static final String CASSANDRA_HOSTS = "CASSANDRA_HOSTS";
     public static final String CASSANDRA_PORT = "CASSANDRA_PORT";
     public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";
@@ -34,15 +32,12 @@ public final class TopologyPropertyKeys {
     public static final String STATISTICS_BOLT_PARALLEL = "STATISTICS_BOLT_PARALLEL";
     public static final String NOTIFICATION_BOLT_PARALLEL = "NOTIFICATION_BOLT_PARALLEL";
     public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
-    public static final String KAFKA_SPOUT_NUMBER_OF_TASKS = "KAFKA_SPOUT_NUMBER_OF_TASKS";
     public static final String RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS = "RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
     public static final String XSLT_BOLT_NUMBER_OF_TASKS = "XSLT_BOLT_NUMBER_OF_TASKS";
     public static final String WRITE_BOLT_NUMBER_OF_TASKS = "WRITE_BOLT_NUMBER_OF_TASKS";
     public static final String REVISION_WRITER_BOLT_NUMBER_OF_TASKS = "REVISION_WRITER_BOLT_NUMBER_OF_TASKS";
     public static final String NOTIFICATION_BOLT_NUMBER_OF_TASKS = "NOTIFICATION_BOLT_NUMBER_OF_TASKS";
-    public static final String ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS = "ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS";
     public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
-    public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
     public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";
     public static final String INDEXING_BOLT_NUMBER_OF_TASKS = "INDEXING_BOLT_NUMBER_OF_TASKS";
     public static final String STATISTICS_BOLT_NUMBER_OF_TASKS = "STATISTICS_BOLT_NUMBER_OF_TASKS";
