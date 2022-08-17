@@ -8,8 +8,10 @@ import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import java.util.List;
 
 public class ParseFileForLinkCheckBolt extends ParseFileBolt {
-    public ParseFileForLinkCheckBolt(String ecloudMcsAddress) {
-        super(ecloudMcsAddress);
+    public ParseFileForLinkCheckBolt(String ecloudMcsAddress,
+                                     String ecloudMcsUser,
+                                     String ecloudMcsUserPassword) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {

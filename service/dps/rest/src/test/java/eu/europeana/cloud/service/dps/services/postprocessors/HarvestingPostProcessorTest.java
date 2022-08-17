@@ -39,7 +39,6 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_HAR
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HarvestingPostProcessorTest {
@@ -57,7 +56,6 @@ public class HarvestingPostProcessorTest {
     private static final String VERSION = "v1";
     private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
     private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
-    private static final String AUTHORIZATION_HEADER = "Basic abc123";
     private static final Date REVISION_TIMESTAMP = new Date(0);
     private static final String REVISION_PROVIDER = "revisionProvider";
     private static final String REVISION_NAME = "revisionName";
@@ -113,18 +111,18 @@ public class HarvestingPostProcessorTest {
     }
 
     private void mockRecordServiceClient() throws MCSException, URISyntaxException {
-        when(recordServiceClient.createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID,
-                AUTHORIZATION, AUTHORIZATION_HEADER)).thenReturn(new URI(RECORD1_REPRESENTATION_URI));
-        when(recordServiceClient.createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID,
-                AUTHORIZATION, AUTHORIZATION_HEADER)).thenReturn(new URI(RECORD2_REPRESENTATION_URI));
+        when(recordServiceClient.createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID))
+                .thenReturn(new URI(RECORD1_REPRESENTATION_URI));
+        when(recordServiceClient.createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID))
+                .thenReturn(new URI(RECORD2_REPRESENTATION_URI));
 
     }
 
     private void mockUis() throws CloudException {
         CloudId cloudIdObject1 = createCloudId(CLOUD_ID1, RECORD_ID1);
         CloudId cloudIdObject2 = createCloudId(CLOUD_ID2, RECORD_ID2);
-        when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID1, AUTHORIZATION, AUTHORIZATION_HEADER)).thenReturn(cloudIdObject1);
-        when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID2, AUTHORIZATION, AUTHORIZATION_HEADER)).thenReturn(cloudIdObject2);
+        when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID1)).thenReturn(cloudIdObject1);
+        when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID2)).thenReturn(cloudIdObject2);
     }
 
     private void prepareTask() {
@@ -134,7 +132,6 @@ public class HarvestingPostProcessorTest {
         task.addParameter(PluginParameterKeys.PROVIDER_ID, PROVIDER_ID);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
         task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
-        task.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER);
         task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
         Revision revision = new Revision();
         revision.setRevisionName(REVISION_NAME);
@@ -172,8 +169,8 @@ public class HarvestingPostProcessorTest {
 
         service.execute(taskInfo, task);
 
-        verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
-        verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
+        verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+        verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
         verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
         verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
@@ -205,11 +202,11 @@ public class HarvestingPostProcessorTest {
         service.execute(taskInfo, task);
 
         //record1
-        verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
-        verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
+        verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+        verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
         //record2
-        verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
-        verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
+        verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+        verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
         //task
         verify(processedRecordsDAO, times(2)).insert(any());
         verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
@@ -227,8 +224,8 @@ public class HarvestingPostProcessorTest {
 
         service.execute(taskInfo, task);
 
-        verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID, AUTHORIZATION, AUTHORIZATION_HEADER);
-        verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION, AUTHORIZATION, AUTHORIZATION_HEADER);
+        verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+        verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
         verify(processedRecordsDAO).insert(any());
         verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
         verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);

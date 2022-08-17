@@ -43,8 +43,10 @@ public class IndexingTopology {
     private StormTopology buildTopology() {
 
         TopologyBuilder builder = new TopologyBuilder();
-        String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder,
                 TopologiesNames.INDEXING_TOPOLOGY,
@@ -57,12 +59,19 @@ public class IndexingTopology {
         builder.setBolt(INDEXING_BOLT, new IndexingBolt(
                                 prepareConnectionDetails(),
                                 indexingProperties,
-                                topologyProperties.getProperty(UIS_URL)),
+                                topologyProperties.getProperty(UIS_URL),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+                                ),
                         getAnInt(INDEXING_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE),
+        builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
+                                SUCCESS_MESSAGE),
                         getAnInt(REVISION_WRITER_BOLT_PARALLEL))
                 .setNumTasks(getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(INDEXING_BOLT, new ShuffleGrouping());

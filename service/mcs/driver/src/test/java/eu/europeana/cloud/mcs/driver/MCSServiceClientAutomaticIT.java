@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static eu.europeana.cloud.mcs.driver.Config.*;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -86,14 +85,12 @@ public class MCSServiceClientAutomaticIT {
 
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     public void shouldNotCreateEmptyRepresentationIfUserHasNotRightsToDataset() throws MCSException {
-        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID,
-                AUTHORIZATION, OTHER_USER_AUTHORIZATION_HEADER);
+        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
     }
 
     @Test
     public void shouldCreateEmptyRepresentationForGivenVersion() throws MCSException {
-        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, VERSION, DATASET_ID,
-                AUTHORIZATION, ECLOUD_AUTHORIZATION_HEADER);
+        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, VERSION, DATASET_ID);
 
         List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
         assertEquals(1, createdRepresentations.size());
@@ -114,14 +111,12 @@ public class MCSServiceClientAutomaticIT {
 
     @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
     public void shouldNotCreateEmptyRepresentationWithFileIfUserHasNotRightsToDataset() throws MCSException, IOException {
-        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME, FILE_MEDIA_TYPE,
-                AUTHORIZATION, OTHER_USER_AUTHORIZATION_HEADER);
+        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME, FILE_MEDIA_TYPE);
     }
 
     @Test
     public void shouldCreateEmptyRepresentationWithNamedFile() throws MCSException, IOException {
-        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME, FILE_MEDIA_TYPE,
-                AUTHORIZATION, ECLOUD_AUTHORIZATION_HEADER);
+        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME, FILE_MEDIA_TYPE);
 
         List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
         assertEquals(1, createdRepresentations.size());
@@ -131,7 +126,7 @@ public class MCSServiceClientAutomaticIT {
     @Test
     public void shouldCreateEmptyRepresentationWithNamedFileForGivenVersion() throws MCSException, IOException {
         recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, VERSION, DATASET_ID,
-                fileData, FILE_NAME, FILE_MEDIA_TYPE, AUTHORIZATION, ECLOUD_AUTHORIZATION_HEADER);
+                fileData, FILE_NAME, FILE_MEDIA_TYPE);
 
         List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
         assertEquals(1, createdRepresentations.size());
@@ -144,16 +139,14 @@ public class MCSServiceClientAutomaticIT {
     public void shouldProperlyChangeDataSetPermissionsForUser() throws MCSException {
         dataSetServiceClient.updateDataSetPermissionsForUser(PROVIDER, DATASET_ID, Permission.WRITE, OTHER_USER);
 
-        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID,
-                AUTHORIZATION, OTHER_USER_AUTHORIZATION_HEADER);
+        recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
 
         assertEquals(1, recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME).size());
 
         dataSetServiceClient.removeDataSetPermissionsForUser(PROVIDER, DATASET_ID, Permission.WRITE, OTHER_USER);
 
         try {
-            recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID,
-                    AUTHORIZATION, OTHER_USER_AUTHORIZATION_HEADER);
+            recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
             fail("Should not create revision!");
         } catch (AccessDeniedOrObjectDoesNotExistException e) {
             //OK

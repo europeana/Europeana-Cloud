@@ -38,15 +38,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
     private final String ecloudMcsAddress;
+    private final String topologyUserName;
+    private final String topologyUserPassword;
     protected transient RecordServiceClient recordServiceClient;
 
-    public WriteRecordBolt(String ecloudMcsAddress) {
+    public WriteRecordBolt(String ecloudMcsAddress, String topologyUserName, String topologyUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.topologyUserName = topologyUserName;
+        this.topologyUserPassword = topologyUserPassword;
     }
 
     @Override
     public void prepare() {
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
     }
 
     @Override
@@ -81,8 +85,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         return RetryableMethodExecutor.executeOnRest("Error while getting provider id", () ->
                 recordServiceClient.getRepresentation(stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID),
                         stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
-                        stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION),
-                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+                        stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION)));
     }
 
     private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
@@ -116,21 +119,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
         if(stormTaskTuple.isMarkedAsDeleted()){
-            return createRepresentation(stormTaskTuple, writeParams);
+            return createRepresentation(writeParams);
         }else {
             return createRepresentationAndUploadFile(stormTaskTuple, writeParams);
         }
     }
 
-    private URI createRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
+    private URI createRepresentation(RecordWriteParams writeParams) throws Exception {
         LOGGER.debug("Creating empty representation for tuple that is marked as deleted");
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
                         writeParams.getProviderId(),
                         writeParams.getNewVersion(),
-                        writeParams.getDataSetId(),
-                        AUTHORIZATION,
-                        stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+                        writeParams.getDataSetId()));
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
@@ -142,8 +143,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
                         writeParams.getDataSetId(),
                         stormTaskTuple.getFileByteDataAsStream(),
                         writeParams.getNewFileName(),
-                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE),
-                        AUTHORIZATION, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)));
+                        TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE)));
     }
 
     protected UUID generateNewVersionId(StormTaskTuple tuple) {

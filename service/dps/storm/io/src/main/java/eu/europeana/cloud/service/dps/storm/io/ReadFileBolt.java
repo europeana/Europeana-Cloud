@@ -32,15 +32,19 @@ public class ReadFileBolt extends AbstractDpsBolt {
      * Properties to connect to eCloud
      */
     private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
     protected transient FileServiceClient fileClient;
 
-    public ReadFileBolt(String ecloudMcsAddress) {
+    public ReadFileBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
     public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress);
+        fileClient = new FileServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override
@@ -62,9 +66,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private InputStream getFile(FileServiceClient fileClient, String file, String authorization) throws Exception {
+    private InputStream getFile(FileServiceClient fileClient, String file) throws Exception {
         return RetryableMethodExecutor.executeOnRest("Error while getting a file", () ->
-                fileClient.getFile(file, AUTHORIZATION, authorization));
+                fileClient.getFile(file));
     }
 
     protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
@@ -72,7 +76,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
         final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
         LOGGER.info("Downloading the following file: {}", file);
         stormTaskTuple.setFileUrl(file);
-        InputStream downloadedFile = getFile(fileClient, file, stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+        InputStream downloadedFile = getFile(fileClient, file);
         LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
         return downloadedFile;
     }

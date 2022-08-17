@@ -12,8 +12,10 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
 
     private ThrottlingTupleGroupSelector generator;
 
-    public ParseFileForMediaBolt(String ecloudMcsAddress) {
-        super(ecloudMcsAddress);
+    public ParseFileForMediaBolt(String ecloudMcsAddress,
+                                 String ecloudMcsUser,
+                                 String ecloudMcsUserPassword) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {

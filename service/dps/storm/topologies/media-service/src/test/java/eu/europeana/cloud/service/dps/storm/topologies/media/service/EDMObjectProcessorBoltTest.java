@@ -55,7 +55,7 @@ public class EDMObjectProcessorBoltTest {
     private final AmazonClient amazonClient = Mockito.mock(AmazonClient.class);
 
     @InjectMocks
-    private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt("MCS_URL", amazonClient);
+    private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt("MCS_URL", "user", "password", amazonClient);
 
     @Before
     public void init() throws MediaProcessorException {
@@ -69,10 +69,9 @@ public class EDMObjectProcessorBoltTest {
     public void shouldDoProperEmissionInCaseOfFileWithSingleResource() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
-            when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
+            when(fileClient.getFile(anyString())).thenReturn(stream);
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -96,12 +95,11 @@ public class EDMObjectProcessorBoltTest {
     public void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForSingleResourceFile() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
-            when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
+            when(fileClient.getFile(anyString())).thenReturn(stream);
             doThrow(MediaExtractionException.class).when(mediaExtractor).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -126,12 +124,11 @@ public class EDMObjectProcessorBoltTest {
     public void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForTwoResourcesFile() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
-            when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
+            when(fileClient.getFile(anyString())).thenReturn(stream);
             doThrow(MediaExtractionException.class).when(mediaExtractor).performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -155,13 +152,12 @@ public class EDMObjectProcessorBoltTest {
     public void shouldDoProperEmissionInCaseOfFileContainingNoMainThumbnailResource() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
-            when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
+            when(fileClient.getFile(anyString())).thenReturn(stream);
 
             doReturn(null).when(rdfDeserializer).getMainThumbnailResourceForMediaExtraction(any(byte[].class));
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -181,13 +177,12 @@ public class EDMObjectProcessorBoltTest {
     public void shouldDoProperEmissionWhileThumbnailStoringFailure() throws Exception {
         //given
         try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
-            when(fileClient.getFile(anyString(), anyString(), anyString())).thenReturn(stream);
+            when(fileClient.getFile(anyString())).thenReturn(stream);
 
             when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(new RuntimeException());
 
             StormTaskTuple tuple = new StormTaskTuple();
             tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
-            tuple.addParameter(PluginParameterKeys.AUTHORIZATION_HEADER, "sample_auth");
             //
             Tuple anchorTuple = mock(TupleImpl.class);
 

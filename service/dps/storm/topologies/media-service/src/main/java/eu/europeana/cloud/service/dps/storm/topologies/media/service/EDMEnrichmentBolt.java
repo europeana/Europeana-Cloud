@@ -23,7 +23,10 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
     public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
@@ -38,8 +41,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private transient RdfDeserializer deserializer;
     private transient RdfSerializer rdfSerializer;
 
-    public EDMEnrichmentBolt(String mcsURL) {
-        super(mcsURL);
+    public EDMEnrichmentBolt(String mcsURL,
+                             String ecloudMcsUser,
+                             String ecloudMcsUserPassword) {
+        super(mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override
@@ -176,7 +181,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
-        for (Tuple tuple : enrichedFile.sourceTupples) {
+        for (Tuple tuple : enrichedFile.sourceTuples) {
             outputCollector.ack(tuple);
         }
     }
@@ -186,7 +191,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
-        private List<Tuple> sourceTupples = new ArrayList<>();
+        private final List<Tuple> sourceTuples = new ArrayList<>();
 
         public TempEnrichedFile() {
             count = 0;
@@ -222,7 +227,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public void addSourceTuple(Tuple anchorTuple) {
-            sourceTupples.add(anchorTuple);
+            sourceTuples.add(anchorTuple);
         }
 
         public Long getTaskId() {

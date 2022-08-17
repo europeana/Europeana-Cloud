@@ -30,10 +30,14 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected transient RevisionServiceClient revisionsClient;
 
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
 
-    public RevisionWriterBolt(String ecloudMcsAddress) {
+    public RevisionWriterBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
@@ -114,20 +118,19 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                 revisionToBeApplied.setDeleted(true);
             }
 
-            addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+            addRevision(urlParser, revisionToBeApplied);
         } else {
             LOGGER.info("Revisions list is empty");
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied, String authenticationHeader) throws MCSException {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied) throws MCSException {
         RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
                         urlParser.getPart(UrlPart.VERSIONS),
-                        revisionToBeApplied,
-                        AUTHORIZATION, authenticationHeader)
+                        revisionToBeApplied)
         );
     }
 
@@ -136,7 +139,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         if(ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
         }
-        revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+        revisionsClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override

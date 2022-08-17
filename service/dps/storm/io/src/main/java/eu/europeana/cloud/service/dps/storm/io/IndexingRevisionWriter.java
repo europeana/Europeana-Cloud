@@ -19,8 +19,12 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
 
     private final String successNotificationMessage;
 
-    public IndexingRevisionWriter(String ecloudMcsAddress, String successNotificationMessage) {
-        super(ecloudMcsAddress);
+    public IndexingRevisionWriter(
+            String ecloudMcsAddress,
+            String ecloudMcsUser,
+            String ecloudMcsUserPassword,
+            String successNotificationMessage) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
         this.successNotificationMessage = successNotificationMessage;
     }
 
@@ -47,7 +51,6 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
         NotificationTuple nt = NotificationTuple.prepareIndexingNotification(
                 stormTaskTuple.getTaskId(),
                 stormTaskTuple.isMarkedAsDeleted(),
-                stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER),
                 stormTaskTuple.getFileUrl(),
                 RecordState.SUCCESS,
                 successNotificationMessage,

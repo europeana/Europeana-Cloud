@@ -28,8 +28,10 @@ public abstract class ParseFileBolt extends ReadFileBolt {
     private transient Gson gson;
     protected transient RdfDeserializer rdfDeserializer;
 
-    public ParseFileBolt(String ecloudMcsAddress) {
-        super(ecloudMcsAddress);
+    public ParseFileBolt(String ecloudMcsAddress,
+                         String ecloudMcsUser,
+                         String ecloudMcsUserPassword) {
+        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     protected abstract List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException;

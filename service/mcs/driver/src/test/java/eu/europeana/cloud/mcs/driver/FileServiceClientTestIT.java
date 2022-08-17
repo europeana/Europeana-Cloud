@@ -37,8 +37,7 @@ public class FileServiceClientTestIT {
         String fileUrlText = "http://localhost:8080/mcs/<enter_path_to_file_here>";
 
         FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL);
-        InputStream resultInputStream = mcsClient.getFile(fileUrlText,
-                MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+        InputStream resultInputStream = mcsClient.getFile(fileUrlText);
 
         assertNotNull(resultInputStream);
     }

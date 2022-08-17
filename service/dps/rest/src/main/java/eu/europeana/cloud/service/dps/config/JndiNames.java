@@ -27,4 +27,6 @@ public class JndiNames {
     public static final String JNDI_KEY_UIS_LOCATION = "/dps/uisLocation";
     public static final String JNDI_KEY_APPLICATION_ID = "/dps/appId";
     public static final String JNDI_KEY_MACHINE_LOCATION = "/dps/machineLocation";
+    public static final String JNDI_KEY_TOPOLOGY_USER = "/dps/topology/user";
+    public static final String JNDI_KEY_TOPOLOGY_USER_PASSWORD = "/dps/topology/password";
 }

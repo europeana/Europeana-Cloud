@@ -223,7 +223,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public MCSTaskSubmitter mcsTaskSubmitter() {
-        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation());
+        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
@@ -256,22 +258,34 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public UISClient uisClient() {
-        return new UISClient(uisLocation());
+        return new UISClient(
+                uisLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public DataSetServiceClient dataSetServiceClient() {
-        return new DataSetServiceClient(mcsLocation());
+        return new DataSetServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public RecordServiceClient recordServiceClient() {
-        return new RecordServiceClient(mcsLocation());
+        return new RecordServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public RevisionServiceClient revisionServiceClient() {
-        return new RevisionServiceClient(mcsLocation());
+        return new RevisionServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean

@@ -41,7 +41,6 @@ public class XsltBoltTest {
     private final String sampleXsltFileName = "sample_xslt.xslt";
 
     private final String injectXmlFileName = "/xmlForTestingParamInjection.xml";
-    private final String injectNodeXsltFileName = "inject_node.xslt";
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -59,22 +58,21 @@ public class XsltBoltTest {
     @Test
     public void executeBolt() throws IOException {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(sampleXsltFileName), new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), prepareStormTaskTupleParameters(), new Revision());
         xsltBolt.execute(anchorTuple, tuple);
         when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 5);
+        assertEmittedTuple(allValues, 4);
     }
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
 
-    private HashMap<String, String> prepareStormTaskTupleParameters(String xsltFile) {
+    private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest-test.eanadev.org/datasets/xslt/default");
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         return parameters;
@@ -113,14 +111,12 @@ public class XsltBoltTest {
         String version = parameters.get(PluginParameterKeys.REPRESENTATION_VERSION);
         assertNotNull(version);
         assertEquals(version, SOURCE + VERSION);
-        String authorizationHeader = parameters.get(PluginParameterKeys.AUTHORIZATION_HEADER);
-        assertNotNull(authorizationHeader);
     }
 
     @Test
     public void executeBoltWithInjection() throws IOException {
         Tuple anchorTuple = mock(TupleImpl.class);
-        HashMap<String, String> parameters = prepareStormTaskTupleParameters(injectNodeXsltFileName);
+        HashMap<String, String> parameters = prepareStormTaskTupleParameters();
         parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
 
         StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), parameters, new Revision());
@@ -129,7 +125,7 @@ public class XsltBoltTest {
         verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         List<Values> allValues = captor.getAllValues();
-        assertEmittedTuple(allValues, 5);
+        assertEmittedTuple(allValues, 4);
 
         String transformed = new String((byte[]) allValues.get(0).get(3));
         assertNotNull(transformed);

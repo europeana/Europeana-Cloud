@@ -2,6 +2,7 @@ package eu.europeana.aas.acl;
 
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,9 +47,9 @@ public class TestContextConfiguration {
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
         return new AclAuthorizationStrategyImpl(
-                new SimpleGrantedAuthority("ROLE_ADMIN"),
-                new SimpleGrantedAuthority("ROLE_ADMIN"),
-                new SimpleGrantedAuthority("ROLE_ADMIN")
+                new SimpleGrantedAuthority(Role.ADMIN),
+                new SimpleGrantedAuthority(Role.ADMIN),
+                new SimpleGrantedAuthority(Role.ADMIN)
         );
     }
 }

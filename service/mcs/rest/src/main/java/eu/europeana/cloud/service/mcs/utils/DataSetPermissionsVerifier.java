@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Permission;
-import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -11,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,27 +30,27 @@ public class DataSetPermissionsVerifier {
     }
 
     public boolean isUserAllowedToDelete(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasDeletePermissionFor(representation);
+        return isPrivilegedUser() || hasDeletePermissionFor(representation);
     }
 
     public boolean isUserAllowedToPersistRepresentation(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasWritePermissionFor(representation);
+        return isPrivilegedUser() || hasWritePermissionFor(representation);
     }
 
     public boolean isUserAllowedToDeleteFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasDeletePermissionFor(representation);
+        return isPrivilegedUser() || hasDeletePermissionFor(representation);
     }
 
     public boolean isUserAllowedToUploadFileFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasWritePermissionFor(representation);
+        return isPrivilegedUser() ||hasWritePermissionFor(representation);
     }
 
     public boolean isUserAllowedToAddRevisionTo(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasWritePermissionFor(representation);
+        return isPrivilegedUser() || hasWritePermissionFor(representation);
     }
 
     public boolean isUserAllowedToDeleteRevisionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
-        return this.hasDeletePermissionFor(representation);
+        return isPrivilegedUser() || hasDeletePermissionFor(representation);
     }
 
     public boolean hasReadPermissionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
@@ -65,6 +63,14 @@ public class DataSetPermissionsVerifier {
 
     public boolean hasDeletePermissionFor(Representation representation) throws RepresentationNotExistsException, DataSetAssignmentException {
         return hasPermissionFor(representation, Permission.DELETE);
+    }
+
+    private boolean isPrivilegedUser() {
+        SecurityContext ctx = SecurityContextHolder.getContext();
+        Authentication authentication = ctx.getAuthentication();
+        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.ADMIN))
+                ||
+                authentication.getAuthorities().contains(new SimpleGrantedAuthority(Role.EXECUTOR));
     }
 
     private boolean hasPermissionFor(Representation representation, Permission permission) throws DataSetAssignmentException, RepresentationNotExistsException {

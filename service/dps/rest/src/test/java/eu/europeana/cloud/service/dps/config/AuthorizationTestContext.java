@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.config;
 import eu.europeana.aas.acl.CassandraMutableAclService;
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
@@ -77,7 +78,7 @@ public class AuthorizationTestContext {
 
     @Bean
     public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority("ROLE_ADMIN");
+        return new SimpleGrantedAuthority(Role.ADMIN);
     }
 
 

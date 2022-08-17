@@ -15,6 +15,7 @@
 package eu.europeana.aas.acl;
 
 import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.cloud.common.model.Role;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
 	private static final String sid2 = "sid2@system";
 	private static final String aoi_id = "123";
 	private static final String aoi_class = "a.b.c.Class";
-	private static final String ROLE_ADMIN = "ROLE_ADMIN";
+	private static final String ROLE_ADMIN = Role.ADMIN;
 
 	@Autowired
 	private CassandraMutableAclService service;

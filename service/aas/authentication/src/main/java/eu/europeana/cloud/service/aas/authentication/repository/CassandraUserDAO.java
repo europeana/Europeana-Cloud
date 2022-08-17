@@ -7,6 +7,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
 import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
@@ -31,7 +32,7 @@ public class CassandraUserDAO {
      * Default roles for all users of ecloud (that don't have admin, or other
      * superpowers)
      */
-    private static final Set<String> DEFAULT_USER_ROLES = Set.of("ROLE_USER");
+    private static final Set<String> DEFAULT_USER_ROLES = Set.of(Role.USER);
     @Qualifier("dbService")
     private final CassandraConnectionProvider provider;
     private PreparedStatement selectUserStatement;
