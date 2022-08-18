@@ -203,11 +203,11 @@ public class DataProviderAATest extends AbstractSecurityTest {
 	 * well.
 	 */
 	@Test
-	public void shouldBeAbleToPerformUpdateIfHeIsTheOwner()
+	public void shouldBeAbleToPerformUpdateIfHeIsAnAdmin()
 			throws ProviderDoesNotExistException,
 			ProviderAlreadyExistsException, URISyntaxException {
 
-		login(RANDOM_PERSON, RANDOM_PASSWORD);
+		login(ADMIN, ADMIN_PASSWORD);
 		dataProvidersResource.createProvider(mockHttpServletRequest(), DATA_PROVIDER_PROPERTIES,
 				PROVIDER_ID);
 		dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
