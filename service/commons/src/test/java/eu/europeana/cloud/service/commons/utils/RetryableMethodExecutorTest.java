@@ -24,6 +24,10 @@ public class RetryableMethodExecutorTest {
     @Spy
     public TestDaoWithRetry testDao=new TestDaoWithRetry();
 
+    @Spy
+    public TestDaoWithClassLevelRetry testDao2=new TestDaoWithClassLevelRetry();
+
+
     @Mock
     RetryableMethodExecutor.GenericCallable<String, IOException> call;
 
@@ -100,5 +104,31 @@ public class RetryableMethodExecutorTest {
         }
 
         Mockito.verify(testDao, Mockito.times(1)).noRetryableMethod();
+    }
+
+    @Test
+    public void shouldRetryOnErrorClassWithRetryAnnotationWhenExecutedByProxy()  {
+
+        TestDaoWithClassLevelRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao2);
+        try {
+            retryableDao.methodWithoutRetryableAnnotation();
+            fail();
+        }catch(TestRuntimeExpection e){
+        }
+
+        Mockito.verify(testDao2, Mockito.times(3)).methodWithoutRetryableAnnotation();
+    }
+
+    @Test
+    public void shouldUseOverridedMethodSettingsOnErrorClassWithRetryAnnotationWhenExecutedByProxy()  {
+
+        TestDaoWithClassLevelRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao2);
+        try {
+            retryableDao.methodWithOverridedRetryableAnnotation();
+            fail();
+        }catch(TestRuntimeExpection e){
+        }
+
+        Mockito.verify(testDao2, Mockito.times(1)).methodWithOverridedRetryableAnnotation();
     }
 }
