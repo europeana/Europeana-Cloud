@@ -71,21 +71,31 @@ public class RetryableMethodExecutor {
     }
 
     @SuppressWarnings("java:S3011") //for execution: method.setAccessible(true)
-    static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
-        Retryable retryAnnotation = method.getAnnotation(Retryable.class);
+    private static <T> Object retryFromAnnotation(T target, Method method, Object[] args) throws Throwable {
+        Retryable retryAnnotation = getRetryAnnotation(method);
         if (retryAnnotation != null) {
             return execute(createMessage(method, retryAnnotation, args), retryAnnotation.maxAttempts(), retryAnnotation.delay(),
                     () -> invokeWithThrowingOriginalException(target, method, args)
             );
         } else {
-            if (!Modifier.isPublic(method.getModifiers())) {
-                //We need to set accessibility for wrapped package scope methods, which are accessible from proxy class,
-                // and could be wrapped with retry mechanism, but are not accessible here.
-                method.setAccessible(true);
-            }
-            return invokeWithThrowingOriginalException(target, method, args);
+            return executeWithoutRetry(target, method, args);
         }
     }
+
+    private static Retryable getRetryAnnotation(Method method) {
+        return Optional.ofNullable(method.getAnnotation(Retryable.class))
+                .orElse(method.getDeclaringClass().getAnnotation(Retryable.class));
+    }
+
+    private static <T> Object executeWithoutRetry(T target, Method method, Object[] args) throws Throwable {
+        if (!Modifier.isPublic(method.getModifiers())) {
+            //We need to set accessibility for wrapped package scope methods, which are accessible from proxy class,
+            // and could be wrapped with retry mechanism, but are not accessible here.
+            method.setAccessible(true);
+        }
+        return invokeWithThrowingOriginalException(target, method, args);
+    }
+
 
     @SuppressWarnings("java:S112")
     //Suppress for "throws Throwable" - we need to support every Throwable here, because it is general solution used
