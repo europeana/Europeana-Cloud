@@ -135,7 +135,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
 
     protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
-        LOGGER.debug("Creating new representation");
+        LOGGER.debug("Creating new representation with the following params {}", writeParams);
         return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
                 recordServiceClient.createRepresentation(
                         writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),

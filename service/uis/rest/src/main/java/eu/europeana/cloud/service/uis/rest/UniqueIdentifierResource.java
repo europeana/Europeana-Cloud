@@ -79,15 +79,6 @@ public class UniqueIdentifierResource {
         final CloudId cId = (recordId != null) ? (uniqueIdentifierService.createCloudId(providerId, recordId))
                 : (uniqueIdentifierService.createCloudId(providerId));
 
-        // CloudId created => let's assign permissions to the owner
-        String creatorName = SpringUserUtils.getUsername();
-
-        if (creatorName != null) {
-            ObjectIdentity cloudIdIdentity = new ObjectIdentityImpl(CLOUD_ID_CLASS_NAME, cId.getId());
-            MutableAcl cloudIdAcl = aclWrapper.createOrUpdateAcl(creatorName, cloudIdIdentity);
-            aclWrapper.updateAcl(cloudIdAcl);
-        }
-        dataProviderResource.grantPermissionsToLocalId(cId, providerId);
         return ResponseEntity.ok(cId);
     }
 

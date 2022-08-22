@@ -45,25 +45,23 @@ public class FileUploadResource {
     /**
      * 
      * Creates representation, uploads file and persists this representation in one request
-     * @param httpServletRequest
      * @param cloudId      cloudId
      * @param representationName        representation name
      * @param fileName      file name
      * @param providerId    providerId
      * @param mimeType      mimeType of uploaded file
      * @param data          uploaded file content
-     * @return
+     * @return result of the operation. Usually it is OK containing created file location but maybe also exception.
      * @throws RepresentationNotExistsException
      * @throws CannotModifyPersistentRepresentationException
      * @throws RecordNotExistsException
      * @throws ProviderNotExistsException
-     * @throws FileAlreadyExistsException
      * @throws CannotPersistEmptyRepresentationException
      * 
-     * @summary Upload file for non existing representation
+     * @summary Upload file for non-existing representation
      */
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+    @PreAuthorize("hasRole('ROLE_EXECUTOR') OR  hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,

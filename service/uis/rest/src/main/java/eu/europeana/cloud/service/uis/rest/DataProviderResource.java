@@ -145,20 +145,8 @@ public class DataProviderResource {
         } else {
             result = uniqueIdentifierService.createIdMapping(cloudId, providerId);
         }
-        grantPermissionsToLocalId(result, providerId);
 
         return ResponseEntity.ok(result);
     }
 
-
-    protected void grantPermissionsToLocalId(CloudId result, String providerId)
-            throws NotFoundException, AlreadyExistsException {
-        String creatorName = SpringUserUtils.getUsername();
-        String key = result.getLocalId().getRecordId() + "/" + providerId;
-        if (creatorName != null) {
-            ObjectIdentity providerIdentity = new ObjectIdentityImpl(LOCAL_ID_CLASS_NAME, key);
-            MutableAcl providerAcl = aclWrapper.createOrUpdateAcl(creatorName, providerIdentity);
-            aclWrapper.updateAcl(providerAcl);
-        }
-    }
 }
