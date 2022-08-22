@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -53,17 +54,21 @@ public class ReadFileBolt extends AbstractDpsBolt {
         try (InputStream is = getFileStreamByStormTuple(t)) {
             t.setFileData(is);
             outputCollector.emit(anchorTuple, t.toStormTuple());
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (RepresentationNotExistsException | FileNotExistsException |
-                WrongContentRangeException ex) {
+                 WrongContentRangeException ex) {
             LOGGER.warn("Can not retrieve file at {}", file);
             emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, "Can not retrieve file",
                     "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
+            outputCollector.ack(anchorTuple);
         } catch (Exception ex) {
             LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
             emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, ex.getMessage(),
                     "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private InputStream getFile(FileServiceClient fileClient, String file) throws Exception {

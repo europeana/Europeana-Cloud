@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -64,6 +65,10 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
             prepareEmittedTuple(stormTaskTuple, uri.toString());
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
+            LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e,anchorTuple);
         } catch (Exception e) {
             LOGGER.warn("Unable to process the message", e);
             StringWriter stack = new StringWriter();
@@ -71,9 +76,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getFileUrl(), "Cannot process data because: " + e.getMessage(), stack.toString(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
-        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 
     private String getProviderId(StormTaskTuple stormTaskTuple) throws MCSException {

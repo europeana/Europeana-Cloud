@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
@@ -70,14 +71,17 @@ public abstract class ParseFileBolt extends ReadFileBolt {
                     outputCollector.emit(anchorTuple, tuple.toStormTuple());
                 }
             }
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (Exception e) {
             LOGGER.error("Unable to read and parse file ", e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getFileUrl(), e.getMessage(),
                     "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
         LOGGER.info("File parsing finished in: {}ms", Clock.millisecondsSince(processingStartTime));
     }
 

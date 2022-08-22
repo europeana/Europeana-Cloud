@@ -3,6 +3,9 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheBuilder;
@@ -75,6 +78,10 @@ public class NotificationBolt extends BaseRichBolt {
             NotificationHandlerConfig notificationHandlerConfig =
                     NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(notificationTuple, cachedCounters);
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
+            outputCollector.ack(tuple);
+        } catch (RetryInterruptedException ex) {
+            LOGGER.error("Notification interrupted: {}", ex.getMessage(), ex);
+            outputCollector.fail(tuple);
         } catch (Exception ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
             batchExecutor.executeAll(
@@ -82,8 +89,8 @@ public class NotificationBolt extends BaseRichBolt {
                             notificationTuple,
                             TaskState.DROPPED,
                             ex.getMessage()));
-        } finally {
             outputCollector.ack(tuple);
+        } finally {
             clearDiagnosticContext();
         }
     }

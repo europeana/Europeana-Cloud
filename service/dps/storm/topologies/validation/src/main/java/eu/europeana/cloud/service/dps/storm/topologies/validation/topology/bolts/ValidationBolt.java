@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -34,14 +35,17 @@ public class ValidationBolt extends AbstractDpsBolt {
         try {
             reorderFileContent(stormTaskTuple);
             validateFileAndEmit(anchorTuple, stormTaskTuple);
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e,anchorTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getFileUrl(), e.getMessage(),
                     "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
