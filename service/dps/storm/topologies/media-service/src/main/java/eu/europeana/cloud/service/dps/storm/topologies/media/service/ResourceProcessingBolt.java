@@ -52,18 +52,17 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         try {
             RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY), RdfResourceEntry.class);
             LOGGER.info("The following resource will be processed: {}", rdfResourceEntry);
-            if (rdfResourceEntry == null) {
-                return;
-            }
-            LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
+            if (rdfResourceEntry != null) {
+                LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
 
-            ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
+                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
 
-            if (resourceExtractionResult != null) {
-                LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
-                if (resourceExtractionResult.getMetadata() != null)
-                    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
-                storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+                if (resourceExtractionResult != null) {
+                    LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
+                    if (resourceExtractionResult.getMetadata() != null)
+                        stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, gson.toJson(resourceExtractionResult.getMetadata()));
+                    storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+                }
             }
         } catch (RetryInterruptedException e) {
             handleInterruption(e, anchorTuple);
