@@ -63,6 +63,7 @@ public class LocalIdDAO {
         }
     }
 
+    @Retryable
     public CloudId insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
             dbService.getSession().execute(bindInsertStatement(providerId, recordId, cloudId));
