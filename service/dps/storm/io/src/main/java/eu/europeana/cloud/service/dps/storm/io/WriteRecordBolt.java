@@ -51,6 +51,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
+        LOGGER.debug("Preparing MCS client with the following params url={} user={}", ecloudMcsAddress, topologyUserName);
         recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
     }
 

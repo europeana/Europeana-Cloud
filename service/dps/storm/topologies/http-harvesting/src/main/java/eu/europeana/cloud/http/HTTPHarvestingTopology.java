@@ -50,9 +50,9 @@ public class HTTPHarvestingTopology {
 
         WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
                 ecloudMcsAddress,
+                uisAddress,
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-                uisAddress);
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
         RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
                 ecloudMcsAddress,
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),
