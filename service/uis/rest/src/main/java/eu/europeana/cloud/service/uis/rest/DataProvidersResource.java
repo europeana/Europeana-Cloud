@@ -27,16 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 public class DataProvidersResource {
 
     private final DataProviderService providerService;
-	private final ACLServiceWrapper aclWrapper;
-
 	private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
-	private static final String DATA_PROVIDER_CLASS_NAME = DataProvider.class.getName();
 
-	public DataProvidersResource(
-			DataProviderService providerService,
-			ACLServiceWrapper aclWrapper) {
+	public DataProvidersResource(DataProviderService providerService) {
 		this.providerService = providerService;
-		this.aclWrapper = aclWrapper;
 	}
     /**
      * Lists all providers stored in eCloud. Result is returned in slices.
@@ -66,26 +60,15 @@ public class DataProvidersResource {
      *             provider already exists.
      * @statuscode 201 new provider has been created.
 	 * @statuscode 400 request body cannot be is empty
-     */
+	 */
 	@PostMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	@PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> createProvider(HttpServletRequest servletRequest,
-                                                 @RequestBody DataProviderProperties dataProviderProperties,
-                                                 @RequestParam String providerId) throws ProviderAlreadyExistsException {
-	DataProvider provider = providerService.createProvider(providerId,
-		dataProviderProperties);
-	EnrichUriUtil.enrich(servletRequest, provider);
-
-	// provider created => let's assign permissions to the owner
-	String creatorName = SpringUserUtils.getUsername();
-	if (creatorName != null) {
-	    ObjectIdentity providerIdentity = new ObjectIdentityImpl(
-		    DATA_PROVIDER_CLASS_NAME, providerId);
-
-	    MutableAcl providerAcl = aclWrapper.createAcl(creatorName, providerIdentity);
-	    aclWrapper.updateAcl(providerAcl);
+	public ResponseEntity<String> createProvider(HttpServletRequest servletRequest,
+												 @RequestBody DataProviderProperties dataProviderProperties,
+												 @RequestParam String providerId) throws ProviderAlreadyExistsException {
+		DataProvider provider = providerService.createProvider(providerId,
+				dataProviderProperties);
+		EnrichUriUtil.enrich(servletRequest, provider);
+		return ResponseEntity.created(provider.getUri()).build();
 	}
-
-	return ResponseEntity.created(provider.getUri()).build();
-    }
 }
