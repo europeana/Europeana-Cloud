@@ -23,11 +23,11 @@ public class StatisticsAccumulatorTest {
         statisticsAccumulator.process(getLine(TASK_2_ID, true, 2, "op1"));
         statisticsAccumulator.process(getLine(TASK_2_ID, false, 3, "op1"));
 
-        assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMin());
+        assertEquals(0, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMin());
         assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMax());
         assertEquals(1f, statisticsAccumulator.toStatistics().get(TASK_1_ID).getAvg(), 0);
 
-        assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_2_ID).getMin());
+        assertEquals(0, statisticsAccumulator.toStatistics().get(TASK_2_ID).getMin());
         assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_2_ID).getMax());
         assertEquals(1f, statisticsAccumulator.toStatistics().get(TASK_2_ID).getAvg(), 0);
 
@@ -53,13 +53,13 @@ public class StatisticsAccumulatorTest {
         statisticsAccumulator.process(getLine(TASK_2_ID, false, 3, "op2"));
 
 
-        assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMin());
+        assertEquals(0, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMin());
         assertEquals(3, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMax());
         assertEquals(2f, statisticsAccumulator.toStatistics().get(TASK_1_ID).getAvg(), 0);
 
-        assertEquals(1, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMin());
-        assertEquals(3, statisticsAccumulator.toStatistics().get(TASK_1_ID).getMax());
-        assertEquals(2f, statisticsAccumulator.toStatistics().get(TASK_1_ID).getAvg(), 0);
+        assertEquals(0, statisticsAccumulator.toStatistics().get(TASK_2_ID).getMin());
+        assertEquals(3, statisticsAccumulator.toStatistics().get(TASK_2_ID).getMax());
+        assertEquals(2f, statisticsAccumulator.toStatistics().get(TASK_2_ID).getAvg(), 0);
 
         LOG.info(statisticsAccumulator.toStatistics().get(TASK_1_ID).toString());
         LOG.info(statisticsAccumulator.toStatistics().get(TASK_2_ID).toString());

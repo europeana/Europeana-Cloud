@@ -221,7 +221,7 @@ public class TaskStatisticsAccumulatorTest {
         taskStatisticsAccumulator.process(getLine(false, 4, "c"));
         taskStatisticsAccumulator.process(getLine(false, 4, "a"));
 
-        assertEquals(2, taskStatisticsAccumulator.toStatistics().getMin());
+        assertEquals(0, taskStatisticsAccumulator.toStatistics().getMin());
         assertEquals(2, taskStatisticsAccumulator.toStatistics().getMax());
         assertEquals(2f, taskStatisticsAccumulator.toStatistics().getAvg(), 0);
 
