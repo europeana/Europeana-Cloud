@@ -96,7 +96,7 @@ public class RepresentationResource {
 	 * @statuscode 201 object has been created.
 	 */
 	@PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-	@PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+	@PreAuthorize("hasRole('ROLE_EXECUTOR') OR hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
 	public ResponseEntity<Void> createRepresentation(
 			HttpServletRequest httpServletRequest,
 			@PathVariable String cloudId,
