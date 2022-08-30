@@ -38,5 +38,5 @@ RUN rm /usr/local/tomcat/webapps/mcs/ecloud-service-mcs-rest-*.war
 ADD service/dps/rest/target/services /usr/local/tomcat/webapps/services
 
 #setting java memory params
-ENV CATALINA_OPTS -Xmx1024m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.port=8012 -Dcom.sun.management.jmxremote.rmi.port=8012 -Djava.rmi.server.hostname=127.0.0.1
+ENV CATALINA_OPTS -Xmx1024m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$CATALINA_HOME/logs/tomcat_started_at_$(date "+%Y_%m_%d__%H_%M_%S").hprof -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.port=8012 -Dcom.sun.management.jmxremote.rmi.port=8012 -Djava.rmi.server.hostname=127.0.0.1
 EXPOSE 8012/tcp
