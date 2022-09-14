@@ -76,9 +76,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RecordExecutionSubmitService recordKafkaSubmitService() {
-        return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                taskStatusUpdater());
+        return new RecordKafkaSubmitService(environment.getProperty(JNDI_KEY_KAFKA_BROKER));
     }
 
     @Bean

@@ -37,6 +37,9 @@ public class RetryableMethodExecutor {
         while (true) {
             try {
                 return callable.call();
+            } catch (InterruptedException e)  {
+                Thread.currentThread().interrupt();
+                throw new RetryInterruptedException(e);
             } catch (Exception e) {
                 if (--maxAttempts > 0) {
                     LOGGER.warn("{} - {} Retries Left {} ", errorMessage, e.getMessage(), maxAttempts, e);
@@ -124,6 +127,6 @@ public class RetryableMethodExecutor {
     }
 
     public interface GenericCallable<V, E extends Throwable> {
-        V call() throws E;
+        V call() throws E, InterruptedException;
     }
 }
