@@ -268,7 +268,7 @@ public class CassandraDataSetDAO {
      * @param limit      maximum size of returned list
      * @return
      */
-    @Retryable
+    @Retryable //NEXT_TOKEN_BUCKETS_READ_RECURSIVE
     public List<Properties> listDataSet(String providerId, String dataSetId, String nextToken, int limit)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -361,6 +361,7 @@ public class CassandraDataSetDAO {
      * @param version    representation version (might be null if newest version is to
      *                   be assigned)
      */
+    //BUCKET_MULTI_TABLE_WRITE
     public void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -396,7 +397,7 @@ public class CassandraDataSetDAO {
      * @param version  representation version (might be null)
      * @return list of data set ids
      */
-    @Retryable
+    @Retryable //OK
     public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -420,7 +421,7 @@ public class CassandraDataSetDAO {
      * @param schemaId representation schema
      * @return one dataset
      */
-    @Retryable
+    @Retryable //OK
     public Optional<CompoundDataSetId> getOneDataSetFor(String cloudId, String schemaId)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -446,7 +447,7 @@ public class CassandraDataSetDAO {
      * @param version  representation version
      * @return list of data set ids
      */
-    @Retryable
+    @Retryable //UNIFY_DIFF_EXCEPTION
     public Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
             throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
 
@@ -466,7 +467,7 @@ public class CassandraDataSetDAO {
      * @param dataSetId  data set id
      * @return data set
      */
-    @Retryable
+    @Retryable //OK
     public DataSet getDataSet(String providerId, String dataSetId) throws NoHostAvailableException, QueryExecutionException {
 
         BoundStatement boundStatement = getDataSetStatement.bind(providerId, dataSetId);
@@ -491,6 +492,7 @@ public class CassandraDataSetDAO {
      * @param recordId   record's id
      * @param schema     representation's schema
      */
+    //BUCKET_MULTI_TABLE_WRITE
     public void removeAssignment(String providerId, String dataSetId,  String recordId, String schema, String versionId)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -513,7 +515,7 @@ public class CassandraDataSetDAO {
         }
     }
 
-    @Retryable
+    @Retryable //INLINE
     private void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
         BoundStatement boundStatement = removeAssignmentByRepresentationsStatement.bind(
                 cloudId, schema, UUID.fromString(versionId), providerDataSetId);
@@ -531,7 +533,7 @@ public class CassandraDataSetDAO {
      * @param creationTime creation date
      * @return created (or updated) data set.
      */
-    @Retryable
+    @Retryable //OK
     public DataSet createDataSet(String providerId, String dataSetId, String description, Date creationTime)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -554,7 +556,7 @@ public class CassandraDataSetDAO {
      * @param limit              max size of returned data set list.
      * @return list of data sets.
      */
-    @Retryable
+    @Retryable //OK
     public List<DataSet> getDataSets(String providerId, String thresholdDatasetId, int limit)
             throws NoHostAvailableException, QueryExecutionException {
 
@@ -582,7 +584,7 @@ public class CassandraDataSetDAO {
      * @param providerId data set owner's (provider's) id
      * @param dataSetId  data set id
      */
-    @Retryable
+    @Retryable //BUCKET_WRITE
     public void deleteDataSet(String providerId, String dataSetId) throws NoHostAvailableException, QueryExecutionException {
 
         removeAllDataSetBuckets(providerId, dataSetId);
@@ -592,6 +594,7 @@ public class CassandraDataSetDAO {
         connectionProvider.getSession().execute(boundStatement);
     }
 
+    //INLINE
     private void removeAllDataSetBuckets(String providerId, String dataSetId) {
         for (String bucket_id : getAllDatasetBuckets(providerId, dataSetId)) {
             connectionProvider.getSession().execute(
@@ -599,6 +602,7 @@ public class CassandraDataSetDAO {
         }
     }
 
+    //INLINE_LOCAL_REFACTOR
     private List<String> getAllDatasetBuckets(String providerId, String dataSetId) {
         List<String> result = new ArrayList<>();
         BoundStatement boundStatement = getProviderDatasetBucketCountStatement.bind(providerId, dataSetId);
@@ -610,7 +614,7 @@ public class CassandraDataSetDAO {
         return result;
     }
 
-    @Retryable
+    @Retryable //OK
     public Set<String> getAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
         BoundStatement boundStatement = getDataSetsRepresentationsNamesListStatement.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -623,7 +627,7 @@ public class CassandraDataSetDAO {
         }
     }
 
-    @Retryable
+    @Retryable //OK
     public void addDataSetsRepresentationName(String providerId, String dataSetId, String representationName) {
         Set<String> sample = new HashSet<>();
         sample.add(representationName);
@@ -632,7 +636,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    @Retryable
+    @Retryable //OK
     public void removeRepresentationNameForDataSet(String representationName, String providerId, String dataSetId) {
         Set<String> sample = new HashSet<>();
         sample.add(representationName);
@@ -641,14 +645,14 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    @Retryable
+    @Retryable //OK
     public void removeAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
         BoundStatement boundStatement = removeDataSetsAllRepresentationsNamesStatement.bind(providerId, dataSetId);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
-    @Retryable
+    @Retryable //BUCKET_LOOP_READ
     public boolean hasMoreRepresentations(String providerId, String datasetId, String representationName) {
         String providerDatasetId = providerId + CDSID_SEPARATOR + datasetId;
 
@@ -668,6 +672,7 @@ public class CassandraDataSetDAO {
         return false;
     }
 
+    //BUCKET_WRITE
     public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
         //
         String providerDataSetId = createProviderDataSetId(providerId, datasetId);
@@ -687,6 +692,7 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
+    //BUCKET_LOOP_READ
     public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId) {
 
         List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(
@@ -706,7 +712,7 @@ public class CassandraDataSetDAO {
         }
     }
 
-    @Retryable
+    @Retryable //NEXT_TOKEN_BUCKETS_READ_RECURSIVE
     public List<Properties> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId,
                                                  String revisionName, Date revisionTimestamp, String representationName,
                                                  String nextToken, int limit) {
@@ -810,6 +816,7 @@ public class CassandraDataSetDAO {
      * @return next slice as the concatenation of paging state and bucket id (paging state may be empty
      * or null when there are no more buckets available
      */
+    //INLINE
     private String getNextSlice(PagingState pagingState, String bucketId, String providerId, String dataSetId) {
         if (pagingState == null) {
             // we possibly reached the end of a bucket, if there are more buckets we should prepare next slice otherwise not
@@ -832,6 +839,7 @@ public class CassandraDataSetDAO {
      * @param providerDataSetId provider id and dataset id to retrieve next bucket id
      * @return bucket id to be used for the query
      */
+    //INVOKED
     private Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             // when the state passed in the next token is not null we have to use the same bucket id as the paging state
@@ -853,6 +861,7 @@ public class CassandraDataSetDAO {
      * @param tokenPart part of token containing string representation of paging state from previous query
      * @return null when token part is empty or null paging state otherwise
      */
+    //NO_DB
     private PagingState getPagingState(String tokenPart) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             return PagingState.fromString(tokenPart);
@@ -860,6 +869,7 @@ public class CassandraDataSetDAO {
         return null;
     }
 
+    //INLINE
     private String getNextBucket(String providerId, String dataSetId, String bucketId) {
         BoundStatement bs = (
                 bucketId == null ?
@@ -877,11 +887,12 @@ public class CassandraDataSetDAO {
         return null;
     }
 
+    //NO_DB
     private String createBucket() {
         return new com.eaio.uuid.UUID().toString();
     }
 
-    @Retryable
+    @Retryable //NO_USED
     public Bucket getCurrentDataSetAssignmentBucket(String providerId, String datasetId) {
         return bucketsHandler.getCurrentBucket(
                 DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, createProviderDataSetId(providerId, datasetId));
