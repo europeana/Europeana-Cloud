@@ -18,14 +18,6 @@ public class RetryableMethodExecutor {
 
     public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
 
-    public static <E extends Exception> void executeOnRest(String errorMessage, GenericRunnable<E> runnable) throws E {
-        RetryableMethodExecutor.execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, () -> {
-                    runnable.run();
-                    return null;
-                }
-        );
-    }
-
     public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
         return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
     }
@@ -120,10 +112,6 @@ public class RetryableMethodExecutor {
             result = String.format("Error while invoking method '%s' with args: %s", method, Arrays.toString(args));
         }
         return result;
-    }
-
-    public interface GenericRunnable<E extends Exception> {
-        void run() throws E;
     }
 
     public interface GenericCallable<V, E extends Throwable> {

@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordSerializer;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.exception.RecordSubmissionToKafkaException;
+import eu.europeana.cloud.service.dps.exception.KafkaSubmissionException;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -37,7 +37,7 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
             RetryableMethodExecutor.execute("Could not send record to Kafka: " + dpsRecord,
                     MAX_ATTEMPTS, SLEEP_TIME_BETWEEN_RETRIES_MS, () -> producer.send(data).get());
         } catch (ExecutionException e) {
-            throw new RecordSubmissionToKafkaException("Could not send record to Kafka: " + dpsRecord, e);
+            throw new KafkaSubmissionException("Could not send record to Kafka: " + dpsRecord, e);
         }
     }
 
