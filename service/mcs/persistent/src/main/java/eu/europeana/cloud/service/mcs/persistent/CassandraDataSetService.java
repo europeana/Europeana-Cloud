@@ -255,7 +255,7 @@ public class CassandraDataSetService implements DataSetService {
             result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
                     Boolean.valueOf(properties.getProperty("published")),
                     Boolean.valueOf(properties.getProperty("deleted")),
-                    Boolean.valueOf(properties.getProperty("acceptance")) )
+                    Boolean.valueOf(properties.getProperty("acceptance")))
             );
         }
 
@@ -299,7 +299,7 @@ public class CassandraDataSetService implements DataSetService {
     public void deleteDataSet(String providerId, String dataSetId)
             throws DataSetDeletionException, DataSetNotExistsException {
 
-        checkIfDatasetExists(dataSetId,providerId);
+        checkIfDatasetExists(dataSetId, providerId);
         if (datasetIsEmpty(providerId, dataSetId)) {
             dataSetDAO.deleteDataSet(providerId, dataSetId);
         } else {
@@ -351,7 +351,7 @@ public class CassandraDataSetService implements DataSetService {
         recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName, revisionTimestamp);
 
         //representation version
-        recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version,revision);
+        recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version, revision);
 
 
     }
