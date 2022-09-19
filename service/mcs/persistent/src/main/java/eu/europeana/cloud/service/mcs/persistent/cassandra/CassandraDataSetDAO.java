@@ -379,13 +379,18 @@ public class CassandraDataSetDAO {
         }
         bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
 
-        BoundStatement boundStatement = addAssignmentStatement.bind(
-                providerDataSetId, UUID.fromString(bucket.getBucketId()), schema, recordId, versionId, now);
+        addAssignment(providerId, dataSetId, bucket.getBucketId(),recordId, schema, now, versionId);
+
+        BoundStatement boundStatement = addAssignmentByRepresentationStatement.bind(recordId, schema, versionId, providerDataSetId, now);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
+    }
 
-        boundStatement = addAssignmentByRepresentationStatement.bind(recordId, schema, versionId, providerDataSetId, now);
-        rs = connectionProvider.getSession().execute(boundStatement);
+    public void addAssignment(String providerId, String dataSetId, String bucketId, String recordId, String schema, Date now, UUID versionId) {
+        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
+        BoundStatement boundStatement = addAssignmentStatement.bind(
+                providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now);
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
