@@ -37,7 +37,7 @@ public class CassandraDataSetDAO {
 
     private static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS = "data_set_assignments_by_data_set_buckets";
 
-    private static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
+    public static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
     private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
 
@@ -683,8 +683,12 @@ public class CassandraDataSetDAO {
         }
         bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
         //
+        addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId);
+    }
+
+    public void addDataSetsRevision(String providerId, String datasetId, String bucketId, Revision revision, String representationName, String cloudId) {
         BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
-                providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(),
+                providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
                 revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
                 revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
 
