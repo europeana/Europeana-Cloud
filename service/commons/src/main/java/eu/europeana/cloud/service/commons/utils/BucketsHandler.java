@@ -79,7 +79,7 @@ public class BucketsHandler {
         return getBucket(query);
     }
 
-    public Bucket getNextBucket(String bucketsTableName, String objectId) {
+    public Bucket getFirstBucket(String bucketsTableName, String objectId) {
         String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' LIMIT 1;";
         return getBucket(query);
     }

@@ -108,21 +108,21 @@ public class BucketsHandlerTest extends CassandraTestBase {
     @Test
     public void shouldReturnFirstBucket() {
         //for
-        Bucket firstBucket = new Bucket("sampleObjectId_1", new com.eaio.uuid.UUID().toString(), 1);
-        Bucket secondBucket = new Bucket("sampleObjectId_2", new com.eaio.uuid.UUID().toString(), 1);
-        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, firstBucket);
-        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, secondBucket);
+        Bucket bucketForObject1 = new Bucket("sampleObjectId_1", new com.eaio.uuid.UUID().toString(), 1);
+        Bucket bucketForObject2 = new Bucket("sampleObjectId_2", new com.eaio.uuid.UUID().toString(), 1);
+        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, bucketForObject1);
+        bucketsHandler.increaseBucketCount(BUCKETS_TABLE_NAME, bucketForObject2);
         //when
-        Bucket bucket1 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, firstBucket.getObjectId());
-        Bucket bucket2 = bucketsHandler.getNextBucket(BUCKETS_TABLE_NAME, secondBucket.getObjectId());
+        Bucket bucket1 = bucketsHandler.getFirstBucket(BUCKETS_TABLE_NAME, bucketForObject1.getObjectId());
+        Bucket bucket2 = bucketsHandler.getFirstBucket(BUCKETS_TABLE_NAME, bucketForObject2.getObjectId());
         //then
-        Assert.assertEquals(firstBucket.getObjectId(), bucket1.getObjectId());
-        Assert.assertEquals(firstBucket.getRowsCount(), bucket1.getRowsCount());
-        Assert.assertEquals(firstBucket.getBucketId(), bucket1.getBucketId());
+        Assert.assertEquals(bucketForObject1.getObjectId(), bucket1.getObjectId());
+        Assert.assertEquals(bucketForObject1.getRowsCount(), bucket1.getRowsCount());
+        Assert.assertEquals(bucketForObject1.getBucketId(), bucket1.getBucketId());
         //
-        Assert.assertEquals(secondBucket.getObjectId(), bucket2.getObjectId());
-        Assert.assertEquals(secondBucket.getRowsCount(), bucket2.getRowsCount());
-        Assert.assertEquals(secondBucket.getBucketId(), bucket2.getBucketId());
+        Assert.assertEquals(bucketForObject2.getObjectId(), bucket2.getObjectId());
+        Assert.assertEquals(bucketForObject2.getRowsCount(), bucket2.getRowsCount());
+        Assert.assertEquals(bucketForObject2.getBucketId(), bucket2.getBucketId());
     }
 
     @Test

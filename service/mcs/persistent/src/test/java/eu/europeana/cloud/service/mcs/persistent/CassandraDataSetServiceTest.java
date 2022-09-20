@@ -915,6 +915,35 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertNull(page2.getNextSlice());
     }
 
+    @Test
+    public void shouldListDataSetWithPaginationHittingExactlyBucketBordersWorking()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        makeDatasetExists();
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, null, 1);
+        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, page1.getNextSlice(), 1);
+        ResultSlice<Representation> page3 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, page2.getNextSlice(), 1);
+
+
+        assertThat(page1.getResults(), hasSize(1));
+        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
+        assertNotNull(page1.getNextSlice());
+        assertThat(page2.getResults(), hasSize(1));
+        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
+        assertNotNull(page2.getNextSlice());
+        assertThat(page3.getResults(), hasSize(0));
+        assertNull(page3.getNextSlice());
+    }
+
     private DataSet createDataset() throws ProviderNotExistsException, DataSetAlreadyExistsException {
         return cassandraDataSetService.createDataSet(PROVIDER_ID, DATA_SET_NAME, "description of this set");
     }
