@@ -8,6 +8,8 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -267,35 +269,18 @@ public class CassandraDataSetDAO {
             return representationStubs;
         }
 
-        // bind parameters, set limit to max int value
-        BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(
-                providerDataSetId, UUID.fromString(bucket.getBucketId()), Integer.MAX_VALUE);
-
-        // limit page to "limit" number of results
-        boundStatement.setFetchSize(limit);
-        // when this is not a first page call set paging state in the statement
-        if (state != null) {
-            boundStatement.setPagingState(state);
-        }
-
-        // execute query
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-
-        // get available results
-        int available = rs.getAvailableWithoutFetching();
-        for (int i = 0; i < available; i++) {
-            Row row = rs.one();
+        ResultSlice<DatasetAssignment> oneBucketResult = getDatasetAssignments(providerDataSetId, bucket.getBucketId(), state, limit);
+        for (DatasetAssignment assignment:oneBucketResult.getResults()) {
             Properties properties = new Properties();
-            properties.put("cloudId", row.getString("cloud_id"));
-            properties.put("versionId", row.getUUID("version_id").toString());
-            properties.put("schema", row.getString("schema_id"));
+            properties.put("cloudId", assignment.getCloudId());
+            properties.put("versionId", assignment.getVersion());
+            properties.put("schema", assignment.getSchema());
             representationStubs.add(properties);
         }
 
         if (representationStubs.size() == limit) {
             // we reached the page limit, prepare the next slice string to be used for the next page
-            String nextSlice = getNextSlice(rs.getExecutionInfo().getPagingState(), bucket.getBucketId(), providerId, dataSetId);
+            String nextSlice = getNextSlice(oneBucketResult.getNextSlice(), bucket.getBucketId(), providerId, dataSetId);
 
             if (nextSlice != null) {
                 Properties properties = new Properties();
@@ -312,6 +297,41 @@ public class CassandraDataSetDAO {
         }
 
         return representationStubs;
+    }
+
+    //OK
+    public ResultSlice<DatasetAssignment> getDatasetAssignments(String providerDataSetId, String bucketId, PagingState state, int limit) {
+        List<DatasetAssignment> assignments=new ArrayList<>();
+        // bind parameters, set limit to max int value
+        BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(
+                providerDataSetId, UUID.fromString(bucketId), Integer.MAX_VALUE);
+
+        // limit page to "limit" number of results
+        boundStatement.setFetchSize(limit);
+        // when this is not a first page call set paging state in the statement
+        if (state != null) {
+            boundStatement.setPagingState(state);
+        }
+
+        // execute query
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+
+        // get available results
+        int available = rs.getAvailableWithoutFetching();
+        for (int i = 0; i < available; i++) {
+            Row row = rs.one();
+            assignments.add(DatasetAssignment.from(row));
+        }
+
+        if (assignments.size() == limit) {
+            String nextSlice = Optional.ofNullable(rs.getExecutionInfo().getPagingState())
+                    .map(Object::toString).orElse(null);
+            return new ResultSlice<>(nextSlice, assignments);
+        }else{
+            return new ResultSlice<>(null, assignments);
+        }
+
     }
 
     /**
@@ -347,11 +367,17 @@ public class CassandraDataSetDAO {
 
         addAssignment(providerId, dataSetId, bucket.getBucketId(),recordId, schema, now, versionId);
 
-        BoundStatement boundStatement = addAssignmentByRepresentationStatement.bind(recordId, schema, versionId, providerDataSetId, now);
+        addAssignmentByRepresentationVersion(providerDataSetId, schema, recordId, versionId, now);
+    }
+
+    //OK
+    public void addAssignmentByRepresentationVersion(String providerDataSetId, String schema, String recordId, UUID versionId, Date timestamp) {
+        BoundStatement boundStatement = addAssignmentByRepresentationStatement.bind(recordId, schema, versionId, providerDataSetId, timestamp);
         ResultSet rs = connectionProvider.getSession().execute(boundStatement);
         QueryTracer.logConsistencyLevel(boundStatement, rs);
     }
 
+    //OK
     public void addAssignment(String providerId, String dataSetId, String bucketId, String recordId, String schema, Date now, UUID versionId) {
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
         BoundStatement boundStatement = addAssignmentStatement.bind(
@@ -472,11 +498,7 @@ public class CassandraDataSetDAO {
         Bucket bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId);
 
         while (bucket != null) {
-            BoundStatement boundStatement = removeAssignmentStatement.bind(
-                    providerDataSetId, UUID.fromString(bucket.getBucketId()), schema, recordId, UUID.fromString(versionId));
-            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-            QueryTracer.logConsistencyLevel(boundStatement, rs);
-            if (rs.wasApplied()) {
+            if (removeDatasetAssignment(recordId, schema, versionId, providerDataSetId, bucket)) {
                 // remove bucket count
                 bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
                 removeAssignmentByRepresentation(providerDataSetId, recordId, schema, versionId);
@@ -486,8 +508,17 @@ public class CassandraDataSetDAO {
         }
     }
 
-    @Retryable //INLINE
-    private void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
+    //OK
+    public boolean removeDatasetAssignment(String recordId, String schema, String versionId, String providerDataSetId, Bucket bucket) {
+        BoundStatement boundStatement = removeAssignmentStatement.bind(
+                providerDataSetId, UUID.fromString(bucket.getBucketId()), schema, recordId, UUID.fromString(versionId));
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        return rs.wasApplied();
+    }
+
+    @Retryable //OK
+    public void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
         BoundStatement boundStatement = removeAssignmentByRepresentationsStatement.bind(
                 cloudId, schema, UUID.fromString(versionId), providerDataSetId);
 
@@ -606,17 +637,22 @@ public class CassandraDataSetDAO {
         Bucket bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDatasetId);
 
         while (bucket != null) {
-            BoundStatement boundStatement = hasProvidedRepresentationNameStatement.bind(
-                    providerDatasetId, UUID.fromString(bucket.getBucketId()), representationName);
-
-            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-            QueryTracer.logConsistencyLevel(boundStatement, rs);
-            if (rs.one() != null) {
+            if (datasetBucketHasAnyAssignment(representationName, providerDatasetId, bucket)) {
                 return true;
             }
             bucket = bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDatasetId, bucket);
         }
         return false;
+    }
+
+    //OK
+    public boolean datasetBucketHasAnyAssignment(String representationName, String providerDatasetId, Bucket bucket) {
+        BoundStatement boundStatement = hasProvidedRepresentationNameStatement.bind(
+                providerDatasetId, UUID.fromString(bucket.getBucketId()), representationName);
+
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        return rs.one() != null;
     }
 
     //BUCKET_WRITE
@@ -633,6 +669,7 @@ public class CassandraDataSetDAO {
         addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId);
     }
 
+    //OK
     public void addDataSetsRevision(String providerId, String datasetId, String bucketId, Revision revision, String representationName, String cloudId) {
         BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
                 providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
@@ -650,17 +687,22 @@ public class CassandraDataSetDAO {
                 DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, createProviderDataSetId(providerId, datasetId));
 
         for (Bucket bucket : availableBuckets) {
-            BoundStatement boundStatement = removeDataSetsRevisionStatement.bind(
-                    providerId, datasetId, UUID.fromString(bucket.getBucketId()), revision.getRevisionProviderId(),
-                    revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId);
-
-            ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-            QueryTracer.logConsistencyLevel(boundStatement, rs);
-            if (rs.wasApplied()) {
+            if (removeDataSetRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId)) {
                 bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
                 return;
             }
         }
+    }
+
+    //OK
+    public boolean removeDataSetRevision(String providerId, String datasetId, String bucketId, Revision revision, String representationName, String cloudId) {
+        BoundStatement boundStatement = removeDataSetsRevisionStatement.bind(
+                providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
+                revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId);
+
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+        return rs.wasApplied();
     }
 
     @Retryable //NEXT_TOKEN_BUCKETS_READ_RECURSIVE
@@ -697,43 +739,23 @@ public class CassandraDataSetDAO {
             return result;
         }
 
-        // bind parameters, set limit to max int value
-        BoundStatement boundStatement = getDataSetsRevisionStatement.bind(
-                providerId, dataSetId, UUID.fromString(bucket.getBucketId()), revisionProviderId, revisionName,
-                revisionTimestamp, representationName, Integer.MAX_VALUE);
-
-        // limit page to "limit" number of results
-        boundStatement.setFetchSize(limit);
-        // when this is not a first page call set paging state in the statement
-        if (nextToken != null) {
-            boundStatement.setPagingState(state);
-        }
-        // execute query
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        PagingState ps = rs.getExecutionInfo().getPagingState();
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-
-        // get available results
-        Iterator<Row> iterator = rs.iterator();
-        while(iterator.hasNext()){
-            Row row = iterator.next();
+        ResultSlice<CloudTagsResponse> oneBucketResult = getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
+                revisionName, revisionTimestamp, representationName,
+                state, limit);
+        for(CloudTagsResponse response:oneBucketResult.getResults()){
             Properties properties = new Properties();
-            properties.put("cloudId", row.getString("cloud_id"));
-            properties.put("acceptance", Boolean.toString(row.getBool("acceptance")));
-            properties.put("published", Boolean.toString(row.getBool("published")));
-            properties.put("deleted", Boolean.toString(row.getBool("mark_deleted")));
+            properties.put("cloudId", response.getCloudId());
+            properties.put("acceptance", Boolean.toString(response.isAcceptance()));
+            properties.put("published", Boolean.toString(response.isPublished()));
+            properties.put("deleted", Boolean.toString(response.isDeleted()));
             result.add(properties);
-
-            if (result.size() >= limit){
-                break;
-            }
         }
 
         if (result.size() == limit) {
-            if (!rs.isExhausted()) {
+            if (oneBucketResult.getNextSlice() != null) {
                 // we reached the page limit, prepare the next slice string to be used for the next page
                 Properties properties = new Properties();
-                properties.put("nextSlice", ps.toString() + "_" + bucket.getBucketId());
+                properties.put("nextSlice", oneBucketResult.getNextSlice() + "_" + bucket.getBucketId());
                 result.add(properties);
             } else {
                 // we reached the end of bucket and limit - in this case if there are more buckets we should set proper nextSlice
@@ -757,6 +779,47 @@ public class CassandraDataSetDAO {
         return result;
     }
 
+    //OK
+    public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String bucketId, String revisionProviderId,
+                                                               String revisionName, Date revisionTimestamp, String representationName,
+                                                               PagingState state, int limit){
+        List<CloudTagsResponse> result=new ArrayList<>();
+        // bind parameters, set limit to max int value
+        BoundStatement boundStatement = getDataSetsRevisionStatement.bind(
+                providerId, dataSetId, UUID.fromString(bucketId), revisionProviderId, revisionName,
+                revisionTimestamp, representationName, Integer.MAX_VALUE);
+
+        // limit page to "limit" number of results
+        boundStatement.setFetchSize(limit);
+        // when this is not a first page call set paging state in the statement
+        if (state != null) {
+            boundStatement.setPagingState(state);
+        }
+        // execute query
+        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+        PagingState ps = rs.getExecutionInfo().getPagingState();
+        QueryTracer.logConsistencyLevel(boundStatement, rs);
+
+        // get available results
+        Iterator<Row> iterator = rs.iterator();
+        while(iterator.hasNext()){
+            Row row = iterator.next();
+            result.add(new CloudTagsResponse(row.getString("cloud_id"),row.getBool("published"),
+                  row.getBool("mark_deleted"),row.getBool("acceptance")));
+
+            if (result.size() >= limit){
+                break;
+            }
+        }
+
+        if ((result.size() == limit) && !rs.isExhausted()) {
+            // we reached the page limit, prepare the next slice string to be used for the next page
+            return new ResultSlice<>(ps.toString(), result);
+        } else {
+            return new ResultSlice<>(null, result);
+        }
+    }
+
     /**
      * Get next slice string basing on paging state of the current query and bucket id.
      *
@@ -768,7 +831,7 @@ public class CassandraDataSetDAO {
      * or null when there are no more buckets available
      */
     //INLINE->NO_DB
-    private String getNextSlice(PagingState pagingState, String bucketId, String providerId, String dataSetId) {
+    private String getNextSlice(String pagingState, String bucketId, String providerId, String dataSetId) {
         if (pagingState == null) {
             //We possibly reached the end of a bucket, so prepare nextSlice with current bucket_id but no paging state
             //It means fetching from next bucket if available or empty next page.
