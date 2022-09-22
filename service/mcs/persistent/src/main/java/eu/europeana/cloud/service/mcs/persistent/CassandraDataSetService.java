@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS;
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
 import static java.util.function.Predicate.not;
 
@@ -97,9 +98,9 @@ public class CassandraDataSetService implements DataSetService {
             }
 
             // first element is the paging state
-            state = dataSetDAO.getPagingState(parts[0]);
+            state = getPagingState(parts[0]);
             // second element is bucket id
-            bucket = dataSetDAO.getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, parts[1], state, providerDataSetId);
+            bucket = getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, parts[1], state, providerDataSetId);
         }
 
         // if the bucket is null it means we reached the end of data
@@ -297,7 +298,7 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
-        List<Properties> list = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
+        List<Properties> list = getDataSetsRevisions2(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
 
         String nextToken = null;
 
@@ -310,6 +311,80 @@ public class CassandraDataSetService implements DataSetService {
         }
         return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
     }
+
+    public List<Properties> getDataSetsRevisions2(String providerId, String dataSetId, String revisionProviderId,
+                                                 String revisionName, Date revisionTimestamp, String representationName,
+                                                 String nextToken, int limit) {
+
+        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
+        List<Properties> result = new ArrayList<>(limit);
+
+        Bucket bucket;
+        PagingState state;
+
+        if (nextToken == null) {
+            // there is no next token so do not set paging state, take the first bucket for provider's dataset
+            bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
+            state = null;
+        } else {
+            // next token is set, parse it to retrieve paging state and bucket id
+            // (token is concatenation of paging state and bucket id using '_' character
+            String[] parts = nextToken.split("_");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
+            }
+
+            // first element is the paging state
+            state = getPagingState(parts[0]);
+            // second element is bucket id
+            bucket = getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, parts[1], state, providerDataSetId);
+        }
+
+        // if the bucket is null it means we reached the end of data
+        if (bucket == null) {
+            return result;
+        }
+
+        ResultSlice<CloudTagsResponse> oneBucketResult = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
+                revisionName, revisionTimestamp, representationName,
+                state, limit);
+        for(CloudTagsResponse response:oneBucketResult.getResults()){
+            Properties properties = new Properties();
+            properties.put("cloudId", response.getCloudId());
+            properties.put("acceptance", Boolean.toString(response.isAcceptance()));
+            properties.put("published", Boolean.toString(response.isPublished()));
+            properties.put("deleted", Boolean.toString(response.isDeleted()));
+            result.add(properties);
+        }
+
+        if (result.size() == limit) {
+            if (oneBucketResult.getNextSlice() != null) {
+                // we reached the page limit, prepare the next slice string to be used for the next page
+                Properties properties = new Properties();
+                properties.put("nextSlice", oneBucketResult.getNextSlice() + "_" + bucket.getBucketId());
+                result.add(properties);
+            } else {
+                // we reached the end of bucket and limit - in this case if there are more buckets we should set proper nextSlice
+                if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
+                    Properties properties = new Properties();
+                    properties.put("nextSlice", "_" + bucket.getBucketId());
+                    result.add(properties);
+                }
+            }
+        } else {
+            // we reached the end of bucket but number of results is less than the page size - in this case
+            // if there are more buckets we should retrieve number of results that will feed the page
+            if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
+                String nextSlice = "_" + bucket.getBucketId();
+                result.addAll(
+                        getDataSetsRevisions2(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
+                                representationName, nextSlice, limit - result.size()));
+            }
+        }
+
+        return result;
+    }
+
 
     @Override
     public List<CloudTagsResponse> getDataSetsExistingRevisions(
@@ -344,6 +419,45 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         return result;
+    }
+
+    /**
+     * Get paging state from part of token. When the token is null or empty paging state is null.
+     * Otherwise we can create paging state from that string.
+     *
+     * @param tokenPart part of token containing string representation of paging state from previous query
+     * @return null when token part is empty or null paging state otherwise
+     */
+    //NO_DB
+    public PagingState getPagingState(String tokenPart) {
+        if (tokenPart != null && !tokenPart.isEmpty()) {
+            return PagingState.fromString(tokenPart);
+        }
+        return null;
+    }
+
+    /**
+     * Get bucket id from part of token considering paging state which was retrieved from the same token.
+     * This is used for data assignment table where provider id and dataset id are concatenated to one string
+     *
+     * @param bucketsTableName  table name used for buckets
+     * @param tokenPart         part of token containing bucket id
+     * @param state             paging state from the same token as the bucket id
+     * @param providerDataSetId provider id and dataset id to retrieve next bucket id
+     * @return bucket id to be used for the query
+     */
+    public Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
+        if (tokenPart != null && !tokenPart.isEmpty()) {
+            // when the state passed in the next token is not null we have to use the same bucket id as the paging state
+            // is associated with the query having certain parameter values
+            if (state != null) {
+                return new Bucket(providerDataSetId, tokenPart, 0);
+            }
+            // the state part is empty which means we reached the end of the bucket passed in the next token,
+            // therefore we need to get the next bucket
+            return bucketsHandler.getNextBucket(bucketsTableName, providerDataSetId, new Bucket(providerDataSetId, tokenPart, 0));
+        }
+        return null;
     }
 
     @Override
