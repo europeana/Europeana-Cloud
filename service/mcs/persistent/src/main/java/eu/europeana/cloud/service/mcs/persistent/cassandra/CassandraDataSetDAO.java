@@ -225,80 +225,6 @@ public class CassandraDataSetDAO {
         );
     }
 
-    /**
-     * Returns stubs of representations assigned to a data set. Stubs contain
-     * cloud id and schema of the representation, may also contain version (if a
-     * certain version is in a data set).
-     *
-     * @param providerId data set owner's (provider's) id
-     * @param dataSetId  data set id
-     * @param nextToken  next token containing information about paging state and bucket id
-     * @param limit      maximum size of returned list
-     * @return
-     */
-    @Retryable //NEXT_TOKEN_BUCKETS_READ_RECURSIVE
-    public List<Properties> listDataSet(String providerId, String dataSetId, String nextToken, int limit)
-            throws NoHostAvailableException, QueryExecutionException {
-
-        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-        List<Properties> representationStubs = new ArrayList<>();
-
-        Bucket bucket = null;
-        PagingState state;
-
-        if (nextToken == null) {
-            // there is no next token so do not set paging state, take the first bucket for provider's dataset
-            bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId);
-            state = null;
-        } else {
-            // next token is set, parse it to retrieve paging state and bucket id
-            // (token is concatenation of paging state and bucket id using '_' character
-            String[] parts = nextToken.split("_");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
-            }
-
-            // first element is the paging state
-            state = getPagingState(parts[0]);
-            // second element is bucket id
-            bucket = getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, parts[1], state, providerDataSetId);
-        }
-
-        // if the bucket is null it means we reached the end of data
-        if (bucket == null) {
-            return representationStubs;
-        }
-
-        ResultSlice<DatasetAssignment> oneBucketResult = getDatasetAssignments(providerDataSetId, bucket.getBucketId(), state, limit);
-        for (DatasetAssignment assignment:oneBucketResult.getResults()) {
-            Properties properties = new Properties();
-            properties.put("cloudId", assignment.getCloudId());
-            properties.put("versionId", assignment.getVersion());
-            properties.put("schema", assignment.getSchema());
-            representationStubs.add(properties);
-        }
-
-        if (representationStubs.size() == limit) {
-            // we reached the page limit, prepare the next slice string to be used for the next page
-            String nextSlice = getNextSlice(oneBucketResult.getNextSlice(), bucket.getBucketId(), providerId, dataSetId);
-
-            if (nextSlice != null) {
-                Properties properties = new Properties();
-                properties.put("nextSlice", nextSlice);
-                representationStubs.add(properties);
-            }
-        } else {
-            // we reached the end of bucket but number of results is less than the page size
-            // - in this case if there are more buckets we should retrieve number of results that will feed the page
-            if (bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId) != null) {
-                String nextSlice = "_" + bucket.getBucketId();
-                representationStubs.addAll(listDataSet(providerId, dataSetId, nextSlice, limit - representationStubs.size()));
-            }
-        }
-
-        return representationStubs;
-    }
-
     //OK
     public ResultSlice<DatasetAssignment> getDatasetAssignments(String providerDataSetId, String bucketId, PagingState state, int limit) {
         List<DatasetAssignment> assignments=new ArrayList<>();
@@ -821,27 +747,6 @@ public class CassandraDataSetDAO {
     }
 
     /**
-     * Get next slice string basing on paging state of the current query and bucket id.
-     *
-     * @param pagingState paging state of the current query
-     * @param bucketId    current bucket identifier
-     * @param providerId  provider id needed to retrieve next bucket id
-     * @param dataSetId   dataset id needed to retrieve next bucket id
-     * @return next slice as the concatenation of paging state and bucket id (paging state may be empty
-     * or null when there are no more buckets available
-     */
-    //INLINE->NO_DB
-    private String getNextSlice(String pagingState, String bucketId, String providerId, String dataSetId) {
-        if (pagingState == null) {
-            //We possibly reached the end of a bucket, so prepare nextSlice with current bucket_id but no paging state
-            //It means fetching from next bucket if available or empty next page.
-            return String.format("_%s", bucketId);
-        } else {
-            return String.format("%s_%s", pagingState, bucketId);
-        }
-    }
-
-    /**
      * Get bucket id from part of token considering paging state which was retrieved from the same token.
      * This is used for data assignment table where provider id and dataset id are concatenated to one string
      *
@@ -851,8 +756,7 @@ public class CassandraDataSetDAO {
      * @param providerDataSetId provider id and dataset id to retrieve next bucket id
      * @return bucket id to be used for the query
      */
-    //INVOKED
-    private Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
+    public Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             // when the state passed in the next token is not null we have to use the same bucket id as the paging state
             // is associated with the query having certain parameter values
@@ -874,7 +778,7 @@ public class CassandraDataSetDAO {
      * @return null when token part is empty or null paging state otherwise
      */
     //NO_DB
-    private PagingState getPagingState(String tokenPart) {
+    public PagingState getPagingState(String tokenPart) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             return PagingState.fromString(tokenPart);
         }

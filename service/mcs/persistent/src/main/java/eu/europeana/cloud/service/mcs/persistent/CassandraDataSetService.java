@@ -1,22 +1,30 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.PagingState;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.Bucket;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.DatasetAssignment;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
 import static java.util.function.Predicate.not;
 
 /**
@@ -34,6 +42,8 @@ public class CassandraDataSetService implements DataSetService {
     @Autowired
     private UISClientHandler uis;
 
+    @Autowired
+    private BucketsHandler bucketsHandler;
     /**
      * @inheritDoc
      */
@@ -44,7 +54,7 @@ public class CassandraDataSetService implements DataSetService {
         checkIfDatasetExists(dataSetId, providerId);
 
         // get representation stubs from data set
-        List<Properties> representationStubs = dataSetDAO.listDataSet(providerId, dataSetId, thresholdParam, limit);
+        List<Properties> representationStubs = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
 
         // if this is not last slice of result - add reference to next one by
         // encoding parameters in thresholdParam
@@ -66,6 +76,79 @@ public class CassandraDataSetService implements DataSetService {
             }
         }
         return new ResultSlice<>(nextResultToken, representations);
+    }
+
+    /**
+     * Returns stubs of representations assigned to a data set. Stubs contain
+     * cloud id and schema of the representation, may also contain version (if a
+     * certain version is in a data set).
+     *
+     * @param providerId data set owner's (provider's) id
+     * @param dataSetId  data set id
+     * @param nextToken  next token containing information about paging state and bucket id
+     * @param limit      maximum size of returned list
+     * @return
+     */
+    public List<Properties> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
+            throws NoHostAvailableException, QueryExecutionException {
+
+        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
+        List<Properties> representationStubs = new ArrayList<>();
+
+        Bucket bucket = null;
+        PagingState state;
+
+        if (nextToken == null) {
+            // there is no next token so do not set paging state, take the first bucket for provider's dataset
+            bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId);
+            state = null;
+        } else {
+            // next token is set, parse it to retrieve paging state and bucket id
+            // (token is concatenation of paging state and bucket id using '_' character
+            String[] parts = nextToken.split("_");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
+            }
+
+            // first element is the paging state
+            state = dataSetDAO.getPagingState(parts[0]);
+            // second element is bucket id
+            bucket = dataSetDAO.getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, parts[1], state, providerDataSetId);
+        }
+
+        // if the bucket is null it means we reached the end of data
+        if (bucket == null) {
+            return representationStubs;
+        }
+
+        ResultSlice<DatasetAssignment> oneBucketResult = dataSetDAO.getDatasetAssignments(providerDataSetId, bucket.getBucketId(), state, limit);
+        for (DatasetAssignment assignment:oneBucketResult.getResults()) {
+            Properties properties = new Properties();
+            properties.put("cloudId", assignment.getCloudId());
+            properties.put("versionId", assignment.getVersion());
+            properties.put("schema", assignment.getSchema());
+            representationStubs.add(properties);
+        }
+
+        if (representationStubs.size() == limit) {
+            // we reached the page limit, prepare the next slice string to be used for the next page
+            String nextSlice = getNextSlice(oneBucketResult.getNextSlice(), bucket.getBucketId(), providerId, dataSetId);
+
+            if (nextSlice != null) {
+                Properties properties = new Properties();
+                properties.put("nextSlice", nextSlice);
+                representationStubs.add(properties);
+            }
+        } else {
+            // we reached the end of bucket but number of results is less than the page size
+            // - in this case if there are more buckets we should retrieve number of results that will feed the page
+            if (bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId) != null) {
+                String nextSlice = "_" + bucket.getBucketId();
+                representationStubs.addAll(listDataSetAssignments(providerId, dataSetId, nextSlice, limit - representationStubs.size()));
+            }
+        }
+
+        return representationStubs;
     }
 
     /**
@@ -97,6 +180,27 @@ public class CassandraDataSetService implements DataSetService {
         CompoundDataSetId seekedId = PersistenceUtils.createCompoundDataSetId(seekedIdString);
         return dataSetDAO.getDataSetAssignments(recordId, schema, version).contains(seekedId);
     }
+
+    /**
+     * Get next slice string basing on paging state of the current query and bucket id.
+     *
+     * @param pagingState paging state of the current query
+     * @param bucketId    current bucket identifier
+     * @param providerId  provider id needed to retrieve next bucket id
+     * @param dataSetId   dataset id needed to retrieve next bucket id
+     * @return next slice as the concatenation of paging state and bucket id (paging state may be empty
+     * or null when there are no more buckets available
+     */
+    private String getNextSlice(String pagingState, String bucketId, String providerId, String dataSetId) {
+        if (pagingState == null) {
+            //We possibly reached the end of a bucket, so prepare nextSlice with current bucket_id but no paging state
+            //It means fetching from next bucket if available or empty next page.
+            return String.format("_%s", bucketId);
+        } else {
+            return String.format("%s_%s", pagingState, bucketId);
+        }
+    }
+
 
     private Representation getRepresentationIfExist(String recordId, String schema, String version) throws RepresentationNotExistsException {
         Representation rep;
@@ -308,7 +412,7 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean datasetIsEmpty(String providerId, String dataSetId) {
-        return dataSetDAO.listDataSet(providerId, dataSetId, null, 1).isEmpty();
+        return listDataSetAssignments(providerId, dataSetId, null, 1).isEmpty();
     }
 
     @Override
