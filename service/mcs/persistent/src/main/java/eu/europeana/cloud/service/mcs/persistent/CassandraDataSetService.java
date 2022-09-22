@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
@@ -50,32 +51,17 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public ResultSlice<Representation> listDataSet(String providerId, String dataSetId,
                                                    String thresholdParam, int limit) throws DataSetNotExistsException {
-
         checkIfDatasetExists(dataSetId, providerId);
-
         // get representation stubs from data set
-        List<Properties> representationStubs = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
-
-        // if this is not last slice of result - add reference to next one by
-        // encoding parameters in thresholdParam
-        String nextResultToken = null;
-        if (representationStubs.size() == limit + 1) {
-            nextResultToken = representationStubs.get(limit).getProperty("nextSlice");
-            representationStubs.remove(limit);
-        }
-
+        ResultSlice<DatasetAssignment> assigments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
         // replace representation stubs with real representations
-        List<Representation> representations = new ArrayList<>(representationStubs.size());
-        for (Properties stub : representationStubs) {
-            if (stub.getProperty("versionId") == null) {
-                representations.add(recordDAO.getLatestPersistentRepresentation(stub.getProperty("cloudId"),
-                        stub.getProperty("schema")));
-            } else {
-                representations.add(recordDAO.getRepresentation(stub.getProperty("cloudId"), stub.getProperty("schema"),
-                        stub.getProperty("versionId")));
-            }
-        }
-        return new ResultSlice<>(nextResultToken, representations);
+        return new ResultSlice<>(assigments.getNextSlice(), getRepresentations(assigments.getResults()));
+    }
+
+    private List<Representation> getRepresentations(List<DatasetAssignment> assignments) {
+        return assignments.stream()
+                .map(stub -> recordDAO.getRepresentation(stub.getCloudId(), stub.getSchema(), stub.getVersion()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -89,11 +75,11 @@ public class CassandraDataSetService implements DataSetService {
      * @param limit      maximum size of returned list
      * @return
      */
-    public List<Properties> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
+    public ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
             throws NoHostAvailableException, QueryExecutionException {
 
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-        List<Properties> representationStubs = new ArrayList<>();
+        List<DatasetAssignment> resultList = new ArrayList<>();
 
         Bucket bucket = null;
         PagingState state;
@@ -118,37 +104,31 @@ public class CassandraDataSetService implements DataSetService {
 
         // if the bucket is null it means we reached the end of data
         if (bucket == null) {
-            return representationStubs;
+            return new ResultSlice<>(null, resultList);
         }
 
         ResultSlice<DatasetAssignment> oneBucketResult = dataSetDAO.getDatasetAssignments(providerDataSetId, bucket.getBucketId(), state, limit);
-        for (DatasetAssignment assignment:oneBucketResult.getResults()) {
-            Properties properties = new Properties();
-            properties.put("cloudId", assignment.getCloudId());
-            properties.put("versionId", assignment.getVersion());
-            properties.put("schema", assignment.getSchema());
-            representationStubs.add(properties);
-        }
+        resultList.addAll(oneBucketResult.getResults());
 
-        if (representationStubs.size() == limit) {
+
+        if (resultList.size() == limit) {
             // we reached the page limit, prepare the next slice string to be used for the next page
             String nextSlice = getNextSlice(oneBucketResult.getNextSlice(), bucket.getBucketId(), providerId, dataSetId);
-
             if (nextSlice != null) {
-                Properties properties = new Properties();
-                properties.put("nextSlice", nextSlice);
-                representationStubs.add(properties);
+                return new ResultSlice<>(nextSlice, resultList);
             }
         } else {
             // we reached the end of bucket but number of results is less than the page size
             // - in this case if there are more buckets we should retrieve number of results that will feed the page
             if (bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId) != null) {
                 String nextSlice = "_" + bucket.getBucketId();
-                representationStubs.addAll(listDataSetAssignments(providerId, dataSetId, nextSlice, limit - representationStubs.size()));
+                ResultSlice<DatasetAssignment> dataFromNextBuckets = listDataSetAssignments(providerId, dataSetId, nextSlice, limit - resultList.size());
+                resultList.addAll(dataFromNextBuckets.getResults());
+                return new ResultSlice<>(dataFromNextBuckets.getNextSlice(), resultList);
             }
         }
 
-        return representationStubs;
+        return new ResultSlice<>(null, resultList);
     }
 
     /**
@@ -412,7 +392,7 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     private boolean datasetIsEmpty(String providerId, String dataSetId) {
-        return listDataSetAssignments(providerId, dataSetId, null, 1).isEmpty();
+        return listDataSetAssignments(providerId, dataSetId, null, 1).getResults().isEmpty();
     }
 
     @Override
