@@ -298,26 +298,16 @@ public class CassandraDataSetService implements DataSetService {
         }
 
         // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
-        List<Properties> list = getDataSetsRevisions2(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
-
-        String nextToken = null;
-
-        // when the list size is one element bigger than requested it means there is going to be next slice
-        if (list.size() == limit + 1) {
-            // set token to the last from list
-            nextToken = list.get(limit).getProperty("nextSlice");
-            // remove last element of the list
-            list.remove(limit);
-        }
-        return new ResultSlice<>(nextToken, prepareCloudTagsResponseList(list));
+        return getDataSetsRevisionsPage(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
     }
 
-    public List<Properties> getDataSetsRevisions2(String providerId, String dataSetId, String revisionProviderId,
-                                                 String revisionName, Date revisionTimestamp, String representationName,
-                                                 String nextToken, int limit) {
+    public ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
+                                                                   String revisionName, Date revisionTimestamp, String representationName,
+                                                                   String nextToken, int limit) {
 
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-        List<Properties> result = new ArrayList<>(limit);
+        List<CloudTagsResponse> result = new ArrayList<>(limit);
+        String resultNextSlice = null;
 
         Bucket bucket;
         PagingState state;
@@ -342,33 +332,22 @@ public class CassandraDataSetService implements DataSetService {
 
         // if the bucket is null it means we reached the end of data
         if (bucket == null) {
-            return result;
+            return new ResultSlice<>(null, result);
         }
 
         ResultSlice<CloudTagsResponse> oneBucketResult = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
                 revisionName, revisionTimestamp, representationName,
                 state, limit);
-        for(CloudTagsResponse response:oneBucketResult.getResults()){
-            Properties properties = new Properties();
-            properties.put("cloudId", response.getCloudId());
-            properties.put("acceptance", Boolean.toString(response.isAcceptance()));
-            properties.put("published", Boolean.toString(response.isPublished()));
-            properties.put("deleted", Boolean.toString(response.isDeleted()));
-            result.add(properties);
-        }
+        result.addAll(oneBucketResult.getResults());
 
         if (result.size() == limit) {
             if (oneBucketResult.getNextSlice() != null) {
                 // we reached the page limit, prepare the next slice string to be used for the next page
-                Properties properties = new Properties();
-                properties.put("nextSlice", oneBucketResult.getNextSlice() + "_" + bucket.getBucketId());
-                result.add(properties);
+                resultNextSlice = oneBucketResult.getNextSlice() + "_" + bucket.getBucketId();
             } else {
                 // we reached the end of bucket and limit - in this case if there are more buckets we should set proper nextSlice
                 if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
-                    Properties properties = new Properties();
-                    properties.put("nextSlice", "_" + bucket.getBucketId());
-                    result.add(properties);
+                    resultNextSlice="_" + bucket.getBucketId();
                 }
             }
         } else {
@@ -377,12 +356,12 @@ public class CassandraDataSetService implements DataSetService {
             if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
                 String nextSlice = "_" + bucket.getBucketId();
                 result.addAll(
-                        getDataSetsRevisions2(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
-                                representationName, nextSlice, limit - result.size()));
+                        getDataSetsRevisionsPage(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
+                                representationName, nextSlice, limit - result.size())
+                                .getResults());
             }
         }
-
-        return result;
+        return new ResultSlice<>(resultNextSlice,result);
     }
 
 
@@ -405,20 +384,6 @@ public class CassandraDataSetService implements DataSetService {
         } while (startFrom != null && resultList.size() < limit);
 
         return resultList;
-    }
-
-    private List<CloudTagsResponse> prepareCloudTagsResponseList(List<Properties> list) {
-        List<CloudTagsResponse> result = new ArrayList<>(list.size());
-
-        for (Properties properties : list) {
-            result.add(new CloudTagsResponse(properties.getProperty("cloudId"),
-                    Boolean.valueOf(properties.getProperty("published")),
-                    Boolean.valueOf(properties.getProperty("deleted")),
-                    Boolean.valueOf(properties.getProperty("acceptance")))
-            );
-        }
-
-        return result;
     }
 
     /**
