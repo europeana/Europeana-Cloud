@@ -8,10 +8,7 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Service for data sets and representation assignments to data sets.
@@ -52,6 +49,9 @@ public interface DataSetService {
     void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
             throws DataSetNotExistsException, RepresentationNotExistsException;
 
+    void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId);
+
+    void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
 
     /**
      * Removes representation assignment from data set.
@@ -193,6 +193,8 @@ public interface DataSetService {
      */
     List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation) throws RepresentationNotExistsException;
 
+    Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
+            throws RepresentationNotExistsException;
     /**
      * Returns one (usually the first one from DB) for the given representation
      *

@@ -464,9 +464,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         deletedRevision.setDeleted(true);
         for (int i = 0; i < 12500; i++) {
             if ((i + 1) % 2000 == 0) {
-                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, exitstingRevision, REPRESENTATION, "CLOUD_ID_" + i);
+                cassandraDataSetService.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, exitstingRevision, REPRESENTATION, "CLOUD_ID_" + i);
             } else {
-                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, deletedRevision, REPRESENTATION, "CLOUD_ID_" + i);
+                cassandraDataSetService.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, deletedRevision, REPRESENTATION, "CLOUD_ID_" + i);
             }
         }
 
@@ -687,7 +687,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
 
         //when
-        dataSetDAO.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
+        cassandraDataSetService.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
                 SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
 
         //then
@@ -708,7 +708,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
 
         //when
-        dataSetDAO.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
+        cassandraDataSetService.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
                 SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
 
         //then

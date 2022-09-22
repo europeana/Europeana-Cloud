@@ -175,7 +175,7 @@ public class CassandraRecordService implements RecordService {
         if (cloudExists) {
             Representation representation =
                     recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
-            dataSetDAO.addAssignment(
+            dataSetService.addAssignmentToMainTables(
                     providerId,
                     dataSetId,
                     representation.getCloudId(),
@@ -247,7 +247,7 @@ public class CassandraRecordService implements RecordService {
     }
 
     private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation) throws RepresentationNotExistsException {
-        Collection<CompoundDataSetId> compoundDataSetIds = dataSetDAO.getDataSetAssignmentsByRepresentationVersion(globalId, representation.getRepresentationName(), representation.getVersion());
+        Collection<CompoundDataSetId> compoundDataSetIds = dataSetService.getDataSetAssignmentsByRepresentationVersion(globalId, representation.getRepresentationName(), representation.getVersion());
         if (!compoundDataSetIds.isEmpty()) {
             for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
                 try {
