@@ -53,9 +53,9 @@ public class CassandraDataSetService implements DataSetService {
                                                    String thresholdParam, int limit) throws DataSetNotExistsException {
         checkIfDatasetExists(dataSetId, providerId);
         // get representation stubs from data set
-        ResultSlice<DatasetAssignment> assigments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
+        ResultSlice<DatasetAssignment> assignments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
         // replace representation stubs with real representations
-        return new ResultSlice<>(assigments.getNextSlice(), getRepresentations(assigments.getResults()));
+        return new ResultSlice<>(assignments.getNextSlice(), getRepresentations(assignments.getResults()));
     }
 
     private List<Representation> getRepresentations(List<DatasetAssignment> assignments) {
@@ -73,14 +73,14 @@ public class CassandraDataSetService implements DataSetService {
      * @param dataSetId  data set id
      * @param nextToken  next token containing information about paging state and bucket id
      * @param limit      maximum size of returned list
-     * @return
+     * @return ResultSlice
      */
-    public ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
+    private ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
             throws NoHostAvailableException, QueryExecutionException {
         String id = createProviderDataSetId(providerId, dataSetId);
         return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS,
                 (bucket, pagingState, localLimit) ->
-                        dataSetDAO.getDatasetAssignments(id, bucket.getBucketId(), pagingState, localLimit));
+                        dataSetDAO.getDataSetAssignments(id, bucket.getBucketId(), pagingState, localLimit));
     }
 
     /**
@@ -108,7 +108,7 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     /**
-     * Adds representation to a data set. Might add representation in latest
+     * Adds representation to a data set. Might add representation in the latest
      * persistent or specified version. Does not do any kind of parameter
      * validation - specified data set and representation version must exist
      * before invoking this method.
@@ -161,42 +161,19 @@ public class CassandraDataSetService implements DataSetService {
         return dataSetDAO.getDataSetAssignments(recordId, schema, version).contains(seekedId);
     }
 
-    /**
-     * Get next slice string basing on paging state of the current query and bucket id.
-     *
-     * @param pagingState paging state of the current query
-     * @param bucketId    current bucket identifier
-     * @param providerId  provider id needed to retrieve next bucket id
-     * @param dataSetId   dataset id needed to retrieve next bucket id
-     * @return next slice as the concatenation of paging state and bucket id (paging state may be empty
-     * or null when there are no more buckets available
-     */
-    private String getNextSlice(String pagingState, String bucketId, String providerId, String dataSetId) {
-        if (pagingState == null) {
-            //We possibly reached the end of a bucket, so prepare nextSlice with current bucket_id but no paging state
-            //It means fetching from next bucket if available or empty next page.
-            return String.format("_%s", bucketId);
-        } else {
-            return String.format("%s_%s", pagingState, bucketId);
-        }
-    }
-
-
     private Representation getRepresentationIfExist(String recordId, String schema, String version) throws RepresentationNotExistsException {
-        Representation rep;
+        Representation representation;
         if (version == null) {
-            rep = recordDAO.getLatestPersistentRepresentation(recordId, schema);
-            if (rep == null) {
-                throw new RepresentationNotExistsException();
-            }
+            representation = recordDAO.getLatestPersistentRepresentation(recordId, schema);
         } else {
-            rep = recordDAO.getRepresentation(recordId, schema, version);
-
-            if (rep == null) {
-                throw new RepresentationNotExistsException();
-            }
+            representation = recordDAO.getRepresentation(recordId, schema, version);
         }
-        return rep;
+
+        if (representation == null) {
+            throw new RepresentationNotExistsException();
+        }
+
+        return representation;
     }
 
     /**
@@ -423,7 +400,7 @@ public class CassandraDataSetService implements DataSetService {
             subResults = getDataSetsRevisions(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
                     representationName, startFrom, 5000);
 
-            subResults.getResults().stream().filter(not(CloudTagsResponse::isDeleted)).limit(limit - resultList.size())
+            subResults.getResults().stream().filter(not(CloudTagsResponse::isDeleted)).limit((long)limit - resultList.size())
                     .forEach(resultList::add);
             startFrom = subResults.getNextSlice();
         } while (startFrom != null && resultList.size() < limit);
@@ -433,7 +410,7 @@ public class CassandraDataSetService implements DataSetService {
 
     /**
      * Get paging state from part of token. When the token is null or empty paging state is null.
-     * Otherwise we can create paging state from that string.
+     * Otherwise, we can create paging state from that string.
      *
      * @param tokenPart part of token containing string representation of paging state from previous query
      * @return null when token part is empty or null paging state otherwise
@@ -499,8 +476,7 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     /**
-     * Returns data sets to which representation in specific version
-     * version) is assigned to.
+     * Returns data sets to which representation in specific version is assigned to.
      *
      * @param cloudId  record id
      * @param schemaId representation schema
@@ -518,7 +494,7 @@ public class CassandraDataSetService implements DataSetService {
 
 
     @Override
-    public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException {
+    public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) {
         return dataSetDAO.getOneDataSetFor(cloudId, representationName);
     }
 
@@ -541,22 +517,15 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws
             ProviderNotExistsException, DataSetNotExistsException {
-        if (isProviderExists(providerId) && isDataSetExists(providerId, dataSetId)) {
-            return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
-        }
-        return Collections.emptySet();
+        checkProviderExists(providerId);
+        checkIfDatasetExists(dataSetId, providerId);
+        return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
     }
 
-    private boolean isProviderExists(String providerId) throws ProviderNotExistsException {
+    private void checkProviderExists(String providerId) throws ProviderNotExistsException {
         if (!uis.existsProvider(providerId)) {
             throw new ProviderNotExistsException();
         }
-        return true;
-    }
-
-    private boolean isDataSetExists(String providerId, String dataSetId) throws DataSetNotExistsException {
-        checkIfDatasetExists(dataSetId, providerId);
-        return true;
     }
 
     @Override

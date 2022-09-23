@@ -11,7 +11,6 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
-import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +29,7 @@ import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUti
 @Retryable
 public class CassandraDataSetDAO {
 
-    // separator between provider id and dataset id in serialized compund
+    // separator between provider id and dataset id in serialized compound
     // dataset id
     public static final String CDSID_SEPARATOR = "\n";
 
@@ -46,9 +45,6 @@ public class CassandraDataSetDAO {
     @Autowired
     @Qualifier("dbService")
     private CassandraConnectionProvider connectionProvider;
-
-    @Autowired
-    private BucketsHandler bucketsHandler;
 
     private PreparedStatement createDataSetStatement;
 
@@ -225,7 +221,7 @@ public class CassandraDataSetDAO {
         );
     }
 
-    public ResultSlice<DatasetAssignment> getDatasetAssignments(String providerDataSetId, String bucketId, PagingState state, int limit) {
+    public ResultSlice<DatasetAssignment> getDataSetAssignments(String providerDataSetId, String bucketId, PagingState state, int limit) {
         List<DatasetAssignment> assignments=new ArrayList<>();
         // bind parameters, set limit to max int value
         BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(
@@ -508,13 +504,11 @@ public class CassandraDataSetDAO {
         QueryTracer.logConsistencyLevel(boundStatement, rs);
 
         // get available results
-        Iterator<Row> iterator = rs.iterator();
-        while(iterator.hasNext()){
-            Row row = iterator.next();
-            result.add(new CloudTagsResponse(row.getString("cloud_id"),row.getBool("published"),
-                  row.getBool("mark_deleted"),row.getBool("acceptance")));
+        for (Row row : rs) {
+            result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("published"),
+                    row.getBool("mark_deleted"), row.getBool("acceptance")));
 
-            if (result.size() >= limit){
+            if (result.size() >= limit) {
                 break;
             }
         }
