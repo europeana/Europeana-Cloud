@@ -77,58 +77,10 @@ public class CassandraDataSetService implements DataSetService {
      */
     public ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
             throws NoHostAvailableException, QueryExecutionException {
-
-        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-        List<DatasetAssignment> resultList = new ArrayList<>();
-
-        Bucket bucket = null;
-        PagingState state;
-
-        if (nextToken == null) {
-            // there is no next token so do not set paging state, take the first bucket for provider's dataset
-            bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId);
-            state = null;
-        } else {
-            // next token is set, parse it to retrieve paging state and bucket id
-            // (token is concatenation of paging state and bucket id using '_' character
-            String[] parts = nextToken.split("_");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("nextToken format is wrong. nextToken = " + nextToken);
-            }
-
-            // first element is the paging state
-            state = getPagingState(parts[0]);
-            // second element is bucket id
-            bucket = getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, parts[1], state, providerDataSetId);
-        }
-
-        // if the bucket is null it means we reached the end of data
-        if (bucket == null) {
-            return new ResultSlice<>(null, resultList);
-        }
-
-        ResultSlice<DatasetAssignment> oneBucketResult = dataSetDAO.getDatasetAssignments(providerDataSetId, bucket.getBucketId(), state, limit);
-        resultList.addAll(oneBucketResult.getResults());
-
-
-        if (resultList.size() == limit) {
-            // we reached the page limit, prepare the next slice string to be used for the next page
-            String nextSlice = getNextSlice(oneBucketResult.getNextSlice(), bucket.getBucketId(), providerId, dataSetId);
-            if (nextSlice != null) {
-                return new ResultSlice<>(nextSlice, resultList);
-            }
-        } else {
-            // we reached the end of bucket but number of results is less than the page size
-            // - in this case if there are more buckets we should retrieve number of results that will feed the page
-            if (bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId) != null) {
-                String nextSlice = "_" + bucket.getBucketId();
-                ResultSlice<DatasetAssignment> dataFromNextBuckets = listDataSetAssignments(providerId, dataSetId, nextSlice, limit - resultList.size());
-                resultList.addAll(dataFromNextBuckets.getResults());
-                return new ResultSlice<>(dataFromNextBuckets.getNextSlice(), resultList);
-            }
-        }
-
-        return new ResultSlice<>(null, resultList);
+        String id = createProviderDataSetId(providerId, dataSetId);
+        return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS,
+                (bucket, pagingState, localLimit) ->
+                        dataSetDAO.getDatasetAssignments(id, bucket.getBucketId(), pagingState, localLimit));
     }
 
     /**
@@ -390,9 +342,20 @@ public class CassandraDataSetService implements DataSetService {
     public ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
                                                                    String revisionName, Date revisionTimestamp, String representationName,
                                                                    String nextToken, int limit) {
+        String id = createProviderDataSetId(providerId, dataSetId);
+        return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
+                (bucket, pagingState, localLimit) ->
+                        dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
+                                revisionName, revisionTimestamp, representationName, pagingState, localLimit));
+    }
 
-        String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-        List<CloudTagsResponse> result = new ArrayList<>(limit);
+    public interface OneBucketLoader<E>{
+        ResultSlice<E> loadData(Bucket bucket, PagingState pagingState, int localLimit);
+    }
+
+    public <E> ResultSlice<E> loadPage(String dataId, String nextToken, int limit,
+                                        String bucketsTableName, OneBucketLoader<E> oneBucketLoader) {
+        List<E> result = new ArrayList<>(limit);
         String resultNextSlice = null;
 
         Bucket bucket;
@@ -400,7 +363,7 @@ public class CassandraDataSetService implements DataSetService {
 
         if (nextToken == null) {
             // there is no next token so do not set paging state, take the first bucket for provider's dataset
-            bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
+            bucket = bucketsHandler.getFirstBucket(bucketsTableName, dataId);
             state = null;
         } else {
             // next token is set, parse it to retrieve paging state and bucket id
@@ -413,7 +376,7 @@ public class CassandraDataSetService implements DataSetService {
             // first element is the paging state
             state = getPagingState(parts[0]);
             // second element is bucket id
-            bucket = getAssignmentBucketId(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, parts[1], state, providerDataSetId);
+            bucket = getAssignmentBucketId(bucketsTableName, parts[1], state, dataId);
         }
 
         // if the bucket is null it means we reached the end of data
@@ -421,9 +384,7 @@ public class CassandraDataSetService implements DataSetService {
             return new ResultSlice<>(null, result);
         }
 
-        ResultSlice<CloudTagsResponse> oneBucketResult = dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
-                revisionName, revisionTimestamp, representationName,
-                state, limit);
+        ResultSlice<E> oneBucketResult = oneBucketLoader.loadData(bucket, state, limit);
         result.addAll(oneBucketResult.getResults());
 
         if (result.size() == limit) {
@@ -432,24 +393,22 @@ public class CassandraDataSetService implements DataSetService {
                 resultNextSlice = oneBucketResult.getNextSlice() + "_" + bucket.getBucketId();
             } else {
                 // we reached the end of bucket and limit - in this case if there are more buckets we should set proper nextSlice
-                if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
-                    resultNextSlice="_" + bucket.getBucketId();
+                if (bucketsHandler.getNextBucket(bucketsTableName, dataId, bucket) != null) {
+                    resultNextSlice = "_" + bucket.getBucketId();
                 }
             }
         } else {
             // we reached the end of bucket but number of results is less than the page size - in this case
             // if there are more buckets we should retrieve number of results that will feed the page
-            if (bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId, bucket) != null) {
+            if (bucketsHandler.getNextBucket(bucketsTableName, dataId, bucket) != null) {
                 String nextSlice = "_" + bucket.getBucketId();
                 result.addAll(
-                        getDataSetsRevisionsPage(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp,
-                                representationName, nextSlice, limit - result.size())
+                        loadPage(dataId, nextSlice, limit - result.size(), bucketsTableName, oneBucketLoader)
                                 .getResults());
             }
         }
-        return new ResultSlice<>(resultNextSlice,result);
+        return new ResultSlice<>(resultNextSlice, result);
     }
-
 
     @Override
     public List<CloudTagsResponse> getDataSetsExistingRevisions(

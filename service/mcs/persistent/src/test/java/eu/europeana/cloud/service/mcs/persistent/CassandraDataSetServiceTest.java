@@ -830,7 +830,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertNull(page2.getNextSlice());
     }
 
-    @Ignore("It detects an anomaly, but it is compensated by the additional page request with empty result")
     @Test
     public void shouldListDataSetWithPaginationLastPageLimitEqualAccessibleDataCount()
             throws Exception {
@@ -858,40 +857,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     }
 
     @Test
-    public void shouldListDataSetWithPaginationLastPageLimitEqualAccessibleDataCountAnomalyCompensationCheck()
-            throws Exception {
-        makeUISSuccess();
-        makeUISProviderSuccess();
-        makeDatasetExists();
-        createDatasetAssignmentBucket();
-        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        createDatasetAssignmentBucket();
-        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, null, 1);
-        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, page1.getNextSlice(), 2);
-
-        assertThat(page1.getResults(), hasSize(1));
-        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
-        assertNotNull(page1.getNextSlice());
-        assertThat(page2.getResults(), hasSize(2));
-        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
-        assertThat(page2.getResults().get(1).getCloudId(),is(SAMPLE_CLOUD_ID3));
-//        assertNull(page2.getNextSlice());
-        ResultSlice<Representation> page3 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, page2.getNextSlice(), 2);
-        assertThat(page3.getResults(), hasSize(0));
-        assertNull(page3.getNextSlice());
-
-    }
-
-    @Ignore("It detects an error, but it has rather small probability, it occurs only for datasets greater than 100000," +
-            "MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT with probability:" +
-            "1/100 (1/eu.europeana.cloud.service.mcs.rest.DataSetResource.numberOfElementsOnPage)")
-    @Test
     public void shouldListDataSetWithPaginationHittingExactlyBucketBorders()
             throws Exception {
         makeUISSuccess();
@@ -913,35 +878,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         assertThat(page2.getResults(), hasSize(1));
         assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
         assertNull(page2.getNextSlice());
-    }
-
-    @Test
-    public void shouldListDataSetWithPaginationHittingExactlyBucketBordersWorking()
-            throws Exception {
-        makeUISSuccess();
-        makeUISProviderSuccess();
-        makeDatasetExists();
-        createDatasetAssignmentBucket();
-        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        createDatasetAssignmentBucket();
-        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, null, 1);
-        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, page1.getNextSlice(), 1);
-        ResultSlice<Representation> page3 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-                SAMPLE_DATASET_ID, page2.getNextSlice(), 1);
-
-
-        assertThat(page1.getResults(), hasSize(1));
-        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
-        assertNotNull(page1.getNextSlice());
-        assertThat(page2.getResults(), hasSize(1));
-        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
-        assertNotNull(page2.getNextSlice());
-        assertThat(page3.getResults(), hasSize(0));
-        assertNull(page3.getNextSlice());
     }
 
     private DataSet createDataset() throws ProviderNotExistsException, DataSetAlreadyExistsException {
