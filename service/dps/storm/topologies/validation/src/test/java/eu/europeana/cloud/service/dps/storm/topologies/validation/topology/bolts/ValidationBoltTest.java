@@ -113,7 +113,6 @@ public class ValidationBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters(String schemaName, String schemaRootLocation) {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.AUTHORIZATION_HEADER, "AUTHORIZATION_HEADER");
         parameters.put(PluginParameterKeys.SCHEMA_NAME, schemaName);
         parameters.put(PluginParameterKeys.ROOT_LOCATION, schemaRootLocation);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");

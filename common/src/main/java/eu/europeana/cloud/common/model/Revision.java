@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.model;
 
 import eu.europeana.cloud.common.utils.DateAdapter;
+import eu.europeana.cloud.common.utils.Tags;
 import lombok.*;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -10,6 +11,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -47,4 +51,32 @@ public class Revision implements Serializable {
                 revision.isDeleted()
         );
     }
+
+    public static Revision fromParams(String revisionName, String revisionProviderId, String tag){
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        revision.setRevisionTags(revision, new HashSet<>(List.of(tag)));
+        return revision;
+    }
+
+    public static Revision fromParams(String revisionName, String revisionProviderId, Set<String> tags){
+        Revision revision = new Revision(revisionName, revisionProviderId);
+        revision.setRevisionTags(revision, tags);
+        return revision;
+    }
+
+    private void setRevisionTags(Revision revision, Set<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return;
+        }
+        if (tags.contains(Tags.ACCEPTANCE.getTag())) {
+            revision.setAcceptance(true);
+        }
+        if (tags.contains(Tags.PUBLISHED.getTag())) {
+            revision.setPublished(true);
+        }
+        if (tags.contains(Tags.DELETED.getTag())) {
+            revision.setDeleted(true);
+        }
+    }
+
 }

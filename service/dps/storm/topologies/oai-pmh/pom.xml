@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>7</version>
+        <version>8</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -169,7 +169,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology
+                            <mainClass>eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingTopology
                             </mainClass>
                         </manifest>
                     </archive>
@@ -220,7 +220,7 @@
                         <archive>
                             <manifest>
                                 <mainClass>
-                                    eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPHMHarvestingTopology
+                                    eu.europeana.cloud.service.dps.storm.topologies.oaipmh.OAIPMHHarvestingTopology
                                 </mainClass>
                             </manifest>
                         </archive>

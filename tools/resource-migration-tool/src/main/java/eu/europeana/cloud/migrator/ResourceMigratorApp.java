@@ -53,7 +53,8 @@ public class ResourceMigratorApp {
         return parser;
     }
 
-    public static void main(String[] args) {
+    //TODO Adjust migrator to current changes
+    public static void XXXmain(String[] args) {
         ArgumentParser parser = prepareArgumentParser();
         Namespace ns = null;
         try {

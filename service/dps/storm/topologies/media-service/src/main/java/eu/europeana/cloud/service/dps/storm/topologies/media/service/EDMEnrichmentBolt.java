@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
@@ -23,7 +24,10 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
     public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
@@ -38,8 +42,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private transient RdfDeserializer deserializer;
     private transient RdfSerializer rdfSerializer;
 
-    public EDMEnrichmentBolt(String mcsURL) {
-        super(mcsURL);
+    public EDMEnrichmentBolt(String mcsURL,
+                             String ecloudMcsUser,
+                             String ecloudMcsUserPassword) {
+        super(mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override
@@ -52,14 +58,17 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream));
                 prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
                 outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                outputCollector.ack(anchorTuple);
+            } catch (RetryInterruptedException e) {
+                handleInterruption(e, anchorTuple);
             } catch (Exception ex) {
                 LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
                 emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                         stormTaskTuple.getFileUrl(), ex.getMessage(),
                         SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
                         StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+                outputCollector.ack(anchorTuple);
             }
-            outputCollector.ack(anchorTuple);
         } else {
             final String file = stormTaskTuple.getFileUrl();
             TempEnrichedFile tempEnrichedFile = cache.get(file);
@@ -84,6 +93,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                 tempEnrichedFile.setExceptions(cachedErrorMessage);
                 LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
                         tempEnrichedFile.getCount() + 1, tempEnrichedFile.getExceptions(), metadata);
+            } catch (RetryInterruptedException e) {
+                handleInterruption(e, anchorTuple);
+                return;
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();
@@ -92,25 +104,28 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
                     tempEnrichedFile.setExceptions(exceptionMessage);
                 else
                     tempEnrichedFile.setExceptions(currentException + "," + exceptionMessage);
-            } finally {
-                tempEnrichedFile.increaseCount();
-                if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
-                    try {
-                        LOGGER.debug("The file was fully enriched and will be send to the next bolt");
-                        prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
-                        cache.remove(file);
-                        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-                    } catch (Exception ex) {
-                        LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-                        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
-                                stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
-                                SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
-                                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-                    }
-                    ackAllSourceTuplesForFile(tempEnrichedFile);
-                } else {
-                    cache.put(file, tempEnrichedFile);
+            }
+
+            tempEnrichedFile.increaseCount();
+            if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
+                try {
+                    LOGGER.debug("The file was fully enriched and will be send to the next bolt");
+                    prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
+                    cache.remove(file);
+                    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+                } catch (RetryInterruptedException e) {
+                    handleInterruption(e, anchorTuple);
+                    return;
+                } catch (Exception ex) {
+                    LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
+                    emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
+                            stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
+                            SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
+                            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
                 }
+                ackAllSourceTuplesForFile(tempEnrichedFile);
+            } else {
+                cache.put(file, tempEnrichedFile);
             }
         }
         LOGGER.info("EDM enrichment finished in {}ms", Clock.millisecondsSince(processingStartTime));
@@ -176,7 +191,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
-        for (Tuple tuple : enrichedFile.sourceTupples) {
+        for (Tuple tuple : enrichedFile.sourceTuples) {
             outputCollector.ack(tuple);
         }
     }
@@ -186,7 +201,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         private EnrichedRdf enrichedRdf;
         private String exceptions;
         private int count;
-        private List<Tuple> sourceTupples = new ArrayList<>();
+        private final List<Tuple> sourceTuples = new ArrayList<>();
 
         public TempEnrichedFile() {
             count = 0;
@@ -222,7 +237,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
 
         public void addSourceTuple(Tuple anchorTuple) {
-            sourceTupples.add(anchorTuple);
+            sourceTuples.add(anchorTuple);
         }
 
         public Long getTaskId() {

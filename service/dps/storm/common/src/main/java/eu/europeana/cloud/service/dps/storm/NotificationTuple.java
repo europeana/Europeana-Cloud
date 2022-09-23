@@ -61,7 +61,7 @@ public class NotificationTuple {
 
 
     public static NotificationTuple prepareIndexingNotification(long taskId, boolean markedAsDeleted,
-                                                                String authenticationHeader, String resource,
+                                                                String resource,
                                                                 RecordState state, String text,
                                                                 String additionalInformation, String europeanaId,
                                                                 String resultResource, long processingStartTime) {
@@ -69,7 +69,6 @@ public class NotificationTuple {
         if (markedAsDeleted) {
             parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
         }
-        parameters.put(NotificationParameterKeys.AUTHORIZATION_HEADER, authenticationHeader);
         parameters.put(NotificationParameterKeys.RESOURCE, resource);
         parameters.put(NotificationParameterKeys.STATE, state.toString());
         parameters.put(NotificationParameterKeys.INFO_TEXT, text);
@@ -116,5 +115,9 @@ public class NotificationTuple {
 
     public boolean isIgnoredRecord() {
         return "true".equals(parameters.get(PluginParameterKeys.IGNORED_RECORD));
+    }
+
+    public String getResource() {
+        return String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));
     }
 }

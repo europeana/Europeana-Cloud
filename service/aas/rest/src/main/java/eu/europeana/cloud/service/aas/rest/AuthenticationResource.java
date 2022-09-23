@@ -4,10 +4,10 @@ import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.common.web.AASParamConstants;
 import eu.europeana.cloud.service.aas.authentication.AuthenticationService;
 import eu.europeana.cloud.service.aas.authentication.exception.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -17,8 +17,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/")
 public class AuthenticationResource {
 
-    @Autowired
-    private AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthenticationResource(AuthenticationService authenticationService, PasswordEncoder passwordEncoder) {
+        this.authenticationService = authenticationService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Creates a new ecloud-user with the specified username + password.
@@ -31,22 +37,28 @@ public class AuthenticationResource {
             throws DatabaseConnectionException, UserExistsException,
             InvalidUsernameException, InvalidPasswordException {
 
-        authenticationService.createUser(new User(username, password));
+        authenticationService.createUser(new User(username, passwordEncoder.encode(password)));
         return ResponseEntity.ok("Cloud user was created!");
     }
 
-    /**
-     * Deletes a user with the specified username.
-     */
-    @PostMapping(value = "/delete-user", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PutMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteCloudUser(
-            @RequestParam(AASParamConstants.P_USER_NAME) String username)
+    public ResponseEntity<String> lockUser(
+            @PathVariable(AASParamConstants.P_USER_NAME) String username)
             throws DatabaseConnectionException, UserDoesNotExistException {
-
-        authenticationService.deleteUser(username);
-        return ResponseEntity.ok("Cloud user is gone. Bye bye.");
+        authenticationService.lockUser(username);
+        return ResponseEntity.ok("Cloud user is locked.");
     }
+
+    @DeleteMapping(value = "/user/{username}/locked", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> unlockUser(
+            @PathVariable(AASParamConstants.P_USER_NAME) String username)
+            throws DatabaseConnectionException, UserDoesNotExistException {
+        authenticationService.unlockUser(username);
+        return ResponseEntity.ok("Cloud user is unlocked.");
+    }
+
 
     /**
      * Updates an ecloud-user with the specified username + password.
@@ -59,7 +71,7 @@ public class AuthenticationResource {
             throws DatabaseConnectionException, UserDoesNotExistException,
             InvalidPasswordException {
 
-        authenticationService.updateUser(new User(username, password));
+        authenticationService.updateUser(new User(username, passwordEncoder.encode(password)));
         return ResponseEntity.ok("Cloud user updated.");
     }
 }

@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
@@ -64,12 +65,15 @@ public class StatisticsBolt extends AbstractDpsBolt {
             // we can remove the file content before emitting further
             stormTaskTuple.setFileData((byte[]) null);
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (Exception e) {
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
                     stormTaskTuple.getFileUrl(), e.getMessage(), "Statistics for the given file could not be prepared.",
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private boolean statsShouldBeGenerated(StormTaskTuple stormTaskTuple) {

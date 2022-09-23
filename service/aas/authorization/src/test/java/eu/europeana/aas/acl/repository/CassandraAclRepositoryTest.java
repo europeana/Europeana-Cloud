@@ -19,6 +19,7 @@ import eu.europeana.aas.acl.TestContextConfiguration;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.cloud.common.model.Role;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
     private static final String aoi_id = "123";
     private static final String aoi_parent_id = "456";
     private static final String aoi_class = "a.b.c.Class";
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private static final String ROLE_ADMIN = Role.ADMIN;
 
     @Autowired
     private CassandraAclRepository service;

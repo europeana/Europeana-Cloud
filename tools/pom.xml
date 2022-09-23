@@ -4,11 +4,11 @@
     <parent>
         <artifactId>ecloud-parent</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>7</version>
+        <version>8</version>
     </parent>
 
     <artifactId>ecloud-tools</artifactId>
-    <version>7</version>
+    <version>8</version>
     <packaging>pom</packaging>
     <name>Europeana Cloud: Tools</name>
 
@@ -24,6 +24,7 @@
         <module>ecloud-db-migrator</module>
         <module>harvested-records-table-updater</module>
         <module>record-ids-extractor</module>
+        <module>proc-stats-tool</module>
     </modules>
 
     <dependencies>

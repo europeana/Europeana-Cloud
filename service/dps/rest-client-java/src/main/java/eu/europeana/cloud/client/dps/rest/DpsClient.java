@@ -133,14 +133,13 @@ public class DpsClient implements AutoCloseable {
      * clean METIS indexing dataset.
      */
     public void cleanMetisIndexingDataset(String topologyName, long taskId,
-                                          DataSetCleanerParameters dataSetCleanerParameters,
-                                          String key, String value) throws DpsException {
+                                          DataSetCleanerParameters dataSetCleanerParameters) throws DpsException {
         manageResponse(new ResponseParams<>(Void.class),
                 () -> client.target(dpsUrl)
                         .path(TASK_CLEAN_DATASET_URL)
                         .resolveTemplate(TOPOLOGY_NAME, topologyName)
                         .resolveTemplate(TASK_ID, taskId)
-                        .request().header(key, value)
+                        .request()
                         .post(Entity.json(dataSetCleanerParameters)),
                 "Cleaning a dataset was not successful");
     }

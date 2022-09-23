@@ -3,7 +3,6 @@ package eu.europeana.cloud.normalization;
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -32,20 +31,31 @@ public class NormalizationTopology {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizationTopology.class);
 
     private static final String TOPOLOGY_PROPERTIES_FILE = "normalization-topology-config.properties";
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
 
     public NormalizationTopology(String defaultPropertyFile, String providedPropertyFile) {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public StormTopology buildTopology(String ecloudMcsAddress) {
+    public StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
         NormalizationBolt normalizationBolt = new NormalizationBolt();
 
         // TOPOLOGY STRUCTURE!
@@ -73,13 +83,6 @@ public class NormalizationTopology {
                         getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                        getAnInt(ADD_TO_DATASET_BOLT_PARALLEL))
-                .setNumTasks(
-                        getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS))
-                .shuffleGrouping(REVISION_WRITER_BOLT);
-
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
                 builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                                         getAnInt(CASSANDRA_PORT),
@@ -96,10 +99,7 @@ public class NormalizationTopology {
                         .fieldsGrouping(WRITE_RECORD_BOLT, NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(REVISION_WRITER_BOLT, NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
-
 
         return builder.createTopology();
     }
@@ -113,8 +113,7 @@ public class NormalizationTopology {
                 NormalizationTopology normalizationTopology =
                         new NormalizationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = normalizationTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = normalizationTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.enrichment.bolts;
 
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
@@ -45,6 +46,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
             emitEnrichedContent(anchorTuple, stormTaskTuple, output);
             LOGGER.info("Emmited enrichment on {}", output);
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (Exception e) {
             LOGGER.error("Exception while Enriching/dereference", e);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
@@ -52,8 +56,8 @@ public class EnrichmentBolt extends AbstractDpsBolt {
                     "Remote Enrichment/dereference service caused the problem!. The full error: "
                             + ExceptionUtils.getStackTrace(e),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)

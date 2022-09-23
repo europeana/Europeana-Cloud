@@ -2,7 +2,9 @@ package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
+import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
+import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.LoggerListener;
@@ -12,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
@@ -22,7 +23,9 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.
-                httpBasic().and().
+                httpBasic()
+                .authenticationEntryPoint(cloudAuthenticationEntryPoint())
+                .and().
                 sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
                 csrf().disable();
     }
@@ -30,7 +33,7 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(authenticationService())
-                .passwordEncoder(NoOpPasswordEncoder.getInstance());
+                .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
     }
 
     /* Automatically receives AuthenticationEvent messages */
@@ -50,5 +53,10 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public CassandraAuthenticationService authenticationService() {
         return new CassandraAuthenticationService();
+    }
+
+    @Bean
+    public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
+        return new CloudAuthenticationEntryPoint();
     }
 }

@@ -5,24 +5,31 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
+import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.ParamUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REPRESENTATIONS_NAMES;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import java.util.Arrays;
+import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Resource to manage data sets.
@@ -30,19 +37,34 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RES
 @RestController
 public class DataSetResource {
     private static final String DATASET_CLASS_NAME = DataSet.class.getName();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetResource.class);
+
+    private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
+            eu.europeana.cloud.common.model.Permission.ALL.getValue(),
+            eu.europeana.cloud.common.model.Permission.READ.getValue(),
+            eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
+            eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
+            eu.europeana.cloud.common.model.Permission.DELETE.getValue()
+    );
+
+    private static final String DATASET_PERMISSION_KEY ="eu.europeana.cloud.common.model.DataSet";
 
     private final DataSetService dataSetService;
 
     private final MutableAclService mutableAclService;
+
+    private final PermissionsGrantingManager permissionsGrantingManager;
 
     @Value("${numberOfElementsOnPage}")
     private int numberOfElementsOnPage;
 
     public DataSetResource(
             DataSetService dataSetService,
-            MutableAclService mutableAclService) {
+            MutableAclService mutableAclService,
+            PermissionsGrantingManager permissionsGrantingManager) {
         this.dataSetService = dataSetService;
         this.mutableAclService = mutableAclService;
+        this.permissionsGrantingManager = permissionsGrantingManager;
     }
 
     /**
@@ -57,8 +79,8 @@ public class DataSetResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
     public void deleteDataSet(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws DataSetNotExistsException {
+            @PathVariable String providerId,
+            @PathVariable String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
 
         dataSetService.deleteDataSet(providerId, dataSetId);
 
@@ -87,8 +109,8 @@ public class DataSetResource {
     @ResponseBody
     public ResultSlice<Representation> getDataSetContents(
             HttpServletRequest httpServletRequest,
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam(required = false) String startFrom) throws DataSetNotExistsException {
 
         ResultSlice<Representation> representations =
@@ -98,6 +120,13 @@ public class DataSetResource {
             EnrichUriUtil.enrich(httpServletRequest, rep);
         }
         return representations;
+    }
+
+    @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
+    @ResponseBody
+    public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
+            throws DataSetNotExistsException {
+        dataSetService.checkIfDatasetExists(dataSetId, providerId);
     }
 
     /**
@@ -117,8 +146,8 @@ public class DataSetResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public void updateDataSet(
-            @PathVariable String dataSetId,
             @PathVariable String providerId,
+            @PathVariable String dataSetId,
             @RequestParam String description) throws DataSetNotExistsException {
 
         dataSetService.updateDataSet(providerId, dataSetId, description);
@@ -134,5 +163,50 @@ public class DataSetResource {
         RepresentationNames representationNames = new RepresentationNames();
         representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
         return representationNames;
+    }
+
+    @PutMapping(DATA_SET_PERMISSIONS_RESOURCE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
+            "or hasRole('ROLE_ADMIN')")
+    public void updateDataSetPermissionsForUser(
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+            @RequestParam String permission,
+            @RequestParam String username
+    ) {
+        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
+
+        eu.europeana.cloud.common.model.Permission selectedPermission =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+        List<Permission> permissionsToBeUpdated = Arrays.asList(selectedPermission.getSpringPermissions());
+        permissionsGrantingManager.grantPermissions(DATASET_PERMISSION_KEY, dataSetId + "/" + providerId, username, permissionsToBeUpdated);
+    }
+
+    @DeleteMapping(DATA_SET_PERMISSIONS_RESOURCE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
+            "or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> removeDataSetPermissionsForUser(
+            @PathVariable String providerId,
+            @PathVariable String dataSetId,
+            @RequestParam String permission,
+            @RequestParam String username
+    ) {
+        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
+
+        eu.europeana.cloud.common.model.Permission selectedPermission =
+                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+
+        ObjectIdentity versionIdentity = new ObjectIdentityImpl(DATASET_PERMISSION_KEY,
+                dataSetId + "/" + providerId);
+
+        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+                username, versionIdentity.getType(), versionIdentity.getIdentifier());
+
+        List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
+        permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);
+
+        return ResponseEntity.noContent().build();
     }
 }

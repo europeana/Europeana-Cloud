@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -13,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheB
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
+import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.util.LRUCache;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
@@ -23,9 +23,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
@@ -46,7 +44,6 @@ public class NotificationBolt extends BaseRichBolt {
     protected LRUCache<Long, NotificationCacheEntry> cache = new LRUCache<>(50);
 
     protected String topologyName;
-    private transient CassandraTaskInfoDAO taskInfoDAO;
     private transient NotificationTupleHandler notificationTupleHandler;
     private transient NotificationEntryCacheBuilder notificationEntryCacheBuilder;
     private transient BatchExecutor batchExecutor;
@@ -75,13 +72,16 @@ public class NotificationBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         var notificationTuple = NotificationTuple.fromStormTuple(tuple);
         try {
+            LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), notificationTuple);
+            prepareDiagnosticContext(notificationTuple);
             var cachedCounters = readCachedCounters(notificationTuple);
             NotificationHandlerConfig notificationHandlerConfig =
-                    NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(
-                            notificationTuple,
-                            cachedCounters,
-                            needsPostProcessing(notificationTuple));
+                    NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(notificationTuple, cachedCounters);
             notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
+            outputCollector.ack(tuple);
+        } catch (RetryInterruptedException ex) {
+            LOGGER.error("Notification interrupted: {}", ex.getMessage(), ex);
+            outputCollector.fail(tuple);
         } catch (Exception ex) {
             LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
             batchExecutor.executeAll(
@@ -89,8 +89,9 @@ public class NotificationBolt extends BaseRichBolt {
                             notificationTuple,
                             TaskState.DROPPED,
                             ex.getMessage()));
-        } finally {
             outputCollector.ack(tuple);
+        } finally {
+            clearDiagnosticContext();
         }
     }
 
@@ -102,7 +103,7 @@ public class NotificationBolt extends BaseRichBolt {
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
                         hosts, port, keyspaceName, userName, password);
 
-        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+        CassandraTaskInfoDAO taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
         NotificationsDAO subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
         ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
         CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
@@ -127,16 +128,6 @@ public class NotificationBolt extends BaseRichBolt {
         //last bolt in all topologies, nothing to declare
     }
 
-    protected boolean needsPostProcessing(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
-        return false;
-    }
-
-    protected DpsTask loadDpsTask(NotificationTuple tuple) throws TaskInfoDoesNotExistException, IOException {
-        Optional<TaskInfo> taskInfo = taskInfoDAO.findById(tuple.getTaskId());
-        String taskDefinition = taskInfo.orElseThrow(TaskInfoDoesNotExistException::new).getDefinition();
-        return new ObjectMapper().readValue(taskDefinition, DpsTask.class);
-    }
-
     private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {
         var cachedCounters = cache.get(notificationTuple.getTaskId());
         if (cachedCounters == null) {
@@ -156,4 +147,11 @@ public class NotificationBolt extends BaseRichBolt {
         return cachedCounters;
     }
 
+    private void prepareDiagnosticContext(NotificationTuple stormTaskTuple) {
+        DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
+    }
+
+    private void clearDiagnosticContext() {
+        DiagnosticContextWrapper.clear();
+    }
 }

@@ -27,7 +27,7 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/14/2018.
  */
 public class LinkCheckTopology {
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "link-check-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCheckTopology.class);
 
@@ -35,13 +35,16 @@ public class LinkCheckTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
-                builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(ecloudMcsAddress),
+                builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(
+                                        topologyProperties.getProperty(MCS_URL),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                                 (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                         .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS))));
 
@@ -79,8 +82,7 @@ public class LinkCheckTopology {
 
                 LinkCheckTopology linkCheckTopology = new LinkCheckTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = linkCheckTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = linkCheckTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

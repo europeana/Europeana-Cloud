@@ -1,27 +1,16 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
@@ -32,14 +21,11 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 @RestController
 @RequestMapping(REPRESENTATION_RESOURCE)
 public class RepresentationResource {
-	private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
 
 	private final RecordService recordService;
-	private final ExtendedAclService aclService;
 
-	public RepresentationResource(RecordService recordService, ExtendedAclService aclService) {
+	public RepresentationResource(RecordService recordService) {
 		this.recordService = recordService;
-		this.aclService = aclService;
 	}
 
 	/**
@@ -56,10 +42,7 @@ public class RepresentationResource {
 	 *             this representation exists.
 	 */
 	@GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
-    @PostAuthorize("hasPermission"
-    	    + "( "
-    	    + " (#cloudId).concat('/').concat(#representationName).concat('/').concat(returnObject.version) ,"
-    	    + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
+	@PreAuthorize("isAuthenticated()")
 	@ResponseBody
 	public Representation getRepresentation(
 			HttpServletRequest httpServletRequest,
@@ -103,6 +86,8 @@ public class RepresentationResource {
 	 * @param representationName name of the representation to be created (required).
 	 * @param providerId
 	 *            provider id of this representation version.
+	 * @param dataSetId
+	 * 				dataset where newly created representation will be assigned
 	 * @return The url of the created representation.
 	 * @throws RecordNotExistsException
 	 *             provided id is not known to Unique Identifier Service.
@@ -111,34 +96,18 @@ public class RepresentationResource {
 	 * @statuscode 201 object has been created.
 	 */
 	@PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-	@PreAuthorize("isAuthenticated()")
+	@PreAuthorize("hasRole('ROLE_EXECUTOR') OR hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
 	public ResponseEntity<Void> createRepresentation(
 			HttpServletRequest httpServletRequest,
 			@PathVariable String cloudId,
 			@PathVariable String representationName,
 			@RequestParam String providerId,
+			@RequestParam String dataSetId,
 			@RequestParam(required = false) UUID version
-	) throws RecordNotExistsException, ProviderNotExistsException {
+	) throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
-		var representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
+		var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
 		EnrichUriUtil.enrich(httpServletRequest, representation);
-
-		String creatorName = SpringUserUtils.getUsername();
-		if (creatorName != null) {
-
-			ObjectIdentity versionIdentity = new ObjectIdentityImpl(REPRESENTATION_CLASS_NAME,
-					cloudId + "/" + representationName + "/" + representation.getVersion());
-
-			MutableAcl versionAcl = aclService.createOrUpdateAcl(versionIdentity);
-
-			versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-			versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-			versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-			versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-			aclService.updateAcl(versionAcl);
-		}
-
 		return ResponseEntity.created(representation.getUri()).build();
 	}
 

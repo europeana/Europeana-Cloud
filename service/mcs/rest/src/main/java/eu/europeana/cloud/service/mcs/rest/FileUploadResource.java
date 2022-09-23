@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.aas.acl.ExtendedAclService;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -16,11 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,42 +32,36 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 public class FileUploadResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
-    private static final String REPRESENTATION_CLASS_NAME = Representation.class.getName();
     private final RecordService recordService;
-    private final ExtendedAclService aclService;
     private final Integer objectStoreSizeThreshold;
 
     public FileUploadResource(
             RecordService recordService,
-            ExtendedAclService aclService,
             Integer objectStoreSizeThreshold) {
         this.recordService = recordService;
-        this.aclService = aclService;
         this.objectStoreSizeThreshold = objectStoreSizeThreshold;
     }
 
     /**
      * 
      * Creates representation, uploads file and persists this representation in one request
-     * @param httpServletRequest
      * @param cloudId      cloudId
      * @param representationName        representation name
      * @param fileName      file name
      * @param providerId    providerId
      * @param mimeType      mimeType of uploaded file
      * @param data          uploaded file content
-     * @return
+     * @return result of the operation. Usually it is OK containing created file location but maybe also exception.
      * @throws RepresentationNotExistsException
      * @throws CannotModifyPersistentRepresentationException
      * @throws RecordNotExistsException
      * @throws ProviderNotExistsException
-     * @throws FileAlreadyExistsException
      * @throws CannotPersistEmptyRepresentationException
      * 
-     * @summary Upload file for non existing representation
+     * @summary Upload file for non-existing representation
      */
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_EXECUTOR') OR  hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
     public ResponseEntity<?> sendFile(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
@@ -82,17 +69,17 @@ public class FileUploadResource {
             @RequestParam(required = false) UUID version,
             @RequestParam String fileName,
             @RequestParam String providerId,
-            @RequestParam String mimeType ,
+            @RequestParam String mimeType,
+            @RequestParam String dataSetId,
             @RequestParam MultipartFile data) throws RepresentationNotExistsException,
             CannotModifyPersistentRepresentationException, RecordNotExistsException,
-            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException {
+            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
         LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
                 cloudId, representationName, version, fileName, providerId, mimeType);
         PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
         Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
         LOGGER.trace("File {} buffered", fileName);
-        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version);
-        addPrivilegesToRepresentation(representation);
+        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
 
         File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
         persistRepresentation(representation);
@@ -105,26 +92,6 @@ public class FileUploadResource {
                 .build();
     }
     
-    private void addPrivilegesToRepresentation(Representation representation) {
-        String creatorName = SpringUserUtils.getUsername();
-
-        if (creatorName != null) {
-            ObjectIdentity versionIdentity = new ObjectIdentityImpl(
-                    REPRESENTATION_CLASS_NAME,
-                    representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion());
-
-            MutableAcl versionAcl = aclService.createOrUpdateAcl(versionIdentity);
-
-            versionAcl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-            versionAcl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-
-            aclService.updateAcl(versionAcl);
-            LOGGER.debug("Privileges were added to representation {} ", representation);
-        }
-    }
-
     private File addFileToRepresentation(
             Representation representation, InputStream data,  String mimeType, String fileName, Storage storage)
                 throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {

@@ -4,7 +4,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.io.ValidationRevisionWriter;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
@@ -31,12 +31,11 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/5/2017.
  */
 public class ValidationTopology {
-    private static Properties topologyProperties = new Properties();
-    private static Properties validationProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
+    private static final Properties validationProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "validation-topology-config.properties";
     private static final String VALIDATION_PROPERTIES_FILE = "validation.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidationTopology.class);
-    public static final String SUCCESS_MESSAGE = "The record is validated correctly";
 
     public ValidationTopology(String defaultPropertyFile, String providedPropertyFile,
                               String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
@@ -45,13 +44,15 @@ public class ValidationTopology {
     }
 
 
-    public final StormTopology buildTopology(String ecloudMcsAddress) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
-        ReadFileBolt readFileBolt = new ReadFileBolt(ecloudMcsAddress);
-        ValidationRevisionWriter validationRevisionWriter = new ValidationRevisionWriter(ecloudMcsAddress, SUCCESS_MESSAGE);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
@@ -71,7 +72,11 @@ public class ValidationTopology {
                 .setNumTasks((getAnInt(STATISTICS_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(VALIDATION_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(REVISION_WRITER_BOLT, validationRevisionWriter,
+        builder.setBolt(REVISION_WRITER_BOLT, new RevisionWriterBolt(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+                        ),
                         (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks(
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
@@ -113,8 +118,7 @@ public class ValidationTopology {
                         new ValidationTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile,
                                 VALIDATION_PROPERTIES_FILE, providedValidationPropertiesFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = validationTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = validationTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

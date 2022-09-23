@@ -61,7 +61,6 @@ public class NotificationTupleHandler {
             List<BoundStatement> statementsToBeExecutedInBatch = new ArrayList<>();
 
             statementsToBeExecutedInBatch.addAll(prepareCommonStatementsForAllTuples(notification, config.getNotificationCacheEntry()));
-            statementsToBeExecutedInBatch.addAll(prepareStatementsForTupleContainingLastRecord(notificationTuple, config));
             statementsToBeExecutedInBatch.addAll(prepareStatementsForErrors(notificationTuple, config.getNotificationCacheEntry()));
             statementsToBeExecutedInBatch.addAll(prepareStatementsForRecordState(notificationTuple, config));
             batchExecutor.executeAll(statementsToBeExecutedInBatch);
@@ -161,21 +160,13 @@ public class NotificationTupleHandler {
             return additionalInformation.substring(0, Math.min(MAX_STACKTRACE_LENGTH, additionalInformation.length()));
     }
 
-    private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, NotificationHandlerConfig config){
-        if (config.getTaskStateToBeSet().isPresent()) {
-            return prepareStatementsForTupleContainingLastRecord(notificationTuple, config.getTaskStateToBeSet().get());
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
     private List<BoundStatement> prepareStatementsForRecordState(NotificationTuple notificationTuple, NotificationHandlerConfig config){
         return prepareStatementsForRecordState(notificationTuple, config.getRecordStateToBeSet());
     }
 
     private List<BoundStatement> prepareStatementsForRecordState(NotificationTuple notificationTuple, RecordState recordState) {
         return Collections.singletonList(processedRecordsDAO.updateProcessedRecordStateStatement(notificationTuple.getTaskId(),
-                String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE)),
+                notificationTuple.getResource(),
                 recordState));
     }
 
@@ -193,10 +184,6 @@ public class NotificationTupleHandler {
         statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, message));
 
         return statementsToBeExecuted;
-    }
-
-    private List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple, TaskState newState) {
-        return prepareStatementsForTupleContainingLastRecord(notificationTuple,newState, newState.getDefaultMessage());
     }
 
     private Map<String, String> prepareAdditionalInfo(Map<String, Object> parameters) {

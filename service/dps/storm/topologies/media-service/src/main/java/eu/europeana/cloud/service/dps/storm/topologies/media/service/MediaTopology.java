@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import eu.europeana.cloud.service.dps.storm.*;
-import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
+import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -28,7 +30,7 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 12/14/2018.
  */
 public class MediaTopology {
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "media-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaTopology.class);
 
@@ -36,23 +38,38 @@ public class MediaTopology {
         PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     }
 
-    public final StormTopology buildTopology(String ecloudMcsAddress) {
+    public final StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
 
         List<String> spoutNames = TopologyHelper.addMediaSpouts(builder, TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
 
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(ecloudMcsAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
         AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
                 topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
 
         TopologyHelper.addSpoutFieldGrouping(spoutNames,
-                builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(ecloudMcsAddress, amazonClient),
+                builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(
+                                        topologyProperties.getProperty(MCS_URL),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
+                                        amazonClient),
                                 (getAnInt(EDM_OBJECT_PROCESSOR_BOLT_PARALLEL)))
                         .setNumTasks((getAnInt(EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS)))
                 , StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE);
 
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(ecloudMcsAddress),
+        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                         (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(EDM_OBJECT_PROCESSOR_BOLT, new ShuffleGrouping());
@@ -62,7 +79,10 @@ public class MediaTopology {
                 .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE));
 
-        builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(ecloudMcsAddress),
+        builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(
+                                topologyProperties.getProperty(MCS_URL),
+                                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                         (getAnInt(EDM_ENRICHMENT_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS)))
                 .fieldsGrouping(RESOURCE_PROCESSING_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY))
@@ -78,12 +98,6 @@ public class MediaTopology {
                         (getAnInt(REVISION_WRITER_BOLT_PARALLEL)))
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
-
-        AddResultToDataSetBolt addResultToDataSetBolt = new AddResultToDataSetBolt(ecloudMcsAddress);
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
 
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
                 builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
@@ -105,8 +119,6 @@ public class MediaTopology {
                         .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
         return builder.createTopology();
@@ -125,8 +137,7 @@ public class MediaTopology {
 
                 MediaTopology mediaTopology = new MediaTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-                String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
-                StormTopology stormTopology = mediaTopology.buildTopology(ecloudMcsAddress);
+                StormTopology stormTopology = mediaTopology.buildTopology();
                 Config config = buildConfig(topologyProperties);
                 LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
                 TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);

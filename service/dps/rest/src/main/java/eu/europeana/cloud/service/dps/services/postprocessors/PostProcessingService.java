@@ -58,4 +58,11 @@ public class PostProcessingService {
     private TaskInfo loadTask(TaskByTaskState taskByTaskState) throws TaskInfoDoesNotExistException {
         return taskInfoDAO.findById(taskByTaskState.getId()).orElseThrow(TaskInfoDoesNotExistException::new);
     }
+
+    public boolean needsPostprocessing(TaskByTaskState taskByTaskState, TaskInfo taskInfo) throws IOException {
+        DpsTask task = DpsTask.fromTaskInfo(taskInfo);
+        return postProcessorFactory.findPostProcessor(taskByTaskState)
+                .map(postProcessor -> postProcessor.needsPostProcessing(task))
+                .orElse(Boolean.FALSE);
+    }
 }

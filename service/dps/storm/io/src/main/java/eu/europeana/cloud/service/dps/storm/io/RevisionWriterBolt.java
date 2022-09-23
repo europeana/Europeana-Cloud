@@ -21,7 +21,8 @@ import java.time.Instant;
 import java.util.Date;
 
 /**
- * Adds defined revisions to given representationVersion
+ * Adds defined revisions to given representationVersion.
+ * This is default implementation where simply 'SuccessNotification' is emitted at the end to the {@link eu.europeana.cloud.service.dps.storm.NotificationBolt}.
  */
 public class RevisionWriterBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
@@ -29,10 +30,14 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     protected transient RevisionServiceClient revisionsClient;
 
-    private String ecloudMcsAddress;
+    private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
 
-    public RevisionWriterBolt(String ecloudMcsAddress) {
+    public RevisionWriterBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
@@ -52,7 +57,8 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         String resourceURL = getResourceUrl(stormTaskTuple);
         try {
             addRevisionToSpecificResource(stormTaskTuple, resourceURL);
-            outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+            emitTuple(anchorTuple, stormTaskTuple);
+
         } catch (MalformedURLException e) {
             LOGGER.error("URL is malformed: {} ", resourceURL);
             emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
@@ -65,6 +71,30 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
         LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
+    }
+
+    protected void emitTuple(Tuple anchorTuple, StormTaskTuple tuple) {
+        if (tupleContainsErrors(tuple)) {
+            emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
+        } else {
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                    tuple.getFileUrl(), "", "",
+                    tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+        }
+    }
+
+    private boolean tupleContainsErrors(StormTaskTuple tuple) {
+        return tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null;
+    }
+
+    private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, StormTaskTuple tuple) {
+        emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                tuple.getFileUrl(), "", "",
+                tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+                tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
+                StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
     }
 
     private String getResourceUrl(StormTaskTuple stormTaskTuple) {
@@ -88,20 +118,19 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
                 revisionToBeApplied.setDeleted(true);
             }
 
-            addRevision(urlParser, revisionToBeApplied,stormTaskTuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+            addRevision(urlParser, revisionToBeApplied);
         } else {
             LOGGER.info("Revisions list is empty");
         }
     }
 
-    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied, String authenticationHeader) throws MCSException {
+    private void addRevision(UrlParser urlParser, Revision revisionToBeApplied) throws MCSException {
         RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
                 revisionsClient.addRevision(
                         urlParser.getPart(UrlPart.RECORDS),
                         urlParser.getPart(UrlPart.REPRESENTATIONS),
                         urlParser.getPart(UrlPart.VERSIONS),
-                        revisionToBeApplied,
-                        AUTHORIZATION, authenticationHeader)
+                        revisionToBeApplied)
         );
     }
 
@@ -110,7 +139,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         if(ecloudMcsAddress == null) {
             throw new NullPointerException("MCS Server must be set!");
         }
-        revisionsClient = new RevisionServiceClient(ecloudMcsAddress);
+        revisionsClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override

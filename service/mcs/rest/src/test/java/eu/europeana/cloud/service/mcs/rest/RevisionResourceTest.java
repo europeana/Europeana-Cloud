@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.After;
@@ -25,15 +26,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,20 +56,28 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     private DataSetService dataSetService;
     private DataProvider dataProvider;
     private Revision revisionForDataProvider;
-
+    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
     @Before
     public void mockUp() throws Exception {
         recordService = applicationContext.getBean(RecordService.class);
         dataSetService = applicationContext.getBean(DataSetService.class);
         uisHandler = applicationContext.getBean(UISClientHandler.class);
+        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         dataProvider = new DataProvider();
         dataProvider.setId("1");
         Mockito.doReturn(new DataProvider()).when(uisHandler)
                 .getProvider("1");
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
-        rep = recordService.createRepresentation("1", "1", "1");
+        Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
+        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToAddRevisionTo(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+        rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
+        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
         revision = new Revision(TEST_REVISION_NAME, PROVIDER_ID);
         revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());
         Map<String, Object> revisionPathParams = ImmutableMap
@@ -110,7 +113,10 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
                 + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/revisions/{" + REVISION_NAME + "}/revisionProvider/{" + REVISION_PROVIDER_ID + "}";
         removeRevisionWebTarget = UriComponentsBuilder.fromUriString(removeRevisionPath).build(removeRevisionPathParams);
 
+        Mockito.doReturn(true).when(permissionEvaluator)
+                .hasPermission(any(), any(), any(), any());
 
+        dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
     }
 
     @After
@@ -247,18 +253,14 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     public void shouldRemoveRevisionSuccessfully() throws Exception {
         // given
         String datasetId = "dataset";
-        String providerId = "providerId";
         String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
         FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
         Date date = new Date();
         String revisionTimeStamp = FORMATTER.format(date);
 
         Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, true, false, false);
-        Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider(providerId));
-        Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
-        Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
-        dataSetService.createDataSet(providerId, datasetId, "");
-        dataSetService.addAssignment(providerId, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+        dataSetService.createDataSet(PROVIDER_ID, datasetId, "");
+        dataSetService.addAssignment(PROVIDER_ID, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
         recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revision);
 
         mockMvc.perform(delete(removeRevisionWebTarget)

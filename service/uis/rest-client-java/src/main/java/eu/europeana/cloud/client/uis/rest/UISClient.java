@@ -2,7 +2,6 @@ package eu.europeana.cloud.client.uis.rest;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
-import eu.europeana.cloud.common.filter.ECloudBasicAuthFilter;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -22,7 +21,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.function.Supplier;
 
@@ -35,7 +33,6 @@ public class UISClient implements AutoCloseable {
     private static final String P_CLOUD_ID = "CLOUD_ID";
     private static final String P_PROVIDER_ID = "PROVIDER_ID";
     private static final String DATA_PROVIDERS_PATH_WITH_PROVIDER_ID = "/data-providers/{PROVIDER_ID}";
-    private static final String P_LOCAL_ID = "LOCAL_ID";
     private static final String DATA_PROVIDERS_PATH = "/data-providers";
     private static final String CLOUD_IDS_PATH_WITH_CLOUD_ID = "/cloudIds/{CLOUD_ID}";
 
@@ -112,28 +109,6 @@ public class UISClient implements AutoCloseable {
         );
     }
 
-
-    /**
-     * Invoke the creation of a new CloudId REST call.
-     *
-     * @param providerId The provider Id
-     * @param recordId   The record Id
-     * @param key        key of header request
-     * @param value      value of header request
-     * @return The newly generated CloudId
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public CloudId createCloudId(String providerId, String recordId, String key, String value) throws CloudException {
-        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
-                .target(urlProvider.getBaseUrl())
-                .path(CLOUD_IDS_PATH)
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
-                .accept(MediaType.APPLICATION_JSON)
-                .post(null)
-        );
-    }
-
     /**
      * Invoke the creation of a new CloudId REST call.
      *
@@ -167,28 +142,6 @@ public class UISClient implements AutoCloseable {
                 .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
                 .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
                 .request()
-                .get()
-        );
-    }
-
-
-    /**
-     * Invoke the retrieval of a cloud identifier.
-     *
-     * @param providerId The provider Id
-     * @param recordId   The record Id
-     * @param key        key for head request
-     * @param value      for head request
-     * @return The retrieved cloud Id
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public CloudId getCloudId(String providerId, String recordId, String key, String value) throws CloudException {
-        return manageResponse(new ResponseParams<>(CloudId.class), () -> client
-                .target(urlProvider.getBaseUrl()).path(CLOUD_IDS_PATH)
-                .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
-                .request()
-                .header(key, value)
                 .get()
         );
     }
@@ -314,70 +267,6 @@ public class UISClient implements AutoCloseable {
         );
     }
 
-
-    /**
-     * Create a mapping between a cloud id and provider and record id.
-     *
-     * @param cloudId    The cloud id
-     * @param providerId The provider id
-     * @param recordId   The record id
-     * @param key        key of header request
-     * @param value      value of header request
-     * @return A confirmation that the mapping has been created
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    @SuppressWarnings("unused")
-    public boolean createMapping(String cloudId, String providerId,
-                                 String recordId, String key, String value) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
-                .resolveTemplate(P_PROVIDER_ID, providerId)
-                .resolveTemplate(P_CLOUD_ID, cloudId)
-                .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request().header(key, value)
-                .post(null)
-        );
-    }
-
-
-    /**
-     * Remove the association of a record id to a cloud id.
-     *
-     * @param providerId The provider id to use
-     * @param recordId   The record id to use
-     * @return A confirmation that the mapping has removed correctly
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public boolean removeMappingByLocalId(String providerId, String recordId) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/localIds/{LOCAL_ID}")
-                .resolveTemplate(P_PROVIDER_ID, providerId)
-                .resolveTemplate(P_LOCAL_ID, recordId)
-                .request()
-                .delete()
-        );
-    }
-
-
-    /**
-     * Delete a cloud id and all its mapped record ids.
-     *
-     * @param cloudId The cloud id to remove
-     * @return A confirmation message that the mappings have been removed
-     * correctly
-     * @throws CloudException The generic cloud exception wrapper
-     */
-    public boolean deleteCloudId(String cloudId) throws CloudException {
-        return manageResponse(new ResponseParams<>(Boolean.class), () -> client
-                .target(urlProvider.getBaseUrl())
-                .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
-                .resolveTemplate(P_CLOUD_ID, cloudId)
-                .request()
-                .delete()
-        );
-    }
-
-
-
     /**
      * Create a data provider.
      *
@@ -478,14 +367,6 @@ public class UISClient implements AutoCloseable {
 
     public void close() {
         client.close();
-    }
-    /**
-     * Client will use provided authorization header for all requests;
-     *
-     * @param headerValue authorization header value
-     */
-    public void useAuthorizationHeader(final String headerValue) {
-        client.register(new ECloudBasicAuthFilter(headerValue));
     }
 
     /**

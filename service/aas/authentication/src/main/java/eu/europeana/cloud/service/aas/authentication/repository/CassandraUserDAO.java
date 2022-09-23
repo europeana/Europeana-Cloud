@@ -7,6 +7,7 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
+import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
 import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
@@ -31,13 +32,13 @@ public class CassandraUserDAO {
      * Default roles for all users of ecloud (that don't have admin, or other
      * superpowers)
      */
-    private static final Set<String> DEFAULT_USER_ROLES = Set.of("ROLE_USER");
+    private static final Set<String> DEFAULT_USER_ROLES = Set.of(Role.USER);
     @Qualifier("dbService")
     private final CassandraConnectionProvider provider;
     private PreparedStatement selectUserStatement;
     private PreparedStatement createUserStatement;
     private PreparedStatement updateUserStatement;
-    private PreparedStatement deleteUserStatement;
+    private PreparedStatement blockageUserStatement;
 
     /**
      * Constructs a new <code>CassandraUserDAO</code>.
@@ -59,13 +60,13 @@ public class CassandraUserDAO {
         createUserStatement = provider
                 .getSession()
                 .prepare(
-                        "INSERT INTO users(username, password, roles) VALUES (?,?,?) IF NOT EXISTS;");
+                        "INSERT INTO users(username, password, roles,locked) VALUES (?,?,?,?) IF NOT EXISTS;");
 
         updateUserStatement = provider.getSession().prepare(
                 "UPDATE users SET password = ? WHERE username = ?;");
 
-        deleteUserStatement = provider.getSession().prepare(
-                "DELETE FROM users WHERE username = ?;");
+        blockageUserStatement = provider.getSession().prepare(
+                "UPDATE users SET locked = ? WHERE username = ?;");
     }
 
     public SpringUser getUser(final String username)
@@ -93,7 +94,7 @@ public class CassandraUserDAO {
 
         try {
             var boundStatement = createUserStatement.bind(
-                    user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES);
+                    user.getUsername(), user.getPassword(), DEFAULT_USER_ROLES, user.isLocked());
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
@@ -123,11 +124,24 @@ public class CassandraUserDAO {
         }
     }
 
-    public void deleteUser(final String username)
-            throws DatabaseConnectionException {
-
+    public void lockUser(String userName) throws DatabaseConnectionException {
         try {
-            var boundStatement = deleteUserStatement.bind(username);
+            var boundStatement = blockageUserStatement.bind(Boolean.TRUE, userName);
+            provider.getSession().execute(boundStatement);
+        } catch (NoHostAvailableException e) {
+            throw new DatabaseConnectionException(
+                    new IdentifierErrorInfo(
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getHttpCode(),
+                            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                                    .getErrorInfo(provider.getHosts(),
+                                            provider.getPort(), e.getMessage())));
+        }
+    }
+
+    public void unlockUser(String userName) throws DatabaseConnectionException {
+        try {
+            var boundStatement = blockageUserStatement.bind(Boolean.FALSE, userName);
             provider.getSession().execute(boundStatement);
         } catch (NoHostAvailableException e) {
             throw new DatabaseConnectionException(
@@ -145,6 +159,7 @@ public class CassandraUserDAO {
         final var username = row.getString("username");
         final var password = row.getString("password");
         final Set<String> roles = row.getSet("roles", String.class);
-        return new SpringUser(username, password, roles);
+        final var locked = row.getBool("locked");
+        return new SpringUser(username, password, roles, locked);
     }
 }

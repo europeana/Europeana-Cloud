@@ -49,8 +49,7 @@ public class TestConfiguration {
     @Bean
     public DataProvidersResource dataProvidersResource(DataProviderService providerService,
                                                        ACLServiceWrapper aclWrapper) {
-        return new DataProvidersResource(providerService,
-                aclWrapper);
+        return new DataProvidersResource(providerService);
     }
 
     @Bean

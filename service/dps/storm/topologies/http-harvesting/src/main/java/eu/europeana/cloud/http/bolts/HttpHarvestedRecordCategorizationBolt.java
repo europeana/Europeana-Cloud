@@ -24,6 +24,6 @@ public class HttpHarvestedRecordCategorizationBolt extends HarvestedRecordCatego
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
 
-        harvestedRecordCategorizationService = new HttpTopologyCategorizationService(new HarvestedRecordsDAO(cassandraConnectionProvider));
+        harvestedRecordCategorizationService = new HttpTopologyCategorizationService(HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
     }
 }

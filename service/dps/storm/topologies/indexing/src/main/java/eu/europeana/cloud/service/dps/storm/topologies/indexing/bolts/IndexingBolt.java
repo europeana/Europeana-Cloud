@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -24,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -40,14 +44,21 @@ public class IndexingBolt extends AbstractDpsBolt {
     private final Properties indexingProperties;
     private transient HarvestedRecordsDAO harvestedRecordsDAO;
     private final String uisAddress;
+    private final String topologyUserName;
+    private final String topologyUserPassword;
     private transient EuropeanaIdFinder europeanaIdFinder;
 
 
-    public IndexingBolt(DbConnectionDetails dbConnectionDetails,
-                        Properties indexingProperties, String uisAddress) {
+    public IndexingBolt(
+            DbConnectionDetails dbConnectionDetails,
+            Properties indexingProperties,
+            String uisAddress, String topologyUserName,
+            String topologyUserPassword) {
         this.dbConnectionDetails = dbConnectionDetails;
         this.indexingProperties = indexingProperties;
         this.uisAddress = uisAddress;
+        this.topologyUserName = topologyUserName;
+        this.topologyUserPassword = topologyUserPassword;
     }
 
     @Override
@@ -94,14 +105,19 @@ public class IndexingBolt extends AbstractDpsBolt {
             LOGGER.info(
                     "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
                     database, recordDate, preserveTimestampsString);
+            outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (DateTimeParseException e) {
             logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         } catch (RuntimeException | MalformedURLException | CloudException e) {
             logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         } catch (IndexingException e) {
             logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
+            outputCollector.ack(anchorTuple);
         }
-        outputCollector.ack(anchorTuple);
     }
 
     private void removeIndexedRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database, String europeanaId)
@@ -123,7 +139,9 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     private void prepareEuropeanaIdFinder() {
-        europeanaIdFinder = new EuropeanaIdFinder(new UISClient(uisAddress), harvestedRecordsDAO);
+        europeanaIdFinder = new EuropeanaIdFinder(
+                new UISClient(uisAddress, topologyUserName, topologyUserPassword),
+                harvestedRecordsDAO);
     }
 
     private void prepareIndexer() {

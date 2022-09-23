@@ -27,7 +27,6 @@ public class CassandraDataProviderDAO {
     private PreparedStatement createDataProviderStatement;
     private PreparedStatement updateDataProviderStatement;
     private PreparedStatement getProviderStatement;
-    private PreparedStatement deleteProviderStatement;
     private PreparedStatement getAllProvidersStatement;
 
     /**
@@ -49,9 +48,6 @@ public class CassandraDataProviderDAO {
 
         getProviderStatement = dbService.getSession().prepare(
                 "SELECT provider_id, partition_key, active, properties FROM data_providers WHERE provider_id = ?;");
-
-        deleteProviderStatement = dbService.getSession().prepare(
-                "DELETE FROM data_providers WHERE provider_id = ?;");
 
         getAllProvidersStatement = dbService.getSession().prepare(
                 "SELECT provider_id, active, partition_key, properties FROM data_providers WHERE token(provider_id) >= token(?) LIMIT ?;");
@@ -93,16 +89,6 @@ public class CassandraDataProviderDAO {
         } else {
             return map(result);
         }
-    }
-
-    /**
-     * Deletes provider with specified id.
-     *
-     * @param providerId id of provider.
-     */
-    public void deleteProvider(String providerId) {
-        BoundStatement boundStatement = deleteProviderStatement.bind(providerId);
-        dbService.getSession().execute(boundStatement);
     }
 
     /**

@@ -23,7 +23,6 @@ public class LocalIdDAO {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalIdDAO.class);
     private final CassandraConnectionProvider dbService;
     private PreparedStatement insertStatement;
-    private PreparedStatement deleteStatement;
     private PreparedStatement searchByRecordIdStatement;
 
     /**
@@ -39,9 +38,6 @@ public class LocalIdDAO {
     private void prepareStatements() {
         insertStatement = dbService.getSession().prepare(
                 "INSERT INTO cloud_ids_by_record_id(provider_id, record_id, cloud_id) VALUES(?,?,?)");
-
-        deleteStatement = dbService.getSession().prepare(
-                "DELETE FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
 
         searchByRecordIdStatement = dbService.getSession().prepare(
                 "SELECT * FROM cloud_ids_by_record_id WHERE provider_id = ? AND record_id = ?");
@@ -67,6 +63,7 @@ public class LocalIdDAO {
         }
     }
 
+    @Retryable
     public CloudId insert(String providerId, String recordId, String cloudId) throws DatabaseConnectionException {
         try {
             dbService.getSession().execute(bindInsertStatement(providerId, recordId, cloudId));
@@ -83,19 +80,6 @@ public class LocalIdDAO {
 
     public BoundStatement bindInsertStatement(String providerId, String recordId, String cloudId) {
         return insertStatement.bind(providerId, recordId, cloudId);
-    }
-
-
-    public void delete(String providerId, String recordId) throws DatabaseConnectionException {
-        try {
-            dbService.getSession().execute(deleteStatement.bind(providerId, recordId));
-        } catch (NoHostAvailableException e) {
-            throw new DatabaseConnectionException(new IdentifierErrorInfo(
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(
-                            dbService.getHosts(), dbService.getPort(), e.getMessage())
-            ));
-        }
     }
 
     private CloudId createCloudIdFromProviderRecordRow(Row row) {

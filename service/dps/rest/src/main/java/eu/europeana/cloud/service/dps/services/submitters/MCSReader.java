@@ -12,7 +12,6 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 
@@ -27,10 +26,10 @@ public class MCSReader implements AutoCloseable {
 
     private final RecordServiceClient recordServiceClient;
 
-    public MCSReader(String mcsClientURL, String authorizationHeader) {
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, authorizationHeader);
-        recordServiceClient = new RecordServiceClient(mcsClientURL, authorizationHeader);
-        fileServiceClient = new FileServiceClient(mcsClientURL, authorizationHeader);
+    public MCSReader(String mcsClientURL, String userName, String password) {
+        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, userName, password);
+        recordServiceClient = new RecordServiceClient(mcsClientURL, userName, password);
+        fileServiceClient = new FileServiceClient(mcsClientURL, userName, password);
     }
 
     public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(

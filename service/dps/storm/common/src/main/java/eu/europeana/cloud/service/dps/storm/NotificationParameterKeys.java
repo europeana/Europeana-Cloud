@@ -19,8 +19,6 @@ public class NotificationParameterKeys {
     public static final String EXCEPTION_ERROR_MESSAGE = "EXCEPTION_ERROR_MESSAGE";
     public static final String UNIFIED_ERROR_MESSAGE = "UNIFIED_ERROR_MESSAGE";
 
-    public static final String AUTHORIZATION_HEADER = "AUTHORIZATION_HEADER";
-
     private NotificationParameterKeys() {
     }
 }

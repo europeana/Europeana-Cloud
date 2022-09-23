@@ -3,14 +3,12 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import com.google.common.collect.Iterators;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
@@ -31,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 /**
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
@@ -64,8 +59,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
     private final RevisionServiceClient revisionServiceClient;
 
-    private final DataSetServiceClient dataSetServiceClient;
-
     private final UISClient uisClient;
 
     public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
@@ -73,7 +66,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
                                    RecordServiceClient recordServiceClient,
                                    RevisionServiceClient revisionServiceClient,
                                    UISClient uisClient,
-                                   DataSetServiceClient dataSetServiceClient,
                                    TaskStatusUpdater taskStatusUpdater,
                                    TaskStatusChecker taskStatusChecker) {
         super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
@@ -81,7 +73,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         this.recordServiceClient = recordServiceClient;
         this.revisionServiceClient = revisionServiceClient;
         this.uisClient = uisClient;
-        this.dataSetServiceClient = dataSetServiceClient;
     }
 
     @Override
@@ -136,7 +127,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
             String cloudId = findCloudId(dpsTask, harvestedRecord);
             var representation = createRepresentationVersion(dpsTask, cloudId);
             addRevisionToRepresentation(dpsTask, representation);
-            assignRepresentationToDatasets(dpsTask, representation);
         } catch (CloudException | MCSException | MalformedURLException e) {
             throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
                     + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
@@ -152,15 +142,15 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
     private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-        return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId(),
-                AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER)).getId();
+        return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
     }
 
     private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
         String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
         String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+        var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
         var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
-                AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                datasetId);
         return RepresentationParser.parseResultUrl(representationUri);
     }
 
@@ -168,16 +158,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         var revision = new Revision(dpsTask.getOutputRevision());
         revision.setDeleted(true);
         revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
-                representation.getVersion(), revision, AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-    }
-
-    private void assignRepresentationToDatasets(DpsTask dpsTask, Representation representation) throws MalformedURLException, MCSException {
-        List<DataSet> datasets = DataSetUrlParser.parseList(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        for (DataSet dataset : datasets) {
-            dataSetServiceClient.assignRepresentationToDataSet(dataset.getProviderId(), dataset.getId(),
-                    representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
-                    AUTHORIZATION, dpsTask.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
-        }
+                representation.getVersion(), revision);
     }
 
     private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
@@ -189,5 +170,13 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         return processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), harvestedRecord.getRecordLocalId())
                 .map(theRecord -> theRecord.getState() == RecordState.SUCCESS)
                 .orElse(false);
+    }
+
+    public boolean needsPostProcessing(DpsTask task) {
+        return isIncrementalHarvesting(task);
+    }
+
+    private boolean isIncrementalHarvesting(DpsTask task) {
+        return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
     }
 }

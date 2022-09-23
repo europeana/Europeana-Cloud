@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,10 +48,7 @@ public class SimplifiedRepresentationResource {
      * @summary Get representation using simplified url
      */
     @GetMapping
-    @PostAuthorize("hasPermission"
-            + "( "
-            + " (returnObject.cloudId).concat('/').concat(#representationName).concat('/').concat(returnObject.version) ,"
-            + " 'eu.europeana.cloud.common.model.Representation', read" + ")")
+    @PreAuthorize("isAuthenticated()")
     public @ResponseBody  Representation getRepresentation(
             HttpServletRequest httpServletRequest,
             @PathVariable String providerId,

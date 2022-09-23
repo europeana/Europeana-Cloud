@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.xslt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.AddResultToDataSetBolt;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -53,11 +52,21 @@ public class XSLTTopology {
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
-        String mcsServer = topologyProperties.getProperty(MCS_URL);
-
-        ReadFileBolt readFileBolt = new ReadFileBolt(mcsServer);
-        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(mcsServer);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(mcsServer);
+        ReadFileBolt readFileBolt = new ReadFileBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
+        WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                topologyProperties.getProperty(MCS_URL),
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        );
 
         // TOPOLOGY STRUCTURE!
 
@@ -84,12 +93,6 @@ public class XSLTTopology {
                         (getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, new AddResultToDataSetBolt(mcsServer),
-                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
-                .setNumTasks(
-                        (getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
-
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
                 builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                                         getAnInt(CASSANDRA_PORT),
@@ -106,10 +109,7 @@ public class XSLTTopology {
                         .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
-
 
         return builder.createTopology();
     }

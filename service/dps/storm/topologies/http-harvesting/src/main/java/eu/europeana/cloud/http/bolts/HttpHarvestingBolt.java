@@ -1,6 +1,7 @@
 package eu.europeana.cloud.http.bolts;
 
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -41,6 +42,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
             outputCollector.emit(anchorTuple, tuple.toStormTuple());
             outputCollector.ack(anchorTuple);
+        } catch (RetryInterruptedException e) {
+            handleInterruption(e, anchorTuple);
         } catch (InterruptedException e) {
             LOGGER.error("Bolt thread is being interrupted!", e);
             Thread.currentThread().interrupt();

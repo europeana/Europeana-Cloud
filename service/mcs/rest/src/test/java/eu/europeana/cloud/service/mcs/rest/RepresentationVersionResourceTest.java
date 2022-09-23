@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -7,8 +8,11 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -16,12 +20,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -59,9 +65,18 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
     @Before
-    public void mockUp() {
+    public void mockUp() throws RepresentationNotExistsException, DataSetAssignmentException {
         recordService = applicationContext.getBean(RecordService.class);
+        CassandraDataSetDAO cassandraDataSetDAO = applicationContext.getBean(CassandraDataSetDAO.class);
+        DataSetPermissionsVerifier dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
         Mockito.reset(recordService);
+
+        when(cassandraDataSetDAO.getDataSetAssignmentsByRepresentationVersion(any(), any(), any()))
+                .thenReturn(List.of(new CompoundDataSetId("dsProvId","datasetId")));
+
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(any());
+
     }
 
 
@@ -186,38 +201,6 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
                         McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
                 $(new CannotPersistEmptyRepresentationException(),
                         McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
-    }
-
-
-    @Test
-    public void testCopyRepresentation()
-            throws Exception {
-        when(recordService.copyRepresentation(globalId, schema, version))
-                .thenReturn(new Representation(representation));
-
-        mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), globalId, schema, version).toString()));
-
-        verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
-        verifyNoMoreInteractions(recordService);
-    }
-
-
-    @Test
-    @Parameters(method = "errors")
-    public void testCopyRepresentationReturns404IfRepresentationOrRecordOrVersionDoesNotExists(Throwable exception,
-                                                                                               String errorCode, int statusCode)
-            throws Exception {
-        when(recordService.copyRepresentation(globalId, schema, version)).thenThrow(exception);
-
-        ResultActions response = mockMvc.perform(post(copyPath).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().is(statusCode));
-
-        ErrorInfo errorInfo = responseContentAsErrorInfo(response);
-        assertThat(errorInfo.getErrorCode(), is(errorCode));
-        verify(recordService, times(1)).copyRepresentation(globalId, schema, version);
-        verifyNoMoreInteractions(recordService);
     }
 
 }

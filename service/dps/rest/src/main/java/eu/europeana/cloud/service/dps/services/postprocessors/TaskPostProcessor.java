@@ -51,5 +51,6 @@ public abstract class TaskPostProcessor {
      */
     abstract Set<String> getProcessedTopologies();
 
+    abstract boolean needsPostProcessing(DpsTask task);
 
 }

@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -49,6 +50,8 @@ public class XsltBolt extends AbstractDpsBolt {
 
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
+    } catch (RetryInterruptedException e) {
+      handleInterruption(e,anchorTuple);
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}",  e.getMessage());
       emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),

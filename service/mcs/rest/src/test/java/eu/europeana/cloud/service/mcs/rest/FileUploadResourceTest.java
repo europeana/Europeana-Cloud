@@ -5,8 +5,14 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import org.junit.Before;
@@ -19,6 +25,8 @@ import org.springframework.http.HttpHeaders;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -39,13 +47,24 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
     @Autowired
     private RecordService recordService;
 
+    private DataSetService dataSetService;
+    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
+
     @Before
-    public void init(){
+    public void init() throws RepresentationNotExistsException, DataSetAssignmentException, ProviderNotExistsException, DataSetAlreadyExistsException {
         CassandraTestInstance.truncateAllData(false);
         Mockito.reset(recordService);
         UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);
+        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+        dataSetService = applicationContext.getBean(DataSetService.class);
         Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
+
+        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+
         Representation rep = new Representation();
         rep.setCloudId("cloudId");
         rep.setRepresentationName("representationName");
@@ -67,7 +86,8 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         //when
         mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
                 .param(ParamConstants.F_FILE_NAME, file.getFileName())
-                .param(ParamConstants.F_PROVIDER, providerId))
+                .param(ParamConstants.F_PROVIDER, providerId)
+                .param(ParamConstants.DATA_SET_ID,DATA_SET_ID))
                 //then
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
@@ -85,12 +105,13 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
                 .param(ParamConstants.F_FILE_NAME, file.getFileName())
                 .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 //then
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION));
+        verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION), any());
     }
 
     @Test
@@ -104,7 +125,8 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
                 .param(ParamConstants.F_FILE_NAME, file.getFileName())
                 .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 //then
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
@@ -112,12 +134,13 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
         mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
                 .param(ParamConstants.F_FILE_NAME, file.getFileName())
                 .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString()))
+                .param(ParamConstants.VERSION, VERSION.toString())
+                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
                 //then
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION));
+        verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION), any());
     }
 
 }

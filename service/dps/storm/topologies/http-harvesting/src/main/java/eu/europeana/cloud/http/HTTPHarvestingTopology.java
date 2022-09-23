@@ -3,9 +3,8 @@ package eu.europeana.cloud.http;
 import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.HarvestNotificationBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.HarvestingAddToDatasetBolt;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
@@ -33,7 +32,7 @@ import static java.lang.Integer.parseInt;
  * Created by Tarek on 3/22/2018.
  */
 public class HTTPHarvestingTopology {
-    private static Properties topologyProperties = new Properties();
+    private static final Properties topologyProperties = new Properties();
     private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
@@ -49,8 +48,15 @@ public class HTTPHarvestingTopology {
 
         List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.HTTP_TOPOLOGY, topologyProperties);
 
-        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(ecloudMcsAddress, uisAddress);
-        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(ecloudMcsAddress);
+        WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
+                ecloudMcsAddress,
+                uisAddress,
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
+        RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+                ecloudMcsAddress,
+                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
         TopologyHelper.addSpoutShuffleGrouping(spoutNames,
                 builder.setBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
@@ -71,15 +77,8 @@ public class HTTPHarvestingTopology {
                 .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
                 .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
-
-        HarvestingAddToDatasetBolt addResultToDataSetBolt = new HarvestingAddToDatasetBolt(ecloudMcsAddress);
-        builder.setBolt(WRITE_TO_DATA_SET_BOLT, addResultToDataSetBolt,
-                        (getAnInt(ADD_TO_DATASET_BOLT_PARALLEL)))
-                .setNumTasks((getAnInt(ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS)))
-                .customGrouping(REVISION_WRITER_BOLT, new ShuffleGrouping());
-
         TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
-                builder.setBolt(NOTIFICATION_BOLT, new HarvestNotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                                         Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                                         topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                                         topologyProperties.getProperty(CASSANDRA_USERNAME),
@@ -94,10 +93,7 @@ public class HTTPHarvestingTopology {
                         .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
                         .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                                new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-                        .fieldsGrouping(WRITE_TO_DATA_SET_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
                                 new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
-
 
         return builder.createTopology();
     }

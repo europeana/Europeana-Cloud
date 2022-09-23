@@ -93,7 +93,7 @@ public class ProviderRemover {
 
     private int removeRecords(UISClient uisClient, List<?> records, int counter) {
         RecordServiceClient recordServiceClient =
-                new RecordServiceClient(url, null, username, password, RECORD_CONNECT_TIMEOUT, RECORD_READ_TIMEOUT);
+                new RecordServiceClient(url, username, password, RECORD_CONNECT_TIMEOUT, RECORD_READ_TIMEOUT);
         Set<String> removedRecords = new HashSet<>();
 
         for (Object cloudObject : records) {
@@ -121,10 +121,9 @@ public class ProviderRemover {
                         }
                     }
 
-                    uisClient.deleteCloudId(id);
                     LOGGER.info("Record with cloudId = '{}' removed", id);
                     removedRecords.add(id);
-                } catch(MCSException | CloudException | DriverException serviceException) {
+                } catch(MCSException | DriverException serviceException) {
                     LOGGER.error(String.format("Error while removing record '%s' : %s", id, serviceException.getMessage()));
                 }
             }
@@ -141,7 +140,7 @@ public class ProviderRemover {
     public void removeDatasetsForProvider(String providerId) {
         int counter = 0;
 
-        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(url, null, username, password, DATASET_CONNECT_TIMEOUT, DATASET_READ_TIMEOUT);
+        DataSetServiceClient dataSetServiceClient = new DataSetServiceClient(url, username, password, DATASET_CONNECT_TIMEOUT, DATASET_READ_TIMEOUT);
         DataSetIterator dataSetIterator = dataSetServiceClient.getDataSetIteratorForProvider(providerId);
 
         while (dataSetIterator.hasNext()) {

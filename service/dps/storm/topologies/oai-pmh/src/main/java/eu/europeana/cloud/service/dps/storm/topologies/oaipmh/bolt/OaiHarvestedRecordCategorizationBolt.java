@@ -27,6 +27,6 @@ public class OaiHarvestedRecordCategorizationBolt extends HarvestedRecordCategor
                         dbConnectionDetails.getUserName(),
                         dbConnectionDetails.getPassword());
 
-        harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(new HarvestedRecordsDAO(cassandraConnectionProvider));
+        harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
     }
 }

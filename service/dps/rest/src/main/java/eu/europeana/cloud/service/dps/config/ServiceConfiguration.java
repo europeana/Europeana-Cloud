@@ -9,9 +9,10 @@ import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
+import eu.europeana.cloud.service.dps.services.TaskFinishService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
 import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
@@ -222,7 +223,9 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public MCSTaskSubmitter mcsTaskSubmitter() {
-        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation());
+        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
@@ -244,7 +247,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public HarvestingPostProcessor harvestingPostProcessor() {
         return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-                recordServiceClient(), revisionServiceClient(), uisClient(), dataSetServiceClient(), taskStatusUpdater(),
+                recordServiceClient(), revisionServiceClient(), uisClient(), taskStatusUpdater(),
                 taskStatusChecker());
     }
 
@@ -255,22 +258,34 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
     @Bean
     public UISClient uisClient() {
-        return new UISClient(uisLocation());
+        return new UISClient(
+                uisLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public DataSetServiceClient dataSetServiceClient() {
-        return new DataSetServiceClient(mcsLocation());
+        return new DataSetServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public RecordServiceClient recordServiceClient() {
-        return new RecordServiceClient(mcsLocation());
+        return new RecordServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
     public RevisionServiceClient revisionServiceClient() {
-        return new RevisionServiceClient(mcsLocation());
+        return new RevisionServiceClient(
+                mcsLocation(),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
     }
 
     @Bean
@@ -285,6 +300,16 @@ public class ServiceConfiguration implements WebMvcConfigurer {
                 taskInfoDAO(),
                 taskDiagnosticInfoDAO(),
                 taskStatusUpdater());
+    }
+
+    @Bean
+    public TaskFinishService taskFinishService(PostProcessingService postProcessingService,
+                                               TasksByStateDAO tasksByStateDAO,
+                                               CassandraTaskInfoDAO taskInfoDAO,
+                                               TaskStatusUpdater taskStatusUpdater,
+                                               String applicationIdentifier
+    ) {
+        return new TaskFinishService(postProcessingService, tasksByStateDAO, taskInfoDAO, taskStatusUpdater, applicationIdentifier);
     }
 
     @Bean

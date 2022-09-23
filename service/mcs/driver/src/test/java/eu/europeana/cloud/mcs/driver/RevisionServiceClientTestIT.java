@@ -39,8 +39,7 @@ public class RevisionServiceClientTestIT {
         );
 
         RevisionServiceClient mcsClient = new RevisionServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-        URI revisionUri = mcsClient.addRevision(cloudId, representationName, version, revision,
-                MCSClient.AUTHORIZATION_KEY, MCSClient.getAuthorisationValue(USER_NAME, USER_PASSWORD));
+        URI revisionUri = mcsClient.addRevision(cloudId, representationName, version, revision);
 
         assertNotNull(revisionUri);
     }

@@ -119,34 +119,6 @@ public class RevisionServiceClient extends MCSClient {
     /**
      * add a revision
      *
-     * @param cloudId            id of uploaded revision.
-     * @param representationName representation name of uploaded revision.
-     * @param version            a specific version of the representation.
-     * @param revision           revision
-     * @param key                key of header request
-     * @param value              value of header request
-     * @return URI to revisions inside a version.
-     * @throws RepresentationNotExistsException when representation does not exist in specified version.
-     * @throws DriverException                  call to service has not succeeded because of server side error.
-     * @throws MCSException                     on unexpected situations.
-     */
-    public URI addRevision(String cloudId, String representationName, String version, Revision revision, String key, String value) throws MCSException {
-        return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-                () -> client
-                        .target(baseUrl)
-                        .path(REVISION_ADD)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .request()
-                        .header(key, value)
-                        .accept(MediaType.APPLICATION_JSON).post(Entity.json(revision))
-        );
-    }
-
-    /**
-     * add a revision
-     *
      * @param cloudId            cloud id of the record (required).
      * @param representationName schema of representation (required).
      * @param version            a specific version of the representation(required).
@@ -201,33 +173,6 @@ public class RevisionServiceClient extends MCSClient {
                         .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
                         .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
                         .request()
-                        .delete()
-        );
-    }
-
-    /**
-     * Remove a revision
-     *
-     * @param cloudId            cloud Id
-     * @param representationName representation name
-     * @param version            representation version
-     * @param revision           the revision
-     * @param key                authorisation key
-     * @param value              authorisation value
-     * @throws RepresentationNotExistsException throws if given representation not exists
-     */
-    public void deleteRevision(String cloudId, String representationName, String version, Revision revision, String key, String value) throws MCSException {
-        manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-                () -> client.target(baseUrl)
-                        .path(REVISION_DELETE)
-                        .resolveTemplate(CLOUD_ID, cloudId)
-                        .resolveTemplate(REPRESENTATION_NAME, representationName)
-                        .resolveTemplate(VERSION, version)
-                        .resolveTemplate(REVISION_NAME, revision.getRevisionName())
-                        .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
-                        .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-                        .request()
-                        .header(key, value)
                         .delete()
         );
     }

@@ -9,10 +9,6 @@ import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,17 +27,13 @@ public class RepresentationRevisionsResource {
 
 
     private final RecordService recordService;
-    private final PermissionEvaluator permissionEvaluator;
 
-    public RepresentationRevisionsResource(RecordService recordService,
-                                           PermissionEvaluator permissionEvaluator) {
+    public RepresentationRevisionsResource(RecordService recordService) {
         this.recordService = recordService;
-        this.permissionEvaluator = permissionEvaluator;
     }
 
     /**
      * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider and timestamp.
-     * <strong>Read permissions required.</strong>
      *
      * @param cloudId           cloud id of the record which contains the representation .
      * @param representationName             name of the representation .
@@ -79,10 +71,7 @@ public class RepresentationRevisionsResource {
                         representationRevisionsResource.getRepresentationName(),
                         representationRevisionsResource.getVersion());
                 EnrichUriUtil.enrich(httpServletRequest, representation);
-                //
-                if (userHasAccessTo(representation)) {
-                    representations.add(representation);
-                }
+                representations.add(representation);
             }
         } else {
             throw new RepresentationNotExistsException("No representation was found");
@@ -90,13 +79,4 @@ public class RepresentationRevisionsResource {
 
         return new RepresentationsListWrapper(representations);
     }
-
-    private boolean userHasAccessTo(Representation representation){
-        SecurityContext ctx = SecurityContextHolder.getContext();
-        Authentication authentication = ctx.getAuthentication();
-        //
-        String targetId = representation.getCloudId() + "/" + representation.getRepresentationName() + "/" + representation.getVersion();
-        return permissionEvaluator.hasPermission(authentication, targetId, Representation.class.getName(), "read");
-    }
-
 }

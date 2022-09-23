@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -26,14 +27,17 @@ import java.util.List;
  */
 public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
-    protected static final String AUTHORIZATION = "Authorization";
     private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
     private transient RecordServiceClient recordServiceClient;
     private transient RevisionServiceClient revisionServiceClient;
     private final String ecloudMcsAddress;
+    private final String ecloudMcsUser;
+    private final String ecloudMcsUserPassword;
 
-    public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress) {
+    public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
         this.ecloudMcsAddress = ecloudMcsAddress;
+        this.ecloudMcsUser = ecloudMcsUser;
+        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
     }
 
     @Override
@@ -43,13 +47,13 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
     @Override
     public void prepare() {
-        recordServiceClient = new RecordServiceClient(ecloudMcsAddress);
-        revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress);
+        recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+        revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     }
 
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
-        logger.info("Checking duplicates for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+        logger.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
         try {
             Representation representation = extractRepresentationInfoFromTuple(tuple);
             List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
@@ -57,8 +61,11 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 handleDuplicatedRepresentation(anchorTuple, tuple, representation);
                 return;
             }
+            emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
+                    tuple.getFileUrl(), "", "",
+                    tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
+                    StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
             logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-            outputCollector.emit(anchorTuple, tuple.toStormTuple());
         } catch (MalformedURLException | MCSException e) {
             logger.error("Error while detecting duplicates", e);
             emitErrorNotification(
@@ -76,7 +83,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation) throws MCSException {
         logger.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
         removeRevision(tuple, representation);
-        removeRepresentation(tuple, representation);
+        removeRepresentation(representation);
         emitErrorNotification(
                 anchorTuple,
                 tuple.getTaskId(),
@@ -88,12 +95,11 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         outputCollector.ack(anchorTuple);
     }
 
-    private void removeRepresentation(StormTaskTuple tuple, Representation representation) throws MCSException {
+    private void removeRepresentation(Representation representation) throws MCSException {
         recordServiceClient.deleteRepresentation(
                 representation.getCloudId(),
                 representation.getRepresentationName(),
-                representation.getVersion(),
-                AUTHORIZATION, tuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                representation.getVersion());
     }
 
     private void removeRevision(StormTaskTuple tuple, Representation representation) throws MCSException {
@@ -101,18 +107,18 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 representation.getCloudId(),
                 representation.getRepresentationName(),
                 representation.getVersion(),
-                tuple.getRevisionToBeApplied(),
-                AUTHORIZATION, tuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                tuple.getRevisionToBeApplied());
     }
 
     private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, Representation representation) throws MCSException {
         return recordServiceClient.getRepresentationsByRevision(
                 representation.getCloudId(), representation.getRepresentationName(),
-                tuple.getRevisionToBeApplied().getRevisionName(),
-                tuple.getRevisionToBeApplied().getRevisionProviderId(),
-                new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toString(),
-                AUTHORIZATION,
-                tuple.getParameter(PluginParameterKeys.AUTHORIZATION_HEADER));
+                new Revision(
+                        tuple.getRevisionToBeApplied().getRevisionName(),
+                        tuple.getRevisionToBeApplied().getRevisionProviderId(),
+                        //TODO there is helper class for that
+                        new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toDate())
+                );
     }
 
     private boolean representationsWithSameRevisionExists(List<Representation> representations) {
