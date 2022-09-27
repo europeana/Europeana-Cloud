@@ -207,7 +207,7 @@ public class CassandraDataSetService implements DataSetService {
      * @param recordId   record's id
      * @param schema     representation's schema
      */
-    public void removeAssignmentFromMainTables(String providerId, String dataSetId, String recordId, String schema, String versionId)
+    private void removeAssignmentFromMainTables(String providerId, String dataSetId, String recordId, String schema, String versionId)
             throws NoHostAvailableException, QueryExecutionException {
 
         String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
@@ -225,7 +225,7 @@ public class CassandraDataSetService implements DataSetService {
         }
     }
 
-    public boolean hasMoreRepresentations(String providerId, String datasetId, String representationName) {
+    private boolean hasMoreRepresentations(String providerId, String datasetId, String representationName) {
         String providerDatasetId = providerId + CDSID_SEPARATOR + datasetId;
 
         Bucket bucket = bucketsHandler.getFirstBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDatasetId);
@@ -239,11 +239,6 @@ public class CassandraDataSetService implements DataSetService {
         return false;
     }
 
-    /**
-     * >>>>>>> develop
-     *
-     * @inheritDoc
-     */
     @Override
     public DataSet createDataSet(String providerId, String dataSetId,
                                  String description) throws ProviderNotExistsException,
@@ -316,7 +311,7 @@ public class CassandraDataSetService implements DataSetService {
         return getDataSetsRevisionsPage(providerId, dataSetId, revisionProviderId, revisionName, revisionTimestamp, representationName, startFrom, limit);
     }
 
-    public ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
+    ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
                                                                    String revisionName, Date revisionTimestamp, String representationName,
                                                                    String nextToken, int limit) {
         String id = createProviderDataSetId(providerId, dataSetId);
@@ -330,7 +325,7 @@ public class CassandraDataSetService implements DataSetService {
         ResultSlice<E> loadData(Bucket bucket, PagingState pagingState, int localLimit);
     }
 
-    public <E> ResultSlice<E> loadPage(String dataId, String nextToken, int limit,
+    private <E> ResultSlice<E> loadPage(String dataId, String nextToken, int limit,
                                         String bucketsTableName, OneBucketLoader<E> oneBucketLoader) {
         List<E> result = new ArrayList<>(limit);
         String resultNextSlice = null;
@@ -415,8 +410,7 @@ public class CassandraDataSetService implements DataSetService {
      * @param tokenPart part of token containing string representation of paging state from previous query
      * @return null when token part is empty or null paging state otherwise
      */
-    //NO_DB
-    public PagingState getPagingState(String tokenPart) {
+    private PagingState getPagingState(String tokenPart) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             return PagingState.fromString(tokenPart);
         }
@@ -433,7 +427,7 @@ public class CassandraDataSetService implements DataSetService {
      * @param providerDataSetId provider id and dataset id to retrieve next bucket id
      * @return bucket id to be used for the query
      */
-    public Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
+    private Bucket getAssignmentBucketId(String bucketsTableName, String tokenPart, PagingState state, String providerDataSetId) {
         if (tokenPart != null && !tokenPart.isEmpty()) {
             // when the state passed in the next token is not null we have to use the same bucket id as the paging state
             // is associated with the query having certain parameter values
