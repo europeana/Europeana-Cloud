@@ -18,14 +18,6 @@ public class RetryableMethodExecutor {
 
     public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
 
-    public static <E extends Exception> void executeOnRest(String errorMessage, GenericRunnable<E> runnable) throws E {
-        RetryableMethodExecutor.execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, () -> {
-                    runnable.run();
-                    return null;
-                }
-        );
-    }
-
     public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
         return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
     }
@@ -37,6 +29,9 @@ public class RetryableMethodExecutor {
         while (true) {
             try {
                 return callable.call();
+            } catch (InterruptedException e)  {
+                Thread.currentThread().interrupt();
+                throw new RetryInterruptedException(e);
             } catch (Exception e) {
                 if (--maxAttempts > 0) {
                     LOGGER.warn("{} - {} Retries Left {} ", errorMessage, e.getMessage(), maxAttempts, e);
@@ -119,11 +114,7 @@ public class RetryableMethodExecutor {
         return result;
     }
 
-    public interface GenericRunnable<E extends Exception> {
-        void run() throws E;
-    }
-
     public interface GenericCallable<V, E extends Throwable> {
-        V call() throws E;
+        V call() throws E, InterruptedException;
     }
 }
