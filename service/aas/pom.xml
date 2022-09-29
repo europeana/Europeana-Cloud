@@ -20,7 +20,6 @@
     <modules>
         <module>authentication</module>
         <module>authorization</module>
-        <module>rest</module>
     </modules>
 
     <dependencies>

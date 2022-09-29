@@ -29,8 +29,6 @@ RUN printf '\njavax.xml.parsers.SAXParserFactory = com.sun.org.apache.xerces.int
 RUN printf '\njavax.xml.datatype.DatatypeFactory = com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl' >> /usr/local/tomcat/conf/catalina.properties
 
 #adding Ecloud applications
-ADD service/aas/rest/target/ecloud-service-aas-rest-* /usr/local/tomcat/webapps/aas/
-RUN rm /usr/local/tomcat/webapps/aas/ecloud-service-aas-rest-*.war
 ADD service/uis/rest/target/ecloud-service-uis-rest-* /usr/local/tomcat/webapps/uis/
 RUN rm /usr/local/tomcat/webapps/uis/ecloud-service-uis-rest-*.war
 ADD service/mcs/rest/target/ecloud-service-mcs-rest-* /usr/local/tomcat/webapps/mcs/
