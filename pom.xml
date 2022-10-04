@@ -121,7 +121,11 @@
         <repository>
             <id>miredot</id>
             <name>MireDot Releases</name>
-            <url>https://nexus.qmino.com/content/repositories/miredot</url>
+            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
+        </repository>
+        <repository>
+            <id>clojars</id>
+            <url>https://repo.clojars.org/</url>
         </repository>
     </repositories>
     <properties>
@@ -436,7 +440,7 @@
         <pluginRepository>
             <id>miredot</id>
             <name>MireDot Releases</name>
-            <url>https://nexus.qmino.com/content/repositories/miredot</url>
+            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
         </pluginRepository>
     </pluginRepositories>
     <distributionManagement>
