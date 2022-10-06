@@ -4,10 +4,14 @@ import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import org.hamcrest.core.Is;
 import org.junit.After;
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -18,7 +22,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
-import static org.hamcrest.Matchers.is;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 /**
@@ -40,16 +51,29 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     @Autowired
     private CassandraDataSetDAO dataSetDAO;
 
+    @Autowired
+    private BucketsHandler bucketsHandler;
+
 
     private static final String PROVIDER_ID = "provider";
-
     private static final String DATA_SET_NAME = "dataset1";
-
     private static final String REPRESENTATION = "representation";
-
     private static final String REVISION = "revision";
-
     private static final String REVISION_PROVIDER = "REVISION_PROVIDER";
+    private static final String SAMPLE_PROVIDER_NAME = PROVIDER_ID;
+    private static final String SAMPLE_DATASET_ID = DATA_SET_NAME;
+    private static final String SAMPLE_REPRESENTATION_NAME_1 = "Sample_rep_1";
+    private static final String SAMPLE_REPRESENTATION_NAME_2 = "Sample_rep_2";
+    private static final String SAMPLE_REPRESENTATION_NAME_3 = "Sample_rep_3";
+    private static final String SAMPLE_REVISION_NAME = "Revision_1";
+    private static final String SAMPLE_REVISION_NAME2 = "Revision_2";
+    private static final String SAMPLE_REVISION_PROVIDER = "Revision_Provider_1";
+    private static final String SAMPLE_REVISION_PROVIDER2 = "Revision_Provider_2";
+    private static final String SAMPLE_CLOUD_ID = "Cloud_1";
+    private static final String SAMPLE_CLOUD_ID2 = "Cloud_2";
+    private static final String SAMPLE_CLOUD_ID3 = "Cloud_3";
+    private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
+    private static final int ASSIGNMENTS_COUNT = 1000;
 
     @After
     public void cleanUp() {
@@ -117,14 +141,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
                 r1.getRepresentationName(), r1.getVersion());
 
-        Bucket bucket = dataSetDAO.getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
+        Bucket bucket = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
         assertNotNull(bucket);
         assertEquals(1, bucket.getRowsCount());
 
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
                 r1.getRepresentationName(), r1.getVersion());
 
-        Bucket bucket2 = dataSetDAO.getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
+        Bucket bucket2 = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
         assertNotNull(bucket2);
         assertEquals(1, bucket2.getRowsCount());
         assertEquals(bucket.getBucketId(), bucket2.getBucketId());
@@ -146,14 +170,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         cassandraDataSetService.addAssignment(ds.getProviderId(), ds.getId(), r2.getCloudId(),
                 r2.getRepresentationName(), r2.getVersion());
 
-        Bucket bucket = dataSetDAO.getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
+        Bucket bucket = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
         assertNotNull(bucket);
         assertEquals(2, bucket.getRowsCount());
 
         cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
                 r1.getRepresentationName(), r1.getVersion());
 
-        Bucket bucket2 = dataSetDAO.getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
+        Bucket bucket2 = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
         assertNotNull(bucket2);
         assertEquals(1, bucket2.getRowsCount());
         assertEquals(bucket.getBucketId(), bucket2.getBucketId());
@@ -161,7 +185,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         cassandraDataSetService.removeAssignment(ds.getProviderId(), ds.getId(), r1.getCloudId(),
                 r1.getRepresentationName(), r1.getVersion());
 
-        Bucket bucket3 = dataSetDAO.getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
+        Bucket bucket3 = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
         assertNotNull(bucket3);
         assertEquals(1, bucket3.getRowsCount());
         assertEquals(bucket.getBucketId(), bucket3.getBucketId());
@@ -404,8 +428,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         Date date = new Date();
         String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
 
-        DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, DATA_SET_NAME,
-                "description of this set");
+        DataSet ds = createDataset();
         Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID, ds.getId());
         Revision revision = new Revision(REVISION, PROVIDER_ID, date, true, true, false);
         cassandraRecordService.addRevision(representation.getCloudId(),
@@ -429,7 +452,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     }
 
-
     @Test
     public void shouldAllowReturningOnlyExistingRevisions() throws Exception {
         makeUISProviderSuccess();
@@ -442,9 +464,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         deletedRevision.setDeleted(true);
         for (int i = 0; i < 12500; i++) {
             if ((i + 1) % 2000 == 0) {
-                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, exitstingRevision, REPRESENTATION, "CLOUD_ID_" + i);
+                cassandraDataSetService.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, exitstingRevision, REPRESENTATION, "CLOUD_ID_" + i);
             } else {
-                dataSetDAO.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, deletedRevision, REPRESENTATION, "CLOUD_ID_" + i);
+                cassandraDataSetService.addDataSetsRevision(PROVIDER_ID, DATA_SET_NAME, deletedRevision, REPRESENTATION, "CLOUD_ID_" + i);
             }
         }
 
@@ -486,5 +508,419 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     }
 
+    @Test
+    public void shouldListAllRepresentationsNamesForGivenDataSet() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        makeUISProviderSuccess();
+        createDataset();
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_3);
+
+        Set<String> representations = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        Assert.assertTrue(representations.contains(SAMPLE_REPRESENTATION_NAME_1));
+        Assert.assertFalse(representations.contains(SAMPLE_REPRESENTATION_NAME_2));
+        Assert.assertTrue(representations.contains(SAMPLE_REPRESENTATION_NAME_3));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDataset() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision2, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 2);
+
+        //then
+        assertThat(result.getResults().size(), Is.is(2));
+        List<String> ids = new ArrayList<>();
+        ids.add(result.getResults().get(0).getCloudId());
+        ids.add(result.getResults().get(1).getCloudId());
+
+        assertThat(ids,hasItems(SAMPLE_CLOUD_ID, SAMPLE_CLOUD_ID2));
+        assertThat(ids, not(hasItems(SAMPLE_CLOUD_ID3)));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBuckets() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket1 = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision2, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 2);
+
+        //then
+        assertThat(result.getResults().size(), Is.is(2));
+        List<String> ids = new ArrayList<>();
+        ids.add(result.getResults().get(0).getCloudId());
+        ids.add(result.getResults().get(1).getCloudId());
+
+        assertThat(ids,hasItems(SAMPLE_CLOUD_ID, SAMPLE_CLOUD_ID2));
+        assertThat(ids, not(hasItems(SAMPLE_CLOUD_ID3)));
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBucketsWithLimit() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket1 = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision2, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> page1 = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 1);
+        ResultSlice<CloudTagsResponse> page2 = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, page1.getNextSlice(), 1);
+
+        //then
+        assertThat(page1.getResults().size(), Is.is(1));
+        assertThat(page1.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID));
+        assertThat(page2.getResults().size(), Is.is(1));
+        assertThat(page2.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID2));
+
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetWithLimit() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision2, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 1);
+
+        //then
+        assertThat(result.getResults().size(), is(1));
+        assertEquals(SAMPLE_CLOUD_ID, result.getResults().get(0).getCloudId());
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionAndDatasetWithPagination() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+
+        //when
+        ResultSlice<CloudTagsResponse> result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 1);
+
+
+        //then
+        assertThat(result.getResults().size(), is(1));
+        assertThat(result.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
+        Assert.assertNotNull(result.getNextSlice());
+
+        result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, result.getNextSlice(), 1);
+        assertThat(result.getResults().size(), is(1));
+        assertThat(result.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID2));
+        Assert.assertNotNull(result.getNextSlice());
+
+        result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, result.getNextSlice(), 1);
+        assertThat(result.getResults().size(), is(1));
+        assertThat(result.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID3));
+        assertNull(result.getNextSlice());
+    }
+
+    @Test
+    public void shouldListAllCloudIdForGivenRevisionForSecondRevision() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        //assigned to different revision
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision2, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> result  = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER2, SAMPLE_REVISION_NAME2, revision2.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 3);
+
+        //then
+        assertThat(result.getResults().size(), is(1));
+        assertEquals(SAMPLE_CLOUD_ID3, result.getResults().get(0).getCloudId());
+    }
+
+    @Test
+    public void shouldRemoveRevisionFromDataSet() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        increaseDatasetAssignmentRevisionIdBucketSize(bucket);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        cassandraDataSetService.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
+                SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+
+        //then
+        ResultSlice<CloudTagsResponse> result  = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 3);
+        assertThat(result.getResults().size(), is(1));
+        assertEquals(SAMPLE_CLOUD_ID2, result.getResults().get(0).getCloudId());
+    }
+
+    @Test
+    public void shouldRemoveRevisionFromDataSetSecondRevision() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        increaseDatasetAssignmentRevisionIdBucketSize(bucket);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        cassandraDataSetService.removeDataSetsRevision(SAMPLE_PROVIDER_NAME,SAMPLE_DATASET_ID, revision1,
+                SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //then
+        ResultSlice<CloudTagsResponse> result  = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 3);
+        assertThat(result.getResults().size(), is(1));
+        assertEquals(SAMPLE_CLOUD_ID, result.getResults().get(0).getCloudId());
+    }
+
+    @Test
+    public void shouldRemoveAssigmentsOnRemoveWholeDataSet() throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetNotExistsException, DataSetDeletionException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+
+        //when
+        cassandraDataSetService.deleteDataSet(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        //then
+        ResultSlice<CloudTagsResponse> cloudIds = cassandraDataSetService.getDataSetsRevisionsPage(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 3);
+        assertThat(cloudIds.getResults().size(), is(0));
+    }
+
+    @Test
+    public void newRepresentationNameShouldBeAdded() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        makeUISProviderSuccess();
+        createDataset();
+
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
+
+        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        assertEquals(1, repNames.size());
+        Assert.assertTrue(repNames.contains(SAMPLE_REPRESENTATION_NAME_1));
+    }
+
+
+    @Test
+    public void representationNameShouldBeRemovedFromDB() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        makeUISProviderSuccess();
+        createDataset();
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_2);
+
+        dataSetDAO.removeRepresentationNameForDataSet(SAMPLE_REPRESENTATION_NAME_1, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        assertEquals(1, repNames.size());
+        Assert.assertTrue(repNames.contains(SAMPLE_REPRESENTATION_NAME_2));
+        Assert.assertFalse(repNames.contains(SAMPLE_REPRESENTATION_NAME_1));
+    }
+
+    @Test
+    public void allRepresentationsNamesForDataSetShouldBeRemoved() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        makeUISProviderSuccess();
+        createDataset();
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_2);
+        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_3);
+        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        assertEquals(3, repNames.size());
+
+        dataSetDAO.removeAllRepresentationsNamesForDataSet(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        assertEquals(0, repNames.size());
+    }
+
+
+    @Test
+    public void shouldRemoveCountFromAssignmentBucketsWhenRemovingAssignments() throws DataSetNotExistsException, RepresentationNotExistsException, ProviderNotExistsException, DataSetAlreadyExistsException, RecordNotExistsException, DataSetAssignmentException {
+        // given
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        DataSet dataSet =   createDataset();
+
+        // when
+        List<Representation> assigned = prepareAssignedRepresentations(dataSet);
+        Bucket bucket = getCurrentDataSetAssignmentBucket(dataSet.getProviderId(), dataSet.getId());
+
+        // then
+        assertNotNull(bucket);
+        assertThat(bucket.getRowsCount(), is((long) (ASSIGNMENTS_COUNT % MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT)));
+
+        // when
+        removeAssignments(dataSet, assigned);
+        bucket = getCurrentDataSetAssignmentBucket(dataSet.getProviderId(), dataSet.getId());
+
+        // then
+        assertNull(bucket);
+    }
+
+
+    @Test
+    public void shouldListDataSetWithPagination()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        makeDatasetExists();
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, null, 1);
+        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, page1.getNextSlice(), 3);
+
+        assertThat(page1.getResults(), hasSize(1));
+        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
+        assertNotNull(page1.getNextSlice());
+        assertThat(page2.getResults(), hasSize(2));
+        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
+        assertThat(page2.getResults().get(1).getCloudId(),is(SAMPLE_CLOUD_ID3));
+        assertNull(page2.getNextSlice());
+    }
+
+    @Test
+    public void shouldListDataSetWithPaginationLastPageLimitEqualAccessibleDataCount()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        makeDatasetExists();
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, null, 1);
+        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, page1.getNextSlice(), 2);
+
+        assertThat(page1.getResults(), hasSize(1));
+        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
+        assertNotNull(page1.getNextSlice());
+        assertThat(page2.getResults(), hasSize(2));
+        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
+        assertThat(page2.getResults().get(1).getCloudId(),is(SAMPLE_CLOUD_ID3));
+        assertNull(page2.getNextSlice());
+    }
+
+    @Test
+    public void shouldListDataSetWithPaginationHittingExactlyBucketBorders()
+            throws Exception {
+        makeUISSuccess();
+        makeUISProviderSuccess();
+        makeDatasetExists();
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        createDatasetAssignmentBucket();
+        cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+
+        ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, null, 1);
+        ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+                SAMPLE_DATASET_ID, page1.getNextSlice(), 1);
+
+        assertThat(page1.getResults(), hasSize(1));
+        assertThat(page1.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID));
+        assertNotNull(page1.getNextSlice());
+        assertThat(page2.getResults(), hasSize(1));
+        assertThat(page2.getResults().get(0).getCloudId(),is(SAMPLE_CLOUD_ID2));
+        assertNull(page2.getNextSlice());
+    }
+
+    private DataSet createDataset() throws ProviderNotExistsException, DataSetAlreadyExistsException {
+        return cassandraDataSetService.createDataSet(PROVIDER_ID, DATA_SET_NAME, "description of this set");
+    }
+
+    private Bucket createDatasetAssignmentRevisionIdBucket() {
+        String providerDataSetId = createProviderDataSetId(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        Bucket bucket = new Bucket(providerDataSetId,new com.eaio.uuid.UUID().toString(),0);
+        bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,bucket);
+        return bucket;
+    }
+
+    private void createDatasetAssignmentBucket() {
+        String providerDataSetId = createProviderDataSetId(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+        Bucket bucket = new Bucket(providerDataSetId,new com.eaio.uuid.UUID().toString(),0);
+        bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS,bucket);
+    }
+
+    private void increaseDatasetAssignmentRevisionIdBucketSize(Bucket bucket) {
+        bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,bucket);
+    }
+
+    private void removeAssignments(DataSet dataSet, List<Representation> assigned) throws DataSetNotExistsException {
+        for (Representation representation : assigned) {
+            cassandraDataSetService.removeAssignment(dataSet.getProviderId(), dataSet.getId(), representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+        }
+    }
+
+    private List<Representation> prepareAssignedRepresentations(DataSet dataSet) throws DataSetNotExistsException, RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException {
+        List<Representation> assigned = new ArrayList<>();
+        for (int i = 0; i < ASSIGNMENTS_COUNT; i++) {
+            Representation representation = cassandraRecordService.createRepresentation("cloud_id_" + i,
+                    "representation_" + i, dataSet.getProviderId(), dataSet.getId());
+            cassandraDataSetService.addAssignment(dataSet.getProviderId(), dataSet.getId(), representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
+            assigned.add(representation);
+        }
+        return assigned;
+    }
+
+    private Bucket getCurrentDataSetAssignmentBucket(String providerId, String datasetId) {
+        return bucketsHandler.getCurrentBucket(
+                DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, createProviderDataSetId(providerId, datasetId));
+    }
 
 }

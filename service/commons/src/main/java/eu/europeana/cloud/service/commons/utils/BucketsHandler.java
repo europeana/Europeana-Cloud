@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.commons.utils;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.utils.Bucket;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.UUID;
  * <br/>
  * Buckets table has to have proper structure.
  */
+@Retryable
 public class BucketsHandler {
 
     public static final String OBJECT_ID_COLUMN_NAME = "object_id";
@@ -79,7 +81,7 @@ public class BucketsHandler {
         return getBucket(query);
     }
 
-    public Bucket getNextBucket(String bucketsTableName, String objectId) {
+    public Bucket getFirstBucket(String bucketsTableName, String objectId) {
         String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' LIMIT 1;";
         return getBucket(query);
     }
