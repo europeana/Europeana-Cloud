@@ -505,9 +505,10 @@ public class CassandraDataSetService implements DataSetService {
             // if there are more buckets we should retrieve number of results that will feed the page
             if (bucketsHandler.getNextBucket(bucketsTableName, dataId, bucket) != null) {
                 String nextSlice = "_" + bucket.getBucketId();
-                result.addAll(
-                        loadPage(dataId, nextSlice, limit - result.size(), bucketsTableName, oneBucketLoader)
-                                .getResults());
+                ResultSlice<E> resultsFromFurtherBuckets =
+                        loadPage(dataId, nextSlice, limit - result.size(), bucketsTableName, oneBucketLoader);
+                result.addAll(resultsFromFurtherBuckets.getResults());
+                resultNextSlice = resultsFromFurtherBuckets.getNextSlice();
             }
         }
         return new ResultSlice<>(resultNextSlice, result);

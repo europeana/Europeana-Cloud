@@ -576,6 +576,32 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     }
 
     @Test
+    public void shouldListAllCloudIdsForGivenRevisionAndDatasetFromDifferentBucketsWhenMoreDataThanOnePage() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket1 = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID);
+        Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID2);
+        dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1,SAMPLE_CLOUD_ID3);
+
+        //when
+        ResultSlice<CloudTagsResponse> page1 = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 2);
+        ResultSlice<CloudTagsResponse> page2 = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, page1.getNextSlice(), 2);
+
+        //then
+        assertThat(page1.getResults().size(), Is.is(2));
+        assertThat(page1.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID));
+        assertThat(page1.getResults().get(1).getCloudId(), Is.is(SAMPLE_CLOUD_ID2));
+        Assert.assertNotNull(page1.getNextSlice());
+        assertThat(page2.getResults().size(), Is.is(1));
+        assertThat(page2.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID3));
+        Assert.assertNull(page2.getNextSlice());
+    }
+
+    @Test
     public void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBucketsWithLimit() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
         //given
         makeUISProviderSuccess();
