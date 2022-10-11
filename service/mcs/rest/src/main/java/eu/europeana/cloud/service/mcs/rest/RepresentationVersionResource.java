@@ -49,7 +49,7 @@ public class RepresentationVersionResource {
      * @summary get representation by version
      */
     @GetMapping(value = REPRESENTATION_VERSION, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("isAuthenticated() or hasPermission(#cloudId.concat('/').concat(#representationName).concat('/').concat(#version), 'eu.europeana.cloud.common.model.Representation', read)")
+    @PreAuthorize("isAuthenticated()")
     public @ResponseBody Representation getRepresentationVersion(
             HttpServletRequest httpServletRequest,
             @PathVariable String cloudId,
