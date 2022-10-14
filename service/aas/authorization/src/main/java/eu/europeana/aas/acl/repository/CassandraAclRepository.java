@@ -14,10 +14,7 @@
  */
 package eu.europeana.aas.acl.repository;
 
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -25,6 +22,7 @@ import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
@@ -38,9 +36,10 @@ import java.util.Map.Entry;
  * @author Rigas Grigoropoulos
  * @author Markus.Muhr@theeuropeanlibrary.org
  */
+@Retryable
 public final class CassandraAclRepository implements AclRepository {
 
-    private static final Log LOG = LogFactory
+	private static final Log LOG = LogFactory
 	    .getLog(CassandraAclRepository.class);
 
     private static final String AOI_TABLE = "aois";
@@ -55,11 +54,16 @@ public final class CassandraAclRepository implements AclRepository {
     private static final String[] ACL_KEYS = new String[] { "id", "aclOrder",
 	    "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess",
 	    "isAuditFailure" };
+	private Statement createChildrenTable;
+	private Statement createAoisTable;
+	private Statement createAclsTable;
 
-    private final Session session;
+	private final Session session;
     private final String keyspace;
 
-    /**
+
+
+	/**
      * Constructs a new <code>CassandraAclRepositoryImpl</code>.
      * 
      * @param provider
@@ -86,6 +90,7 @@ public final class CassandraAclRepository implements AclRepository {
 	public CassandraAclRepository(Session session, String keyspace) {
 		this.session = session;
 		this.keyspace = keyspace;
+		initStatements(session);
 	}
 
     /**
@@ -111,7 +116,26 @@ public final class CassandraAclRepository implements AclRepository {
 		}
 	}
 
-    @Override
+
+	private void initStatements(Session session){
+		createChildrenTable = new SimpleStatement("CREATE TABLE children (" + "id varchar," + "childId varchar," + "objId varchar,"
+				+ "objClass varchar," + "PRIMARY KEY (id, childId)" + ");");
+		createAoisTable = new SimpleStatement("CREATE TABLE aois (" + "id varchar PRIMARY KEY," + "objId varchar," + "objClass varchar,"
+				+ "isInheriting boolean," + "owner varchar," + "isOwnerPrincipal boolean," + "parentObjId varchar,"
+				+ "parentObjClass varchar" + ");");
+		createAclsTable = new SimpleStatement("CREATE TABLE acls (" + "id varchar," + "sid varchar," + "aclOrder int," + "mask int,"
+				+ "isSidPrincipal boolean," + "isGranting boolean," + "isAuditSuccess boolean,"
+				+ "isAuditFailure boolean," + "PRIMARY KEY (id, sid, aclOrder)" + ");");
+	}
+
+
+
+	@Retryable
+	private ResultSet executeStatement(Session session, Statement statement){
+		return session.execute(statement);
+	}
+
+	@Override
     public Map<AclObjectIdentity, Set<AclEntry>> findAcls(List<AclObjectIdentity> objectIdsToLookup) {
         assertAclObjectIdentityList(objectIdsToLookup);
 
@@ -123,9 +147,8 @@ public final class CassandraAclRepository implements AclRepository {
         for (AclObjectIdentity entry : objectIdsToLookup) {
             ids.add(entry.getRowId());
         }
-
-        ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE)
-                .where(QueryBuilder.in("id", ids.toArray())));
+		ResultSet resultSet = executeStatement(session, QueryBuilder.select().all().from(keyspace, AOI_TABLE)
+				.where(QueryBuilder.in("id", ids.toArray())));
         
         Map<AclObjectIdentity, Set<AclEntry>> resultMap = new HashMap<>();
         for (Row row : resultSet.all()) {
@@ -138,7 +161,7 @@ public final class CassandraAclRepository implements AclRepository {
             }));
         }
 
-        resultSet = session.execute(QueryBuilder.select().all().from(keyspace, ACL_TABLE)
+        resultSet = executeStatement(session, QueryBuilder.select().all().from(keyspace, ACL_TABLE)
                 .where(QueryBuilder.in("id", ids.toArray())));
         for (Row row : resultSet.all()) {
             String aoiId = row.getString("id");
@@ -175,8 +198,8 @@ public final class CassandraAclRepository implements AclRepository {
 			LOG.debug("BEGIN findAclObjectIdentity: objectIdentity: " + objectId);
 		}
 
-		Row row = session
-				.execute(QueryBuilder.select().all().from(keyspace, AOI_TABLE)
+		Row row = executeStatement(session,
+				QueryBuilder.select().all().from(keyspace, AOI_TABLE)
 						.where(QueryBuilder.eq("id", objectId.getRowId())))
 				.one();
 		AclObjectIdentity objectIdentity = convertToAclObjectIdentity(row, true);
@@ -195,7 +218,7 @@ public final class CassandraAclRepository implements AclRepository {
             LOG.debug("BEGIN findAclObjectIdentityChildren: objectIdentity: " + objectId);
         }
 
-        ResultSet resultSet = session.execute(QueryBuilder.select().all().from(keyspace, CHILDREN_TABLE)
+        ResultSet resultSet = executeStatement(session,QueryBuilder.select().all().from(keyspace, CHILDREN_TABLE)
                 .where(QueryBuilder.eq("id", objectId.getRowId())));
 
         List<AclObjectIdentity> result = new ArrayList<>();
@@ -222,10 +245,11 @@ public final class CassandraAclRepository implements AclRepository {
             ids.add(entry.getRowId());
         }
         Batch batch = QueryBuilder.batch();
-        batch.add(QueryBuilder.delete().all().from(keyspace, AOI_TABLE).where(QueryBuilder.in("id", ids.toArray())));
+        batch.add(QueryBuilder.delete().all().from(keyspace, AOI_TABLE)
+				.where(QueryBuilder.in("id", ids.toArray())));
         batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE)
                 .where(QueryBuilder.in("id", ids.toArray())));
-        session.execute(batch);
+        executeStatement(session, batch);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("END deleteAcls");
@@ -249,7 +273,7 @@ public final class CassandraAclRepository implements AclRepository {
 			batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(CHILD_KEYS,
 					new Object[] { aoi.getParentRowId(), aoi.getRowId(), aoi.getId(), aoi.getObjectClass() }));
 		}
-		session.execute(batch);
+		executeStatement(session, batch);
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("END saveAcl");
@@ -289,7 +313,7 @@ public final class CassandraAclRepository implements AclRepository {
 						.and(QueryBuilder.eq("childId", aoi.getRowId())));
 			}
 		}
-		session.execute(batch);
+		executeStatement(session, batch);
 
 		// Update ACLs & children table
 		batch = QueryBuilder.batch();
@@ -312,7 +336,7 @@ public final class CassandraAclRepository implements AclRepository {
 			executeBatch = true;
 		}
 		if (executeBatch) {
-			session.execute(batch);
+			executeStatement(session, batch);
 		}
 
 		if (LOG.isDebugEnabled()) {
@@ -382,9 +406,7 @@ public final class CassandraAclRepository implements AclRepository {
      */
 	public void createAoisTable() {
 		try {
-			session.execute("CREATE TABLE aois (" + "id varchar PRIMARY KEY," + "objId varchar," + "objClass varchar,"
-					+ "isInheriting boolean," + "owner varchar," + "isOwnerPrincipal boolean," + "parentObjId varchar,"
-					+ "parentObjClass varchar" + ");");
+			executeStatement(session, createAoisTable);
 		} catch (AlreadyExistsException e) {
 			LOG.warn(e.getMessage(), e);
 		}
@@ -396,8 +418,7 @@ public final class CassandraAclRepository implements AclRepository {
      */
 	public void createChilrenTable() {
 		try {
-			session.execute("CREATE TABLE children (" + "id varchar," + "childId varchar," + "objId varchar,"
-					+ "objClass varchar," + "PRIMARY KEY (id, childId)" + ");");
+			executeStatement(session, createChildrenTable);
 		} catch (AlreadyExistsException e) {
 			LOG.warn(e.getMessage(), e);
 		}
@@ -409,9 +430,7 @@ public final class CassandraAclRepository implements AclRepository {
      */
 	public void createAclsTable() {
 		try {
-			session.execute("CREATE TABLE acls (" + "id varchar," + "sid varchar," + "aclOrder int," + "mask int,"
-					+ "isSidPrincipal boolean," + "isGranting boolean," + "isAuditSuccess boolean,"
-					+ "isAuditFailure boolean," + "PRIMARY KEY (id, sid, aclOrder)" + ");");
+			executeStatement(session, createAclsTable);
 		} catch (AlreadyExistsException e) {
 			LOG.warn(e.getMessage(), e);
 		}
