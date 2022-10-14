@@ -10,10 +10,13 @@ import org.springframework.security.acls.domain.AclAuthorizationStrategyImpl;
 import org.springframework.security.acls.domain.ConsoleAuditLogger;
 import org.springframework.security.acls.domain.DefaultPermissionFactory;
 import org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy;
+import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 
 @Configuration
 public class TestContextConfiguration {
+
 
     @Bean
     public CassandraConnectionProvider cassandraConnectionProvider() {
@@ -21,7 +24,7 @@ public class TestContextConfiguration {
     }
 
     @Bean
-    public CassandraMutableAclService mutableAclService() {
+    public MutableAclService mutableAclService() {
         return new CassandraMutableAclService(cassandraAclRepository(),
                 null,
                 permissionGrantingStrategy(),
@@ -43,6 +46,7 @@ public class TestContextConfiguration {
     public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
         return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
     }
+
 
     @Bean
     public AclAuthorizationStrategyImpl authorizationStrategy() {
