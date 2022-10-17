@@ -30,7 +30,9 @@ import static org.mockito.Mockito.when;
 public class EnrichmentBoltTest {
 
     public static final String DEREFERENCE_URL = "https:/dereference.org";
-    public static final String ENRICHMENT_URL = "https://enrichment.org";
+    public static final String ENRICHMENT_ENTITY_MANAGEMENT_URL_URL = "https://entity-management-url.org";
+    public static final String ENRICHMENT_ENTITY_API_URL = "https://entity-api-url.org";
+    public static final String ENRICHMENT_ENTITY_API_KEY = "some-key";
 
     @Mock(name = "outputCollector")
     private OutputCollector outputCollector;
@@ -51,7 +53,8 @@ public class EnrichmentBoltTest {
 
 
     @InjectMocks
-    private EnrichmentBolt enrichmentBolt = new EnrichmentBolt(DEREFERENCE_URL, ENRICHMENT_URL);
+    private EnrichmentBolt enrichmentBolt = new EnrichmentBolt(DEREFERENCE_URL, ENRICHMENT_ENTITY_MANAGEMENT_URL_URL,
+            ENRICHMENT_ENTITY_API_URL, ENRICHMENT_ENTITY_API_KEY);
 
     @Test
     @SuppressWarnings("unchecked")
