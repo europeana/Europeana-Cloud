@@ -5,8 +5,6 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.aas.acl.RetryableTestContextConfiguration;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.cloud.common.annotation.Retryable;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import static eu.europeana.aas.acl.repository.Utils.createDefaultTestAOI;
@@ -47,47 +44,21 @@ public class CassandraAclRepositoryRetryableTest {
 
     @Test
     public void testRetryableAnnotation() {
+        int maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
+
+        Mockito.verify(session, Mockito.times(0))
+                .execute(Mockito.any(Statement.class));
         try {
-            Method method = aclRepository.getClass()
-                    .getDeclaredMethod("executeStatement", Session.class, Statement.class);
-            int maxAttemptCount = method.getAnnotation(Retryable.class).maxAttempts();
-
-
-            Mockito.verify(session, Mockito.times(0))
-                    .execute(Mockito.any(Statement.class));
-            try {
-                aclRepository.findAcls(List.of(aoi));
-            } catch (Exception ignored) {
-            }
-            Mockito.verify(session, Mockito.times(maxAttemptCount))
-                    .execute(Mockito.any(Statement.class));
-            try {
-                aclRepository.saveAcl(aoi);
-            } catch (Exception ignored) {
-            }
-            Mockito.verify(session, Mockito.times(maxAttemptCount * 2))
-                    .execute(Mockito.any(Statement.class));
-            try {
-                aclRepository.deleteAcls(List.of(aoi));
-            } catch (Exception ignored) {
-            }
-            Mockito.verify(session, Mockito.times(maxAttemptCount * 3))
-                    .execute(Mockito.any(Statement.class));
-            try {
-                aclRepository.findAclObjectIdentity(aoi);
-            } catch (Exception ignored) {
-            }
-            Mockito.verify(session, Mockito.times(maxAttemptCount * 4))
-                    .execute(Mockito.any(Statement.class));
-            try {
-                aclRepository.findAclObjectIdentityChildren(aoi);
-            } catch (Exception ignored) {
-            }
-            Mockito.verify(session, Mockito.times(maxAttemptCount * 5))
-                    .execute(Mockito.any(Statement.class));
-
-        } catch (NoSuchMethodException ex) {
-            Assert.fail();
+            aclRepository.findAcls(List.of(aoi));
+        } catch (Exception ignored) {
         }
+        Mockito.verify(session, Mockito.times(maxAttemptCount))
+                .execute(Mockito.any(Statement.class));
+        try {
+            aclRepository.saveAcl(aoi);
+        } catch (Exception ignored) {
+        }
+        Mockito.verify(session, Mockito.times(maxAttemptCount * 2))
+                .execute(Mockito.any(Statement.class));
     }
 }
