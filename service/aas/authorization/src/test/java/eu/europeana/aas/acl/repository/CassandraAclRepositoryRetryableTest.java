@@ -4,6 +4,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.aas.acl.RetryableTestContextConfiguration;
+import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.List;
 
 import static eu.europeana.aas.acl.repository.Utils.createDefaultTestAOI;
+import static eu.europeana.aas.acl.repository.Utils.createTestAclEntry;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -28,24 +30,30 @@ public class CassandraAclRepositoryRetryableTest {
     @Autowired
     private Session session;
     private AclObjectIdentity aoi;
+    private List<AclEntry> aclEntries;
+
+    private int maxAttemptCount;
 
     @Autowired
     private AclRepository aclRepository;
 
     @Before
     public void prepare() {
+        maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
+
         when(session.execute(Mockito.any(Statement.class)))
                 .thenThrow(new DriverException("Driver error has occurred!"));
 
         aoi = createDefaultTestAOI();
-
+        aclEntries = List.of(createTestAclEntry("test", 1),
+                createTestAclEntry("test", 2),
+                createTestAclEntry("test", 4),
+                createTestAclEntry("test", 8));
     }
 
 
     @Test
     public void testRetryableAnnotation() {
-        int maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
-
         Mockito.verify(session, Mockito.times(0))
                 .execute(Mockito.any(Statement.class));
         try {
@@ -55,7 +63,7 @@ public class CassandraAclRepositoryRetryableTest {
         Mockito.verify(session, Mockito.times(maxAttemptCount))
                 .execute(Mockito.any(Statement.class));
         try {
-            aclRepository.saveAcl(aoi);
+            aclRepository.updateAcl(aoi, aclEntries);
         } catch (Exception ignored) {
         }
         Mockito.verify(session, Mockito.times(maxAttemptCount * 2))
