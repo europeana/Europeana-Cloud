@@ -59,7 +59,9 @@ public class EnrichmentTopology {
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
         EnrichmentBolt enrichmentBolt = new EnrichmentBolt(
                 topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
-                topologyProperties.getProperty(ENRICHMENT_SERVICE_URL));
+                topologyProperties.getProperty(ENRICHMENT_ENTITY_MANAGEMENT_URL),
+                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_URL),
+                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_KEY));
 
         // TOPOLOGY STRUCTURE!
 

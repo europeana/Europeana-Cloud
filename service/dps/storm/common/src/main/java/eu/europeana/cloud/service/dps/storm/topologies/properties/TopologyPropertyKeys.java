@@ -70,7 +70,9 @@ public final class TopologyPropertyKeys {
     public static final String ENRICHMENT_BOLT_NUMBER_OF_TASKS = "ENRICHMENT_BOLT_NUMBER_OF_TASKS";
     public static final String ENRICHMENT_BOLT_PARALLEL = "ENRICHMENT_BOLT_PARALLEL";
     public static final String DEREFERENCE_SERVICE_URL = "DEREFERENCE_SERVICE_URL";
-    public static final String ENRICHMENT_SERVICE_URL = "ENRICHMENT_SERVICE_URL";
+    public static final String ENRICHMENT_ENTITY_MANAGEMENT_URL = "ENTITY_MANAGEMENT_URL";
+    public static final String ENRICHMENT_ENTITY_API_URL = "ENTITY_API_URL";
+    public static final String ENRICHMENT_ENTITY_API_KEY = "ENTITY_API_KEY";
 
     //Normalization parameters
     public static final String NORMALIZATION_BOLT_NUMBER_OF_TASKS = "NORMALIZATION_BOLT_NUMBER_OF_TASKS";

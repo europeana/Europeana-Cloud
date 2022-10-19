@@ -28,13 +28,18 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EnrichmentBolt.class);
 
-    private String dereferenceURL;
-    private String enrichmentURL;
+    private final String dereferenceURL;
+    private final String enrichmentEntityManagementUrl;
+    private final String enrichmentEntityApiUrl;
+    private final String enrichmentEntityApiKey;
     private transient EnrichmentWorker enrichmentWorker;
 
-    public EnrichmentBolt(String dereferenceURL, String enrichmentURL) {
+    public EnrichmentBolt(String dereferenceURL, String enrichmentEntityManagementUrl, String enrichmentEntityApiUrl,
+                          String enrichmentEntityApiKey) {
         this.dereferenceURL = dereferenceURL;
-        this.enrichmentURL = enrichmentURL;
+        this.enrichmentEntityManagementUrl = enrichmentEntityManagementUrl;
+        this.enrichmentEntityApiUrl = enrichmentEntityApiUrl;
+        this.enrichmentEntityApiKey = enrichmentEntityApiKey;
     }
 
     @Override
@@ -69,10 +74,10 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     @Override
     public void prepare() {
         final EnricherProvider enricherProvider = new EnricherProvider();
-        enricherProvider.setEnrichmentUrl(enrichmentURL);
+        enricherProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl, enrichmentEntityApiKey);
         final DereferencerProvider dereferencerProvider = new DereferencerProvider();
         dereferencerProvider.setDereferenceUrl(dereferenceURL);
-        dereferencerProvider.setEnrichmentUrl(enrichmentURL);
+        dereferencerProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl, enrichmentEntityApiKey);
         try {
             enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
                     enricherProvider.create());
