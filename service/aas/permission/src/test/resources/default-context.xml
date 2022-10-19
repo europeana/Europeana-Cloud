@@ -64,5 +64,5 @@
         </constructor-arg>
     </bean>
 
-    <bean id="permissionsGrantingManager" class="eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager"/>
+    <bean id="permissionsGrantingManager" class="eu.europeana.aas.acl.PermissionsGrantingManager"/>
 </beans>

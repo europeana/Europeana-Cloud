@@ -1,7 +1,6 @@
-package eu.europeana.cloud.service.commons;
+package eu.europeana.aas.acl;
 
-import eu.europeana.cloud.service.commons.cassandra.CassandraTestBase;
-import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
+import eu.europeana.aas.acl.cassandra.CassandraTestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,8 +22,8 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:/default-context.xml",
-        "classpath:authentication-context-test.xml"})
+        "classpath:/authentication-context-test.xml",
+        "classpath:default-context.xml"})
 public class PermissionGrantingManagerTest extends CassandraTestBase {
 
     @Autowired

@@ -10,7 +10,6 @@ import org.springframework.security.acls.domain.AclAuthorizationStrategyImpl;
 import org.springframework.security.acls.domain.ConsoleAuditLogger;
 import org.springframework.security.acls.domain.DefaultPermissionFactory;
 import org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
@@ -24,7 +23,7 @@ public class TestContextConfiguration {
     }
 
     @Bean
-    public MutableAclService mutableAclService() {
+    public CassandraMutableAclService mutableAclService() {
         return new CassandraMutableAclService(cassandraAclRepository(),
                 null,
                 permissionGrantingStrategy(),
