@@ -17,6 +17,7 @@ package eu.europeana.aas.acl.repository;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.querybuilder.Batch;
+import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import eu.europeana.aas.acl.model.AclEntry;
 import eu.europeana.aas.acl.model.AclObjectIdentity;
@@ -306,7 +307,8 @@ public class CassandraAclRepository implements AclRepository {
                                 .from(keyspace, ACL_TABLE)
                                 .where(QueryBuilder.eq(ACL_TABLE_ID_FIELD, aoi.getRowId()))));
 
-        deleteACLsFromRecord(getRecordsForDeletion(entries, resultSet), batch);
+        List<Row> recordsForDeletion = getRecordsForDeletion(entries, resultSet);
+        getQueriesForDeletion(recordsForDeletion).forEach(batch::add);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("BEGIN updateAcl: aclObjectIdentity: " + aoi + ", entries: " + entries);
@@ -381,8 +383,9 @@ public class CassandraAclRepository implements AclRepository {
         }
     }
 
-    private void deleteACLsFromRecord(List<Row> recordsForDeletion, Batch batch) {
-        recordsForDeletion.forEach(row -> batch.add(
+    private List<Delete.Where> getQueriesForDeletion(List<Row> recordsForDeletion) {
+        List<Delete.Where> deleteQueries = new ArrayList<>();
+        recordsForDeletion.forEach(row -> deleteQueries.add(
                 QueryBuilder
                         .delete()
                         .from(keyspace, ACL_TABLE)
@@ -390,6 +393,7 @@ public class CassandraAclRepository implements AclRepository {
                         .and(QueryBuilder.eq(ACL_TABLE_SID_FIELD, row.getString(ACL_TABLE_SID_FIELD)))
                         .and(QueryBuilder.eq(ACL_TABLE_ACL_ORDER_FIELD, row.getInt(ACL_TABLE_ACL_ORDER_FIELD)))
         ));
+        return deleteQueries;
     }
 
 
