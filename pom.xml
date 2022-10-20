@@ -162,7 +162,7 @@
         <skipITs>true</skipITs>
         <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
-        <version.cassandra-driver>3.9.0</version.cassandra-driver>
+        <version.cassandra-driver>3.11.3</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
