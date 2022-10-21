@@ -87,6 +87,7 @@ public class IndexingBolt extends AbstractDpsBolt {
         final Date recordDate;
         try {
             recordDate = DateHelper.parseISODate(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+            validateHarvestDate(stormTaskTuple);
             final var properties = new IndexingProperties(recordDate,
                     preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
             String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
@@ -212,13 +213,18 @@ public class IndexingBolt extends AbstractDpsBolt {
     private HarvestedRecord prepareNewHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, String metisDatasetId) {
         LOGGER.warn("Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
                 europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-        return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId).latestHarvestDate(
-                Date.from(DateHelper.parse(stormTaskTuple.getParameter(PluginParameterKeys.HARVEST_DATE)))).build();
+        return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId)
+                .latestHarvestDate(stormTaskTuple.getHarvestDate()).build();
     }
 
     private TargetIndexingDatabase getDatabase(StormTaskTuple stormTaskTuple) {
         return TargetIndexingDatabase.valueOf(
                 stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
+    }
+
+    private void validateHarvestDate(StormTaskTuple stormTaskTuple) throws DateTimeParseException{
+        //throws DateTimeParseException if date could not be parsed
+        stormTaskTuple.getHarvestDate();
     }
 
 }

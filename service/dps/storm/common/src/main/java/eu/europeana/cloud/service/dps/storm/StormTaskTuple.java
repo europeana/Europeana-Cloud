@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import lombok.Getter;
@@ -12,6 +13,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import java.io.*;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,5 +180,9 @@ public class StormTaskTuple implements Serializable {
     public int readParallelizationParam() {
         return Optional.ofNullable(getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))
                 .map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+    }
+
+    public Date getHarvestDate() throws DateTimeParseException {
+        return Date.from(DateHelper.parse(getParameter(PluginParameterKeys.HARVEST_DATE)));
     }
 }
