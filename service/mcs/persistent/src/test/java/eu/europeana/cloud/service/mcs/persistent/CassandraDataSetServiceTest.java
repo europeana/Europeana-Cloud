@@ -21,6 +21,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS;
@@ -699,6 +701,29 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         //then
         assertThat(result.getResults().size(), is(1));
         assertEquals(SAMPLE_CLOUD_ID3, result.getResults().get(0).getCloudId());
+    }
+
+    @Test
+    public void shouldListAllCloudIdForBigDataLimit() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+        //given
+        makeUISProviderSuccess();
+        createDataset();
+        Bucket bucket = createDatasetAssignmentRevisionIdBucket();
+        Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
+        List<String> savedCloudIds = IntStream.range(0, 15000).mapToObj(i -> "cloud_id_" + i).sorted().collect(Collectors.toList());
+
+        for (String cloudId : savedCloudIds) {
+            dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1, SAMPLE_REPRESENTATION_NAME_1, cloudId);
+        }
+        //when
+        ResultSlice<CloudTagsResponse> result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 10000);
+
+        //then
+        assertThat(result.getResults().size(), Is.is(10000));
+        Set<String> resultCloudIds = result.getResults().stream().map(CloudTagsResponse::getCloudId).collect(Collectors.toSet());
+        for (String savedId : savedCloudIds.subList(0, 10000)) {
+            assertTrue(resultCloudIds.contains(savedId));
+        }
     }
 
     @Test
