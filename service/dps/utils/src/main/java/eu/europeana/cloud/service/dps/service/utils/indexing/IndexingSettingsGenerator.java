@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -28,6 +29,7 @@ public class IndexingSettingsGenerator {
     public static final String MONGO_USE_SSL = "mongo.useSSL";
     public static final String MONGO_READ_PREFERENCE = "mongo.readPreference";
     public static final String MONGO_APPLICATION_NAME = "mongo.applicationName";
+    private static final String MONGO_POOL_SIZE = "mongo.poolSize";
     public static final String MONGO_AUTH_DB = "mongo.authDB";
     //
     public static final String SOLR_INSTANCES = "solr.instances";
@@ -96,6 +98,13 @@ public class IndexingSettingsGenerator {
             LOGGER.info("Mongo credentials not provided");
         }
 
+        Optional<Object> optionalMongoPoolSize = Optional.ofNullable(properties.get(prefix + DELIMITER + MONGO_POOL_SIZE));
+        if (optionalMongoPoolSize.isPresent()) {
+            indexingSettings.setMongoMaxConnectionPoolSize(Integer.parseInt(optionalMongoPoolSize.get().toString()));
+        } else {
+            LOGGER.info("Mongo max connection pool size not provided");
+        }
+
         if (properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL) != null && properties
                 .getProperty(prefix + DELIMITER + MONGO_USE_SSL).equalsIgnoreCase("true")) {
             indexingSettings.setMongoEnableSsl();
@@ -108,8 +117,8 @@ public class IndexingSettingsGenerator {
 
     private boolean mongoCredentialsProvidedFor(String prefix) {
         return !"".equals(properties.get(prefix + DELIMITER + MONGO_USERNAME)) &&
-               !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
-               !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB));
+                !"".equals(properties.get(prefix + DELIMITER + MONGO_SECRET)) &&
+                !"".equals(properties.get(prefix + DELIMITER + MONGO_AUTH_DB));
     }
 
     private void prepareSolrSetting(IndexingSettings indexingSettings, String prefix)
