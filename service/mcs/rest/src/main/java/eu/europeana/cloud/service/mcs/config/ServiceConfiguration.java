@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
@@ -110,7 +110,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     public DynamicContentProxy dynamicContentProxy() {
         Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
-        params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
+        params.put(Storage.OBJECT_STORAGE, s3ContentDAO());
         params.put(Storage.DATA_BASE, cassandraContentDAO());
 
         return new DynamicContentProxy(params);
@@ -122,8 +122,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public ContentDAO swiftContentDAO() {
-        return new SwiftContentDAO();
+    public ContentDAO s3ContentDAO() {
+        return new S3ContentDAO();
     }
 
     @Bean

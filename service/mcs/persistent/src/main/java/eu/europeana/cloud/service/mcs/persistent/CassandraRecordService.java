@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
+import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;

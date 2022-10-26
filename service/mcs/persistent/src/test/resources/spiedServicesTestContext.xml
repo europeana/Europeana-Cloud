@@ -29,15 +29,15 @@
           class="eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy">
         <constructor-arg>
             <map key-type="eu.europeana.cloud.service.mcs.Storage">
-                <entry key="OBJECT_STORAGE"  value-ref="swiftContentDAO"/>
+                <entry key="OBJECT_STORAGE"  value-ref="s3ContentDAO"/>
                 <entry key="DATA_BASE" value-ref="cassandraContentDAO"/>
             </map>
         </constructor-arg>
     </bean>
     <bean id="cassandraContentDAO" class="eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO"/>
 
-    <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
-    <bean id="SimpleSwiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
+    <bean id="s3ContentDAO" class="eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO"/>
+    <bean id="SimpleSwiftConnectionProvider" class="eu.europeana.cloud.service.mcs.persistent.s3.SimpleSwiftConnectionProvider">
         <constructor-arg index="0" type="java.lang.String" value="transient"/>
         <constructor-arg index="1" type="java.lang.String" value="test_container"/>
         <constructor-arg index="2" type="java.lang.String" value=""/>
@@ -57,7 +57,7 @@
     <mockito:spy beanName="cassandraDataSetDAO"/>
     <mockito:spy beanName="cassandraRecordService"/>
     <mockito:spy beanName="cassandraRecordDAO"/>
-    <mockito:spy beanName="swiftContentDAO"/>
+    <mockito:spy beanName="s3ContentDAO"/>
     <mockito:spy beanName="SimpleSwiftConnectionProvider"/>
     <mockito:spy beanName="sorlConnector"/>
 

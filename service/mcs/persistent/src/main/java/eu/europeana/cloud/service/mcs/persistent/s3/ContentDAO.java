@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent.swift;
+package eu.europeana.cloud.service.mcs.persistent.s3;
 
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
