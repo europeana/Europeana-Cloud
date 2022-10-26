@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.s3.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,8 +68,8 @@ public class BasicResourceTestContext {
     }
 
     @Bean
-    public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-        return mock(SimpleSwiftConnectionProvider.class);
+    public SimpleS3ConnectionProvider s3ConnectionProvider() {
+        return mock(SimpleS3ConnectionProvider.class);
     }
 
     @Bean

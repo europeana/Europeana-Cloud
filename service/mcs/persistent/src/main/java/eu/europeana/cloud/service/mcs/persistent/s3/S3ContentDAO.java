@@ -13,7 +13,6 @@ import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.BlobBuilder;
 import org.jclouds.blobstore.options.GetOptions;
 import org.jclouds.io.Payload;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -27,8 +26,11 @@ public class S3ContentDAO implements ContentDAO {
     private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
     private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
 
-    @Autowired
-    private SwiftConnectionProvider connectionProvider;
+    private final S3ConnectionProvider connectionProvider;
+
+    public S3ContentDAO(S3ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
 
     @Override
     public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {

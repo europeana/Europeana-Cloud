@@ -11,12 +11,12 @@ import javax.annotation.PreDestroy;
 import java.util.NoSuchElementException;
 
 /**
- * Manage connection for Openstack Swift using jClouds library.
+ * Manage connection for S3 using jClouds library.
  */
 @Component
-public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
+public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSwiftConnectionProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleS3ConnectionProvider.class);
     private BlobStoreContext context;
     private final String container;
     private BlobStore blobStore;
@@ -27,16 +27,16 @@ public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
     private final String password;
 
     /**
-     * Class constructor. Establish connection to Openstack Swift endpoint using provided configuration.
+     * Class constructor. Establish connection to S3 endpoint using provided configuration.
      *
      * @param provider provider name. Pass "transient" if you want to use in-memory implementation for tests,
-     *                and "swift" for accessing live Openstack Swift.
-     * @param container name of the Swift container (namespace)
-     * @param endpoint swift endpoint URL
+     *                and "s3" for accessing live S3 container.
+     * @param container name of the S3 container (namespace)
+     * @param endpoint s3 endpoint URL
      * @param user user identity
      * @param password user password
      */
-    public SimpleSwiftConnectionProvider(String provider, String container, String endpoint, String user, String password) {
+    public SimpleS3ConnectionProvider(String provider, String container, String endpoint, String user, String password) {
         this.container = container;
         this.provider = provider;
         this.endpoint = endpoint;
@@ -56,13 +56,13 @@ public class SimpleSwiftConnectionProvider implements SwiftConnectionProvider {
         if (!blobStore.containerExists(container)) {
             blobStore.createContainerInLocation(null, container);
         }
-        LOGGER.info("Connected to swift.");
+        LOGGER.info("Connected to S3.");
     }
 
     @Override
     @PreDestroy
     public void closeConnections() {
-        LOGGER.info("Shutting down swift connection");
+        LOGGER.info("Shutting down S3 connection");
         context.close();
     }
 
