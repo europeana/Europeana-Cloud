@@ -29,7 +29,7 @@ public class IndexingSettingsGenerator {
     public static final String MONGO_USE_SSL = "mongo.useSSL";
     public static final String MONGO_READ_PREFERENCE = "mongo.readPreference";
     public static final String MONGO_APPLICATION_NAME = "mongo.applicationName";
-    private static final String MONGO_POOL_SIZE = "mongo.poolSize";
+    public static final String MONGO_POOL_SIZE = "mongo.poolSize";
     public static final String MONGO_AUTH_DB = "mongo.authDB";
     //
     public static final String SOLR_INSTANCES = "solr.instances";
