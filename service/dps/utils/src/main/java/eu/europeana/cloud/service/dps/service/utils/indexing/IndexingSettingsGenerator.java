@@ -98,12 +98,9 @@ public class IndexingSettingsGenerator {
             LOGGER.info("Mongo credentials not provided");
         }
 
-        Optional<Object> optionalMongoPoolSize = Optional.ofNullable(properties.get(prefix + DELIMITER + MONGO_POOL_SIZE));
-        if (optionalMongoPoolSize.isPresent()) {
-            indexingSettings.setMongoMaxConnectionPoolSize(Integer.parseInt(optionalMongoPoolSize.get().toString()));
-        } else {
-            LOGGER.info("Mongo max connection pool size not provided");
-        }
+        Optional<String> optionalMongoPoolSize = Optional.ofNullable(properties.getProperty(prefix + DELIMITER + MONGO_POOL_SIZE));
+        optionalMongoPoolSize.ifPresentOrElse(mongoPoolSize -> indexingSettings.setMongoMaxConnectionPoolSize(Integer.parseInt(mongoPoolSize)),
+                () -> LOGGER.warn("Mongo max connection pool size not provided"));
 
         if (properties.getProperty(prefix + DELIMITER + MONGO_USE_SSL) != null && properties
                 .getProperty(prefix + DELIMITER + MONGO_USE_SSL).equalsIgnoreCase("true")) {
