@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
@@ -40,10 +39,7 @@ public class ValidationBolt extends AbstractDpsBolt {
             handleInterruption(e,anchorTuple);
         } catch (Exception e) {
             LOGGER.error("Validation Bolt error: {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                    stormTaskTuple.getFileUrl(), e.getMessage(),
-                    "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
             outputCollector.ack(anchorTuple);
         }
     }
@@ -60,9 +56,7 @@ public class ValidationBolt extends AbstractDpsBolt {
         if (result.isSuccess()) {
             outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         } else {
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                    stormTaskTuple.getFileUrl(), result.getMessage(), getAdditionalInfo(result),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            emitErrorNotification(anchorTuple, stormTaskTuple, result.getMessage(), getAdditionalInfo(result));
         }
     }
 

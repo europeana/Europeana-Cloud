@@ -177,6 +177,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
     }
 
+    protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
+        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+                stormTaskTuple.getFileUrl(), message, additionalInformation,
+                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    }
 
     /**
      * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}.
