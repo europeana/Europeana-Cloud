@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -51,17 +52,12 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 @EnableAspectJAutoProxy
 @EnableAsync
 @EnableScheduling
-public class ServiceConfiguration implements WebMvcConfigurer {
+public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
     private final Environment environment;
 
     public ServiceConfiguration(Environment environment) {
         this.environment = environment;
-    }
-
-    @Override
-    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        configurer.setTaskExecutor(asyncExecutor());
     }
 
     @Override
@@ -336,12 +332,23 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public AsyncTaskExecutor asyncExecutor() {
+    @Override
+    public AsyncTaskExecutor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(40);
         executor.setMaxPoolSize(40);
         executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("DPSThreadPool-");
+        return executor;
+    }
+
+    @Bean("postProcessingExecutor")
+    public AsyncTaskExecutor postProcessingExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(16);
+        executor.setMaxPoolSize(16);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("post-proprocessing-");
         return executor;
     }
 
