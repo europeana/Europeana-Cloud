@@ -32,7 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
-import static eu.europeana.aas.acl.repository.Utils.*;
+import static eu.europeana.aas.acl.repository.AclUtils.*;
 import static org.junit.Assert.*;
 
 
@@ -69,7 +69,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testSaveFindUpdateDeleteAcl() {
-        AclObjectIdentity newAoi = createDefaultTestAOI();
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
 
         service.saveAcl(newAoi);
 
@@ -100,8 +100,8 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testFindAclListManyAcls() {
-        AclObjectIdentity newAoi1 = createDefaultTestAOI();
-        AclObjectIdentity newAoi2 = createDefaultTestAOI();
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
+        AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
         newAoi2.setId("567");
 
         AclEntry entry1 = createTestAclEntry(sid1, 0);
@@ -173,10 +173,10 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testFindAclChildren() {
-        AclObjectIdentity newAoi1 = createDefaultTestAOI();
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
         service.saveAcl(newAoi1);
 
-        AclObjectIdentity newAoi2 = createDefaultTestAOI();
+        AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
         newAoi2.setId("456");
         newAoi2.setParentObjectClass(newAoi1.getObjectClass());
         newAoi2.setParentObjectId(newAoi1.getId());
@@ -192,7 +192,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testFindAclChildrenForAclWithNoChildren() {
-        AclObjectIdentity newAoi1 = createDefaultTestAOI();
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
         service.saveAcl(newAoi1);
         List<AclObjectIdentity> children = service
                 .findAclObjectIdentityChildren(newAoi1);
@@ -228,7 +228,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testUpdateAclNullEntries() {
-        AclObjectIdentity newAoi = createDefaultTestAOI();
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
         service.saveAcl(newAoi);
 
         AclEntry entry1 = createTestAclEntry(sid1, 0);
@@ -265,7 +265,7 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     public void testSaveAclAlreadyExisting() {
-        AclObjectIdentity newAoi = createDefaultTestAOI();
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
         service.saveAcl(newAoi);
         service.saveAcl(newAoi);
     }

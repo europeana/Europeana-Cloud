@@ -6,7 +6,12 @@ import eu.europeana.cloud.common.model.Role;
 
 import static org.junit.Assert.assertEquals;
 
-class Utils {
+class AclUtils {
+
+    //Needed to ensure that creating instance of Utils class is blocked
+    private AclUtils() {
+    }
+
     protected static final String sid1 = "sid1@system";
     protected static final String aoi_id = "123";
     protected static final String aoi_parent_id = "456";
@@ -30,7 +35,7 @@ class Utils {
         return entry1;
     }
 
-    protected static AclObjectIdentity createDefaultTestAOI() {
+    protected static AclObjectIdentity createTestAclObjectIdentity() {
         AclObjectIdentity newAoi = new AclObjectIdentity();
         newAoi.setId(aoi_id);
         newAoi.setEntriesInheriting(true);

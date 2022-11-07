@@ -10,15 +10,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 
-import static eu.europeana.aas.acl.repository.Utils.createDefaultTestAOI;
-import static eu.europeana.aas.acl.repository.Utils.createTestAclEntry;
+import static eu.europeana.aas.acl.repository.AclUtils.createTestAclObjectIdentity;
+import static eu.europeana.aas.acl.repository.AclUtils.createTestAclEntry;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -26,7 +25,7 @@ import static org.mockito.Mockito.when;
 public class CassandraAclRepositoryRetryableTest {
 
 
-    @Spy
+
     @Autowired
     private Session session;
     private AclObjectIdentity aoi;
@@ -44,7 +43,7 @@ public class CassandraAclRepositoryRetryableTest {
         when(session.execute(Mockito.any(Statement.class)))
                 .thenThrow(new DriverException("Driver error has occurred!"));
 
-        aoi = createDefaultTestAOI();
+        aoi = createTestAclObjectIdentity();
         aclEntries = List.of(createTestAclEntry("test", 1),
                 createTestAclEntry("test", 2),
                 createTestAclEntry("test", 4),
