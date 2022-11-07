@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl.repository.exceptions;
+package eu.europeana.aas.authorization.repository.exceptions;
 
 /**
  * Thrown if an <code>AclObjectIdentity</code> cannot be found for the object.

@@ -1,4 +1,4 @@
-package eu.europeana.aas.acl;
+package eu.europeana.aas.authorization;
 
 import org.springframework.security.acls.model.AlreadyExistsException;
 import org.springframework.security.acls.model.MutableAcl;

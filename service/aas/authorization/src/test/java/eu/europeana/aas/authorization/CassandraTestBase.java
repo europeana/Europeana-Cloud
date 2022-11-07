@@ -1,19 +1,22 @@
-package eu.europeana.aas.acl.cassandra;
+package eu.europeana.aas.authorization;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.Before;
 
-public class CassandraTestBase {
+/**
+ * Test configuration for Cassandra
+ */
+public abstract class CassandraTestBase {
     /**
      * CassandraTestBase KEYSPACE_SCHEMA_CQL
      */
     // config:
-    private static final String KEYSPACE_SCHEMA_CQL = "tests_schema.cql";
+    public static final String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
     /**
      * CassandraTestBase KEYSPACE
      */
-    private static final String KEYSPACE = "test_keyspace";
+    public static final String KEYSPACE = "aas_test";
 
     /**
      * Creates a new instance of this class.

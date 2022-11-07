@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl.model;
+package eu.europeana.aas.authorization.model;
 
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.PrincipalSid;

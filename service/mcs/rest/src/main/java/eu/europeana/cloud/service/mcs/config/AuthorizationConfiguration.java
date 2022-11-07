@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.mcs.config;
 
-import eu.europeana.aas.acl.CassandraMutableAclService;
-import eu.europeana.aas.acl.ExtendedAclService;
-import eu.europeana.aas.acl.PermissionsGrantingManager;
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.authorization.CassandraMutableAclService;
+import eu.europeana.aas.authorization.ExtendedAclService;
+import eu.europeana.aas.permission.PermissionsGrantingManager;
+import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;

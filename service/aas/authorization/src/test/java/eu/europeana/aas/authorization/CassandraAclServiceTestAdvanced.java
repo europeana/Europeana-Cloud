@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl;
+package eu.europeana.aas.authorization;
 
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.common.model.Role;
 import org.junit.After;
 import org.junit.Before;

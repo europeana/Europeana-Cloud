@@ -1,11 +1,11 @@
-package eu.europeana.aas.acl.repository;
+package eu.europeana.aas.authorization.repository;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
-import eu.europeana.aas.acl.RetryableTestContextConfiguration;
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
+import eu.europeana.aas.authorization.RetryableTestContextConfiguration;
+import eu.europeana.aas.authorization.model.AclEntry;
+import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,8 +16,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 
-import static eu.europeana.aas.acl.repository.AclUtils.createTestAclObjectIdentity;
-import static eu.europeana.aas.acl.repository.AclUtils.createTestAclEntry;
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclObjectIdentity;
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclEntry;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)

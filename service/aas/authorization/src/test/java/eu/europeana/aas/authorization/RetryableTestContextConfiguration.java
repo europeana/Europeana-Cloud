@@ -1,8 +1,8 @@
-package eu.europeana.aas.acl;
+package eu.europeana.aas.authorization;
 
 import com.datastax.driver.core.Session;
-import eu.europeana.aas.acl.repository.AclRepository;
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.authorization.repository.AclRepository;
+import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

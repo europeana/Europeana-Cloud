@@ -1,4 +1,4 @@
-package eu.europeana.aas.acl;
+package eu.europeana.aas.authorization;
 
 import org.junit.Assert;
 import org.junit.Test;

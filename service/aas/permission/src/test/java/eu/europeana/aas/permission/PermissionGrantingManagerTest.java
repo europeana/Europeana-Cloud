@@ -1,6 +1,6 @@
-package eu.europeana.aas.acl;
+package eu.europeana.aas.permission;
 
-import eu.europeana.aas.acl.cassandra.CassandraTestBase;
+import eu.europeana.aas.permission.cassandra.CassandraTestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

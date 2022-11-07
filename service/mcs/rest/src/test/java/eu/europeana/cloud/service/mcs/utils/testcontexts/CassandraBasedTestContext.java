@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
-import eu.europeana.aas.acl.ExtendedAclService;
-import eu.europeana.aas.acl.PermissionsGrantingManager;
+import eu.europeana.aas.authorization.ExtendedAclService;
+import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;

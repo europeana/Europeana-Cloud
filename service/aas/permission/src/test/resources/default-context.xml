@@ -8,7 +8,7 @@
 
     <context:annotation-config/>
 
-    <bean id="mutableAclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
+    <bean id="mutableAclService" class="eu.europeana.aas.authorization.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
         <constructor-arg>
             <null />
@@ -19,7 +19,7 @@
     </bean>
 
     <bean id="aclRepository"
-          class="eu.europeana.aas.acl.repository.CassandraAclRepository" autowire="byType">
+          class="eu.europeana.aas.authorization.repository.CassandraAclRepository" autowire="byType">
         <constructor-arg value="#{provider.session}" />
         <constructor-arg value="#{provider.keyspaceName}" />
         <constructor-arg value="true" />
@@ -64,5 +64,5 @@
         </constructor-arg>
     </bean>
 
-    <bean id="permissionsGrantingManager" class="eu.europeana.aas.acl.PermissionsGrantingManager"/>
+    <bean id="permissionsGrantingManager" class="eu.europeana.aas.permission.PermissionsGrantingManager"/>
 </beans>

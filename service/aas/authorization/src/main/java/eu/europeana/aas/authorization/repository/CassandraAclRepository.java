@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl.repository;
+package eu.europeana.aas.authorization.repository;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.aas.authorization.model.AclEntry;
+import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;

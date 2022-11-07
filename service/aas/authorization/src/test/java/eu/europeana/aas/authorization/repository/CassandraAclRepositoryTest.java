@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl.repository;
+package eu.europeana.aas.authorization.repository;
 
-import eu.europeana.aas.acl.CassandraTestBase;
-import eu.europeana.aas.acl.TestContextConfiguration;
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.aas.authorization.CassandraTestBase;
+import eu.europeana.aas.authorization.TestContextConfiguration;
+import eu.europeana.aas.authorization.model.AclEntry;
+import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
-import static eu.europeana.aas.acl.repository.AclUtils.*;
+import static eu.europeana.aas.authorization.repository.AclUtils.*;
 import static org.junit.Assert.*;
 
 

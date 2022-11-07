@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl.repository;
+package eu.europeana.aas.authorization.repository;
 
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.exceptions.AclNotFoundException;
+import eu.europeana.aas.authorization.model.AclEntry;
+import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
 
 import java.util.List;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.uis;
 
-import eu.europeana.aas.acl.ExtendedAclService;
+import eu.europeana.aas.authorization.ExtendedAclService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.acls.domain.BasePermission;

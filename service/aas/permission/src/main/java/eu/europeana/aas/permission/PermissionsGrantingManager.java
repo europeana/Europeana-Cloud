@@ -1,4 +1,4 @@
-package eu.europeana.aas.acl;
+package eu.europeana.aas.permission;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;

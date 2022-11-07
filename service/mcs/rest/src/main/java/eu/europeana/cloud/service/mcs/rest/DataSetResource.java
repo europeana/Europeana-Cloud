@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.aas.acl.PermissionsGrantingManager;
+import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.RepresentationNames;

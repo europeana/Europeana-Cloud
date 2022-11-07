@@ -8,7 +8,7 @@
 
     <context:annotation-config/>
 
-    <bean id="aclService" class="eu.europeana.aas.acl.CassandraMutableAclService">
+    <bean id="aclService" class="eu.europeana.aas.authorization.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
         <constructor-arg name="aclCache">
             <null />
@@ -19,7 +19,7 @@
     </bean>
 
     <bean id="aclRepository"
-          class="eu.europeana.aas.acl.repository.CassandraAclRepository">
+          class="eu.europeana.aas.authorization.repository.CassandraAclRepository">
         <constructor-arg ref="provider" />
         <constructor-arg name="initSchema" value="true" />
     </bean>

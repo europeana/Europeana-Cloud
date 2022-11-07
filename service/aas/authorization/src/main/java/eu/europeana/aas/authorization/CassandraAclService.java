@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.aas.acl;
+package eu.europeana.aas.authorization;
 
-import eu.europeana.aas.acl.model.AclEntry;
-import eu.europeana.aas.acl.model.AclObjectIdentity;
-import eu.europeana.aas.acl.repository.AclRepository;
+import eu.europeana.aas.authorization.model.AclEntry;
+import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.aas.authorization.repository.AclRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.security.acls.domain.*;

@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
-import eu.europeana.aas.acl.ExtendedAclService;
-import eu.europeana.aas.acl.PermissionsGrantingManager;
+import eu.europeana.aas.authorization.ExtendedAclService;
+import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
