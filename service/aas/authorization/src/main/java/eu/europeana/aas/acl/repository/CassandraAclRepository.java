@@ -41,8 +41,6 @@ import java.util.Map.Entry;
 
 public class CassandraAclRepository implements AclRepository {
 
-    private static CassandraAclRepository instance;
-
     private static final Log LOG = LogFactory
             .getLog(CassandraAclRepository.class);
 
@@ -72,9 +70,9 @@ public class CassandraAclRepository implements AclRepository {
     private final String keyspace;
 
 
-    final static String ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED
+    private static final String ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED
             = "Repository could now establish connection to cassandra database";
-    final static int ACL_REPO_DEFAULT_MAX_ATTEMPTS = 3;
+    static final int ACL_REPO_DEFAULT_MAX_ATTEMPTS = 3;
 
 
     /**
