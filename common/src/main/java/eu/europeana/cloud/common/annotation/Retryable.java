@@ -13,12 +13,14 @@ public @interface Retryable {
 
     int DEFAULT_DELAY_BETWEEN_ATTEMPTS = 10 * 1000;
 
+    int DEFAULT_MAX_ATTEMPTS = 3;
+
     /**
      * Maximum number of attempts while retry mechanism works
      * Default value is set to 3
      * @return Number of attempt
      */
-    int maxAttempts() default 3;
+    int maxAttempts() default DEFAULT_MAX_ATTEMPTS;
 
     /**
      * Number of milliseconds between fails attempt and next try
