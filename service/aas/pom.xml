@@ -20,6 +20,7 @@
     <modules>
         <module>authentication</module>
         <module>authorization</module>
+        <module>permission</module>
     </modules>
 
     <dependencies>

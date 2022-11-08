@@ -8,9 +8,9 @@
 
     <context:annotation-config/>
 
-    <bean id="aclService" class="eu.europeana.aas.authorization.CassandraMutableAclService">
+    <bean id="mutableAclService" class="eu.europeana.aas.authorization.CassandraMutableAclService">
         <constructor-arg ref="aclRepository" />
-        <constructor-arg name="aclCache">
+        <constructor-arg>
             <null />
         </constructor-arg>
         <constructor-arg ref="permissionGrantingStrategy" />
@@ -19,17 +19,18 @@
     </bean>
 
     <bean id="aclRepository"
-          class="eu.europeana.aas.authorization.repository.CassandraAclRepository">
-        <constructor-arg ref="provider" />
-        <constructor-arg name="initSchema" value="true" />
+          class="eu.europeana.aas.authorization.repository.CassandraAclRepository" autowire="byType">
+        <constructor-arg value="#{provider.session}" />
+        <constructor-arg value="#{provider.keyspaceName}" />
+        <constructor-arg value="true" />
     </bean>
 
     <bean id="provider" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" value="localhost" />
-        <constructor-arg name="port" value="#{ T(eu.europeana.cloud.test.CassandraTestInstance).getPort() }" />
-        <constructor-arg name="keyspaceName" value="aas_test" />
-        <constructor-arg name="userName" value="" />
-        <constructor-arg name="password" value="" />
+        <constructor-arg type="java.lang.String" value="localhost" />
+        <constructor-arg value="#{ T(eu.europeana.cloud.test.CassandraTestInstance).getPort() }" />
+        <constructor-arg value="test_keyspace" />
+        <constructor-arg value="" />
+        <constructor-arg value="" />
     </bean>
 
     <bean id="permissionGrantingStrategy"
@@ -48,41 +49,20 @@
         <constructor-arg>
             <array>
                 <bean
-                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                        class="org.springframework.security.core.authority.SimpleGrantedAuthority">
                     <constructor-arg value="ROLE_ADMIN" />
                 </bean>
                 <bean
-                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                        class="org.springframework.security.core.authority.SimpleGrantedAuthority">
                     <constructor-arg value="ROLE_ADMIN" />
                 </bean>
                 <bean
-                    class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+                        class="org.springframework.security.core.authority.SimpleGrantedAuthority">
                     <constructor-arg value="ROLE_ADMIN" />
                 </bean>
             </array>
         </constructor-arg>
     </bean>
-    
-    <!-- -->
-    <!-- ========= Let's tell spring security to use our (Cassandra) ACL service when evaluating permission expressions. ========= -->
-    <!-- -->
 
-    <bean id="expressionHandler" class="org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler">
-        <property name="permissionEvaluator" ref="permissionEvaluator" />
-        <property name="permissionCacheOptimizer">
-            <bean
-                class="org.springframework.security.acls.AclPermissionCacheOptimizer">
-                <constructor-arg ref="aclService" />
-            </bean>
-        </property>
-    </bean>
-
-    <bean id="permissionEvaluator"
-          class="org.springframework.security.acls.AclPermissionEvaluator">
-        <constructor-arg ref="aclService" />
-    </bean>
-    <bean id="aclWrapper" class = "eu.europeana.cloud.service.uis.ACLServiceWrapper">
-        <constructor-arg ref="aclService"/>
-    </bean>
-    
+    <bean id="permissionsGrantingManager" class="eu.europeana.aas.permission.PermissionsGrantingManager"/>
 </beans>
