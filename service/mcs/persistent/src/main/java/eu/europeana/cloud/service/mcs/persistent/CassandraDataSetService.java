@@ -74,7 +74,6 @@ public class CassandraDataSetService implements DataSetService {
             // now - when everything is validated - add assignment
             addAssignmentToMainTables(providerId, dataSetId, recordId, schema,
                     rep.getVersion());
-            dataSetDAO.addDataSetsRepresentationName(providerId, dataSetId, schema);
 
             for (Revision revision : rep.getRevisions()) {
                 addDataSetsRevision(providerId, dataSetId, revision,
@@ -159,9 +158,6 @@ public class CassandraDataSetService implements DataSetService {
         checkIfDatasetExists(dataSetId, providerId);
 
         removeAssignmentFromMainTables(providerId, dataSetId, recordId, schema, versionId);
-        if (!hasMoreRepresentations(providerId, dataSetId, schema)) {
-            dataSetDAO.removeRepresentationNameForDataSet(schema, providerId, dataSetId);
-        }
 
         Representation representation = recordDAO.getRepresentation(recordId, schema, versionId);
 
@@ -310,15 +306,7 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetDeletionException("Can't do it. Dataset is not empty");
         }
     }
-
-
-    @Override
-    public Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId) throws
-            ProviderNotExistsException, DataSetNotExistsException {
-        checkProviderExists(providerId);
-        checkIfDatasetExists(dataSetId, providerId);
-        return dataSetDAO.getAllRepresentationsNamesForDataSet(providerId, dataSetId);
-    }
+    
 
     @Override
     public void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Date revisionTimestamp)
