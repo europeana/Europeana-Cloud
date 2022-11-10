@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
