@@ -154,18 +154,6 @@ public class DataSetResource {
         dataSetService.updateDataSet(providerId, dataSetId, description);
     }
 
-    @GetMapping(value = DATA_SET_REPRESENTATIONS_NAMES,
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @ResponseBody
-    public RepresentationNames getRepresentationsNames(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
-
-        RepresentationNames representationNames = new RepresentationNames();
-        representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
-        return representationNames;
-    }
-
     @PutMapping(DATA_SET_PERMISSIONS_RESOURCE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
