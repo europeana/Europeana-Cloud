@@ -39,7 +39,7 @@ public class PostProcessingService {
         this.taskStatusUpdater = taskStatusUpdater;
     }
 
-    @Async
+    @Async("postProcessingExecutor")
     public void postProcess(TaskByTaskState taskByTaskState) {
         try {
             LOGGER.debug("Starting postprocessing for task: {} on thread {}.", taskByTaskState.getId(), Thread.currentThread().getName());
