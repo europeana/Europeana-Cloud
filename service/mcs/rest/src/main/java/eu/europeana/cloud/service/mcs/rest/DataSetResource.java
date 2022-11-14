@@ -3,14 +3,12 @@ package eu.europeana.cloud.service.mcs.rest;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.RepresentationNames;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.slf4j.Logger;
@@ -152,18 +150,6 @@ public class DataSetResource {
             @RequestParam String description) throws DataSetNotExistsException {
 
         dataSetService.updateDataSet(providerId, dataSetId, description);
-    }
-
-    @GetMapping(value = DATA_SET_REPRESENTATIONS_NAMES,
-            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @ResponseBody
-    public RepresentationNames getRepresentationsNames(
-            @PathVariable String dataSetId,
-            @PathVariable String providerId) throws ProviderNotExistsException, DataSetNotExistsException {
-
-        RepresentationNames representationNames = new RepresentationNames();
-        representationNames.setNames(dataSetService.getAllDataSetRepresentationsNames(providerId, dataSetId));
-        return representationNames;
     }
 
     @PutMapping(DATA_SET_PERMISSIONS_RESOURCE)

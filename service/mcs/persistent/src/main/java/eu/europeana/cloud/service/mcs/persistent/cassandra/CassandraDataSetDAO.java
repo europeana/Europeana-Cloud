@@ -68,14 +68,6 @@ public class CassandraDataSetDAO {
 
     private PreparedStatement getOneDataSetForRepresentationStatement;
 
-    private PreparedStatement getDataSetsRepresentationsNamesListStatement;
-
-    private PreparedStatement addDataSetsRepresentationNameStatement;
-
-    private PreparedStatement removeDataSetsRepresentationNameStatement;
-
-    private PreparedStatement removeDataSetsAllRepresentationsNamesStatement;
-
     private PreparedStatement hasProvidedRepresentationNameStatement;
 
     private PreparedStatement addDataSetsRevisionStatement;
@@ -152,30 +144,6 @@ public class CassandraDataSetDAO {
                 "SELECT provider_dataset_id " +
                         "FROM data_set_assignments_by_representations " +
                         "WHERE cloud_id = ? AND schema_id = ? LIMIT 1;"
-        );
-
-        getDataSetsRepresentationsNamesListStatement = connectionProvider.getSession().prepare(
-                "SELECT representation_names " +
-                        "FROM data_set_representation_names " +
-                        "WHERE provider_id = ? and dataset_id = ?;"
-        );
-
-        addDataSetsRepresentationNameStatement = connectionProvider.getSession().prepare(
-                "UPDATE data_set_representation_names " +
-                        "SET representation_names = representation_names + ? " +
-                        "WHERE provider_id = ? and dataset_id = ?"
-        );
-
-        removeDataSetsRepresentationNameStatement = connectionProvider.getSession().prepare(
-                "UPDATE data_set_representation_names " +
-                        "SET representation_names = representation_names - ? " +
-                        "WHERE provider_id = ? and dataset_id = ?;"
-        );
-
-        removeDataSetsAllRepresentationsNamesStatement = connectionProvider.getSession().prepare(
-                "DELETE " +
-                        "FROM data_set_representation_names " +
-                        "WHERE provider_id = ? and dataset_id = ?;"
         );
 
         hasProvidedRepresentationNameStatement = connectionProvider.getSession().prepare(
@@ -420,39 +388,6 @@ public class CassandraDataSetDAO {
         connectionProvider.getSession().execute(boundStatement);
     }
 
-    public Set<String> getAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
-        BoundStatement boundStatement = getDataSetsRepresentationsNamesListStatement.bind(providerId, dataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-        Row row = rs.one();
-        if (row == null) {
-            return Collections.emptySet();
-        } else {
-            return row.getSet("representation_names", String.class);
-        }
-    }
-
-    public void addDataSetsRepresentationName(String providerId, String dataSetId, String representationName) {
-        Set<String> sample = new HashSet<>();
-        sample.add(representationName);
-        BoundStatement boundStatement = addDataSetsRepresentationNameStatement.bind(sample, providerId, dataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-    }
-
-    public void removeRepresentationNameForDataSet(String representationName, String providerId, String dataSetId) {
-        Set<String> sample = new HashSet<>();
-        sample.add(representationName);
-        BoundStatement boundStatement = removeDataSetsRepresentationNameStatement.bind(sample, providerId, dataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-    }
-
-    public void removeAllRepresentationsNamesForDataSet(String providerId, String dataSetId) {
-        BoundStatement boundStatement = removeDataSetsAllRepresentationsNamesStatement.bind(providerId, dataSetId);
-        ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-        QueryTracer.logConsistencyLevel(boundStatement, rs);
-    }
 
     public boolean datasetBucketHasAnyAssignment(String representationName, String providerDatasetId, Bucket bucket) {
         BoundStatement boundStatement = hasProvidedRepresentationNameStatement.bind(

@@ -510,19 +510,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     }
 
-    @Test
-    public void shouldListAllRepresentationsNamesForGivenDataSet() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
-        makeUISProviderSuccess();
-        createDataset();
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_3);
 
-        Set<String> representations = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        Assert.assertTrue(representations.contains(SAMPLE_REPRESENTATION_NAME_1));
-        Assert.assertFalse(representations.contains(SAMPLE_REPRESENTATION_NAME_2));
-        Assert.assertTrue(representations.contains(SAMPLE_REPRESENTATION_NAME_3));
-    }
 
     @Test
     public void shouldListAllCloudIdForGivenRevisionAndDataset() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
@@ -784,50 +772,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
         //then
         ResultSlice<CloudTagsResponse> cloudIds = cassandraDataSetService.getDataSetsRevisionsPage(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, null, 3);
         assertThat(cloudIds.getResults().size(), is(0));
-    }
-
-    @Test
-    public void newRepresentationNameShouldBeAdded() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
-        makeUISProviderSuccess();
-        createDataset();
-
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
-
-        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        assertEquals(1, repNames.size());
-        Assert.assertTrue(repNames.contains(SAMPLE_REPRESENTATION_NAME_1));
-    }
-
-
-    @Test
-    public void representationNameShouldBeRemovedFromDB() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
-        makeUISProviderSuccess();
-        createDataset();
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_2);
-
-        dataSetDAO.removeRepresentationNameForDataSet(SAMPLE_REPRESENTATION_NAME_1, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        assertEquals(1, repNames.size());
-        Assert.assertTrue(repNames.contains(SAMPLE_REPRESENTATION_NAME_2));
-        Assert.assertFalse(repNames.contains(SAMPLE_REPRESENTATION_NAME_1));
-    }
-
-    @Test
-    public void allRepresentationsNamesForDataSetShouldBeRemoved() throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
-        makeUISProviderSuccess();
-        createDataset();
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_1);
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_2);
-        dataSetDAO.addDataSetsRepresentationName(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REPRESENTATION_NAME_3);
-        Set<String> repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        assertEquals(3, repNames.size());
-
-        dataSetDAO.removeAllRepresentationsNamesForDataSet(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-
-        repNames = cassandraDataSetService.getAllDataSetRepresentationsNames(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-        assertEquals(0, repNames.size());
     }
 
 

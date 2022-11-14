@@ -114,15 +114,6 @@ public interface DataSetService {
     void deleteDataSet(String providerId, String dataSetId)
             throws DataSetDeletionException, DataSetNotExistsException;
 
-    /**
-     * Lists all representations names that are included in given dataSet
-     *
-     * @param providerId dataset ovner id (provider id)
-     * @param dataSetId  dataSet id
-     * @return list of all representations names that are stored in given dataSet
-     */
-    Set<String> getAllDataSetRepresentationsNames(String providerId, String dataSetId)
-                                    throws ProviderNotExistsException, DataSetNotExistsException;
 
     /**
      * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
