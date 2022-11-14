@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import org.slf4j.Logger;
