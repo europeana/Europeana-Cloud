@@ -103,7 +103,7 @@ public class NodeStatistics {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof NodeStatistics)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
 

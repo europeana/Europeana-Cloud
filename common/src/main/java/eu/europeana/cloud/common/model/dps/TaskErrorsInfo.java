@@ -49,7 +49,7 @@ public class TaskErrorsInfo {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TaskErrorsInfo)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
 

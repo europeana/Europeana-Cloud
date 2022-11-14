@@ -141,7 +141,7 @@ public class DpsTask implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DpsTask)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         var dpsTask = (DpsTask) o;

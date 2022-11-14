@@ -97,7 +97,7 @@ public class OAIPMHHarvestingDetails implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof OAIPMHHarvestingDetails)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         OAIPMHHarvestingDetails that = (OAIPMHHarvestingDetails) o;

@@ -153,7 +153,7 @@ public class File {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof File)) {
+		if (o == null || this.getClass() != o.getClass()) {
 			return false;
 		}
 

@@ -64,7 +64,7 @@ public class AttributeStatistics {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof AttributeStatistics)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
 

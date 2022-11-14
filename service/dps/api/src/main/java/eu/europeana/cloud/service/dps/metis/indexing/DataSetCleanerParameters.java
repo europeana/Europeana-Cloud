@@ -42,7 +42,7 @@ public class DataSetCleanerParameters implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DataSetCleanerParameters)) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         DataSetCleanerParameters cleanerParameters = (DataSetCleanerParameters) o;
