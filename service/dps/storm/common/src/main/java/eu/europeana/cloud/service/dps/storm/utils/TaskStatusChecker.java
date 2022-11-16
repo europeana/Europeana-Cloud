@@ -26,6 +26,12 @@ public class TaskStatusChecker {
     private static TaskStatusChecker instance;
     private CassandraTaskInfoDAO taskDAO;
 
+    /**
+     * Volatile is used to assure that cache variable reference is not cached because new instances of TaskStatusChecker change
+     * cache reference to reference on newly constructed object.
+     * Additionally instances of that class are thread safe by default.
+     */
+    @SuppressWarnings("java:S3077")
     private static volatile LoadingCache<Long, Boolean> cache;
 
     private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {

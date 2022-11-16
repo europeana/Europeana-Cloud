@@ -7,6 +7,12 @@ import java.util.*;
 
 public class TopologiesTopicsParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesTopicsParser.class);
+
+    /**
+     * INPUT_VALUE_REGEX is used to parse strings that are passed from configuration files,
+     * so there is no possibility of strings being long enough to cause stack overflow
+     */
+    @SuppressWarnings("java:S5998")
     private static final String INPUT_VALUE_REGEX = "(\\w+:([\\w\\-]*,?)+;?)+";
 
     public Map<String, List<String>> parse(String topicsList) {

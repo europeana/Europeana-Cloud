@@ -22,6 +22,11 @@ public final class CassandraTestInstance {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraTestInstance.class);
 
+    /**
+     * Volatile is used to assure that instance variable reference is not cached because otherwise
+     * situation where we create multiple instances of CassandraTestInstance class could occur.
+     */
+    @SuppressWarnings("java:S3077")
     private static volatile CassandraTestInstance instance;
     private static final Map<String, Session> keyspaceSessions =
             Collections.synchronizedMap(new HashMap<>());
