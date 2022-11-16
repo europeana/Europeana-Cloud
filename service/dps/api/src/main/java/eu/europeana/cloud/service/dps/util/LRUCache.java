@@ -21,12 +21,13 @@ public class LRUCache<K, V> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final float hashTableLoadFactor = 0.75f;
+	private static final double HASH_TABLE_LOAD_FACTOR = 0.75f;
+
+	private final int cacheSize;
 
 	private int hits = 0;
 	private int miss = 0;
 	private LinkedHashMap<K, V> map;
-	private int cacheSize;
 
 	/**
 	 * Creates a new LRU cache.
@@ -37,8 +38,8 @@ public class LRUCache<K, V> implements Serializable {
 	public LRUCache(int cacheSize) {
 		this.cacheSize = cacheSize;
 		int hashTableCapacity = (int) Math
-				.ceil(cacheSize / hashTableLoadFactor) + 1;
-		map = new LinkedHashMap<K, V>(hashTableCapacity, hashTableLoadFactor,
+				.ceil(cacheSize / HASH_TABLE_LOAD_FACTOR) + 1;
+		map = new LinkedHashMap<K, V>(hashTableCapacity, (float) HASH_TABLE_LOAD_FACTOR,
 				true) {
 			// (an anonymous inner class)
 			private static final long serialVersionUID = 1;
