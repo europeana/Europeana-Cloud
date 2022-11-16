@@ -36,9 +36,8 @@ public abstract class ContentDAOTest {
         file.setContentLength(result.getContentLength());
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         instance.getContent(fileName, -1, -1, os);
-        assertTrue(Arrays.equals(content, os.toByteArray()));
+        assertArrayEquals(content, os.toByteArray());
 
-        assertNotNull(file.getContentLength());
         assertEquals(file.getContentLength(), content.length);
         String md5Hex = DigestUtils.md5Hex(content);
         //check if file md5 got updated
