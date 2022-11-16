@@ -82,6 +82,9 @@ public class MCSTaskSubmitter {
 
         } catch (SubmitingTaskWasKilled e) {
             LOGGER.warn(e.getMessage(), e);
+        } catch (InterruptedException e){
+            LOGGER.error("MCSTaskSubmitter encountered interruption for taskId={}", task.getTaskId(), e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
             taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
