@@ -16,9 +16,11 @@ public class KafkaTopicSelector {
 
     private final Map<String, List<String>> availableTopic;
 
+    private final Random rand;
     private TasksByStateDAO tasksByStateDAO;
 
     private TaskStatusSynchronizer taskStatusSynchronizer;
+
 
     public KafkaTopicSelector(Environment environment, TasksByStateDAO tasksByStateDAO,
                               TaskStatusSynchronizer taskStatusSynchronizer) {
@@ -26,6 +28,7 @@ public class KafkaTopicSelector {
                 new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)));
         this.tasksByStateDAO = tasksByStateDAO;
         this.taskStatusSynchronizer = taskStatusSynchronizer;
+        this.rand = new Random();
     }
 
     public String findPreferredTopicNameFor(String topologyName) {
@@ -47,7 +50,7 @@ public class KafkaTopicSelector {
         if (freeTopics.isEmpty()) {
             return Optional.empty();
         } else {
-            return Optional.of(freeTopics.get(new Random().nextInt(freeTopics.size())));
+            return Optional.of(freeTopics.get(rand.nextInt(freeTopics.size())));
         }
     }
 
@@ -68,7 +71,7 @@ public class KafkaTopicSelector {
 
     private String randomTopic(String topologyName) {
         List<String> topicsForOneTopology = topicsForOneTopology(topologyName);
-        return topicsForOneTopology.get(new Random().nextInt(topicsForOneTopology.size()));
+        return topicsForOneTopology.get(rand.nextInt(topicsForOneTopology.size()));
     }
 
     private List<String> topicsForOneTopology(String topologyName) {
