@@ -30,6 +30,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 public class MCSTaskSubmitter {
 
+    public static final int LOGGING_FREQUENCY = 1000;
     private static final int INTERNAL_THREADS_NUMBER = 10;
     private static final int MAX_BATCH_SIZE = 100;
 
@@ -45,8 +46,8 @@ public class MCSTaskSubmitter {
     private final String userName;
     private final String password;
 
-    public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater, RecordSubmitService recordSubmitService, String mcsClientURL,
-                            String userName, String password) {
+    public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater,
+                            RecordSubmitService recordSubmitService, String mcsClientURL, String userName, String password) {
         this.taskStatusChecker = taskStatusChecker;
         this.taskStatusUpdater = taskStatusUpdater;
         this.recordSubmitService = recordSubmitService;
@@ -106,7 +107,8 @@ public class MCSTaskSubmitter {
         return count;
     }
 
-    private int executeForDatasetList(SubmitTaskParameters submitParameters) throws InterruptedException, MCSException, ExecutionException {
+    private int executeForDatasetList(SubmitTaskParameters submitParameters)
+            throws InterruptedException, MCSException, ExecutionException {
         var expectedSize = 0;
         for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
             expectedSize += executeForOneDataSet(dataSetUrl, submitParameters);
@@ -114,7 +116,8 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters) throws InterruptedException, MCSException, ExecutionException {
+    private int executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters)
+            throws InterruptedException, MCSException, ExecutionException {
         try (var reader = createMcsReader()) {
             var urlParser = new UrlParser(dataSetUrl);
             if (!urlParser.isUrlToDataset()) {
@@ -145,7 +148,8 @@ public class MCSTaskSubmitter {
         return expectedSize;
     }
 
-    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters, MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
+    private int executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters,
+                                   MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
         ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
         try {
             DpsTask task = submitParameters.getTask();
@@ -186,21 +190,24 @@ public class MCSTaskSubmitter {
             } else {
                 throw e;
             }
-        }
-        finally {
+        } finally {
             executor.shutdown();
             executor.awaitTermination(1, TimeUnit.MINUTES);
         }
     }
 
-    private ResultSlice<CloudTagsResponse> getCloudIdsChunk(String datasetName, String datasetProvider, String startFrom, SubmitTaskParameters submitTaskParameters, MCSReader reader) throws MCSException {
+    private ResultSlice<CloudTagsResponse> getCloudIdsChunk(String datasetName, String datasetProvider,
+                                                            String startFrom, SubmitTaskParameters submitTaskParameters,
+                                                            MCSReader reader) throws MCSException {
         return reader.getDataSetRevisionsChunk(
                 submitTaskParameters.getRepresentationName(),
                 submitTaskParameters.getInputRevision(),
                 datasetProvider, datasetName, startFrom);
     }
 
-    private Integer executeGettingFileUrlsForCloudIdList(List<CloudTagsResponse> responseList, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private Integer executeGettingFileUrlsForCloudIdList(List<CloudTagsResponse> responseList,
+                                                         SubmitTaskParameters submitParameters,
+                                                         MCSReader reader) throws MCSException {
         var count = 0;
         for (CloudTagsResponse response : responseList) {
             count += executeGettingFileUrlsForOneCloudId(response, submitParameters, reader);
@@ -209,7 +216,8 @@ public class MCSTaskSubmitter {
         return count;
     }
 
-    private int executeGettingFileUrlsForOneCloudId(CloudTagsResponse response, SubmitTaskParameters submitParameters, MCSReader reader) throws MCSException {
+    private int executeGettingFileUrlsForOneCloudId(CloudTagsResponse response, SubmitTaskParameters submitParameters,
+                                                    MCSReader reader) throws MCSException {
 
         var count = 0;
         checkIfTaskIsKilled(submitParameters.getTask());
@@ -220,7 +228,12 @@ public class MCSTaskSubmitter {
                 submitParameters.getInputRevision().getCreationTimeStamp(),
                 response.getCloudId());
         for (Representation representation : representations) {
-            RevisionIdentifier inputRevision = submitParameters.getInputRevision().withCreationTimeStamp(submitParameters.getInputRevision().getCreationTimeStamp());
+            RevisionIdentifier inputRevision = submitParameters
+                    .getInputRevision()
+                    .withCreationTimeStamp(submitParameters
+                            .getInputRevision()
+                            .getCreationTimeStamp()
+                    );
             count += submitRecordsForRepresentation(representation, submitParameters,
                     isMarkedAsDeleted(
                             representation,
@@ -229,7 +242,8 @@ public class MCSTaskSubmitter {
         return count;
     }
 
-    private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+    private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters,
+                                               boolean markedAsDeleted) {
         if (representation == null) {
             throw new TaskSubmitException("Problem while reading representation - representation is null.");
         }
@@ -280,10 +294,10 @@ public class MCSTaskSubmitter {
         return increaseCounter;
     }
 
-    private void logProgress(SubmitTaskParameters submitParameters, int submitedCount) {
-        if (submitedCount % 1000 == 0) {
-            LOGGER.info("Task id={} records submiting is progressing. Already submited: {} records",
-                    submitParameters.getTask().getTaskId(), submitedCount);
+    private void logProgress(SubmitTaskParameters submitParameters, int submittedCount) {
+        if (submittedCount % LOGGING_FREQUENCY == 0) {
+            LOGGER.info("Task id={} records submitting is progressing. Already submitted: {} records",
+                    submitParameters.getTask().getTaskId(), submittedCount);
         }
     }
 
@@ -311,7 +325,9 @@ public class MCSTaskSubmitter {
                 return revision;
             }
         }
-        throw new TaskSubmitException("Revision of name " + revisionToBeFound.getRevisionName() + " and timestamp " + revisionToBeFound.getCreationTimeStamp() + " not found for representation " + representation);
+        throw new TaskSubmitException("Revision of name " + revisionToBeFound.getRevisionName()
+                + " and timestamp " + revisionToBeFound.getCreationTimeStamp()
+                + " not found for representation " + representation);
     }
 
     private void checkIfTaskIsKilled(DpsTask task) {
