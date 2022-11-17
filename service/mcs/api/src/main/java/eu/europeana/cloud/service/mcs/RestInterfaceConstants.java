@@ -37,7 +37,7 @@ public final class RestInterfaceConstants {
 
     //RepresentationVersionsResource
     public static final String REPRESENTATION_VERSIONS_RESOURCE =
-            REPRESENTATION_RESOURCE + "/{representationName}/versions";
+            REPRESENTATION_RESOURCE + "/versions";
 
     //RepresentationVersionResource
     public static final String REPRESENTATION_VERSION =
@@ -76,13 +76,13 @@ public final class RestInterfaceConstants {
             = "/records/{cloudId}/representations/{representationName}/versions/{version}/revisions";
 
     public static final String REVISION_ADD_WITH_PROVIDER_TAG =
-            REVISION_ADD + "{revisionName}/revisionProvider/{revisionProviderId}/tag/{tag}";
+            REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}/tag/{tag}";
 
     public static final String REVISION_ADD_WITH_PROVIDER =
-            REVISION_ADD + "{revisionName}/revisionProvider/{revisionProviderId}/tags";
+            REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}/tags";
 
     public static final String REVISION_DELETE =
-            REVISION_ADD + "{revisionName}/revisionProvider/{revisionProviderId}";
+            REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}";
 
 
     //SimplifiedRecordsResource
