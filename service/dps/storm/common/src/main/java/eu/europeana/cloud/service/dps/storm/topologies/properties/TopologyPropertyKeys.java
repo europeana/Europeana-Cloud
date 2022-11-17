@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
+
+/**
+ * Class containing topology property file keys
+ */
 public final class TopologyPropertyKeys {
-    private TopologyPropertyKeys() {
-    }
 
     public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
     public static final String WORKER_COUNT = "WORKER_COUNT";
@@ -84,5 +86,8 @@ public final class TopologyPropertyKeys {
     public static final String UIS_URL = "UIS_URL";
 
     public static final String DEFAULT_MAXIMUM_PARALLELIZATION = "DEFAULT_MAXIMUM_PARALLELIZATION";
+
+    private TopologyPropertyKeys() {
+    }
 
 }
