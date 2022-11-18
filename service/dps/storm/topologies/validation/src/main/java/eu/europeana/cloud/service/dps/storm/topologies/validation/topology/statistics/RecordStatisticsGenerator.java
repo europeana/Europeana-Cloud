@@ -18,9 +18,9 @@ import java.util.*;
  * Created by Tarek on 1/9/2018.
  */
 public class RecordStatisticsGenerator {
+    private static final int MAX_SIZE = 1000;
     private Map<String, NodeStatistics> nodeStatistics;
     private String fileContent;
-    private final static int MAX_SIZE = 1000;
 
     public RecordStatisticsGenerator(String fileContent) {
         this.fileContent = fileContent;
@@ -40,6 +40,7 @@ public class RecordStatisticsGenerator {
 
     private Document getParsedDocument() throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         DocumentBuilder db = dbf.newDocumentBuilder();
         InputSource is = new InputSource();
