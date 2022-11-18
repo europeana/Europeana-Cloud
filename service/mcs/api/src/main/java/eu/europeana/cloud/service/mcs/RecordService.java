@@ -122,11 +122,13 @@ public interface RecordService {
      * @throws ProviderNotExistsException there is no such provider
      */
     Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId)
-            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+            RepresentationNotExistsException, DataSetNotExistsException;
 
 
     Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
-            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException;
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+            RepresentationNotExistsException, DataSetNotExistsException;
 
 
     /**
@@ -263,9 +265,11 @@ public interface RecordService {
      * @param revisionProviderId revision provider identifier of the resulting representation revision
      * @param revisionName revision name
      * @param revisionTimestamp revision timestamp
-     * @return RepresentationRevisionResponse object that associates cloud identifier, representation name, revision identifier, version identifier and files map
+     * @return RepresentationRevisionResponse object that associates cloud identifier, representation name,
+     * revision identifier, version identifier and files map
      */
-    List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp);
+    List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId,
+                                                                    String revisionName, Date revisionTimestamp);
 
     /**
      * Insert information about representation revision association.

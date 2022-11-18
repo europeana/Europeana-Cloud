@@ -37,7 +37,9 @@ public class ThumbnailUploader {
                 try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
                     amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
                 } catch (Exception e) {
-                    String errorMessage = "Error while uploading " + thumbnail.getTargetName() + " to S3 in Bluemix. The full error message is: " + e.getMessage() + " because of: " + e.getCause();
+                    String errorMessage = "Error while uploading " + thumbnail.getTargetName()
+                            + " to S3 in Bluemix. The full error message is: " + e.getMessage()
+                            + " because of: " + e.getCause();
                     LOGGER.error(errorMessage, e);
                     buildErrorMessage(exception, errorMessage);
                 } finally {

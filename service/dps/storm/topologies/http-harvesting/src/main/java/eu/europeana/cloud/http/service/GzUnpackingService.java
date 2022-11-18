@@ -24,10 +24,12 @@ public class GzUnpackingService implements FileUnpackingService {
         unpackFile(zipFile, destinationFolder, extensions);
     }
 
-    private void unpackFile(final String compressedFile, final String destinationFolder, final String[] extensions) throws CompressionExtensionNotRecognizedException, IOException {
+    private void unpackFile(final String compressedFile, final String destinationFolder, final String[] extensions)
+            throws CompressionExtensionNotRecognizedException, IOException {
 
         File destination = new File(destinationFolder);
-        if (FilenameUtils.getName(compressedFile).contains(TAR) || (FilenameUtils.getExtension(compressedFile)).equals(CompressionFileExtension.TGZIP.getExtension())) {
+        if (FilenameUtils.getName(compressedFile).contains(TAR)
+                || (FilenameUtils.getExtension(compressedFile)).equals(CompressionFileExtension.TGZIP.getExtension())) {
             File newDestination = extractTarGzipArchive(compressedFile, destination);
             Iterator<File> files = FileUtils.iterateFiles(newDestination, extensions, true);
             while (files.hasNext()) {

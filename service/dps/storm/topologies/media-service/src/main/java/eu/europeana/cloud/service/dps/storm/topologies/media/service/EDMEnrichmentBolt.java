@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
-    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted, neither main thumbinal or remaining resources for media extraction.";
+    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted," +
+            " neither main thumbnail or remaining resources for media extraction.";
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
     private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
@@ -99,7 +100,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             } catch (Exception e) {
                 LOGGER.error("problem while enrichment ", e);
                 String currentException = tempEnrichedFile.getExceptions();
-                String exceptionMessage = "Exception while enriching the original edm file with resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: " + ExceptionUtils.getStackTrace(e);
+                String exceptionMessage = "Exception while enriching the original edm file with resource: "
+                        + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: "
+                        + ExceptionUtils.getStackTrace(e);
                 if (currentException.isEmpty())
                     tempEnrichedFile.setExceptions(exceptionMessage);
                 else
@@ -144,13 +147,17 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
     }
 
-    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile) throws RdfSerializationException, MalformedURLException {
+    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile)
+            throws RdfSerializationException, MalformedURLException {
+
         String errorMessage = tempEnrichedFile.getExceptions();
         EnrichedRdf enrichedRdf = tempEnrichedFile.getEnrichedRdf();
         prepareStormTaskTuple(stormTaskTuple, enrichedRdf, errorMessage);
     }
 
-    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, EnrichedRdf enrichedRdf, String errorMessage) throws RdfSerializationException, MalformedURLException {
+    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, EnrichedRdf enrichedRdf, String errorMessage)
+            throws RdfSerializationException, MalformedURLException {
+
         if (!errorMessage.isEmpty()) {
             stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, errorMessage);
             stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);

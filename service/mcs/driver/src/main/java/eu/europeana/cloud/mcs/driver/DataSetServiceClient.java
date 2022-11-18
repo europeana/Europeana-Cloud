@@ -392,7 +392,8 @@ public class DataSetServiceClient extends MCSClient {
         );
     }
 
-    public ResultSlice<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
+    public ResultSlice<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId, String representationName,
+                                                              Revision revision) throws MCSException {
         return getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, null, 0);
     }
 

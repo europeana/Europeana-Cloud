@@ -131,13 +131,16 @@ public class CassandraRecordService implements RecordService {
 
     private void deleteRepresentationRevision(String globalId, Representation rep) {
         for (Revision r : rep.getRevisions()) {
-            recordDAO.deleteRepresentationRevision(globalId, rep.getRepresentationName(), rep.getVersion(), r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
+            recordDAO.deleteRepresentationRevision(globalId, rep.getRepresentationName(), rep.getVersion(),
+                    r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
         }
     }
 
     @Override
     public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
-            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
+            throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+            RepresentationNotExistsException, DataSetNotExistsException {
+
         return createRepresentation(globalId, schema, providerId, null, dataSetId);
     }
 
@@ -146,7 +149,8 @@ public class CassandraRecordService implements RecordService {
      */
     @Override
     public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version, String dataSetId)
-            throws ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
+            throws ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException,
+            RepresentationNotExistsException, DataSetNotExistsException {
 
         checkIfDatasetExists(dataSetId, providerId);
 
@@ -247,11 +251,20 @@ public class CassandraRecordService implements RecordService {
     }
 
     private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation) throws RepresentationNotExistsException {
-        Collection<CompoundDataSetId> compoundDataSetIds = dataSetService.getDataSetAssignmentsByRepresentationVersion(globalId, representation.getRepresentationName(), representation.getVersion());
+        Collection<CompoundDataSetId> compoundDataSetIds =
+                dataSetService.getDataSetAssignmentsByRepresentationVersion(
+                        globalId, representation.getRepresentationName(), representation.getVersion()
+                );
         if (!compoundDataSetIds.isEmpty()) {
             for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
                 try {
-                    dataSetService.removeAssignment(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), globalId, representation.getRepresentationName(), representation.getVersion());
+                    dataSetService.removeAssignment(
+                            compoundDataSetId.getDataSetProviderId(),
+                            compoundDataSetId.getDataSetId(),
+                            globalId,
+                            representation.getRepresentationName(),
+                            representation.getVersion()
+                    );
                 } catch (DataSetNotExistsException e) {
                     //Nothing to do, skip exception
                 }
@@ -343,7 +356,11 @@ public class CassandraRecordService implements RecordService {
 
         for (Revision revision : representation.getRevisions()) {
             // update information in extra table
-            recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, version, revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(), file);
+            recordDAO.addOrReplaceFileInRepresentationRevision(
+                    globalId, schema, version,
+                    revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
+                    file
+            );
             LOGGER.debug("Updated file information in revision: {}", revision);
         }
 
@@ -454,12 +471,14 @@ public class CassandraRecordService implements RecordService {
     }
 
     @Override
-    public List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+    public List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema, String revisionProviderId,
+                                                                           String revisionName, Date revisionTimestamp) {
         return recordDAO.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
     }
 
     @Override
-    public void insertRepresentationRevision(String globalId, String schema, String revisionProviderId, String revisionName, String versionId, Date revisionTimestamp) {
+    public void insertRepresentationRevision(String globalId, String schema, String revisionProviderId,
+                                             String revisionName, String versionId, Date revisionTimestamp) {
         // add additional association between representation version and revision
         Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
         recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName, revisionTimestamp);

@@ -33,7 +33,8 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
     public ValidationStatisticsServiceImpl() {
     }
 
-    public ValidationStatisticsServiceImpl(GeneralStatisticsDAO generalStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO, CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, StatisticsReportDAO statisticsReportDAO) {
+    public ValidationStatisticsServiceImpl(GeneralStatisticsDAO generalStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO,
+                                           CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, StatisticsReportDAO statisticsReportDAO) {
         this.generalStatisticsDAO = generalStatisticsDAO;
         this.cassandraNodeStatisticsDAO = cassandraNodeStatisticsDAO;
         this.cassandraAttributeStatisticsDAO = cassandraAttributeStatisticsDAO;
@@ -78,7 +79,10 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
         List<NodeReport> result = new ArrayList<>();
         for(NodeStatistics nodeStatistics:cassandraNodeStatisticsDAO.getNodeStatistics(taskId, null, nodeXpath, ELEMENTS_SAMPLE_MAX_SIZE)){
             String elementValue = nodeStatistics.getValue();
-            List<AttributeStatistics> attributeStatistics = new ArrayList<>(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, elementValue, ATTRIBUTES_SAMPLE_MAX_SIZE ));
+            List<AttributeStatistics> attributeStatistics =
+                    new ArrayList<>(cassandraAttributeStatisticsDAO.getAttributeStatistics(
+                            taskId, nodeXpath, elementValue, ATTRIBUTES_SAMPLE_MAX_SIZE
+                    ));
             NodeReport nodeValues = new NodeReport(elementValue, nodeStatistics.getOccurrence(), attributeStatistics);
             result.add(nodeValues);
         }
@@ -124,7 +128,8 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
         for (AttributeStatistics attributeStatistics : attributes) {
             long distinctValuesCount = cassandraAttributeStatisticsDAO.getAttributeDistinctValues(taskId, nodeXpath, nodeValue, attributeStatistics.getName());
             if (distinctValuesCount >= ATTRIBUTES_MAX_ALLOWED_VALUES) {
-                long currentCount = cassandraAttributeStatisticsDAO.getSpecificAttributeValueCount(taskId, nodeXpath, nodeValue, attributeStatistics.getName(), attributeStatistics.getValue());
+                long currentCount = cassandraAttributeStatisticsDAO.getSpecificAttributeValueCount(taskId, nodeXpath, nodeValue,
+                        attributeStatistics.getName(), attributeStatistics.getValue());
                 if (currentCount > 0)
                     cassandraAttributeStatisticsDAO.insertAttributeStatistics(taskId, nodeXpath, nodeValue, attributeStatistics);
             } else {
@@ -146,7 +151,8 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
             List<NodeStatistics> nodeStatistics = getNodeStatistics(taskId, generalStatistics.getParentXpath(), generalStatistics.getNodeXpath());
             if (nodeStatistics.isEmpty()) {
                 // this case happens when there is a node without a value but it may contain attributes
-                NodeStatistics node = new NodeStatistics(generalStatistics.getParentXpath(), generalStatistics.getNodeXpath(), "", generalStatistics.getOccurrence());
+                NodeStatistics node = new NodeStatistics(generalStatistics.getParentXpath(), generalStatistics.getNodeXpath(),
+                        "", generalStatistics.getOccurrence());
                 node.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, generalStatistics.getNodeXpath(), "", 2));
             }
             result.addAll(nodeStatistics);
@@ -157,7 +163,13 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
 
     private List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath) {
         List<NodeStatistics> nodeStatisticsList = cassandraNodeStatisticsDAO.getNodeStatistics(taskId, parentXpath, nodeXpath, 2);
-        nodeStatisticsList.forEach(nodeStatistics->nodeStatistics.setAttributesStatistics(cassandraAttributeStatisticsDAO.getAttributeStatistics(taskId, nodeXpath, nodeStatistics.getValue(), 2)));
+        nodeStatisticsList.forEach(
+                nodeStatistics->nodeStatistics
+                        .setAttributesStatistics(
+                                cassandraAttributeStatisticsDAO
+                                        .getAttributeStatistics(taskId, nodeXpath, nodeStatistics.getValue(), 2)
+                        )
+        );
         return nodeStatisticsList;
     }
 

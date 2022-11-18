@@ -55,7 +55,11 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             if (rdfResourceEntry != null) {
                 LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
 
-                ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(rdfResourceEntry, Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE)));
+                ResourceExtractionResult resourceExtractionResult =
+                        mediaExtractor.performMediaExtraction(
+                                rdfResourceEntry,
+                                Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE))
+                        );
 
                 if (resourceExtractionResult != null) {
                     LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
@@ -68,8 +72,11 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             handleInterruption(e, anchorTuple);
             return;
         } catch (Exception e) {
-            LOGGER.error("Exception while processing the resource {}. The full error is:{} ", stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
-            buildErrorMessage(exception, "Exception while processing the resource: " + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: " + e.getMessage() + " because of: " + e.getCause());
+            LOGGER.error("Exception while processing the resource {}. The full error is:{} ",
+                    stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
+            buildErrorMessage(exception, "Exception while processing the resource: "
+                    + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: "
+                    + e.getMessage() + " because of: " + e.getCause());
         } finally {
             logStatistics(END, STATISTIC_OPERATION_NAME, opId);
         }

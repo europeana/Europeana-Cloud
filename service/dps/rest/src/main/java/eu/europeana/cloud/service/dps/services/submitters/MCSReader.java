@@ -52,13 +52,18 @@ public class MCSReader implements AutoCloseable {
         });
     }
 
-    public List<Representation> getRepresentationsByRevision(String representationName, String revisionName, String revisionProvider, Date revisionTimestamp, String responseCloudId) throws MCSException {
+    public List<Representation> getRepresentationsByRevision(String representationName, String revisionName,
+                                                             String revisionProvider, Date revisionTimestamp,
+                                                             String responseCloudId) throws MCSException {
         return RetryableMethodExecutor.executeOnRest("Error while getting representation revision.", () ->
-                recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName, new Revision(revisionName, revisionProvider, revisionTimestamp)));
+                recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName,
+                        new Revision(revisionName, revisionProvider, revisionTimestamp)));
     }
 
     public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {
-        return dataSetServiceClient.getRepresentationIterator(urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS));
+        return dataSetServiceClient.getRepresentationIterator(
+                urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS)
+        );
     }
 
 

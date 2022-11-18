@@ -3,17 +3,12 @@ package eu.europeana.cloud.service.uis.rest;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,7 +56,10 @@ public class DataProvidersResource {
      * @statuscode 201 new provider has been created.
 	 * @statuscode 400 request body cannot be is empty
 	 */
-	@PostMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@PostMapping(
+			produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE},
+			consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE}
+	)
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<String> createProvider(HttpServletRequest servletRequest,
 												 @RequestBody DataProviderProperties dataProviderProperties,

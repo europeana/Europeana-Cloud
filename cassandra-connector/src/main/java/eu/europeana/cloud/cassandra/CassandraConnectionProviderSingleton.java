@@ -10,7 +10,10 @@ public class CassandraConnectionProviderSingleton {
 
     }
 
-    public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
+    public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port,
+                                                                                          String keyspaceName,
+                                                                                          String userName,
+                                                                                          String password) {
         if (cassandraConnectionProvider == null) {
             cassandraConnectionProvider = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
         }

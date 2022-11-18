@@ -53,7 +53,8 @@ public class RevisionServiceClient extends MCSClient {
     }
 
 
-    public RevisionServiceClient(String baseUrl, final String username, final String password, final int connectTimeoutInMillis, final int readTimeoutInMillis) {
+    public RevisionServiceClient(String baseUrl, final String username, final String password, final int connectTimeoutInMillis,
+                                 final int readTimeoutInMillis) {
         super(baseUrl);
 
         client.register(HttpAuthenticationFeature.basicBuilder().credentials(username, password).build());

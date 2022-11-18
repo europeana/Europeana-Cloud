@@ -107,13 +107,17 @@ public class DepublicationService {
         LOGGER.info("Records removal procedure finished for task_id {}", parameters.getTask().getTaskId());
     }
 
-    private void waitForFinish(Future<Integer> future, SubmitTaskParameters parameters) throws ExecutionException, InterruptedException, IndexingException, IOException, URISyntaxException {
+    private void waitForFinish(Future<Integer> future, SubmitTaskParameters parameters)
+            throws ExecutionException, InterruptedException, IndexingException, IOException, URISyntaxException {
+
         waitForAllRecordsRemoved(future, parameters);
         taskStatusUpdater.setTaskCompletelyProcessed(parameters.getTask().getTaskId(), "Dataset was depublished.");
         LOGGER.info("Task {} succeed ", parameters);
     }
 
-    private void waitForAllRecordsRemoved(Future<Integer> future, SubmitTaskParameters parameters) throws InterruptedException, IndexingException, ExecutionException {
+    private void waitForAllRecordsRemoved(Future<Integer> future, SubmitTaskParameters parameters)
+            throws InterruptedException, IndexingException, ExecutionException {
+        
         while (true) {
             long recordsLeft = depublisher.getRecordsCount(parameters);
             saveProgress(parameters.getTask().getTaskId(), parameters.getTaskInfo().getExpectedRecordsNumber() - recordsLeft);

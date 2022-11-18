@@ -154,7 +154,8 @@ public class ReportResource {
 
 
     /**
-     * Retrieves a statistics report for the specified task. Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
+     * Retrieves a statistics report for the specified task.
+     * Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
      * <p>
      * <p/>
      * <br/><br/>

@@ -53,8 +53,12 @@ public class MediaTopology {
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
         );
-        AmazonClient amazonClient = new AmazonClient(topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY), topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
-                topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT), topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET));
+        AmazonClient amazonClient = new AmazonClient(
+                topologyProperties.getProperty(AWS_CREDENTIALS_ACCESSKEY),
+                topologyProperties.getProperty(AWS_CREDENTIALS_SECRETKEY),
+                topologyProperties.getProperty(AWS_CREDENTIALS_ENDPOINT),
+                topologyProperties.getProperty(AWS_CREDENTIALS_BUCKET)
+        );
 
         TopologyHelper.addSpoutFieldGrouping(spoutNames,
                 builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(

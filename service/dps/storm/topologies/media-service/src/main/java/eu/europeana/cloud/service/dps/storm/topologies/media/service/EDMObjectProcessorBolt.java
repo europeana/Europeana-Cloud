@@ -125,10 +125,12 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
                     "The cause of the error is:" + e.getCause(),
                     StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         } catch (Exception e) {
-            LOGGER.error("Exception while reading and parsing file for processing the edm:object resource. The full error is:{} ", ExceptionUtils.getStackTrace(e));
+            LOGGER.error("Exception while reading and parsing file for processing the edm:object resource." +
+                    " The full error is:{} ", ExceptionUtils.getStackTrace(e));
             StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
             tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
-            buildErrorMessage(exception, "Exception while processing the edm:object resource. The full error is: " + e.getMessage() + " because of: " + e.getCause());
+            buildErrorMessage(exception, "Exception while processing the edm:object resource." +
+                    " The full error is: " + e.getMessage() + " because of: " + e.getCause());
             tuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
             tuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());

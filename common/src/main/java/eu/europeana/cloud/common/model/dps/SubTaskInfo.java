@@ -26,8 +26,9 @@ public class SubTaskInfo {
         this(0, resource, null, null, null, null, 0L);
     }
 
-    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations, String europeanaId, long processingTime) {
-        this(resourceNum, resource, recordState, info, additionalInformations, europeanaId, processingTime, null);
+    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info,
+                       String additionalInformation, String europeanaId, long processingTime) {
+        this(resourceNum, resource, recordState, info, additionalInformation, europeanaId, processingTime, null);
     }
 }
 

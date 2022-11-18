@@ -65,7 +65,8 @@ public class RepresentationRevisionResponse {
      * @param revisionName
      * @param revisionTimestamp
      */
-    public RepresentationRevisionResponse(String cloudId, String representationName, String version, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+    public RepresentationRevisionResponse(String cloudId, String representationName, String version,
+                                          String revisionProviderId, String revisionName, Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
@@ -85,7 +86,8 @@ public class RepresentationRevisionResponse {
      * @param revisionName
      */
     public RepresentationRevisionResponse(String cloudId, String representationName, String version,
-                                          List<File> files, String revisionProviderId, String revisionName, Date revisionTimestamp) {
+                                          List<File> files, String revisionProviderId, String revisionName,
+                                          Date revisionTimestamp) {
         this.cloudId = cloudId;
         this.representationName = representationName;
         this.version = version;
@@ -242,7 +244,9 @@ public class RepresentationRevisionResponse {
 
     @Override
     public String toString() {
-        return "RepresentationRevisionResponse{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", files=" + files + ", revisionProviderId=" + revisionProviderId + ", revisionName=" + revisionName + ", revisionTimestamp=" + revisionTimestamp + '}';
+        return "RepresentationRevisionResponse{" + "cloudId=" + cloudId
+                + ", representationName=" + representationName + ", version="  + version
+                + ", files=" + files + ", revisionProviderId=" + revisionProviderId
+                + ", revisionName=" + revisionName + ", revisionTimestamp=" + revisionTimestamp + '}';
     }
 }

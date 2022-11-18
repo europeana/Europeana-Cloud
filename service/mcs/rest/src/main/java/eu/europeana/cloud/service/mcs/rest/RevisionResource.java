@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
@@ -74,7 +73,9 @@ public class RevisionResource {
             @PathVariable final String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @PathVariable String tag) throws RepresentationNotExistsException, RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            @PathVariable String tag)
+            throws RepresentationNotExistsException, RevisionIsNotValidException,
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         ParamUtil.validate("tag", tag,
                 Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
@@ -105,7 +106,9 @@ public class RevisionResource {
             @PathVariable final String cloudId,
             @PathVariable final String representationName,
             @PathVariable final String version,
-            @RequestBody Revision revision) throws RevisionIsNotValidException, RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            @RequestBody Revision revision)
+            throws RevisionIsNotValidException, RepresentationNotExistsException,
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         //
         Representation representation = Representation.fromFields(cloudId, representationName, version);
@@ -141,8 +144,9 @@ public class RevisionResource {
             @PathVariable final String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @RequestParam(defaultValue = "") Set<String> tags ) throws RepresentationNotExistsException,
-            RevisionIsNotValidException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            @RequestParam(defaultValue = "") Set<String> tags )
+            throws RepresentationNotExistsException, RevisionIsNotValidException,
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         ParamUtil.validateTags(tags, new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
         //
@@ -177,7 +181,8 @@ public class RevisionResource {
             @PathVariable String version,
             @PathVariable String revisionName,
             @PathVariable String revisionProviderId,
-            @RequestParam String revisionTimestamp ) throws RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            @RequestParam String revisionTimestamp )
+            throws RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         //
         Representation representation = Representation.fromFields(cloudId,representationName,version);
@@ -190,7 +195,9 @@ public class RevisionResource {
         }
     }
 
-    private void addRevisionToRepresentationVersion(Revision revision, Representation representation) throws RepresentationNotExistsException, RevisionIsNotValidException {
+    private void addRevisionToRepresentationVersion(Revision revision, Representation representation)
+            throws RepresentationNotExistsException, RevisionIsNotValidException {
+
         addRevision(
                 representation.getCloudId(),
                 representation.getRepresentationName(),

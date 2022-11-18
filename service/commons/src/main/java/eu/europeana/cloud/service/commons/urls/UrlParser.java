@@ -29,11 +29,16 @@ import java.util.Map;
  */
 public class UrlParser {
     private static final char DIR_SEPARATOR = '/';
-    private static final List<UrlPart> CLOUD_ID_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS);
-    private static final List<UrlPart> REPRESENTATIONS_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS);
-    private static final List<UrlPart> REPRESENTATION_VERSION_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS);
-    private static final List<UrlPart> REPRESENTATION_VERSION_FILE_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS, UrlPart.FILES);
-    private static final List<UrlPart> DATASET_URL_PATTERN = Arrays.asList(UrlPart.CONTEXT, UrlPart.DATA_PROVIDERS, UrlPart.DATA_SETS);
+    private static final List<UrlPart> CLOUD_ID_URL_PATTERN =
+            Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS);
+    private static final List<UrlPart> REPRESENTATIONS_URL_PATTERN =
+            Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS);
+    private static final List<UrlPart> REPRESENTATION_VERSION_URL_PATTERN =
+            Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS);
+    private static final List<UrlPart> REPRESENTATION_VERSION_FILE_URL_PATTERN =
+            Arrays.asList(UrlPart.CONTEXT, UrlPart.RECORDS, UrlPart.REPRESENTATIONS, UrlPart.VERSIONS, UrlPart.FILES);
+    private static final List<UrlPart> DATASET_URL_PATTERN =
+            Arrays.asList(UrlPart.CONTEXT, UrlPart.DATA_PROVIDERS, UrlPart.DATA_SETS);
 
     private String[] values;
     private Map<UrlPart, String> parts = new LinkedHashMap<>();
@@ -179,6 +184,7 @@ public class UrlParser {
         return matches(parts, REPRESENTATION_VERSION_URL_PATTERN) && containNonEmptyValue(UrlPart.VERSIONS);
     }
 
+    @SuppressWarnings("java:S103")
     /**
      * Checks if given URL points to files list.<br/>
      * E.g. http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files
@@ -189,6 +195,7 @@ public class UrlParser {
         return containEmptyValue(UrlPart.FILES);
     }
 
+    @SuppressWarnings("java:S103")
     /**
      * Checks if given URL points to file.<br/>
      * E.g. http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt

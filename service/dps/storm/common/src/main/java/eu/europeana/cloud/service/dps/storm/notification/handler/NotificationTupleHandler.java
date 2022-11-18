@@ -177,9 +177,13 @@ public class NotificationTupleHandler {
                 task ->
                         tasksByStateDAO.findTask(task.getState(), topologyName, notificationTuple.getTaskId())).ifPresent(
                 oldTaskState -> {
-                    statementsToBeExecuted.add(tasksByStateDAO.deleteStatement(oldTaskState.getState(), topologyName, notificationTuple.getTaskId()));
-                    statementsToBeExecuted.add(tasksByStateDAO.insertStatement(newState, topologyName, notificationTuple.getTaskId(), oldTaskState.getApplicationId(),
-                            oldTaskState.getTopicName(), oldTaskState.getStartTime()));
+                    statementsToBeExecuted.add(tasksByStateDAO.deleteStatement(
+                            oldTaskState.getState(), topologyName, notificationTuple.getTaskId()
+                    ));
+                    statementsToBeExecuted.add(tasksByStateDAO.insertStatement(
+                            newState, topologyName, notificationTuple.getTaskId(), oldTaskState.getApplicationId(),
+                            oldTaskState.getTopicName(), oldTaskState.getStartTime()
+                    ));
                 });
         statementsToBeExecuted.add(taskInfoDAO.updateStateStatement(notificationTuple.getTaskId(), newState, message));
 

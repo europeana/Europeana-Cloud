@@ -25,7 +25,9 @@ public class RetryableMethodExecutor {
     @SuppressWarnings("unchecked")
     //Suppress for throw (E), This cast does not matter on runtime level. But it is possible that it could be exception
     // of type E or RuntimeException, cause of callable type. Both are expected to be thrown by this method.
-    public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts, int sleepTimeBetweenRetriesMs, GenericCallable<V, E> callable) throws E {
+    public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts,
+                                                     int sleepTimeBetweenRetriesMs,
+                                                     GenericCallable<V, E> callable) throws E {
         while (true) {
             try {
                 return callable.call();

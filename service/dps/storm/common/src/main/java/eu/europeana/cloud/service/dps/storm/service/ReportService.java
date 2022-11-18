@@ -122,7 +122,8 @@ public class ReportService implements TaskExecutionReportService {
         List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
 
         for (Row row : data) {
-            Map<String, String> additionalInformationMap = row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
+            Map<String, String> additionalInformationMap =
+                    row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
 
             SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
@@ -130,7 +131,8 @@ public class ReportService implements TaskExecutionReportService {
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
                     additionalInformationMap.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
                     additionalInformationMap.get(NotificationsDAO.EUROPEANA_ID_KEY),
-                    additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY) != null ? Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
+                    additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY) !=
+                            null ? Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
                     row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
             subTaskInfoList.add(subTaskInfo);
         }
@@ -195,7 +197,10 @@ public class ReportService implements TaskExecutionReportService {
 
         while (rs.iterator().hasNext()) {
             Row row = rs.one();
-            errorDetails.add(new ErrorDetails(row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE), row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS)));
+            errorDetails.add(new ErrorDetails(
+                    row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE),
+                    row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS)
+            ));
         }
         return errorDetails;
     }

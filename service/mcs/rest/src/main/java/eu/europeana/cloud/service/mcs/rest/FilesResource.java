@@ -89,7 +89,8 @@ public class FilesResource {
 			@RequestParam String mimeType,
 			@RequestParam MultipartFile data,
 			@RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
-			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+			CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException,
+			AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
 		Representation representation = Representation.fromFields(cloudId, representationName, version);
 		if (dataSetPermissionsVerifier.isUserAllowedToUploadFileFor(representation)) {

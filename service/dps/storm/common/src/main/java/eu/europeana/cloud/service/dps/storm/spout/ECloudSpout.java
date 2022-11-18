@@ -263,7 +263,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
             return Collections.emptyList();
         }
 
-        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord, Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+        List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
+                                              Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
             var taskInfo = getTaskInfo(message);
             var dpsTask = DpsTask.fromTaskInfo(taskInfo);
             updateDiagnosticCounters(aRecord);

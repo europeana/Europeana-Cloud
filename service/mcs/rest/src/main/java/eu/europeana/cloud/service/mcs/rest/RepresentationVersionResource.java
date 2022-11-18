@@ -78,7 +78,9 @@ public class RepresentationVersionResource {
     public void deleteRepresentation(
             @PathVariable String cloudId,
             @PathVariable String representationName,
-            @PathVariable String version) throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            @PathVariable String version)
+            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
 
@@ -112,7 +114,8 @@ public class RepresentationVersionResource {
             @PathVariable String cloudId,
             @PathVariable String representationName,
             @PathVariable String version) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException,
+            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
         Representation representation = Representation.fromFields(cloudId, representationName, version);
 

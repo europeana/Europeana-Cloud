@@ -225,7 +225,9 @@ public class CassandraDataSetService implements DataSetService {
     }
 
     @Override
-    public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp, String representationName, String startFrom, int limit)
+    public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId,
+                                                               String revisionName, Date revisionTimestamp, String representationName,
+                                                               String startFrom, int limit)
             throws ProviderNotExistsException, DataSetNotExistsException {
         // check whether provider exists
         if (!uis.existsProvider(providerId)) {
@@ -309,7 +311,8 @@ public class CassandraDataSetService implements DataSetService {
     
 
     @Override
-    public void deleteRevision(String cloudId, String representationName, String version, String revisionName, String revisionProviderId, Date revisionTimestamp)
+    public void deleteRevision(String cloudId, String representationName, String version, String revisionName,
+                               String revisionProviderId, Date revisionTimestamp)
             throws RepresentationNotExistsException {
 
         checkIfRepresentationExists(representationName, version, cloudId);

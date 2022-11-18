@@ -35,13 +35,16 @@ public class TestHelper {
         return cloudTagsResponseList;
     }
 
-    public final Representation prepareRepresentation(String cloudId, String representationName, String version, String fileUrl,
-                                                      String dataProvider, boolean persistent, Date creationDate) throws URISyntaxException {
+    public final Representation prepareRepresentation(String cloudId, String representationName, String version,
+                                                      String fileUrl, String dataProvider, boolean persistent,
+                                                      Date creationDate) throws URISyntaxException {
         return prepareRepresentationWithMultipleFiles(cloudId, representationName, version, fileUrl, dataProvider, persistent, creationDate, 1);
     }
 
-    public final Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName, String version, String fileUrl,
-                                                                       String dataProvider, boolean persistent, Date creationDate, int fileCount) throws URISyntaxException {
+    public final Representation prepareRepresentationWithMultipleFiles(String cloudId, String representationName,
+                                                                       String version, String fileUrl, String dataProvider,
+                                                                       boolean persistent, Date creationDate,
+                                                                       int fileCount) throws URISyntaxException {
         List<File> files = new ArrayList<>(fileCount);
         List<Revision> revisions = new ArrayList<>(0);
         for (int i = 0; i < fileCount; i++) {

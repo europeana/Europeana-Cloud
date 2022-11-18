@@ -188,7 +188,9 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
 
 
     @Override
-    public CloudId createIdMapping(String cloudId, String providerId) throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException {
+    public CloudId createIdMapping(String cloudId, String providerId)
+            throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException {
+
         LOGGER.info("createIdMapping() cloudId='{}', providerId='{}'",cloudId, providerId);
         return createIdMapping(cloudId, providerId, IdGenerator.timeEncode(providerId));
     }

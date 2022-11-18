@@ -28,7 +28,10 @@ public class ZipUnpackingService implements FileUnpackingService {
         });
         for (String nestedCompressedFile : zipFiles) {
             String extension = FilenameUtils.getExtension(nestedCompressedFile);
-            UnpackingServiceFactory.createUnpackingService(extension).unpackFile(nestedCompressedFile, FilenameUtils.removeExtension(nestedCompressedFile) + File.separator);
+            UnpackingServiceFactory.createUnpackingService(extension).unpackFile(
+                    nestedCompressedFile,
+                    FilenameUtils.removeExtension(nestedCompressedFile) + File.separator
+            );
         }
     }
 }

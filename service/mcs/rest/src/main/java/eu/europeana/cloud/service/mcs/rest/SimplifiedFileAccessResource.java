@@ -170,7 +170,9 @@ public class SimplifiedFileAccessResource {
         return representationSelector.select(representations);
     }
 
-    private File readFile(String cloudId, String representationName, String version, String fileName) throws RepresentationNotExistsException, FileNotExistsException {
+    private File readFile(String cloudId, String representationName, String version, String fileName)
+            throws RepresentationNotExistsException, FileNotExistsException {
+
         return recordService.getFile(cloudId, representationName, version, fileName);
     }
 

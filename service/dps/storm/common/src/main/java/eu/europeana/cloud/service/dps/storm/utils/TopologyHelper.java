@@ -134,7 +134,8 @@ public final class TopologyHelper {
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN));
     }
 
-    private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, Properties topologyProperties, String topic, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
+    private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, Properties topologyProperties,
+                                                                              String topic, KafkaSpoutConfig.ProcessingGuarantee processingGuarantee) {
         KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
                 new KafkaSpoutConfig.Builder<String, DpsRecord>(
                         topologyProperties.getProperty(BOOTSTRAP_SERVERS), topic)

@@ -24,10 +24,12 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
         //
         var categorizationResult = categorizeRecord(categorizationParameters);
         if (categorizationResult.shouldBeProcessed()) {
-            LOGGER.info("Further processing will take place for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
+            LOGGER.info("Further processing will take place for {} and {}",
+                    categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
             pushRecordToNextBolt(anchorTuple, t);
         } else {
-            LOGGER.info("Further processing will be stopped for {} and {}", categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
+            LOGGER.info("Further processing will be stopped for {} and {}",
+                    categorizationResult.getCategorizationParameters(), categorizationResult.getHarvestedRecord());
             ignoreRecordAsNotChanged(anchorTuple, t, categorizationResult);
         }
         outputCollector.ack(anchorTuple);
@@ -65,7 +67,8 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
                 stormTaskTuple.isMarkedAsDeleted(),
                 stormTaskTuple.getFileUrl(),
                 "Record ignored.",
-                "Record ignored in this incremental processing because it was already processed. Record datestamp: " + categorizationResult.getCategorizationParameters().getRecordDateStamp() + ".",
-                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+                "Record ignored in this incremental processing because it was already processed. Record datestamp: "
+                        + categorizationResult.getCategorizationParameters().getRecordDateStamp()
+                        + ".", StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
 }

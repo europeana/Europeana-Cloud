@@ -76,19 +76,21 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
             if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
                 outputCollector.fail(tuple);
-                LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}", stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+                LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}",
+                        stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
                 return;
             }
 
             if(ignoreDeleted() && stormTaskTuple.isMarkedAsDeleted()){
-                LOGGER.debug("Ignoring and passing further delete record with taskId {} and parameters list : {}", stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+                LOGGER.debug("Ignoring and passing further delete record with taskId {} and parameters list : {}",
+                        stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
                 outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
                 outputCollector.ack(tuple);
                 return;
             }
 
-            LOGGER.debug("{} Mapped to StormTaskTuple with taskId {} and parameters list : {}", getClass().getName(),
-                    stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
+            LOGGER.debug("{} Mapped to StormTaskTuple with taskId {} and parameters list : {}",
+                    getClass().getName(), stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
             execute(tuple, stormTaskTuple);
 
         } catch (RetryInterruptedException e) {

@@ -51,7 +51,8 @@ public class IndexWrapper {
             properties.load(input);
             return properties;
         } catch (Exception e) {
-            throw new IndexWrapperException("Unable to read indexing.properties (are you sure that file exists?). Dataset will not  be cleared before indexing.",e);
+            throw new IndexWrapperException("Unable to read indexing.properties (are you sure that file exists?)." +
+                    " Dataset will not  be cleared before indexing.",e);
         }
     }
 

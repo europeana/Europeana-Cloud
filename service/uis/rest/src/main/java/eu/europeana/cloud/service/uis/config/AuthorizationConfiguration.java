@@ -64,7 +64,8 @@ public class AuthorizationConfiguration {
     }
 
     @Bean
-    public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,AclPermissionCacheOptimizer permissionCacheOptimizer) {
+    public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
+                                                                    AclPermissionCacheOptimizer permissionCacheOptimizer) {
         DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
 
         result.setPermissionEvaluator(permissionEvaluator);

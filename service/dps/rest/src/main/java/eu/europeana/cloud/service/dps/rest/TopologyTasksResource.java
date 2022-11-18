@@ -78,8 +78,8 @@ public class TopologyTasksResource {
      * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
      * @return Progress for the requested task
      * (number of records of the specified task that have been fully processed).
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @throws AccessDeniedOrObjectDoesNotExistException   if task does not exist or access to the task is denied for the user
+     * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      */
 
     @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
@@ -106,7 +106,7 @@ public class TopologyTasksResource {
      *                     either in form of cloud-records or cloud-datasets.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return URI with information about the submitted task execution.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -127,7 +127,7 @@ public class TopologyTasksResource {
      * @param taskId       <strong>REQUIRED</strong> Task identifier to be processed.
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @return URI with information about the submitted task execution.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      */
     @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
@@ -156,7 +156,7 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param username     <strong>REQUIRED</strong> Permissions are granted to the account with this unique username
      * @return Status code indicating whether the operation was successful or not.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
      */
 
     @PostMapping(path = "{taskId}/permit")
@@ -190,8 +190,8 @@ public class TopologyTasksResource {
      * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
      * @param info         <strong>OPTIONAL</strong> The cause of the cancellation. If it was not specified a default cause 'Dropped by the user' will be provided
      * @return Status code indicating whether the operation was successful or not.
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
-     * @throws eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology
+     * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the user
+     * @throws AccessDeniedOrObjectDoesNotExistException   if taskId does not belong to the specified topology
      */
 
     @PostMapping(path = "{taskId}/kill")

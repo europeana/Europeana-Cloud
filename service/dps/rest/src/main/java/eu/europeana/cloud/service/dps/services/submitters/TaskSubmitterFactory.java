@@ -39,7 +39,8 @@ public class TaskSubmitterFactory {
             case TopologiesNames.DEPUBLICATION_TOPOLOGY:
                 return depublicationTaskSubmitter;
             default:
-                throw new IllegalArgumentException("Unable to find the TaskSubmitter for the given topology name: " + parameters.getTaskInfo().getTopologyName());
+                throw new IllegalArgumentException("Unable to find the TaskSubmitter for the given topology name: "
+                        + parameters.getTaskInfo().getTopologyName());
         }
     }
 }

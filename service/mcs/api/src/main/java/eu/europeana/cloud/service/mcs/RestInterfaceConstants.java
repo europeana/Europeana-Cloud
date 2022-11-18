@@ -94,8 +94,8 @@ public final class RestInterfaceConstants {
             SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/{fileName:.+}";
 
     //SimplifiedRepresentationResource
-    public static final String SIMPLIFIED_REPRESENTATION_RESOURCE
-            = SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}";
+    public static final String SIMPLIFIED_REPRESENTATION_RESOURCE =
+            SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}";
 
     private RestInterfaceConstants() {}
 }

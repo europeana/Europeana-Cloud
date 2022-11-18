@@ -466,7 +466,8 @@ public class RecordServiceClient extends MCSClient {
     @Deprecated(since = "6-SNAPSHOT")
     public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, String revisionName,
                                                              String revisionProviderId, String revisionTimestamp) throws MCSException {
-        return getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
+        return getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId,
+                DateHelper.parseISODate(revisionTimestamp)));
     }
 
 

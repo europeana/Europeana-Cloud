@@ -29,7 +29,8 @@ public class BucketsHandler {
     }
 
     public Bucket getCurrentBucket(String bucketsTableName, String objectId) {
-        String query = "SELECT object_id, bucket_id, rows_count FROM " + bucketsTableName + " WHERE object_id = '" + objectId + "';";
+        String query = "SELECT object_id, bucket_id, rows_count FROM " + bucketsTableName
+                + " WHERE object_id = '" + objectId + "';";
         ResultSet rs = session.execute(query);
 
         List<Row> rows = rs.all();
@@ -44,12 +45,14 @@ public class BucketsHandler {
     }
 
     public void increaseBucketCount(String bucketsTableName, Bucket bucket) {
-        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count + 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
+        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count + 1 WHERE object_id = '"
+                + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
     }
 
     public void decreaseBucketCount(String bucketsTableName, Bucket bucket) {
-        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count - 1 WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
+        String query = "UPDATE " + bucketsTableName + " SET rows_count = rows_count - 1 WHERE object_id = '"
+                + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
 
         Bucket actual = getBucket(bucketsTableName, bucket);
@@ -77,7 +80,8 @@ public class BucketsHandler {
 
 
     public Bucket getBucket(String bucketsTableName, Bucket bucket) {
-        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + bucket.getObjectId()
+                + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
         return getBucket(query);
     }
 
@@ -87,22 +91,26 @@ public class BucketsHandler {
     }
 
     public Bucket getNextBucket(String bucketsTableName, String objectId, Bucket bucket) {
-        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id > " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId
+                + "' AND bucket_id > " + UUID.fromString(bucket.getBucketId()) + " LIMIT 1;";
         return getBucket(query);
     }
 
     public Bucket getPreviousBucket(String bucketsTableName, String objectId) {
-        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' ORDER BY bucket_id DESC LIMIT 1;";
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId
+                + "' ORDER BY bucket_id DESC LIMIT 1;";
         return getBucket(query);
     }
 
     public Bucket getPreviousBucket(String bucketsTableName, String objectId, Bucket bucket) {
-        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId + "' AND bucket_id < " + UUID.fromString(bucket.getBucketId()) + " ORDER BY bucket_id DESC LIMIT 1;";
+        String query = "SELECT * FROM " + bucketsTableName + " where object_id = '" + objectId
+                + "' AND bucket_id < " + UUID.fromString(bucket.getBucketId()) + " ORDER BY bucket_id DESC LIMIT 1;";
         return getBucket(query);
     }
 
     public void removeBucket(String bucketsTableName, Bucket bucket) {
-        String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId() + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
+        String query = "DELETE FROM " + bucketsTableName + " WHERE object_id = '" + bucket.getObjectId()
+                + "' AND bucket_id = " + UUID.fromString(bucket.getBucketId()) + ";";
         session.execute(query);
     }
 
