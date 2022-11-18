@@ -40,5 +40,4 @@ public class RecordKafkaSubmitService implements RecordExecutionSubmitService {
             throw new KafkaSubmissionException("Could not send record to Kafka: " + dpsRecord, e);
         }
     }
-
 }
