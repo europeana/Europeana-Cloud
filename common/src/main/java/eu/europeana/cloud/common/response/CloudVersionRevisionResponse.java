@@ -13,7 +13,7 @@ import java.util.Objects;
 @JsonRootName(CloudVersionRevisionResponse.XSI_TYPE)
 public class CloudVersionRevisionResponse implements Comparable {
 
-    final static String XSI_TYPE = "cloudVersionRevisionResponse";
+    static final String XSI_TYPE = "cloudVersionRevisionResponse";
 
     @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
     private final String xsiType = XSI_TYPE;
