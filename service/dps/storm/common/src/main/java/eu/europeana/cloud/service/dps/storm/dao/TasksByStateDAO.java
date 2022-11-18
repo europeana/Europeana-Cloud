@@ -47,46 +47,56 @@ public class TasksByStateDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        insertStatement = dbService.getSession().prepare("INSERT INTO " + TASKS_BY_STATE_TABLE +
-                "("
+        insertStatement = dbService.getSession().prepare("INSERT INTO " + TASKS_BY_STATE_TABLE
+                + "("
                 + TASKS_BY_STATE_STATE_COL_NAME + ","
                 + TASKS_BY_STATE_TOPOLOGY_NAME + ","
                 + TASKS_BY_STATE_TASK_ID_COL_NAME + ","
                 + TASKS_BY_STATE_APP_ID_COL_NAME + ","
                 + TASKS_BY_STATE_TOPIC_NAME_COL_NAME + ","
-                + TASKS_BY_STATE_START_TIME +
-                ") VALUES (?,?,?,?,?,?)");
+                + TASKS_BY_STATE_START_TIME
+                + ") VALUES (?,?,?,?,?,?)");
 
-        deleteStatement = dbService.getSession().prepare("DELETE FROM " + TASKS_BY_STATE_TABLE +
-                " WHERE " + TASK_INFO_STATE + " = ?" +
-                " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
-                " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
+        deleteStatement = dbService.getSession().prepare("DELETE FROM " + TASKS_BY_STATE_TABLE
+                + " WHERE " + TASK_INFO_STATE + " = ?"
+                + " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?"
+                + " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?"
+        );
 
         findTaskStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + TASK_INFO_STATE + " = ?" +
-                        " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
-                        " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?");
+                "SELECT *"
+                        + " FROM " + TASKS_BY_STATE_TABLE
+                        + " WHERE " + TASK_INFO_STATE + " = ?"
+                        + " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?"
+                        + " AND " + TASKS_BY_STATE_TASK_ID_COL_NAME + " = ?"
+        );
 
 
         findTasksByStateStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE + " WHERE " + TASK_INFO_STATE + " IN ?");
+                "SELECT *"
+                        + " FROM " + TASKS_BY_STATE_TABLE
+                        + " WHERE " + TASK_INFO_STATE
+                        + " IN ?"
+        );
 
 
         findTasksByStateAndTopologyStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + TASK_INFO_STATE + " IN ?" +
-                        " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?");
+                "SELECT * "
+                        + " FROM " + TASKS_BY_STATE_TABLE
+                        + " WHERE " + TASK_INFO_STATE + " IN ?"
+                        + " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?"
+        );
 
         findTaskByStateStatement = dbService.getSession().prepare(
                 String.format("select * from %s where %s in ? limit 1", TASKS_BY_STATE_TABLE, TASK_INFO_STATE)
         );
 
         findTaskByStateAndTopologyStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + TASKS_BY_STATE_TABLE +
-                        " WHERE " + TASK_INFO_STATE + " IN ?" +
-                        " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?" +
-                        " LIMIT 1");
+                "SELECT * "
+                        + " FROM " + TASKS_BY_STATE_TABLE
+                        + " WHERE " + TASK_INFO_STATE + " IN ?"
+                        + " AND " + TASKS_BY_STATE_TOPOLOGY_NAME + " = ?"
+                        + " LIMIT 1");
 
     }
 

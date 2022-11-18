@@ -62,16 +62,16 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
         processedFilesCountStatement = dbService.getSession().prepare(
                 "SELECT resource_num "
-                        + "FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
-                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
-                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?" +
-                        " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1"
+                        + "FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?"
+                        + " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?"
+                        + " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1"
         );
 
         removeNotificationsByTaskId = dbService.getSession().prepare(
-                "DELETE FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
-                        " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
-                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?"
+                "DELETE FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?"
+                        + " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?"
         );
 
     }

@@ -63,7 +63,8 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     protected void prepareStatements() {
         insertErrorStatement = dbService.getSession().prepare(
                 "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
-                        + "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
+                        + "("
+                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
                         + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
                         + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
                         + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
@@ -119,8 +120,9 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
         removeErrorNotifications = dbService.getSession().prepare(
                 "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
-                        + " = ? and " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?");
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
+                        "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?"
+        );
     }
 
     public void insertErrorCounter(long taskId, String errorType, int number) {

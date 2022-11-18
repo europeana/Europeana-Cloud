@@ -61,8 +61,8 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
         );
 
         selectAttributesStatement = dbService.getSession().prepare(
-                "SELECT * " +
-                        "FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE
+                "SELECT * "
+                        + "FROM " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TABLE
                         + " WHERE " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_TASK_ID + " = ? "
                         + "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_XPATH + " = ? "
                         + "AND " + CassandraTablesAndColumnsNames.ATTRIBUTE_STATISTICS_NODE_VALUE + " = ? LIMIT ?"
