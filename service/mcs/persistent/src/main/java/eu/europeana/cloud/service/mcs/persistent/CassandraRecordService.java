@@ -154,7 +154,6 @@ public class CassandraRecordService implements RecordService {
 
         checkIfDatasetExists(dataSetId, providerId);
 
-        Date now = Calendar.getInstance().getTime();
         if (version == null) {
             version = generateTimeUUID();
         }
@@ -164,8 +163,7 @@ public class CassandraRecordService implements RecordService {
         }
         LOGGER.debug("Confirmed provider, id={} exists.", providerId);
 
-        boolean cloudExists = uis.existsCloudId(cloudId);
-        LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
+
         //
         Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
         if (oneDatasetFor.isPresent()) {
@@ -175,8 +173,11 @@ public class CassandraRecordService implements RecordService {
                         " to more than one dataset.");
             }
         }
-        //
+
+        boolean cloudExists = uis.existsCloudId(cloudId);
+        Date now = Calendar.getInstance().getTime();
         if (cloudExists) {
+            LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
             Representation representation =
                     recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
             dataSetService.addAssignmentToMainTables(
@@ -280,7 +281,6 @@ public class CassandraRecordService implements RecordService {
     public Representation persistRepresentation(String globalId, String schema, String version)
             throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
             CannotPersistEmptyRepresentationException {
-        Date now = Calendar.getInstance().getTime();
         Representation rep = recordDAO.getRepresentation(globalId, schema, version);
         if (rep == null) {
             throw new RepresentationNotExistsException();
@@ -295,6 +295,8 @@ public class CassandraRecordService implements RecordService {
             throw new CannotPersistEmptyRepresentationException();
         }
 
+
+        Date now = Calendar.getInstance().getTime();
         recordDAO.persistRepresentation(globalId, schema, version, now);
 
         rep.setPersistent(true);
@@ -325,7 +327,6 @@ public class CassandraRecordService implements RecordService {
     @Override
     public boolean putContent(String globalId, String schema, String version, File file, InputStream content)
             throws CannotModifyPersistentRepresentationException, RepresentationNotExistsException {
-        DateTime now = new DateTime();
         Representation representation = getRepresentation(globalId, schema, version);
         if (representation.isPersistent()) {
             throw new CannotModifyPersistentRepresentationException();
@@ -347,6 +348,7 @@ public class CassandraRecordService implements RecordService {
             throw new SystemException(ex);
         }
 
+        DateTime now = new DateTime();
         file.setMd5(result.getMd5());
         DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
         file.setDate(fmt.print(now));

@@ -173,7 +173,6 @@ public class CassandraDataSetService implements DataSetService {
     public DataSet createDataSet(String providerId, String dataSetId,
                                  String description) throws ProviderNotExistsException,
             DataSetAlreadyExistsException {
-        Date now = new Date();
         if (uis.getProvider(providerId) == null) {
             throw new ProviderNotExistsException();
         }
@@ -184,6 +183,7 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetAlreadyExistsException("Data set with provided name already exists");
         }
 
+        Date now = new Date();
         return dataSetDAO
                 .createDataSet(providerId, dataSetId, description, now);
     }
@@ -194,7 +194,6 @@ public class CassandraDataSetService implements DataSetService {
     @Override
     public DataSet updateDataSet(String providerId, String dataSetId,
                                  String description) throws DataSetNotExistsException {
-        Date now = new Date();
 
         // check if dataset exists
         DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
@@ -202,6 +201,7 @@ public class CassandraDataSetService implements DataSetService {
             throw new DataSetNotExistsException("Provider " + providerId
                     + " does not have data set with id " + dataSetId);
         }
+        Date now = new Date();
         return dataSetDAO
                 .createDataSet(providerId, dataSetId, description, now);
     }
@@ -436,8 +436,6 @@ public class CassandraDataSetService implements DataSetService {
 
     private <E> ResultSlice<E> loadPage(String dataId, String nextToken, int limit,
                                         String bucketsTableName, OneBucketLoader<E> oneBucketLoader) {
-        List<E> result = new ArrayList<>(limit);
-        String resultNextSlice = null;
 
         Bucket bucket;
         PagingState state;
@@ -460,6 +458,7 @@ public class CassandraDataSetService implements DataSetService {
             bucket = getAssignmentBucketId(bucketsTableName, parts[1], state, dataId);
         }
 
+        List<E> result = new ArrayList<>(limit);
         // if the bucket is null it means we reached the end of data
         if (bucket == null) {
             return new ResultSlice<>(null, result);
@@ -468,6 +467,8 @@ public class CassandraDataSetService implements DataSetService {
         ResultSlice<E> oneBucketResult = oneBucketLoader.loadData(bucket, state, limit);
         result.addAll(oneBucketResult.getResults());
 
+
+        String resultNextSlice = null;
         if (result.size() == limit) {
             if (oneBucketResult.getNextSlice() != null) {
                 // we reached the page limit, prepare the next slice string to be used for the next page

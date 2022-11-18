@@ -55,8 +55,6 @@ public class SwiftContentDAO implements ContentDAO {
     public void getContent(String fileName, long start, long end, OutputStream os)
             throws IOException, FileNotExistsException, ContainerNotFoundException {
         BlobStore blobStore = connectionProvider.getBlobStore();
-        String container = connectionProvider.getContainer();
-
         if (!blobStore.blobExists(connectionProvider.getContainer(), fileName)) {
             throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
         }
@@ -69,6 +67,7 @@ public class SwiftContentDAO implements ContentDAO {
         } else if (start == -1 && end > -1) {
             options = new GetOptions().range(0, end);
         }
+        String container = connectionProvider.getContainer();
         Payload payload = blobStore.getBlob(container, fileName, options).getPayload();
         if (payload != null) {
             ByteStreams.copy(payload.openStream(), os);
@@ -79,13 +78,13 @@ public class SwiftContentDAO implements ContentDAO {
     public void copyContent(String sourceObjectId, String trgObjectId)
             throws FileNotExistsException, FileAlreadyExistsException {
         BlobStore blobStore = connectionProvider.getBlobStore();
-        String container = connectionProvider.getContainer();
         if (!blobStore.blobExists(connectionProvider.getContainer(), sourceObjectId)) {
             throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceObjectId));
         }
         if (blobStore.blobExists(connectionProvider.getContainer(), trgObjectId)) {
             throw new FileAlreadyExistsException(String.format(MSG_TARGET_FILE_ALREADY_EXISTS, trgObjectId));
         }
+        String container = connectionProvider.getContainer();
         Blob blob = blobStore.getBlob(container, sourceObjectId);
         Blob newBlob = blobStore.blobBuilder(trgObjectId).name(trgObjectId).payload(blob.getPayload()).build();
         blobStore.putBlob(container, newBlob);
@@ -95,10 +94,10 @@ public class SwiftContentDAO implements ContentDAO {
     public void deleteContent(String fileName)
             throws FileNotExistsException {
         BlobStore blobStore = connectionProvider.getBlobStore();
-        String container = connectionProvider.getContainer();
         if (!blobStore.blobExists(connectionProvider.getContainer(), fileName)) {
             throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
         }
+        String container = connectionProvider.getContainer();
         blobStore.removeBlob(container, fileName);
     }
 

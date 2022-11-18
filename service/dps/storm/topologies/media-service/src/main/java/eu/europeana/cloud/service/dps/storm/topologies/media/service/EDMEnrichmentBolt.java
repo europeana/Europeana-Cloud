@@ -52,6 +52,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.debug("Starting EDM enrichment");
+        // It is assigning time stamp to variable, so It has to be assigned there.
+        @SuppressWarnings("java:S1941")
         Instant processingStartTime = Instant.now();
         if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
             LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);

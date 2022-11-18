@@ -45,6 +45,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.info("Starting resource processing");
+        // It is assigning time stamp to variable, so It has to be assigned there.
+        @SuppressWarnings("java:S1941")
         Instant processingStartTime = Instant.now();
         StringBuilder exception = new StringBuilder();
         var opId = RandomStringUtils.random(12, "0123456789abcdef");

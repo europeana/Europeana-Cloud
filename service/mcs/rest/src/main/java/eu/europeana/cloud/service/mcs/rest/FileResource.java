@@ -309,12 +309,11 @@ public class FileResource {
         }
 
         static ContentRange parse(String range) throws WrongContentRangeException {
-
-            long start;
-            long end;
             if (range == null) {
                 throw new IllegalArgumentException("Range should not be null");
             }
+            long start;
+            long end;
             Matcher rangeMatcher = BYTES_PATTERN.matcher(range);
             if (rangeMatcher.matches()) {
                 try {

@@ -65,6 +65,8 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @Override
     public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
         LOGGER.debug("Starting edm:object processing");
+        // It is assigning time stamp to variable, so It has to be assigned there.
+        @SuppressWarnings("java:S1941")
         var processingStartTime = Instant.now();
         var exception = new StringBuilder();
         var opId = RandomStringUtils.random(12, "0123456789abcdef");

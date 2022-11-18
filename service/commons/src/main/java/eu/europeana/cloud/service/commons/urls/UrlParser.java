@@ -215,11 +215,11 @@ public class UrlParser {
     }
 
     private boolean matches(Map<UrlPart, String> parts, List<UrlPart> pattern) {
-        int counter = 0;
-
         if (parts.keySet().size() != pattern.size()) {
             return false;
         }
+
+        int counter = 0;
         for (Map.Entry<UrlPart, String> entry : parts.entrySet()) {
             UrlPart urlPart = entry.getKey();
             UrlPart part = pattern.get(counter);

@@ -368,10 +368,11 @@ public class DpsTaskValidator {
     }
 
     private void validateId(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-        long taskId = task.getTaskId();
         if (constraint.getExpectedValue() == null) {  //any id
             return;
         }
+
+        long taskId = task.getTaskId();
         if (constraint.getExpectedValue().equals(taskId + "")) {//exacted id
             return;
         }
