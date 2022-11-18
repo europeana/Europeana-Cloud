@@ -21,8 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping(RestInterfaceConstants.DATA_PROVIDERS)
 public class DataProvidersResource {
 
-    private final DataProviderService providerService;
 	private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
+    private final DataProviderService providerService;
 
 	public DataProvidersResource(DataProviderService providerService) {
 		this.providerService = providerService;

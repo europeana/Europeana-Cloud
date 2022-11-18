@@ -31,6 +31,10 @@ public class IndexWrapper {
         return instance;
     }
 
+    public IndexWrapper() {
+        this(loadProperties());
+    }
+
     public IndexWrapper(Properties properties) {
         this.properties = properties;
         try {
@@ -40,9 +44,6 @@ public class IndexWrapper {
         }
     }
 
-    public IndexWrapper() {
-        this(loadProperties());
-    }
 
     private static Properties loadProperties() {
         try {

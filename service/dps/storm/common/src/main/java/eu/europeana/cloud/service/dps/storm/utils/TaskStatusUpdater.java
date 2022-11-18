@@ -24,13 +24,6 @@ import java.util.Optional;
 public class TaskStatusUpdater {
 
 
-    public TaskStatusUpdater(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO,
-                             String applicationIdentifier) {
-        this.taskInfoDAO = taskInfoDAO;
-        this.tasksByStateDAO = tasksByStateDAO;
-        this.applicationIdentifier = applicationIdentifier;
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusUpdater.class);
 
     private static TaskStatusUpdater instance;
@@ -40,6 +33,13 @@ public class TaskStatusUpdater {
     private final TasksByStateDAO tasksByStateDAO;
 
     private final String applicationIdentifier;
+
+    public TaskStatusUpdater(CassandraTaskInfoDAO taskInfoDAO, TasksByStateDAO tasksByStateDAO,
+                             String applicationIdentifier) {
+        this.taskInfoDAO = taskInfoDAO;
+        this.tasksByStateDAO = tasksByStateDAO;
+        this.applicationIdentifier = applicationIdentifier;
+    }
 
     public static synchronized TaskStatusUpdater getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {

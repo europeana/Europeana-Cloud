@@ -77,6 +77,12 @@ public class Representation {
     private boolean persistent;
 
     /**
+     * A list of revisions which constitute this representation.
+     */
+    @JacksonXmlElementWrapper(useWrapping = false)
+    private List<Revision> revisions = new ArrayList<>(0);
+
+    /**
      * Creates a new instance of this class.
      */
     public Representation() {
@@ -134,11 +140,6 @@ public class Representation {
         this.revisions = revisions;
     }
 
-    /**
-     * A list of revisions which constitute this representation.
-     */
-    @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Revision> revisions = new ArrayList<>(0);
 
 
 

@@ -2,14 +2,13 @@ package eu.europeana.cloud.service.web.common;
 
 public class LoggingMessageBuilder {
 
-
+    private static String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %REQUEST_METHOD %RESOURCE_PATH Request received";
     private int statusCode;
     private long requestTime;
     private String remoteAddr;
     private String resourcePath;
     private String requestMethod;
-    
-    private static String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %REQUEST_METHOD %RESOURCE_PATH Request received";
+
     
     public LoggingMessageBuilder(){
     }

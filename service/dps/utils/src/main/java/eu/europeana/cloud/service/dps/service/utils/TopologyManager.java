@@ -13,8 +13,9 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TopologyManager {
     public static final String separatorChar = ",";
-    private List<String> topologies = null;
+
     public static final Logger logger = LoggerFactory.getLogger(TopologyManager.class);
+    private List<String> topologies = null;
 
     /**
      * Construct {@link eu.europeana.cloud.service.dps.service.utils.TopologyManager}.

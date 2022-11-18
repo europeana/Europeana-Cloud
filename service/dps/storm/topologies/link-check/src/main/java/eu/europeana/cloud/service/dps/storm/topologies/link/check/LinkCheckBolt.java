@@ -83,7 +83,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private void ackAllSourceTuplesForFile(FileInfo edmFile) {
-        for (Tuple tuple : edmFile.sourceTupples) {
+        for (Tuple tuple : edmFile.sourceTuples) {
             outputCollector.ack(tuple);
         }
     }
@@ -152,7 +152,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
 
     private boolean cachedFileIsFromPreviousAttempt(StormTaskTuple tuple, FileInfo cachedEdmFile) {
-        return cachedEdmFile.attempNumber < tuple.getRecordAttemptNumber();
+        return cachedEdmFile.attemptNumber < tuple.getRecordAttemptNumber();
     }
 }
 
@@ -172,23 +172,23 @@ class ResourceInfo {
 @ToString
 class FileInfo {
 
-    FileInfo(long taskId, String fileUrl, int expectedNumberOfLinks, int linksChecked, int attempNumber) {
-        this.taskId = taskId;
-        this.fileUrl = fileUrl;
-        this.expectedNumberOfLinks = expectedNumberOfLinks;
-        this.linksChecked = linksChecked;
-        this.attempNumber = attempNumber;
-    }
-
     long taskId;
     String fileUrl;
     int expectedNumberOfLinks;
     int linksChecked;
-    int attempNumber;
+    int attemptNumber;
     String errors = "";
-    List<Tuple> sourceTupples=new ArrayList<>();
+    List<Tuple> sourceTuples =new ArrayList<>();
+
+    FileInfo(long taskId, String fileUrl, int expectedNumberOfLinks, int linksChecked, int attemptNumber) {
+        this.taskId = taskId;
+        this.fileUrl = fileUrl;
+        this.expectedNumberOfLinks = expectedNumberOfLinks;
+        this.linksChecked = linksChecked;
+        this.attemptNumber = attemptNumber;
+    }
 
     void addSourceTuple(Tuple anchorTuple) {
-        sourceTupples.add(anchorTuple);
+        sourceTuples.add(anchorTuple);
     }
 }

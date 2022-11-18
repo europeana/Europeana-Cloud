@@ -38,16 +38,17 @@ public class UISClient implements AutoCloseable {
 
     private static final String OTHER_CLIENT_MESSAGE = "Other client error";
 
-    private UrlProvider urlProvider;
     private static final Logger LOGGER = LoggerFactory.getLogger(UISClient.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_IN_MILLIS = 20000;
     private static final int DEFAULT_READ_TIMEOUT_IN_MILLIS = 60000;
+    private UrlProvider urlProvider;
 
     protected final Client client =
             ClientBuilder
                     .newBuilder()
                     .register(JacksonFeature.class)
                     .build();
+
 
     /**
      * Creates a new instance of this class. Same as {@link #UISClient(String)}

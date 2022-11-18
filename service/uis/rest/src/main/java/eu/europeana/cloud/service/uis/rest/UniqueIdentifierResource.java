@@ -4,7 +4,6 @@ import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
@@ -12,9 +11,6 @@ import eu.europeana.cloud.service.uis.exception.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,11 +22,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class UniqueIdentifierResource {
 
+    private static final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
     private final UniqueIdentifierService uniqueIdentifierService;
     private final DataProviderResource dataProviderResource;
     private final ACLServiceWrapper aclWrapper;
 
-    private static final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
 
     public UniqueIdentifierResource(
             UniqueIdentifierService uniqueIdentifierService,

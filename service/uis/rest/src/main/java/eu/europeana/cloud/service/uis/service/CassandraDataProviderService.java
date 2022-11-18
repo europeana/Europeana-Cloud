@@ -19,13 +19,13 @@ import java.util.List;
  */
 public class CassandraDataProviderService implements DataProviderService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderService.class);
     private final CassandraDataProviderDAO dataProviderDao;
 
     public CassandraDataProviderService(CassandraDataProviderDAO dataProviderDao) {
         this.dataProviderDao = dataProviderDao;
     }
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDataProviderService.class);
 
     @Override
     public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {

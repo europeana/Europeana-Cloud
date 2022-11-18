@@ -15,9 +15,9 @@ import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
  */
 public class StaticUrlProvider implements UrlProvider {
 
-	private String baseUrl;
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StaticUrlProvider.class);
+	private String baseUrl;
+
 	
 	/**
 	 * Creates a new instance of this class.

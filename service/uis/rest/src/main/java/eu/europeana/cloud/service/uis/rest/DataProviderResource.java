@@ -5,17 +5,17 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
+import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
+import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.*;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class DataProviderResource {
 
+    protected static final String LOCAL_ID_CLASS_NAME = "LocalId";
     private final UniqueIdentifierService uniqueIdentifierService;
     private final DataProviderService providerService;
     private final ACLServiceWrapper aclWrapper;
@@ -36,7 +37,6 @@ public class DataProviderResource {
         this.aclWrapper = aclWrapper;
     }
 
-    protected static final String LOCAL_ID_CLASS_NAME = "LocalId";
 
 
     /**
