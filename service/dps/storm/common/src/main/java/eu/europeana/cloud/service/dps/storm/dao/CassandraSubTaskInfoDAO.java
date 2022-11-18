@@ -45,33 +45,43 @@ public class CassandraSubTaskInfoDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        subtaskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE + "("
-                + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION
-                + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-                + ") VALUES (?,?,?,?,?,?,?,?,?)");
+        subtaskInsertStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE
+                        + "("
+                        + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_STATE
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION
+                        + "," + CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
+                        + ") VALUES (?,?,?,?,?,?,?,?,?)"
+        );
 
         processedFilesCountStatement = dbService.getSession().prepare(
-                "SELECT resource_num FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
+                "SELECT resource_num "
+                        + "FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
                         " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
                         " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?" +
-                        " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1");
+                        " ORDER BY " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " DESC limit 1"
+        );
 
         removeNotificationsByTaskId = dbService.getSession().prepare(
-                "delete from " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
+                "DELETE FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE +
                         " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?" +
-                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?");
+                        " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?"
+        );
 
     }
 
-    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state, String infoTxt, String additionalInformations, String resultResource) {
-        dbService.getSession().execute(subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName, resource, state, infoTxt, additionalInformations, resultResource));
+    public void insert(int resourceNum, long taskId, String topologyName, String resource, String state,
+                       String infoTxt, String additionalInformation, String resultResource) {
+        dbService.getSession().execute(
+                subtaskInsertStatement.bind(taskId, bucketNumber(resourceNum), resourceNum, topologyName,
+                        resource, state, infoTxt, additionalInformation, resultResource)
+        );
     }
 
     public BoundStatement insertNotificationStatement(Notification notification) {

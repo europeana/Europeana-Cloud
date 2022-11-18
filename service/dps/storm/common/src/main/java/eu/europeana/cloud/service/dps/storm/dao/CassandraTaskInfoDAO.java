@@ -66,13 +66,17 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     @Override
     protected void prepareStatements() {
         taskSearchStatement = dbService.getSession().prepare(
-                "SELECT * FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE "
-                        + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+                "SELECT * "
+                        + "FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " WHERE "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
-        updateCounters = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , "
-                + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE "
-                + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateCounters = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? WHERE "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
         updateCounters = dbService.getSession().prepare(
                 "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "
@@ -81,58 +85,71 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                         + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT + " = ? , "
                         + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + " = ? , "
                         + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + " = ?" +
-                        " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+                        " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
-        taskInsertStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE +
-                "(" + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_STATE + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIMESTAMP + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT + ","
-                + CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION +
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        taskInsertStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + "("
+                        + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_STATE + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIMESTAMP + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT + ","
+                        + CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION +
+                        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        );
 
-        finishTask = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , "
-                + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? " + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        finishTask = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP + " = ? "
+                        + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
-        updateStatusExpectedSizeStatement = dbService.getSession().prepare("UPDATE "
-                + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , "
-                + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER
-                + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateStatusExpectedSizeStatement = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? , "
+                        + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER
+                        + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
-        updateStateStatement = dbService.getSession().prepare("UPDATE "
-                + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE
-                + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION
-                + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateStateStatement = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_STATE
+                        + " = ? , " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION
+                        + " = ?  WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
 
-        updateSubmitParameters=prepare(
+        updateSubmitParameters = prepare(
                 "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE + " SET "
                         + CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP + " = ?"
                         + ", " + CassandraTablesAndColumnsNames.TASK_INFO_STATE + " = ? "
                         + ", " + CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION + " = ? "
                         + ", " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER + " = ? "
+                        + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+        );
+
+        updatePostProcessedRecordsCount = prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT + " = ?"
                         + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
 
-        updatePostProcessedRecordsCount = prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT + " = ?" +
-                " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
-
-        updateExpectedPostProcessedRecordsNumber = prepare("UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER + " = ?" +
-                " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
+        updateExpectedPostProcessedRecordsNumber = prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER + " = ?"
+                        + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?");
     }
 
     /**
@@ -244,9 +261,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
     public void updateSubmitParameters(SubmitTaskParameters parameters)
             throws NoHostAvailableException, QueryExecutionException {
-        dbService.getSession().execute(updateSubmitParameters.bind(parameters.getTaskInfo().getStartTimestamp(),
-                String.valueOf(parameters.getTaskInfo().getState()), parameters.getTaskInfo().getStateDescription(), parameters.getTaskInfo().getExpectedRecordsNumber(),
-                parameters.getTask().getTaskId()));
+        dbService.getSession().execute(
+                updateSubmitParameters.bind(
+                        parameters.getTaskInfo().getStartTimestamp(),
+                        String.valueOf(parameters.getTaskInfo().getState()), parameters.getTaskInfo().getStateDescription(),
+                        parameters.getTaskInfo().getExpectedRecordsNumber(), parameters.getTask().getTaskId()
+                )
+        );
     }
 
 }

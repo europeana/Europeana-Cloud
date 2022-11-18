@@ -40,19 +40,25 @@ public class GeneralStatisticsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        updateStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
-                " SET " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE + " = " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE + " + 1 " +
-                "WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH + " = ?");
+        updateStatement = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE + " = "
+                        + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_OCCURRENCE + " + 1 "
+                        + "WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_PARENT_XPATH + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_NODE_XPATH + " = ?"
+        );
 
-        removeGeneralStatisticsStatement = dbService.getSession().prepare("DELETE " +
-                " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
+        removeGeneralStatisticsStatement = dbService.getSession().prepare(
+                "DELETE FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?"
+        );
 
-        searchGeneralStatistcsByTaskIdStatement = dbService.getSession().prepare("SELECT *" +
-                " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?");
+        searchGeneralStatistcsByTaskIdStatement = dbService.getSession().prepare(
+                "SELECT *"
+                        + " FROM " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.GENERAL_STATISTICS_TASK_ID + " = ?"
+        );
     }
 
     /**
@@ -70,7 +76,8 @@ public class GeneralStatisticsDAO extends CassandraDAO {
     }
 
     public List<GeneralStatistics> searchGeneralStatistics(long taskId) {
-        return dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId)).all().stream().map(this::createGeneralStatistics).collect(Collectors.toList());
+        return dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId))
+                .all().stream().map(this::createGeneralStatistics).collect(Collectors.toList());
     }
 
     private GeneralStatistics createGeneralStatistics(Row row) {

@@ -47,22 +47,30 @@ public class StatisticsReportDAO extends CassandraDAO {
     @Override
     protected void prepareStatements() {
 
-        storeStatisticsReportStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " (" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + "," +
-                CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
-                " VALUES (?,textasblob(?))");
+        storeStatisticsReportStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE
+                        + " ("
+                        + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + ","
+                        + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA
+                        + ") VALUES (?,textasblob(?))"
+        );
 
-        checkStatisticsReportStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID +
-                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        checkStatisticsReportStatement = dbService.getSession().prepare(
+                "SELECT " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID
+                        + " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?"
+        );
 
-        getStatisticsReportStatement = dbService.getSession().prepare("SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")" +
-                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        getStatisticsReportStatement = dbService.getSession().prepare(
+                "SELECT blobastext(" + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_REPORT_DATA + ")"
+                        + " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?"
+        );
 
-        removeStatisticsReportStatement = dbService.getSession().prepare("DELETE " +
-                " FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?");
+        removeStatisticsReportStatement = dbService.getSession().prepare(
+                "DELETE  FROM " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.STATISTICS_REPORTS_TASK_ID + " = ?"
+        );
     }
 
     public void storeReport(long taskId, StatisticsReport report) {

@@ -48,28 +48,36 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        updateNodeStatement = dbService.getSession().prepare("UPDATE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
-                " SET " + CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE + " = " + CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE + " + ? " +
-                "WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ?");
+        updateNodeStatement = dbService.getSession().prepare(
+                "UPDATE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE
+                        + " SET " + CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE + " = "
+                        + CassandraTablesAndColumnsNames.NODE_STATISTICS_OCCURRENCE + " + ? "
+                        + "WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE + " = ?"
+        );
 
 
-        searchNodesStatement = dbService.getSession().prepare("SELECT *" +
-                " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? limit ?");
+        searchNodesStatement = dbService.getSession().prepare(
+                "SELECT *"
+                        + " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ? limit ?"
+        );
 
 
-        searchNodesStatementAll = dbService.getSession().prepare("SELECT *" +
-                " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+        searchNodesStatementAll = dbService.getSession().prepare(
+                "SELECT *"
+                        + " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?"
+        );
 
-        deleteNodesStatisticsStatement = dbService.getSession().prepare("DELETE " +
-                " FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?");
+        deleteNodesStatisticsStatement = dbService.getSession().prepare(
+                "DELETE FROM " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.NODE_STATISTICS_TASK_ID + " = ? "
+                        +  "AND " + CassandraTablesAndColumnsNames.NODE_STATISTICS_NODE_XPATH + " = ?"
+        );
     }
 
     /**

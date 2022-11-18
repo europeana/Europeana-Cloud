@@ -53,53 +53,66 @@ public class ProcessedRecordsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        insertStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
-                "("
-                + PROCESSED_RECORDS_TASK_ID + ","
-                + PROCESSED_RECORDS_RECORD_ID + ","
-                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
-                + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
-                + PROCESSED_RECORDS_DST_IDENTIFIER + ","
-                + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
-                + PROCESSED_RECORDS_STATE + ","
-                + PROCESSED_RECORDS_START_TIME + ","
-                + PROCESSED_RECORDS_INFO_TEXT + ","
-                + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                ") VALUES (?,?,?,?,?,?,?,?,?,?)");
+        insertStatement = dbService.getSession().prepare(
+                "INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                        "("
+                        + PROCESSED_RECORDS_TASK_ID + ","
+                        + PROCESSED_RECORDS_RECORD_ID + ","
+                        + PROCESSED_RECORDS_BUCKET_NUMBER + ","
+                        + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
+                        + PROCESSED_RECORDS_DST_IDENTIFIER + ","
+                        + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
+                        + PROCESSED_RECORDS_STATE + ","
+                        + PROCESSED_RECORDS_START_TIME + ","
+                        + PROCESSED_RECORDS_INFO_TEXT + ","
+                        + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
+                        ") VALUES (?,?,?,?,?,?,?,?,?,?)"
+        );
 
-        updateRecordStateStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
-                "("
-                + PROCESSED_RECORDS_TASK_ID + ","
-                + PROCESSED_RECORDS_RECORD_ID + ","
-                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
-                + PROCESSED_RECORDS_STATE +
-                ") VALUES (?,?,?,?)");
+        updateRecordStateStatement = dbService.getSession().prepare(
+                "INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                        "("
+                        + PROCESSED_RECORDS_TASK_ID + ","
+                        + PROCESSED_RECORDS_RECORD_ID + ","
+                        + PROCESSED_RECORDS_BUCKET_NUMBER + ","
+                        + PROCESSED_RECORDS_STATE +
+                        ") VALUES (?,?,?,?)"
+        );
 
-        updateRecordStartTime = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
-                "("
-                + PROCESSED_RECORDS_TASK_ID + ","
-                + PROCESSED_RECORDS_RECORD_ID + ","
-                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
-                + PROCESSED_RECORDS_START_TIME +
-                ") VALUES (?,?,?,?)");
+        updateRecordStartTime = dbService.getSession().prepare(
+                "INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                        "("
+                        + PROCESSED_RECORDS_TASK_ID + ","
+                        + PROCESSED_RECORDS_RECORD_ID + ","
+                        + PROCESSED_RECORDS_BUCKET_NUMBER + ","
+                        + PROCESSED_RECORDS_START_TIME +
+                        ") VALUES (?,?,?,?)"
+        );
 
-        updateAttemptNumberStatement = dbService.getSession().prepare("INSERT INTO " + PROCESSED_RECORDS_TABLE +
-                "("
-                + PROCESSED_RECORDS_TASK_ID + ","
-                + PROCESSED_RECORDS_RECORD_ID + ","
-                + PROCESSED_RECORDS_BUCKET_NUMBER + ","
-                + PROCESSED_RECORDS_ATTEMPT_NUMBER +
-                ") VALUES (?,?,?,?)");
+        updateAttemptNumberStatement = dbService.getSession().prepare(
+                "INSERT INTO " + PROCESSED_RECORDS_TABLE +
+                        "("
+                        + PROCESSED_RECORDS_TASK_ID + ","
+                        + PROCESSED_RECORDS_RECORD_ID + ","
+                        + PROCESSED_RECORDS_BUCKET_NUMBER + ","
+                        + PROCESSED_RECORDS_ATTEMPT_NUMBER +
+                        ") VALUES (?,?,?,?)"
+        );
 
-        selectByPrimaryKeyStatement = dbService.getSession().prepare("SELECT "
-                + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
-                + PROCESSED_RECORDS_DST_IDENTIFIER + ","
-                + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
-                + PROCESSED_RECORDS_STATE + ","
-                + PROCESSED_RECORDS_START_TIME + ","
-                + PROCESSED_RECORDS_INFO_TEXT + ","
-                + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
-                " FROM " + PROCESSED_RECORDS_TABLE + " WHERE " + PROCESSED_RECORDS_TASK_ID + " = ? AND " + PROCESSED_RECORDS_RECORD_ID + " = ? AND " + PROCESSED_RECORDS_BUCKET_NUMBER + " = ?");
+        selectByPrimaryKeyStatement = dbService.getSession().prepare(
+                "SELECT " + PROCESSED_RECORDS_ATTEMPT_NUMBER + ","
+                        + PROCESSED_RECORDS_DST_IDENTIFIER + ","
+                        + PROCESSED_RECORDS_TOPOLOGY_NAME + ","
+                        + PROCESSED_RECORDS_STATE + ","
+                        + PROCESSED_RECORDS_START_TIME + ","
+                        + PROCESSED_RECORDS_INFO_TEXT + ","
+                        + PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS +
+                        " FROM " + PROCESSED_RECORDS_TABLE
+                        + " WHERE " + PROCESSED_RECORDS_TASK_ID
+                        + " = ? AND " + PROCESSED_RECORDS_RECORD_ID
+                        + " = ? AND " + PROCESSED_RECORDS_BUCKET_NUMBER
+                        + " = ?"
+        );
 
     }
 

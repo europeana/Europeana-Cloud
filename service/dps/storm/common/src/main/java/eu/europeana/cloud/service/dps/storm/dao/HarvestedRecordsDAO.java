@@ -55,18 +55,19 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        insertHarvestedRecordStatement = dbService.getSession().prepare("INSERT INTO "
-                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE + "("
-                + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE
-                + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5
-                + ") VALUES(?,?,?,?,?,?,?,?,?);"
+        insertHarvestedRecordStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+                        + "("
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_DATE + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LATEST_HARVEST_MD5 + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5 + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + ","
+                        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5
+                        + ") VALUES(?,?,?,?,?,?,?,?,?);"
         );
 
         updateLatestHarvestDateAndMd5Statement = dbService.getSession().prepare("UPDATE "

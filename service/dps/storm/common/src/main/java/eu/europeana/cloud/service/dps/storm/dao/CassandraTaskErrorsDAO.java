@@ -61,45 +61,66 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
 
     @Override
     protected void prepareStatements() {
-        insertErrorStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
-                "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
-                + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS +
-                ") VALUES (?,?,?,?,?)");
+        insertErrorStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+                        + "(" + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
+                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
+                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
+                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
+                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS + ")"
+                        + " VALUES (?,?,?,?,?)"
+        );
 
-        insertErrorCounterStatement = dbService.getSession().prepare("INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                "(" + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + ","
-                + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + ","
-                + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
-                + ") VALUES (?,?,?)");
+        insertErrorCounterStatement = dbService.getSession().prepare(
+                "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        + "("
+                        + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + ","
+                        + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + ","
+                        + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+                        + ") VALUES (?,?,?)"
+        );
 
-        selectErrorCountsStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER +
-                " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
+        selectErrorCountsStatement = dbService.getSession().prepare(
+                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+        );
 
-        selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER +
-                " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?" +
-                " AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?");
+        selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare(
+                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
+                        + " AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?"
+        );
 
-        selectErrorTypeStatement = dbService.getSession().prepare("SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE +
-                " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
+        selectErrorTypeStatement = dbService.getSession().prepare(
+                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
+                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+        );
 
-        selectErrorsStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?");
+        selectErrorsStatement = dbService.getSession().prepare(
+                "SELECT * "
+                        + "FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
+        );
 
-        selectErrorStatement = dbService.getSession().prepare("SELECT * FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? " +
-                "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1");
+        selectErrorStatement = dbService.getSession().prepare(
+                "SELECT * "
+                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? "
+                        + "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1"
+        );
 
-        removeErrorCountsStatement = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? ");
+        removeErrorCountsStatement = dbService.getSession().prepare(
+                "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+                        +  " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+        );
 
-        removeErrorNotifications = dbService.getSession().prepare("DELETE  FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE +
-                " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? and " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?");
+        removeErrorNotifications = dbService.getSession().prepare(
+                "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID
+                        + " = ? and " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?");
     }
 
     public void insertErrorCounter(long taskId, String errorType, int number) {
