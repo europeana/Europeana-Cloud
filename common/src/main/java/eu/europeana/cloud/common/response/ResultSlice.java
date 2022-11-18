@@ -35,7 +35,7 @@ public class ResultSlice<T> {
 	 * List of results in this slice.
 	 */
 	@JacksonXmlElementWrapper(useWrapping = false)
-	private List<T> results = new ArrayList<T>();
+	private List<T> results = new ArrayList<>();
 
 
 	/**

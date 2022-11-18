@@ -33,7 +33,7 @@ public class RepresentationRevisionResponse {
     /**
      * A list of files which constitute this representation.
      */
-    private List<File> files = new ArrayList<File>(0);
+    private List<File> files = new ArrayList<>(0);
 
 
     /**

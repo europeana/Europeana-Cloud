@@ -22,7 +22,7 @@ public class TaskErrorsInfo {
     public TaskErrorsInfo(long id, List<TaskErrorInfo> errors) {
         this.id = id;
         if (errors == null) {
-            this.errors = new ArrayList<TaskErrorInfo>();
+            this.errors = new ArrayList<>();
         } else {
             this.errors = errors;
         }

@@ -19,7 +19,7 @@ public class User {
     private boolean locked = false;
     
     /** for example: 'ROLE_ADMIN' if the current user is an admin */
-    private Set<String> roles = new HashSet<String>(0);
+    private Set<String> roles = new HashSet<>(0);
     
     public User() {
         this.username = null;

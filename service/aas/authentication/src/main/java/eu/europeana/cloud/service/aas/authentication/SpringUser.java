@@ -18,7 +18,7 @@ import java.util.*;
 public class SpringUser extends User implements UserDetails {
     private static final long serialVersionUID = 1L;
 
-	private List<GrantedAuthority> roles  = new ArrayList<GrantedAuthority>(0);
+	private List<GrantedAuthority> roles  = new ArrayList<>(0);
 
     public SpringUser(final String username, final String password, final Set<String> userRoles, boolean locked) {
         super(username, password);
@@ -32,15 +32,14 @@ public class SpringUser extends User implements UserDetails {
     
     private List<GrantedAuthority> mapToStringRoles(final Set<String> userRoles) {
     	 
-		Set<GrantedAuthority> setAuths = new HashSet<GrantedAuthority>();
+		Set<GrantedAuthority> setAuths = new HashSet<>();
  
 		// Build authorities
 		for (String userRole : userRoles) {
 			setAuths.add(new SimpleGrantedAuthority(userRole));
 		}
- 
-		List<GrantedAuthority> result = new ArrayList<GrantedAuthority>(setAuths);
-		return result;
+
+		return new ArrayList<>(setAuths);
 	}
 
     @Override

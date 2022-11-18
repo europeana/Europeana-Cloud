@@ -38,7 +38,7 @@ public class NodeStatistics {
 
 
     public NodeStatistics(String parentXpath, String xpath, String value, long occurrence) {
-        this(parentXpath, xpath, value, occurrence, new HashSet<AttributeStatistics>());
+        this(parentXpath, xpath, value, occurrence, new HashSet<>());
     }
 
     public NodeStatistics(String parentXpath, String xpath, String value, long occurrence, Set<AttributeStatistics> attributesStatistics) {

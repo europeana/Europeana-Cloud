@@ -138,7 +138,7 @@ public class Representation {
      * A list of revisions which constitute this representation.
      */
     @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Revision> revisions = new ArrayList<Revision>(0);
+    private List<Revision> revisions = new ArrayList<>(0);
 
 
 
