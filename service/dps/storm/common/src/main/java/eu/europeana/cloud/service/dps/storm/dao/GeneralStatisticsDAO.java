@@ -22,12 +22,6 @@ public class GeneralStatisticsDAO extends CassandraDAO {
     private PreparedStatement removeGeneralStatisticsStatement;
     private PreparedStatement searchGeneralStatistcsByTaskIdStatement;
 
-    public static synchronized GeneralStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new GeneralStatisticsDAO(cassandra));
-        }
-        return instance;
-    }
 
     public GeneralStatisticsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
@@ -36,6 +30,13 @@ public class GeneralStatisticsDAO extends CassandraDAO {
     public GeneralStatisticsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+    public static synchronized GeneralStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new GeneralStatisticsDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

@@ -14,9 +14,10 @@ public class BatchExecutor {
     private static final int RETRY_COUNT = 10;
     private static final int SLEEP_BETWEEN_RETRIES_MS = 10000;
 
+    private static BatchExecutor instance = null;
+
     private final CassandraConnectionProvider dbService;
 
-    private static BatchExecutor instance = null;
 
     public BatchExecutor(CassandraConnectionProvider dbService) {
         this.dbService = dbService;

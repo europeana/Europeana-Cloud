@@ -23,7 +23,7 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Representation {
 
-    final static String XSI_TYPE = "representation";
+    static final String XSI_TYPE = "representation";
 
     @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
     private final String xsiType = XSI_TYPE;
@@ -76,22 +76,6 @@ public class Representation {
      */
     private boolean persistent;
 
-
-    public List<Revision> getRevisions() {
-        return revisions;
-    }
-
-    public void setRevisions(List<Revision> revisions) {
-        this.revisions = revisions;
-    }
-
-    /**
-     * A list of revisions which constitute this representation.
-     */
-    @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Revision> revisions = new ArrayList<Revision>(0);
-
-
     /**
      * Creates a new instance of this class.
      */
@@ -140,6 +124,22 @@ public class Representation {
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
                 cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(), representation.getCreationDate());
     }
+
+
+    public List<Revision> getRevisions() {
+        return revisions;
+    }
+
+    public void setRevisions(List<Revision> revisions) {
+        this.revisions = revisions;
+    }
+
+    /**
+     * A list of revisions which constitute this representation.
+     */
+    @JacksonXmlElementWrapper(useWrapping = false)
+    private List<Revision> revisions = new ArrayList<Revision>(0);
+
 
 
     private static List<File> cloneFiles(Representation representation) {

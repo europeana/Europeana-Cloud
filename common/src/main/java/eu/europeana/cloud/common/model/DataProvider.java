@@ -15,18 +15,11 @@ import java.util.Objects;
 @JsonRootName(DataProvider.XSI_TYPE)
 public class DataProvider {
 
-    final static String XSI_TYPE = "dataProvider";
+    static final String XSI_TYPE = "dataProvider";
 
     @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
     private final String xsiType = XSI_TYPE;
 
-    public DataProvider() {
-	}
-	
-	public DataProvider(final String id) {
-		this.id = id;
-	}
-	
     /**
      * The provider id.
      */
@@ -49,6 +42,13 @@ public class DataProvider {
      * Resource URI.
      */
     private URI uri;
+
+    public DataProvider() {
+    }
+
+    public DataProvider(final String id) {
+        this.id = id;
+    }
 
 
     public String getId() {

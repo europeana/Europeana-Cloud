@@ -28,13 +28,6 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement countSpecificAttributeValue;
 
-    public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new CassandraAttributeStatisticsDAO(cassandra));
-        }
-        return instance;
-    }
-
     /**
      * @param dbService The service exposing the connection and session
      */
@@ -45,6 +38,14 @@ public class CassandraAttributeStatisticsDAO extends CassandraDAO {
     public CassandraAttributeStatisticsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+
+    public static synchronized CassandraAttributeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraAttributeStatisticsDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

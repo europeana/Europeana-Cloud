@@ -37,13 +37,6 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     private PreparedStatement updatePreviewColumnsForExistingStatement;
     private PreparedStatement updatePublishedColumnsForExistingStatement;
 
-    public static synchronized HarvestedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new HarvestedRecordsDAO(cassandra));
-        }
-        return instance;
-    }
-
     public HarvestedRecordsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
@@ -51,6 +44,14 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     public HarvestedRecordsDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
+
+    public static synchronized HarvestedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new HarvestedRecordsDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

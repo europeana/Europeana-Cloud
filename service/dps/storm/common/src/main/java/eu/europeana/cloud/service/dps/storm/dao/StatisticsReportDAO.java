@@ -24,14 +24,6 @@ public class StatisticsReportDAO extends CassandraDAO {
     private PreparedStatement storeStatisticsReportStatement;
     private PreparedStatement checkStatisticsReportStatement;
 
-
-    public static synchronized StatisticsReportDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new StatisticsReportDAO(cassandra));
-        }
-        return instance;
-    }
-
     /**
      * @param dbService The service exposing the connection and session
      */
@@ -42,6 +34,15 @@ public class StatisticsReportDAO extends CassandraDAO {
     public StatisticsReportDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+
+    public static synchronized StatisticsReportDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new StatisticsReportDAO(cassandra));
+        }
+        return instance;
+    }
+
+
 
     @Override
     protected void prepareStatements() {

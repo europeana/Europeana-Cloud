@@ -30,6 +30,16 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
     private CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO;
     private StatisticsReportDAO statisticsReportDAO;
 
+    public ValidationStatisticsServiceImpl() {
+    }
+
+    public ValidationStatisticsServiceImpl(GeneralStatisticsDAO generalStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO, CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, StatisticsReportDAO statisticsReportDAO) {
+        this.generalStatisticsDAO = generalStatisticsDAO;
+        this.cassandraNodeStatisticsDAO = cassandraNodeStatisticsDAO;
+        this.cassandraAttributeStatisticsDAO = cassandraAttributeStatisticsDAO;
+        this.statisticsReportDAO = statisticsReportDAO;
+    }
+
     public static synchronized ValidationStatisticsServiceImpl getInstance(CassandraConnectionProvider cassandra) {
         if (instance == null) {
             instance = new ValidationStatisticsServiceImpl(
@@ -42,15 +52,6 @@ public class ValidationStatisticsServiceImpl implements ValidationStatisticsServ
         return instance;
     }
 
-    public ValidationStatisticsServiceImpl() {
-    }
-
-    public ValidationStatisticsServiceImpl(GeneralStatisticsDAO generalStatisticsDAO, CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO, CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO, StatisticsReportDAO statisticsReportDAO) {
-        this.generalStatisticsDAO = generalStatisticsDAO;
-        this.cassandraNodeStatisticsDAO = cassandraNodeStatisticsDAO;
-        this.cassandraAttributeStatisticsDAO = cassandraAttributeStatisticsDAO;
-        this.statisticsReportDAO = statisticsReportDAO;
-    }
 
     /**
      * {@inheritDoc}

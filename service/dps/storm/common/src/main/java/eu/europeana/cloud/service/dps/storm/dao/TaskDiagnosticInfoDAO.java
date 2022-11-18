@@ -38,12 +38,6 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
     private PreparedStatement updateLastRecordFinishedOnStormTime;
     private PreparedStatement updateQueuedTime;
 
-    public static synchronized TaskDiagnosticInfoDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new TaskDiagnosticInfoDAO(cassandra));
-        }
-        return instance;
-    }
 
     /**
      * @param dbService The service exposing the connection and session
@@ -55,6 +49,14 @@ public class TaskDiagnosticInfoDAO extends CassandraDAO {
     public TaskDiagnosticInfoDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+
+    public static synchronized TaskDiagnosticInfoDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new TaskDiagnosticInfoDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

@@ -6,9 +6,6 @@ package eu.europeana.cloud.common.web;
  * Shared between the Wrapper and the Rest API.
  */
 public final class UISParamConstants {
-	
-	private UISParamConstants() {
-	}
 
     // Query parameter names
     public static final String Q_PROVIDER = "providerId";
@@ -20,5 +17,10 @@ public final class UISParamConstants {
     public static final String Q_FROM = "from";
 
     public static final String Q_LIMIT = "limit";
+
+
+    private UISParamConstants() {
+    }
+
 
 }

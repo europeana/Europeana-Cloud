@@ -16,11 +16,11 @@ public class CassandraConnectionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraConnectionProvider.class);
 
+    private static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL = ConsistencyLevel.QUORUM;
+
     private final Cluster cluster;
 
     private final Session session;
-
-    private static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL = ConsistencyLevel.QUORUM;
 
     private final String hosts;
 

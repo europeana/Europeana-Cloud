@@ -62,6 +62,11 @@ public class CassandraAclRepository implements AclRepository {
     private static final String[] ACL_KEYS = new String[]{"id", "aclOrder",
             "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess",
             "isAuditFailure"};
+
+    private static final String ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED
+            = "Repository could now establish connection to cassandra database";
+    static final int ACL_REPO_DEFAULT_MAX_ATTEMPTS = 3;
+
     private RegularStatement createChildrenTable;
     private RegularStatement createAoisTable;
     private RegularStatement createAclsTable;
@@ -70,9 +75,6 @@ public class CassandraAclRepository implements AclRepository {
     private final String keyspace;
 
 
-    private static final String ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED
-            = "Repository could now establish connection to cassandra database";
-    static final int ACL_REPO_DEFAULT_MAX_ATTEMPTS = 3;
 
 
     /**

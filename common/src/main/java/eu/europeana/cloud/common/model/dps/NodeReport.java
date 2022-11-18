@@ -14,14 +14,6 @@ public class NodeReport {
     private long occurrence;
     private List<AttributeStatistics> attributeStatistics;
 
-    public List<AttributeStatistics> getAttributeStatistics() {
-        return attributeStatistics;
-    }
-
-    public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
-        this.attributeStatistics = attributeStatistics;
-    }
-
     public NodeReport(String nodeValue, long occurrence, List<AttributeStatistics> attributeStatistics) {
         this.nodeValue = nodeValue;
         this.occurrence = occurrence;
@@ -30,6 +22,15 @@ public class NodeReport {
 
     public NodeReport() {
     }
+
+    public List<AttributeStatistics> getAttributeStatistics() {
+        return attributeStatistics;
+    }
+
+    public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
+        this.attributeStatistics = attributeStatistics;
+    }
+
 
     public String getNodeValue() {
         return nodeValue;

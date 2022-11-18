@@ -12,8 +12,6 @@ public abstract class CassandraDAO {
     protected String port;
     protected CassandraConnectionProvider dbService;
 
-    protected abstract void prepareStatements();
-
     protected CassandraDAO(){
     }
 
@@ -24,6 +22,9 @@ public abstract class CassandraDAO {
         this.hostList = dbService.getHosts();
         prepareStatements();
     }
+
+    protected abstract void prepareStatements();
+
 
     public String getHostList() {
         return hostList;

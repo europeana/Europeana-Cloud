@@ -6,8 +6,6 @@ package eu.europeana.cloud.service.dps.storm;
  */
 public final class StormTupleKeys {
 
-    private StormTupleKeys() {
-	}
 
 	// e.g: "54698435894"
 	public static final String TASK_ID_TUPLE_KEY = "TASK_ID";
@@ -32,4 +30,7 @@ public final class StormTupleKeys {
 	public static final String RECORD_ATTEMPT_NUMBER = "RECORD_ATTEMPT_NUMBER";
 
 	public static final String THROTTLING_GROUPING_ATTRIBUTE = "THROTTLING_ATTRIBUTE";
+
+	private StormTupleKeys() {
+	}
 }

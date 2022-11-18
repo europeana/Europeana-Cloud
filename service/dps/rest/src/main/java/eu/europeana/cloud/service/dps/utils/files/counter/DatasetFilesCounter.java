@@ -17,8 +17,9 @@ import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECO
  * File counters inside a dataset task
  */
 public class DatasetFilesCounter extends FilesCounter {
-    private final CassandraTaskInfoDAO taskInfoDAO;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetFilesCounter.class);
+    private final CassandraTaskInfoDAO taskInfoDAO;
 
     DatasetFilesCounter(CassandraTaskInfoDAO taskInfoDAO) {
         this.taskInfoDAO = taskInfoDAO;

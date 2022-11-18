@@ -5,11 +5,10 @@ package eu.europeana.cloud.cassandra;
  */
 public class CassandraConnectionProviderSingleton {
 
+    private static CassandraConnectionProvider cassandraConnectionProvider;
     private CassandraConnectionProviderSingleton() {
 
     }
-
-    private static CassandraConnectionProvider cassandraConnectionProvider;
 
     public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
         if (cassandraConnectionProvider == null) {

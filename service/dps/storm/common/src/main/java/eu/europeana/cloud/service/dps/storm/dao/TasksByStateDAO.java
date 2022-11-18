@@ -30,13 +30,6 @@ public class TasksByStateDAO extends CassandraDAO {
     private PreparedStatement findTaskByStateStatement;
     private PreparedStatement findTaskStatement;
 
-    public static synchronized TasksByStateDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new TasksByStateDAO(cassandra));
-        }
-        return instance;
-    }
-
     public TasksByStateDAO(CassandraConnectionProvider dbService) {
         super(dbService);
     }
@@ -44,6 +37,13 @@ public class TasksByStateDAO extends CassandraDAO {
     public TasksByStateDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+    public static synchronized TasksByStateDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new TasksByStateDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

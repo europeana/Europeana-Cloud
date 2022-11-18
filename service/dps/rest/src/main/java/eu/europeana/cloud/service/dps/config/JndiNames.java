@@ -2,9 +2,6 @@ package eu.europeana.cloud.service.dps.config;
 
 public class JndiNames {
 
-    private JndiNames() {
-    }
-
     public static final String JNDI_KEY_KAFKA_BROKER = "/dps/kafka/brokerLocation";
     public static final String JNDI_KEY_KAFKA_GROUP_ID = "/dps/kafka/groupId";
     public static final String JNDI_KEY_KAFKA_ZOOKEEPER_ADDRESS = "/dps/zookeeper/address";
@@ -29,4 +26,8 @@ public class JndiNames {
     public static final String JNDI_KEY_MACHINE_LOCATION = "/dps/machineLocation";
     public static final String JNDI_KEY_TOPOLOGY_USER = "/dps/topology/user";
     public static final String JNDI_KEY_TOPOLOGY_USER_PASSWORD = "/dps/topology/password";
+
+    private JndiNames() {
+    }
+
 }

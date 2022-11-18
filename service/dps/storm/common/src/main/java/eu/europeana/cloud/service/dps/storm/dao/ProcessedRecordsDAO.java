@@ -27,17 +27,20 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class ProcessedRecordsDAO extends CassandraDAO {
     private static final int BUCKETS_COUNT = 128;
-
+    private static ProcessedRecordsDAO instance = null;
     private PreparedStatement insertStatement;
     private PreparedStatement updateRecordStateStatement;
     private PreparedStatement updateRecordStartTime;
     private PreparedStatement updateAttemptNumberStatement;
     private PreparedStatement selectByPrimaryKeyStatement;
 
-    private static ProcessedRecordsDAO instance = null;
 
     public ProcessedRecordsDAO(){
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
+    }
+
+    public ProcessedRecordsDAO(CassandraConnectionProvider dbService) {
+        super(dbService);
     }
 
     public static synchronized ProcessedRecordsDAO getInstance(CassandraConnectionProvider cassandra) {
@@ -47,9 +50,6 @@ public class ProcessedRecordsDAO extends CassandraDAO {
         return instance;
     }
 
-    public ProcessedRecordsDAO(CassandraConnectionProvider dbService) {
-        super(dbService);
-    }
 
     @Override
     protected void prepareStatements() {

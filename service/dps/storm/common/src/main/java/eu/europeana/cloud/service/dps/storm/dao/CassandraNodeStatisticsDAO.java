@@ -16,6 +16,8 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
+    private static CassandraNodeStatisticsDAO instance = null;
+
     private PreparedStatement updateNodeStatement;
 
     private PreparedStatement searchNodesStatement;
@@ -24,14 +26,6 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
 
     private PreparedStatement deleteNodesStatisticsStatement;
 
-    private static CassandraNodeStatisticsDAO instance = null;
-
-    public static synchronized CassandraNodeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new CassandraNodeStatisticsDAO(cassandra));
-        }
-        return instance;
-    }
 
     /**
      * @param dbService The service exposing the connection and session
@@ -43,6 +37,14 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
     public CassandraNodeStatisticsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+
+    public static synchronized CassandraNodeStatisticsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraNodeStatisticsDAO(cassandra));
+        }
+        return instance;
+    }
+
 
     @Override
     protected void prepareStatements() {

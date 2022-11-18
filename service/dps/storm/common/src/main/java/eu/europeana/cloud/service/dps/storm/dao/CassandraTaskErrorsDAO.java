@@ -25,27 +25,17 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
  */
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskErrorsDAO extends CassandraDAO {
+
+    private static CassandraTaskErrorsDAO instance = null;
     private PreparedStatement insertErrorStatement;
     private PreparedStatement insertErrorCounterStatement;
     private PreparedStatement selectErrorCountsStatement;
     private PreparedStatement selectErrorCountsForErrorTypeStatement;
     private PreparedStatement removeErrorCountsStatement;
     private PreparedStatement removeErrorNotifications;
-
     private PreparedStatement selectErrorTypeStatement;
     private PreparedStatement selectErrorsStatement;
-
-
-    private static CassandraTaskErrorsDAO instance = null;
     private PreparedStatement selectErrorStatement;
-
-    public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
-
-        }
-        return instance;
-    }
 
 
     /**
@@ -58,6 +48,16 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     public CassandraTaskErrorsDAO() {
         //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
     }
+
+    public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
+        if (instance == null) {
+            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
+
+        }
+        return instance;
+    }
+
+
 
     @Override
     protected void prepareStatements() {

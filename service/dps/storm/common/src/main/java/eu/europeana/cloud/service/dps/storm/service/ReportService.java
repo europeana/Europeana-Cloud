@@ -22,9 +22,8 @@ import java.util.*;
 public class ReportService implements TaskExecutionReportService {
     private static final String RETRIEVING_ERROR_MESSAGE = "Specified task or error type does not exist!";
     private static final String TASK_NOT_EXISTS_ERROR_MESSAGE = "The task with the provided id doesn't exist!";
-    private final CassandraConnectionProvider cassandra;
-
     private static final int FETCH_ONE = 1;
+    private final CassandraConnectionProvider cassandra;
     private PreparedStatement selectErrorsStatement;
     private PreparedStatement selectErrorStatement;
     private PreparedStatement selectErrorCounterStatement;
