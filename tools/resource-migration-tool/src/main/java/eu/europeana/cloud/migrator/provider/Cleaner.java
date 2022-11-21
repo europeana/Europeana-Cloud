@@ -18,40 +18,42 @@ import java.util.StringTokenizer;
  */
 public class Cleaner {
 
-    private static final Logger logger = LoggerFactory.getLogger(Cleaner.class);
+  private static final Logger logger = LoggerFactory.getLogger(Cleaner.class);
 
-    public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
-        try {
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION), StandardCharsets.UTF_8)) {
-                StringTokenizer st = new StringTokenizer(line, ";");
-                if (st.hasMoreTokens()) {
-                    st.nextToken();
-                }
-                String url = st.nextToken();
-                int pos = url.indexOf("/records/");
-                if (pos > -1) {
-                    String id = url.substring(pos + "/records/".length());
-                    id = id.substring(0, id.indexOf("/"));
-                    mcs.deleteRecord(id);
-                }
-            }
-        } catch (IOException | MCSException e) {
-            logger.error("Error while cleaning ", e);
+  public void clean(String providerId, RecordServiceClient mcs, UISClient uis) {
+    try {
+      for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + ResourceMigrator.TEXT_EXTENSION),
+          StandardCharsets.UTF_8)) {
+        StringTokenizer st = new StringTokenizer(line, ";");
+        if (st.hasMoreTokens()) {
+          st.nextToken();
         }
-
+        String url = st.nextToken();
+        int pos = url.indexOf("/records/");
+        if (pos > -1) {
+          String id = url.substring(pos + "/records/".length());
+          id = id.substring(0, id.indexOf("/"));
+          mcs.deleteRecord(id);
+        }
+      }
+    } catch (IOException | MCSException e) {
+      logger.error("Error while cleaning ", e);
     }
 
+  }
 
-    public void cleanRecords(String providerId, RecordServiceClient mcs, UISClient uis) {
-        try {
-            for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"), StandardCharsets.UTF_8)) {
-                String id = line.trim();
-                logger.info("Cleaning record: {}", id);
-                mcs.deleteRecord(id);
-            }
-        } catch (IOException |MCSException e) {
-            logger.error("Error while cleaning records ", e);
-        }
 
+  public void cleanRecords(String providerId, RecordServiceClient mcs, UISClient uis) {
+    try {
+      for (String line : Files.readAllLines(FileSystems.getDefault().getPath(".", providerId + "_ids.txt"),
+          StandardCharsets.UTF_8)) {
+        String id = line.trim();
+        logger.info("Cleaning record: {}", id);
+        mcs.deleteRecord(id);
+      }
+    } catch (IOException | MCSException e) {
+      logger.error("Error while cleaning records ", e);
     }
+
+  }
 }

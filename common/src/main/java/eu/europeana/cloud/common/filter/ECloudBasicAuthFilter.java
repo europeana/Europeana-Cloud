@@ -10,17 +10,17 @@ import java.io.IOException;
  */
 public class ECloudBasicAuthFilter implements ClientRequestFilter {
 
-    private String headerValue;
+  private String headerValue;
 
-    public ECloudBasicAuthFilter(String headerValue){
-        this.headerValue = headerValue;
+  public ECloudBasicAuthFilter(String headerValue) {
+    this.headerValue = headerValue;
+  }
+
+  @Override
+  public void filter(ClientRequestContext requestContext) throws IOException {
+    requestContext.getHeaders().remove(HttpHeaders.AUTHORIZATION);
+    if (!requestContext.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+      requestContext.getHeaders().add(HttpHeaders.AUTHORIZATION, headerValue);
     }
-    
-    @Override
-    public void filter(ClientRequestContext requestContext) throws IOException {
-        requestContext.getHeaders().remove(HttpHeaders.AUTHORIZATION);
-        if (!requestContext.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-            requestContext.getHeaders().add(HttpHeaders.AUTHORIZATION, headerValue);
-        }
-    }
+  }
 }

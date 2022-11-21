@@ -26,104 +26,105 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 public class MockMvcUtils {
 
-    public static final MediaType MEDIA_TYPE_APPLICATION_SVG_XML = MediaType.parseMediaType("application/svg+xml");
+  public static final MediaType MEDIA_TYPE_APPLICATION_SVG_XML = MediaType.parseMediaType("application/svg+xml");
 
-    public static URI getBaseUri() {
-        try {
-            return new URI("http://localhost/");
-        } catch (URISyntaxException e) {
-            //this should never happen.
-            throw new RuntimeException(e);
-        }
+  public static URI getBaseUri() {
+    try {
+      return new URI("http://localhost/");
+    } catch (URISyntaxException e) {
+      //this should never happen.
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static MockHttpServletRequestBuilder putFile(String url, String mimeType, byte[] content) {
+    return put(url).contentType(mimeType).content(content);
+
+  }
+
+  public static MockHttpServletRequestBuilder postFile(String url, String mimeType, byte[] content) {
+    return multipart(url).file("data", content)
+                         .param("mimeType", mimeType);
+  }
+
+  public static Matcher<String> isEtag(String value) {
+    if (!value.startsWith("\"")) {
+      value = "\"" + value;
     }
 
-    public static MockHttpServletRequestBuilder putFile(String url, String mimeType, byte[] content) {
-        return put(url).contentType(mimeType).content(content);
-
+    if (!value.endsWith("\"")) {
+      value = value + "\"";
     }
+    return Is.is(value);
+  }
 
-    public static MockHttpServletRequestBuilder postFile(String url, String mimeType, byte[] content) {
-        return multipart(url).file("data",content)
-                .param("mimeType", mimeType);
+  public static String toJson(Object object) throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.writer().writeValueAsString(object);
+  }
+
+  public static String responseContentAsString(ResultActions response) throws UnsupportedEncodingException {
+    return response.andReturn().getResponse().getContentAsString();
+  }
+
+  public static byte[] responseContentAsByteArray(ResultActions response) {
+    return response.andReturn().getResponse().getContentAsByteArray();
+  }
+
+  public static ResultSlice<Representation> responseContentAsRepresentationResultSlice(ResultActions response)
+      throws IOException {
+    return responseContent(response, new TypeReference<ResultSlice<Representation>>() {
+    });
+  }
+
+  public static ResultSlice<CloudTagsResponse> responseContentAsCloudTagResultSlice(ResultActions response) throws IOException {
+    return responseContent(response, new TypeReference<ResultSlice<CloudTagsResponse>>() {
+    });
+  }
+
+  public static ErrorInfo responseContentAsErrorInfo(ResultActions response) throws IOException {
+    return responseContent(response, ErrorInfo.class);
+  }
+
+  public static ErrorInfo responseContentAsErrorInfo(ResultActions response, MediaType mediaType) throws IOException {
+    return responseContent(response, ErrorInfo.class, mediaType);
+  }
+
+  public static <T> T responseContent(ResultActions response, Class<T> aClass) throws IOException {
+    return responseContent(response, aClass, MediaType.APPLICATION_XML);
+  }
+
+
+  public static <T> T responseContent(ResultActions response, Class<T> aClass, MediaType mediaType) throws IOException {
+    return mapper(mediaType).readValue(response.andReturn().getResponse().getContentAsString(), aClass);
+  }
+
+  public static List<Representation> responseContentAsRepresentationList(ResultActions response, MediaType mediaType)
+      throws UnsupportedEncodingException, JsonProcessingException {
+    return responseContent(response, new TypeReference<RepresentationsListWrapper>() {
+    }, mediaType).getRepresentations();
+  }
+
+  private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)
+      throws JsonProcessingException, UnsupportedEncodingException {
+    return responseContent(response, valueTypeRef, MediaType.APPLICATION_XML);
+  }
+
+  private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)
+      throws JsonProcessingException, UnsupportedEncodingException {
+    return mapper(mediaType).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .readValue(response.andReturn().getResponse().getContentAsString(),
+                                valueTypeRef);
+  }
+
+  private static ObjectMapper mapper(MediaType mediaType) {
+    if (mediaType.equals(MediaType.APPLICATION_XML)) {
+      return new XmlMapper();
+    } else if (mediaType.equals(MediaType.APPLICATION_JSON)) {
+      return new ObjectMapper();
+    } else {
+      throw new IllegalArgumentException("mediaType=" + mediaType.getType());
     }
-
-    public static Matcher<String> isEtag(String value) {
-        if(!value.startsWith("\"")){
-            value="\""+value;
-        }
-
-        if(!value.endsWith("\"")){
-            value=value+"\"";
-        }
-        return Is.is(value);
-    }
-
-    public static String toJson(Object object) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writer().writeValueAsString(object);
-    }
-
-    public static String responseContentAsString(ResultActions response) throws UnsupportedEncodingException {
-        return response.andReturn().getResponse().getContentAsString();
-    }
-
-    public static byte[] responseContentAsByteArray(ResultActions response) {
-        return response.andReturn().getResponse().getContentAsByteArray();
-    }
-
-    public static ResultSlice<Representation> responseContentAsRepresentationResultSlice(ResultActions response) throws IOException {
-        return responseContent(response, new TypeReference<ResultSlice<Representation>>() {
-        });
-    }
-
-    public static ResultSlice<CloudTagsResponse> responseContentAsCloudTagResultSlice(ResultActions response) throws IOException {
-        return responseContent(response, new TypeReference<ResultSlice<CloudTagsResponse>>() {
-        });
-    }
-
-    public static ErrorInfo responseContentAsErrorInfo(ResultActions response) throws IOException {
-        return responseContent(response, ErrorInfo.class);
-    }
-
-    public static ErrorInfo responseContentAsErrorInfo(ResultActions response, MediaType mediaType) throws IOException {
-        return responseContent(response, ErrorInfo.class, mediaType);
-    }
-
-    public static <T> T responseContent(ResultActions response, Class<T> aClass) throws IOException {
-        return responseContent(response, aClass, MediaType.APPLICATION_XML);
-    }
-
-
-    public static <T> T responseContent(ResultActions response, Class<T> aClass, MediaType mediaType) throws IOException {
-        return mapper(mediaType).readValue(response.andReturn().getResponse().getContentAsString(), aClass);
-    }
-
-    public static List<Representation> responseContentAsRepresentationList(ResultActions response, MediaType mediaType)
-            throws UnsupportedEncodingException, JsonProcessingException {
-        return responseContent(response, new TypeReference<RepresentationsListWrapper>() {
-        }, mediaType).getRepresentations();
-    }
-
-    private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)
-            throws JsonProcessingException, UnsupportedEncodingException {
-        return responseContent(response, valueTypeRef, MediaType.APPLICATION_XML);
-    }
-
-    private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef, MediaType mediaType)
-            throws JsonProcessingException, UnsupportedEncodingException {
-        return mapper(mediaType).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .readValue(response.andReturn().getResponse().getContentAsString(),
-                        valueTypeRef);
-    }
-
-    private static ObjectMapper mapper(MediaType mediaType) {
-        if (mediaType.equals(MediaType.APPLICATION_XML)) {
-            return new XmlMapper();
-        } else if (mediaType.equals(MediaType.APPLICATION_JSON)) {
-            return new ObjectMapper();
-        } else {
-            throw new IllegalArgumentException("mediaType=" + mediaType.getType());
-        }
-    }
+  }
 
 }

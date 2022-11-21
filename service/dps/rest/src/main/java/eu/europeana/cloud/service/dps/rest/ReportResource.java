@@ -28,194 +28,194 @@ import java.util.List;
 @Scope("request")
 @RequestMapping("/{topologyName}/tasks")
 public class ReportResource {
-    @SuppressWarnings("unused")
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
-    public static final String TASK_PREFIX = "DPS_Task";
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
 
-    @Value("${maxIdentifiersCount}")
-    private int maxIdentifiersCount;
+  public static final String TASK_PREFIX = "DPS_Task";
 
-    @Autowired
-    private TopologyManager topologyManager;
+  @Value("${maxIdentifiersCount}")
+  private int maxIdentifiersCount;
 
-    @Autowired
-    private TaskExecutionReportService reportService;
+  @Autowired
+  private TopologyManager topologyManager;
 
-    @Autowired
-    private ValidationStatisticsService validationStatisticsService;
+  @Autowired
+  private TaskExecutionReportService reportService;
 
-    /**
-     * Retrieve task detailed report
-     * Retrieves a detailed report for the specified task.It will return info about
-     * the first 100 resources unless you specified the needed chunk by using from&to parameters
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param from         The starting resource number should be bigger than 0
-     * @param to           The ending resource number should be bigger than 0
-     * @return Notification messages for the specified task.
-     */
-    @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<SubTaskInfo> getTaskDetailedReport(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName,
-            @RequestParam(defaultValue = "1")  @Min(1) int from,
-            @RequestParam(defaultValue = "100") @Min(1) int to)
-            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
+  @Autowired
+  private ValidationStatisticsService validationStatisticsService;
 
-        return reportService.getDetailedTaskReport(taskId, from, to);
+  /**
+   * Retrieve task detailed report Retrieves a detailed report for the specified task.It will return info about the first 100
+   * resources unless you specified the needed chunk by using from&to parameters
+   * <p/>
+   * <br/><br/>
+   * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+   * <strong>Required permissions:</strong>
+   * <ul>
+   * <li>Authenticated user</li>
+   * <li>Read permission for selected task</li>
+   * </ul>
+   * </div>
+   *
+   * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @param from The starting resource number should be bigger than 0
+   * @param to The ending resource number should be bigger than 0
+   * @return Notification messages for the specified task.
+   */
+  @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  public List<SubTaskInfo> getTaskDetailedReport(
+      @PathVariable String taskId,
+      @PathVariable final String topologyName,
+      @RequestParam(defaultValue = "1") @Min(1) int from,
+      @RequestParam(defaultValue = "100") @Min(1) int to)
+      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    assertContainTopology(topologyName);
+    reportService.checkIfTaskExists(taskId, topologyName);
+
+    return reportService.getDetailedTaskReport(taskId, from, to);
+  }
+
+
+  /**
+   * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error the
+   * number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task. A
+   * sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
+   * <p>
+   * <p/>
+   * <br/><br/>
+   * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+   * <strong>Required permissions:</strong>
+   * <ul>
+   * <li>Authenticated user</li>
+   * <li>Read permission for selected task</li>
+   * </ul>
+   * </div>
+   *
+   * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @param error Error type.
+   * @param idsCount number of identifiers to retrieve
+   * @return Errors that occurred for the specified task.
+   */
+  @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  public TaskErrorsInfo getTaskErrorReport(
+      @PathVariable String taskId,
+      @PathVariable final String topologyName,
+      @RequestParam(required = false) String error,
+      @RequestParam(defaultValue = "0") int idsCount)
+      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    assertContainTopology(topologyName);
+    reportService.checkIfTaskExists(taskId, topologyName);
+
+    if (idsCount < 0 || idsCount > maxIdentifiersCount) {
+      throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
     }
-
-
-    /**
-     * If error param is not specified it retrieves a report of all errors that occurred for the specified task. For each error
-     * the number of occurrences is returned otherwise retrieves a report for a specific error that occurred in the specified task.
-     * A sample of identifiers is returned as well. The number of identifiers is between 0 and ${maxIdentifiersCount}.
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param error        Error type.
-     * @param idsCount     number of identifiers to retrieve
-     * @return Errors that occurred for the specified task.
-     */
-    @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public TaskErrorsInfo getTaskErrorReport(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName,
-            @RequestParam(required = false) String error,
-            @RequestParam(defaultValue = "0") int idsCount)
-            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-
-        if (idsCount < 0 || idsCount > maxIdentifiersCount) {
-            throw new IllegalArgumentException("Identifiers count parameter should be between 0 and " + maxIdentifiersCount);
-        }
-        if (error == null || error.equals("null")) {
-            return reportService.getGeneralTaskErrorReport(taskId, idsCount);
-        }
-        return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
+    if (error == null || error.equals("null")) {
+      return reportService.getGeneralTaskErrorReport(taskId, idsCount);
     }
+    return reportService.getSpecificTaskErrorReport(taskId, error, idsCount > 0 ? idsCount : maxIdentifiersCount);
+  }
 
 
-    /**
-     * Check if the task has error report
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @return if the error report exists
-     */
-    @RequestMapping(method = { RequestMethod.HEAD }, path = "{taskId}/reports/errors")
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public ResponseEntity checkIfErrorReportExists(
-            @PathVariable String taskId,
-            @PathVariable final String topologyName)
-                throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+  /**
+   * Check if the task has error report
+   * <p>
+   * <p/>
+   * <br/><br/>
+   * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+   * <strong>Required permissions:</strong>
+   * <ul>
+   * <li>Authenticated user</li>
+   * <li>Read permission for selected task</li>
+   * </ul>
+   * </div>
+   *
+   * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @return if the error report exists
+   */
+  @RequestMapping(method = {RequestMethod.HEAD}, path = "{taskId}/reports/errors")
+  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  public ResponseEntity checkIfErrorReportExists(
+      @PathVariable String taskId,
+      @PathVariable final String topologyName)
+      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
 
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return (reportService.checkIfReportExists(taskId) ? ResponseEntity.ok()
-                : ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)).build();
+    assertContainTopology(topologyName);
+    reportService.checkIfTaskExists(taskId, topologyName);
+    return (reportService.checkIfReportExists(taskId) ? ResponseEntity.ok()
+        : ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)).build();
+  }
+
+
+  /**
+   * Retrieves a statistics report for the specified task. Only applicable for tasks executing {link
+   * eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
+   * <p>
+   * <p/>
+   * <br/><br/>
+   * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+   * <strong>Required permissions:</strong>
+   * <ul>
+   * <li>Authenticated user</li>
+   * <li>Read permission for selected task</li>
+   * </ul>
+   * </div>
+   *
+   * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @return Statistics report for the specified task.
+   */
+  @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  public StatisticsReport getTaskStatisticsReport(
+      @PathVariable String topologyName,
+      @PathVariable String taskId)
+      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    assertContainTopology(topologyName);
+    reportService.checkIfTaskExists(taskId, topologyName);
+    return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
+  }
+
+
+  /**
+   * Retrieves a list of distinct values and their occurrences for a specific element based on its path}
+   * <p>
+   * <p/>
+   * <br/><br/>
+   * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
+   * <strong>Required permissions:</strong>
+   * <ul>
+   * <li>Authenticated user</li>
+   * <li>Read permission for selected task</li>
+   * </ul>
+   * </div>
+   *
+   * @param taskId <strong>REQUIRED</strong> Unique id that identifies the task.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @param elementPath <strong>REQUIRED</strong> Path for specific element.
+   * @return List of distinct values and their occurrences.
+   */
+  @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  public List<NodeReport> getElementsValues(
+      @PathVariable String topologyName,
+      @PathVariable String taskId,
+      @NotNull @RequestParam("path") String elementPath)
+      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
+    assertContainTopology(topologyName);
+    reportService.checkIfTaskExists(taskId, topologyName);
+    return validationStatisticsService.getElementReport(Long.parseLong(taskId), elementPath);
+  }
+
+  private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
+    if (!topologyManager.containsTopology(topology)) {
+      throw new AccessDeniedOrTopologyDoesNotExistException("The topology doesn't exist");
     }
-
-
-    /**
-     * Retrieves a statistics report for the specified task.
-     * Only applicable for tasks executing {link eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopology}
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @return Statistics report for the specified task.
-     */
-    @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public StatisticsReport getTaskStatisticsReport(
-            @PathVariable String topologyName,
-            @PathVariable  String taskId)
-            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return validationStatisticsService.getTaskStatisticsReport(Long.parseLong(taskId));
-    }
-
-
-    /**
-     * Retrieves a list of distinct values and their occurrences for a specific element based on its path}
-     * <p>
-     * <p/>
-     * <br/><br/>
-     * <div style='border-left: solid 5px #999999; border-radius: 10px; padding: 6px;'>
-     * <strong>Required permissions:</strong>
-     * <ul>
-     * <li>Authenticated user</li>
-     * <li>Read permission for selected task</li>
-     * </ul>
-     * </div>
-     *
-     * @param taskId       <strong>REQUIRED</strong> Unique id that identifies the task.
-     * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-     * @param elementPath  <strong>REQUIRED</strong> Path for specific element.
-     * @return List of distinct values and their occurrences.
-     */
-    @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
-    public List<NodeReport> getElementsValues(
-            @PathVariable String topologyName,
-            @PathVariable  String taskId,
-            @NotNull @RequestParam("path") String elementPath)
-            throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
-        assertContainTopology(topologyName);
-        reportService.checkIfTaskExists(taskId, topologyName);
-        return validationStatisticsService.getElementReport(Long.parseLong(taskId), elementPath);
-    }
-
-    private void assertContainTopology(String topology) throws AccessDeniedOrTopologyDoesNotExistException {
-        if (!topologyManager.containsTopology(topology)) {
-            throw new AccessDeniedOrTopologyDoesNotExistException("The topology doesn't exist");
-        }
-    }
+  }
 }

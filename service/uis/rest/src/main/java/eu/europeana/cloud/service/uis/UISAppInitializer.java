@@ -9,24 +9,24 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 public class UISAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UISAppInitializer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UISAppInitializer.class);
 
-    @Override
-    protected Class<?>[] getRootConfigClasses() {
-        return null;
-    }
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+    return null;
+  }
 
-    @Override
-    protected Class<?>[] getServletConfigClasses() {
-        LOGGER.info("DPS Rest Application starting...");
-        return new Class<?>[]{
-                ServiceConfiguration.class,
-                AuthenticationConfiguration.class,
-                AuthorizationConfiguration.class};
-    }
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+    LOGGER.info("DPS Rest Application starting...");
+    return new Class<?>[]{
+        ServiceConfiguration.class,
+        AuthenticationConfiguration.class,
+        AuthorizationConfiguration.class};
+  }
 
-    @Override
-    protected String[] getServletMappings() {
-        return new String[]{"/"};
-    }
+  @Override
+  protected String[] getServletMappings() {
+    return new String[]{"/"};
+  }
 }

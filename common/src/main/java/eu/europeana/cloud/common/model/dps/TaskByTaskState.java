@@ -11,10 +11,11 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskByTaskState {
-    private TaskState state;
-    private String topologyName;
-    private Long id;
-    private String applicationId;
-    private Date startTime;
-    private String topicName;
+
+  private TaskState state;
+  private String topologyName;
+  private Long id;
+  private String applicationId;
+  private Date startTime;
+  private String topicName;
 }

@@ -7,21 +7,21 @@ import org.jclouds.blobstore.BlobStore;
  */
 public interface SwiftConnectionProvider {
 
-    /**
-     * @return {@link BlobStore}
-     */
-    BlobStore getBlobStore();
+  /**
+   * @return {@link BlobStore}
+   */
+  BlobStore getBlobStore();
 
 
-    /**
-     * @return name of container
-     */
-    String getContainer();
+  /**
+   * @return name of container
+   */
+  String getContainer();
 
 
-    /**
-     * Close connection on container destroy.
-     */
-    void closeConnections();
+  /**
+   * Close connection on container destroy.
+   */
+  void closeConnections();
 
 }

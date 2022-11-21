@@ -10,25 +10,23 @@ import org.slf4j.LoggerFactory;
  */
 public final class QueryTracer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QueryTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(QueryTracer.class);
 
 
-    private QueryTracer() {
+  private QueryTracer() {
+  }
+
+
+  /**
+   * Logs reuqestet and achived consistency level of Cassandra query.
+   *
+   * @param boundStatement bound statement
+   * @param rs query result set
+   */
+  public static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
+                                                                                             .getAchievedConsistencyLevel());
     }
-
-
-    /**
-     * Logs reuqestet and achived consistency level of Cassandra query.
-     * 
-     * @param boundStatement
-     *            bound statement
-     * @param rs
-     *            query result set
-     */
-    public static void logConsistencyLevel(BoundStatement boundStatement, ResultSet rs) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("requested CL {}, achived CL {}", boundStatement.getConsistencyLevel(), rs.getExecutionInfo()
-                    .getAchievedConsistencyLevel());
-        }
-    }
+  }
 }

@@ -17,50 +17,51 @@ import java.util.Map;
 @ToString
 public class NotificationCacheEntry {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationCacheEntry.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NotificationCacheEntry.class);
 
-    private int processed;
-    private int processedRecordsCount;
-    private int ignoredRecordsCount;
-    private int deletedRecordsCount;
-    private int processedErrorsCount;
-    private int deletedErrorsCount;
-    private int expectedRecordsNumber;
-    Map<String, ErrorType> errorTypes;
+  private int processed;
+  private int processedRecordsCount;
+  private int ignoredRecordsCount;
+  private int deletedRecordsCount;
+  private int processedErrorsCount;
+  private int deletedErrorsCount;
+  private int expectedRecordsNumber;
+  Map<String, ErrorType> errorTypes;
 
-    public void incrementCounters(NotificationTuple notificationTuple) {
-        processed++;
+  public void incrementCounters(NotificationTuple notificationTuple) {
+    processed++;
 
-        if (notificationTuple.isMarkedAsDeleted()) {
-            deletedRecordsCount++;
-            if (isErrorTuple(notificationTuple)) {
-                deletedErrorsCount++;
-            }
-        } else if (notificationTuple.isIgnoredRecord()) {
-            if (isErrorTuple(notificationTuple)) {
-                LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
-                        , notificationTuple);
-                processedRecordsCount++;
-                processedErrorsCount++;
-            } else {
-                ignoredRecordsCount++;
-            }
-        } else {
-            processedRecordsCount++;
-            if (isErrorTuple(notificationTuple)) {
-                processedErrorsCount++;
-            }
-        }
+    if (notificationTuple.isMarkedAsDeleted()) {
+      deletedRecordsCount++;
+      if (isErrorTuple(notificationTuple)) {
+        deletedErrorsCount++;
+      }
+    } else if (notificationTuple.isIgnoredRecord()) {
+      if (isErrorTuple(notificationTuple)) {
+        LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
+            , notificationTuple);
+        processedRecordsCount++;
+        processedErrorsCount++;
+      } else {
+        ignoredRecordsCount++;
+      }
+    } else {
+      processedRecordsCount++;
+      if (isErrorTuple(notificationTuple)) {
+        processedErrorsCount++;
+      }
     }
+  }
 
-    private boolean isErrorTuple(NotificationTuple notificationTuple) {
-        return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE)).equalsIgnoreCase(RecordState.ERROR.toString());
-    }
+  private boolean isErrorTuple(NotificationTuple notificationTuple) {
+    return String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.STATE))
+                 .equalsIgnoreCase(RecordState.ERROR.toString());
+  }
 
-    public ErrorType getErrorType(String infoText) {
-        return errorTypes.computeIfAbsent(infoText,
-                key -> ErrorType.builder()
+  public ErrorType getErrorType(String infoText) {
+    return errorTypes.computeIfAbsent(infoText,
+        key -> ErrorType.builder()
                         .uuid(new com.eaio.uuid.UUID().toString())
                         .build());
-    }
+  }
 }

@@ -35,165 +35,165 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
  */
 @RestController
 public class DataSetResource {
-    private static final String DATASET_CLASS_NAME = DataSet.class.getName();
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSetResource.class);
 
-    private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
-            eu.europeana.cloud.common.model.Permission.ALL.getValue(),
-            eu.europeana.cloud.common.model.Permission.READ.getValue(),
-            eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
-            eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
-            eu.europeana.cloud.common.model.Permission.DELETE.getValue()
-    );
+  private static final String DATASET_CLASS_NAME = DataSet.class.getName();
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataSetResource.class);
 
-    private static final String DATASET_PERMISSION_KEY ="eu.europeana.cloud.common.model.DataSet";
+  private static final List<String> ACCEPTED_PERMISSION_VALUES = Arrays.asList(
+      eu.europeana.cloud.common.model.Permission.ALL.getValue(),
+      eu.europeana.cloud.common.model.Permission.READ.getValue(),
+      eu.europeana.cloud.common.model.Permission.WRITE.getValue(),
+      eu.europeana.cloud.common.model.Permission.ADMINISTRATION.getValue(),
+      eu.europeana.cloud.common.model.Permission.DELETE.getValue()
+  );
 
-    private final DataSetService dataSetService;
+  private static final String DATASET_PERMISSION_KEY = "eu.europeana.cloud.common.model.DataSet";
 
-    private final MutableAclService mutableAclService;
+  private final DataSetService dataSetService;
 
-    private final PermissionsGrantingManager permissionsGrantingManager;
+  private final MutableAclService mutableAclService;
 
-    @Value("${numberOfElementsOnPage}")
-    private int numberOfElementsOnPage;
+  private final PermissionsGrantingManager permissionsGrantingManager;
 
-    public DataSetResource(
-            DataSetService dataSetService,
-            MutableAclService mutableAclService,
-            PermissionsGrantingManager permissionsGrantingManager) {
-        this.dataSetService = dataSetService;
-        this.mutableAclService = mutableAclService;
-        this.permissionsGrantingManager = permissionsGrantingManager;
+  @Value("${numberOfElementsOnPage}")
+  private int numberOfElementsOnPage;
+
+  public DataSetResource(
+      DataSetService dataSetService,
+      MutableAclService mutableAclService,
+      PermissionsGrantingManager permissionsGrantingManager) {
+    this.dataSetService = dataSetService;
+    this.mutableAclService = mutableAclService;
+    this.permissionsGrantingManager = permissionsGrantingManager;
+  }
+
+  /**
+   * Deletes data set.
+   * <strong>Delete permissions required.</strong>
+   *
+   * @param providerId identifier of the dataset's provider(required).
+   * @param dataSetId identifier of the deleted data set(required).
+   * @throws DataSetNotExistsException data set not exists.
+   */
+  @DeleteMapping(DATA_SET_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
+  public void deleteDataSet(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
+
+    dataSetService.deleteDataSet(providerId, dataSetId);
+
+    // let's delete the permissions as well
+    String ownersName = SpringUserUtils.getUsername();
+    if (ownersName != null) {
+      ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
+          dataSetId + "/" + providerId);
+      mutableAclService.deleteAcl(dataSetIdentity, false);
     }
+  }
 
-    /**
-     * Deletes data set.
-     * <strong>Delete permissions required.</strong>
-     *
-     * @param providerId identifier of the dataset's provider(required).
-     * @param dataSetId  identifier of the deleted data set(required).
-     * @throws DataSetNotExistsException data set not exists.
-     */
-    @DeleteMapping(DATA_SET_RESOURCE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
-    public void deleteDataSet(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
+  /**
+   * Lists representation versions from data set. Result is returned in slices.
+   *
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param startFrom reference to next slice of result. If not provided, first slice of result will be returned.
+   * @return slice of representation version list.
+   * @throws DataSetNotExistsException no such data set exists.
+   * @summary get representation versions from a data set
+   */
+  @GetMapping(value = DATA_SET_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @ResponseBody
+  public ResultSlice<Representation> getDataSetContents(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @RequestParam(required = false) String startFrom) throws DataSetNotExistsException {
 
-        dataSetService.deleteDataSet(providerId, dataSetId);
+    ResultSlice<Representation> representations =
+        dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
 
-        // let's delete the permissions as well
-        String ownersName = SpringUserUtils.getUsername();
-        if (ownersName != null) {
-            ObjectIdentity dataSetIdentity = new ObjectIdentityImpl(DATASET_CLASS_NAME,
-                    dataSetId + "/" + providerId);
-            mutableAclService.deleteAcl(dataSetIdentity, false);
-        }
+    for (Representation rep : representations.getResults()) {
+      EnrichUriUtil.enrich(httpServletRequest, rep);
     }
+    return representations;
+  }
 
-    /**
-     * Lists representation versions from data set. Result is returned in
-     * slices.
-     *
-     * @param providerId identifier of the dataset's provider (required).
-     * @param dataSetId  identifier of a data set (required).
-     * @param startFrom  reference to next slice of result. If not provided,
-     *                   first slice of result will be returned.
-     * @return slice of representation version list.
-     * @throws DataSetNotExistsException no such data set exists.
-     * @summary get representation versions from a data set
-     */
-    @GetMapping(value = DATA_SET_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @ResponseBody
-    public ResultSlice<Representation> getDataSetContents(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @RequestParam(required = false) String startFrom) throws DataSetNotExistsException {
+  @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
+  @ResponseBody
+  public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
+      throws DataSetNotExistsException {
+    dataSetService.checkIfDatasetExists(dataSetId, providerId);
+  }
 
-        ResultSlice<Representation> representations =
-                dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
+  /**
+   * Updates description of a data set.
+   * <p>
+   * <strong>Write permissions required.</strong>
+   *
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param description description of data set
+   * @throws DataSetNotExistsException no such data set exists.
+   * @throws AccessDeniedOrObjectDoesNotExistException there is an attempt to access a resource without the proper permissions. or
+   * the resource does not exist at all
+   * @statuscode 204 object has been updated.
+   */
+  @PutMapping(DATA_SET_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+  public void updateDataSet(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @RequestParam String description) throws DataSetNotExistsException {
 
-        for (Representation rep : representations.getResults()) {
-            EnrichUriUtil.enrich(httpServletRequest, rep);
-        }
-        return representations;
-    }
+    dataSetService.updateDataSet(providerId, dataSetId, description);
+  }
 
-    @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
-    @ResponseBody
-    public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
-            throws DataSetNotExistsException {
-        dataSetService.checkIfDatasetExists(dataSetId, providerId);
-    }
+  @PutMapping(DATA_SET_PERMISSIONS_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
+      "or hasRole('ROLE_ADMIN')")
+  public void updateDataSetPermissionsForUser(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @RequestParam String permission,
+      @RequestParam String username
+  ) {
+    ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
-    /**
-     * Updates description of a data set.
-     * <p>
-     * <strong>Write permissions required.</strong>
-     *
-     * @param providerId  identifier of the dataset's provider (required).
-     * @param dataSetId   identifier of a data set (required).
-     * @param description description of data set
-     * @throws DataSetNotExistsException                 no such data set exists.
-     * @throws AccessDeniedOrObjectDoesNotExistException there is an attempt to access a resource without the proper permissions.
-     *                                                   or the resource does not exist at all
-     * @statuscode 204 object has been updated.
-     */
-    @PutMapping(DATA_SET_RESOURCE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public void updateDataSet(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @RequestParam String description) throws DataSetNotExistsException {
+    eu.europeana.cloud.common.model.Permission selectedPermission =
+        eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+    List<Permission> permissionsToBeUpdated = Arrays.asList(selectedPermission.getSpringPermissions());
+    permissionsGrantingManager.grantPermissions(DATASET_PERMISSION_KEY, dataSetId + "/" + providerId, username,
+        permissionsToBeUpdated);
+  }
 
-        dataSetService.updateDataSet(providerId, dataSetId, description);
-    }
+  @DeleteMapping(DATA_SET_PERMISSIONS_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
+      "or hasRole('ROLE_ADMIN')")
+  public ResponseEntity<String> removeDataSetPermissionsForUser(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @RequestParam String permission,
+      @RequestParam String username
+  ) {
+    ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
 
-    @PutMapping(DATA_SET_PERMISSIONS_RESOURCE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
-            "or hasRole('ROLE_ADMIN')")
-    public void updateDataSetPermissionsForUser(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @RequestParam String permission,
-            @RequestParam String username
-    ) {
-        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
+    eu.europeana.cloud.common.model.Permission selectedPermission =
+        eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
 
-        eu.europeana.cloud.common.model.Permission selectedPermission =
-                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
-        List<Permission> permissionsToBeUpdated = Arrays.asList(selectedPermission.getSpringPermissions());
-        permissionsGrantingManager.grantPermissions(DATASET_PERMISSION_KEY, dataSetId + "/" + providerId, username, permissionsToBeUpdated);
-    }
+    ObjectIdentity versionIdentity = new ObjectIdentityImpl(DATASET_PERMISSION_KEY,
+        dataSetId + "/" + providerId);
 
-    @DeleteMapping(DATA_SET_PERMISSIONS_RESOURCE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)" +
-            "or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> removeDataSetPermissionsForUser(
-            @PathVariable String providerId,
-            @PathVariable String dataSetId,
-            @RequestParam String permission,
-            @RequestParam String username
-    ) {
-        ParamUtil.validate("permission", permission, ACCEPTED_PERMISSION_VALUES);
+    LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+        username, versionIdentity.getType(), versionIdentity.getIdentifier());
 
-        eu.europeana.cloud.common.model.Permission selectedPermission =
-                eu.europeana.cloud.common.model.Permission.valueOf(permission.toUpperCase());
+    List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
+    permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);
 
-        ObjectIdentity versionIdentity = new ObjectIdentityImpl(DATASET_PERMISSION_KEY,
-                dataSetId + "/" + providerId);
-
-        LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
-                username, versionIdentity.getType(), versionIdentity.getIdentifier());
-
-        List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
-        permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);
-
-        return ResponseEntity.noContent().build();
-    }
+    return ResponseEntity.noContent().build();
+  }
 }

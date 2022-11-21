@@ -29,86 +29,96 @@ import javax.validation.ConstraintViolationException;
  */
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice(basePackages={"eu.europeana.cloud.service.dps.rest"})
+@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.dps.rest"})
 public class UnifiedExceptionsMapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NoHandlerFoundException.class)
-    @ResponseBody public ErrorInfo handleNotFound(Exception e) {
-        return new ErrorInfo(DpsErrorCode.OTHER.toString(),"HTTP 404 Not Found");
-    }
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(NoHandlerFoundException.class)
+  @ResponseBody
+  public ErrorInfo handleNotFound(Exception e) {
+    return new ErrorInfo(DpsErrorCode.OTHER.toString(), "HTTP 404 Not Found");
+  }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseBody
-    public ErrorInfo handleMissingServletRequestParameterException(Exception e) {
-        return new ErrorInfo(DpsErrorCode.BAD_REQUEST.toString(), e.getMessage());
-    }
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  @ResponseBody
+  public ErrorInfo handleMissingServletRequestParameterException(Exception e) {
+    return new ErrorInfo(DpsErrorCode.BAD_REQUEST.toString(), e.getMessage());
+  }
 
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ExceptionHandler(TopologyAlreadyExistsException.class)
-    @ResponseBody public ErrorInfo handleTopologyAlreadyExistsException(Exception e) {
-        return buildResponse(DpsErrorCode.TOPOLOGY_ALREADY_EXIST,e);
-    }
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ExceptionHandler(TopologyAlreadyExistsException.class)
+  @ResponseBody
+  public ErrorInfo handleTopologyAlreadyExistsException(Exception e) {
+    return buildResponse(DpsErrorCode.TOPOLOGY_ALREADY_EXIST, e);
+  }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseBody public ErrorInfo handleConstraintViolationException(Exception exception) {
-        return buildResponse(DpsErrorCode.BAD_REQUEST, exception);
-    }
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(ConstraintViolationException.class)
+  @ResponseBody
+  public ErrorInfo handleConstraintViolationException(Exception exception) {
+    return buildResponse(DpsErrorCode.BAD_REQUEST, exception);
+  }
 
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseBody public ErrorInfo handleAccessDeniedException(Exception exception) {
-        return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
-    }
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseBody
+  public ErrorInfo handleAccessDeniedException(Exception exception) {
+    return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
+  }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody public ErrorInfo handleRuntimeException(Exception exception) {
-        LOGGER.error("Unexpected error occured.", exception);
-        return buildResponse( DpsErrorCode.OTHER, exception);
-    }
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler(RuntimeException.class)
+  @ResponseBody
+  public ErrorInfo handleRuntimeException(Exception exception) {
+    LOGGER.error("Unexpected error occured.", exception);
+    return buildResponse(DpsErrorCode.OTHER, exception);
+  }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    @ResponseBody public ErrorInfo handleResponseStatusException(HttpServletResponse response,ResponseStatusException exception) {
-        response.setStatus(exception.getStatus().value());
-        return buildResponse(DpsErrorCode.OTHER, exception.getReason());
-    }
+  @ExceptionHandler(ResponseStatusException.class)
+  @ResponseBody
+  public ErrorInfo handleResponseStatusException(HttpServletResponse response, ResponseStatusException exception) {
+    response.setStatus(exception.getStatus().value());
+    return buildResponse(DpsErrorCode.OTHER, exception.getReason());
+  }
 
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ExceptionHandler(AccessDeniedOrTopologyDoesNotExistException.class)
-    @ResponseBody public ErrorInfo handleAccessDeniedOrTopologyDoesNotExistException(Exception e) {
-        return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_TOPOLOGY_DOES_NOT_EXIST_EXCEPTION, e);
-    }
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ExceptionHandler(AccessDeniedOrTopologyDoesNotExistException.class)
+  @ResponseBody
+  public ErrorInfo handleAccessDeniedOrTopologyDoesNotExistException(Exception e) {
+    return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_TOPOLOGY_DOES_NOT_EXIST_EXCEPTION, e);
+  }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(DpsTaskValidationException.class)
-    @ResponseBody public ErrorInfo handleDpsTaskValidationException(Exception e) {
-        return buildResponse( DpsErrorCode.TASK_NOT_VALID, e);
-    }
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(DpsTaskValidationException.class)
+  @ResponseBody
+  public ErrorInfo handleDpsTaskValidationException(Exception e) {
+    return buildResponse(DpsErrorCode.TASK_NOT_VALID, e);
+  }
 
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(TaskSubmissionException.class)
-    @ResponseBody public ErrorInfo handleTaskSubmissionException(Exception e) {
-        return buildResponse(DpsErrorCode.OTHER, e);
-    }
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(TaskSubmissionException.class)
+  @ResponseBody
+  public ErrorInfo handleTaskSubmissionException(Exception e) {
+    return buildResponse(DpsErrorCode.OTHER, e);
+  }
 
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ExceptionHandler(AccessDeniedOrObjectDoesNotExistException.class)
-    @ResponseBody public ErrorInfo handleAccessDeniedOrObjectDoesNotExistException(Exception e) {
-        return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, e);
-    }
-    
-    private static ErrorInfo buildResponse(DpsErrorCode errorCode, Exception e) {
-        LOGGER.error("Operation failed because of: {}", e.getMessage(), e);
-        return buildResponse(errorCode, e.getMessage());
-    }
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  @ExceptionHandler(AccessDeniedOrObjectDoesNotExistException.class)
+  @ResponseBody
+  public ErrorInfo handleAccessDeniedOrObjectDoesNotExistException(Exception e) {
+    return buildResponse(DpsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, e);
+  }
 
-    private static ErrorInfo buildResponse(DpsErrorCode errorCode, String message) {
-        return new ErrorInfo(errorCode.name(), message);
-    }
+  private static ErrorInfo buildResponse(DpsErrorCode errorCode, Exception e) {
+    LOGGER.error("Operation failed because of: {}", e.getMessage(), e);
+    return buildResponse(errorCode, e.getMessage());
+  }
+
+  private static ErrorInfo buildResponse(DpsErrorCode errorCode, String message) {
+    return new ErrorInfo(errorCode.name(), message);
+  }
 }

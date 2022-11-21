@@ -17,101 +17,100 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Iterator;
 
 /**
- * Communicates with Unique Identifier Service using UISClient. Used for
- * checking if cloudIds and providers exists in UIS.
+ * Communicates with Unique Identifier Service using UISClient. Used for checking if cloudIds and providers exists in UIS.
  */
 public class UISClientHandlerImpl implements UISClientHandler {
 
-    @Autowired
-    private UISClient uisClient;
+  @Autowired
+  private UISClient uisClient;
 
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public boolean existsCloudId(String cloudId) {
-	boolean result = false;
-	try {
-	    ResultSlice<CloudId> records = uisClient.getRecordId(cloudId);
-	    if (records == null) {
-		throw new IllegalStateException("UIS returned null");
-	    }
-	    if (records.getResults().isEmpty()) {
-		throw new IllegalStateException("UIS returned empty list");
-	    }
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public boolean existsCloudId(String cloudId) {
+    boolean result = false;
+    try {
+      ResultSlice<CloudId> records = uisClient.getRecordId(cloudId);
+      if (records == null) {
+        throw new IllegalStateException("UIS returned null");
+      }
+      if (records.getResults().isEmpty()) {
+        throw new IllegalStateException("UIS returned empty list");
+      }
 
-	    Iterator<CloudId> iterator = records.getResults().iterator();
-	    while (iterator.hasNext()) {
-		CloudId ci = iterator.next();
-		if (ci.getId().equals(cloudId)) {
-		    result = true;
-		    break;
-		}
-	    }
-	    if (!result) {
-		throw new IllegalStateException(String.format(
-			"Cloud id %s not on the list returned by UIS", cloudId));
-	    }
-	} catch (CloudException ex) {
-	    if (ex.getCause() instanceof CloudIdDoesNotExistException) {
-		result = false;
-	    } else {
-		throw new SystemException(ex);
-	    }
-	}
-	return result;
+      Iterator<CloudId> iterator = records.getResults().iterator();
+      while (iterator.hasNext()) {
+        CloudId ci = iterator.next();
+        if (ci.getId().equals(cloudId)) {
+          result = true;
+          break;
+        }
+      }
+      if (!result) {
+        throw new IllegalStateException(String.format(
+            "Cloud id %s not on the list returned by UIS", cloudId));
+      }
+    } catch (CloudException ex) {
+      if (ex.getCause() instanceof CloudIdDoesNotExistException) {
+        result = false;
+      } else {
+        throw new SystemException(ex);
+      }
     }
+    return result;
+  }
 
-	@Override
-	public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
-		try {
-			return uisClient.getCloudId(providerId,localId);
-		} catch (CloudException ex) {
-			if (ex.getCause() instanceof RecordDoesNotExistException) {
-				throw new RecordNotExistsException(localId, providerId);
-			}
-			else if (ex.getCause() instanceof ProviderDoesNotExistException) {
-				throw new ProviderNotExistsException(ex.getMessage());
-			} else {
-				throw new SystemException(ex);
-			}
-		}
-	}
-
-
-	/**
-     * @inheritDoc
-     */
-    @Override
-    public boolean existsProvider(String providerId) {
-	DataProvider result;
-	try {
-	    result = uisClient.getDataProvider(providerId);
-	} catch (CloudException e) {
-	    if (e.getCause() instanceof ProviderDoesNotExistException) {
-		result = null;
-	    } else {
-		throw new SystemException(e);
-	    }
-	}
-	return result != null;
+  @Override
+  public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId)
+      throws ProviderNotExistsException, RecordNotExistsException {
+    try {
+      return uisClient.getCloudId(providerId, localId);
+    } catch (CloudException ex) {
+      if (ex.getCause() instanceof RecordDoesNotExistException) {
+        throw new RecordNotExistsException(localId, providerId);
+      } else if (ex.getCause() instanceof ProviderDoesNotExistException) {
+        throw new ProviderNotExistsException(ex.getMessage());
+      } else {
+        throw new SystemException(ex);
+      }
     }
+  }
 
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public DataProvider getProvider(String providerId) {
-	DataProvider result;
-	try {
-	    result = uisClient.getDataProvider(providerId);
-	} catch (CloudException e) {
-	    if (e.getCause() instanceof ProviderDoesNotExistException) {
-		return null;
-	    } else {
-		throw new SystemException(e);
-	    }
-	}
-	return result;
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public boolean existsProvider(String providerId) {
+    DataProvider result;
+    try {
+      result = uisClient.getDataProvider(providerId);
+    } catch (CloudException e) {
+      if (e.getCause() instanceof ProviderDoesNotExistException) {
+        result = null;
+      } else {
+        throw new SystemException(e);
+      }
     }
+    return result != null;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public DataProvider getProvider(String providerId) {
+    DataProvider result;
+    try {
+      result = uisClient.getDataProvider(providerId);
+    } catch (CloudException e) {
+      if (e.getCause() instanceof ProviderDoesNotExistException) {
+        return null;
+      } else {
+        throw new SystemException(e);
+      }
+    }
+    return result;
+  }
 }

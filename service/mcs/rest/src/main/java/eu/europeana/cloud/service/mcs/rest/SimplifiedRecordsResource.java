@@ -23,47 +23,47 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_R
 @RequestMapping(SIMPLIFIED_RECORDS_RESOURCE)
 public class SimplifiedRecordsResource {
 
-    private final RecordService recordService;
-    private final UISClientHandler uisHandler;
+  private final RecordService recordService;
+  private final UISClientHandler uisHandler;
 
-    public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler) {
-        this.recordService = recordService;
-        this.uisHandler = uisHandler;
+  public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler) {
+    this.recordService = recordService;
+    this.uisHandler = uisHandler;
+  }
+
+  /**
+   * Returns record with all representations
+   *
+   * @param httpServletRequest
+   * @param providerId providerId
+   * @param localId localId
+   * @return record with all representations
+   * @throws CloudException
+   * @throws RecordNotExistsException
+   * @summary Get record using simplified url
+   */
+  @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  public @ResponseBody Record getRecord(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String providerId,
+      @PathVariable String localId) throws RecordNotExistsException, ProviderNotExistsException {
+
+    final String cloudId = findCloudIdFor(providerId, localId);
+
+    Record record = recordService.getRecord(cloudId);
+    prepare(httpServletRequest, record);
+    return record;
+  }
+
+  private String findCloudIdFor(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
+    CloudId foundCloudId = uisHandler.getCloudIdFromProviderAndLocalId(providerId, localId);
+    return foundCloudId.getId();
+  }
+
+  private void prepare(HttpServletRequest httpServletRequest, Record record) {
+    EnrichUriUtil.enrich(httpServletRequest, record);
+    for (Representation representation : record.getRepresentations()) {
+      representation.setCloudId(null);
     }
-
-    /**
-     * Returns record with all representations
-     *
-     * @param httpServletRequest
-     * @param providerId providerId
-     * @param localId    localId
-     * @return record with all representations
-     * @throws CloudException
-     * @throws RecordNotExistsException
-     * @summary Get record using simplified url
-     */
-    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody Record getRecord(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String providerId,
-            @PathVariable String localId) throws RecordNotExistsException, ProviderNotExistsException {
-
-            final String cloudId = findCloudIdFor(providerId, localId);
-
-            Record record = recordService.getRecord(cloudId);
-            prepare(httpServletRequest, record);
-            return record;
-    }
-
-    private String findCloudIdFor(String providerId, String localId) throws ProviderNotExistsException, RecordNotExistsException {
-        CloudId foundCloudId =  uisHandler.getCloudIdFromProviderAndLocalId(providerId, localId);
-        return foundCloudId.getId();
-    }
-    
-    private void prepare(HttpServletRequest httpServletRequest, Record record) {
-        EnrichUriUtil.enrich(httpServletRequest, record);
-        for (Representation representation : record.getRepresentations()) {
-            representation.setCloudId(null);
-        }
-    }
+  }
 }

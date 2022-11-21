@@ -15,10 +15,10 @@ import java.util.UUID;
 @ToString
 public class CategorizationParameters {
 
-    private final boolean fullHarvest;
-    private final String datasetId;
-    private final String recordId;
-    private final UUID recordMd5;
-    private final Instant recordDateStamp;
-    private final Instant currentHarvestDate;
+  private final boolean fullHarvest;
+  private final String datasetId;
+  private final String recordId;
+  private final UUID recordMd5;
+  private final Instant recordDateStamp;
+  private final Instant currentHarvestDate;
 }

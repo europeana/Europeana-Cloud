@@ -21,62 +21,63 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Revision implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    private String revisionName;
-    private String revisionProviderId;
+  private static final long serialVersionUID = 1L;
 
-    @XmlElement(name = "creationTimeStamp", required = true)
-    @XmlJavaTypeAdapter(DateAdapter.class)
-    private Date creationTimeStamp;
+  private String revisionName;
+  private String revisionProviderId;
 
-    boolean acceptance;
-    boolean published;
-    boolean deleted;
+  @XmlElement(name = "creationTimeStamp", required = true)
+  @XmlJavaTypeAdapter(DateAdapter.class)
+  private Date creationTimeStamp;
 
-    public Revision(String revisionName, String providerId) {
-        this(revisionName, providerId, new Date(), false, false, false);
+  boolean acceptance;
+  boolean published;
+  boolean deleted;
+
+  public Revision(String revisionName, String providerId) {
+    this(revisionName, providerId, new Date(), false, false, false);
+  }
+
+  public Revision(String revisionName, String providerId, Date creationTimeStamp) {
+    this(revisionName, providerId, creationTimeStamp, false, false, false);
+  }
+
+  public Revision(final Revision revision) {
+    this(revision.getRevisionName(),
+        revision.getRevisionProviderId(),
+        revision.getCreationTimeStamp(),
+        revision.isAcceptance(),
+        revision.isPublished(),
+        revision.isDeleted()
+    );
+  }
+
+  public static Revision fromParams(String revisionName, String revisionProviderId, String tag) {
+    Revision revision = new Revision(revisionName, revisionProviderId);
+    revision.setRevisionTags(revision, new HashSet<>(List.of(tag)));
+    return revision;
+  }
+
+  public static Revision fromParams(String revisionName, String revisionProviderId, Set<String> tags) {
+    Revision revision = new Revision(revisionName, revisionProviderId);
+    revision.setRevisionTags(revision, tags);
+    return revision;
+  }
+
+  private void setRevisionTags(Revision revision, Set<String> tags) {
+    if (tags == null || tags.isEmpty()) {
+      return;
     }
-
-    public Revision(String revisionName, String providerId, Date creationTimeStamp) {
-        this(revisionName, providerId, creationTimeStamp, false, false, false);
+    if (tags.contains(Tags.ACCEPTANCE.getTag())) {
+      revision.setAcceptance(true);
     }
-
-    public Revision(final Revision revision) {
-        this(revision.getRevisionName(),
-                revision.getRevisionProviderId(),
-                revision.getCreationTimeStamp(),
-                revision.isAcceptance(),
-                revision.isPublished(),
-                revision.isDeleted()
-        );
+    if (tags.contains(Tags.PUBLISHED.getTag())) {
+      revision.setPublished(true);
     }
-
-    public static Revision fromParams(String revisionName, String revisionProviderId, String tag){
-        Revision revision = new Revision(revisionName, revisionProviderId);
-        revision.setRevisionTags(revision, new HashSet<>(List.of(tag)));
-        return revision;
+    if (tags.contains(Tags.DELETED.getTag())) {
+      revision.setDeleted(true);
     }
-
-    public static Revision fromParams(String revisionName, String revisionProviderId, Set<String> tags){
-        Revision revision = new Revision(revisionName, revisionProviderId);
-        revision.setRevisionTags(revision, tags);
-        return revision;
-    }
-
-    private void setRevisionTags(Revision revision, Set<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return;
-        }
-        if (tags.contains(Tags.ACCEPTANCE.getTag())) {
-            revision.setAcceptance(true);
-        }
-        if (tags.contains(Tags.PUBLISHED.getTag())) {
-            revision.setPublished(true);
-        }
-        if (tags.contains(Tags.DELETED.getTag())) {
-            revision.setDeleted(true);
-        }
-    }
+  }
 
 }

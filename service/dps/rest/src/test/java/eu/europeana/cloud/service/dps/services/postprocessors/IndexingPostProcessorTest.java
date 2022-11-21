@@ -34,204 +34,204 @@ import static org.mockito.Mockito.*;
 @PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*", "eu.europeana.cloud.test.CassandraTestInstance"})
 public class IndexingPostProcessorTest {
 
-    public static final String RECORD_ID_1 = "recordId1";
-    private static final String RECORD_ID_2 = "recordId2";
+  public static final String RECORD_ID_1 = "recordId1";
+  private static final String RECORD_ID_2 = "recordId2";
 
-    public static final String METIS_DATASET_ID = "metisDS_id";
-    @Mock
-    private HarvestedRecordsDAO harvestedRecordsDAO;
+  public static final String METIS_DATASET_ID = "metisDS_id";
+  @Mock
+  private HarvestedRecordsDAO harvestedRecordsDAO;
 
-    @Mock
-    private HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner;
+  @Mock
+  private HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner;
 
-    @Mock
-    private TaskStatusUpdater taskStatusUpdater;
+  @Mock
+  private TaskStatusUpdater taskStatusUpdater;
 
-    @Mock
-    private TaskStatusChecker taskStatusChecker;
+  @Mock
+  private TaskStatusChecker taskStatusChecker;
 
-    @Mock
-    private DatasetCleaner datasetCleaner;
+  @Mock
+  private DatasetCleaner datasetCleaner;
 
-    @InjectMocks
-    private IndexingPostProcessor service;
+  @InjectMocks
+  private IndexingPostProcessor service;
 
-    private final TaskInfo taskInfo=new TaskInfo();
+  private final TaskInfo taskInfo = new TaskInfo();
 
-    @Captor
-    private ArgumentCaptor<DataSetCleanerParameters> captor;
+  @Captor
+  private ArgumentCaptor<DataSetCleanerParameters> captor;
 
-    @Before
-    public void setup() throws Exception {
-        PowerMockito.whenNew(DatasetCleaner.class).withAnyArguments().thenReturn(datasetCleaner);
-        PowerMockito.whenNew(HarvestedRecordsBatchCleaner.class).withAnyArguments().thenReturn(harvestedRecordsBatchCleaner);
-    }
+  @Before
+  public void setup() throws Exception {
+    PowerMockito.whenNew(DatasetCleaner.class).withAnyArguments().thenReturn(datasetCleaner);
+    PowerMockito.whenNew(HarvestedRecordsBatchCleaner.class).withAnyArguments().thenReturn(harvestedRecordsBatchCleaner);
+  }
 
-    @Test
-    public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
-        //given
-        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
-        when(datasetCleaner.getRecordsCount()).thenReturn(1);
-        when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
-        //when
-        service.execute(taskInfo, prepareTaskForPreviewEnv());
-        //then
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-        verify(harvestedRecordsBatchCleaner).close();
-        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
-        verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
-        verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
-    }
+  @Test
+  public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
+    //given
+    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
+    when(datasetCleaner.getRecordsCount()).thenReturn(1);
+    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
+    //when
+    service.execute(taskInfo, prepareTaskForPreviewEnv());
+    //then
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).close();
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  }
 
-    @Test
-    public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
-        //given
-        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
-        when(datasetCleaner.getRecordsCount()).thenReturn(2);
-        when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
-        //when
-        service.execute(taskInfo,  prepareTaskForPreviewEnv());
-        //then
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
-        verify(harvestedRecordsBatchCleaner).close();
-        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
-        verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
-        verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
-    }
+  @Test
+  public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
+    //given
+    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
+    when(datasetCleaner.getRecordsCount()).thenReturn(2);
+    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+    //when
+    service.execute(taskInfo, prepareTaskForPreviewEnv());
+    //then
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+    verify(harvestedRecordsBatchCleaner).close();
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  }
 
-    @Test
-    public void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
-        //given
-        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
-        when(datasetCleaner.getRecordsCount()).thenReturn(1);
-        when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
-        //when
-        service.execute(taskInfo,  prepareTaskForPublishEnv());
-        //then
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-        verify(harvestedRecordsBatchCleaner).close();
-        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
-        verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
-        verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
-    }
+  @Test
+  public void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
+    //given
+    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
+    when(datasetCleaner.getRecordsCount()).thenReturn(1);
+    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
+    //when
+    service.execute(taskInfo, prepareTaskForPublishEnv());
+    //then
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).close();
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  }
 
-    @Test
-    public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
-        //given
-        when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
-        when(datasetCleaner.getRecordsCount()).thenReturn(2);
-        when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
-        //when
-        service.execute(taskInfo, prepareTaskForPublishEnv());
-        //then
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-        verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
-        verify(harvestedRecordsBatchCleaner).close();
-        verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
-        verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
-        verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
-    }
+  @Test
+  public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
+    //given
+    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
+    when(datasetCleaner.getRecordsCount()).thenReturn(2);
+    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+    //when
+    service.execute(taskInfo, prepareTaskForPublishEnv());
+    //then
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+    verify(harvestedRecordsBatchCleaner).close();
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  }
 
-    @Test(expected = PostProcessingException.class)
-    public void shouldThrowPostProcessingExceptionInCaseOfNotRecognizedEnvironment() {
-        //given
-        when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
-        //when
-        service.execute(taskInfo, prepareTaskForNotUnknownEnv());
-    }
+  @Test(expected = PostProcessingException.class)
+  public void shouldThrowPostProcessingExceptionInCaseOfNotRecognizedEnvironment() {
+    //given
+    when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
+    //when
+    service.execute(taskInfo, prepareTaskForNotUnknownEnv());
+  }
 
-    @Test
-    public void shouldNotStartPostprocessingForDroppedTask() {
-        //given
-        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
-        //when
-        service.execute(taskInfo, prepareTaskForPreviewEnv());
-        //then
-        verifyNoInteractions(taskStatusUpdater);
-        verifyNoInteractions(harvestedRecordsDAO);
-    }
+  @Test
+  public void shouldNotStartPostprocessingForDroppedTask() {
+    //given
+    when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+    //when
+    service.execute(taskInfo, prepareTaskForPreviewEnv());
+    //then
+    verifyNoInteractions(taskStatusUpdater);
+    verifyNoInteractions(harvestedRecordsDAO);
+  }
 
-    @Test
-    public void shouldParseIsoRecordDateProperly() throws Exception {
-        DpsTask dpsTask = new DpsTask();
-        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
+  @Test
+  public void shouldParseIsoRecordDateProperly() throws Exception {
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+    dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
 
-        service.execute(taskInfo, dpsTask);
+    service.execute(taskInfo, dpsTask);
 
-        PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
-        assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
-    }
+    PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
+    assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
+  }
 
-    @Test
-    public void shouldParseIsoRecordDateWithoutMillisecondsProperly() throws Exception {
-        DpsTask dpsTask = new DpsTask();
-        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00Z");
+  @Test
+  public void shouldParseIsoRecordDateWithoutMillisecondsProperly() throws Exception {
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+    dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00Z");
 
-        service.execute(taskInfo, dpsTask);
+    service.execute(taskInfo, dpsTask);
 
-        PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
-        assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
-    }
+    PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
+    assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
+  }
 
-    @Test
-    public void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
-        DpsTask task = new DpsTask();
+  @Test
+  public void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
+    DpsTask task = new DpsTask();
 
-        boolean result = service.needsPostProcessing(task);
+    boolean result = service.needsPostProcessing(task);
 
-        assertTrue(result);
-    }
+    assertTrue(result);
+  }
 
-    @Test
-    public void shouldNeedsPostProcessingReturnTrueForFullIndexing() {
-        DpsTask task = new DpsTask();
-        task.addParameter(INCREMENTAL_INDEXING,"false");
+  @Test
+  public void shouldNeedsPostProcessingReturnTrueForFullIndexing() {
+    DpsTask task = new DpsTask();
+    task.addParameter(INCREMENTAL_INDEXING, "false");
 
-        boolean result = service.needsPostProcessing(task);
+    boolean result = service.needsPostProcessing(task);
 
-        assertTrue(result);
-    }
+    assertTrue(result);
+  }
 
-    @Test
-    public void shouldNeedsPostProcessingReturnFalseForIncrementalIndexing() {
-        DpsTask task = new DpsTask();
-        task.addParameter(INCREMENTAL_INDEXING,"true");
+  @Test
+  public void shouldNeedsPostProcessingReturnFalseForIncrementalIndexing() {
+    DpsTask task = new DpsTask();
+    task.addParameter(INCREMENTAL_INDEXING, "true");
 
-        boolean result = service.needsPostProcessing(task);
+    boolean result = service.needsPostProcessing(task);
 
-        assertFalse(result);
-    }
+    assertFalse(result);
+  }
 
-    private DpsTask prepareTaskForPreviewEnv() {
-        DpsTask dpsTask = new DpsTask();
-        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
-        return dpsTask;
-    }
+  private DpsTask prepareTaskForPreviewEnv() {
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+    dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
+    return dpsTask;
+  }
 
-    private DpsTask prepareTaskForPublishEnv() {
-        DpsTask dpsTask = new DpsTask();
-        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
-        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
+  private DpsTask prepareTaskForPublishEnv() {
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
+    dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
 
-//        private static final Date latestHarvestDateForRecord_3 = Date.from(LocalDateTime.of(2020, 6, 14, 16, 47).toInstant(ZoneOffset.UTC));
-        return dpsTask;
-    }
+    //        private static final Date latestHarvestDateForRecord_3 = Date.from(LocalDateTime.of(2020, 6, 14, 16, 47).toInstant(ZoneOffset.UTC));
+    return dpsTask;
+  }
 
-    private DpsTask prepareTaskForNotUnknownEnv() {
-        DpsTask dpsTask = new DpsTask();
-        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-        dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "Unknown_env");
-        dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2021-06-14T16:47:00.000Z");
-        return dpsTask;
-    }
+  private DpsTask prepareTaskForNotUnknownEnv() {
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "Unknown_env");
+    dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2021-06-14T16:47:00.000Z");
+    return dpsTask;
+  }
 
 
 }

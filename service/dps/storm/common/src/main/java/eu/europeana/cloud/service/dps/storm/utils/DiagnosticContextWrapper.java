@@ -9,33 +9,33 @@ import org.slf4j.MDC;
 
 public class DiagnosticContextWrapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticContextWrapper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticContextWrapper.class);
 
-    private static final String TASK_ID_FIELD_NAME = "task_id";
-    private static final String RECORD_ID_FIELD_NAME = "record_id";
-    private static final String RECORD_DELETED_FIELD_NAME = "deleted";
+  private static final String TASK_ID_FIELD_NAME = "task_id";
+  private static final String RECORD_ID_FIELD_NAME = "record_id";
+  private static final String RECORD_DELETED_FIELD_NAME = "deleted";
 
-    private DiagnosticContextWrapper() {
-    }
+  private DiagnosticContextWrapper() {
+  }
 
-    public static void putValuesFrom(StormTaskTuple stormTaskTuple) {
-        MDC.put(TASK_ID_FIELD_NAME, String.valueOf(stormTaskTuple.getTaskId()));
-        MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(stormTaskTuple.getFileUrl()));
-    }
+  public static void putValuesFrom(StormTaskTuple stormTaskTuple) {
+    MDC.put(TASK_ID_FIELD_NAME, String.valueOf(stormTaskTuple.getTaskId()));
+    MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(stormTaskTuple.getFileUrl()));
+  }
 
-    public static void putValuesFrom(NotificationTuple notificationTuple) {
-        MDC.put(TASK_ID_FIELD_NAME, String.valueOf(notificationTuple.getTaskId()));
-        MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(notificationTuple.getResource()));
-    }
+  public static void putValuesFrom(NotificationTuple notificationTuple) {
+    MDC.put(TASK_ID_FIELD_NAME, String.valueOf(notificationTuple.getTaskId()));
+    MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(notificationTuple.getResource()));
+  }
 
-    public static void putValuesFrom(DpsRecord dpsRecord) {
-        MDC.put(TASK_ID_FIELD_NAME, String.valueOf(dpsRecord.getTaskId()));
-        MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(dpsRecord.getRecordId()));
-        MDC.put(RECORD_DELETED_FIELD_NAME, Boolean.toString(dpsRecord.isMarkedAsDeleted()));
-    }
+  public static void putValuesFrom(DpsRecord dpsRecord) {
+    MDC.put(TASK_ID_FIELD_NAME, String.valueOf(dpsRecord.getTaskId()));
+    MDC.put(RECORD_ID_FIELD_NAME, String.valueOf(dpsRecord.getRecordId()));
+    MDC.put(RECORD_DELETED_FIELD_NAME, Boolean.toString(dpsRecord.isMarkedAsDeleted()));
+  }
 
-    public static void clear() {
-        LOGGER.trace("Cleaning diagnostic context");
-        MDC.clear();
-    }
+  public static void clear() {
+    LOGGER.trace("Cleaning diagnostic context");
+    MDC.clear();
+  }
 }

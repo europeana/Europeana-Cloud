@@ -24,148 +24,161 @@ import static org.junit.Assert.assertNull;
 
 public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
-    private static final String METIS_DATASET_ID = "114411";
-    private static final Date HARVESTED_DATE = new Date(0);
-    private static final Date INDEXING_DATE = new Date(1000);
-    private static final UUID MD5 = UUID.randomUUID();
-    private HarvestedRecordsDAO dao;
+  private static final String METIS_DATASET_ID = "114411";
+  private static final Date HARVESTED_DATE = new Date(0);
+  private static final Date INDEXING_DATE = new Date(1000);
+  private static final UUID MD5 = UUID.randomUUID();
+  private HarvestedRecordsDAO dao;
 
-    @Before
-    public void setup() {
-        CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
-        HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
-        dao = RetryableMethodExecutor.createRetryProxy(rawDao);
+  @Before
+  public void setup() {
+    CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+        PASSWORD);
+    HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
+    dao = RetryableMethodExecutor.createRetryProxy(rawDao);
+  }
+
+  @Test
+  public void shouldNotInsertRecordIfItDidNotExist() {
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PREVIEW);
+
+    cleaner.cleanRecord(generateRandomRecordId());
+    cleaner.close();
+
+    assertFalse(dao.findDatasetRecords(METIS_DATASET_ID).hasNext());
+  }
+
+  @Test
+  public void shouldUpdatePreviewColumnsInTheRecord() {
+    String recordId = generateRandomRecordId();
+    dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
+                                             .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+                                             .previewHarvestDate(INDEXING_DATE)
+                                             .previewHarvestMd5(MD5).build());
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PREVIEW);
+
+    cleaner.cleanRecord(recordId);
+    cleaner.close();
+
+    HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
+    assertNull(record.getPreviewHarvestDate());
+    assertNull(record.getPreviewHarvestMd5());
+  }
+
+  @Test
+  public void shouldUpdatePublishedColumnsInTheRecord() {
+    String recordId = generateRandomRecordId();
+    dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
+                                             .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+                                             .previewHarvestDate(INDEXING_DATE)
+                                             .previewHarvestMd5(MD5).publishedHarvestDate(INDEXING_DATE).publishedHarvestMd5(MD5)
+                                             .build());
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PUBLISH);
+
+    cleaner.cleanRecord(recordId);
+    cleaner.close();
+
+    HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
+    assertNull(record.getPublishedHarvestDate());
+    assertNull(record.getPublishedHarvestMd5());
+  }
+
+  @Test
+  public void shouldNotSaveBeforeBatchSizeIsAchieved() {
+    int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE - 1;
+    List<String> recordIds = generateRandomRecordIds(7, recordCount);
+    for (String recordId : recordIds) {
+      dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
+                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+                                               .previewHarvestDate(INDEXING_DATE)
+                                               .previewHarvestMd5(MD5).build());
+    }
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PREVIEW);
+
+    for (String recordId : recordIds) {
+      cleaner.cleanRecord(recordId);
     }
 
-    @Test
-    public void shouldNotInsertRecordIfItDidNotExist() {
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PREVIEW);
+    List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
+    for (HarvestedRecord record : result) {
+      assertNotNull(record.getPreviewHarvestDate());
+      assertNotNull(record.getPreviewHarvestMd5());
+    }
+  }
 
-        cleaner.cleanRecord(generateRandomRecordId());
-        cleaner.close();
 
-        assertFalse(dao.findDatasetRecords(METIS_DATASET_ID).hasNext());
+  @Test
+  public void shouldSaveRecordsWhenBatchSizeIsAchieved() {
+    int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE;
+    List<String> recordIds = generateRandomRecordIds(7, recordCount);
+    for (String recordId : recordIds) {
+      dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
+                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+                                               .previewHarvestDate(INDEXING_DATE)
+                                               .previewHarvestMd5(MD5).build());
+    }
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PREVIEW);
+
+    for (String recordId : recordIds) {
+      cleaner.cleanRecord(recordId);
     }
 
-    @Test
-    public void shouldUpdatePreviewColumnsInTheRecord() {
-        String recordId = generateRandomRecordId();
-        dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
-                .previewHarvestMd5(MD5).build());
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PREVIEW);
-
-        cleaner.cleanRecord(recordId);
-        cleaner.close();
-
-        HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
-        assertNull(record.getPreviewHarvestDate());
-        assertNull(record.getPreviewHarvestMd5());
+    List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
+    assertEquals(recordCount, result.size());
+    for (HarvestedRecord record : result) {
+      assertNull(record.getPreviewHarvestDate());
+      assertNull(record.getPreviewHarvestMd5());
     }
+  }
 
-    @Test
-    public void shouldUpdatePublishedColumnsInTheRecord() {
-        String recordId = generateRandomRecordId();
-        dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
-                .previewHarvestMd5(MD5).publishedHarvestDate(INDEXING_DATE).publishedHarvestMd5(MD5).build());
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PUBLISH);
-
-        cleaner.cleanRecord(recordId);
-        cleaner.close();
-
-        HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
-        assertNull(record.getPublishedHarvestDate());
-        assertNull(record.getPublishedHarvestMd5());
+  @Test
+  public void shouldProperlySaveRecordsInManyBatchesForManyBuckets() {
+    List<String> recordIds = new ArrayList<>();
+    int recordInBucketCount = HarvestedRecordsBatchCleaner.BATCH_SIZE * 5 / 2;
+    recordIds.addAll(generateRandomRecordIds(7, recordInBucketCount));
+    recordIds.addAll(generateRandomRecordIds(25, recordInBucketCount));
+    recordIds.addAll(generateRandomRecordIds(63, recordInBucketCount));
+    Collections.shuffle(recordIds);
+    for (String recordId : recordIds) {
+      dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
+                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+                                               .previewHarvestDate(INDEXING_DATE)
+                                               .previewHarvestMd5(MD5).build());
     }
+    HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
+        TargetIndexingDatabase.PREVIEW);
 
-    @Test
-    public void shouldNotSaveBeforeBatchSizeIsAchieved() {
-        int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE - 1;
-        List<String> recordIds = generateRandomRecordIds(7, recordCount);
-        for (String recordId : recordIds) {
-            dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                    .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
-                    .previewHarvestMd5(MD5).build());
-        }
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PREVIEW);
-
-        for (String recordId : recordIds) {
-            cleaner.cleanRecord(recordId);
-        }
-
-        List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
-        for (HarvestedRecord record :result) {
-            assertNotNull(record.getPreviewHarvestDate());
-            assertNotNull(record.getPreviewHarvestMd5());
-        }
+    for (String recordId : recordIds) {
+      cleaner.cleanRecord(recordId);
     }
+    cleaner.close();
 
-
-    @Test
-    public void shouldSaveRecordsWhenBatchSizeIsAchieved() {
-        int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE;
-        List<String> recordIds = generateRandomRecordIds(7, recordCount);
-        for (String recordId : recordIds) {
-            dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                    .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
-                    .previewHarvestMd5(MD5).build());
-        }
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PREVIEW);
-
-        for (String recordId : recordIds) {
-            cleaner.cleanRecord(recordId);
-        }
-
-        List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
-        assertEquals(recordCount, result.size());
-        for (HarvestedRecord record :result) {
-            assertNull(record.getPreviewHarvestDate());
-            assertNull(record.getPreviewHarvestMd5());
-        }
+    List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
+    assertEquals(recordInBucketCount * 3, result.size());
+    for (HarvestedRecord record : result) {
+      assertNull(record.getPreviewHarvestDate());
+      assertNull(record.getPreviewHarvestMd5());
     }
+  }
 
-    @Test
-    public void shouldProperlySaveRecordsInManyBatchesForManyBuckets() {
-        List<String> recordIds = new ArrayList<>();
-        int recordInBucketCount = HarvestedRecordsBatchCleaner.BATCH_SIZE * 5 / 2;
-        recordIds.addAll(generateRandomRecordIds(7, recordInBucketCount));
-        recordIds.addAll(generateRandomRecordIds(25, recordInBucketCount));
-        recordIds.addAll(generateRandomRecordIds(63, recordInBucketCount));
-        Collections.shuffle(recordIds);
-        for (String recordId : recordIds) {
-            dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                    .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5).previewHarvestDate(INDEXING_DATE)
-                    .previewHarvestMd5(MD5).build());
-        }
-        HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID, TargetIndexingDatabase.PREVIEW);
+  private List<String> generateRandomRecordIds(int bucketNo, int count) {
+    List<String> result = new ArrayList<>();
+    do {
+      String recordId = generateRandomRecordId();
+      if (dao.bucketNoFor(recordId) == bucketNo) {
+        result.add(recordId);
+      }
+    } while (result.size() < count);
+    return result;
+  }
 
-        for (String recordId : recordIds) {
-            cleaner.cleanRecord(recordId);
-        }
-        cleaner.close();
-
-        List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
-        assertEquals(recordInBucketCount * 3, result.size());
-        for (HarvestedRecord record :result) {
-            assertNull(record.getPreviewHarvestDate());
-            assertNull(record.getPreviewHarvestMd5());
-        }
-    }
-
-    private List<String> generateRandomRecordIds(int bucketNo, int count) {
-        List<String> result = new ArrayList<>();
-        do {
-            String recordId = generateRandomRecordId();
-            if (dao.bucketNoFor(recordId) == bucketNo) {
-                result.add(recordId);
-            }
-        } while (result.size() < count);
-        return result;
-    }
-
-    private String generateRandomRecordId() {
-        return RandomStringUtils.randomAlphanumeric(50);
-    }
+  private String generateRandomRecordId() {
+    return RandomStringUtils.randomAlphanumeric(50);
+  }
 
 }

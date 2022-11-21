@@ -7,9 +7,9 @@ import lombok.*;
 @ToString
 @Getter
 @AllArgsConstructor
-public class HarvestResult{
+public class HarvestResult {
 
-    private int resultCounter;
-    private TaskState taskState;
+  private int resultCounter;
+  private TaskState taskState;
 
 }

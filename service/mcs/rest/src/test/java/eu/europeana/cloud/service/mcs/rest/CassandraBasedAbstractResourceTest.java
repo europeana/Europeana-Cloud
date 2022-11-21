@@ -20,28 +20,29 @@ import org.springframework.web.context.WebApplicationContext;
 
 @WebAppConfiguration
 @ContextConfiguration(
-        classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnifiedExceptionsMapper.class, CassandraBasedTestContext.class})
+    classes = {MCSAppInitializer.class, ServiceConfiguration.class, UnifiedExceptionsMapper.class,
+        CassandraBasedTestContext.class})
 public abstract class CassandraBasedAbstractResourceTest {
 
-    @Rule
-    public SpringClassRule springRule = new SpringClassRule();
+  @Rule
+  public SpringClassRule springRule = new SpringClassRule();
 
-    @Rule
-    public SpringMethodRule methodRule = new SpringMethodRule();
+  @Rule
+  public SpringMethodRule methodRule = new SpringMethodRule();
 
-    @Autowired
-    protected WebApplicationContext applicationContext;
+  @Autowired
+  protected WebApplicationContext applicationContext;
 
-    @Autowired
-    protected PermissionEvaluator permissionEvaluator;
+  @Autowired
+  protected PermissionEvaluator permissionEvaluator;
 
-    protected MockMvc mockMvc;
+  protected MockMvc mockMvc;
 
-    @Before
-    public void prepareMockMvc() {
-        SecurityContextHolder.getContext().setAuthentication(null);
-        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
-                .build();
-    }
+  @Before
+  public void prepareMockMvc() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+    mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
+                             .build();
+  }
 
 }

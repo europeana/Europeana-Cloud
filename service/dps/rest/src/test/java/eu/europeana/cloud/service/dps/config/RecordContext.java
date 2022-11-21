@@ -12,29 +12,29 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RecordContext {
 
-    @Bean
-    public RecordExecutionSubmitService recordExecutionSubmitService() {
-        return Mockito.mock(RecordExecutionSubmitService.class);
-    }
+  @Bean
+  public RecordExecutionSubmitService recordExecutionSubmitService() {
+    return Mockito.mock(RecordExecutionSubmitService.class);
+  }
 
-    @Bean
-    public ProcessedRecordsDAO processedRecordsDAO() {
-        return Mockito.mock(ProcessedRecordsDAO.class);
-    }
+  @Bean
+  public ProcessedRecordsDAO processedRecordsDAO() {
+    return Mockito.mock(ProcessedRecordsDAO.class);
+  }
 
-    @Bean
-    public TaskStatusChecker taskStatusChecker() {
-        return Mockito.mock(TaskStatusChecker.class);
-    }
+  @Bean
+  public TaskStatusChecker taskStatusChecker() {
+    return Mockito.mock(TaskStatusChecker.class);
+  }
 
-    @Bean
-    public KafkaTopicSelector kafkaTopicSelector() {
-        return Mockito.mock(KafkaTopicSelector.class);
-    }
+  @Bean
+  public KafkaTopicSelector kafkaTopicSelector() {
+    return Mockito.mock(KafkaTopicSelector.class);
+  }
 
-    @Bean
-    public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
-        return Mockito.mock(TaskDiagnosticInfoDAO.class);
-    }
+  @Bean
+  public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
+    return Mockito.mock(TaskDiagnosticInfoDAO.class);
+  }
 
 }

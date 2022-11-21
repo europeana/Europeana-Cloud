@@ -9,25 +9,25 @@ import java.net.MalformedURLException;
 
 public class StormTaskTupleHelper {
 
-    private StormTaskTupleHelper() {
-    }
+  private StormTaskTupleHelper() {
+  }
 
-    public static boolean isMessageResent(StormTaskTuple tuple) {
-        return tuple.getRecordAttemptNumber() > 1;
-    }
+  public static boolean isMessageResent(StormTaskTuple tuple) {
+    return tuple.getRecordAttemptNumber() > 1;
+  }
 
-    public static boolean statisticsShouldBeGenerated(StormTaskTuple tuple) {
-        String parameter = tuple.getParameter(PluginParameterKeys.GENERATE_STATS);
-        return parameter == null || "true".equalsIgnoreCase(parameter);
-    }
+  public static boolean statisticsShouldBeGenerated(StormTaskTuple tuple) {
+    String parameter = tuple.getParameter(PluginParameterKeys.GENERATE_STATS);
+    return parameter == null || "true".equalsIgnoreCase(parameter);
+  }
 
-    public static long getRecordProcessingStartTime(StormTaskTuple tuple) {
-        return Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
-    }
+  public static long getRecordProcessingStartTime(StormTaskTuple tuple) {
+    return Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
+  }
 
-    public static String extractDatasetId(StormTaskTuple tuple) throws MalformedURLException {
-        DataSet dataset = DataSetUrlParser.parse(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-        return dataset.getId();
-    }
+  public static String extractDatasetId(StormTaskTuple tuple) throws MalformedURLException {
+    DataSet dataset = DataSetUrlParser.parse(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+    return dataset.getId();
+  }
 
 }

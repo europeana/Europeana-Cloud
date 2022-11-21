@@ -24,93 +24,93 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class PostProcessingServiceTest {
 
-    private final long TASK_ID_1 = 1L;
-    private final long TASK_ID_2 = 2L;
-    private final TaskInfo TASK_INFO_1 = TaskInfo.builder().build();
-    private final TaskByTaskState TASK_BY_TASK_STATE_1
-            = TaskByTaskState.builder().id(TASK_ID_1).topologyName(TopologiesNames.HTTP_TOPOLOGY).build();
-    private final TaskByTaskState TASK_BY_TASK_STATE_2
-            = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
+  private final long TASK_ID_1 = 1L;
+  private final long TASK_ID_2 = 2L;
+  private final TaskInfo TASK_INFO_1 = TaskInfo.builder().build();
+  private final TaskByTaskState TASK_BY_TASK_STATE_1
+      = TaskByTaskState.builder().id(TASK_ID_1).topologyName(TopologiesNames.HTTP_TOPOLOGY).build();
+  private final TaskByTaskState TASK_BY_TASK_STATE_2
+      = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
 
-    private final String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
-
-
-    @Mock
-    private CassandraTaskInfoDAO taskInfoDAO;
-
-    @Mock
-    private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
-
-    @Mock
-    private TasksByStateDAO tasksByStateDAO;
-
-    @Mock
-    private TaskStatusUpdater taskStatusUpdater;
-
-    @Mock
-    private PostProcessorFactory postProcessorFactory;
-
-    @Mock
-    private TaskPostProcessor taskPostProcessor;
-
-    @InjectMocks
-    private PostProcessingService postProcessingService;
-
-    @Before
-    public void initTest() {
-        initTaskInfoDAOMock();
-        initPostProcessorFactory();
-    }
+  private final String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
 
 
-    @Test
-    public void shouldExecutePostprocessor() {
-        postProcessingService.postProcess(TASK_BY_TASK_STATE_1);
-        verify(taskPostProcessor).execute(any(), any());
-    }
+  @Mock
+  private CassandraTaskInfoDAO taskInfoDAO;
 
-    @Test
-    public void shouldNotExecuteForUnknownTopology() {
-        postProcessingService.postProcess(TASK_BY_TASK_STATE_2);
-        verify(taskPostProcessor, never()).execute(any(), any());
-    }
+  @Mock
+  private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
-    @Test
-    public void shouldNeedsPostProcessingReturnFalseIfFactoryNotFoundForGivenTopology() throws IOException {
+  @Mock
+  private TasksByStateDAO tasksByStateDAO;
 
-        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_2, TASK_INFO_1);
+  @Mock
+  private TaskStatusUpdater taskStatusUpdater;
 
-        assertFalse(result);
-    }
+  @Mock
+  private PostProcessorFactory postProcessorFactory;
 
-    @Test
-    public void shouldNeedsPostProcessingReturnFalseIfPostProcessorReturnFalse() throws IOException {
+  @Mock
+  private TaskPostProcessor taskPostProcessor;
 
-        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+  @InjectMocks
+  private PostProcessingService postProcessingService;
 
-        assertFalse(result);
-    }
+  @Before
+  public void initTest() {
+    initTaskInfoDAOMock();
+    initPostProcessorFactory();
+  }
 
-    @Test
-    public void shouldNeedsPostProcessingReturnTrueIfPostProcessorReturnTrue() throws IOException {
-        when(taskPostProcessor.needsPostProcessing(any())).thenReturn(true);
 
-        boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+  @Test
+  public void shouldExecutePostprocessor() {
+    postProcessingService.postProcess(TASK_BY_TASK_STATE_1);
+    verify(taskPostProcessor).execute(any(), any());
+  }
 
-        assertTrue(result);
-    }
+  @Test
+  public void shouldNotExecuteForUnknownTopology() {
+    postProcessingService.postProcess(TASK_BY_TASK_STATE_2);
+    verify(taskPostProcessor, never()).execute(any(), any());
+  }
 
-    private void initTaskInfoDAOMock() {
-        TASK_INFO_1.setId(TASK_ID_1);
-        TASK_INFO_1.setDefinition(String.format(TASK_DETAILS_PATTERN, TASK_ID_1));
+  @Test
+  public void shouldNeedsPostProcessingReturnFalseIfFactoryNotFoundForGivenTopology() throws IOException {
 
-        when(taskInfoDAO.findById(TASK_ID_1)).thenReturn(Optional.of(TASK_INFO_1));
-    }
+    boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_2, TASK_INFO_1);
 
-    private void initPostProcessorFactory() {
-        when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(taskPostProcessor);
-        when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(Optional.of(taskPostProcessor));
-        when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_2)).thenThrow(PostProcessingException.class);
-        when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_2)).thenReturn(Optional.empty());
-    }
+    assertFalse(result);
+  }
+
+  @Test
+  public void shouldNeedsPostProcessingReturnFalseIfPostProcessorReturnFalse() throws IOException {
+
+    boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+
+    assertFalse(result);
+  }
+
+  @Test
+  public void shouldNeedsPostProcessingReturnTrueIfPostProcessorReturnTrue() throws IOException {
+    when(taskPostProcessor.needsPostProcessing(any())).thenReturn(true);
+
+    boolean result = postProcessingService.needsPostprocessing(TASK_BY_TASK_STATE_1, TASK_INFO_1);
+
+    assertTrue(result);
+  }
+
+  private void initTaskInfoDAOMock() {
+    TASK_INFO_1.setId(TASK_ID_1);
+    TASK_INFO_1.setDefinition(String.format(TASK_DETAILS_PATTERN, TASK_ID_1));
+
+    when(taskInfoDAO.findById(TASK_ID_1)).thenReturn(Optional.of(TASK_INFO_1));
+  }
+
+  private void initPostProcessorFactory() {
+    when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(taskPostProcessor);
+    when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_1)).thenReturn(Optional.of(taskPostProcessor));
+    when(postProcessorFactory.getPostProcessor(TASK_BY_TASK_STATE_2)).thenThrow(PostProcessingException.class);
+    when(postProcessorFactory.findPostProcessor(TASK_BY_TASK_STATE_2)).thenReturn(Optional.empty());
+  }
 }

@@ -8,8 +8,9 @@ import static org.mockito.Mockito.mock;
 
 @Configuration
 public class CleanTaskDirServiceTestContext {
-    @Bean
-    public CassandraTaskInfoDAO taskInfoDAO() {
-        return mock(CassandraTaskInfoDAO.class);
-    }
+
+  @Bean
+  public CassandraTaskInfoDAO taskInfoDAO() {
+    return mock(CassandraTaskInfoDAO.class);
+  }
 }

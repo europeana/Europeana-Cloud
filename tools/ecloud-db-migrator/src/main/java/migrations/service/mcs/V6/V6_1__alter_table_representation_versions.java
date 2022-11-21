@@ -8,8 +8,8 @@ import com.datastax.driver.core.Session;
  */
 public class V6_1__alter_table_representation_versions implements JavaMigration {
 
-    @Override
-    public void migrate(Session session) throws Exception {
-        session.execute("ALTER TABLE representation_versions ADD revisions map<text, text>;\n");
-    }
+  @Override
+  public void migrate(Session session) throws Exception {
+    session.execute("ALTER TABLE representation_versions ADD revisions map<text, text>;\n");
+  }
 }

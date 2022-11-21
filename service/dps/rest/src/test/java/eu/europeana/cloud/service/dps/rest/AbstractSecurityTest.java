@@ -21,26 +21,26 @@ import org.springframework.test.context.TestPropertySource;
  */
 
 @ContextConfiguration(classes =
-        {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class,
-                AbstractSecurityTestContext.class, RecordContext.class})
+    {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class,
+        AbstractSecurityTestContext.class, RecordContext.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
 public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 
-    @Autowired
-    @Qualifier("authenticationManager")
-    private AuthenticationManager authenticationManager;
+  @Autowired
+  @Qualifier("authenticationManager")
+  private AuthenticationManager authenticationManager;
 
-    @After
-    public void clear() {
-        SecurityContextHolder.clearContext();
-    }
+  @After
+  public void clear() {
+    SecurityContextHolder.clearContext();
+  }
 
-    protected void login(String name, String password) {
-        Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
-        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
-    }
+  protected void login(String name, String password) {
+    Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
+    SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+  }
 
-    protected void logoutEveryone() {
-        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
-    }
+  protected void logoutEveryone() {
+    SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
+  }
 }

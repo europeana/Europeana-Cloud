@@ -6,31 +6,33 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 
 /**
  * The unique identifier does not exist exception
- * @author Yorgos.Mamakis@ kb.nl
  *
+ * @author Yorgos.Mamakis@ kb.nl
  */
 public class CloudIdDoesNotExistException extends GenericException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -881851449536503512L;
-	/**
-	 * Creates a new instance of this class.
-	 * @param e
-	 */
-	public CloudIdDoesNotExistException(ErrorInfo e){
-		super(e);
-	}
-	
-	/**
-	 * Creates a new instance of this class.
-	 * @param errorInfo
-	 */
-	public CloudIdDoesNotExistException(IdentifierErrorInfo errorInfo) {
-		super(errorInfo);
-	}
+  /**
+   *
+   */
+  private static final long serialVersionUID = -881851449536503512L;
 
-	
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param e
+   */
+  public CloudIdDoesNotExistException(ErrorInfo e) {
+    super(e);
+  }
+
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param errorInfo
+   */
+  public CloudIdDoesNotExistException(IdentifierErrorInfo errorInfo) {
+    super(errorInfo);
+  }
+
 
 }

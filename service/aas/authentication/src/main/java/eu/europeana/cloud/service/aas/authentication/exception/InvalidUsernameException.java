@@ -12,23 +12,23 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class InvalidUsernameException extends GenericException {
 
-    private static final long serialVersionUID = 2743985314014225235L;
+  private static final long serialVersionUID = 2743985314014225235L;
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param e
-     */
-    public InvalidUsernameException(ErrorInfo e) {
-        super(e);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param e
+   */
+  public InvalidUsernameException(ErrorInfo e) {
+    super(e);
+  }
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param errorInfo
-     */
-    public InvalidUsernameException(IdentifierErrorInfo errorInfo) {
-        super(errorInfo);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param errorInfo
+   */
+  public InvalidUsernameException(IdentifierErrorInfo errorInfo) {
+    super(errorInfo);
+  }
 }

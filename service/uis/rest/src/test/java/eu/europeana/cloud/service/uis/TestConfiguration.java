@@ -17,62 +17,63 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Import({UnifiedExceptionsMapper.class})
 public class TestConfiguration {
 
-    @Bean
-    public DataProviderActivationResource dataProviderActivationResource(DataProviderService providerService){
-        return new DataProviderActivationResource(providerService);
-    }
+  @Bean
+  public DataProviderActivationResource dataProviderActivationResource(DataProviderService providerService) {
+    return new DataProviderActivationResource(providerService);
+  }
 
-    @Bean
-    public DataProviderResource dataProviderResource(UniqueIdentifierService uniqueIdentifierService,
-                                                     DataProviderService providerService,
-                                                     ACLServiceWrapper aclWrapper){
-        return new DataProviderResource(
-                uniqueIdentifierService,
-                providerService,
-                aclWrapper);
-    }
+  @Bean
+  public DataProviderResource dataProviderResource(UniqueIdentifierService uniqueIdentifierService,
+      DataProviderService providerService,
+      ACLServiceWrapper aclWrapper) {
+    return new DataProviderResource(
+        uniqueIdentifierService,
+        providerService,
+        aclWrapper);
+  }
 
-    @Bean
-    public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService,
-                                                             DataProviderResource dataProviderResource,
-                                                             ACLServiceWrapper aclWrapper) {
-        return new UniqueIdentifierResource(uniqueIdentifierService,
-                dataProviderResource,
-                aclWrapper);
-    }
+  @Bean
+  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService,
+      DataProviderResource dataProviderResource,
+      ACLServiceWrapper aclWrapper) {
+    return new UniqueIdentifierResource(uniqueIdentifierService,
+        dataProviderResource,
+        aclWrapper);
+  }
 
-    @Bean
-    public UniqueIdentifierService uniqueIdentifierService(){
-        return Mockito.mock(UniqueIdentifierService.class);
-    }
+  @Bean
+  public UniqueIdentifierService uniqueIdentifierService() {
+    return Mockito.mock(UniqueIdentifierService.class);
+  }
 
-    @Bean
-    public DataProvidersResource dataProvidersResource(DataProviderService providerService,
-                                                       ACLServiceWrapper aclWrapper) {
-        return new DataProvidersResource(providerService);
-    }
+  @Bean
+  public DataProvidersResource dataProvidersResource(DataProviderService providerService,
+      ACLServiceWrapper aclWrapper) {
+    return new DataProvidersResource(providerService);
+  }
 
-    @Bean
-    public UnifiedExceptionsMapper unifiedExceptionsMapper(){
-        return new UnifiedExceptionsMapper();
-    }
-    @Bean
-    public CassandraDataProviderService cassandraDataProviderService(){
-        return Mockito.mock(CassandraDataProviderService.class);
-    }
+  @Bean
+  public UnifiedExceptionsMapper unifiedExceptionsMapper() {
+    return new UnifiedExceptionsMapper();
+  }
 
-    @Bean
-    public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider cassandraConnectionProvider){
-        return Mockito.mock(CassandraDataProviderDAO.class);
-    }
+  @Bean
+  public CassandraDataProviderService cassandraDataProviderService() {
+    return Mockito.mock(CassandraDataProviderService.class);
+  }
 
-    @Bean
-    public CassandraConnectionProvider cassandraConnectionProvider(){
-        return Mockito.mock(CassandraConnectionProvider.class);
-    }
+  @Bean
+  public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider cassandraConnectionProvider) {
+    return Mockito.mock(CassandraDataProviderDAO.class);
+  }
 
-    @Bean
-    public ACLServiceWrapper aclServiceWrapper() {
-        return Mockito.mock(ACLServiceWrapper.class);
-    }
+  @Bean
+  public CassandraConnectionProvider cassandraConnectionProvider() {
+    return Mockito.mock(CassandraConnectionProvider.class);
+  }
+
+  @Bean
+  public ACLServiceWrapper aclServiceWrapper() {
+    return Mockito.mock(ACLServiceWrapper.class);
+  }
 }

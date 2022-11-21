@@ -38,86 +38,86 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Configuration
 @EnableWebMvc
 @Import({TopologyTasksResource.class, TopologiesResource.class, TaskSubmissionValidator.class,
-        SubmitTaskService.class, TaskDiagnosticInfoDAO.class, TaskSubmitterFactory.class, OaiTopologyTaskSubmitter.class,
-        HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, TaskStatusUpdater.class,
-        TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class, FileURLCreator.class})
+    SubmitTaskService.class, TaskDiagnosticInfoDAO.class, TaskSubmitterFactory.class, OaiTopologyTaskSubmitter.class,
+    HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, TaskStatusUpdater.class,
+    TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class, FileURLCreator.class})
 public class AbstractSecurityTestContext {
 
 
-    @Bean
-    public HarvestsExecutor harvesterExecutor(){
-        return Mockito.mock(HarvestsExecutor.class);
-    }
+  @Bean
+  public HarvestsExecutor harvesterExecutor() {
+    return Mockito.mock(HarvestsExecutor.class);
+  }
 
-    @Bean
-    public String mcsLocation(){
-        return "http://mcsLocation.com";
-    }
+  @Bean
+  public String mcsLocation() {
+    return "http://mcsLocation.com";
+  }
 
-    @Bean
-    public RecordServiceClient recordServiceClient(){
-        return Mockito.mock(RecordServiceClient.class);
-    }
+  @Bean
+  public RecordServiceClient recordServiceClient() {
+    return Mockito.mock(RecordServiceClient.class);
+  }
 
-    @Bean
-    public FileServiceClient fileServiceClient(){
-        return Mockito.mock(FileServiceClient.class);
-    }
+  @Bean
+  public FileServiceClient fileServiceClient() {
+    return Mockito.mock(FileServiceClient.class);
+  }
 
-    @Bean
-    public DataSetServiceClient dataSetServiceClient(){
-        return Mockito.mock(DataSetServiceClient.class);
-    }
+  @Bean
+  public DataSetServiceClient dataSetServiceClient() {
+    return Mockito.mock(DataSetServiceClient.class);
+  }
 
-    @Bean
-    public FilesCounter filesCounter(){
-        return Mockito.mock(FilesCounter.class);
-    }
+  @Bean
+  public FilesCounter filesCounter() {
+    return Mockito.mock(FilesCounter.class);
+  }
 
-    @Bean
-    public ReportService dpsReportService(){
-        return Mockito.mock(ReportService.class);
-    }
+  @Bean
+  public ReportService dpsReportService() {
+    return Mockito.mock(ReportService.class);
+  }
 
-    @Bean
-    public ValidationStatisticsService statisticsService(){
-        return Mockito.mock(ValidationStatisticsService.class);
-    }
+  @Bean
+  public ValidationStatisticsService statisticsService() {
+    return Mockito.mock(ValidationStatisticsService.class);
+  }
 
-    @Bean
-    public CassandraTaskInfoDAO taskDAO(){
-        return Mockito.mock(CassandraTaskInfoDAO.class);
-    }
+  @Bean
+  public CassandraTaskInfoDAO taskDAO() {
+    return Mockito.mock(CassandraTaskInfoDAO.class);
+  }
 
-    @Bean
-    public CassandraTaskErrorsDAO cassandraTaskErrorsDAO(){
-        return Mockito.mock(CassandraTaskErrorsDAO.class);
-    }
+  @Bean
+  public CassandraTaskErrorsDAO cassandraTaskErrorsDAO() {
+    return Mockito.mock(CassandraTaskErrorsDAO.class);
+  }
 
-    @Bean
-    public FilesCounterFactory filesCounterFactory(){
-        return Mockito.mock(FilesCounterFactory.class);
-    }
+  @Bean
+  public FilesCounterFactory filesCounterFactory() {
+    return Mockito.mock(FilesCounterFactory.class);
+  }
 
-    @Bean
-    public UnfinishedTasksExecutor UnfinishedTasksExecutor(){
-        return Mockito.mock(UnfinishedTasksExecutor.class);
-    }
+  @Bean
+  public UnfinishedTasksExecutor UnfinishedTasksExecutor() {
+    return Mockito.mock(UnfinishedTasksExecutor.class);
+  }
 
-    @Bean
-    public TasksByStateDAO tasksDAO(){
-        return Mockito.mock(TasksByStateDAO.class);
-    }
+  @Bean
+  public TasksByStateDAO tasksDAO() {
+    return Mockito.mock(TasksByStateDAO.class);
+  }
 
-    @Bean
-    public TaskSubmitter depublicationTaskSubmitter(){
-        return Mockito.mock(TaskSubmitter.class);
-    }
+  @Bean
+  public TaskSubmitter depublicationTaskSubmitter() {
+    return Mockito.mock(TaskSubmitter.class);
+  }
 
-    @Bean
-    @Scope("prototype")
-    public ThreadPoolTaskExecutor taskExecutor() {
-        return new ThreadPoolTaskExecutor();
-    }
+  @Bean
+  @Scope("prototype")
+  public ThreadPoolTaskExecutor taskExecutor() {
+    return new ThreadPoolTaskExecutor();
+  }
 
 }

@@ -10,25 +10,25 @@ import java.util.Map;
  */
 public class RecordStatusUpdater {
 
-    private final NotificationsDAO subTaskInfoDAO;
+  private final NotificationsDAO subTaskInfoDAO;
 
-    public RecordStatusUpdater(NotificationsDAO subTaskInfoDAO) {
-        this.subTaskInfoDAO = subTaskInfoDAO;
-    }
+  public RecordStatusUpdater(NotificationsDAO subTaskInfoDAO) {
+    this.subTaskInfoDAO = subTaskInfoDAO;
+  }
 
-    public void addSuccessfullyProcessedRecord(int resourceNum,
-                                               long taskId,
-                                               String topologyName,
-                                               String resource) {
-        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, RecordState.SUCCESS.name(), null,
-                null, null);
-    }
+  public void addSuccessfullyProcessedRecord(int resourceNum,
+      long taskId,
+      String topologyName,
+      String resource) {
+    subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, RecordState.SUCCESS.name(), null,
+        null, null);
+  }
 
-    public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName,
-                                          String resource, String info, String additionalInfo) {
-        subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, RecordState.ERROR.name(), info,
-                additionalInfo != null ? Map.of(NotificationsDAO.STATE_DESCRIPTION_KEY, additionalInfo): null,
-                null);
-    }
+  public void addWronglyProcessedRecord(int resourceNum, long taskId, String topologyName,
+      String resource, String info, String additionalInfo) {
+    subTaskInfoDAO.insert(resourceNum, taskId, topologyName, resource, RecordState.ERROR.name(), info,
+        additionalInfo != null ? Map.of(NotificationsDAO.STATE_DESCRIPTION_KEY, additionalInfo) : null,
+        null);
+  }
 
 }

@@ -25,48 +25,49 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_R
 @RequestMapping(SIMPLIFIED_REPRESENTATION_RESOURCE)
 public class SimplifiedRepresentationResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedRepresentationResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SimplifiedRepresentationResource.class);
 
-    private final UISClientHandler uisClientHandler;
-    private final RecordService recordService;
+  private final UISClientHandler uisClientHandler;
+  private final RecordService recordService;
 
-    public SimplifiedRepresentationResource(UISClientHandler uisClientHandler, RecordService recordService) {
-        this.uisClientHandler = uisClientHandler;
-        this.recordService = recordService;
-    }
+  public SimplifiedRepresentationResource(UISClientHandler uisClientHandler, RecordService recordService) {
+    this.uisClientHandler = uisClientHandler;
+    this.recordService = recordService;
+  }
 
-    /**
-     * Returns the latest persistent version of a given representation.
-     *
-     * @param httpServletRequest
-     * @param providerId
-     * @param localId
-     * @param representationName
-     * @return
-     * @throws CloudException
-     * @throws RepresentationNotExistsException
-     * @summary Get representation using simplified url
-     */
-    @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public @ResponseBody  Representation getRepresentation(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String providerId,
-            @PathVariable String localId,
-            @PathVariable String representationName) throws RepresentationNotExistsException,
-                                                               ProviderNotExistsException, RecordNotExistsException {
+  /**
+   * Returns the latest persistent version of a given representation.
+   *
+   * @param httpServletRequest
+   * @param providerId
+   * @param localId
+   * @param representationName
+   * @return
+   * @throws CloudException
+   * @throws RepresentationNotExistsException
+   * @summary Get representation using simplified url
+   */
+  @GetMapping
+  @PreAuthorize("isAuthenticated()")
+  public @ResponseBody Representation getRepresentation(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String providerId,
+      @PathVariable String localId,
+      @PathVariable String representationName) throws RepresentationNotExistsException,
+      ProviderNotExistsException, RecordNotExistsException {
 
-        LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName, providerId, localId);
-        final String cloudId = findCloudIdFor(providerId, localId);
+    LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName,
+        providerId, localId);
+    final String cloudId = findCloudIdFor(providerId, localId);
 
-        Representation representation = recordService.getRepresentation(cloudId, representationName);
-        EnrichUriUtil.enrich(httpServletRequest, representation);
+    Representation representation = recordService.getRepresentation(cloudId, representationName);
+    EnrichUriUtil.enrich(httpServletRequest, representation);
 
-        return representation;
-    }
+    return representation;
+  }
 
-    private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {
-        CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
-        return foundCloudId.getId();
-    }
+  private String findCloudIdFor(String providerID, String localId) throws ProviderNotExistsException, RecordNotExistsException {
+    CloudId foundCloudId = uisClientHandler.getCloudIdFromProviderAndLocalId(providerID, localId);
+    return foundCloudId.getId();
+  }
 }

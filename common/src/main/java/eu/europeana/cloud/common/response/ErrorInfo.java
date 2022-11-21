@@ -17,13 +17,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NoArgsConstructor
 public class ErrorInfo {
 
-	/**
-	 * Code of error. This is specific for a particular rest api.
-	 */
-    private String errorCode;
+  /**
+   * Code of error. This is specific for a particular rest api.
+   */
+  private String errorCode;
 
-	/**
-	 * Details message for error.
-	 */
-    private String details;
+  /**
+   * Details message for error.
+   */
+  private String details;
 }

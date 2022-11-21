@@ -24,108 +24,104 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 @RestController
 public class RepresentationVersionResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionResource.class.getName());
+  private static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionResource.class.getName());
 
-    private final RecordService recordService;
-    private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
+  private final RecordService recordService;
+  private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-    public RepresentationVersionResource(
-            RecordService recordService,
-            DataSetPermissionsVerifier dataSetPermissionsVerifier) {
-        this.recordService = recordService;
-        this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
+  public RepresentationVersionResource(
+      RecordService recordService,
+      DataSetPermissionsVerifier dataSetPermissionsVerifier) {
+    this.recordService = recordService;
+    this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
+  }
+
+  /**
+   * Returns representation in a specified version.
+   * <strong>Read permissions required.</strong>
+   *
+   * @param cloudId cloud id of the record which contains the representation(required).
+   * @param representationName name of the representation(required).
+   * @param version a specific version of the representation(required).
+   * @return representation in requested version
+   * @throws RepresentationNotExistsException representation does not exist in the specified version.
+   * @summary get representation by version
+   */
+  @GetMapping(value = REPRESENTATION_VERSION, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @PreAuthorize("isAuthenticated()")
+  public @ResponseBody Representation getRepresentationVersion(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String version) throws RepresentationNotExistsException {
+
+    Representation representation = recordService.getRepresentation(cloudId, representationName, version);
+    EnrichUriUtil.enrich(httpServletRequest, representation);
+    return representation;
+  }
+
+  /**
+   * Deletes representation version.
+   * <strong>Delete permissions required.</strong>
+   *
+   * @param cloudId cloud id of the record which contains the representation version (required).
+   * @param representationName name of the representation(required).
+   * @param version a specific version of the representation(required).
+   * @throws RepresentationNotExistsException representation does not exist in specified version.
+   * @throws CannotModifyPersistentRepresentationException representation in specified version is persistent and as such cannot be
+   * removed.
+   */
+  @DeleteMapping(value = REPRESENTATION_VERSION)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteRepresentation(
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String version)
+      throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
+      AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
+
+    Representation representation = Representation.fromFields(cloudId, representationName, version);
+
+    if (dataSetPermissionsVerifier.isUserAllowedToDelete(representation)) {
+      recordService.deleteRepresentation(cloudId, representationName, version);
+    } else {
+      throw new AccessDeniedOrObjectDoesNotExistException();
     }
+  }
 
-    /**
-     * Returns representation in a specified version.
-     * <strong>Read permissions required.</strong>
-     *
-     * @param cloudId cloud id of the record which contains the representation(required).
-     * @param representationName   name of the representation(required).
-     * @param version  a specific version of the representation(required).
-     * @return representation in requested version
-     * @throws RepresentationNotExistsException representation does not exist in the
-     *                                          specified version.
-     * @summary get representation by version
-     */
-    @GetMapping(value = REPRESENTATION_VERSION, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("isAuthenticated()")
-    public @ResponseBody Representation getRepresentationVersion(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version) throws RepresentationNotExistsException {
+  /**
+   * Persists temporary representation.
+   * <p/>
+   * <strong>Write permissions required.</strong>
+   *
+   * @param cloudId cloud id of the record which contains the representation version(required).
+   * @param representationName name of the representation(required).
+   * @param version a specific version of the representation(required).
+   * @return URI to the persisted representation in content-location.
+   * @throws RepresentationNotExistsException representation does not exist in specified version.
+   * @throws CannotModifyPersistentRepresentationException representation version is already persistent.
+   * @throws CannotPersistEmptyRepresentationException representation version has no file attached and as such cannot be made
+   * persistent.
+   * @statuscode 201 representation is made persistent.
+   */
+  @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
+  public ResponseEntity<Void> persistRepresentation(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String version) throws RepresentationNotExistsException,
+      CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException,
+      AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
-        Representation representation = recordService.getRepresentation(cloudId, representationName, version);
-        EnrichUriUtil.enrich(httpServletRequest, representation);
-        return representation;
+    Representation representation = Representation.fromFields(cloudId, representationName, version);
+
+    if (dataSetPermissionsVerifier.isUserAllowedToPersistRepresentation(representation)) {
+      Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
+      EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
+      return ResponseEntity.created(persistentRepresentation.getUri()).build();
+    } else {
+      throw new AccessDeniedOrObjectDoesNotExistException();
     }
-
-    /**
-     * Deletes representation version.
-     * <strong>Delete permissions required.</strong>
-     *
-     * @param cloudId cloud id of the record which contains the representation version (required).
-     * @param representationName   name of the representation(required).
-     * @param version  a specific version of the representation(required).
-     * @throws RepresentationNotExistsException              representation does not exist in
-     *                                                       specified version.
-     * @throws CannotModifyPersistentRepresentationException representation in
-     *                                                       specified version is persistent and as such cannot be removed.
-     */
-    @DeleteMapping(value = REPRESENTATION_VERSION)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteRepresentation(
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version)
-            throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
-            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
-
-        Representation representation = Representation.fromFields(cloudId, representationName, version);
-
-        if (dataSetPermissionsVerifier.isUserAllowedToDelete(representation)) {
-            recordService.deleteRepresentation(cloudId, representationName, version);
-        }else{
-            throw new AccessDeniedOrObjectDoesNotExistException();
-        }
-    }
-
-    /**
-     * Persists temporary representation.
-     * <p/>
-     * <strong>Write permissions required.</strong>
-     *
-     * @param cloudId cloud id of the record which contains the representation version(required).
-     * @param representationName   name of the representation(required).
-     * @param version  a specific version of the representation(required).
-     * @return URI to the persisted representation in content-location.
-     * @throws RepresentationNotExistsException              representation does not exist in
-     *                                                       specified version.
-     * @throws CannotModifyPersistentRepresentationException representation
-     *                                                       version is already persistent.
-     * @throws CannotPersistEmptyRepresentationException     representation version
-     *                                                       has no file attached and as such cannot be made persistent.
-     * @statuscode 201 representation is made persistent.
-     */
-    @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
-    public ResponseEntity<Void> persistRepresentation(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String version) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException,
-            AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
-
-        Representation representation = Representation.fromFields(cloudId, representationName, version);
-
-        if (dataSetPermissionsVerifier.isUserAllowedToPersistRepresentation(representation)) {
-            Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
-            EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
-            return ResponseEntity.created(persistentRepresentation.getUri()).build();
-        }else{
-            throw new AccessDeniedOrObjectDoesNotExistException();
-        }
-    }
+  }
 
 }

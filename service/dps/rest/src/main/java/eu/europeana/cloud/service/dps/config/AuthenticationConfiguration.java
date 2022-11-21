@@ -20,43 +20,43 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.
-                httpBasic()
-                .authenticationEntryPoint(cloudAuthenticationEntryPoint())
-                .and().
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-                csrf().disable();
-    }
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    http.
+        httpBasic()
+        .authenticationEntryPoint(cloudAuthenticationEntryPoint())
+        .and().
+        sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
+        csrf().disable();
+  }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(authenticationService())
-                .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
-    }
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.userDetailsService(authenticationService())
+        .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
+  }
 
-    /* Automatically receives AuthenticationEvent messages */
+  /* Automatically receives AuthenticationEvent messages */
 
-    @Bean
-    public LoggerListener loggerListener() {
-        return new LoggerListener();
-    }
+  @Bean
+  public LoggerListener loggerListener() {
+    return new LoggerListener();
+  }
 
-    /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
+  /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
-    @Bean
-    public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
-        return new CassandraUserDAO(aasCassandraProvider);
-    }
-    
-    @Bean
-    public CassandraAuthenticationService authenticationService() {
-        return new CassandraAuthenticationService();
-    }
+  @Bean
+  public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
+    return new CassandraUserDAO(aasCassandraProvider);
+  }
 
-    @Bean
-    public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
-        return new CloudAuthenticationEntryPoint();
-    }
+  @Bean
+  public CassandraAuthenticationService authenticationService() {
+    return new CassandraAuthenticationService();
+  }
+
+  @Bean
+  public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
+    return new CloudAuthenticationEntryPoint();
+  }
 }

@@ -5,9 +5,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class PasswordEncoderFactory {
 
-    private PasswordEncoderFactory() {}
+  private PasswordEncoderFactory() {
+  }
 
-    public static PasswordEncoder getPasswordEncoder() {
-        return new BCryptPasswordEncoder(4);
-    }
+  public static PasswordEncoder getPasswordEncoder() {
+    return new BCryptPasswordEncoder(4);
+  }
 }

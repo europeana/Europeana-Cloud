@@ -18,30 +18,30 @@ import static org.mockito.Mockito.when;
 @EnableAsync
 public class TestContext {
 
-    @Bean
-    public TaskStatusChecker taskStatusChecker() {
-        return mock(TaskStatusChecker.class);
-    }
+  @Bean
+  public TaskStatusChecker taskStatusChecker() {
+    return mock(TaskStatusChecker.class);
+  }
 
-    @Bean
-    public TaskStatusUpdater taskStatusUpdater() {
-        return mock(TaskStatusUpdater.class);
-    }
+  @Bean
+  public TaskStatusUpdater taskStatusUpdater() {
+    return mock(TaskStatusUpdater.class);
+  }
 
-    @Bean
-    public IndexWrapper indexWrapper() {
-        IndexWrapper wrapper = mock(IndexWrapper.class);
-        when(wrapper.getIndexer(TargetIndexingDatabase.PUBLISH)).thenReturn(mock(Indexer.class));
-        return wrapper;
-    }
+  @Bean
+  public IndexWrapper indexWrapper() {
+    IndexWrapper wrapper = mock(IndexWrapper.class);
+    when(wrapper.getIndexer(TargetIndexingDatabase.PUBLISH)).thenReturn(mock(Indexer.class));
+    return wrapper;
+  }
 
-    @Bean
-    public RecordStatusUpdater recordStatusUpdater() {
-        return mock(RecordStatusUpdater.class);
-    }
+  @Bean
+  public RecordStatusUpdater recordStatusUpdater() {
+    return mock(RecordStatusUpdater.class);
+  }
 
-    @Bean
-    public HarvestedRecordsDAO harvestedRecordsDAO() {
-        return mock(HarvestedRecordsDAO.class);
-    }
+  @Bean
+  public HarvestedRecordsDAO harvestedRecordsDAO() {
+    return mock(HarvestedRecordsDAO.class);
+  }
 }

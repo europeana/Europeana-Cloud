@@ -15,8 +15,8 @@ import lombok.ToString;
 @ToString
 public class GeneralStatistics {
 
-    private String parentXpath;
-    private String nodeXpath;
-    private Long occurrence;
+  private String parentXpath;
+  private String nodeXpath;
+  private Long occurrence;
 
 }

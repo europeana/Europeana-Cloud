@@ -28,83 +28,83 @@ import static org.junit.Assert.assertTrue;
 @ContextConfiguration(value = {"classpath:/uisIntegrationTestContext.xml"})
 public class UISHandlerTest {
 
-    @Autowired
-    private UISClientHandlerImpl handler;
+  @Autowired
+  private UISClientHandlerImpl handler;
 
-    @Autowired
-    private UISClient uisClient;
+  @Autowired
+  private UISClient uisClient;
 
-    @After
-    public void cleanUp() {
-        Mockito.reset(uisClient);
-    }
+  @After
+  public void cleanUp() {
+    Mockito.reset(uisClient);
+  }
 
-    @Test(expected = SystemException.class)
-    public void shouldThrowExWhenRecordWhenUISFailure()
-            throws Exception {
-        String cloudId = "cloudId";
-        Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-                new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
-                                        IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
-                                        .getErrorInfo("")))));
-        handler.existsCloudId(cloudId);
-    }
+  @Test(expected = SystemException.class)
+  public void shouldThrowExWhenRecordWhenUISFailure()
+      throws Exception {
+    String cloudId = "cloudId";
+    Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
+        new CloudException(cloudId, new GenericException(new IdentifierErrorInfo(
+            IdentifierErrorTemplate.GENERIC_ERROR.getHttpCode(), IdentifierErrorTemplate.GENERIC_ERROR
+            .getErrorInfo("")))));
+    handler.existsCloudId(cloudId);
+  }
 
-    @Test
-    public void shouldFailIfRecordNotFoundInUIS()
-            throws Exception {
-        String cloudId = "cloudId";
-        Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
-                new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("", ""))));
-        assertFalse(handler.existsCloudId(cloudId));
-    }
+  @Test
+  public void shouldFailIfRecordNotFoundInUIS()
+      throws Exception {
+    String cloudId = "cloudId";
+    Mockito.when(uisClient.getRecordId(cloudId)).thenThrow(
+        new CloudException(cloudId, new CloudIdDoesNotExistException(new ErrorInfo("", ""))));
+    assertFalse(handler.existsCloudId(cloudId));
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExWhenGotNullFromUIS()
-            throws Exception {
-        String cloudId = "cloudId";
-        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(null);
-        handler.existsCloudId(cloudId);
-    }
+  @Test(expected = IllegalStateException.class)
+  public void shouldThrowExWhenGotNullFromUIS()
+      throws Exception {
+    String cloudId = "cloudId";
+    Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(null);
+    handler.existsCloudId(cloudId);
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExWhenGotEmptyListFromUIS()
-            throws Exception {
-        String cloudId = "cloudId";
-        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(new ResultSlice<CloudId>());
-        handler.existsCloudId(cloudId);
-    }
+  @Test(expected = IllegalStateException.class)
+  public void shouldThrowExWhenGotEmptyListFromUIS()
+      throws Exception {
+    String cloudId = "cloudId";
+    Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(new ResultSlice<CloudId>());
+    handler.existsCloudId(cloudId);
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExWhenCloudIdNotOnListFromUIS()
-            throws Exception {
-        String cloudId = "cloudId";
-        CloudId cl = new CloudId();
-        cl.setId("66666");
-        ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>(1);
-        resultList.add(cl);
-        result.setResults(resultList);
+  @Test(expected = IllegalStateException.class)
+  public void shouldThrowExWhenCloudIdNotOnListFromUIS()
+      throws Exception {
+    String cloudId = "cloudId";
+    CloudId cl = new CloudId();
+    cl.setId("66666");
+    ResultSlice<CloudId> result = new ResultSlice<>();
+    List<CloudId> resultList = new ArrayList<>(1);
+    resultList.add(cl);
+    result.setResults(resultList);
 
-        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
+    Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 
-        handler.existsCloudId(cloudId);
-    }
+    handler.existsCloudId(cloudId);
+  }
 
-    @Test
-    public void shouldReturnTrueWhenRecordExistsInUIS()
-            throws Exception {
-        String cloudId = "cloudId";
-        CloudId cl = new CloudId();
-        cl.setId(cloudId);
-        ResultSlice<CloudId> result = new ResultSlice<>();
-        List<CloudId> resultList = new ArrayList<>(1);
-        resultList.add(cl);
-        result.setResults(resultList);
+  @Test
+  public void shouldReturnTrueWhenRecordExistsInUIS()
+      throws Exception {
+    String cloudId = "cloudId";
+    CloudId cl = new CloudId();
+    cl.setId(cloudId);
+    ResultSlice<CloudId> result = new ResultSlice<>();
+    List<CloudId> resultList = new ArrayList<>(1);
+    resultList.add(cl);
+    result.setResults(resultList);
 
-        Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
+    Mockito.when(uisClient.getRecordId(cloudId)).thenReturn(result);
 
-        assertTrue(handler.existsCloudId(cloudId));
-    }
+    assertTrue(handler.existsCloudId(cloudId));
+  }
 
 }

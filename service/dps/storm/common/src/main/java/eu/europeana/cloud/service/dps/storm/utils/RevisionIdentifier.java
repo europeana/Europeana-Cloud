@@ -15,13 +15,14 @@ import java.util.Date;
 @AllArgsConstructor
 @ToString
 public class RevisionIdentifier {
-    private String revisionName;
-    private String revisionProviderId;
-    private Date creationTimeStamp;
 
-    public boolean identifies(Revision revision) {
-        return revisionName.equals(revision.getRevisionName())
-                && revisionProviderId.equals(revision.getRevisionProviderId())
-                && ((creationTimeStamp == null) || creationTimeStamp.equals(revision.getCreationTimeStamp()));
-    }
+  private String revisionName;
+  private String revisionProviderId;
+  private Date creationTimeStamp;
+
+  public boolean identifies(Revision revision) {
+    return revisionName.equals(revision.getRevisionName())
+        && revisionProviderId.equals(revision.getRevisionProviderId())
+        && ((creationTimeStamp == null) || creationTimeStamp.equals(revision.getCreationTimeStamp()));
+  }
 }

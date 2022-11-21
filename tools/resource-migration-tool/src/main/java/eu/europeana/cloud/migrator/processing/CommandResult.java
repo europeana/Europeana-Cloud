@@ -2,68 +2,59 @@ package eu.europeana.cloud.migrator.processing;
 
 public class CommandResult {
 
-    private String stdOut;
+  private String stdOut;
 
-    private String errorOut;
+  private String errorOut;
 
-    private int exitStatus;
+  private int exitStatus;
 
-    private boolean result;
-
-
-    public CommandResult()
-    {
-        stdOut = "";
-        errorOut = "";
-        exitStatus = 0;
-        result = true;
-    }
+  private boolean result;
 
 
-    public String getStdOut()
-    {
-        return stdOut;
-    }
+  public CommandResult() {
+    stdOut = "";
+    errorOut = "";
+    exitStatus = 0;
+    result = true;
+  }
 
 
-    public void setStdOut(String stdOut)
-    {
-        this.stdOut = stdOut;
-    }
+  public String getStdOut() {
+    return stdOut;
+  }
 
 
-    public String getErrorOut()
-    {
-        return errorOut;
-    }
+  public void setStdOut(String stdOut) {
+    this.stdOut = stdOut;
+  }
 
 
-    public void setErrorOut(String errorOut)
-    {
-        this.errorOut = errorOut;
-    }
+  public String getErrorOut() {
+    return errorOut;
+  }
 
 
-    public int getExitStatus()
-    {
-        return exitStatus;
-    }
+  public void setErrorOut(String errorOut) {
+    this.errorOut = errorOut;
+  }
 
 
-    public void setExitStatus(int exitStatus)
-    {
-        this.exitStatus = exitStatus;
-    }
+  public int getExitStatus() {
+    return exitStatus;
+  }
 
 
-    public boolean getResult()
-    {
-        return result;
-    }
+  public void setExitStatus(int exitStatus) {
+    this.exitStatus = exitStatus;
+  }
 
 
-    public void setResult(boolean result)
-    {
-        this.result = result;
-    }
+  public boolean getResult() {
+    return result;
+  }
+
+
+  public void setResult(boolean result) {
+    this.result = result;
+  }
 }

@@ -48,135 +48,137 @@ import java.util.Set;
  */
 public class HarvestingPostProcessor extends TaskPostProcessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(HarvestingPostProcessor.class);
 
-    private static final Set<String> PROCESSED_TOPOLOGIES =
-            Set.of(TopologiesNames.OAI_TOPOLOGY, TopologiesNames.HTTP_TOPOLOGY);
+  private static final Set<String> PROCESSED_TOPOLOGIES =
+      Set.of(TopologiesNames.OAI_TOPOLOGY, TopologiesNames.HTTP_TOPOLOGY);
 
-    private final ProcessedRecordsDAO processedRecordsDAO;
+  private final ProcessedRecordsDAO processedRecordsDAO;
 
-    private final RecordServiceClient recordServiceClient;
+  private final RecordServiceClient recordServiceClient;
 
-    private final RevisionServiceClient revisionServiceClient;
+  private final RevisionServiceClient revisionServiceClient;
 
-    private final UISClient uisClient;
+  private final UISClient uisClient;
 
-    public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
-                                   ProcessedRecordsDAO processedRecordsDAO,
-                                   RecordServiceClient recordServiceClient,
-                                   RevisionServiceClient revisionServiceClient,
-                                   UISClient uisClient,
-                                   TaskStatusUpdater taskStatusUpdater,
-                                   TaskStatusChecker taskStatusChecker) {
-        super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
-        this.processedRecordsDAO = processedRecordsDAO;
-        this.recordServiceClient = recordServiceClient;
-        this.revisionServiceClient = revisionServiceClient;
-        this.uisClient = uisClient;
-    }
+  public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
+      ProcessedRecordsDAO processedRecordsDAO,
+      RecordServiceClient recordServiceClient,
+      RevisionServiceClient revisionServiceClient,
+      UISClient uisClient,
+      TaskStatusUpdater taskStatusUpdater,
+      TaskStatusChecker taskStatusChecker) {
+    super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
+    this.processedRecordsDAO = processedRecordsDAO;
+    this.recordServiceClient = recordServiceClient;
+    this.revisionServiceClient = revisionServiceClient;
+    this.uisClient = uisClient;
+  }
 
-    @Override
-    public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
-        try {
-            taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-                    "Postprocessing - adding removed records to result revision.");
-            taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
-                    Iterators.size(fetchDeletedRecords(dpsTask)));
-            Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
-            int postProcessedRecordsCount = 0;
-            while (it.hasNext()) {
-                if (taskIsDropped(dpsTask)) {
-                    LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
-                    return;
-                }
-                var harvestedRecord = it.next();
-                if (!isIndexedInSomeEnvironment(harvestedRecord)) {
-                    harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
-                    LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
-                            , harvestedRecord, dpsTask.getTaskId());
-                } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-                    createPostProcessedRecord(dpsTask, harvestedRecord);
-                    markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
-                    postProcessedRecordsCount++;
-                    taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
-                    LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-                } else {
-                    LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-                }
-
-            }
-            taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
-        } catch (Exception exception) {
-            throw new PostProcessingException(
-                    String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
-                            dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
+  @Override
+  public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
+    try {
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+          "Postprocessing - adding removed records to result revision.");
+      taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
+          Iterators.size(fetchDeletedRecords(dpsTask)));
+      Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+      int postProcessedRecordsCount = 0;
+      while (it.hasNext()) {
+        if (taskIsDropped(dpsTask)) {
+          LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
+          return;
         }
-    }
-
-    public Set<String> getProcessedTopologies() {
-        return PROCESSED_TOPOLOGIES;
-    }
-
-    private boolean isIndexedInSomeEnvironment(HarvestedRecord harvestedRecord) {
-        return (harvestedRecord.getPreviewHarvestDate() != null) || (harvestedRecord.getPublishedHarvestDate() != null);
-    }
-
-    private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
-        try {
-            LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-            String cloudId = findCloudId(dpsTask, harvestedRecord);
-            var representation = createRepresentationVersion(dpsTask, cloudId);
-            addRevisionToRepresentation(dpsTask, representation);
-        } catch (CloudException | MCSException | MalformedURLException e) {
-            throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
-                    + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
+        var harvestedRecord = it.next();
+        if (!isIndexedInSomeEnvironment(harvestedRecord)) {
+          harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
+          LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
+              , harvestedRecord, dpsTask.getTaskId());
+        } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+          createPostProcessedRecord(dpsTask, harvestedRecord);
+          markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
+          postProcessedRecordsCount++;
+          taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
+          LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+        } else {
+          LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
+              dpsTask.getTaskId());
         }
-    }
 
-    private Iterator<HarvestedRecord> fetchDeletedRecords(DpsTask task) {
-        var harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
-        Iterator<HarvestedRecord> allRecords =
-                harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
-        return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
+      }
+      taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
+    } catch (Exception exception) {
+      throw new PostProcessingException(
+          String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
+              dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
     }
+  }
 
-    private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
-        String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-        return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
-    }
+  public Set<String> getProcessedTopologies() {
+    return PROCESSED_TOPOLOGIES;
+  }
 
-    private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
-        String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-        String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-        var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
-        var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
-                datasetId);
-        return RepresentationParser.parseResultUrl(representationUri);
-    }
+  private boolean isIndexedInSomeEnvironment(HarvestedRecord harvestedRecord) {
+    return (harvestedRecord.getPreviewHarvestDate() != null) || (harvestedRecord.getPublishedHarvestDate() != null);
+  }
 
-    private void addRevisionToRepresentation(DpsTask dpsTask, Representation representation) throws MCSException {
-        var revision = new Revision(dpsTask.getOutputRevision());
-        revision.setDeleted(true);
-        revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
-                representation.getVersion(), revision);
+  private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
+    try {
+      LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
+      String cloudId = findCloudId(dpsTask, harvestedRecord);
+      var representation = createRepresentationVersion(dpsTask, cloudId);
+      addRevisionToRepresentation(dpsTask, representation);
+    } catch (CloudException | MCSException | MalformedURLException e) {
+      throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
+          + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
     }
+  }
 
-    private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
-        processedRecordsDAO.insert(ProcessedRecord.builder().taskId(dpsTask.getTaskId())
-                .recordId(harvestedRecord.getRecordLocalId()).state(RecordState.SUCCESS).starTime(new Date()).build());
-    }
+  private Iterator<HarvestedRecord> fetchDeletedRecords(DpsTask task) {
+    var harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
+    Iterator<HarvestedRecord> allRecords =
+        harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
+    return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
+  }
 
-    private boolean isRecordProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
-        return processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), harvestedRecord.getRecordLocalId())
-                .map(theRecord -> theRecord.getState() == RecordState.SUCCESS)
-                .orElse(false);
-    }
+  private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
+    String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
+    return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
+  }
 
-    public boolean needsPostProcessing(DpsTask task) {
-        return isIncrementalHarvesting(task);
-    }
+  private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
+    String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
+    String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+    var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
+    var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
+        datasetId);
+    return RepresentationParser.parseResultUrl(representationUri);
+  }
 
-    private boolean isIncrementalHarvesting(DpsTask task) {
-        return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
-    }
+  private void addRevisionToRepresentation(DpsTask dpsTask, Representation representation) throws MCSException {
+    var revision = new Revision(dpsTask.getOutputRevision());
+    revision.setDeleted(true);
+    revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
+        representation.getVersion(), revision);
+  }
+
+  private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
+    processedRecordsDAO.insert(ProcessedRecord.builder().taskId(dpsTask.getTaskId())
+                                              .recordId(harvestedRecord.getRecordLocalId()).state(RecordState.SUCCESS)
+                                              .starTime(new Date()).build());
+  }
+
+  private boolean isRecordProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
+    return processedRecordsDAO.selectByPrimaryKey(dpsTask.getTaskId(), harvestedRecord.getRecordLocalId())
+                              .map(theRecord -> theRecord.getState() == RecordState.SUCCESS)
+                              .orElse(false);
+  }
+
+  public boolean needsPostProcessing(DpsTask task) {
+    return isIncrementalHarvesting(task);
+  }
+
+  private boolean isIncrementalHarvesting(DpsTask task) {
+    return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
+  }
 }

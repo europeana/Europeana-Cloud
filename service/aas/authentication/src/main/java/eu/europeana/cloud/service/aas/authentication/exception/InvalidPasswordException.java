@@ -12,23 +12,23 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class InvalidPasswordException extends GenericException {
 
-    private static final long serialVersionUID = 2743985314014225235L;
+  private static final long serialVersionUID = 2743985314014225235L;
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param e
-     */
-    public InvalidPasswordException(ErrorInfo e) {
-        super(e);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param e
+   */
+  public InvalidPasswordException(ErrorInfo e) {
+    super(e);
+  }
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param errorInfo
-     */
-    public InvalidPasswordException(IdentifierErrorInfo errorInfo) {
-        super(errorInfo);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param errorInfo
+   */
+  public InvalidPasswordException(IdentifierErrorInfo errorInfo) {
+    super(errorInfo);
+  }
 }

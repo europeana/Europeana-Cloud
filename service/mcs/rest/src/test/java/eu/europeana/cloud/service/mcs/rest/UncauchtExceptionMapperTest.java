@@ -21,28 +21,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class UncauchtExceptionMapperTest extends AbstractResourceTest {
 
-    private RecordService recordService;
+  private RecordService recordService;
 
 
-    @Before
-    public void mockUp() {
-        recordService = applicationContext.getBean(RecordService.class);
-        Mockito.reset(recordService);
-    }
+  @Before
+  public void mockUp() {
+    recordService = applicationContext.getBean(RecordService.class);
+    Mockito.reset(recordService);
+  }
 
 
-    @Test
-    public void shouldReturnErrorInfoOnEveryException()
-            throws Exception {
-        Throwable exception = new RuntimeException("error details");
-        when(recordService.getRecord(Matchers.anyString())).thenThrow(exception);
+  @Test
+  public void shouldReturnErrorInfoOnEveryException()
+      throws Exception {
+    Throwable exception = new RuntimeException("error details");
+    when(recordService.getRecord(Matchers.anyString())).thenThrow(exception);
 
-        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath("id"))
-                .accept(MediaType.APPLICATION_XML))
-                .andExpect(status().isInternalServerError());
+    ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath("id"))
+                                        .accept(MediaType.APPLICATION_XML))
+                                    .andExpect(status().isInternalServerError());
 
-        ErrorInfo errorInfo = responseContentAsErrorInfo(response, APPLICATION_XML);
-        assertThat(errorInfo.getErrorCode(), is(McsErrorCode.OTHER.toString()));
-        assertThat(errorInfo.getDetails(), is(exception.getMessage()));
-    }
+    ErrorInfo errorInfo = responseContentAsErrorInfo(response, APPLICATION_XML);
+    assertThat(errorInfo.getErrorCode(), is(McsErrorCode.OTHER.toString()));
+    assertThat(errorInfo.getDetails(), is(exception.getMessage()));
+  }
 }

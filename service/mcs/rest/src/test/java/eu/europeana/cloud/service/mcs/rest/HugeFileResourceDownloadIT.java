@@ -28,66 +28,64 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 public class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
-    private static RecordService recordService;
+  private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 200_000_000;
+  private static final int HUGE_FILE_SIZE = 200_000_000;
 
-    @Before
-    public void mockUp() {
-        recordService = applicationContext.getBean(RecordService.class);
+  @Before
+  public void mockUp() {
+    recordService = applicationContext.getBean(RecordService.class);
+  }
+
+  @After
+  public void cleanUp() {
+    reset(recordService);
+  }
+
+  @Test
+  public void shouldHandleHugeFile()
+      throws Exception {
+    // given representation with file in service
+    String globalId = "globalId", schema = "schema", version = "v1";
+    MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
+    File file = new File("fileName", "text/plain", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
+
+    // mock answers:
+    doReturn(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
+        anyLong(), anyLong());
+    Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
+
+    // when we download mocked content of resource
+    ResultActions response = mockMvc.perform(
+                                        get(CLIENT_FILE_RESOURCE, globalId, schema, version, file.getFileName()))
+                                    .andExpect(status().is2xxSuccessful());
+
+    response.andReturn().getAsyncResult();
+
+    // then - we should be able to get full content and the content should have expected size
+    int totalBytesInResponse = responseContentAsByteArray(response).length;
+    assertEquals("Wrong size of read content", HUGE_FILE_SIZE, totalBytesInResponse);
+  }
+
+  /**
+   * Mock answer for {@link RecordService#getContent(String, String, String, String, long, long) getContent} method.
+   */
+  static class MockGetContentMethod implements Consumer<OutputStream> {
+
+    final int totalBytes;
+
+    public MockGetContentMethod(int totalBytes) {
+      this.totalBytes = totalBytes;
     }
 
-    @After
-    public void cleanUp() {
-        reset(recordService);
-    }
-
-    @Test
-    public void shouldHandleHugeFile()
-            throws Exception {
-        // given representation with file in service
-        String globalId = "globalId", schema = "schema", version = "v1";
-        MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
-        File file = new File("fileName", "text/plain", "md5", new Date().toString(), HUGE_FILE_SIZE, null);
-
-        // mock answers:
-        doReturn(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
-            anyLong(), anyLong());
-        Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
-
-        // when we download mocked content of resource
-        ResultActions response = mockMvc.perform(
-                get(CLIENT_FILE_RESOURCE, globalId, schema, version, file.getFileName()))
-                .andExpect(status().is2xxSuccessful());
-
-        response.andReturn().getAsyncResult();
-
-        // then - we should be able to get full content and the content should have expected size
-        int totalBytesInResponse = responseContentAsByteArray(response).length;
-        assertEquals("Wrong size of read content", HUGE_FILE_SIZE, totalBytesInResponse);
-    }
-
-    /**
-     * Mock answer for
-     * {@link RecordService#getContent(String, String, String, String, long, long)
-     * getContent} method.
-     */
-    static class MockGetContentMethod implements Consumer<OutputStream> {
-
-        final int totalBytes;
-
-        public MockGetContentMethod(int totalBytes) {
-            this.totalBytes = totalBytes;
+    public void accept(OutputStream os) {
+      try {
+        for (int i = 0; i < totalBytes; i++) {
+          os.write(1);
         }
-
-        public void accept(OutputStream os) {
-            try {
-                for (int i = 0; i < totalBytes; i++) {
-                    os.write(1);
-                }
-            } catch (IOException e) {
-                throw new SystemException(e);
-            }
-        }
+      } catch (IOException e) {
+        throw new SystemException(e);
+      }
     }
+  }
 }

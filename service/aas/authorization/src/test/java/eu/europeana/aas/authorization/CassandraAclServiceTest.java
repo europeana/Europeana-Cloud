@@ -26,43 +26,43 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclServiceTest extends CassandraTestBase {
 
-    @Autowired
-    private CassandraMutableAclService mutableAclService;
+  @Autowired
+  private CassandraMutableAclService mutableAclService;
 
-    private final String creator = "markus";
+  private final String creator = "markus";
 
-    private final String testKey = CassandraAclServiceTest.class.getName();
+  private final String testKey = CassandraAclServiceTest.class.getName();
 
-    private final String testValue = "entry";
+  private final String testValue = "entry";
 
-    /**
-     * Test creation and retrieving of user.
-     *
-     * @throws Exception expected = UserExistsException.class
-     */
-    @Test(expected = NotFoundException.class)
-    public void testCreateAndRetrieve() throws Exception {
-        TestingAuthenticationToken auth = new TestingAuthenticationToken(creator, creator);
-        auth.setAuthenticated(true);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+  /**
+   * Test creation and retrieving of user.
+   *
+   * @throws Exception expected = UserExistsException.class
+   */
+  @Test(expected = NotFoundException.class)
+  public void testCreateAndRetrieve() throws Exception {
+    TestingAuthenticationToken auth = new TestingAuthenticationToken(creator, creator);
+    auth.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(auth);
 
-        ObjectIdentity obj = new ObjectIdentityImpl(testKey,
-                testValue);
+    ObjectIdentity obj = new ObjectIdentityImpl(testKey,
+        testValue);
 
-        MutableAcl acl = mutableAclService.createAcl(obj);
+    MutableAcl acl = mutableAclService.createAcl(obj);
 
-        acl.insertAce(0, BasePermission.READ, new PrincipalSid(creator), true);
-        acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creator), true);
-        acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creator), true);
-        acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creator),
-                true);
+    acl.insertAce(0, BasePermission.READ, new PrincipalSid(creator), true);
+    acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creator), true);
+    acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creator), true);
+    acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creator),
+        true);
 
-        mutableAclService.updateAcl(acl);
+    mutableAclService.updateAcl(acl);
 
-        Acl readAcl = mutableAclService.readAclById(obj);
-        Assert.assertTrue(acl.getEntries().size() == readAcl.getEntries().size());
+    Acl readAcl = mutableAclService.readAclById(obj);
+    Assert.assertTrue(acl.getEntries().size() == readAcl.getEntries().size());
 
-        mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
-                creator));
-    }
+    mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
+        creator));
+  }
 }

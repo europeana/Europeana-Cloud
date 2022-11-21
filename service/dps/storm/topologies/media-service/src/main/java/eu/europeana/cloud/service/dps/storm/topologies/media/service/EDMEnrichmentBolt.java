@@ -30,232 +30,239 @@ import java.util.List;
 import java.util.Map;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
-    public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted," +
-            " neither main thumbnail or remaining resources for media extraction.";
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
-    private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
-    private static final String SERIALIZATION_EXCEPTION_MESSAGE = "Error while serializing the enriched file: ";
 
-    private static final int CACHE_SIZE = 1024;
-    transient Map<String, TempEnrichedFile> cache;
-    private transient Gson gson;
-    private transient RdfDeserializer deserializer;
-    private transient RdfSerializer rdfSerializer;
+  public static final String NO_RESOURCES_DETAILED_MESSAGE = "No resources in rdf file for which media could be extracted," +
+      " neither main thumbnail or remaining resources for media extraction.";
+  private static final long serialVersionUID = 1L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(EDMEnrichmentBolt.class);
+  private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
+  private static final String SERIALIZATION_EXCEPTION_MESSAGE = "Error while serializing the enriched file: ";
 
-    public EDMEnrichmentBolt(String mcsURL,
-                             String ecloudMcsUser,
-                             String ecloudMcsUserPassword) {
-        super(mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
-    }
+  private static final int CACHE_SIZE = 1024;
+  transient Map<String, TempEnrichedFile> cache;
+  private transient Gson gson;
+  private transient RdfDeserializer deserializer;
+  private transient RdfSerializer rdfSerializer;
 
-    @Override
-    public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.debug("Starting EDM enrichment");
-        // It is assigning time stamp to variable, so It has to be assigned there.
-        @SuppressWarnings("java:S1941")
-        Instant processingStartTime = Instant.now();
-        if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
-            LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
-            try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
-                EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream));
-                prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
-                outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-                outputCollector.ack(anchorTuple);
-            } catch (RetryInterruptedException e) {
-                handleInterruption(e, anchorTuple);
-            } catch (Exception ex) {
-                LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-                emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                        stormTaskTuple.getFileUrl(), ex.getMessage(),
-                        SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
-                        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-                outputCollector.ack(anchorTuple);
-            }
+  public EDMEnrichmentBolt(String mcsURL,
+      String ecloudMcsUser,
+      String ecloudMcsUserPassword) {
+    super(mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
+  }
+
+  @Override
+  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    LOGGER.debug("Starting EDM enrichment");
+    // It is assigning time stamp to variable, so It has to be assigned there.
+    @SuppressWarnings("java:S1941")
+    Instant processingStartTime = Instant.now();
+    if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
+      LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
+      try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
+        EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream));
+        prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        outputCollector.ack(anchorTuple);
+      } catch (RetryInterruptedException e) {
+        handleInterruption(e, anchorTuple);
+      } catch (Exception ex) {
+        LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
+        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+            stormTaskTuple.getFileUrl(), ex.getMessage(),
+            SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
+            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        outputCollector.ack(anchorTuple);
+      }
+    } else {
+      final String file = stormTaskTuple.getFileUrl();
+      TempEnrichedFile tempEnrichedFile = cache.get(file);
+      try {
+        if ((tempEnrichedFile == null) || (tempEnrichedFile.getTaskId() != stormTaskTuple.getTaskId())) {
+          try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
+            tempEnrichedFile = new TempEnrichedFile();
+            tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
+            byte[] bytes = IOUtils.toByteArray(stream);
+            tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
+            LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
+          }
+        }
+        tempEnrichedFile.addSourceTuple(anchorTuple);
+        String metadata = stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
+        if (metadata != null) {
+          EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), metadata);
+          tempEnrichedFile.setEnrichedRdf(enrichedRdf);
+        }
+        String cachedErrorMessage = tempEnrichedFile.getExceptions();
+        cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
+            cachedErrorMessage);
+        tempEnrichedFile.setExceptions(cachedErrorMessage);
+        LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
+            tempEnrichedFile.getCount() + 1, tempEnrichedFile.getExceptions(), metadata);
+      } catch (RetryInterruptedException e) {
+        handleInterruption(e, anchorTuple);
+        return;
+      } catch (Exception e) {
+        LOGGER.error("problem while enrichment ", e);
+        String currentException = tempEnrichedFile.getExceptions();
+        String exceptionMessage = "Exception while enriching the original edm file with resource: "
+            + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: "
+            + ExceptionUtils.getStackTrace(e);
+        if (currentException.isEmpty()) {
+          tempEnrichedFile.setExceptions(exceptionMessage);
         } else {
-            final String file = stormTaskTuple.getFileUrl();
-            TempEnrichedFile tempEnrichedFile = cache.get(file);
-            try {
-                if ((tempEnrichedFile == null) || (tempEnrichedFile.getTaskId() != stormTaskTuple.getTaskId())) {
-                    try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
-                        tempEnrichedFile = new TempEnrichedFile();
-                        tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
-                        byte[] bytes = IOUtils.toByteArray(stream);
-                        tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
-                        LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
-                    }
-                }
-                tempEnrichedFile.addSourceTuple(anchorTuple);
-                String metadata = stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
-                if (metadata != null) {
-                    EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), metadata);
-                    tempEnrichedFile.setEnrichedRdf(enrichedRdf);
-                }
-                String cachedErrorMessage = tempEnrichedFile.getExceptions();
-                cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), cachedErrorMessage);
-                tempEnrichedFile.setExceptions(cachedErrorMessage);
-                LOGGER.debug("Enriched file in cache. Link index: {}, Exceptions: {}, metadata: {} ",
-                        tempEnrichedFile.getCount() + 1, tempEnrichedFile.getExceptions(), metadata);
-            } catch (RetryInterruptedException e) {
-                handleInterruption(e, anchorTuple);
-                return;
-            } catch (Exception e) {
-                LOGGER.error("problem while enrichment ", e);
-                String currentException = tempEnrichedFile.getExceptions();
-                String exceptionMessage = "Exception while enriching the original edm file with resource: "
-                        + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: "
-                        + ExceptionUtils.getStackTrace(e);
-                if (currentException.isEmpty())
-                    tempEnrichedFile.setExceptions(exceptionMessage);
-                else
-                    tempEnrichedFile.setExceptions(currentException + "," + exceptionMessage);
-            }
-
-            tempEnrichedFile.increaseCount();
-            if (tempEnrichedFile.isTheLastResource(Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
-                try {
-                    LOGGER.debug("The file was fully enriched and will be send to the next bolt");
-                    prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
-                    cache.remove(file);
-                    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-                } catch (RetryInterruptedException e) {
-                    handleInterruption(e, anchorTuple);
-                    return;
-                } catch (Exception ex) {
-                    LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-                    emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
-                            stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
-                            SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
-                            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-                }
-                ackAllSourceTuplesForFile(tempEnrichedFile);
-            } else {
-                cache.put(file, tempEnrichedFile);
-            }
+          tempEnrichedFile.setExceptions(currentException + "," + exceptionMessage);
         }
-        LOGGER.info("EDM enrichment finished in {}ms", Clock.millisecondsSince(processingStartTime));
-    }
+      }
 
-    @Override
-    public void prepare() {
-        super.prepare();
+      tempEnrichedFile.increaseCount();
+      if (tempEnrichedFile.isTheLastResource(
+          Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)))) {
         try {
-            deserializer = new RdfConverterFactory().createRdfDeserializer();
-            rdfSerializer = new RdfConverterFactory().createRdfSerializer();
-            gson = new Gson();
-            cache = new HashMap<>(CACHE_SIZE);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while creating serializer/deserializer", e);
+          LOGGER.debug("The file was fully enriched and will be send to the next bolt");
+          prepareStormTaskTuple(stormTaskTuple, tempEnrichedFile);
+          cache.remove(file);
+          outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        } catch (RetryInterruptedException e) {
+          handleInterruption(e, anchorTuple);
+          return;
+        } catch (Exception ex) {
+          LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
+          emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
+              stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
+              SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
+              StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
         }
+        ackAllSourceTuplesForFile(tempEnrichedFile);
+      } else {
+        cache.put(file, tempEnrichedFile);
+      }
+    }
+    LOGGER.info("EDM enrichment finished in {}ms", Clock.millisecondsSince(processingStartTime));
+  }
+
+  @Override
+  public void prepare() {
+    super.prepare();
+    try {
+      deserializer = new RdfConverterFactory().createRdfDeserializer();
+      rdfSerializer = new RdfConverterFactory().createRdfSerializer();
+      gson = new Gson();
+      cache = new HashMap<>(CACHE_SIZE);
+    } catch (Exception e) {
+      throw new RuntimeException("Error while creating serializer/deserializer", e);
+    }
+  }
+
+  private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile)
+      throws RdfSerializationException, MalformedURLException {
+
+    String errorMessage = tempEnrichedFile.getExceptions();
+    EnrichedRdf enrichedRdf = tempEnrichedFile.getEnrichedRdf();
+    prepareStormTaskTuple(stormTaskTuple, enrichedRdf, errorMessage);
+  }
+
+  private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, EnrichedRdf enrichedRdf, String errorMessage)
+      throws RdfSerializationException, MalformedURLException {
+
+    if (!errorMessage.isEmpty()) {
+      stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, errorMessage);
+      stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+    }
+    stormTaskTuple.setFileData(rdfSerializer.serialize(enrichedRdf));
+    final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+    if (urlParser.isUrlToRepresentationVersionFile()) {
+      stormTaskTuple
+          .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+      stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
+          urlParser.getPart(UrlPart.REPRESENTATIONS));
+      stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
+          urlParser.getPart(UrlPart.VERSIONS));
     }
 
-    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, TempEnrichedFile tempEnrichedFile)
-            throws RdfSerializationException, MalformedURLException {
+    stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
+  }
 
-        String errorMessage = tempEnrichedFile.getExceptions();
-        EnrichedRdf enrichedRdf = tempEnrichedFile.getEnrichedRdf();
-        prepareStormTaskTuple(stormTaskTuple, enrichedRdf, errorMessage);
+  private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
+    if (cachedErrorMessage.isEmpty()) {
+      return handleResourceErrorMessage(resourceErrorMessage);
+    } else if (resourceErrorMessage != null) {
+      return cachedErrorMessage + ", " + resourceErrorMessage;
+    }
+    return cachedErrorMessage;
+  }
+
+  private String handleResourceErrorMessage(String resourceErrorMessage) {
+    if (resourceErrorMessage == null) {
+      return "";
+    }
+    return resourceErrorMessage;
+
+  }
+
+  private EnrichedRdf enrichRdf(EnrichedRdf enrichedRdf, String resourceMetaData) {
+    ResourceMetadata resourceMetadata = gson.fromJson(resourceMetaData, ResourceMetadata.class);
+    enrichedRdf.enrichResource(resourceMetadata);
+    return enrichedRdf;
+  }
+
+  private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
+    for (Tuple tuple : enrichedFile.sourceTuples) {
+      outputCollector.ack(tuple);
+    }
+  }
+
+  static class TempEnrichedFile {
+
+    private Long taskId;
+    private EnrichedRdf enrichedRdf;
+    private String exceptions;
+    private int count;
+    private final List<Tuple> sourceTuples = new ArrayList<>();
+
+    public TempEnrichedFile() {
+      count = 0;
+      exceptions = "";
     }
 
-    private void prepareStormTaskTuple(StormTaskTuple stormTaskTuple, EnrichedRdf enrichedRdf, String errorMessage)
-            throws RdfSerializationException, MalformedURLException {
-
-        if (!errorMessage.isEmpty()) {
-            stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, errorMessage);
-            stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
-        }
-        stormTaskTuple.setFileData(rdfSerializer.serialize(enrichedRdf));
-        final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
-        if (urlParser.isUrlToRepresentationVersionFile()) {
-            stormTaskTuple
-                    .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-            stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
-                    urlParser.getPart(UrlPart.REPRESENTATIONS));
-            stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
-                    urlParser.getPart(UrlPart.VERSIONS));
-        }
-
-        stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
+    public EnrichedRdf getEnrichedRdf() {
+      return enrichedRdf;
     }
 
-    private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
-        if (cachedErrorMessage.isEmpty())
-            return handleResourceErrorMessage(resourceErrorMessage);
-        else if (resourceErrorMessage != null)
-            return cachedErrorMessage + ", " + resourceErrorMessage;
-        return cachedErrorMessage;
+    public void setEnrichedRdf(EnrichedRdf enrichedRdf) {
+      this.enrichedRdf = enrichedRdf;
     }
 
-    private String handleResourceErrorMessage(String resourceErrorMessage) {
-        if (resourceErrorMessage == null)
-            return "";
-        return resourceErrorMessage;
-
+    public String getExceptions() {
+      return exceptions;
     }
 
-    private EnrichedRdf enrichRdf(EnrichedRdf enrichedRdf, String resourceMetaData) {
-        ResourceMetadata resourceMetadata = gson.fromJson(resourceMetaData, ResourceMetadata.class);
-        enrichedRdf.enrichResource(resourceMetadata);
-        return enrichedRdf;
+    public void setExceptions(String exceptions) {
+      this.exceptions = exceptions;
     }
 
-    private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
-        for (Tuple tuple : enrichedFile.sourceTuples) {
-            outputCollector.ack(tuple);
-        }
+    public void increaseCount() {
+      count++;
     }
 
-    static class TempEnrichedFile {
-        private Long taskId;
-        private EnrichedRdf enrichedRdf;
-        private String exceptions;
-        private int count;
-        private final List<Tuple> sourceTuples = new ArrayList<>();
-
-        public TempEnrichedFile() {
-            count = 0;
-            exceptions = "";
-        }
-
-        public EnrichedRdf getEnrichedRdf() {
-            return enrichedRdf;
-        }
-
-        public void setEnrichedRdf(EnrichedRdf enrichedRdf) {
-            this.enrichedRdf = enrichedRdf;
-        }
-
-        public String getExceptions() {
-            return exceptions;
-        }
-
-        public void setExceptions(String exceptions) {
-            this.exceptions = exceptions;
-        }
-
-        public void increaseCount() {
-            count++;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        public boolean isTheLastResource(int linkCount) {
-            return (count == linkCount);
-        }
-
-        public void addSourceTuple(Tuple anchorTuple) {
-            sourceTuples.add(anchorTuple);
-        }
-
-        public Long getTaskId() {
-            return taskId;
-        }
-
-        public void setTaskId(Long taskId) {
-            this.taskId = taskId;
-        }
-
+    public int getCount() {
+      return count;
     }
+
+    public boolean isTheLastResource(int linkCount) {
+      return (count == linkCount);
+    }
+
+    public void addSourceTuple(Tuple anchorTuple) {
+      sourceTuples.add(anchorTuple);
+    }
+
+    public Long getTaskId() {
+      return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+      this.taskId = taskId;
+    }
+
+  }
 }

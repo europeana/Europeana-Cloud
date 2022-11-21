@@ -10,10 +10,11 @@ import java.io.Serializable;
 @NoArgsConstructor
 @ToString
 public class DpsRecord implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    private long taskId;
-    private String recordId;
-    private String metadataPrefix;
-    private boolean markedAsDeleted;
+  private static final long serialVersionUID = 1L;
+
+  private long taskId;
+  private String recordId;
+  private String metadataPrefix;
+  private boolean markedAsDeleted;
 }

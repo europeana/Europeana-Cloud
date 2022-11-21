@@ -5,26 +5,26 @@ package eu.europeana.cloud;
  */
 public interface TestConstantsHelper {
 
-    String CLOUD_ID = "CloudId";
-    String REPRESENTATION_NAME = "RepresentationName";
-    String VERSION = "Version";
-    String FILE = "fileName";
+  String CLOUD_ID = "CloudId";
+  String REPRESENTATION_NAME = "RepresentationName";
+  String VERSION = "Version";
+  String FILE = "fileName";
 
-    String EMPTY_REPRESENTATION = "EmptyRepresentation";
+  String EMPTY_REPRESENTATION = "EmptyRepresentation";
 
-    String DATASET_NAME = "dataSet";
-    String DATA_PROVIDER = "testDataProvider";
+  String DATASET_NAME = "dataSet";
+  String DATA_PROVIDER = "testDataProvider";
 
-    String FILE_URL = "http://localhost:8080/mcs/records/"
-            + CLOUD_ID + "/representations/"
-            + REPRESENTATION_NAME + "/versions/"
-            + VERSION + "/files/"
-            + FILE;
-    String FILE_URL2 = "http://localhost:8080/mcs/records/"
-            + CLOUD_ID + "/representations/"
-            + REPRESENTATION_NAME + "/versions/"
-            + VERSION + 2 + "/files/"
-            + FILE;
+  String FILE_URL = "http://localhost:8080/mcs/records/"
+      + CLOUD_ID + "/representations/"
+      + REPRESENTATION_NAME + "/versions/"
+      + VERSION + "/files/"
+      + FILE;
+  String FILE_URL2 = "http://localhost:8080/mcs/records/"
+      + CLOUD_ID + "/representations/"
+      + REPRESENTATION_NAME + "/versions/"
+      + VERSION + 2 + "/files/"
+      + FILE;
 
 
 }

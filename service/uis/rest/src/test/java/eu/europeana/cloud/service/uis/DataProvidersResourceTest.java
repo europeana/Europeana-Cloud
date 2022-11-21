@@ -29,32 +29,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {TestConfiguration.class})
 public class DataProvidersResourceTest {
 
-    MockMvc mockMvc;
-    @Autowired
-    private WebApplicationContext wac;
-    @Autowired
-    private DataProviderService dataProviderService;
+  MockMvc mockMvc;
+  @Autowired
+  private WebApplicationContext wac;
+  @Autowired
+  private DataProviderService dataProviderService;
 
-    /**
-     * Test return empty list when provider does not exist
-     */
-    @Test
-    public void shouldReturnEmptyListOfProvidersIfNoneExists() throws Exception {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+  /**
+   * Test return empty list when provider does not exist
+   */
+  @Test
+  public void shouldReturnEmptyListOfProvidersIfNoneExists() throws Exception {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
 
-        // given there is no provider
-        Mockito.doReturn(new ResultSlice<DataProvider>()).when(dataProviderService).getProviders(Mockito.any(), Mockito.anyInt());
+    // given there is no provider
+    Mockito.doReturn(new ResultSlice<DataProvider>()).when(dataProviderService).getProviders(Mockito.any(), Mockito.anyInt());
 
-        // when you list all providers
-        MvcResult response = mockMvc.perform(get("/data-providers").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
+    // when you list all providers
+    MvcResult response = mockMvc.perform(get("/data-providers").accept(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andReturn();
 
-        ResultSlice<DataProvider> retrievedInfo = new ObjectMapper().readValue(
-                response.getResponse().getContentAsString(), new TypeReference<ResultSlice<DataProvider>>() {
-                });
+    ResultSlice<DataProvider> retrievedInfo = new ObjectMapper().readValue(
+        response.getResponse().getContentAsString(), new TypeReference<ResultSlice<DataProvider>>() {
+        });
 
-        assertTrue("Expected empty list of data providers", retrievedInfo.getResults().isEmpty());
+    assertTrue("Expected empty list of data providers", retrievedInfo.getResults().isEmpty());
 
-    }
+  }
 }

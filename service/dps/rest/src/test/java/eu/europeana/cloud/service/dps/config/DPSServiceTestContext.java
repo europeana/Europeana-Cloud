@@ -37,147 +37,148 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @Import({UnifiedExceptionsMapper.class})
 public class DPSServiceTestContext {
 
-    /* REAL Beans */
-    @Bean
-    public String mcsLocation() {
-        return "test";
-    }
+  /* REAL Beans */
+  @Bean
+  public String mcsLocation() {
+    return "test";
+  }
 
 
-    /* MOCKED Beans */
-    @Bean
-    public ApplicationContext applicationContext() {
-        return Mockito.mock(ApplicationContext.class);
-    }
+  /* MOCKED Beans */
+  @Bean
+  public ApplicationContext applicationContext() {
+    return Mockito.mock(ApplicationContext.class);
+  }
 
-    @Bean
-    public CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO() {
-        return Mockito.mock(CassandraNodeStatisticsDAO.class);
-    }
+  @Bean
+  public CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO() {
+    return Mockito.mock(CassandraNodeStatisticsDAO.class);
+  }
 
-    @Bean
-    public PermissionManager permissionManger() {
-        return Mockito.mock(PermissionManager.class);
-    }
+  @Bean
+  public PermissionManager permissionManger() {
+    return Mockito.mock(PermissionManager.class);
+  }
 
-    @Bean
-    public ReportService reportService() {
-        return Mockito.mock(ReportService.class);
-    }
+  @Bean
+  public ReportService reportService() {
+    return Mockito.mock(ReportService.class);
+  }
 
-    @Bean
-    public ValidationStatisticsServiceImpl validationStatisticsService() {
-        return Mockito.mock(ValidationStatisticsServiceImpl.class);
-    }
+  @Bean
+  public ValidationStatisticsServiceImpl validationStatisticsService() {
+    return Mockito.mock(ValidationStatisticsServiceImpl.class);
+  }
 
-    @Bean
-    public RecordKafkaSubmitService recordKafkaSubmitService() {
-        return Mockito.mock(RecordKafkaSubmitService.class);
-    }
+  @Bean
+  public RecordKafkaSubmitService recordKafkaSubmitService() {
+    return Mockito.mock(RecordKafkaSubmitService.class);
+  }
 
-    @Bean
-    public TopologyManager topologyManager() {
-        return Mockito.mock(TopologyManager.class);
-    }
+  @Bean
+  public TopologyManager topologyManager() {
+    return Mockito.mock(TopologyManager.class);
+  }
 
-    @Bean
-    public MutableAclService mutableAclService() {
-        return Mockito.mock(MutableAclService.class);
-    }
+  @Bean
+  public MutableAclService mutableAclService() {
+    return Mockito.mock(MutableAclService.class);
+  }
 
-    @Bean
-    public RecordServiceClient recordServiceClient() {
-        return Mockito.mock(RecordServiceClient.class);
-    }
+  @Bean
+  public RecordServiceClient recordServiceClient() {
+    return Mockito.mock(RecordServiceClient.class);
+  }
 
-    @Bean
-    public FileServiceClient fileServiceClient() {
-        return Mockito.mock(FileServiceClient.class);
-    }
+  @Bean
+  public FileServiceClient fileServiceClient() {
+    return Mockito.mock(FileServiceClient.class);
+  }
 
-    @Bean
-    public DataSetServiceClient dataSetServiceClient() {
-        return Mockito.mock(DataSetServiceClient.class);
-    }
+  @Bean
+  public DataSetServiceClient dataSetServiceClient() {
+    return Mockito.mock(DataSetServiceClient.class);
+  }
 
-    @Bean
-    public CassandraTaskInfoDAO taskDAO() {
-        return Mockito.mock(CassandraTaskInfoDAO.class);
-    }
+  @Bean
+  public CassandraTaskInfoDAO taskDAO() {
+    return Mockito.mock(CassandraTaskInfoDAO.class);
+  }
 
-    @Bean
-    public CassandraTaskErrorsDAO cassandraTaskErrorsDAO(){
-        return Mockito.mock(CassandraTaskErrorsDAO.class);
-    }
+  @Bean
+  public CassandraTaskErrorsDAO cassandraTaskErrorsDAO() {
+    return Mockito.mock(CassandraTaskErrorsDAO.class);
+  }
 
-    @Bean
-    public FilesCounterFactory filesCounterFactory() {
-        return Mockito.mock(FilesCounterFactory.class);
-    }
+  @Bean
+  public FilesCounterFactory filesCounterFactory() {
+    return Mockito.mock(FilesCounterFactory.class);
+  }
 
-    @Bean
-    public FilesCounter filesCounter() {
-        return Mockito.mock(FilesCounter.class);
-    }
+  @Bean
+  public FilesCounter filesCounter() {
+    return Mockito.mock(FilesCounter.class);
+  }
 
-    @Bean
-    public UrlParser urlParser() {
-        return Mockito.mock(UrlParser.class);
-    }
+  @Bean
+  public UrlParser urlParser() {
+    return Mockito.mock(UrlParser.class);
+  }
 
-    @Bean
-    public TasksByStateDAO tasksDAO() {
-        return Mockito.mock(TasksByStateDAO.class);
-    }
+  @Bean
+  public TasksByStateDAO tasksDAO() {
+    return Mockito.mock(TasksByStateDAO.class);
+  }
 
-    @Bean
-    public ProcessedRecordsDAO processedRecordsDAO() {
-        return Mockito.mock(ProcessedRecordsDAO.class);
-    }
+  @Bean
+  public ProcessedRecordsDAO processedRecordsDAO() {
+    return Mockito.mock(ProcessedRecordsDAO.class);
+  }
 
-    @Bean
-    public TaskStatusChecker taskStatusChecker() {
-        return Mockito.mock(TaskStatusChecker.class);
-    }
+  @Bean
+  public TaskStatusChecker taskStatusChecker() {
+    return Mockito.mock(TaskStatusChecker.class);
+  }
 
-    @Bean
-    public KafkaTopicSelector kafkaTopicSelector() {
-        return Mockito.mock(KafkaTopicSelector.class);
-    }
+  @Bean
+  public KafkaTopicSelector kafkaTopicSelector() {
+    return Mockito.mock(KafkaTopicSelector.class);
+  }
 
-    @Bean
-    public HarvestsExecutor harvesterExecutor() {
-        return Mockito.mock(HarvestsExecutor.class);
-    }
+  @Bean
+  public HarvestsExecutor harvesterExecutor() {
+    return Mockito.mock(HarvestsExecutor.class);
+  }
 
-    @Bean
-    public IndexWrapper indexWrapper() {
-        return Mockito.mock(IndexWrapper.class);
-    }
+  @Bean
+  public IndexWrapper indexWrapper() {
+    return Mockito.mock(IndexWrapper.class);
+  }
 
-    @Bean
-    public DepublicationTaskSubmitter depublicationTaskSubmitter(FilesCounterFactory filesCounterFactory, DepublicationService depublicationService, TaskStatusUpdater taskStatusUpdater){
-        return new DepublicationTaskSubmitter(filesCounterFactory,depublicationService,taskStatusUpdater);
-    }
+  @Bean
+  public DepublicationTaskSubmitter depublicationTaskSubmitter(FilesCounterFactory filesCounterFactory,
+      DepublicationService depublicationService, TaskStatusUpdater taskStatusUpdater) {
+    return new DepublicationTaskSubmitter(filesCounterFactory, depublicationService, taskStatusUpdater);
+  }
 
-    @Bean
-    public DepublicationService depublicationService(){
-        return Mockito.mock( DepublicationService.class);
-    }
+  @Bean
+  public DepublicationService depublicationService() {
+    return Mockito.mock(DepublicationService.class);
+  }
 
-    @Bean
-    public DatasetDepublisher datasetDepublisher(){
-        return Mockito.mock(DatasetDepublisher.class);
-    }
+  @Bean
+  public DatasetDepublisher datasetDepublisher() {
+    return Mockito.mock(DatasetDepublisher.class);
+  }
 
-    @Bean
-    public TaskStatusSynchronizer taskStatusSynchronizer(){
-        return Mockito.mock(TaskStatusSynchronizer.class);
-    }
+  @Bean
+  public TaskStatusSynchronizer taskStatusSynchronizer() {
+    return Mockito.mock(TaskStatusSynchronizer.class);
+  }
 
-    @Bean
-    public RecordSubmitService recordSubmitService(){
-        return Mockito.mock(RecordSubmitService.class);
-    }
+  @Bean
+  public RecordSubmitService recordSubmitService() {
+    return Mockito.mock(RecordSubmitService.class);
+  }
 
 }

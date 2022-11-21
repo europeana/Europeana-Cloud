@@ -12,22 +12,23 @@ import static org.junit.Assert.assertThat;
  * @author krystian.
  */
 public class FileDeserializationTest {
-    private final Gson gson = new Gson();
 
-    @Test
-    public void shouldProperlyDeserializeJsonWithoutStorageEnumToDefaultValue() {
-        //given
-        String json = "{" +
-                "\"fileName\":\"name\"," +
-                "\"mimeType\":\"application/xml\"," +
-                "\"md5\":\"someMd5\"," +
-                "\"date\":\"2016-04-20T00:27:21.866+02:00\"," +
-                "\"contentLength\":1111}";
+  private final Gson gson = new Gson();
 
-        //when
-        File file = gson.fromJson(json, File.class);
+  @Test
+  public void shouldProperlyDeserializeJsonWithoutStorageEnumToDefaultValue() {
+    //given
+    String json = "{" +
+        "\"fileName\":\"name\"," +
+        "\"mimeType\":\"application/xml\"," +
+        "\"md5\":\"someMd5\"," +
+        "\"date\":\"2016-04-20T00:27:21.866+02:00\"," +
+        "\"contentLength\":1111}";
 
-        //then
-        assertThat(file.getFileStorage(), is(Storage.OBJECT_STORAGE));
-    }
+    //when
+    File file = gson.fromJson(json, File.class);
+
+    //then
+    assertThat(file.getFileStorage(), is(Storage.OBJECT_STORAGE));
+  }
 }

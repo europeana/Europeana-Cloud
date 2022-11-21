@@ -31,90 +31,91 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 @RequestMapping(FILE_UPLOAD_RESOURCE)
 public class FileUploadResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
-    private final RecordService recordService;
-    private final Integer objectStoreSizeThreshold;
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
+  private final RecordService recordService;
+  private final Integer objectStoreSizeThreshold;
 
-    public FileUploadResource(
-            RecordService recordService,
-            Integer objectStoreSizeThreshold) {
-        this.recordService = recordService;
-        this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+  public FileUploadResource(
+      RecordService recordService,
+      Integer objectStoreSizeThreshold) {
+    this.recordService = recordService;
+    this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+  }
+
+  /**
+   * Creates representation, uploads file and persists this representation in one request
+   *
+   * @param cloudId cloudId
+   * @param representationName representation name
+   * @param fileName file name
+   * @param providerId providerId
+   * @param mimeType mimeType of uploaded file
+   * @param data uploaded file content
+   * @return result of the operation. Usually it is OK containing created file location but maybe also exception.
+   * @throws RepresentationNotExistsException
+   * @throws CannotModifyPersistentRepresentationException
+   * @throws RecordNotExistsException
+   * @throws ProviderNotExistsException
+   * @throws CannotPersistEmptyRepresentationException
+   * @summary Upload file for non-existing representation
+   */
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize("hasRole('ROLE_EXECUTOR') OR  hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+  public ResponseEntity<?> sendFile(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @RequestParam(required = false) UUID version,
+      @RequestParam String fileName,
+      @RequestParam String providerId,
+      @RequestParam String mimeType,
+      @RequestParam String dataSetId,
+      @RequestParam MultipartFile data) throws RepresentationNotExistsException,
+      CannotModifyPersistentRepresentationException, RecordNotExistsException,
+      ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
+    LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
+        cloudId, representationName, version, fileName, providerId, mimeType);
+    PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
+    Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
+    LOGGER.trace("File {} buffered", fileName);
+    Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version,
+        dataSetId);
+
+    File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
+    persistRepresentation(representation);
+
+    EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, representation.getVersion(), file);
+
+    return ResponseEntity
+        .created(file.getContentUri())
+        .eTag(file.getMd5())
+        .build();
+  }
+
+  private File addFileToRepresentation(
+      Representation representation, InputStream data, String mimeType, String fileName, Storage storage)
+      throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
+
+    File f = new File();
+    f.setMimeType(mimeType);
+    f.setFileStorage(storage);
+
+    if (fileName == null) {
+      fileName = UUID.randomUUID().toString();
     }
+    f.setFileName(fileName);
+    recordService.putContent(representation.getCloudId(), representation.getRepresentationName(),
+        representation.getVersion(), f, data);
+    IOUtils.closeQuietly(data);
+    return f;
+  }
 
-    /**
-     * 
-     * Creates representation, uploads file and persists this representation in one request
-     * @param cloudId      cloudId
-     * @param representationName        representation name
-     * @param fileName      file name
-     * @param providerId    providerId
-     * @param mimeType      mimeType of uploaded file
-     * @param data          uploaded file content
-     * @return result of the operation. Usually it is OK containing created file location but maybe also exception.
-     * @throws RepresentationNotExistsException
-     * @throws CannotModifyPersistentRepresentationException
-     * @throws RecordNotExistsException
-     * @throws ProviderNotExistsException
-     * @throws CannotPersistEmptyRepresentationException
-     * 
-     * @summary Upload file for non-existing representation
-     */
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @PreAuthorize("hasRole('ROLE_EXECUTOR') OR  hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
-    public ResponseEntity<?> sendFile(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @RequestParam(required = false) UUID version,
-            @RequestParam String fileName,
-            @RequestParam String providerId,
-            @RequestParam String mimeType,
-            @RequestParam String dataSetId,
-            @RequestParam MultipartFile data) throws RepresentationNotExistsException,
-            CannotModifyPersistentRepresentationException, RecordNotExistsException,
-            ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
-        LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
-                cloudId, representationName, version, fileName, providerId, mimeType);
-        PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
-        Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-        LOGGER.trace("File {} buffered", fileName);
-        Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
-
-        File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
-        persistRepresentation(representation);
-
-        EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, representation.getVersion(), file);
-
-        return ResponseEntity
-                .created(file.getContentUri())
-                .eTag(file.getMd5())
-                .build();
-    }
-    
-    private File addFileToRepresentation(
-            Representation representation, InputStream data,  String mimeType, String fileName, Storage storage)
-                throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException {
-
-        File f = new File();
-        f.setMimeType(mimeType);
-        f.setFileStorage(storage);
-
-        if (fileName == null) {
-            fileName = UUID.randomUUID().toString();
-        }
-        f.setFileName(fileName);
-        recordService.putContent(representation.getCloudId(), representation.getRepresentationName(),
-                representation.getVersion(), f, data);
-        IOUtils.closeQuietly(data);
-        return f;
-    }
-
-    private void persistRepresentation(Representation representation) throws
-            CannotModifyPersistentRepresentationException,
-            CannotPersistEmptyRepresentationException,
-            RepresentationNotExistsException {
-        recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-        LOGGER.debug("Representation persisted: {}", representation);
-    }
+  private void persistRepresentation(Representation representation) throws
+      CannotModifyPersistentRepresentationException,
+      CannotPersistEmptyRepresentationException,
+      RepresentationNotExistsException {
+    recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(),
+        representation.getVersion());
+    LOGGER.debug("Representation persisted: {}", representation);
+  }
 }

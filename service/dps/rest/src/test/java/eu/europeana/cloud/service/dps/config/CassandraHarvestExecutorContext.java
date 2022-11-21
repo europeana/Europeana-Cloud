@@ -13,14 +13,14 @@ import static org.mockito.Mockito.mock;
 @Import({HarvestsExecutor.class})
 public class CassandraHarvestExecutorContext {
 
-    @Bean
-    public RecordSubmitService recordSubmitService(){
-        return mock(RecordSubmitService.class);
-    }
+  @Bean
+  public RecordSubmitService recordSubmitService() {
+    return mock(RecordSubmitService.class);
+  }
 
-    @Bean
-    public TaskStatusChecker taskStatusChecker() {
-        return mock(TaskStatusChecker.class);
-    }
+  @Bean
+  public TaskStatusChecker taskStatusChecker() {
+    return mock(TaskStatusChecker.class);
+  }
 
 }

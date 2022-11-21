@@ -26,215 +26,214 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraTaskErrorsDAO extends CassandraDAO {
 
-    private static CassandraTaskErrorsDAO instance = null;
-    private PreparedStatement insertErrorStatement;
-    private PreparedStatement insertErrorCounterStatement;
-    private PreparedStatement selectErrorCountsStatement;
-    private PreparedStatement selectErrorCountsForErrorTypeStatement;
-    private PreparedStatement removeErrorCountsStatement;
-    private PreparedStatement removeErrorNotifications;
-    private PreparedStatement selectErrorTypeStatement;
-    private PreparedStatement selectErrorsStatement;
-    private PreparedStatement selectErrorStatement;
+  private static CassandraTaskErrorsDAO instance = null;
+  private PreparedStatement insertErrorStatement;
+  private PreparedStatement insertErrorCounterStatement;
+  private PreparedStatement selectErrorCountsStatement;
+  private PreparedStatement selectErrorCountsForErrorTypeStatement;
+  private PreparedStatement removeErrorCountsStatement;
+  private PreparedStatement removeErrorNotifications;
+  private PreparedStatement selectErrorTypeStatement;
+  private PreparedStatement selectErrorsStatement;
+  private PreparedStatement selectErrorStatement;
 
 
-    /**
-     * @param dbService The service exposing the connection and session
-     */
-    public CassandraTaskErrorsDAO(CassandraConnectionProvider dbService) {
-        super(dbService);
+  /**
+   * @param dbService The service exposing the connection and session
+   */
+  public CassandraTaskErrorsDAO(CassandraConnectionProvider dbService) {
+    super(dbService);
+  }
+
+  public CassandraTaskErrorsDAO() {
+    //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
+  }
+
+  public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
+    if (instance == null) {
+      instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
+
     }
+    return instance;
+  }
 
-    public CassandraTaskErrorsDAO() {
-        //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
+
+  @Override
+  protected void prepareStatements() {
+    insertErrorStatement = dbService.getSession().prepare(
+        "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+            + "("
+            + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
+            + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
+            + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
+            + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
+            + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS + ")"
+            + " VALUES (?,?,?,?,?)"
+    );
+
+    insertErrorCounterStatement = dbService.getSession().prepare(
+        "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + "("
+            + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + ","
+            + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + ","
+            + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+            + ") VALUES (?,?,?)"
+    );
+
+    selectErrorCountsStatement = dbService.getSession().prepare(
+        "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+            + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+    );
+
+    selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare(
+        "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
+            + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
+            + " AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?"
+    );
+
+    selectErrorTypeStatement = dbService.getSession().prepare(
+        "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
+            + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+    );
+
+    selectErrorsStatement = dbService.getSession().prepare(
+        "SELECT * "
+            + "FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
+    );
+
+    selectErrorStatement = dbService.getSession().prepare(
+        "SELECT * "
+            + " FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? "
+            + "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1"
+    );
+
+    removeErrorCountsStatement = dbService.getSession().prepare(
+        "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
+    );
+
+    removeErrorNotifications = dbService.getSession().prepare(
+        "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
+            "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?"
+    );
+  }
+
+  public void insertErrorCounter(long taskId, String errorType, int number) {
+    dbService.getSession().execute(insertErrorCounterStatement(taskId,
+        ErrorType.builder()
+                 .taskId(taskId)
+                 .count(number)
+                 .uuid(errorType)
+                 .build()));
+  }
+
+  public BoundStatement insertErrorCounterStatement(long taskId, ErrorType errorType) {
+    return insertErrorCounterStatement.bind(taskId, UUID.fromString(errorType.getUuid()), errorType.getCount());
+  }
+
+  /**
+   * Insert information about the resource and its error
+   *
+   * @param taskId task identifier
+   * @param errorType type of error
+   * @param errorMessage error message
+   * @param resource resource identifier
+   */
+  public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
+    dbService.getSession().execute(insertErrorStatement(
+        ErrorNotification.builder()
+                         .taskId(taskId)
+                         .errorType(errorType)
+                         .errorMessage(errorMessage)
+                         .resource(resource)
+                         .additionalInformations(additionalInformations)
+                         .build()
+    ));
+  }
+
+  public BoundStatement insertErrorStatement(ErrorNotification errorNotification) {
+    return insertErrorStatement.bind(
+        errorNotification.getTaskId(),
+        UUID.fromString(errorNotification.getErrorType()),
+        errorNotification.getErrorMessage(),
+        errorNotification.getResource(),
+        errorNotification.getAdditionalInformations());
+  }
+
+  /**
+   * Return the number of errors of all types for a given task.
+   *
+   * @param taskId task identifier
+   * @return number of all errors for the task
+   */
+  public int getErrorCount(long taskId) {
+    ResultSet rs = dbService.getSession().execute(selectErrorCountsStatement.bind(taskId));
+    int count = 0;
+
+    while (rs.iterator().hasNext()) {
+      Row row = rs.one();
+
+      count += row.getLong(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
     }
+    return count;
+  }
 
-    public static synchronized CassandraTaskErrorsDAO getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = RetryableMethodExecutor.createRetryProxy(new CassandraTaskErrorsDAO(cassandra));
-
-        }
-        return instance;
+  /**
+   * Returns the number of errors of one given type of the error for a given task.
+   *
+   * @param taskId identifier of the task that will be investigated
+   * @param errorType type of the error that will be used to read the counter
+   * @return number of errors for the given task and given error type
+   */
+  public long selectErrorCountsForErrorType(long taskId, UUID errorType) {
+    ResultSet rs = dbService.getSession().execute(selectErrorCountsForErrorTypeStatement.bind(taskId, errorType));
+    Row result = rs.one();
+    if (result != null) {
+      return result.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
+    } else {
+      return 0;
     }
+  }
 
+  public Iterator<String> getMessagesUuids(long taskId) {
+    return Iterators.transform(
+        dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
+        row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString());
+  }
 
-
-    @Override
-    protected void prepareStatements() {
-        insertErrorStatement = dbService.getSession().prepare(
-                "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
-                        + "("
-                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + ","
-                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + ","
-                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE + ","
-                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE + ","
-                        + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS + ")"
-                        + " VALUES (?,?,?,?,?)"
-        );
-
-        insertErrorCounterStatement = dbService.getSession().prepare(
-                "INSERT INTO " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        + "("
-                        + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + ","
-                        + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + ","
-                        + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
-                        + ") VALUES (?,?,?)"
-        );
-
-        selectErrorCountsStatement = dbService.getSession().prepare(
-                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
-                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
-        );
-
-        selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare(
-                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
-                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
-                        + " AND " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE + " = ?"
-        );
-
-        selectErrorTypeStatement = dbService.getSession().prepare(
-                "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE
-                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
-        );
-
-        selectErrorsStatement = dbService.getSession().prepare(
-                "SELECT * "
-                        + "FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ?"
-        );
-
-        selectErrorStatement = dbService.getSession().prepare(
-                "SELECT * "
-                        + " FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_TASK_ID + " = ? "
-                        + "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ? LIMIT 1"
-        );
-
-        removeErrorCountsStatement = dbService.getSession().prepare(
-                "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-                        +  " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
-        );
-
-        removeErrorNotifications = dbService.getSession().prepare(
-                "DELETE FROM " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATIONS_TABLE
-                        + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? " +
-                        "AND " + CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_TYPE + " = ?"
-        );
-    }
-
-    public void insertErrorCounter(long taskId, String errorType, int number) {
-        dbService.getSession().execute(insertErrorCounterStatement(taskId,
-                ErrorType.builder()
-                        .taskId(taskId)
-                        .count(number)
-                        .uuid(errorType)
-                        .build()));
-    }
-
-    public BoundStatement insertErrorCounterStatement(long taskId, ErrorType errorType){
-        return insertErrorCounterStatement.bind(taskId, UUID.fromString(errorType.getUuid()), errorType.getCount());
-    }
-
-    /**
-     * Insert information about the resource and its error
-     *
-     * @param taskId       task identifier
-     * @param errorType    type of error
-     * @param errorMessage error message
-     * @param resource     resource identifier
-     */
-    public void insertError(long taskId, String errorType, String errorMessage, String resource, String additionalInformations) {
-        dbService.getSession().execute(insertErrorStatement(
-                ErrorNotification.builder()
-                        .taskId(taskId)
-                        .errorType(errorType)
-                        .errorMessage(errorMessage)
-                        .resource(resource)
-                        .additionalInformations(additionalInformations)
-                        .build()
-        ));
-    }
-
-    public BoundStatement insertErrorStatement(ErrorNotification errorNotification) {
-        return insertErrorStatement.bind(
-                errorNotification.getTaskId(),
-                UUID.fromString(errorNotification.getErrorType()),
-                errorNotification.getErrorMessage(),
-                errorNotification.getResource(),
-                errorNotification.getAdditionalInformations());
-    }
-    /**
-     * Return the number of errors of all types for a given task.
-     *
-     * @param taskId task identifier
-     * @return number of all errors for the task
-     */
-    public int getErrorCount(long taskId) {
-        ResultSet rs = dbService.getSession().execute(selectErrorCountsStatement.bind(taskId));
-        int count = 0;
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-
-            count += row.getLong(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
-        }
-        return count;
-    }
-
-    /**
-     *
-     * Returns the number of errors of one given type of the error for a given task.
-     *
-     * @param taskId identifier of the task that will be investigated
-     * @param errorType type of the error that will be used to read the counter
-     * @return number of errors for the given task and given error type
-     */
-    public long selectErrorCountsForErrorType(long taskId, UUID errorType) {
-        ResultSet rs = dbService.getSession().execute(selectErrorCountsForErrorTypeStatement.bind(taskId, errorType));
-        Row result = rs.one();
-        if (result != null) {
-            return result.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
-        } else {
-            return 0;
-        }
-    }
-
-    public Iterator<String> getMessagesUuids(long taskId) {
-        return Iterators.transform(
-                dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
-                row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString());
-    }
-
-    public Iterator<ErrorType> getAll(long taskId) {
-        return Iterators.transform(
-                dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
-                row -> ErrorType.builder()
+  public Iterator<ErrorType> getAll(long taskId) {
+    return Iterators.transform(
+        dbService.getSession().execute(selectErrorsStatement.bind(taskId)).iterator(),
+        row -> ErrorType.builder()
                         .count(row.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER))
                         .uuid(row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString())
                         .build());
+  }
+
+  public Optional<String> getErrorMessage(long taskId, String errorType) {
+    ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
+    if (!rs.iterator().hasNext()) {
+      return Optional.empty();
     }
 
-    public Optional<String> getErrorMessage(long taskId, String errorType)  {
-        ResultSet rs = dbService.getSession().execute(selectErrorStatement.bind(taskId, UUID.fromString(errorType)));
-        if (!rs.iterator().hasNext()) {
-            return Optional.empty();
-        }
+    String message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
+    return Optional.of(message);
+  }
 
-        String message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
-        return Optional.of(message);
+  public void removeErrors(long taskId) {
+    ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));
+
+    while (rs.iterator().hasNext()) {
+      Row row = rs.one();
+      UUID errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE);
+      dbService.getSession().execute(removeErrorNotifications.bind(taskId, errorType));
     }
-
-    public void removeErrors(long taskId) {
-        ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId));
-
-        while (rs.iterator().hasNext()) {
-            Row row = rs.one();
-            UUID errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE);
-            dbService.getSession().execute(removeErrorNotifications.bind(taskId, errorType));
-        }
-        dbService.getSession().execute(removeErrorCountsStatement.bind(taskId));
-    }
+    dbService.getSession().execute(removeErrorCountsStatement.bind(taskId));
+  }
 }

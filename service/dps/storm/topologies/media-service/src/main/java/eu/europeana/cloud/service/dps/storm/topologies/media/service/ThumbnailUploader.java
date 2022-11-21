@@ -16,53 +16,55 @@ import java.util.List;
 
 public class ThumbnailUploader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailUploader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ThumbnailUploader.class);
 
-    private final TaskStatusChecker taskStatusChecker;
-    private final AmazonClient amazonClient;
+  private final TaskStatusChecker taskStatusChecker;
+  private final AmazonClient amazonClient;
 
-    public ThumbnailUploader(TaskStatusChecker taskStatusChecker, AmazonClient amazonClient) {
-        this.taskStatusChecker = taskStatusChecker;
-        this.amazonClient = amazonClient;
-    }
+  public ThumbnailUploader(TaskStatusChecker taskStatusChecker, AmazonClient amazonClient) {
+    this.taskStatusChecker = taskStatusChecker;
+    this.amazonClient = amazonClient;
+  }
 
-    public void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception, ResourceExtractionResult resourceExtractionResult) throws IOException {
-        LOGGER.info("Storing the thumbnail for resourceExtractionResult={}", resourceExtractionResult);
-        Instant processingStartTime = Instant.now();
-        List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
-        if (thumbnails != null) {
-            for (Thumbnail thumbnail : thumbnails) {
-                if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId()))
-                    break;
-                try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
-                    amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
-                } catch (Exception e) {
-                    String errorMessage = "Error while uploading " + thumbnail.getTargetName()
-                            + " to S3 in Bluemix. The full error message is: " + e.getMessage()
-                            + " because of: " + e.getCause();
-                    LOGGER.error(errorMessage, e);
-                    buildErrorMessage(exception, errorMessage);
-                } finally {
-                    thumbnail.close();
-                }
-            }
+  public void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception,
+      ResourceExtractionResult resourceExtractionResult) throws IOException {
+    LOGGER.info("Storing the thumbnail for resourceExtractionResult={}", resourceExtractionResult);
+    Instant processingStartTime = Instant.now();
+    List<Thumbnail> thumbnails = resourceExtractionResult.getThumbnails();
+    if (thumbnails != null) {
+      for (Thumbnail thumbnail : thumbnails) {
+        if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
+          break;
         }
-        LOGGER.info("Storing the thumbnail finished in {}ms", Clock.millisecondsSince(processingStartTime));
-    }
-
-    private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {
-        final ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(thumbnail.getMimeType());
-        objectMetadata.setContentLength(thumbnail.getContentSize());
-        return objectMetadata;
-    }
-
-    private void buildErrorMessage(StringBuilder message, String newMessage) {
-        LOGGER.error("Error while processing {}", newMessage);
-        if (message.toString().isEmpty()) {
-            message.append(newMessage);
-        } else {
-            message.append(", ").append(newMessage);
+        try (InputStream thumbnailContentStream = thumbnail.getContentStream()) {
+          amazonClient.putObject(thumbnail.getTargetName(), thumbnailContentStream, prepareObjectMetadata(thumbnail));
+        } catch (Exception e) {
+          String errorMessage = "Error while uploading " + thumbnail.getTargetName()
+              + " to S3 in Bluemix. The full error message is: " + e.getMessage()
+              + " because of: " + e.getCause();
+          LOGGER.error(errorMessage, e);
+          buildErrorMessage(exception, errorMessage);
+        } finally {
+          thumbnail.close();
         }
+      }
     }
+    LOGGER.info("Storing the thumbnail finished in {}ms", Clock.millisecondsSince(processingStartTime));
+  }
+
+  private ObjectMetadata prepareObjectMetadata(Thumbnail thumbnail) throws IOException {
+    final ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.setContentType(thumbnail.getMimeType());
+    objectMetadata.setContentLength(thumbnail.getContentSize());
+    return objectMetadata;
+  }
+
+  private void buildErrorMessage(StringBuilder message, String newMessage) {
+    LOGGER.error("Error while processing {}", newMessage);
+    if (message.toString().isEmpty()) {
+      message.append(newMessage);
+    } else {
+      message.append(", ").append(newMessage);
+    }
+  }
 }

@@ -8,12 +8,12 @@ import com.datastax.driver.core.Session;
  */
 public class V8_1__create_table_files_content implements JavaMigration {
 
-    @Override
-    public void migrate(Session session) throws Exception {
-        session.execute(
-                "CREATE TABLE files_content (\n" +
-                        "fileName text PRIMARY KEY,\n" +
-                        "data blob\n" +
-                        ")");
-    }
+  @Override
+  public void migrate(Session session) throws Exception {
+    session.execute(
+        "CREATE TABLE files_content (\n" +
+            "fileName text PRIMARY KEY,\n" +
+            "data blob\n" +
+            ")");
+  }
 }

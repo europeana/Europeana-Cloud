@@ -12,9 +12,9 @@ import java.io.Serializable;
 @Getter
 public class DbConnectionDetails implements Serializable {
 
-    private final int port;
-    private final String keyspaceName;
-    private final String userName;
-    private final String password;
-    private final String hosts;
+  private final int port;
+  private final String keyspaceName;
+  private final String userName;
+  private final String password;
+  private final String hosts;
 }

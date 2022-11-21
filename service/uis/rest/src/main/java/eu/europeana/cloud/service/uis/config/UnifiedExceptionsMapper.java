@@ -18,45 +18,45 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice(basePackages = {"eu.europeana.cloud.service.uis.rest"})
 public class UnifiedExceptionsMapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
-    private static final String OTHER_ERROR_CODE_MESSAGE="OTHER";
+  private static final String OTHER_ERROR_CODE_MESSAGE = "OTHER";
 
-    @ExceptionHandler({
-            DatabaseConnectionException.class,
-            IdHasBeenMappedException.class,
-            ProviderDoesNotExistException.class,
-            RecordDatasetEmptyException.class,
-            RecordDoesNotExistException.class,
-            RecordExistsException.class,
-            RecordIdDoesNotExistException.class,
-            ProviderAlreadyExistsException.class,
-            CloudIdAlreadyExistException.class,
-            CloudIdDoesNotExistException.class
-    })
-    public ResponseEntity<ErrorInfo> handleException(GenericException e) {
-        LOGGER.error("Exception handling fired for", e);
-        return buildResponse(e);
-    }
+  @ExceptionHandler({
+      DatabaseConnectionException.class,
+      IdHasBeenMappedException.class,
+      ProviderDoesNotExistException.class,
+      RecordDatasetEmptyException.class,
+      RecordDoesNotExistException.class,
+      RecordExistsException.class,
+      RecordIdDoesNotExistException.class,
+      ProviderAlreadyExistsException.class,
+      CloudIdAlreadyExistException.class,
+      CloudIdDoesNotExistException.class
+  })
+  public ResponseEntity<ErrorInfo> handleException(GenericException e) {
+    LOGGER.error("Exception handling fired for", e);
+    return buildResponse(e);
+  }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorInfo> handleAccessDeniedException(AccessDeniedException e) {
-        LOGGER.error("Exception handling fired for ", e);
-        return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
-                .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
-    }
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorInfo> handleAccessDeniedException(AccessDeniedException e) {
+    LOGGER.error("Exception handling fired for ", e);
+    return ResponseEntity
+        .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+        .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
+  }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorInfo> handleRuntimeException(RuntimeException e) {
-        LOGGER.error("Exception handling fired for ", e);
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
-    }
+  @ExceptionHandler(RuntimeException.class)
+  public ResponseEntity<ErrorInfo> handleRuntimeException(RuntimeException e) {
+    LOGGER.error("Exception handling fired for ", e);
+    return ResponseEntity
+        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
+  }
 
-    private ResponseEntity<ErrorInfo> buildResponse(GenericException e) {
-        return ResponseEntity.status(e.getErrorInfo().getHttpCode().getStatusCode())
-                .body(e.getErrorInfo().getErrorInfo());
-    }
+  private ResponseEntity<ErrorInfo> buildResponse(GenericException e) {
+    return ResponseEntity.status(e.getErrorInfo().getHttpCode().getStatusCode())
+                         .body(e.getErrorInfo().getErrorInfo());
+  }
 }

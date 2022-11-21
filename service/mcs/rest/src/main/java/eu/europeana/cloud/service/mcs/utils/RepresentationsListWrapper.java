@@ -14,11 +14,12 @@ import java.util.List;
 @JsonRootName("representations")
 @NoArgsConstructor
 public class RepresentationsListWrapper {
-    @JacksonXmlProperty(localName = "representation")
-    @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Representation> representations;
 
-    public RepresentationsListWrapper(List<Representation> representations) {
-        this.representations = representations;
-    }
+  @JacksonXmlProperty(localName = "representation")
+  @JacksonXmlElementWrapper(useWrapping = false)
+  private List<Representation> representations;
+
+  public RepresentationsListWrapper(List<Representation> representations) {
+    this.representations = representations;
+  }
 }

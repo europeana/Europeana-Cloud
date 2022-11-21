@@ -15,13 +15,14 @@ import java.util.Date;
 @Setter
 @ToString
 public class ProcessedRecord {
-    private long taskId;
-    private String recordId;
-    private int attemptNumber;
-    private String dstIdentifier;
-    private String topologyName;
-    private RecordState state;
-    private Date starTime;
-    private String infoText;
-    private String additionalInformations;
+
+  private long taskId;
+  private String recordId;
+  private int attemptNumber;
+  private String dstIdentifier;
+  private String topologyName;
+  private RecordState state;
+  private Date starTime;
+  private String infoText;
+  private String additionalInformations;
 }

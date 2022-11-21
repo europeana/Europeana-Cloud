@@ -29,110 +29,111 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableAspectJAutoProxy
 public class ServiceConfiguration implements WebMvcConfigurer {
 
-    public static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-    public static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
-    public static final String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    public static final String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
-    public static final String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
+  public static final String JNDI_KEY_AAS_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
+  public static final String JNDI_KEY_AAS_CASSANDRA_PORT = "/aas/cassandra/port";
+  public static final String JNDI_KEY_AAS_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
+  public static final String JNDI_KEY_AAS_CASSANDRA_USERNAME = "/aas/cassandra/user";
+  public static final String JNDI_KEY_AAS_CASSANDRA_PASSWORD = "/aas/cassandra/password";
 
-    public static final String JNDI_KEY_UIS_CASSANDRA_HOSTS = "/uis/cassandra/hosts";
-    public static final String JNDI_KEY_UIS_CASSANDRA_PORT = "/uis/cassandra/port";
-    public static final String JNDI_KEY_UIS_CASSANDRA_KEYSPACE = "/uis/cassandra/keyspace";
-    public static final String JNDI_KEY_UIS_CASSANDRA_USERNAME = "/uis/cassandra/user";
-    public static final String JNDI_KEY_UIS_CASSANDRA_PASSWORD = "/uis/cassandra/password";
+  public static final String JNDI_KEY_UIS_CASSANDRA_HOSTS = "/uis/cassandra/hosts";
+  public static final String JNDI_KEY_UIS_CASSANDRA_PORT = "/uis/cassandra/port";
+  public static final String JNDI_KEY_UIS_CASSANDRA_KEYSPACE = "/uis/cassandra/keyspace";
+  public static final String JNDI_KEY_UIS_CASSANDRA_USERNAME = "/uis/cassandra/user";
+  public static final String JNDI_KEY_UIS_CASSANDRA_PASSWORD = "/uis/cassandra/password";
 
-    private final Environment environment;
+  private final Environment environment;
 
-    public ServiceConfiguration(Environment environment) {
-        this.environment = environment;
-    }
+  public ServiceConfiguration(Environment environment) {
+    this.environment = environment;
+  }
 
-    @Bean
-    public eu.europeana.cloud.service.uis.UniqueIdentifierService uniqueIdentifierService(
-            CloudIdDAO cassandraCloudIdDAO,
-            LocalIdDAO cassandraLocalIdDAO,
-            CassandraDataProviderDAO cassandraDataProviderDAO,
-            CloudIdLocalIdBatches cloudIdLocalIdBatches) {
+  @Bean
+  public eu.europeana.cloud.service.uis.UniqueIdentifierService uniqueIdentifierService(
+      CloudIdDAO cassandraCloudIdDAO,
+      LocalIdDAO cassandraLocalIdDAO,
+      CassandraDataProviderDAO cassandraDataProviderDAO,
+      CloudIdLocalIdBatches cloudIdLocalIdBatches) {
 
-        return new UniqueIdentifierServiceImpl(
-                cassandraCloudIdDAO,
-                cassandraLocalIdDAO,
-                cassandraDataProviderDAO,
-                cloudIdLocalIdBatches);
-    }
+    return new UniqueIdentifierServiceImpl(
+        cassandraCloudIdDAO,
+        cassandraLocalIdDAO,
+        cassandraDataProviderDAO,
+        cloudIdLocalIdBatches);
+  }
 
-    @Bean
-    public CloudIdDAO cloudIdDAO(CassandraConnectionProvider dataProviderDao){
-        return new CloudIdDAO(dataProviderDao);
-    }
+  @Bean
+  public CloudIdDAO cloudIdDAO(CassandraConnectionProvider dataProviderDao) {
+    return new CloudIdDAO(dataProviderDao);
+  }
 
-    @Bean
-    public LocalIdDAO localIdDAO(CassandraConnectionProvider dataProviderDao) {
-        return new LocalIdDAO(dataProviderDao);
-    }
+  @Bean
+  public LocalIdDAO localIdDAO(CassandraConnectionProvider dataProviderDao) {
+    return new LocalIdDAO(dataProviderDao);
+  }
 
-    @Bean
-    public CloudIdLocalIdBatches cloudIdLocalIdBatches(CloudIdDAO cloudIdDAO, LocalIdDAO localIdDAO, CassandraConnectionProvider dataProviderDao) {
-        return new CloudIdLocalIdBatches(cloudIdDAO, localIdDAO, dataProviderDao);
-    }
+  @Bean
+  public CloudIdLocalIdBatches cloudIdLocalIdBatches(CloudIdDAO cloudIdDAO, LocalIdDAO localIdDAO,
+      CassandraConnectionProvider dataProviderDao) {
+    return new CloudIdLocalIdBatches(cloudIdDAO, localIdDAO, dataProviderDao);
+  }
 
-    @Bean
-    public CassandraDataProviderService cassandraDataProviderService(CassandraDataProviderDAO dataProviderDAO) {
-        return new CassandraDataProviderService(dataProviderDAO);
-    }
+  @Bean
+  public CassandraDataProviderService cassandraDataProviderService(CassandraDataProviderDAO dataProviderDAO) {
+    return new CassandraDataProviderService(dataProviderDAO);
+  }
 
-    @Bean
-    public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider dataProviderDao) {
-        return new CassandraDataProviderDAO(dataProviderDao);
-    }
+  @Bean
+  public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider dataProviderDao) {
+    return new CassandraDataProviderDAO(dataProviderDao);
+  }
 
-    @Bean
-    public CassandraConnectionProvider dataProviderDao() {
-        return new CassandraConnectionProvider(
-                environment.getProperty(JNDI_KEY_UIS_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_UIS_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_UIS_CASSANDRA_KEYSPACE),
-                environment.getProperty(JNDI_KEY_UIS_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_UIS_CASSANDRA_PASSWORD));
-    }
+  @Bean
+  public CassandraConnectionProvider dataProviderDao() {
+    return new CassandraConnectionProvider(
+        environment.getProperty(JNDI_KEY_UIS_CASSANDRA_HOSTS),
+        environment.getProperty(JNDI_KEY_UIS_CASSANDRA_PORT, Integer.class),
+        environment.getProperty(JNDI_KEY_UIS_CASSANDRA_KEYSPACE),
+        environment.getProperty(JNDI_KEY_UIS_CASSANDRA_USERNAME),
+        environment.getProperty(JNDI_KEY_UIS_CASSANDRA_PASSWORD));
+  }
 
-    @Bean
-    public CassandraConnectionProvider aasCassandraProvider() {
-        String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
-        Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
-        String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
-        String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
-        String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
+  @Bean
+  public CassandraConnectionProvider aasCassandraProvider() {
+    String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
+    Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
+    String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
+    String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
+    String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
 
-        return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-    }
+    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+  }
 
-    @Bean
-    public BucketsHandler bucketsHandler() {
-        return new BucketsHandler(dataProviderDao().getSession());
-    }
+  @Bean
+  public BucketsHandler bucketsHandler() {
+    return new BucketsHandler(dataProviderDao().getSession());
+  }
 
-    @Bean
-    public MethodValidationPostProcessor methodValidationPostProcessor() {
-        return new MethodValidationPostProcessor();
-    }
+  @Bean
+  public MethodValidationPostProcessor methodValidationPostProcessor() {
+    return new MethodValidationPostProcessor();
+  }
 
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
-        result.setTargetClass(SecurityContextHolder.class);
-        result.setTargetMethod("setStrategyName");
-        result.setArguments("MODE_INHERITABLETHREADLOCAL");
-        return result;
-    }
+  @Bean
+  public MethodInvokingFactoryBean methodInvokingFactoryBean() {
+    MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
+    result.setTargetClass(SecurityContextHolder.class);
+    result.setTargetMethod("setStrategyName");
+    result.setArguments("MODE_INHERITABLETHREADLOCAL");
+    return result;
+  }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingFilter());
-    }
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new LoggingFilter());
+  }
 
-    @Bean
-    public RetryAspect retryAspect() {
-        return new RetryAspect();
-    }
+  @Bean
+  public RetryAspect retryAspect() {
+    return new RetryAspect();
+  }
 }

@@ -11,28 +11,28 @@ import java.util.stream.Collector;
 
 public class StatisticsCollector implements Collector<LogLine, StatisticsAccumulator, Map<Long, Statistic>> {
 
-    @Override
-    public Supplier<StatisticsAccumulator> supplier() {
-        return StatisticsAccumulator::new;
-    }
+  @Override
+  public Supplier<StatisticsAccumulator> supplier() {
+    return StatisticsAccumulator::new;
+  }
 
-    @Override
-    public BiConsumer<StatisticsAccumulator, LogLine> accumulator() {
-        return (StatisticsAccumulator::process);
-    }
+  @Override
+  public BiConsumer<StatisticsAccumulator, LogLine> accumulator() {
+    return (StatisticsAccumulator::process);
+  }
 
-    @Override
-    public BinaryOperator<StatisticsAccumulator> combiner() {
-        return null;
-    }
+  @Override
+  public BinaryOperator<StatisticsAccumulator> combiner() {
+    return null;
+  }
 
-    @Override
-    public Function<StatisticsAccumulator, Map<Long, Statistic>> finisher() {
-        return (StatisticsAccumulator::toStatistics);
-    }
+  @Override
+  public Function<StatisticsAccumulator, Map<Long, Statistic>> finisher() {
+    return (StatisticsAccumulator::toStatistics);
+  }
 
-    @Override
-    public Set<Characteristics> characteristics() {
-        return EnumSet.of(Characteristics.UNORDERED);
-    }
+  @Override
+  public Set<Characteristics> characteristics() {
+    return EnumSet.of(Characteristics.UNORDERED);
+  }
 }

@@ -34,73 +34,72 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(JUnitParamsRunner.class)
 public class RepresentationsResourceTest extends AbstractResourceTest {
 
-    private RecordService recordService;
+  private RecordService recordService;
 
-    static final private String globalId = "1";
-    static final private String schema = "DC";
-    static final private String version = "1.0";
-    static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
-            version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-            "2013-01-01", 12345, null)), null, true, new Date())));
-
-
-    @Before
-    public void mockUp() {
-        recordService = applicationContext.getBean(RecordService.class);
-        Mockito.reset(recordService);
-    }
+  static final private String globalId = "1";
+  static final private String schema = "DC";
+  static final private String version = "1.0";
+  static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
+      version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
+      "2013-01-01", 12345, null)), null, true, new Date())));
 
 
-    @SuppressWarnings("unused")
-    private Object[] mimeTypes() {
-        return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
-    }
+  @Before
+  public void mockUp() {
+    recordService = applicationContext.getBean(RecordService.class);
+    Mockito.reset(recordService);
+  }
 
 
-    @Test
-    @Parameters(method = "mimeTypes")
-    public void getRepresentations(MediaType mediaType) throws Exception {
-        Record expected = new Record(record);
-        Representation expectedRepresentation = expected.getRepresentations().get(0);
-        expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
-        expectedRepresentation.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(), globalId, schema));
-        expectedRepresentation.setFiles(new ArrayList<File>());
-        when(recordService.getRecord(globalId)).thenReturn(new Record(record));
-
-        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId).toString()).accept(mediaType))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(mediaType));
-
-        List<Representation> entity = responseContentAsRepresentationList(response, mediaType);
-        assertThat(entity, is(expected.getRepresentations()));
-        verify(recordService, times(1)).getRecord(globalId);
-        verifyNoMoreInteractions(recordService);
-    }
+  @SuppressWarnings("unused")
+  private Object[] mimeTypes() {
+    return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
+  }
 
 
-    @Test
-    public void getRepresentationsReturns404IfRecordDoesNotExists()
-            throws Exception {
-        Throwable exception = new RecordNotExistsException();
-        when(recordService.getRecord(globalId)).thenThrow(exception);
+  @Test
+  @Parameters(method = "mimeTypes")
+  public void getRepresentations(MediaType mediaType) throws Exception {
+    Record expected = new Record(record);
+    Representation expectedRepresentation = expected.getRepresentations().get(0);
+    expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
+    expectedRepresentation.setAllVersionsUri(URITools.getAllVersionsUri(getBaseUri(), globalId, schema));
+    expectedRepresentation.setFiles(new ArrayList<File>());
+    when(recordService.getRecord(globalId)).thenReturn(new Record(record));
 
-        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
-                .accept(MediaType.APPLICATION_XML))
-                .andExpect(status().isNotFound());
+    ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId).toString()).accept(mediaType))
+                                    .andExpect(status().isOk())
+                                    .andExpect(content().contentType(mediaType));
+
+    List<Representation> entity = responseContentAsRepresentationList(response, mediaType);
+    assertThat(entity, is(expected.getRepresentations()));
+    verify(recordService, times(1)).getRecord(globalId);
+    verifyNoMoreInteractions(recordService);
+  }
 
 
-        ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
-        assertThat(errorInfo.getErrorCode(), is(McsErrorCode.RECORD_NOT_EXISTS.toString()));
-        verify(recordService, times(1)).getRecord(globalId);
-        verifyNoMoreInteractions(recordService);
-    }
+  @Test
+  public void getRepresentationsReturns404IfRecordDoesNotExists()
+      throws Exception {
+    Throwable exception = new RecordNotExistsException();
+    when(recordService.getRecord(globalId)).thenThrow(exception);
+
+    ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+                                        .accept(MediaType.APPLICATION_XML))
+                                    .andExpect(status().isNotFound());
+
+    ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
+    assertThat(errorInfo.getErrorCode(), is(McsErrorCode.RECORD_NOT_EXISTS.toString()));
+    verify(recordService, times(1)).getRecord(globalId);
+    verifyNoMoreInteractions(recordService);
+  }
 
 
-    @Test
-    public void getRepresentationsReturns406ForUnsupportedFormat() throws Exception {
-        mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
-                .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
-                .andExpect(status().isNotAcceptable());
-    }
+  @Test
+  public void getRepresentationsReturns406ForUnsupportedFormat() throws Exception {
+    mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+               .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+           .andExpect(status().isNotAcceptable());
+  }
 
 }

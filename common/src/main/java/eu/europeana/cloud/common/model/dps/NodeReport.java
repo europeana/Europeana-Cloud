@@ -9,44 +9,45 @@ import java.util.List;
 
 @XmlRootElement()
 public class NodeReport {
-    private String nodeValue;
 
-    private long occurrence;
-    private List<AttributeStatistics> attributeStatistics;
+  private String nodeValue;
 
-    public NodeReport(String nodeValue, long occurrence, List<AttributeStatistics> attributeStatistics) {
-        this.nodeValue = nodeValue;
-        this.occurrence = occurrence;
-        this.attributeStatistics = attributeStatistics;
-    }
+  private long occurrence;
+  private List<AttributeStatistics> attributeStatistics;
 
-    public NodeReport() {
-    }
+  public NodeReport(String nodeValue, long occurrence, List<AttributeStatistics> attributeStatistics) {
+    this.nodeValue = nodeValue;
+    this.occurrence = occurrence;
+    this.attributeStatistics = attributeStatistics;
+  }
 
-    public List<AttributeStatistics> getAttributeStatistics() {
-        return attributeStatistics;
-    }
+  public NodeReport() {
+  }
 
-    public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
-        this.attributeStatistics = attributeStatistics;
-    }
+  public List<AttributeStatistics> getAttributeStatistics() {
+    return attributeStatistics;
+  }
+
+  public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
+    this.attributeStatistics = attributeStatistics;
+  }
 
 
-    public String getNodeValue() {
-        return nodeValue;
-    }
+  public String getNodeValue() {
+    return nodeValue;
+  }
 
-    public void setNodeValue(String nodeValue) {
-        this.nodeValue = nodeValue;
-    }
+  public void setNodeValue(String nodeValue) {
+    this.nodeValue = nodeValue;
+  }
 
-    public long getOccurrence() {
-        return occurrence;
-    }
+  public long getOccurrence() {
+    return occurrence;
+  }
 
-    public void setOccurrence(long occurrence) {
-        this.occurrence = occurrence;
-    }
+  public void setOccurrence(long occurrence) {
+    this.occurrence = occurrence;
+  }
 
 
 }

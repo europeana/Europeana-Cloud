@@ -20,56 +20,56 @@ import java.util.List;
 
 public class MCSReader implements AutoCloseable {
 
-    private final DataSetServiceClient dataSetServiceClient;
+  private final DataSetServiceClient dataSetServiceClient;
 
-    private final FileServiceClient fileServiceClient;
+  private final FileServiceClient fileServiceClient;
 
-    private final RecordServiceClient recordServiceClient;
+  private final RecordServiceClient recordServiceClient;
 
-    public MCSReader(String mcsClientURL, String userName, String password) {
-        dataSetServiceClient = new DataSetServiceClient(mcsClientURL, userName, password);
-        recordServiceClient = new RecordServiceClient(mcsClientURL, userName, password);
-        fileServiceClient = new FileServiceClient(mcsClientURL, userName, password);
-    }
+  public MCSReader(String mcsClientURL, String userName, String password) {
+    dataSetServiceClient = new DataSetServiceClient(mcsClientURL, userName, password);
+    recordServiceClient = new RecordServiceClient(mcsClientURL, userName, password);
+    fileServiceClient = new FileServiceClient(mcsClientURL, userName, password);
+  }
 
-    public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
-            String representationName,
-            RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
-        return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.", () -> {
-            ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
-                    datasetProvider,
-                    datasetName,
-                    representationName,
-                    new Revision(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp()),
-                    startFrom,
-                    null);
-            if (resultSlice == null || resultSlice.getResults() == null) {
-                throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
-            }
+  public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
+      String representationName,
+      RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
+    return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.", () -> {
+      ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
+          datasetProvider,
+          datasetName,
+          representationName,
+          new Revision(revision.getRevisionName(), revision.getRevisionProviderId(), revision.getCreationTimeStamp()),
+          startFrom,
+          null);
+      if (resultSlice == null || resultSlice.getResults() == null) {
+        throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
+      }
 
-            return resultSlice;
+      return resultSlice;
 
-        });
-    }
+    });
+  }
 
-    public List<Representation> getRepresentationsByRevision(String representationName, String revisionName,
-                                                             String revisionProvider, Date revisionTimestamp,
-                                                             String responseCloudId) throws MCSException {
-        return RetryableMethodExecutor.executeOnRest("Error while getting representation revision.", () ->
-                recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName,
-                        new Revision(revisionName, revisionProvider, revisionTimestamp)));
-    }
+  public List<Representation> getRepresentationsByRevision(String representationName, String revisionName,
+      String revisionProvider, Date revisionTimestamp,
+      String responseCloudId) throws MCSException {
+    return RetryableMethodExecutor.executeOnRest("Error while getting representation revision.", () ->
+        recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName,
+            new Revision(revisionName, revisionProvider, revisionTimestamp)));
+  }
 
-    public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {
-        return dataSetServiceClient.getRepresentationIterator(
-                urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS)
-        );
-    }
+  public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {
+    return dataSetServiceClient.getRepresentationIterator(
+        urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS)
+    );
+  }
 
 
-    public void close() {
-        dataSetServiceClient.close();
-        recordServiceClient.close();
-        fileServiceClient.close();
-    }
+  public void close() {
+    dataSetServiceClient.close();
+    recordServiceClient.close();
+    fileServiceClient.close();
+  }
 }

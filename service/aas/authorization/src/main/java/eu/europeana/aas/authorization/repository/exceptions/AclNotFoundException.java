@@ -16,22 +16,20 @@ package eu.europeana.aas.authorization.repository.exceptions;
 
 /**
  * Thrown if an <code>AclObjectIdentity</code> cannot be found for the object.
- * 
- * @author Rigas Grigoropoulos
  *
+ * @author Rigas Grigoropoulos
  */
 public class AclNotFoundException extends RuntimeException {
 
-	private static final long serialVersionUID = 1891804328079992377L;
+  private static final long serialVersionUID = 1891804328079992377L;
 
-	/**
-	 * Constructs a new <code>AclNotFoundException</code> with the specified detail message.
-	 * 
-	 * @param message the detail message. The detail message is saved for
-     *          later retrieval by the {@link #getMessage()} method.
-	 */
-	public AclNotFoundException(String message) {
-		super(message);
-	}
+  /**
+   * Constructs a new <code>AclNotFoundException</code> with the specified detail message.
+   *
+   * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
+   */
+  public AclNotFoundException(String message) {
+    super(message);
+  }
 
 }

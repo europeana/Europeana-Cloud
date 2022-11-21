@@ -23,99 +23,99 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaTopicSelectorTest {
 
-    private static final int SAMPLES_COUNT = 100000;
-    private static final double TOLERANCE = 0.02;
-    private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
-    private static final String TOPOLOGY = "topology";
-    private static final String TOPIC_1 = "topic_1";
-    private static final String TOPIC_2 = "topic_2";
-    private static final String TOPIC_3 = "topic_3";
-    private static final String TOPIC_4 = "topic_4";
+  private static final int SAMPLES_COUNT = 100000;
+  private static final double TOLERANCE = 0.02;
+  private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
+  private static final String TOPOLOGY = "topology";
+  private static final String TOPIC_1 = "topic_1";
+  private static final String TOPIC_2 = "topic_2";
+  private static final String TOPIC_3 = "topic_3";
+  private static final String TOPIC_4 = "topic_4";
 
 
-    @Mock
-    private Environment environment;
+  @Mock
+  private Environment environment;
 
-    @Mock
-    private TasksByStateDAO tasksByStateDAO;
+  @Mock
+  private TasksByStateDAO tasksByStateDAO;
 
-    @Mock
-    private TaskStatusSynchronizer taskStatusSynchronizer;
+  @Mock
+  private TaskStatusSynchronizer taskStatusSynchronizer;
 
-    private KafkaTopicSelector selector;
-    private HashMultiset<String> selectionCounts;
+  private KafkaTopicSelector selector;
+  private HashMultiset<String> selectionCounts;
 
-    @Before
-    public void setup() {
-        when(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)).thenReturn(TOPIC_CONFIG);
-        selector = new KafkaTopicSelector(environment, tasksByStateDAO, taskStatusSynchronizer);
-        selectionCounts = HashMultiset.create();
+  @Before
+  public void setup() {
+    when(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)).thenReturn(TOPIC_CONFIG);
+    selector = new KafkaTopicSelector(environment, tasksByStateDAO, taskStatusSynchronizer);
+    selectionCounts = HashMultiset.create();
+  }
+
+  @Test
+  public void shouldUseAllTopicsWithTheSameFrequencyIfAllOfThemAreFree() {
+    when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(new ArrayList<>());
+
+    selectTopics();
+
+    assertEquals(0.25, freqency(TOPIC_1), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_2), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_3), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_4), TOLERANCE);
+  }
+
+  @Test
+  public void shouldUseAllRemainingFreeTopicsWithTheSameFrequency() {
+    when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
+        Arrays.asList(createTaskByTaskState(TOPIC_1), createTaskByTaskState(TOPIC_3)));
+
+    selectTopics();
+
+    assertEquals(0.0, freqency(TOPIC_1));
+    assertEquals(0.5, freqency(TOPIC_2), TOLERANCE);
+    assertEquals(0.0, freqency(TOPIC_3));
+    assertEquals(0.5, freqency(TOPIC_4), TOLERANCE);
+  }
+
+  @Test
+  public void shouldWorkProperlyWhereTasksWithStillUnselectedTopicExist() {
+    when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
+        Arrays.asList(createTaskByTaskState(null), createTaskByTaskState(TOPIC_2),
+            createTaskByTaskState(null)));
+
+    selectTopics();
+
+    assertEquals(0.3333, freqency(TOPIC_1), TOLERANCE);
+    assertEquals(0.0, freqency(TOPIC_2));
+    assertEquals(0.3333, freqency(TOPIC_3), TOLERANCE);
+    assertEquals(0.3333, freqency(TOPIC_4), TOLERANCE);
+  }
+
+  @Test
+  public void shouldUseAllTopicsWithTheSameFrequencyIfAllTopicsAreUsed() {
+    when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
+        Arrays.asList(createTaskByTaskState(TOPIC_1), createTaskByTaskState(TOPIC_2),
+            createTaskByTaskState(TOPIC_3), createTaskByTaskState(TOPIC_4)));
+
+    selectTopics();
+
+    assertEquals(0.25, freqency(TOPIC_1), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_2), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_3), TOLERANCE);
+    assertEquals(0.25, freqency(TOPIC_4), TOLERANCE);
+  }
+
+  private void selectTopics() {
+    for (int i = 0; i < SAMPLES_COUNT; i++) {
+      selectionCounts.add(selector.findPreferredTopicNameFor(TOPOLOGY));
     }
+  }
 
-    @Test
-    public void shouldUseAllTopicsWithTheSameFrequencyIfAllOfThemAreFree() {
-        when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(new ArrayList<>());
+  private double freqency(String topic) {
+    return (double) selectionCounts.count(topic) / SAMPLES_COUNT;
+  }
 
-        selectTopics();
-
-        assertEquals(0.25, freqency(TOPIC_1), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_2), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_3), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_4), TOLERANCE);
-    }
-
-    @Test
-    public void shouldUseAllRemainingFreeTopicsWithTheSameFrequency() {
-        when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
-                Arrays.asList(createTaskByTaskState(TOPIC_1), createTaskByTaskState(TOPIC_3)));
-
-        selectTopics();
-
-        assertEquals(0.0, freqency(TOPIC_1));
-        assertEquals(0.5, freqency(TOPIC_2), TOLERANCE);
-        assertEquals(0.0, freqency(TOPIC_3));
-        assertEquals(0.5, freqency(TOPIC_4), TOLERANCE);
-    }
-
-    @Test
-    public void shouldWorkProperlyWhereTasksWithStillUnselectedTopicExist() {
-        when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
-                Arrays.asList(createTaskByTaskState(null), createTaskByTaskState(TOPIC_2),
-                        createTaskByTaskState(null)));
-
-        selectTopics();
-
-        assertEquals(0.3333, freqency(TOPIC_1), TOLERANCE);
-        assertEquals(0.0, freqency(TOPIC_2));
-        assertEquals(0.3333, freqency(TOPIC_3), TOLERANCE);
-        assertEquals(0.3333, freqency(TOPIC_4), TOLERANCE);
-    }
-
-    @Test
-    public void shouldUseAllTopicsWithTheSameFrequencyIfAllTopicsAreUsed() {
-        when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(
-                Arrays.asList(createTaskByTaskState(TOPIC_1), createTaskByTaskState(TOPIC_2),
-                        createTaskByTaskState(TOPIC_3), createTaskByTaskState(TOPIC_4)));
-
-        selectTopics();
-
-        assertEquals(0.25, freqency(TOPIC_1), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_2), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_3), TOLERANCE);
-        assertEquals(0.25, freqency(TOPIC_4), TOLERANCE);
-    }
-
-    private void selectTopics() {
-        for (int i = 0; i < SAMPLES_COUNT; i++) {
-            selectionCounts.add(selector.findPreferredTopicNameFor(TOPOLOGY));
-        }
-    }
-
-    private double freqency(String topic) {
-        return (double) selectionCounts.count(topic) / SAMPLES_COUNT;
-    }
-
-    private TaskByTaskState createTaskByTaskState(String topic) {
-        return TaskByTaskState.builder().topologyName(TOPOLOGY).topicName(topic).build();
-    }
+  private TaskByTaskState createTaskByTaskState(String topic) {
+    return TaskByTaskState.builder().topologyName(TOPOLOGY).topicName(topic).build();
+  }
 }

@@ -10,12 +10,14 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class CSVReaderTest {
-    private CSVReader csvReader = new CSVReader();
 
-    @Test
-    public void shouldReadAndReturnTaskIdsForCSVFile() throws IOException {
-        List<RevisionInformation> taskIds = csvReader.getRevisionsInformation(Paths.get("src/test/resources/revisions.csv").toString());
-        assertNotNull(taskIds);
-        assertEquals(8, taskIds.size());
-    }
+  private CSVReader csvReader = new CSVReader();
+
+  @Test
+  public void shouldReadAndReturnTaskIdsForCSVFile() throws IOException {
+    List<RevisionInformation> taskIds = csvReader.getRevisionsInformation(
+        Paths.get("src/test/resources/revisions.csv").toString());
+    assertNotNull(taskIds);
+    assertEquals(8, taskIds.size());
+  }
 }

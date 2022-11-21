@@ -27,44 +27,44 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {TestConfiguration.class})
 public class DataProviderActivationResourceTest {
 
-    MockMvc mockMvc;
+  MockMvc mockMvc;
 
-    @Autowired
-    private WebApplicationContext wac;
+  @Autowired
+  private WebApplicationContext wac;
 
-    @Autowired
-    private DataProviderService dataProviderService;
+  @Autowired
+  private DataProviderService dataProviderService;
 
-    @Before
-    public void mockUp() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
-    }
+  @Before
+  public void mockUp() {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+  }
 
-    @Test
-    public void shouldDeactivateDataProvider() throws Exception {
-        DataProvider dp = new DataProvider();
-        Mockito.doReturn(dp).when(dataProviderService).getProvider(Mockito.anyString());
-        Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
-        ;
+  @Test
+  public void shouldDeactivateDataProvider() throws Exception {
+    DataProvider dp = new DataProvider();
+    Mockito.doReturn(dp).when(dataProviderService).getProvider(Mockito.anyString());
+    Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
+    ;
 
-        mockMvc.perform(delete("/data-providers/{\" + P_PROVIDER + \"}/active", "sampleProvider"))
-                .andExpect(status().isOk());
-    }
+    mockMvc.perform(delete("/data-providers/{\" + P_PROVIDER + \"}/active", "sampleProvider"))
+           .andExpect(status().isOk());
+  }
 
-    @Test
-    public void shouldThrowExceptionWhenProviderDoesNotExists() throws Exception {
-        DataProvider dp = new DataProvider();
-        Mockito.doThrow(
-                new ProviderDoesNotExistException(new IdentifierErrorInfo(
-                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                                .getHttpCode(),
-                        IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                                .getErrorInfo("provident")))
-        ).when(dataProviderService).getProvider(Mockito.anyString());
+  @Test
+  public void shouldThrowExceptionWhenProviderDoesNotExists() throws Exception {
+    DataProvider dp = new DataProvider();
+    Mockito.doThrow(
+        new ProviderDoesNotExistException(new IdentifierErrorInfo(
+            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                .getHttpCode(),
+            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                .getErrorInfo("provident")))
+    ).when(dataProviderService).getProvider(Mockito.anyString());
 
-        Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
-        mockMvc.perform(
-                delete("/data-providers/{\" + P_PROVIDER + \"}/active", "sampleProvider"))
-                .andExpect(status().isNotFound());
-    }
+    Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
+    mockMvc.perform(
+               delete("/data-providers/{\" + P_PROVIDER + \"}/active", "sampleProvider"))
+           .andExpect(status().isNotFound());
+  }
 }

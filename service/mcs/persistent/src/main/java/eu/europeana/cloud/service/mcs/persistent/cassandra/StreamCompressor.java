@@ -17,17 +17,17 @@ import java.util.zip.GZIPOutputStream;
  */
 public class StreamCompressor {
 
-    void decompress(byte[] compressedBytes, OutputStream os) throws IOException {
-        ByteArrayInputStream is = new ByteArrayInputStream(compressedBytes);
-        GZIPInputStream gis = new GZIPInputStream(is);
-        IOUtils.copy(gis, os);
-    }
+  void decompress(byte[] compressedBytes, OutputStream os) throws IOException {
+    ByteArrayInputStream is = new ByteArrayInputStream(compressedBytes);
+    GZIPInputStream gis = new GZIPInputStream(is);
+    IOUtils.copy(gis, os);
+  }
 
-    byte[] compress(final InputStream is) throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try (os; GZIPOutputStream gos = new GZIPOutputStream(os)) {
-            IOUtils.copy(is, gos);
-        }
-        return os.toByteArray();
+  byte[] compress(final InputStream is) throws IOException {
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    try (os; GZIPOutputStream gos = new GZIPOutputStream(os)) {
+      IOUtils.copy(is, gos);
     }
+    return os.toByteArray();
+  }
 }

@@ -41,140 +41,143 @@ import java.util.Map;
 @ComponentScan("eu.europeana.cloud.service.mcs.rest")
 @EnableAspectJAutoProxy
 public class ServiceConfiguration implements WebMvcConfigurer {
-    private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
-    private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
-    private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/mcs/cassandra/keyspace";
-    private static final String JNDI_KEY_CASSANDRA_USERNAME = "/mcs/cassandra/user";
-    private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/mcs/cassandra/password";
 
-    private static final String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
-    private static final String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
-    private static final String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
-    private static final String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
-    private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
+  private static final String JNDI_KEY_CASSANDRA_HOSTS = "/mcs/cassandra/hosts";
+  private static final String JNDI_KEY_CASSANDRA_PORT = "/mcs/cassandra/port";
+  private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/mcs/cassandra/keyspace";
+  private static final String JNDI_KEY_CASSANDRA_USERNAME = "/mcs/cassandra/user";
+  private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/mcs/cassandra/password";
 
-    private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
-    private static final long MAX_UPLOAD_SIZE = (long)128*1024*1024; //128MB
+  private static final String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
+  private static final String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
+  private static final String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
+  private static final String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
+  private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
 
-    private Environment environment;
+  private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
+  private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
 
-    public ServiceConfiguration(Environment environment){
-        this.environment = environment;
-    }
+  private Environment environment;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingFilter());
-    }
+  public ServiceConfiguration(Environment environment) {
+    this.environment = environment;
+  }
 
-    @Override
-    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        configurer.setTaskExecutor(asyncExecutor());
-    }
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new LoggingFilter());
+  }
 
-    @Bean
-    public CassandraConnectionProvider dbService() {
-        return new CassandraConnectionProvider(
-                environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE),
-                environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD));
-    }
+  @Override
+  public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+    configurer.setTaskExecutor(asyncExecutor());
+  }
 
-    @Bean
-    public CassandraDataSetService cassandraDataSetService() {
-        return new CassandraDataSetService();
-    }
+  @Bean
+  public CassandraConnectionProvider dbService() {
+    return new CassandraConnectionProvider(
+        environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS),
+        environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class),
+        environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE),
+        environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME),
+        environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD));
+  }
 
-    @Bean
-    public CassandraDataSetDAO cassandraDataSetDAO() {
-        return new CassandraDataSetDAO();
-    }
+  @Bean
+  public CassandraDataSetService cassandraDataSetService() {
+    return new CassandraDataSetService();
+  }
 
-    @Bean
-    public CassandraRecordService cassandraRecordService() {
-        return new CassandraRecordService();
-    }
-    @Bean
-    public CassandraRecordDAO cassandraRecordDAO() {
-        return new CassandraRecordDAO();
-    }
+  @Bean
+  public CassandraDataSetDAO cassandraDataSetDAO() {
+    return new CassandraDataSetDAO();
+  }
 
-    @Bean
-    public Integer objectStoreSizeThreshold() {
-        return 524288;
-    }
+  @Bean
+  public CassandraRecordService cassandraRecordService() {
+    return new CassandraRecordService();
+  }
 
-    @Bean
-    public DynamicContentProxy dynamicContentProxy() {
-        Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
+  @Bean
+  public CassandraRecordDAO cassandraRecordDAO() {
+    return new CassandraRecordDAO();
+  }
 
-        params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
-        params.put(Storage.DATA_BASE, cassandraContentDAO());
+  @Bean
+  public Integer objectStoreSizeThreshold() {
+    return 524288;
+  }
 
-        return new DynamicContentProxy(params);
-    }
+  @Bean
+  public DynamicContentProxy dynamicContentProxy() {
+    Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
-    @Bean
-    public ContentDAO cassandraContentDAO() {
-        return new CassandraContentDAO();
-    }
+    params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
+    params.put(Storage.DATA_BASE, cassandraContentDAO());
 
-    @Bean
-    public ContentDAO swiftContentDAO() {
-        return new SwiftContentDAO();
-    }
+    return new DynamicContentProxy(params);
+  }
 
-    @Bean
-    public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-        return new SimpleSwiftConnectionProvider(
-                environment.getProperty(JNDI_KEY_SWIFT_PROVIDER),
-                environment.getProperty(JNDI_KEY_SWIFT_CONTAINER),
-                environment.getProperty(JNDI_KEY_SWIFT_ENDPOINT),
-                environment.getProperty(JNDI_KEY_SWIFT_USER),
-                environment.getProperty(JNDI_KEY_SWIFT_PASSWORD));
-    }
+  @Bean
+  public ContentDAO cassandraContentDAO() {
+    return new CassandraContentDAO();
+  }
 
-    @Bean
-    public UISClientHandler uisHandler() {
-        return new UISClientHandlerImpl();
-    }
+  @Bean
+  public ContentDAO swiftContentDAO() {
+    return new SwiftContentDAO();
+  }
 
-    @Bean
-    public UISClient uisClient() {
-        return new UISClient(environment.getProperty(JNDI_KEY_UISURL));
-    }
+  @Bean
+  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
+    return new SimpleSwiftConnectionProvider(
+        environment.getProperty(JNDI_KEY_SWIFT_PROVIDER),
+        environment.getProperty(JNDI_KEY_SWIFT_CONTAINER),
+        environment.getProperty(JNDI_KEY_SWIFT_ENDPOINT),
+        environment.getProperty(JNDI_KEY_SWIFT_USER),
+        environment.getProperty(JNDI_KEY_SWIFT_PASSWORD));
+  }
 
-    @Bean
-    public BucketsHandler bucketsHandler() {
-        return new BucketsHandler(dbService().getSession());
-    }
+  @Bean
+  public UISClientHandler uisHandler() {
+    return new UISClientHandlerImpl();
+  }
 
-    @Bean
-    public CommonsMultipartResolver multipartResolver() {
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
-        multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
-        return multipartResolver;
-    }
+  @Bean
+  public UISClient uisClient() {
+    return new UISClient(environment.getProperty(JNDI_KEY_UISURL));
+  }
 
-    @Bean
-    public RetryAspect retryAspect() {
-        return new RetryAspect();
-    }
+  @Bean
+  public BucketsHandler bucketsHandler() {
+    return new BucketsHandler(dbService().getSession());
+  }
 
-    @Bean
-    public AsyncTaskExecutor asyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(40);
-        executor.setQueueCapacity(20);
-        executor.setThreadNamePrefix("MCSThreadPool-");
-        return executor;
-    }
+  @Bean
+  public CommonsMultipartResolver multipartResolver() {
+    CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+    multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
+    return multipartResolver;
+  }
 
-    @Bean
-    public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService, PermissionEvaluator permissionEvaluator){
-        return new DataSetPermissionsVerifier(dataSetService, permissionEvaluator);
-    }
+  @Bean
+  public RetryAspect retryAspect() {
+    return new RetryAspect();
+  }
+
+  @Bean
+  public AsyncTaskExecutor asyncExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(40);
+    executor.setQueueCapacity(20);
+    executor.setThreadNamePrefix("MCSThreadPool-");
+    return executor;
+  }
+
+  @Bean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+      PermissionEvaluator permissionEvaluator) {
+    return new DataSetPermissionsVerifier(dataSetService, permissionEvaluator);
+  }
 }

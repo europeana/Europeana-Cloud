@@ -11,15 +11,16 @@ import org.apache.storm.tuple.Tuple;
  * @author akrystian
  */
 public class TestInspectionBolt extends BaseBasicBolt {
-    private static final long serialVersionUID = 1L;
 
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(NotificationTuple.getFields());
-    }
+  private static final long serialVersionUID = 1L;
 
-    @Override
-    public void execute(Tuple input, BasicOutputCollector collector) {
-        collector.emit(input.getValues());
-    }
+  @Override
+  public void declareOutputFields(OutputFieldsDeclarer declarer) {
+    declarer.declare(NotificationTuple.getFields());
+  }
+
+  @Override
+  public void execute(Tuple input, BasicOutputCollector collector) {
+    collector.emit(input.getValues());
+  }
 }

@@ -15,24 +15,24 @@ import java.util.concurrent.Future;
 @Service
 public class DatasetDepublisher {
 
-    private final Indexer indexer;
+  private final Indexer indexer;
 
-    public DatasetDepublisher(IndexWrapper indexWrapper) {
-        this.indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
-    }
+  public DatasetDepublisher(IndexWrapper indexWrapper) {
+    this.indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
+  }
 
-    @Async
-    public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException {
-        int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
-        return CompletableFuture.completedFuture(removedCount);
-    }
+  @Async
+  public Future<Integer> executeDatasetDepublicationAsync(SubmitTaskParameters parameters) throws IndexingException {
+    int removedCount = indexer.removeAll(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), null);
+    return CompletableFuture.completedFuture(removedCount);
+  }
 
-    public boolean removeRecord(String recordId) throws IndexingException {
-        return indexer.remove(recordId);
-    }
+  public boolean removeRecord(String recordId) throws IndexingException {
+    return indexer.remove(recordId);
+  }
 
-    public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException {
-        return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
-    }
+  public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException {
+    return indexer.countRecords(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID));
+  }
 
 }

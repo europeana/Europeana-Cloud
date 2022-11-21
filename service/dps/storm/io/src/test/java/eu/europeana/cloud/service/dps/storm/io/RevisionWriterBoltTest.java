@@ -29,95 +29,104 @@ import static org.mockito.Mockito.mock;
 
 public class RevisionWriterBoltTest {
 
-    @Mock(name = "outputCollector")
-    private OutputCollector outputCollector;
+  @Mock(name = "outputCollector")
+  private OutputCollector outputCollector;
 
-    @Mock(name = "revisionsClient")
-    private RevisionServiceClient revisionServiceClient;
+  @Mock(name = "revisionsClient")
+  private RevisionServiceClient revisionServiceClient;
 
-    @InjectMocks
-    private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/","","");
+  @InjectMocks
+  private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/", "", "");
 
-    @Captor
-    private ArgumentCaptor<Revision> captor;
+  @Captor
+  private ArgumentCaptor<Revision> captor;
 
-    @Before
-    public void init() {
-        MockitoAnnotations.initMocks(this);
-    }
+  @Before
+  public void init() {
+    MockitoAnnotations.initMocks(this);
+  }
 
-    @Test
-    public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        StormTaskTuple stormTaskTuple = new StormTaskTuple();
-        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        testMock.execute(anchorTuple, stormTaskTuple);
+  @Test
+  public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+    StormTaskTuple stormTaskTuple = new StormTaskTuple();
+    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    testMock.execute(anchorTuple, stormTaskTuple);
 
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
-    }
+    Mockito.verify(revisionServiceClient, Mockito.times(0))
+           .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+  }
 
-    @Test
-    public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
-    }
+  @Test
+  public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+    testMock.execute(anchorTuple, prepareTuple());
+    Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), any(Revision.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+  }
 
-    @Test
-    public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        StormTaskTuple stormTaskTuple = prepareTuple();
-        stormTaskTuple.setMarkedAsDeleted(true);
+  @Test
+  public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+    StormTaskTuple stormTaskTuple = prepareTuple();
+    stormTaskTuple.setMarkedAsDeleted(true);
 
-        testMock.execute(anchorTuple, stormTaskTuple);
+    testMock.execute(anchorTuple, stormTaskTuple);
 
-        Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), captor.capture());
-        assertTrue( captor.getValue().isDeleted());
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+    Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), captor.capture());
+    assertTrue(captor.getValue().isDeleted());
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
-    }
+  }
 
-    @Test
-    public void malformedUrlExceptionShouldBeHandled() throws MCSException {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
-        Mockito.verify(revisionServiceClient, Mockito.times(0)).addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
-    }
+  @Test
+  public void malformedUrlExceptionShouldBeHandled() throws MCSException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+    testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
+    Mockito.verify(revisionServiceClient, Mockito.times(0))
+           .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+  }
 
-    @Test
-    public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
-        Tuple anchorTuple = mock(TupleImpl.class);
-        Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class))).thenThrow(MCSException.class);
-        RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        testMock.execute(anchorTuple, prepareTuple());
-        Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), any(Revision.class));
-        Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+  @Test
+  public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class))).thenThrow(MCSException.class);
+    RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
+    testMock.execute(anchorTuple, prepareTuple());
+    Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), any(Revision.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
-    }
+  }
 
-    private StormTaskTuple prepareTuple() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://sampleFileUrl");
+  private StormTaskTuple prepareTuple() {
+    StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(),
+        new Revision());
+    tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://sampleFileUrl");
 
-        return tuple;
-    }
+    return tuple;
+  }
 
-    private StormTaskTuple prepareTupleWithMalformedURL() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
-        tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "malformedURL");
-        return tuple;
-    }
+  private StormTaskTuple prepareTupleWithMalformedURL() {
+    StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(),
+        new Revision());
+    tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "malformedURL");
+    return tuple;
+  }
 
-    Map<String, String> prepareTaskParameters() {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        return parameters;
-    }
+  Map<String, String> prepareTaskParameters() {
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    return parameters;
+  }
 }

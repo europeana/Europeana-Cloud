@@ -23,32 +23,32 @@ import static org.apache.commons.lang.Validate.notEmpty;
  */
 public class DynamicContentProxy {
 
-    private final Map<Storage, ContentDAO> contentDAOs = new EnumMap<>(Storage.class);
+  private final Map<Storage, ContentDAO> contentDAOs = new EnumMap<>(Storage.class);
 
-    public DynamicContentProxy(Map<Storage, ContentDAO> contentDAOs) {
-        notEmpty(contentDAOs);
-        this.contentDAOs.putAll(contentDAOs);
+  public DynamicContentProxy(Map<Storage, ContentDAO> contentDAOs) {
+    notEmpty(contentDAOs);
+    this.contentDAOs.putAll(contentDAOs);
+  }
+
+  public void deleteContent(String fileName, Storage stored) throws FileNotExistsException {
+    getContentDAO(stored).deleteContent(fileName);
+  }
+
+  public void getContent(String fileName, long start, long end, OutputStream os, Storage stored)
+      throws IOException, FileNotExistsException {
+
+    getContentDAO(stored).getContent(fileName, start, end, os);
+  }
+
+  public PutResult putContent(String fileName, InputStream data, Storage stored) throws IOException {
+    return getContentDAO(stored).putContent(fileName, data);
+  }
+
+  private ContentDAO getContentDAO(final Storage storage) {
+    ContentDAO dao = contentDAOs.get(storage);
+    if (dao == null) {
+      throw new ContentDaoNotFoundException("Specified storage \"" + storage + "\" has not been defined in " + this + "!");
     }
-
-    public void deleteContent(String fileName, Storage stored) throws FileNotExistsException {
-        getContentDAO(stored).deleteContent(fileName);
-    }
-
-    public void getContent(String fileName, long start, long end, OutputStream os, Storage stored)
-            throws IOException, FileNotExistsException {
-
-        getContentDAO(stored).getContent(fileName,start,end,os);
-    }
-
-    public PutResult putContent(String fileName, InputStream data, Storage stored) throws IOException {
-        return getContentDAO(stored).putContent(fileName,data);
-    }
-
-    private ContentDAO getContentDAO(final Storage storage) {
-        ContentDAO dao = contentDAOs.get(storage);
-        if (dao == null) {
-            throw new ContentDaoNotFoundException("Specified storage \"" + storage + "\" has not been defined in " + this + "!");
-        }
-        return dao;
-    }
+    return dao;
+  }
 }

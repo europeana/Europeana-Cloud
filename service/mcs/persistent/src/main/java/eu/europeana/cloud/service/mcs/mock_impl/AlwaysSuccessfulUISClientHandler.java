@@ -10,23 +10,23 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
  */
 public class AlwaysSuccessfulUISClientHandler implements UISClientHandler {
 
-    @Override
-    public boolean existsCloudId(String cloudId) {
-        return true;
-    }
+  @Override
+  public boolean existsCloudId(String cloudId) {
+    return true;
+  }
 
-    @Override
-    public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId) throws ProviderNotExistsException {
-        return new CloudId();
-    }
+  @Override
+  public CloudId getCloudIdFromProviderAndLocalId(String providerId, String localId) throws ProviderNotExistsException {
+    return new CloudId();
+  }
 
-    @Override
-    public boolean existsProvider(String cloudId) {
-        return true;
-    }
+  @Override
+  public boolean existsProvider(String cloudId) {
+    return true;
+  }
 
-    @Override
-    public DataProvider getProvider(String providerId) {
-        return new DataProvider();
-    }
+  @Override
+  public DataProvider getProvider(String providerId) {
+    return new DataProvider();
+  }
 }

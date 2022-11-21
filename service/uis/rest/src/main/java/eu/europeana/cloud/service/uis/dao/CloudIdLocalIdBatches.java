@@ -7,22 +7,23 @@ import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import java.util.ArrayList;
 
 public class CloudIdLocalIdBatches {
-    private final CloudIdDAO cloudIdDao;
-    private final LocalIdDAO localIdDao;
-    private final BatchExecutor batchExecutor;
 
-    public CloudIdLocalIdBatches(CloudIdDAO cloudIdDao, LocalIdDAO localIdDao, CassandraConnectionProvider dbService) {
-        this.cloudIdDao = cloudIdDao;
-        this.localIdDao = localIdDao;
-        this.batchExecutor = BatchExecutor.getInstance(dbService);
-    }
+  private final CloudIdDAO cloudIdDao;
+  private final LocalIdDAO localIdDao;
+  private final BatchExecutor batchExecutor;
 
-    public void insert(String providerId, String recordId, String cloudId) {
-        var statementsToBeExecuted = new ArrayList<BoundStatement>();
+  public CloudIdLocalIdBatches(CloudIdDAO cloudIdDao, LocalIdDAO localIdDao, CassandraConnectionProvider dbService) {
+    this.cloudIdDao = cloudIdDao;
+    this.localIdDao = localIdDao;
+    this.batchExecutor = BatchExecutor.getInstance(dbService);
+  }
 
-        statementsToBeExecuted.add(localIdDao.bindInsertStatement(providerId, recordId, cloudId));
-        statementsToBeExecuted.add(cloudIdDao.bindInsertStatement(cloudId, providerId, recordId));
+  public void insert(String providerId, String recordId, String cloudId) {
+    var statementsToBeExecuted = new ArrayList<BoundStatement>();
 
-        batchExecutor.executeAll(statementsToBeExecuted);
-    }
+    statementsToBeExecuted.add(localIdDao.bindInsertStatement(providerId, recordId, cloudId));
+    statementsToBeExecuted.add(cloudIdDao.bindInsertStatement(cloudId, providerId, recordId));
+
+    batchExecutor.executeAll(statementsToBeExecuted);
+  }
 }

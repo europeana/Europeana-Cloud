@@ -19,6 +19,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 public class XsltBolt extends AbstractDpsBolt {
+
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
@@ -51,12 +52,12 @@ public class XsltBolt extends AbstractDpsBolt {
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
-      handleInterruption(e,anchorTuple);
+      handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      LOGGER.error("XsltBolt error:{}",  e.getMessage());
+      LOGGER.error("XsltBolt error:{}", e.getMessage());
       emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-              stormTaskTuple.getFileUrl(), e.getMessage(), ExceptionUtils.getStackTrace(e),
-              StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+          stormTaskTuple.getFileUrl(), e.getMessage(), ExceptionUtils.getStackTrace(e),
+          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
       outputCollector.ack(anchorTuple);
     } finally {
       if (writer != null) {

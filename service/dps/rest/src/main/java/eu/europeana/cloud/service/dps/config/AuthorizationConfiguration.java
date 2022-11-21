@@ -19,65 +19,65 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @Configuration
 public class AuthorizationConfiguration {
 
-    /* ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= */
+  /* ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= */
 
-    @Bean
-    public CassandraMutableAclService aclService(AclRepository aclRepository) {
-        return new CassandraMutableAclService(
-                aclRepository,
-                null,
-                permissionGrantingStrategy(),
-                authorizationStrategy(),
-                permissionFactory());
-    }
+  @Bean
+  public CassandraMutableAclService aclService(AclRepository aclRepository) {
+    return new CassandraMutableAclService(
+        aclRepository,
+        null,
+        permissionGrantingStrategy(),
+        authorizationStrategy(),
+        permissionFactory());
+  }
 
-    @Bean
-    public CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
-        return new CassandraAclRepository(aasCassandraProvider, false);
-    }
+  @Bean
+  public CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
+    return new CassandraAclRepository(aasCassandraProvider, false);
+  }
 
-    @Bean
-    public ConsoleAuditLogger auditLogger() {
-        return new ConsoleAuditLogger();
-    }
+  @Bean
+  public ConsoleAuditLogger auditLogger() {
+    return new ConsoleAuditLogger();
+  }
 
-    @Bean
-    public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
-        return new DefaultPermissionGrantingStrategy(auditLogger());
-    }
+  @Bean
+  public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
+    return new DefaultPermissionGrantingStrategy(auditLogger());
+  }
 
-    public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority("ROLE_ADMIN");
-    }
+  public SimpleGrantedAuthority simpleGrantedAuthority() {
+    return new SimpleGrantedAuthority("ROLE_ADMIN");
+  }
 
-    @Bean
-    public AclAuthorizationStrategyImpl authorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(simpleGrantedAuthority());
-    }
+  @Bean
+  public AclAuthorizationStrategyImpl authorizationStrategy() {
+    return new AclAuthorizationStrategyImpl(simpleGrantedAuthority());
+  }
 
-    @Bean
-    public DefaultPermissionFactory permissionFactory() {
-        return new DefaultPermissionFactory();
-    }
+  @Bean
+  public DefaultPermissionFactory permissionFactory() {
+    return new DefaultPermissionFactory();
+  }
 
-    @Bean
-    public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
-                                                                    AclPermissionCacheOptimizer permissionCacheOptimizer) {
-        DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
+  @Bean
+  public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
+      AclPermissionCacheOptimizer permissionCacheOptimizer) {
+    DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
 
-        result.setPermissionEvaluator(permissionEvaluator);
-        result.setPermissionCacheOptimizer(permissionCacheOptimizer);
+    result.setPermissionEvaluator(permissionEvaluator);
+    result.setPermissionCacheOptimizer(permissionCacheOptimizer);
 
-        return result;
-    }
+    return result;
+  }
 
-    @Bean
-    public AclPermissionCacheOptimizer permissionCacheOptimizer(AclService aclService) {
-        return new AclPermissionCacheOptimizer(aclService);
-    }
+  @Bean
+  public AclPermissionCacheOptimizer permissionCacheOptimizer(AclService aclService) {
+    return new AclPermissionCacheOptimizer(aclService);
+  }
 
-    @Bean
-    public AclPermissionEvaluator permissionEvaluator(AclService aclService) {
-        return new AclPermissionEvaluator(aclService);
-    }
+  @Bean
+  public AclPermissionEvaluator permissionEvaluator(AclService aclService) {
+    return new AclPermissionEvaluator(aclService);
+  }
 }

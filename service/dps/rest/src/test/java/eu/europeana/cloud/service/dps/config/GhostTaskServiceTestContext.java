@@ -10,14 +10,14 @@ import static org.mockito.Mockito.mock;
 @Configuration
 public class GhostTaskServiceTestContext {
 
-    @Bean
-    public CassandraTaskInfoDAO taskInfoDAO() {
-        return mock(CassandraTaskInfoDAO.class);
-    }
+  @Bean
+  public CassandraTaskInfoDAO taskInfoDAO() {
+    return mock(CassandraTaskInfoDAO.class);
+  }
 
-    @Bean
-    public TasksByStateDAO tasksByStateDAO() {
-        return mock(TasksByStateDAO.class);
-    }
+  @Bean
+  public TasksByStateDAO tasksByStateDAO() {
+    return mock(TasksByStateDAO.class);
+  }
 
 }

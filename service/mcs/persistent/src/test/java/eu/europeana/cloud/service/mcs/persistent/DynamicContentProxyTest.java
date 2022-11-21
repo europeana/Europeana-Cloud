@@ -19,34 +19,34 @@ import static org.mockito.Mockito.verify;
  */
 public class DynamicContentProxyTest {
 
-    @Test(expected = ContentDaoNotFoundException.class)
-    public void shouldThrowExceptionOnNonExistingDAO() throws FileNotExistsException {
-        //given
-        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
-                mock(SwiftContentDAO.class)
-        ));
+  @Test(expected = ContentDaoNotFoundException.class)
+  public void shouldThrowExceptionOnNonExistingDAO() throws FileNotExistsException {
+    //given
+    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
+        mock(SwiftContentDAO.class)
+    ));
 
-        //then
-        instance.deleteContent("exampleFileName",Storage.DATA_BASE);
-    }
+    //then
+    instance.deleteContent("exampleFileName", Storage.DATA_BASE);
+  }
 
-    @Test
-    public void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
-        //given
-        SwiftContentDAO daoMock = mock(SwiftContentDAO.class);
-        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
+  @Test
+  public void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
+    //given
+    SwiftContentDAO daoMock = mock(SwiftContentDAO.class);
+    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
-        //when
-        instance.deleteContent("exampleFileName",Storage.OBJECT_STORAGE);
+    //when
+    instance.deleteContent("exampleFileName", Storage.OBJECT_STORAGE);
 
-        //then
-        verify(daoMock).deleteContent(anyString());
+    //then
+    verify(daoMock).deleteContent(anyString());
 
-    }
+  }
 
-    private Map<Storage, ContentDAO> prepareDAOMap(final ContentDAO dao) {
-        return ImmutableMap.of(
-                Storage.OBJECT_STORAGE, dao
-        );
-    }
+  private Map<Storage, ContentDAO> prepareDAOMap(final ContentDAO dao) {
+    return ImmutableMap.of(
+        Storage.OBJECT_STORAGE, dao
+    );
+  }
 }

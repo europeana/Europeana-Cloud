@@ -5,20 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class ProviderNotExistsException extends MCSException {
 
-    /**
-     * Constructs a ProviderNotExistsException with no specified detail message.
-     */
-    public ProviderNotExistsException() {
-    }
+  /**
+   * Constructs a ProviderNotExistsException with no specified detail message.
+   */
+  public ProviderNotExistsException() {
+  }
 
 
-    /**
-     * Constructs a ProviderNotExistsException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     */
-    public ProviderNotExistsException(String message) {
-        super(message);
-    }
+  /**
+   * Constructs a ProviderNotExistsException with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public ProviderNotExistsException(String message) {
+    super(message);
+  }
 }

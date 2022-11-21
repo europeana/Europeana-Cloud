@@ -9,24 +9,27 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class ProviderAlreadyExistsException extends GenericException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3035751589004362690L;
-	/**
-	 * Creates a new instance of this class.
-	 * @param e
-	 */
-	public ProviderAlreadyExistsException(ErrorInfo e){
-		super(e);
-	}
-	
+  /**
+   *
+   */
+  private static final long serialVersionUID = 3035751589004362690L;
 
-    /**
-     * Creates a new instance of this class.
-     * @param errorInfo
-     */
-    public ProviderAlreadyExistsException(IdentifierErrorInfo errorInfo) {
-        super(errorInfo);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param e
+   */
+  public ProviderAlreadyExistsException(ErrorInfo e) {
+    super(e);
+  }
+
+
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param errorInfo
+   */
+  public ProviderAlreadyExistsException(IdentifierErrorInfo errorInfo) {
+    super(errorInfo);
+  }
 }

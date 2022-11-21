@@ -38,110 +38,111 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(CassandraTestRunner.class)
 public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
-    private String fileWebTarget;
+  private String fileWebTarget;
 
-    private File file;
+  private File file;
 
-    private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+  private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
 
-    @Autowired
-    private RecordService recordService;
+  @Autowired
+  private RecordService recordService;
 
-    private DataSetService dataSetService;
-    private DataSetPermissionsVerifier dataSetPermissionsVerifier;
+  private DataSetService dataSetService;
+  private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-    @Before
-    public void init() throws RepresentationNotExistsException, DataSetAssignmentException, ProviderNotExistsException, DataSetAlreadyExistsException {
-        CassandraTestInstance.truncateAllData(false);
-        Mockito.reset(recordService);
-        UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);
-        dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
-        dataSetService = applicationContext.getBean(DataSetService.class);
-        Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
-        Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
+  @Before
+  public void init()
+      throws RepresentationNotExistsException, DataSetAssignmentException, ProviderNotExistsException, DataSetAlreadyExistsException {
+    CassandraTestInstance.truncateAllData(false);
+    Mockito.reset(recordService);
+    UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);
+    dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+    dataSetService = applicationContext.getBean(DataSetService.class);
+    Mockito.doReturn(new DataProvider()).when(uisHandler).getProvider(Mockito.anyString());
+    Mockito.doReturn(true).when(uisHandler).existsCloudId(Mockito.anyString());
 
-        dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
+    dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
 
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-        Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+    Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
+    Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
 
-        Representation rep = new Representation();
-        rep.setCloudId("cloudId");
-        rep.setRepresentationName("representationName");
-        rep.setVersion("versionId");
-        file = new File();
-        file.setFileName("fileName");
-        file.setMimeType("application/octet-stream");
+    Representation rep = new Representation();
+    rep.setCloudId("cloudId");
+    rep.setRepresentationName("representationName");
+    rep.setVersion("versionId");
+    file = new File();
+    file.setFileName("fileName");
+    file.setMimeType("application/octet-stream");
 
-        fileWebTarget = "/records/"+rep.getCloudId()+"/representations/"+rep.getRepresentationName()+"/files";
-    }
-    
-    @Test
-    public void shouldUploadFileForNonExistingRepresentation() throws Exception {
-        //given
-        String providerId = "providerId";
-        byte[] content = new byte[1000];
-        ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        //when
-        mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
-                .param(ParamConstants.F_FILE_NAME, file.getFileName())
-                .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.DATA_SET_ID,DATA_SET_ID))
-                //then
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
-    }
+    fileWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/files";
+  }
+
+  @Test
+  public void shouldUploadFileForNonExistingRepresentation() throws Exception {
+    //given
+    String providerId = "providerId";
+    byte[] content = new byte[1000];
+    ThreadLocalRandom.current().nextBytes(content);
+    String contentMd5 = Hashing.md5().hashBytes(content).toString();
+    //when
+    mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
+               .param(ParamConstants.F_FILE_NAME, file.getFileName())
+               .param(ParamConstants.F_PROVIDER, providerId)
+               .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
+           //then
+           .andExpect(status().isCreated())
+           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+  }
 
 
-    @Test
-    public void shouldUploadFileInGivenVersionForNonExistingRepresentation() throws Exception {
-        //given
-        String providerId = "providerId";
-        byte[] content = new byte[1000];
-        ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        //when
-        mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
-                .param(ParamConstants.F_FILE_NAME, file.getFileName())
-                .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString())
-                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
-                //then
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+  @Test
+  public void shouldUploadFileInGivenVersionForNonExistingRepresentation() throws Exception {
+    //given
+    String providerId = "providerId";
+    byte[] content = new byte[1000];
+    ThreadLocalRandom.current().nextBytes(content);
+    String contentMd5 = Hashing.md5().hashBytes(content).toString();
+    //when
+    mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
+               .param(ParamConstants.F_FILE_NAME, file.getFileName())
+               .param(ParamConstants.F_PROVIDER, providerId)
+               .param(ParamConstants.VERSION, VERSION.toString())
+               .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
+           //then
+           .andExpect(status().isCreated())
+           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION), any());
-    }
+    verify(recordService).createRepresentation(any(), any(), any(), eq(VERSION), any());
+  }
 
-    @Test
-    public void shouldAllowUploadFileInGivenVersionTwice() throws Exception {
-        //given
-        String providerId = "providerId";
-        byte[] content = new byte[1000];
-        ThreadLocalRandom.current().nextBytes(content);
-        String contentMd5 = Hashing.md5().hashBytes(content).toString();
-        //when
-        mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
-                .param(ParamConstants.F_FILE_NAME, file.getFileName())
-                .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString())
-                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
-                //then
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+  @Test
+  public void shouldAllowUploadFileInGivenVersionTwice() throws Exception {
+    //given
+    String providerId = "providerId";
+    byte[] content = new byte[1000];
+    ThreadLocalRandom.current().nextBytes(content);
+    String contentMd5 = Hashing.md5().hashBytes(content).toString();
+    //when
+    mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
+               .param(ParamConstants.F_FILE_NAME, file.getFileName())
+               .param(ParamConstants.F_PROVIDER, providerId)
+               .param(ParamConstants.VERSION, VERSION.toString())
+               .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
+           //then
+           .andExpect(status().isCreated())
+           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
-                .param(ParamConstants.F_FILE_NAME, file.getFileName())
-                .param(ParamConstants.F_PROVIDER, providerId)
-                .param(ParamConstants.VERSION, VERSION.toString())
-                .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
-                //then
-                .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+    mockMvc.perform(postFile(fileWebTarget, file.getMimeType(), content)
+               .param(ParamConstants.F_FILE_NAME, file.getFileName())
+               .param(ParamConstants.F_PROVIDER, providerId)
+               .param(ParamConstants.VERSION, VERSION.toString())
+               .param(ParamConstants.DATA_SET_ID, DATA_SET_ID))
+           //then
+           .andExpect(status().isCreated())
+           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-        verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION), any());
-    }
+    verify(recordService, times(2)).createRepresentation(any(), any(), any(), eq(VERSION), any());
+  }
 
 }
 

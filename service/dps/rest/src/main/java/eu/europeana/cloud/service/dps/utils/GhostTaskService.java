@@ -23,48 +23,49 @@ import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_
 @Service
 public class GhostTaskService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GhostTaskService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GhostTaskService.class);
 
-    @Autowired
-    private TasksByStateDAO tasksByStateDAO;
+  @Autowired
+  private TasksByStateDAO tasksByStateDAO;
 
-    @Autowired
-    private CassandraTaskInfoDAO taskInfoDAO;
+  @Autowired
+  private CassandraTaskInfoDAO taskInfoDAO;
 
-    private final Set<String> availableTopic;
+  private final Set<String> availableTopic;
 
-    public GhostTaskService(Environment environment) {
-        availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS))
-                .values().stream().flatMap(List::stream).collect(Collectors.toSet());
+  public GhostTaskService(Environment environment) {
+    availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS))
+                                                 .values().stream().flatMap(List::stream).collect(Collectors.toSet());
+  }
+
+  @Scheduled(cron = "0 0 * * * *")
+  public void serviceTask() {
+    List<TaskInfo> tasks = findGhostTasks();
+    List<Long> ids = tasks.stream().map(TaskInfo::getId).collect(Collectors.toList());
+    if (!ids.isEmpty()) {
+      LOGGER.error("Ghost task found on server ids: {}", ids);
+    } else {
+      LOGGER.info("Ghost task on server not found");
     }
+  }
 
-    @Scheduled(cron = "0 0 * * * *")
-    public void serviceTask() {
-        List<TaskInfo> tasks = findGhostTasks();
-        List<Long> ids = tasks.stream().map(TaskInfo::getId).collect(Collectors.toList());
-        if (!ids.isEmpty()) {
-            LOGGER.error("Ghost task found on server ids: {}", ids);
-        } else {
-            LOGGER.info("Ghost task on server not found");
-        }
-    }
+  public List<TaskInfo> findGhostTasks() {
+    return findTasksInGivenStates(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED).
+        filter(this::isGhost).collect(Collectors.toList());
+  }
 
-    public List<TaskInfo> findGhostTasks() {
-        return findTasksInGivenStates(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED).
-                filter(this::isGhost).collect(Collectors.toList());
-    }
+  private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
+    return tasksByStateDAO.findTasksByState(Arrays.asList(states)).stream()
+                          .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskByTaskState::getId)
+                          .map(taskInfoDAO::findById).flatMap(Optional::stream);
+  }
 
-    private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
-        return tasksByStateDAO.findTasksByState(Arrays.asList(states)).stream()
-                .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskByTaskState::getId)
-                .map(taskInfoDAO::findById).flatMap(Optional::stream);
-    }
+  private boolean isGhost(TaskInfo task) {
+    return isDateTooOld(task.getSentTimestamp()) && ((task.getStartTimestamp() == null) || isDateTooOld(
+        task.getStartTimestamp()));
+  }
 
-    private boolean isGhost(TaskInfo task) {
-        return isDateTooOld(task.getSentTimestamp()) && ((task.getStartTimestamp() == null) || isDateTooOld(task.getStartTimestamp()));
-    }
-
-    private boolean isDateTooOld(Date date) {
-        return date.toInstant().isBefore(Instant.now().minus(10, ChronoUnit.DAYS));
-    }
+  private boolean isDateTooOld(Date date) {
+    return date.toInstant().isBefore(Instant.now().minus(10, ChronoUnit.DAYS));
+  }
 }

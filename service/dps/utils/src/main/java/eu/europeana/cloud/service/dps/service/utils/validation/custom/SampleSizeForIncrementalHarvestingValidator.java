@@ -8,23 +8,23 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
  */
 public class SampleSizeForIncrementalHarvestingValidator extends CustomValidator {
 
-    private static final String MESSAGE = "Incremental harvesting could not set " + PluginParameterKeys.SAMPLE_SIZE;
+  private static final String MESSAGE = "Incremental harvesting could not set " + PluginParameterKeys.SAMPLE_SIZE;
 
-    @Override
-    public String detailedMessage() {
-        return MESSAGE;
-    }
+  @Override
+  public String detailedMessage() {
+    return MESSAGE;
+  }
 
-    @Override
-    public boolean test(DpsTask dpsTask) {
-        if (isIncremental(dpsTask)) {
-            return dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
-        } else {
-            return true;
-        }
+  @Override
+  public boolean test(DpsTask dpsTask) {
+    if (isIncremental(dpsTask)) {
+      return dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
+    } else {
+      return true;
     }
+  }
 
-    private boolean isIncremental(DpsTask dpsTask) {
-        return "true".equals(dpsTask.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
-    }
+  private boolean isIncremental(DpsTask dpsTask) {
+    return "true".equals(dpsTask.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
+  }
 }

@@ -7,26 +7,26 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 public class MCSAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MCSAppInitializer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MCSAppInitializer.class);
 
-    @Override
-    protected Class<?>[] getRootConfigClasses() {
-        return null;
-    }
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+    return null;
+  }
 
-    @Override
-    protected Class<?>[] getServletConfigClasses() {
-        LOGGER.info("MCS Rest Application starting...");
-        return new Class<?>[]{
-                ServiceConfiguration.class,
-                AuthenticationConfiguration.class,
-                AuthorizationConfiguration.class,
-                UnifiedExceptionsMapper.class
-        };
-    }
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+    LOGGER.info("MCS Rest Application starting...");
+    return new Class<?>[]{
+        ServiceConfiguration.class,
+        AuthenticationConfiguration.class,
+        AuthorizationConfiguration.class,
+        UnifiedExceptionsMapper.class
+    };
+  }
 
-    @Override
-    protected String[] getServletMappings() {
-        return new String[]{"/"};
-    }
+  @Override
+  protected String[] getServletMappings() {
+    return new String[]{"/"};
+  }
 }

@@ -18,62 +18,63 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)  //<expression-handler ref="expressionHandler" /> ??
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
+//<expression-handler ref="expressionHandler" /> ??
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
-    private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-    private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
-    private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-    private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
-    private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
+  private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
+  private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
+  private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
+  private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
+  private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.httpBasic()
-                .authenticationEntryPoint(cloudAuthenticationEntryPoint())
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .csrf().disable();
-    }
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    http.httpBasic()
+        .authenticationEntryPoint(cloudAuthenticationEntryPoint())
+        .and()
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and()
+        .csrf().disable();
+  }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(authenticationService())
-                .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
-    }
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.userDetailsService(authenticationService())
+        .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
+  }
 
-    @Bean
-    public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
-        return new CloudAuthenticationEntryPoint();
-    }
+  @Bean
+  public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
+    return new CloudAuthenticationEntryPoint();
+  }
 
-    @Bean
-    public LoggerListener loggerListener() {
-        return new LoggerListener();
-    }
+  @Bean
+  public LoggerListener loggerListener() {
+    return new LoggerListener();
+  }
 
-    /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
+  /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
-    @Bean
-    public CassandraConnectionProvider aasCassandraProvider(Environment environment) {
-        String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
-        Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
-        String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
-        String userName = environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME);
-        String password = environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD);
+  @Bean
+  public CassandraConnectionProvider aasCassandraProvider(Environment environment) {
+    String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
+    Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
+    String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
+    String userName = environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME);
+    String password = environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD);
 
-        return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-    }
+    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+  }
 
-    @Bean
-    public CassandraUserDAO userDAO(Environment environment) {
-        return new CassandraUserDAO(aasCassandraProvider(environment));
-    }
+  @Bean
+  public CassandraUserDAO userDAO(Environment environment) {
+    return new CassandraUserDAO(aasCassandraProvider(environment));
+  }
 
-    @Bean
-    public CassandraAuthenticationService authenticationService() {
-        return new CassandraAuthenticationService();
-    }
+  @Bean
+  public CassandraAuthenticationService authenticationService() {
+    return new CassandraAuthenticationService();
+  }
 
 }

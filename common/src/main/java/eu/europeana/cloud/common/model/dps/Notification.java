@@ -15,13 +15,14 @@ import java.util.Map;
 @Setter
 @ToString
 public class Notification {
-    private long taskId;
-    private int bucketNumber;
-    private int resourceNum;
-    private String topologyName;
-    private String resource;
-    private String state;
-    private String infoText;
-    private Map<String, String> additionalInformation;
-    private String resultResource;
+
+  private long taskId;
+  private int bucketNumber;
+  private int resourceNum;
+  private String topologyName;
+  private String resource;
+  private String state;
+  private String infoText;
+  private Map<String, String> additionalInformation;
+  private String resultResource;
 }

@@ -25,47 +25,46 @@ import static org.mockito.Mockito.when;
 public class CassandraAclRepositoryRetryableTest {
 
 
+  @Autowired
+  private Session session;
+  private AclObjectIdentity aoi;
+  private List<AclEntry> aclEntries;
 
-    @Autowired
-    private Session session;
-    private AclObjectIdentity aoi;
-    private List<AclEntry> aclEntries;
+  private int maxAttemptCount;
 
-    private int maxAttemptCount;
+  @Autowired
+  private AclRepository aclRepository;
 
-    @Autowired
-    private AclRepository aclRepository;
+  @Before
+  public void prepare() {
+    maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
 
-    @Before
-    public void prepare() {
-        maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
+    when(session.execute(Mockito.any(Statement.class)))
+        .thenThrow(new DriverException("Driver error has occurred!"));
 
-        when(session.execute(Mockito.any(Statement.class)))
-                .thenThrow(new DriverException("Driver error has occurred!"));
+    aoi = createTestAclObjectIdentity();
+    aclEntries = List.of(createTestAclEntry("test", 1),
+        createTestAclEntry("test", 2),
+        createTestAclEntry("test", 4),
+        createTestAclEntry("test", 8));
+  }
 
-        aoi = createTestAclObjectIdentity();
-        aclEntries = List.of(createTestAclEntry("test", 1),
-                createTestAclEntry("test", 2),
-                createTestAclEntry("test", 4),
-                createTestAclEntry("test", 8));
+
+  @Test
+  public void testRetryableAnnotation() {
+    Mockito.verify(session, Mockito.times(0))
+           .execute(Mockito.any(Statement.class));
+    try {
+      aclRepository.findAcls(List.of(aoi));
+    } catch (Exception ignored) {
     }
-
-
-    @Test
-    public void testRetryableAnnotation() {
-        Mockito.verify(session, Mockito.times(0))
-                .execute(Mockito.any(Statement.class));
-        try {
-            aclRepository.findAcls(List.of(aoi));
-        } catch (Exception ignored) {
-        }
-        Mockito.verify(session, Mockito.times(maxAttemptCount))
-                .execute(Mockito.any(Statement.class));
-        try {
-            aclRepository.updateAcl(aoi, aclEntries);
-        } catch (Exception ignored) {
-        }
-        Mockito.verify(session, Mockito.times(maxAttemptCount * 2))
-                .execute(Mockito.any(Statement.class));
+    Mockito.verify(session, Mockito.times(maxAttemptCount))
+           .execute(Mockito.any(Statement.class));
+    try {
+      aclRepository.updateAcl(aoi, aclEntries);
+    } catch (Exception ignored) {
     }
+    Mockito.verify(session, Mockito.times(maxAttemptCount * 2))
+           .execute(Mockito.any(Statement.class));
+  }
 }

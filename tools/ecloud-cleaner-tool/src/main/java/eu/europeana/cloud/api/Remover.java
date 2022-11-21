@@ -5,9 +5,9 @@ package eu.europeana.cloud.api;
  */
 public interface Remover {
 
-    void removeNotifications(long taskId);
+  void removeNotifications(long taskId);
 
-    void removeErrorReports(long taskId);
+  void removeErrorReports(long taskId);
 
-    void removeStatistics(long taskId);
+  void removeStatistics(long taskId);
 }

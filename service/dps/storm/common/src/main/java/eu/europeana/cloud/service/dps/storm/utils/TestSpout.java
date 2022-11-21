@@ -10,39 +10,40 @@ import org.apache.storm.topology.base.BaseRichSpout;
 import java.util.Map;
 
 public class TestSpout extends BaseRichSpout {
-    private static final long serialVersionUID = 1L;
 
-    private SpoutOutputCollector collector;
+  private static final long serialVersionUID = 1L;
 
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(StormTaskTuple.getFields());
-    }
+  private SpoutOutputCollector collector;
 
-
-    @Override
-    public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        collector = spoutOutputCollector;
-    }
+  @Override
+  public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
+    outputFieldsDeclarer.declare(StormTaskTuple.getFields());
+  }
 
 
-    @Override
-    public void nextTuple() {
-//        Utils.sleep(100);
-//
-//        StormTaskTuple stormTaskTuple = new StormTaskTuple(
-//                1,
-//               "taskName",
-//                null, null, new HashMap<>(), new Revision(), new OAIPMHHarvestingDetails());
-//
-//        collector.emit(stormTaskTuple.toStormTuple());
+  @Override
+  public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
+    collector = spoutOutputCollector;
+  }
 
-    }
 
-    @Override
-    public void close() {
-        super.close();
-    }
+  @Override
+  public void nextTuple() {
+    //        Utils.sleep(100);
+    //
+    //        StormTaskTuple stormTaskTuple = new StormTaskTuple(
+    //                1,
+    //               "taskName",
+    //                null, null, new HashMap<>(), new Revision(), new OAIPMHHarvestingDetails());
+    //
+    //        collector.emit(stormTaskTuple.toStormTuple());
+
+  }
+
+  @Override
+  public void close() {
+    super.close();
+  }
 
 }
 

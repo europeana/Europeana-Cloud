@@ -8,20 +8,21 @@ import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import java.util.List;
 
 public class ParseFileForLinkCheckBolt extends ParseFileBolt {
-    public ParseFileForLinkCheckBolt(String ecloudMcsAddress,
-                                     String ecloudMcsUser,
-                                     String ecloudMcsUserPassword) {
-        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
-    }
 
-    protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {
-        // TODO Here we use deprecated method which should be changed to rdfDeserializer.getResourceEntriesForLinkChecking(bytes)
-        return rdfDeserializer.getResourceEntriesForMediaExtraction(bytes);
-    }
+  public ParseFileForLinkCheckBolt(String ecloudMcsAddress,
+      String ecloudMcsUser,
+      String ecloudMcsUserPassword) {
+    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  }
 
-    @Override
-    protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) {
-        tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesCount));
-        return resourcesCount;
-    }
+  protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {
+    // TODO Here we use deprecated method which should be changed to rdfDeserializer.getResourceEntriesForLinkChecking(bytes)
+    return rdfDeserializer.getResourceEntriesForMediaExtraction(bytes);
+  }
+
+  @Override
+  protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) {
+    tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesCount));
+    return resourcesCount;
+  }
 }

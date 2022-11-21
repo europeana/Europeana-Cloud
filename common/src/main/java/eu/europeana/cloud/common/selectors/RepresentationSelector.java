@@ -6,9 +6,8 @@ import java.util.List;
 
 /**
  * Selects one representation from provided list of representations according to implementation.
- * 
  */
 public interface RepresentationSelector {
-    
-    Representation select(List<Representation> representations);
+
+  Representation select(List<Representation> representations);
 }

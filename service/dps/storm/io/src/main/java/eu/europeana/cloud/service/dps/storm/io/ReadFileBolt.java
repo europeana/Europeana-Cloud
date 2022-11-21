@@ -25,65 +25,66 @@ import java.time.Instant;
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
 public class ReadFileBolt extends AbstractDpsBolt {
-    private static final long serialVersionUID = 1L;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Properties to connect to eCloud
-     */
-    private final String ecloudMcsAddress;
-    private final String ecloudMcsUser;
-    private final String ecloudMcsUserPassword;
-    protected transient FileServiceClient fileClient;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ReadFileBolt.class);
 
-    public ReadFileBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
-        this.ecloudMcsAddress = ecloudMcsAddress;
-        this.ecloudMcsUser = ecloudMcsUser;
-        this.ecloudMcsUserPassword = ecloudMcsUserPassword;
+  /**
+   * Properties to connect to eCloud
+   */
+  private final String ecloudMcsAddress;
+  private final String ecloudMcsUser;
+  private final String ecloudMcsUserPassword;
+  protected transient FileServiceClient fileClient;
+
+  public ReadFileBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
+    this.ecloudMcsAddress = ecloudMcsAddress;
+    this.ecloudMcsUser = ecloudMcsUser;
+    this.ecloudMcsUserPassword = ecloudMcsUserPassword;
+  }
+
+  @Override
+  public void prepare() {
+    fileClient = new FileServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  }
+
+  @Override
+  public void execute(Tuple anchorTuple, StormTaskTuple t) {
+    final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    try (InputStream is = getFileStreamByStormTuple(t)) {
+      t.setFileData(is);
+      outputCollector.emit(anchorTuple, t.toStormTuple());
+      outputCollector.ack(anchorTuple);
+    } catch (RetryInterruptedException e) {
+      handleInterruption(e, anchorTuple);
+    } catch (RepresentationNotExistsException | FileNotExistsException |
+             WrongContentRangeException ex) {
+      LOGGER.warn("Can not retrieve file at {}", file);
+      emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, "Can not retrieve file",
+          "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
+      outputCollector.ack(anchorTuple);
+    } catch (Exception ex) {
+      LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
+      emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, ex.getMessage(),
+          "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
+      outputCollector.ack(anchorTuple);
     }
+  }
 
-    @Override
-    public void prepare() {
-        fileClient = new FileServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
-    }
+  private InputStream getFile(FileServiceClient fileClient, String file) throws Exception {
+    return RetryableMethodExecutor.executeOnRest("Error while getting a file", () ->
+        fileClient.getFile(file));
+  }
 
-    @Override
-    public void execute(Tuple anchorTuple, StormTaskTuple t) {
-        final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        try (InputStream is = getFileStreamByStormTuple(t)) {
-            t.setFileData(is);
-            outputCollector.emit(anchorTuple, t.toStormTuple());
-            outputCollector.ack(anchorTuple);
-        } catch (RetryInterruptedException e) {
-            handleInterruption(e, anchorTuple);
-        } catch (RepresentationNotExistsException | FileNotExistsException |
-                 WrongContentRangeException ex) {
-            LOGGER.warn("Can not retrieve file at {}", file);
-            emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, "Can not retrieve file",
-                    "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
-            outputCollector.ack(anchorTuple);
-        } catch (Exception ex) {
-            LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
-            emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, ex.getMessage(),
-                    "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
-            outputCollector.ack(anchorTuple);
-        }
-    }
-
-    private InputStream getFile(FileServiceClient fileClient, String file) throws Exception {
-        return RetryableMethodExecutor.executeOnRest("Error while getting a file", () ->
-                fileClient.getFile(file));
-    }
-
-    protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
-        Instant processingStartTime = Instant.now();
-        final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-        LOGGER.info("Downloading the following file: {}", file);
-        stormTaskTuple.setFileUrl(file);
-        InputStream downloadedFile = getFile(fileClient, file);
-        LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
-        return downloadedFile;
-    }
+  protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
+    Instant processingStartTime = Instant.now();
+    final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    LOGGER.info("Downloading the following file: {}", file);
+    stormTaskTuple.setFileUrl(file);
+    InputStream downloadedFile = getFile(fileClient, file);
+    LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
+    return downloadedFile;
+  }
 
 }

@@ -11,62 +11,62 @@ import org.springframework.security.acls.model.ObjectIdentity;
 
 public class ACLServiceWrapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ACLServiceWrapper.class);
-    private static final int DEFAULT_RETRIES = 3;
-    private static final int SLEEP_TIME = 5000;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ACLServiceWrapper.class);
+  private static final int DEFAULT_RETRIES = 3;
+  private static final int SLEEP_TIME = 5000;
 
-    private final ExtendedAclService mutableAclService;
+  private final ExtendedAclService mutableAclService;
 
-    public ACLServiceWrapper(ExtendedAclService mutableAclService){
-        this.mutableAclService = mutableAclService;
-    }
+  public ACLServiceWrapper(ExtendedAclService mutableAclService) {
+    this.mutableAclService = mutableAclService;
+  }
 
-    public MutableAcl createAcl(String creatorName, ObjectIdentity cloudIdIdentity) {
-        MutableAcl acl = mutableAclService.createAcl(cloudIdIdentity);
-        acl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-        acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-        acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-        acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-        return acl;
-    }
+  public MutableAcl createAcl(String creatorName, ObjectIdentity cloudIdIdentity) {
+    MutableAcl acl = mutableAclService.createAcl(cloudIdIdentity);
+    acl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+    acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+    acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+    acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
+    return acl;
+  }
 
-    public MutableAcl createOrUpdateAcl(String creatorName, ObjectIdentity cloudIdIdentity) {
-        MutableAcl acl = mutableAclService.createOrUpdateAcl(cloudIdIdentity);
-        acl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
-        acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
-        acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
-        acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
-        return acl;
-    }
+  public MutableAcl createOrUpdateAcl(String creatorName, ObjectIdentity cloudIdIdentity) {
+    MutableAcl acl = mutableAclService.createOrUpdateAcl(cloudIdIdentity);
+    acl.insertAce(0, BasePermission.READ, new PrincipalSid(creatorName), true);
+    acl.insertAce(1, BasePermission.WRITE, new PrincipalSid(creatorName), true);
+    acl.insertAce(2, BasePermission.DELETE, new PrincipalSid(creatorName), true);
+    acl.insertAce(3, BasePermission.ADMINISTRATION, new PrincipalSid(creatorName), true);
+    return acl;
+  }
 
 
-    public void updateAcl(MutableAcl providerAcl) {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                mutableAclService.updateAcl(providerAcl);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    waitForSpecificTime();
-                } else {
-                    LOGGER.error("Error while updating ACLs for cloudId creation. Exception: {}", e.getMessage());
-                    throw e;
-                }
-            }
+  public void updateAcl(MutableAcl providerAcl) {
+    int retries = DEFAULT_RETRIES;
+    while (true) {
+      try {
+        mutableAclService.updateAcl(providerAcl);
+        break;
+      } catch (Exception e) {
+        if (retries-- > 0) {
+          waitForSpecificTime();
+        } else {
+          LOGGER.error("Error while updating ACLs for cloudId creation. Exception: {}", e.getMessage());
+          throw e;
         }
+      }
     }
+  }
 
-    public void deleteAcl(ObjectIdentity objectIdentity, boolean deleteChildren) throws ChildrenExistException {
-        mutableAclService.deleteAcl(objectIdentity, deleteChildren);
-    }
+  public void deleteAcl(ObjectIdentity objectIdentity, boolean deleteChildren) throws ChildrenExistException {
+    mutableAclService.deleteAcl(objectIdentity, deleteChildren);
+  }
 
-    private void waitForSpecificTime() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
+  private void waitForSpecificTime() {
+    try {
+      Thread.sleep(SLEEP_TIME);
+    } catch (InterruptedException e1) {
+      Thread.currentThread().interrupt();
+      LOGGER.error(e1.getMessage());
     }
+  }
 }

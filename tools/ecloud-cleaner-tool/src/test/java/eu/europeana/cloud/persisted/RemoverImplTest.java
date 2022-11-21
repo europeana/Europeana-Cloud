@@ -13,67 +13,67 @@ import static org.mockito.Mockito.*;
 public class RemoverImplTest {
 
 
-    @Mock(name = "subTaskInfoDAO")
-    private NotificationsDAO subTaskInfoDAO;
+  @Mock(name = "subTaskInfoDAO")
+  private NotificationsDAO subTaskInfoDAO;
 
 
-    @Mock(name = "taskErrorDAO")
-    private CassandraTaskErrorsDAO taskErrorDAO;
+  @Mock(name = "taskErrorDAO")
+  private CassandraTaskErrorsDAO taskErrorDAO;
 
 
-    @Mock(name = "cassandraNodeStatisticsDAO")
-    private ValidationStatisticsServiceImpl statisticsService;
+  @Mock(name = "cassandraNodeStatisticsDAO")
+  private ValidationStatisticsServiceImpl statisticsService;
 
-    private RemoverImpl removerImpl;
+  private RemoverImpl removerImpl;
 
-    private static final long TASK_ID = 1234;
+  private static final long TASK_ID = 1234;
 
-    @Before
-    public void init() {
-        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
-        removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, statisticsService);
-    }
+  @Before
+  public void init() {
+    MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+    removerImpl = new RemoverImpl(subTaskInfoDAO, taskErrorDAO, statisticsService);
+  }
 
-    @Test
-    public void shouldSuccessfullyRemoveNotifications() {
-        doNothing().when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
-        removerImpl.removeNotifications(TASK_ID);
-        verify(subTaskInfoDAO, times(1)).removeNotifications((eq(TASK_ID)));
-    }
+  @Test
+  public void shouldSuccessfullyRemoveNotifications() {
+    doNothing().when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
+    removerImpl.removeNotifications(TASK_ID);
+    verify(subTaskInfoDAO, times(1)).removeNotifications((eq(TASK_ID)));
+  }
 
-    @Test(expected = Exception.class)
-    public void shouldRetry5TimesBeforeFailing() {
-        doThrow(Exception.class).when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
-        removerImpl.removeNotifications(TASK_ID);
-        verify(subTaskInfoDAO, times(6)).removeNotifications((eq(TASK_ID)));
-    }
+  @Test(expected = Exception.class)
+  public void shouldRetry5TimesBeforeFailing() {
+    doThrow(Exception.class).when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
+    removerImpl.removeNotifications(TASK_ID);
+    verify(subTaskInfoDAO, times(6)).removeNotifications((eq(TASK_ID)));
+  }
 
 
-    @Test
-    public void shouldSuccessfullyRemoveErrors() {
-        doNothing().when(taskErrorDAO).removeErrors(eq(TASK_ID));
-        removerImpl.removeErrorReports(TASK_ID);
-        verify(taskErrorDAO, times(1)).removeErrors((eq(TASK_ID)));
-    }
+  @Test
+  public void shouldSuccessfullyRemoveErrors() {
+    doNothing().when(taskErrorDAO).removeErrors(eq(TASK_ID));
+    removerImpl.removeErrorReports(TASK_ID);
+    verify(taskErrorDAO, times(1)).removeErrors((eq(TASK_ID)));
+  }
 
-    @Test(expected = Exception.class)
-    public void shouldRetry5TimesBeforeFailingWhileRemovingErrorReports() {
-        doThrow(Exception.class).when(taskErrorDAO).removeErrors(eq(TASK_ID));
-        removerImpl.removeErrorReports(TASK_ID);
-        verify(taskErrorDAO, times(6)).removeErrors((eq(TASK_ID)));
-    }
+  @Test(expected = Exception.class)
+  public void shouldRetry5TimesBeforeFailingWhileRemovingErrorReports() {
+    doThrow(Exception.class).when(taskErrorDAO).removeErrors(eq(TASK_ID));
+    removerImpl.removeErrorReports(TASK_ID);
+    verify(taskErrorDAO, times(6)).removeErrors((eq(TASK_ID)));
+  }
 
-    @Test
-    public void shouldSuccessfullyRemoveStatistics() {
-        doNothing().when(statisticsService).removeStatistics(eq(TASK_ID));
-        removerImpl.removeStatistics(TASK_ID);
-        verify(statisticsService, times(1)).removeStatistics((eq(TASK_ID)));
-    }
+  @Test
+  public void shouldSuccessfullyRemoveStatistics() {
+    doNothing().when(statisticsService).removeStatistics(eq(TASK_ID));
+    removerImpl.removeStatistics(TASK_ID);
+    verify(statisticsService, times(1)).removeStatistics((eq(TASK_ID)));
+  }
 
-    @Test(expected = Exception.class)
-    public void shouldRetry5TimesBeforeFailingWhileRemovingStatistics() {
-        doThrow(Exception.class).when(statisticsService).removeStatistics(eq(TASK_ID));
-        removerImpl.removeStatistics(TASK_ID);
-        verify(statisticsService, times(6)).removeStatistics((eq(TASK_ID)));
-    }
+  @Test(expected = Exception.class)
+  public void shouldRetry5TimesBeforeFailingWhileRemovingStatistics() {
+    doThrow(Exception.class).when(statisticsService).removeStatistics(eq(TASK_ID));
+    removerImpl.removeStatistics(TASK_ID);
+    verify(statisticsService, times(6)).removeStatistics((eq(TASK_ID)));
+  }
 }

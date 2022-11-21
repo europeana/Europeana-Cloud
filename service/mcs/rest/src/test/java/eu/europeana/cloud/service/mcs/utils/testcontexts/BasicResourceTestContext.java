@@ -23,62 +23,62 @@ import static org.mockito.Mockito.when;
 @Configuration
 public class BasicResourceTestContext {
 
-    @Bean()
-    public CassandraConnectionProvider dbService() {
-        CassandraConnectionProvider dbService = mock(CassandraConnectionProvider.class);
-        Session session = mock(Session.class);
-        when(session.prepare(anyString())).thenReturn(mock(PreparedStatement.class));
-        when(dbService.getSession()).thenReturn(session);
-        return dbService;
-    }
+  @Bean()
+  public CassandraConnectionProvider dbService() {
+    CassandraConnectionProvider dbService = mock(CassandraConnectionProvider.class);
+    Session session = mock(Session.class);
+    when(session.prepare(anyString())).thenReturn(mock(PreparedStatement.class));
+    when(dbService.getSession()).thenReturn(session);
+    return dbService;
+  }
 
-    @Bean
-    public ExtendedAclService aclService() {
-        return mock(ExtendedAclService.class);
-    }
+  @Bean
+  public ExtendedAclService aclService() {
+    return mock(ExtendedAclService.class);
+  }
 
-    @Bean
-    public PermissionsGrantingManager permissionsGrantingManager() {
-        return new PermissionsGrantingManager();
-    }
+  @Bean
+  public PermissionsGrantingManager permissionsGrantingManager() {
+    return new PermissionsGrantingManager();
+  }
 
-    @Bean
-    public AclPermissionEvaluator aclPermissionEvaluator() {
-        return mock(AclPermissionEvaluator.class);
-    }
+  @Bean
+  public AclPermissionEvaluator aclPermissionEvaluator() {
+    return mock(AclPermissionEvaluator.class);
+  }
 
-    @Bean
-    public DataSetPermissionsVerifier dataSetPermissionsVerifier(){
-        return mock(DataSetPermissionsVerifier.class);
-    }
+  @Bean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier() {
+    return mock(DataSetPermissionsVerifier.class);
+  }
 
-    @Bean
-    public CassandraDataSetDAO cassandraDataSetDAO() {
-        return mock(CassandraDataSetDAO.class);
-    }
+  @Bean
+  public CassandraDataSetDAO cassandraDataSetDAO() {
+    return mock(CassandraDataSetDAO.class);
+  }
 
-    @Bean
-    public DynamicContentProxy dynamicContentProxy() {
-        return mock(DynamicContentProxy.class);
-    }
+  @Bean
+  public DynamicContentProxy dynamicContentProxy() {
+    return mock(DynamicContentProxy.class);
+  }
 
-    @Bean
-    public CassandraDataSetService cassandraDataSetService() {
-        return new CassandraDataSetService();
-    }
+  @Bean
+  public CassandraDataSetService cassandraDataSetService() {
+    return new CassandraDataSetService();
+  }
 
-    @Bean
-    public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-        return mock(SimpleSwiftConnectionProvider.class);
-    }
+  @Bean
+  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
+    return mock(SimpleSwiftConnectionProvider.class);
+  }
 
-    @Bean
-    public CassandraRecordService cassandraRecordService() {
-        return mock(CassandraRecordService.class);
-    }
+  @Bean
+  public CassandraRecordService cassandraRecordService() {
+    return mock(CassandraRecordService.class);
+  }
 
-    @Bean
-    public UISClient uisClient(){
-        return mock(UISClient.class);
-    }
+  @Bean
+  public UISClient uisClient() {
+    return mock(UISClient.class);
+  }
 }

@@ -18,60 +18,63 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CassandraTaskInfoDAO.class)
 @PowerMockIgnore({"javax.management.*", "org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*",
-        "eu.europeana.cloud.test.CassandraTestInstance"})
+    "eu.europeana.cloud.test.CassandraTestInstance"})
 public class TaskStatusCheckerTest {
 
-    private static TaskStatusChecker taskStatusChecker;
-    private static CassandraTaskInfoDAO taskInfoDAO;
-    private static CassandraConnectionProvider cassandraConnectionProvider;
-    private final static long TASK_ID = 1234;
-    private final static long TASK_ID2 = 123456;
+  private static TaskStatusChecker taskStatusChecker;
+  private static CassandraTaskInfoDAO taskInfoDAO;
+  private static CassandraConnectionProvider cassandraConnectionProvider;
+  private final static long TASK_ID = 1234;
+  private final static long TASK_ID2 = 123456;
 
-    @BeforeClass
-    public static void init() throws Exception {
-        cassandraConnectionProvider = mock(CassandraConnectionProvider.class);
-        taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
-        PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
-        when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
-        TaskStatusChecker.init(cassandraConnectionProvider);
-        taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+  @BeforeClass
+  public static void init() throws Exception {
+    cassandraConnectionProvider = mock(CassandraConnectionProvider.class);
+    taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
+    PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
+    when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
+    TaskStatusChecker.init(cassandraConnectionProvider);
+    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
 
+  }
+
+  @Test
+  public void testExecutionWithMultipleTasks() throws Exception {
+    when(taskInfoDAO.isDroppedTask(TASK_ID)).thenReturn(false, false, false, true, true);
+    when(taskInfoDAO.isDroppedTask(TASK_ID2)).thenReturn(false, false, true);
+    boolean task1killedFlag = false;
+    boolean task2killedFlag = false;
+
+    for (int i = 0; i < 8; i++) {
+      if (i < 4) {
+        assertFalse(task1killedFlag);
+      }
+      if (i < 3) {
+        assertFalse(task2killedFlag);
+      }
+      task1killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID);
+      if (i < 5) {
+        task2killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID2);
+      }
+      Thread.sleep(6000);
     }
+    verify(taskInfoDAO, times(8)).isDroppedTask(eq(TASK_ID));
+    verify(taskInfoDAO, times(5)).isDroppedTask(eq(TASK_ID2));
+    assertTrue(task1killedFlag);
+    assertTrue(task2killedFlag);
+    Thread.sleep(20000);
+    verifyNoMoreInteractions(taskInfoDAO);
 
-    @Test
-    public void testExecutionWithMultipleTasks() throws Exception {
-        when(taskInfoDAO.isDroppedTask(TASK_ID)).thenReturn(false, false, false, true, true);
-        when(taskInfoDAO.isDroppedTask(TASK_ID2)).thenReturn(false, false, true);
-        boolean task1killedFlag = false;
-        boolean task2killedFlag = false;
+  }
 
-        for (int i = 0; i < 8; i++) {
-            if (i < 4)
-                assertFalse(task1killedFlag);
-            if (i < 3)
-                assertFalse(task2killedFlag);
-            task1killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID);
-            if (i < 5)
-                task2killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID2);
-            Thread.sleep(6000);
-        }
-        verify(taskInfoDAO, times(8)).isDroppedTask(eq(TASK_ID));
-        verify(taskInfoDAO, times(5)).isDroppedTask(eq(TASK_ID2));
-        assertTrue(task1killedFlag);
-        assertTrue(task2killedFlag);
-        Thread.sleep(20000);
-        verifyNoMoreInteractions(taskInfoDAO);
+  @Test
+  public void TaskStatusCheckerShouldOnlyBeInitialedOnce() {
+    TaskStatusChecker.init(cassandraConnectionProvider);
+    TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+    TaskStatusChecker.init(cassandraConnectionProvider);
+    TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+    Assert.assertEquals(firstTaskStatusChecker, secondTaskStatusChecker);
 
-    }
-
-    @Test
-    public void TaskStatusCheckerShouldOnlyBeInitialedOnce() {
-        TaskStatusChecker.init(cassandraConnectionProvider);
-        TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-        TaskStatusChecker.init(cassandraConnectionProvider);
-        TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-        Assert.assertEquals(firstTaskStatusChecker, secondTaskStatusChecker);
-
-    }
+  }
 
 }

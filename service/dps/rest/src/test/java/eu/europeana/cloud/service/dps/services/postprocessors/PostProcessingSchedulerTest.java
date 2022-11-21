@@ -24,46 +24,48 @@ import static org.mockito.Mockito.when;
 public class PostProcessingSchedulerTest {
 
 
-    public static final long TASK_ID = 100L;
-    public static final String APPLICATION_ID = "TestApp";
-    @Mock
-    private TasksByStateDAO tasksByStateDAO;
+  public static final long TASK_ID = 100L;
+  public static final String APPLICATION_ID = "TestApp";
+  @Mock
+  private TasksByStateDAO tasksByStateDAO;
 
-    @Mock
-    private PostProcessingService postProcessingService;
+  @Mock
+  private PostProcessingService postProcessingService;
 
-    @Mock
-    private TaskStatusUpdater taskStatusUpdater;
+  @Mock
+  private TaskStatusUpdater taskStatusUpdater;
 
-    private PostProcessingScheduler scheduler;
+  private PostProcessingScheduler scheduler;
 
-    @Before
-    public void setup() {
-        scheduler = new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, APPLICATION_ID);
-    }
+  @Before
+  public void setup() {
+    scheduler = new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, APPLICATION_ID);
+  }
 
-    //Activities on start - init() method
-    @Test
-    public void shouldResetStateOfInPostProcessingTasksOnInit() {
-        TaskByTaskState task = TaskByTaskState.builder().id(TASK_ID).state(IN_POST_PROCESSING)
-                .applicationId(APPLICATION_ID).build();
-        when(tasksByStateDAO.findTasksByState(Collections.singletonList(IN_POST_PROCESSING)))
-                .thenReturn(Collections.singletonList(task));
+  //Activities on start - init() method
+  @Test
+  public void shouldResetStateOfInPostProcessingTasksOnInit() {
+    TaskByTaskState task = TaskByTaskState.builder().id(TASK_ID).state(IN_POST_PROCESSING)
+                                          .applicationId(APPLICATION_ID).build();
+    when(tasksByStateDAO.findTasksByState(Collections.singletonList(IN_POST_PROCESSING)))
+        .thenReturn(Collections.singletonList(task));
 
-        scheduler.init();
+    scheduler.init();
 
-        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.READY_FOR_POST_PROCESSING), anyString());
-    }
+    verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.READY_FOR_POST_PROCESSING), anyString());
+  }
 
-    //Scheduled activities - execute method()
-    @Test
-    public void shouldSendReadyTasksToPostProcessing() {
-        TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(READY_FOR_POST_PROCESSING).applicationId(APPLICATION_ID).build();
-        when(tasksByStateDAO.findTasksByState(Collections.singletonList(READY_FOR_POST_PROCESSING))).thenReturn(Collections.singletonList(taskByState));
+  //Scheduled activities - execute method()
+  @Test
+  public void shouldSendReadyTasksToPostProcessing() {
+    TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(READY_FOR_POST_PROCESSING)
+                                                 .applicationId(APPLICATION_ID).build();
+    when(tasksByStateDAO.findTasksByState(Collections.singletonList(READY_FOR_POST_PROCESSING))).thenReturn(
+        Collections.singletonList(taskByState));
 
-        scheduler.execute();
+    scheduler.execute();
 
-        verify(postProcessingService).postProcess(taskByState);
-    }
+    verify(postProcessingService).postProcess(taskByState);
+  }
 
 }

@@ -12,10 +12,11 @@ import javax.ws.rs.core.Response.Status;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
- public class IdentifierErrorInfo {
-	private static final long serialVersionUID = 4623626261467887110l;
+public class IdentifierErrorInfo {
 
-	private Status httpCode;
-	
-	private ErrorInfo errorInfo;
+  private static final long serialVersionUID = 4623626261467887110l;
+
+  private Status httpCode;
+
+  private ErrorInfo errorInfo;
 }

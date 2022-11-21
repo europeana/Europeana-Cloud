@@ -8,35 +8,36 @@ import org.junit.Before;
  * Test configuration for Cassandra
  */
 public abstract class CassandraTestBase {
-    /**
-     * CassandraTestBase KEYSPACE_SCHEMA_CQL
-     */
-    // config:
-    public static final String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
-    /**
-     * CassandraTestBase KEYSPACE
-     */
-    public static final String KEYSPACE = "aas_test";
 
-    /**
-     * Creates a new instance of this class.
-     */
-    public CassandraTestBase() {
-        CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
-    }
+  /**
+   * CassandraTestBase KEYSPACE_SCHEMA_CQL
+   */
+  // config:
+  public static final String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
+  /**
+   * CassandraTestBase KEYSPACE
+   */
+  public static final String KEYSPACE = "aas_test";
 
-    /**
-     * @return session
-     */
-    protected Session getSession() {
-        return CassandraTestInstance.getSession(KEYSPACE);
-    }
+  /**
+   * Creates a new instance of this class.
+   */
+  public CassandraTestBase() {
+    CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
+  }
 
-    /**
-     * Truncates all tables.
-     */
-    @Before
-    public void truncateAll() {
-        CassandraTestInstance.truncateAllData(false);
-    }
+  /**
+   * @return session
+   */
+  protected Session getSession() {
+    return CassandraTestInstance.getSession(KEYSPACE);
+  }
+
+  /**
+   * Truncates all tables.
+   */
+  @Before
+  public void truncateAll() {
+    CassandraTestInstance.truncateAllData(false);
+  }
 }

@@ -26,57 +26,58 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 public class RepresentationRevisionsResource {
 
 
-    private final RecordService recordService;
+  private final RecordService recordService;
 
-    public RepresentationRevisionsResource(RecordService recordService) {
-        this.recordService = recordService;
+  public RepresentationRevisionsResource(RecordService recordService) {
+    this.recordService = recordService;
+  }
+
+  /**
+   * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider
+   * and timestamp.
+   *
+   * @param cloudId cloud id of the record which contains the representation .
+   * @param representationName name of the representation .
+   * @param revisionName name of the revision associated with this representation version
+   * @param revisionProviderId identifier of institution that provided the revision
+   * @param revisionTimestamp timestamp of the specific revision, if not given the latest revision with revisionName created by
+   * revisionProviderId will be considered (timestamp should be given in UTC format)
+   * @return requested specific representation object.
+   * @throws RepresentationNotExistsException when representation doesn't exist
+   * @summary get a representation response object
+   */
+  @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @ResponseBody
+  public RepresentationsListWrapper getRepresentationRevisions(
+      HttpServletRequest httpServletRequest,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String revisionName,
+      @RequestParam String revisionProviderId,
+      @RequestParam(required = false) String revisionTimestamp) throws RepresentationNotExistsException {
+
+    Date revisionDate = null;
+    if (revisionTimestamp != null) {
+      DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
+      revisionDate = utc.toDate();
+    }
+    List<RepresentationRevisionResponse> info =
+        recordService.getRepresentationRevisions(cloudId, representationName, revisionProviderId, revisionName, revisionDate);
+    List<Representation> representations = new ArrayList<>();
+    if (info != null) {
+      for (RepresentationRevisionResponse representationRevisionsResource : info) {
+        Representation representation;
+        representation = recordService.getRepresentation(
+            representationRevisionsResource.getCloudId(),
+            representationRevisionsResource.getRepresentationName(),
+            representationRevisionsResource.getVersion());
+        EnrichUriUtil.enrich(httpServletRequest, representation);
+        representations.add(representation);
+      }
+    } else {
+      throw new RepresentationNotExistsException("No representation was found");
     }
 
-    /**
-     * Returns the representation version which associates cloud identifier, representation name with revision identifier, provider and timestamp.
-     *
-     * @param cloudId           cloud id of the record which contains the representation .
-     * @param representationName             name of the representation .
-     * @param revisionName       name of the revision associated with this representation version
-     * @param revisionProviderId identifier of institution that provided the revision
-     * @param revisionTimestamp  timestamp of the specific revision, if not given the latest revision with revisionName
-     *                           created by revisionProviderId will be considered (timestamp should be given in UTC format)
-     * @return requested specific representation object.
-     * @throws RepresentationNotExistsException when representation doesn't exist
-     * @summary get a representation response object
-     */
-    @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @ResponseBody
-    public RepresentationsListWrapper getRepresentationRevisions(
-            HttpServletRequest httpServletRequest,
-            @PathVariable String cloudId,
-            @PathVariable String representationName,
-            @PathVariable String revisionName,
-            @RequestParam String revisionProviderId,
-            @RequestParam(required = false) String revisionTimestamp) throws RepresentationNotExistsException {
-
-        Date revisionDate = null;
-        if (revisionTimestamp != null) {
-            DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
-            revisionDate = utc.toDate();
-        }
-        List<RepresentationRevisionResponse> info =
-                recordService.getRepresentationRevisions(cloudId, representationName, revisionProviderId, revisionName, revisionDate);
-        List<Representation> representations = new ArrayList<>();
-        if (info != null) {
-            for (RepresentationRevisionResponse representationRevisionsResource : info) {
-                Representation representation;
-                representation = recordService.getRepresentation(
-                        representationRevisionsResource.getCloudId(),
-                        representationRevisionsResource.getRepresentationName(),
-                        representationRevisionsResource.getVersion());
-                EnrichUriUtil.enrich(httpServletRequest, representation);
-                representations.add(representation);
-            }
-        } else {
-            throw new RepresentationNotExistsException("No representation was found");
-        }
-
-        return new RepresentationsListWrapper(representations);
-    }
+    return new RepresentationsListWrapper(representations);
+  }
 }

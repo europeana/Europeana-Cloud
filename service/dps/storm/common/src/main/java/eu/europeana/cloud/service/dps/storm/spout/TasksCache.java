@@ -16,56 +16,56 @@ import org.slf4j.LoggerFactory;
  */
 public class TasksCache {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TasksCache.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TasksCache.class);
 
-    private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
+  private final LRUCache<Long, TaskInfo> cache = new LRUCache<>(50);
 
-    private final LRUCache<Long, TaskDiagnosticInfo> diagnosticCache = new LRUCache<>(50);
+  private final LRUCache<Long, TaskDiagnosticInfo> diagnosticCache = new LRUCache<>(50);
 
-    private CassandraTaskInfoDAO taskInfoDAO;
+  private CassandraTaskInfoDAO taskInfoDAO;
 
-    private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+  private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
-    public TasksCache(CassandraConnectionProvider cassandraConnectionProvider) {
-        taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-        taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
+  public TasksCache(CassandraConnectionProvider cassandraConnectionProvider) {
+    taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+    taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
+  }
+
+  public TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
+    TaskInfo taskInfo = findTaskInCache(message);
+    //
+    if (taskFoundInCache(taskInfo)) {
+      LOGGER.trace("TaskInfo found in cache");
+    } else {
+      LOGGER.debug("TaskInfo NOT found in cache");
+      taskInfo = readTaskFromDB(message.getTaskId());
+      cache.put(message.getTaskId(), taskInfo);
     }
+    return taskInfo;
+  }
 
-    public TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
-        TaskInfo taskInfo = findTaskInCache(message);
-        //
-        if (taskFoundInCache(taskInfo)) {
-            LOGGER.trace("TaskInfo found in cache");
-        } else {
-            LOGGER.debug("TaskInfo NOT found in cache");
-            taskInfo = readTaskFromDB(message.getTaskId());
-            cache.put(message.getTaskId(), taskInfo);
-        }
-        return taskInfo;
-    }
+  private boolean taskFoundInCache(TaskInfo taskInfo) {
+    return taskInfo != null;
+  }
 
-    private boolean taskFoundInCache(TaskInfo taskInfo) {
-        return taskInfo != null;
-    }
+  private TaskInfo findTaskInCache(DpsRecord kafkaMessage) {
+    return cache.get(kafkaMessage.getTaskId());
+  }
 
-    private TaskInfo findTaskInCache(DpsRecord kafkaMessage) {
-        return cache.get(kafkaMessage.getTaskId());
-    }
+  private TaskInfo readTaskFromDB(long taskId) throws TaskInfoDoesNotExistException {
+    return findTaskInDb(taskId);
+  }
 
-    private TaskInfo readTaskFromDB(long taskId) throws TaskInfoDoesNotExistException {
-        return findTaskInDb(taskId);
-    }
+  private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
+    return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+  }
 
-    private TaskInfo findTaskInDb(long taskId) throws TaskInfoDoesNotExistException {
-        return taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+  public TaskDiagnosticInfo getDiagnosticInfo(long taskId) {
+    TaskDiagnosticInfo info = diagnosticCache.get(taskId);
+    if (info == null) {
+      info = taskDiagnosticInfoDAO.findById(taskId).orElse(TaskDiagnosticInfo.builder().taskId(taskId).build());
+      diagnosticCache.put(taskId, info);
     }
-
-    public TaskDiagnosticInfo getDiagnosticInfo(long taskId) {
-        TaskDiagnosticInfo info = diagnosticCache.get(taskId);
-        if (info == null) {
-            info = taskDiagnosticInfoDAO.findById(taskId).orElse(TaskDiagnosticInfo.builder().taskId(taskId).build());
-            diagnosticCache.put(taskId, info);
-        }
-        return info;
-    }
+    return info;
+  }
 }

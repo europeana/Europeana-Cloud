@@ -7,12 +7,14 @@ import data.validator.constants.ValidatorType;
  */
 public class ValidatorFactory {
 
-    public static Validator getValidator(ValidatorType type) {
-        if (type == ValidatorType.KEYSPACE)
-            return new KeyspaceValidator();
-        if (type == ValidatorType.TABLE)
-            return new TableValidator();
-        return null;
+  public static Validator getValidator(ValidatorType type) {
+    if (type == ValidatorType.KEYSPACE) {
+      return new KeyspaceValidator();
     }
+    if (type == ValidatorType.TABLE) {
+      return new TableValidator();
+    }
+    return null;
+  }
 
 }

@@ -14,24 +14,24 @@ import static org.mockito.Mockito.mock;
 @EnableAspectJAutoProxy
 public class RetryableTestContextConfiguration {
 
-    @Bean
-    public Session session() {
-        return mock(Session.class);
-    }
+  @Bean
+  public Session session() {
+    return mock(Session.class);
+  }
 
-    @Bean
-    public String keyspace() {
-        return "test";
-    }
+  @Bean
+  public String keyspace() {
+    return "test";
+  }
 
-    @Bean
-    public RetryAspect retryAspect() {
-        return new RetryAspect();
-    }
+  @Bean
+  public RetryAspect retryAspect() {
+    return new RetryAspect();
+  }
 
-    @Bean
-    public AclRepository cassandraAclRepository(Session session, String keyspace) {
-        return new CassandraAclRepository(session, keyspace);
-    }
+  @Bean
+  public AclRepository cassandraAclRepository(Session session, String keyspace) {
+    return new CassandraAclRepository(session, keyspace);
+  }
 
 }

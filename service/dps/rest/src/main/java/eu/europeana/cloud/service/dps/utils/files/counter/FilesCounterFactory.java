@@ -15,40 +15,41 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 @Component
 public class FilesCounterFactory {
 
-    private CassandraTaskInfoDAO taskInfoDAO;
+  private CassandraTaskInfoDAO taskInfoDAO;
 
-    private DatasetDepublisher datasetDepublisher;
+  private DatasetDepublisher datasetDepublisher;
 
-    public FilesCounterFactory(CassandraTaskInfoDAO taskInfoDAO, DatasetDepublisher datasetDepublisher) {
-        this.taskInfoDAO = taskInfoDAO;
-        this.datasetDepublisher = datasetDepublisher;
+  public FilesCounterFactory(CassandraTaskInfoDAO taskInfoDAO, DatasetDepublisher datasetDepublisher) {
+    this.taskInfoDAO = taskInfoDAO;
+    this.datasetDepublisher = datasetDepublisher;
+  }
+
+  public FilesCounter createFilesCounter(DpsTask task, String topologyName) {
+    if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName)) {
+      return new UnknownFilesNumberCounter();
     }
 
-    public FilesCounter createFilesCounter(DpsTask task, String topologyName) {
-        if (TopologiesNames.HTTP_TOPOLOGY.equals(topologyName)) {
-            return new UnknownFilesNumberCounter();
-        }
-
-        if(TopologiesNames.DEPUBLICATION_TOPOLOGY.equals(topologyName)){
-            return new DepublicationFilesCounter(datasetDepublisher);
-        }
-
-        String taskType = getTaskType(task);
-        if (FILE_URLS.name().equals(taskType)) {
-            return new RecordFilesCounter();
-        }
-        if (DATASET_URLS.name().equals(taskType)) {
-            return new DatasetFilesCounter(taskInfoDAO);
-        }
-        if (REPOSITORY_URLS.name().equals(taskType)) {
-            return new OaiPmhFilesCounter();
-        } else
-            return new UnknownFilesNumberCounter();
+    if (TopologiesNames.DEPUBLICATION_TOPOLOGY.equals(topologyName)) {
+      return new DepublicationFilesCounter(datasetDepublisher);
     }
 
-    private String getTaskType(DpsTask task) {
-        //TODO should be done in more error prone way
-        final InputDataType first = task.getInputData().keySet().iterator().next();
-        return first.name();
+    String taskType = getTaskType(task);
+    if (FILE_URLS.name().equals(taskType)) {
+      return new RecordFilesCounter();
     }
+    if (DATASET_URLS.name().equals(taskType)) {
+      return new DatasetFilesCounter(taskInfoDAO);
+    }
+    if (REPOSITORY_URLS.name().equals(taskType)) {
+      return new OaiPmhFilesCounter();
+    } else {
+      return new UnknownFilesNumberCounter();
+    }
+  }
+
+  private String getTaskType(DpsTask task) {
+    //TODO should be done in more error prone way
+    final InputDataType first = task.getInputData().keySet().iterator().next();
+    return first.name();
+  }
 }

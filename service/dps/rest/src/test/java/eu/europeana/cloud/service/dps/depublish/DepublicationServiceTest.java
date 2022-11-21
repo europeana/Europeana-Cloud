@@ -43,228 +43,233 @@ import static org.mockito.Mockito.*;
 @ContextConfiguration(classes = {DepublicationService.class, DatasetDepublisher.class, TestContext.class,})
 public class DepublicationServiceTest {
 
-    private static final long TASK_ID = 1000L;
-    private static final int EXPECTED_SET_SIZE = 100;
-    private static final String DATASET_METIS_ID = "metisSetId";
-    public static final long WAITING_FOR_COMPLETE_TIME = 7000L;
-    public static final String RECORD1 = "/1/item1";
-    public static final String RECORD2 = "/1/item2";
-    private static final Date HARVEST_DATE = new Date();
-    private static final UUID RECORD1_MD5 = UUID.fromString("0acbca5d-f561-31a8-ab40-27521caadbc4");
+  private static final long TASK_ID = 1000L;
+  private static final int EXPECTED_SET_SIZE = 100;
+  private static final String DATASET_METIS_ID = "metisSetId";
+  public static final long WAITING_FOR_COMPLETE_TIME = 7000L;
+  public static final String RECORD1 = "/1/item1";
+  public static final String RECORD2 = "/1/item2";
+  private static final Date HARVEST_DATE = new Date();
+  private static final UUID RECORD1_MD5 = UUID.fromString("0acbca5d-f561-31a8-ab40-27521caadbc4");
 
-    private SubmitTaskParameters parameters;
+  private SubmitTaskParameters parameters;
 
-    @Autowired
-    private DepublicationService service;
+  @Autowired
+  private DepublicationService service;
 
-    @Autowired
-    private TaskStatusUpdater updater;
+  @Autowired
+  private TaskStatusUpdater updater;
 
-    @Autowired
-    private TaskStatusChecker taskStatusChecker;
+  @Autowired
+  private TaskStatusChecker taskStatusChecker;
 
-    @Autowired
-    private RecordStatusUpdater recordStatusUpdater;
+  @Autowired
+  private RecordStatusUpdater recordStatusUpdater;
 
-    @Autowired
-    private HarvestedRecordsDAO harvestedRecordsDAO;
+  @Autowired
+  private HarvestedRecordsDAO harvestedRecordsDAO;
 
-    @Autowired
-    private IndexWrapper indexWrapper;
+  @Autowired
+  private IndexWrapper indexWrapper;
 
-    private Indexer indexer;
+  private Indexer indexer;
 
-    @Before
-    public void setup() throws IndexingException {
-        indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
-        Mockito.reset(updater, taskStatusChecker, indexer, recordStatusUpdater);
-        MockitoAnnotations.initMocks(this);
-        DpsTask task = new DpsTask();
-        task.setTaskId(TASK_ID);
-        task.addParameter(PluginParameterKeys.METIS_DATASET_ID, DATASET_METIS_ID);
-        task.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD1 + "," + RECORD2);
-        parameters = SubmitTaskParameters.builder()
-                .taskInfo(TaskInfo.builder()
-                        .expectedRecordsNumber(EXPECTED_SET_SIZE)
-                        .build())
-                .task(task).build();
-        when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
-        when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
-        when(indexer.remove(anyString())).thenReturn(true);
-    }
+  @Before
+  public void setup() throws IndexingException {
+    indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
+    Mockito.reset(updater, taskStatusChecker, indexer, recordStatusUpdater);
+    MockitoAnnotations.initMocks(this);
+    DpsTask task = new DpsTask();
+    task.setTaskId(TASK_ID);
+    task.addParameter(PluginParameterKeys.METIS_DATASET_ID, DATASET_METIS_ID);
+    task.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD1 + "," + RECORD2);
+    parameters = SubmitTaskParameters.builder()
+                                     .taskInfo(TaskInfo.builder()
+                                                       .expectedRecordsNumber(EXPECTED_SET_SIZE)
+                                                       .build())
+                                     .task(task).build();
+    when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
+    when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
+    when(indexer.remove(anyString())).thenReturn(true);
+  }
 
-    @Test
-    public void shouldInvokeTaskRemoveOnIndexer() throws IndexingException {
-        service.depublishDataset(parameters);
+  @Test
+  public void shouldInvokeTaskRemoveOnIndexer() throws IndexingException {
+    service.depublishDataset(parameters);
 
-        verify(indexer).removeAll(eq(DATASET_METIS_ID), isNull());
-        assertTaskSucceed();
-    }
+    verify(indexer).removeAll(eq(DATASET_METIS_ID), isNull());
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateWholeDataset() {
-        reset(harvestedRecordsDAO);
-        when(harvestedRecordsDAO.findDatasetRecords(DATASET_METIS_ID))
-                .thenReturn(Collections.singleton(
-                        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
-                                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
-                                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
-                                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build())
-                        .iterator());
+  @Test
+  public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateWholeDataset() {
+    reset(harvestedRecordsDAO);
+    when(harvestedRecordsDAO.findDatasetRecords(DATASET_METIS_ID))
+        .thenReturn(Collections.singleton(
+                                   HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                                                  .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                                                  .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
+                                                  .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build())
+                               .iterator());
 
-        service.depublishDataset(parameters);
+    service.depublishDataset(parameters);
 
-        verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
-                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
-                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
-        assertTaskSucceed();
-    }
+    verify(harvestedRecordsDAO).insertHarvestedRecord(
+        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                       .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                       .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldSaveValidSetSizeInResults() {
-        service.depublishDataset(parameters);
+  @Test
+  public void shouldSaveValidSetSizeInResults() {
+    service.depublishDataset(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0, 0, 0, 0);
-    }
+    verify(updater).setUpdateProcessedFiles(TASK_ID, EXPECTED_SET_SIZE, 0, 0, 0, 0);
+  }
 
-    @Test
-    public void shouldWaitForAllRowsRemoved() throws IndexingException {
-        AtomicBoolean allRowsRemoved = new AtomicBoolean(false);
-        StopWatch watch = StopWatch.createStarted();
+  @Test
+  public void shouldWaitForAllRowsRemoved() throws IndexingException {
+    AtomicBoolean allRowsRemoved = new AtomicBoolean(false);
+    StopWatch watch = StopWatch.createStarted();
 
-        when(indexer.countRecords(anyString())).then(r -> {
-            allRowsRemoved.set(watch.getTime() > WAITING_FOR_COMPLETE_TIME);
-            if (allRowsRemoved.get()) {
-                return 0L;
-            } else {
-                return (long) EXPECTED_SET_SIZE;
-            }
-        });
+    when(indexer.countRecords(anyString())).then(r -> {
+      allRowsRemoved.set(watch.getTime() > WAITING_FOR_COMPLETE_TIME);
+      if (allRowsRemoved.get()) {
+        return 0L;
+      } else {
+        return (long) EXPECTED_SET_SIZE;
+      }
+    });
 
-        service.depublishDataset(parameters);
+    service.depublishDataset(parameters);
 
-        assertTaskSucceed();
-        assertTrue(allRowsRemoved.get());
-    }
+    assertTaskSucceed();
+    assertTrue(allRowsRemoved.get());
+  }
 
-    @Test
-    public void shouldNotInvokeTaskRemoveIfTaskWereKilledBefore() throws IndexingException {
-        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+  @Test
+  public void shouldNotInvokeTaskRemoveIfTaskWereKilledBefore() throws IndexingException {
+    when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
 
-        service.depublishDataset(parameters);
+    service.depublishDataset(parameters);
 
-        verify(indexer, never()).removeAll(eq(DATASET_METIS_ID), isNull());
-        verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    }
+    verify(indexer, never()).removeAll(eq(DATASET_METIS_ID), isNull());
+    verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+  }
 
-    @Test
-    public void shouldTaskFailWhenRemoveMethodThrowsException() throws IndexingException {
-        when(indexer.removeAll(anyString(), nullable(Date.class))).thenThrow(new IndexerRelatedIndexingException("Indexer exception!"));
+  @Test
+  public void shouldTaskFailWhenRemoveMethodThrowsException() throws IndexingException {
+    when(indexer.removeAll(anyString(), nullable(Date.class))).thenThrow(
+        new IndexerRelatedIndexingException("Indexer exception!"));
 
-        service.depublishDataset(parameters);
+    service.depublishDataset(parameters);
 
-        assertTaskFailed();
-    }
+    assertTaskFailed();
+  }
 
-    @Test
-    public void shouldTaskFailWhenRemovedRowCountNotMatchExpected() throws IndexingException {
-        when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE + 2);
+  @Test
+  public void shouldTaskFailWhenRemovedRowCountNotMatchExpected() throws IndexingException {
+    when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE + 2);
 
-        service.depublishDataset(parameters);
+    service.depublishDataset(parameters);
 
-        assertTaskFailed();
-    }
+    assertTaskFailed();
+  }
 
-    //////////////////////////////record depublish///////////////////////////////////////
+  //////////////////////////////record depublish///////////////////////////////////////
 
-    @Test
-    public void shouldRemoveRecordBeInvokedForEveryRecord() throws IndexingException {
-        service.depublishIndividualRecords(parameters);
+  @Test
+  public void shouldRemoveRecordBeInvokedForEveryRecord() throws IndexingException {
+    service.depublishIndividualRecords(parameters);
 
-        verify(indexer).remove(RECORD1);
-        verify(indexer).remove(RECORD2);
-        assertTaskSucceed();
-    }
+    verify(indexer).remove(RECORD1);
+    verify(indexer).remove(RECORD2);
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateChosenRecords() {
-        //given
-        HarvestedRecord theRecord = HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
-                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
-                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
-                .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build();
+  @Test
+  public void shouldCleanPublishedHarvestDateAndMd5WhileDepublicateChosenRecords() {
+    //given
+    HarvestedRecord theRecord = HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                                               .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                                               .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5)
+                                               .publishedHarvestDate(HARVEST_DATE).publishedHarvestMd5(RECORD1_MD5).build();
 
-        when(harvestedRecordsDAO.findDatasetRecords(anyString())).thenReturn(Collections.singleton(theRecord).iterator());
+    when(harvestedRecordsDAO.findDatasetRecords(anyString())).thenReturn(Collections.singleton(theRecord).iterator());
 
-        //when
-        service.depublishDataset(parameters);
+    //when
+    service.depublishDataset(parameters);
 
-        //then
-        verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
-                .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
-                .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
-        assertTaskSucceed();
-    }
+    //then
+    verify(harvestedRecordsDAO).insertHarvestedRecord(
+        HarvestedRecord.builder().metisDatasetId(DATASET_METIS_ID).recordLocalId(RECORD1)
+                       .latestHarvestDate(HARVEST_DATE).latestHarvestMd5(RECORD1_MD5)
+                       .previewHarvestDate(HARVEST_DATE).previewHarvestMd5(RECORD1_MD5).build());
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldValidRecordCountBeSavedInResult() {
-        service.depublishIndividualRecords(parameters);
+  @Test
+  public void shouldValidRecordCountBeSavedInResult() {
+    service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
-        verify(recordStatusUpdater).addSuccessfullyProcessedRecord(1, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD1);
-        verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
-        assertTaskSucceed();
-    }
+    verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
+    verify(recordStatusUpdater).addSuccessfullyProcessedRecord(1, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD1);
+    verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldRecordBeFailedInResultsWhenExceptionIsThrownWhileRemoving() throws IndexingException {
-        when(indexer.remove(RECORD1)).thenThrow(RecordRelatedIndexingException.class);
-        when(indexer.remove(RECORD2)).thenReturn(true);
+  @Test
+  public void shouldRecordBeFailedInResultsWhenExceptionIsThrownWhileRemoving() throws IndexingException {
+    when(indexer.remove(RECORD1)).thenThrow(RecordRelatedIndexingException.class);
+    when(indexer.remove(RECORD2)).thenReturn(true);
 
-        service.depublishIndividualRecords(parameters);
+    service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
-        verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
-        verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
-        assertTaskSucceed();
-    }
+    verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
+    verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY),
+        eq(RECORD1), any(), any());
+    verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldRecordBeFailedInResultsWhenRemoveRecordReturnsFalse() throws IndexingException {
-        when(indexer.remove(RECORD1)).thenReturn(false);
-        when(indexer.remove(RECORD2)).thenReturn(true);
+  @Test
+  public void shouldRecordBeFailedInResultsWhenRemoveRecordReturnsFalse() throws IndexingException {
+    when(indexer.remove(RECORD1)).thenReturn(false);
+    when(indexer.remove(RECORD2)).thenReturn(true);
 
-        service.depublishIndividualRecords(parameters);
+    service.depublishIndividualRecords(parameters);
 
-        verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
-        verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY), eq(RECORD1), any(), any());
-        verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
-        assertTaskSucceed();
-    }
+    verify(updater).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 1, 0);
+    verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY),
+        eq(RECORD1), any(), any());
+    verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
+    assertTaskSucceed();
+  }
 
-    @Test
-    public void shouldInterruptPerformingWhileTaskIsKilled() throws IndexingException {
-        AtomicBoolean taskKilled = new AtomicBoolean(false);
-        when(indexer.remove(RECORD1)).thenAnswer(invocation -> {
-            taskKilled.set(true);
-            return true;
-        });
-        when(indexer.remove(RECORD2)).thenReturn(true);
-        when(taskStatusChecker.hasDroppedStatus(anyLong())).thenAnswer(invocation -> taskKilled.get());
+  @Test
+  public void shouldInterruptPerformingWhileTaskIsKilled() throws IndexingException {
+    AtomicBoolean taskKilled = new AtomicBoolean(false);
+    when(indexer.remove(RECORD1)).thenAnswer(invocation -> {
+      taskKilled.set(true);
+      return true;
+    });
+    when(indexer.remove(RECORD2)).thenReturn(true);
+    when(taskStatusChecker.hasDroppedStatus(anyLong())).thenAnswer(invocation -> taskKilled.get());
 
-        service.depublishIndividualRecords(parameters);
+    service.depublishIndividualRecords(parameters);
 
-        verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
-        verify(recordStatusUpdater, never()).addSuccessfullyProcessedRecord(anyInt(), anyLong(), any(), eq(RECORD2));
-    }
+    verify(updater, never()).setUpdateProcessedFiles(TASK_ID, 2, 0, 0, 0, 0);
+    verify(recordStatusUpdater, never()).addSuccessfullyProcessedRecord(anyInt(), anyLong(), any(), eq(RECORD2));
+  }
 
-    private void assertTaskSucceed() {
-        verify(updater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    }
+  private void assertTaskSucceed() {
+    verify(updater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+  }
 
-    private void assertTaskFailed() {
-        verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-        verify(updater).setTaskDropped(eq(TASK_ID), anyString());
-    }
+  private void assertTaskFailed() {
+    verify(updater, never()).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+    verify(updater).setTaskDropped(eq(TASK_ID), anyString());
+  }
 
 }

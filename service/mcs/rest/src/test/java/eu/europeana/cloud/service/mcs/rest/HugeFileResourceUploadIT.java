@@ -38,109 +38,108 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(CassandraTestRunner.class)
 public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
 
-    private static RecordService recordService;
+  private static RecordService recordService;
 
-    private static final int HUGE_FILE_SIZE = 200_000_000;
+  private static final int HUGE_FILE_SIZE = 200_000_000;
 
-    @Before
-    public void mockUp() {
-        recordService = applicationContext.getBean(RecordService.class);
+  @Before
+  public void mockUp() {
+    recordService = applicationContext.getBean(RecordService.class);
+  }
+
+  @After
+  public void cleanUp() {
+    reset(recordService);
+  }
+
+  @Test
+  public void testUploadingHugeFile()
+      throws Exception {
+    String globalId = "globalId", schema = "schema", version = "v1";
+
+    // mock answers
+    MockPutContentMethod mockPutContent = new MockPutContentMethod();
+    doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
+        any(InputStream.class));
+
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
+
+    String target = UriComponentsBuilder.fromUriString(FILES_RESOURCE).build(globalId, schema, version).toString();
+    byte[] content = FileCopyUtils.copyToByteArray(inputStream);
+    ResultActions response = mockMvc.perform(postFile(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
+                                    .andExpect(status().is2xxSuccessful());
+
+    assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
+    String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
+    response.andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5Hex)));
+  }
+
+  /**
+   * Mock answer for
+   * {@link RecordService#putContent(String, String, String, eu.europeana.cloud.common.model.File, java.io.InputStream) putContent}
+   * method. Only counts bytes in input stream.
+   */
+  static class MockPutContentMethod implements Answer<Object> {
+
+    int totalBytes;
+
+    @Override
+    public Object answer(InvocationOnMock invocation)
+        throws Throwable {
+      Object[] args = invocation.getArguments();
+      File file = (File) args[3];
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      DigestInputStream inputStream = new DigestInputStream((InputStream) args[4], md);
+      consume(inputStream);
+      file.setFileName("terefere");
+      file.setMd5(BaseEncoding.base16().lowerCase().encode(md.digest()));
+      return null;
     }
 
-    @After
-    public void cleanUp() {
-        reset(recordService);
+
+    private void consume(InputStream is)
+        throws IOException {
+
+      int nRead;
+      byte[] data = new byte[16384];
+
+      while ((nRead = is.read(data, 0, data.length)) != -1) {
+        totalBytes += nRead;
+      }
     }
-
-    @Test
-    public void testUploadingHugeFile()
-            throws Exception {
-        String globalId = "globalId", schema = "schema", version = "v1";
-
-        // mock answers
-        MockPutContentMethod mockPutContent = new MockPutContentMethod();
-        doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
-                any(InputStream.class));
+  }
 
 
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
-
-        String target = UriComponentsBuilder.fromUriString(FILES_RESOURCE).build(globalId, schema, version).toString();
-        byte[] content = FileCopyUtils.copyToByteArray(inputStream);
-        ResultActions response = mockMvc.perform(postFile(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
-                .andExpect(status().is2xxSuccessful());
-
-        assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
-        String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
-        response.andExpect(header().string(HttpHeaders.ETAG,isEtag(contentMd5Hex)));
-    }
+  /**
+   * Input stream that generates unspecified bytes. The total length of stream is specified in constuctor.
+   */
+  static class DummyStream extends InputStream {
 
     /**
-     * Mock answer for
-     * {@link RecordService#putContent(String,String,String, eu.europeana.cloud.common.model.File, java.io.InputStream)
-     * putContent} method. Only counts bytes in input stream.
+     * Total number of bytes that will be produced in this stream.
      */
-    static class MockPutContentMethod implements Answer<Object> {
-
-        int totalBytes;
-
-        @Override
-        public Object answer(InvocationOnMock invocation)
-                throws Throwable {
-            Object[] args = invocation.getArguments();
-            File file = (File) args[3];
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            DigestInputStream inputStream = new DigestInputStream((InputStream) args[4], md);
-            consume(inputStream);
-            file.setFileName("terefere");
-            file.setMd5(BaseEncoding.base16().lowerCase().encode(md.digest()));
-            return null;
-        }
-
-
-        private void consume(InputStream is)
-                throws IOException {
-
-            int nRead;
-            byte[] data = new byte[16384];
-
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                totalBytes += nRead;
-            }
-        }
-    }
-
+    private final int totalLength;
 
     /**
-     * Input stream that generates unspecified bytes. The total length of stream is specified in constuctor.
+     * Number of bytes that have already been read from this stream.
      */
-    static class DummyStream extends InputStream {
-
-        /**
-         * Total number of bytes that will be produced in this stream.
-         */
-        private final int totalLength;
-
-        /**
-         * Number of bytes that have already been read from this stream.
-         */
-        private int readLength = 0;
+    private int readLength = 0;
 
 
-        public DummyStream(int totalLength) {
-            this.totalLength = totalLength;
-        }
-
-
-        @Override
-        public int read() {
-            if (readLength >= totalLength) {
-                return -1;
-            } else {
-                readLength++;
-                return 1;
-            }
-        }
+    public DummyStream(int totalLength) {
+      this.totalLength = totalLength;
     }
+
+
+    @Override
+    public int read() {
+      if (readLength >= totalLength) {
+        return -1;
+      } else {
+        readLength++;
+        return 1;
+      }
+    }
+  }
 }

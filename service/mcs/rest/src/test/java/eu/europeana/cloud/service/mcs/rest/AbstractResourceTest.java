@@ -26,32 +26,32 @@ import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
 @ContextConfiguration(classes = {MCSAppInitializer.class, ServiceConfiguration.class,
-        UnifiedExceptionsMapper.class, BasicResourceTestContext.class})
+    UnifiedExceptionsMapper.class, BasicResourceTestContext.class})
 public abstract class AbstractResourceTest {
 
-    @Rule
-    public SpringClassRule springRule = new SpringClassRule();
+  @Rule
+  public SpringClassRule springRule = new SpringClassRule();
 
-    @Rule
-    public SpringMethodRule methodRule = new SpringMethodRule();
+  @Rule
+  public SpringMethodRule methodRule = new SpringMethodRule();
 
-    @Autowired
-    protected WebApplicationContext applicationContext;
+  @Autowired
+  protected WebApplicationContext applicationContext;
 
-    protected MockMvc mockMvc;
+  protected MockMvc mockMvc;
 
-    public static HttpServletRequest mockHttpServletRequest() {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
-        when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
-        return request;
-    }
+  public static HttpServletRequest mockHttpServletRequest() {
+    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    return request;
+  }
 
-    @Before
-    public void prepareMockMvc() {
-        SecurityContextHolder.getContext().setAuthentication(null);
-        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
-                .build();
-    }
+  @Before
+  public void prepareMockMvc() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+    mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
+                             .build();
+  }
 
 }

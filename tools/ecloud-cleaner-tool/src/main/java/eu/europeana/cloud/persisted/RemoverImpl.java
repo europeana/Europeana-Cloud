@@ -15,99 +15,101 @@ import org.slf4j.LoggerFactory;
  */
 public class RemoverImpl implements Remover {
 
-    static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
+  static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
 
-    private final NotificationsDAO subTaskInfoDAO;
-    private final CassandraTaskErrorsDAO taskErrorDAO;
-    private final ValidationStatisticsServiceImpl statisticsService;
+  private final NotificationsDAO subTaskInfoDAO;
+  private final CassandraTaskErrorsDAO taskErrorDAO;
+  private final ValidationStatisticsServiceImpl statisticsService;
 
-    private static final int DEFAULT_RETRIES = 5;
-    private static final int SLEEP_TIME = 3000;
-
-
-    public RemoverImpl(String hosts, int port, String keyspaceName, String userName, String password) {
-        CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(hosts, port, keyspaceName,
-                userName, password);
-        subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
-        taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
-        statisticsService = ValidationStatisticsServiceImpl.getInstance(cassandraConnectionProvider);
-    }
-
-    RemoverImpl(NotificationsDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO, ValidationStatisticsServiceImpl statisticsService) {
-        this.subTaskInfoDAO = subTaskInfoDAO;
-        this.taskErrorDAO = taskErrorDAO;
-        this.statisticsService = statisticsService;
-    }
+  private static final int DEFAULT_RETRIES = 5;
+  private static final int SLEEP_TIME = 3000;
 
 
-    @Override
-    public void removeNotifications(long taskId) {
-        int retries = DEFAULT_RETRIES;
+  public RemoverImpl(String hosts, int port, String keyspaceName, String userName, String password) {
+    CassandraConnectionProvider cassandraConnectionProvider = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+        hosts, port, keyspaceName,
+        userName, password);
+    subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
+    taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
+    statisticsService = ValidationStatisticsServiceImpl.getInstance(cassandraConnectionProvider);
+  }
 
-        while (true) {
-            try {
-                subTaskInfoDAO.removeNotifications(taskId);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the logs. Retries left: {}", retries);
-                    waitForTheNextCall();
-                } else {
-                    LOGGER.error("Error while removing the logs.");
-                    throw e;
-                }
-            }
+  RemoverImpl(NotificationsDAO subTaskInfoDAO, CassandraTaskErrorsDAO taskErrorDAO,
+      ValidationStatisticsServiceImpl statisticsService) {
+    this.subTaskInfoDAO = subTaskInfoDAO;
+    this.taskErrorDAO = taskErrorDAO;
+    this.statisticsService = statisticsService;
+  }
+
+
+  @Override
+  public void removeNotifications(long taskId) {
+    int retries = DEFAULT_RETRIES;
+
+    while (true) {
+      try {
+        subTaskInfoDAO.removeNotifications(taskId);
+        break;
+      } catch (Exception e) {
+        if (retries-- > 0) {
+          LOGGER.warn("Error while removing the logs. Retries left: {}", retries);
+          waitForTheNextCall();
+        } else {
+          LOGGER.error("Error while removing the logs.");
+          throw e;
         }
+      }
     }
+  }
 
-    @Override
-    public void removeErrorReports(long taskId) {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                taskErrorDAO.removeErrors(taskId);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the error reports. Retries left: {}", retries);
-                    waitForTheNextCall();
-                } else {
-                    LOGGER.error("Error while removing the error reports.");
-                    throw e;
-                }
-            }
+  @Override
+  public void removeErrorReports(long taskId) {
+    int retries = DEFAULT_RETRIES;
+    while (true) {
+      try {
+        taskErrorDAO.removeErrors(taskId);
+        break;
+      } catch (Exception e) {
+        if (retries-- > 0) {
+          LOGGER.warn("Error while removing the error reports. Retries left: {}", retries);
+          waitForTheNextCall();
+        } else {
+          LOGGER.error("Error while removing the error reports.");
+          throw e;
         }
-
+      }
     }
 
-    @Override
-    public void removeStatistics(long taskId) {
-        int retries = DEFAULT_RETRIES;
-        while (true) {
-            try {
-                statisticsService.removeStatistics(taskId);
-                break;
-            } catch (Exception e) {
-                if (retries-- > 0) {
-                    LOGGER.warn("Error while removing the validation statistics. Retries left: {}", retries);
-                    waitForTheNextCall();
-                } else {
-                    LOGGER.error("Error while removing the validation statistics.");
-                    throw e;
-                }
-            }
+  }
+
+  @Override
+  public void removeStatistics(long taskId) {
+    int retries = DEFAULT_RETRIES;
+    while (true) {
+      try {
+        statisticsService.removeStatistics(taskId);
+        break;
+      } catch (Exception e) {
+        if (retries-- > 0) {
+          LOGGER.warn("Error while removing the validation statistics. Retries left: {}", retries);
+          waitForTheNextCall();
+        } else {
+          LOGGER.error("Error while removing the validation statistics.");
+          throw e;
         }
-
+      }
     }
 
-    private void waitForTheNextCall() {
-        try {
-            Thread.sleep(SLEEP_TIME);
-        } catch (InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            LOGGER.error(e1.getMessage());
-        }
+  }
+
+  private void waitForTheNextCall() {
+    try {
+      Thread.sleep(SLEEP_TIME);
+    } catch (InterruptedException e1) {
+      Thread.currentThread().interrupt();
+      LOGGER.error(e1.getMessage());
     }
+  }
 
 
 }

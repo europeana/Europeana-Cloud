@@ -17,18 +17,19 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 public class MetisDataSetParameters implements Serializable {
-    private static final long serialVersionUID = 123456789L;
 
-    private String dataSetId;
-    private TargetIndexingDatabase targetIndexingDatabase;
+  private static final long serialVersionUID = 123456789L;
 
-    @XmlElement(name = "cleaningDate", required = true)
-    @XmlJavaTypeAdapter(DateAdapter.class)
-    private Date cleaningDate;
+  private String dataSetId;
+  private TargetIndexingDatabase targetIndexingDatabase;
 
-    public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, Date cleaningDate) {
-        this.dataSetId = dataSetId;
-        this.targetIndexingDatabase = targetIndexingDatabase;
-        this.cleaningDate = cleaningDate;
-    }
+  @XmlElement(name = "cleaningDate", required = true)
+  @XmlJavaTypeAdapter(DateAdapter.class)
+  private Date cleaningDate;
+
+  public MetisDataSetParameters(String dataSetId, TargetIndexingDatabase targetIndexingDatabase, Date cleaningDate) {
+    this.dataSetId = dataSetId;
+    this.targetIndexingDatabase = targetIndexingDatabase;
+    this.cleaningDate = cleaningDate;
+  }
 }

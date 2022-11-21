@@ -15,32 +15,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class MetisDatasetResourceTest {
 
-    private final MetisDatasetService mock = Mockito.mock(MetisDatasetService.class);
-    MockMvc mockMvc;
+  private final MetisDatasetService mock = Mockito.mock(MetisDatasetService.class);
+  MockMvc mockMvc;
 
-    @Before
-    public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new MetisDatasetResource(mock))
-                .build();
-    }
+  @Before
+  public void setup() {
+    mockMvc = MockMvcBuilders.standaloneSetup(new MetisDatasetResource(mock))
+                             .build();
+  }
 
-    @Test
-    public void shouldReturnBadRequestInCaseOfNonExistingListOfRecords() throws Exception {
+  @Test
+  public void shouldReturnBadRequestInCaseOfNonExistingListOfRecords() throws Exception {
 
-        mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().isBadRequest());
-    }
+    mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
+               .contentType(MediaType.APPLICATION_JSON_VALUE))
+           .andExpect(status().isBadRequest());
+  }
 
-    @Test
-    public void shouldReturnBadRequestInCaseOfEmptyListOfRecords() throws Exception {
+  @Test
+  public void shouldReturnBadRequestInCaseOfEmptyListOfRecords() throws Exception {
 
-        mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
-                        .content("[]")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().json("[]"));
-    }
+    mockMvc.perform(post(METIS_DATASET_PUBLISHED_RECORDS_SEARCH, "1")
+               .content("[]")
+               .contentType(MediaType.APPLICATION_JSON_VALUE))
+           .andExpect(status().isOk())
+           .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+           .andExpect(content().json("[]"));
+  }
 
 }

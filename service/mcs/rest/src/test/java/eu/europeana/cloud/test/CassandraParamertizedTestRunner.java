@@ -16,95 +16,95 @@ import java.util.List;
 
 public class CassandraParamertizedTestRunner extends CassandraTestRunner {
 
-    private ParameterisedTestClassRunner parameterisedRunner = new ParameterisedTestClassRunner(getTestClass());
+  private ParameterisedTestClassRunner parameterisedRunner = new ParameterisedTestClassRunner(getTestClass());
 
 
-    public CassandraParamertizedTestRunner(Class<?> c)
-            throws InitializationError {
-        super(c);
+  public CassandraParamertizedTestRunner(Class<?> c)
+      throws InitializationError {
+    super(c);
+  }
+
+
+  @Deprecated
+  protected void validateInstanceMethods(List<Throwable> errors) {
+    validatePublicVoidNoArgMethods(After.class, false, errors);
+    validatePublicVoidNoArgMethods(Before.class, false, errors);
+  }
+
+
+  @Override
+  protected List<FrameworkMethod> computeTestMethods() {
+    return parameterisedRunner.computeFrameworkMethods();
+  }
+
+
+  @Override
+  protected void runChild(FrameworkMethod method, RunNotifier notifier) {
+    if (handleIgnored(method, notifier)) {
+      return;
     }
 
-
-    @Deprecated
-    protected void validateInstanceMethods(List<Throwable> errors) {
-        validatePublicVoidNoArgMethods(After.class, false, errors);
-        validatePublicVoidNoArgMethods(Before.class, false, errors);
+    if (method.getAnnotation(Ignore.class) != null) {
+      Description ignoredMethod = parameterisedRunner.describeParameterisedMethod(method);
+      for (Description child : ignoredMethod.getChildren()) {
+        notifier.fireTestIgnored(child);
+      }
+      return;
     }
 
+    TestMethod testMethod = parameterisedRunner.testMethodFor(method);
+    if (parameterisedRunner.shouldRun(testMethod)) {
+      parameterisedRunner.runParameterisedTest(testMethod, methodBlock(method), notifier);
+    } else {
+      super.runChild(method, notifier);
+    }
+  }
 
-    @Override
-    protected List<FrameworkMethod> computeTestMethods() {
-        return parameterisedRunner.computeFrameworkMethods();
+
+  private boolean handleIgnored(FrameworkMethod method, RunNotifier notifier) {
+    TestMethod testMethod = parameterisedRunner.testMethodFor(method);
+    if (testMethod.isIgnored()) {
+      notifier.fireTestIgnored(describeMethod(method));
     }
 
+    return testMethod.isIgnored();
+  }
 
-    @Override
-    protected void runChild(FrameworkMethod method, RunNotifier notifier) {
-        if (handleIgnored(method, notifier)) {
-            return;
-        }
 
-        if (method.getAnnotation(Ignore.class) != null) {
-            Description ignoredMethod = parameterisedRunner.describeParameterisedMethod(method);
-            for (Description child : ignoredMethod.getChildren()) {
-                notifier.fireTestIgnored(child);
-            }
-            return;
-        }
+  @Override
+  public Description getDescription() {
+    Description description = Description.createSuiteDescription(getName(), getTestClass().getAnnotations());
 
-        TestMethod testMethod = parameterisedRunner.testMethodFor(method);
-        if (parameterisedRunner.shouldRun(testMethod)) {
-            parameterisedRunner.runParameterisedTest(testMethod, methodBlock(method), notifier);
-        } else {
-            super.runChild(method, notifier);
-        }
+    List<FrameworkMethod> resultMethods = new ArrayList<>();
+    resultMethods.addAll(parameterisedRunner.returnListOfMethods());
+
+    for (FrameworkMethod method : resultMethods) {
+      description.addChild(describeMethod(method));
     }
 
+    return description;
+  }
 
-    private boolean handleIgnored(FrameworkMethod method, RunNotifier notifier) {
-        TestMethod testMethod = parameterisedRunner.testMethodFor(method);
-        if (testMethod.isIgnored()) {
-            notifier.fireTestIgnored(describeMethod(method));
-        }
 
-        return testMethod.isIgnored();
+  private Description describeMethod(FrameworkMethod method) {
+    Description child = parameterisedRunner.describeParameterisedMethod(method);
+
+    if (child == null) {
+      child = describeChild(method);
     }
 
+    return child;
+  }
 
-    @Override
-    public Description getDescription() {
-        Description description = Description.createSuiteDescription(getName(), getTestClass().getAnnotations());
 
-        List<FrameworkMethod> resultMethods = new ArrayList<>();
-        resultMethods.addAll(parameterisedRunner.returnListOfMethods());
-
-        for (FrameworkMethod method : resultMethods) {
-            description.addChild(describeMethod(method));
-        }
-
-        return description;
+  @Override
+  protected Statement methodInvoker(FrameworkMethod method, Object test) {
+    Statement methodInvoker = parameterisedRunner.parameterisedMethodInvoker(method, test);
+    if (methodInvoker == null) {
+      methodInvoker = super.methodInvoker(method, test);
     }
 
-
-    private Description describeMethod(FrameworkMethod method) {
-        Description child = parameterisedRunner.describeParameterisedMethod(method);
-
-        if (child == null) {
-            child = describeChild(method);
-        }
-
-        return child;
-    }
-
-
-    @Override
-    protected Statement methodInvoker(FrameworkMethod method, Object test) {
-        Statement methodInvoker = parameterisedRunner.parameterisedMethodInvoker(method, test);
-        if (methodInvoker == null) {
-            methodInvoker = super.methodInvoker(method, test);
-        }
-
-        return methodInvoker;
-    }
+    return methodInvoker;
+  }
 
 }

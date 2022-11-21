@@ -19,42 +19,44 @@ import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASE
 @RestController
 public class MetisDatasetResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetisDatasetResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetisDatasetResource.class);
 
-    private final MetisDatasetService metisDatasetService;
+  private final MetisDatasetService metisDatasetService;
 
-    public MetisDatasetResource(MetisDatasetService metisDatasetService){
-        this.metisDatasetService = metisDatasetService;
-    }
-    @GetMapping(path = METIS_DATASETS, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public MetisDataset getMetisDatasetStats(@PathVariable String datasetId,
-                                             @RequestParam(value = "database") TargetIndexingDatabase targetIndexingDatabase) throws IndexingException {
-        LOGGER.info("Reading dataset stats for datasetId: {}", datasetId);
-        MetisDataset metisDataset = MetisDataset.builder()
-                .id(datasetId)
-                .build();
+  public MetisDatasetResource(MetisDatasetService metisDatasetService) {
+    this.metisDatasetService = metisDatasetService;
+  }
 
-        return metisDatasetService.prepareStatsFor(metisDataset, targetIndexingDatabase/*, targetIndexingEnvironment*/);
-    }
+  @GetMapping(path = METIS_DATASETS, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public MetisDataset getMetisDatasetStats(@PathVariable String datasetId,
+      @RequestParam(value = "database") TargetIndexingDatabase targetIndexingDatabase) throws IndexingException {
+    LOGGER.info("Reading dataset stats for datasetId: {}", datasetId);
+    MetisDataset metisDataset = MetisDataset.builder()
+                                            .id(datasetId)
+                                            .build();
 
-    /**
-     * Search for the published record identifiers in the dataset that are on the list of record identifiers specified in the method param.
-     *
-     * @param datasetId         identifier of the dataset that should be examined
-     * @param recordIdentifiers list of record identifiers that will be used for the examination
-     * @return list of record identifiers that are on the recordIdentifiers list from the given dataset.
-     */
-    @PostMapping(path = METIS_DATASET_PUBLISHED_RECORDS_SEARCH, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> searchPublishedDatasetRecords(@PathVariable String datasetId, @RequestBody List<String> recordIdentifiers) {
-        LOGGER.info("Searching for the published records in {} dataset", datasetId);
+    return metisDatasetService.prepareStatsFor(metisDataset, targetIndexingDatabase/*, targetIndexingEnvironment*/);
+  }
 
-        return metisDatasetService.findPublishedRecordsInSet(
-                        MetisDataset.builder()
-                                .id(datasetId)
-                                .build(),
-                        recordIdentifiers)
-                .stream()
-                .map(HarvestedRecord::getRecordLocalId)
-                .collect(Collectors.toList());
-    }
+  /**
+   * Search for the published record identifiers in the dataset that are on the list of record identifiers specified in the method
+   * param.
+   *
+   * @param datasetId identifier of the dataset that should be examined
+   * @param recordIdentifiers list of record identifiers that will be used for the examination
+   * @return list of record identifiers that are on the recordIdentifiers list from the given dataset.
+   */
+  @PostMapping(path = METIS_DATASET_PUBLISHED_RECORDS_SEARCH, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+  public List<String> searchPublishedDatasetRecords(@PathVariable String datasetId, @RequestBody List<String> recordIdentifiers) {
+    LOGGER.info("Searching for the published records in {} dataset", datasetId);
+
+    return metisDatasetService.findPublishedRecordsInSet(
+                                  MetisDataset.builder()
+                                              .id(datasetId)
+                                              .build(),
+                                  recordIdentifiers)
+                              .stream()
+                              .map(HarvestedRecord::getRecordLocalId)
+                              .collect(Collectors.toList());
+  }
 }

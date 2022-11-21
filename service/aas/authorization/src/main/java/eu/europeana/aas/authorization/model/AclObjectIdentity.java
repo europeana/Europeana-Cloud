@@ -24,219 +24,219 @@ import org.springframework.util.Assert;
 
 /**
  * DTO representing the identity of an individual domain object instance.
- * 
- * @author Rigas Grigoropoulos
  *
+ * @author Rigas Grigoropoulos
  */
 public class AclObjectIdentity {
 
-	private String id;
-	private String objectClass;
-	private String parentObjectId;
-	private String parentObjectClass;
-	private String ownerId;
-	private boolean ownerPrincipal;
-	private boolean entriesInheriting;
+  private String id;
+  private String objectClass;
+  private String parentObjectId;
+  private String parentObjectClass;
+  private String ownerId;
+  private boolean ownerPrincipal;
+  private boolean entriesInheriting;
 
-	/**
-	 * Constructs a new <code>AclObjectIdentity</code>
-	 */
-	public AclObjectIdentity() {}
-	
-	/**
-	 * Constructs a new <code>AclObjectIdentity</code> out of the provided {@link ObjectIdentity}.
-	 * 
-	 * @param objectIdentity the {@link ObjectIdentity} to use for parameter population.
-	 */
-	public AclObjectIdentity(ObjectIdentity objectIdentity) {
-		Assert.notNull(objectIdentity, "ObjectIdentity required");
-		objectClass = objectIdentity.getType();
-		id = (String) objectIdentity.getIdentifier();
-	}
-	
-	/**
-	 * Constructs a new <code>AclObjectIdentity</code> out of the provided {@link Acl}.
-	 * 
-	 * @param acl the {@link Acl} to use for parameter population.
-	 */
-	public AclObjectIdentity(Acl acl) {
-		Assert.notNull(acl, "Acl required");		
-		entriesInheriting = acl.isEntriesInheriting();
-		id = (String) acl.getObjectIdentity().getIdentifier();
-		objectClass = acl.getObjectIdentity().getType();
-		
-		if (acl.getOwner() instanceof PrincipalSid) {
-			ownerId = ((PrincipalSid) acl.getOwner()).getPrincipal();
-			ownerPrincipal = true;
-		} else if (acl.getOwner() instanceof GrantedAuthoritySid) {
-			ownerId = ((GrantedAuthoritySid) acl.getOwner()).getGrantedAuthority();
-			ownerPrincipal = false;
-		}
-	
-		parentObjectId = acl.getParentAcl() != null ? (String) acl.getParentAcl().getObjectIdentity().getIdentifier() : null;
-		parentObjectClass = acl.getParentAcl() != null ? (String) acl.getParentAcl().getObjectIdentity().getType() : null;
-	}
-	
-	/**
-	 * @return the identifier of this <code>AclObjectIdentity</code>. 
-	 */
-	public String getId() {
-		return id;
-	}
+  /**
+   * Constructs a new <code>AclObjectIdentity</code>
+   */
+  public AclObjectIdentity() {
+  }
 
-	/**
-	 * @param id the identifier of this <code>AclObjectIdentity</code>. 
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
+  /**
+   * Constructs a new <code>AclObjectIdentity</code> out of the provided {@link ObjectIdentity}.
+   *
+   * @param objectIdentity the {@link ObjectIdentity} to use for parameter population.
+   */
+  public AclObjectIdentity(ObjectIdentity objectIdentity) {
+    Assert.notNull(objectIdentity, "ObjectIdentity required");
+    objectClass = objectIdentity.getType();
+    id = (String) objectIdentity.getIdentifier();
+  }
 
-	/**
-	 * @return the type of the domain object managed by this <code>AclObjectIdentity</code>.
-	 */
-	public String getObjectClass() {
-		return objectClass;
-	}
+  /**
+   * Constructs a new <code>AclObjectIdentity</code> out of the provided {@link Acl}.
+   *
+   * @param acl the {@link Acl} to use for parameter population.
+   */
+  public AclObjectIdentity(Acl acl) {
+    Assert.notNull(acl, "Acl required");
+    entriesInheriting = acl.isEntriesInheriting();
+    id = (String) acl.getObjectIdentity().getIdentifier();
+    objectClass = acl.getObjectIdentity().getType();
 
-	/**
-	 * @return true if the owner of this <code>AclObjectIdentity</code> is of type {@link PrincipalSid}
-	 * 		of false if it is of type {@link GrantedAuthoritySid}. 
-	 */
-	public boolean isOwnerPrincipal() {
-		return ownerPrincipal;
-	}
+    if (acl.getOwner() instanceof PrincipalSid) {
+      ownerId = ((PrincipalSid) acl.getOwner()).getPrincipal();
+      ownerPrincipal = true;
+    } else if (acl.getOwner() instanceof GrantedAuthoritySid) {
+      ownerId = ((GrantedAuthoritySid) acl.getOwner()).getGrantedAuthority();
+      ownerPrincipal = false;
+    }
 
-	/**
-	 * @param ownerPrincipal whether the owner of this <code>AclObjectIdentity</code> is of type {@link PrincipalSid}.
-	 */
-	public void setOwnerPrincipal(boolean ownerPrincipal) {
-		this.ownerPrincipal = ownerPrincipal;
-	}
+    parentObjectId = acl.getParentAcl() != null ? (String) acl.getParentAcl().getObjectIdentity().getIdentifier() : null;
+    parentObjectClass = acl.getParentAcl() != null ? (String) acl.getParentAcl().getObjectIdentity().getType() : null;
+  }
 
-	/**
-	 * @param objectClass the type of the domain object managed by this <code>AclObjectIdentity</code>.
-	 */
-	public void setObjectClass(String objectClass) {
-		this.objectClass = objectClass;
-	}
+  /**
+   * @return the identifier of this <code>AclObjectIdentity</code>.
+   */
+  public String getId() {
+    return id;
+  }
 
-	/**
-	 * @return the identifier of the parent for this <code>AclObjectIdentity</code>. 
-	 */
-	public String getParentObjectId() {
-		return parentObjectId;
-	}
+  /**
+   * @param id the identifier of this <code>AclObjectIdentity</code>.
+   */
+  public void setId(String id) {
+    this.id = id;
+  }
 
-	/**
-	 * @param parentObjectId the identifier of the parent for this <code>AclObjectIdentity</code>. 
-	 */
-	public void setParentObjectId(String parentObjectId) {
-		this.parentObjectId = parentObjectId;
-	}
+  /**
+   * @return the type of the domain object managed by this <code>AclObjectIdentity</code>.
+   */
+  public String getObjectClass() {
+    return objectClass;
+  }
 
-	/**
-	 * @return the identifier of the owner for this <code>AclObjectIdentity</code>.
-	 */
-	public String getOwnerId() {
-		return ownerId;
-	}
-	
-	/**
-	 * @return the {@link Sid} object of the owner for this <code>AclObjectIdentity</code>.
-	 */
-	public Sid getOwnerSid() {
-		Sid result = null;
-		if (ownerPrincipal) {
-			result = new PrincipalSid(ownerId);
-		} else {
-			result = new GrantedAuthoritySid(ownerId);
-		}
-		return result;
-	}
+  /**
+   * @return true if the owner of this <code>AclObjectIdentity</code> is of type {@link PrincipalSid} of false if it is of type
+   * {@link GrantedAuthoritySid}.
+   */
+  public boolean isOwnerPrincipal() {
+    return ownerPrincipal;
+  }
 
-	/**
-	 * @param ownerId the identifier of the owner for this <code>AclObjectIdentity</code>.
-	 */
-	public void setOwnerId(String ownerId) {
-		this.ownerId = ownerId;
-	}
+  /**
+   * @param ownerPrincipal whether the owner of this <code>AclObjectIdentity</code> is of type {@link PrincipalSid}.
+   */
+  public void setOwnerPrincipal(boolean ownerPrincipal) {
+    this.ownerPrincipal = ownerPrincipal;
+  }
 
-	/**
-	 * @return true if parent entries inherit into the current <code>AclObjectIdentity</code>.
-	 */
-	public boolean isEntriesInheriting() {
-		return entriesInheriting;
-	}
+  /**
+   * @param objectClass the type of the domain object managed by this <code>AclObjectIdentity</code>.
+   */
+  public void setObjectClass(String objectClass) {
+    this.objectClass = objectClass;
+  }
 
-	/**
-	 * @param entriesInheriting true if parent entries inherit into the current <code>AclObjectIdentity</code>.
-	 */
-	public void setEntriesInheriting(boolean entriesInheriting) {
-		this.entriesInheriting = entriesInheriting;
-	}
-	
-	/**
-	 * @return the type of the domain object of the parent of this <code>AclObjectIdentity</code>.
-	 */
-	public String getParentObjectClass() {
-		return parentObjectClass;
-	}
-	
-	/**
-	 * @return the {@link ObjectIdentity} for the parent of this <code>AclObjectIdentity</code>.
-	 */
-	public ObjectIdentity getParentObjectIdentity() {
-		if (parentObjectClass != null && parentObjectId != null) {
-			return new ObjectIdentityImpl(parentObjectClass, parentObjectId);
-		}
-		return null;
-	}
+  /**
+   * @return the identifier of the parent for this <code>AclObjectIdentity</code>.
+   */
+  public String getParentObjectId() {
+    return parentObjectId;
+  }
 
-	/**
-	 * @param parentObjectClass the type of the domain object of the parent of this <code>AclObjectIdentity</code>.
-	 */
-	public void setParentObjectClass(String parentObjectClass) {
-		this.parentObjectClass = parentObjectClass;
-	}
+  /**
+   * @param parentObjectId the identifier of the parent for this <code>AclObjectIdentity</code>.
+   */
+  public void setParentObjectId(String parentObjectId) {
+    this.parentObjectId = parentObjectId;
+  }
 
-	/**
-	 * @return the {@link ObjectIdentity} for this <code>AclObjectIdentity</code>.
-	 */
-	public ObjectIdentity toObjectIdentity() {
-		return new ObjectIdentityImpl(objectClass, id);
-	}
-	
-	/**
-	 * @return the primary key under which this <code>AclObjectIdentity</code> is stored in the database.
-	 */
-	public String getRowId() {
-		return objectClass + ":" + id;
-	}
-	
-	/**
-	 * @return the primary key under which the parent of this <code>AclObjectIdentity</code> is stored in the database.
-	 */
-	public String getParentRowId() {
-		if (parentObjectId != null && parentObjectClass != null) {
-			return parentObjectClass + ":" + parentObjectId;
-		}
-		return null;
-	}
+  /**
+   * @return the identifier of the owner for this <code>AclObjectIdentity</code>.
+   */
+  public String getOwnerId() {
+    return ownerId;
+  }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("AclObjectIdentity [").append("id: ").append(id);
-		sb.append(", objectClass: ").append(objectClass);
-		sb.append(", parentObjectId: ").append(parentObjectId);
-		sb.append(", parentObjectClass: ").append(parentObjectClass);
-		sb.append(", ownerId: ").append(ownerId);
-		sb.append(", ownerPrincipal: ").append(ownerPrincipal);
-		sb.append(", entriesInheriting: ").append(entriesInheriting).append(']');
-		return sb.toString();
-	}
+  /**
+   * @return the {@link Sid} object of the owner for this <code>AclObjectIdentity</code>.
+   */
+  public Sid getOwnerSid() {
+    Sid result = null;
+    if (ownerPrincipal) {
+      result = new PrincipalSid(ownerId);
+    } else {
+      result = new GrantedAuthoritySid(ownerId);
+    }
+    return result;
+  }
+
+  /**
+   * @param ownerId the identifier of the owner for this <code>AclObjectIdentity</code>.
+   */
+  public void setOwnerId(String ownerId) {
+    this.ownerId = ownerId;
+  }
+
+  /**
+   * @return true if parent entries inherit into the current <code>AclObjectIdentity</code>.
+   */
+  public boolean isEntriesInheriting() {
+    return entriesInheriting;
+  }
+
+  /**
+   * @param entriesInheriting true if parent entries inherit into the current <code>AclObjectIdentity</code>.
+   */
+  public void setEntriesInheriting(boolean entriesInheriting) {
+    this.entriesInheriting = entriesInheriting;
+  }
+
+  /**
+   * @return the type of the domain object of the parent of this <code>AclObjectIdentity</code>.
+   */
+  public String getParentObjectClass() {
+    return parentObjectClass;
+  }
+
+  /**
+   * @return the {@link ObjectIdentity} for the parent of this <code>AclObjectIdentity</code>.
+   */
+  public ObjectIdentity getParentObjectIdentity() {
+    if (parentObjectClass != null && parentObjectId != null) {
+      return new ObjectIdentityImpl(parentObjectClass, parentObjectId);
+    }
+    return null;
+  }
+
+  /**
+   * @param parentObjectClass the type of the domain object of the parent of this <code>AclObjectIdentity</code>.
+   */
+  public void setParentObjectClass(String parentObjectClass) {
+    this.parentObjectClass = parentObjectClass;
+  }
+
+  /**
+   * @return the {@link ObjectIdentity} for this <code>AclObjectIdentity</code>.
+   */
+  public ObjectIdentity toObjectIdentity() {
+    return new ObjectIdentityImpl(objectClass, id);
+  }
+
+  /**
+   * @return the primary key under which this <code>AclObjectIdentity</code> is stored in the database.
+   */
+  public String getRowId() {
+    return objectClass + ":" + id;
+  }
+
+  /**
+   * @return the primary key under which the parent of this <code>AclObjectIdentity</code> is stored in the database.
+   */
+  public String getParentRowId() {
+    if (parentObjectId != null && parentObjectClass != null) {
+      return parentObjectClass + ":" + parentObjectId;
+    }
+    return null;
+  }
+
+  /* (non-Javadoc)
+   * @see java.lang.Object#toString()
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("AclObjectIdentity [").append("id: ").append(id);
+    sb.append(", objectClass: ").append(objectClass);
+    sb.append(", parentObjectId: ").append(parentObjectId);
+    sb.append(", parentObjectClass: ").append(parentObjectClass);
+    sb.append(", ownerId: ").append(ownerId);
+    sb.append(", ownerPrincipal: ").append(ownerPrincipal);
+    sb.append(", entriesInheriting: ").append(entriesInheriting).append(']');
+    return sb.toString();
+  }
 
 }

@@ -5,20 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class WrongContentRangeException extends MCSException {
 
-    /**
-     * Constructs a WrongContentRangeException with no specified detail message.
-     */
-    public WrongContentRangeException() {
-    }
+  /**
+   * Constructs a WrongContentRangeException with no specified detail message.
+   */
+  public WrongContentRangeException() {
+  }
 
 
-    /**
-     * Constructs a WrongContentRangeException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     */
-    public WrongContentRangeException(String message) {
-        super(message);
-    }
+  /**
+   * Constructs a WrongContentRangeException with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public WrongContentRangeException(String message) {
+    super(message);
+  }
 }

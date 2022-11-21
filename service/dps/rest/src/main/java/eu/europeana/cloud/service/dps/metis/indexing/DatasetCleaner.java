@@ -14,41 +14,41 @@ import java.util.stream.Stream;
  */
 public class DatasetCleaner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
-    private final IndexWrapper indexWrapper;
-    private final DataSetCleanerParameters cleanerParameters;
-    private final TargetIndexingDatabase databaseLocation;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetCleaner.class);
+  private final IndexWrapper indexWrapper;
+  private final DataSetCleanerParameters cleanerParameters;
+  private final TargetIndexingDatabase databaseLocation;
 
-    public DatasetCleaner(IndexWrapper indexWrapper, DataSetCleanerParameters cleanerParameters) {
-        this.indexWrapper = indexWrapper;
-        this.cleanerParameters = cleanerParameters;
-        databaseLocation = TargetIndexingDatabase.valueOf(this.cleanerParameters.getTargetIndexingEnv());
-    }
+  public DatasetCleaner(IndexWrapper indexWrapper, DataSetCleanerParameters cleanerParameters) {
+    this.indexWrapper = indexWrapper;
+    this.cleanerParameters = cleanerParameters;
+    databaseLocation = TargetIndexingDatabase.valueOf(this.cleanerParameters.getTargetIndexingEnv());
+  }
 
-    public int getRecordsCount() {
-        return (int) indexWrapper.getIndexer(databaseLocation)
-                .countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
-    }
+  public int getRecordsCount() {
+    return (int) indexWrapper.getIndexer(databaseLocation)
+                             .countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
+  }
 
-    public Stream<String> getRecordIds() {
-        return indexWrapper.getIndexer(databaseLocation)
-                .getRecordIds(this.cleanerParameters.getDataSetId(), this.cleanerParameters.getCleaningDate());
-    }
+  public Stream<String> getRecordIds() {
+    return indexWrapper.getIndexer(databaseLocation)
+                       .getRecordIds(this.cleanerParameters.getDataSetId(), this.cleanerParameters.getCleaningDate());
+  }
 
-    public void execute() throws DatasetCleaningException {
-        LOGGER.info("Executing initial actions for indexing topology");
-        try {
-            removeDataSet(cleanerParameters.getDataSetId());
-        } catch (IndexingException e) {
-            String message = "Dataset was not removed correctly";
-            LOGGER.error(message, e);
-            throw new DatasetCleaningException(message, e);
-        }
+  public void execute() throws DatasetCleaningException {
+    LOGGER.info("Executing initial actions for indexing topology");
+    try {
+      removeDataSet(cleanerParameters.getDataSetId());
+    } catch (IndexingException e) {
+      String message = "Dataset was not removed correctly";
+      LOGGER.error(message, e);
+      throw new DatasetCleaningException(message, e);
     }
+  }
 
-    private void removeDataSet(String datasetId) throws IndexingException {
-        LOGGER.info("Removing data set {} from solr and mongo", datasetId);
-        indexWrapper.getIndexer(databaseLocation).removeAll(datasetId, cleanerParameters.getCleaningDate());
-        LOGGER.info("Data set removed");
-    }
+  private void removeDataSet(String datasetId) throws IndexingException {
+    LOGGER.info("Removing data set {} from solr and mongo", datasetId);
+    indexWrapper.getIndexer(databaseLocation).removeAll(datasetId, cleanerParameters.getCleaningDate());
+    LOGGER.info("Data set removed");
+  }
 }

@@ -16,37 +16,38 @@ import java.time.Instant;
 
 @Service
 public class SubmitTaskService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
-    private final TaskSubmitterFactory taskSubmitterFactory;
-    private final TaskStatusUpdater taskStatusUpdater;
-    private final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+  private static final Logger LOGGER = LoggerFactory.getLogger(SubmitTaskService.class);
 
-    public SubmitTaskService(TaskSubmitterFactory taskSubmitterFactory, TaskStatusUpdater taskStatusUpdater,
-                             TaskDiagnosticInfoDAO taskDiagnosticInfoDAO){
-        this.taskStatusUpdater = taskStatusUpdater;
-        this.taskSubmitterFactory = taskSubmitterFactory;
-        this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
+  private final TaskSubmitterFactory taskSubmitterFactory;
+  private final TaskStatusUpdater taskStatusUpdater;
+  private final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
+  public SubmitTaskService(TaskSubmitterFactory taskSubmitterFactory, TaskStatusUpdater taskStatusUpdater,
+      TaskDiagnosticInfoDAO taskDiagnosticInfoDAO) {
+    this.taskStatusUpdater = taskStatusUpdater;
+    this.taskSubmitterFactory = taskSubmitterFactory;
+    this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
+  }
+
+  @Async
+  public void submitTask(SubmitTaskParameters parameters) {
+    try {
+      TaskSubmitter taskSubmitter = taskSubmitterFactory.provideTaskSubmitter(parameters);
+      taskSubmitter.submitTask(parameters);
+      taskDiagnosticInfoDAO.updateQueuedTime(parameters.getTask().getTaskId(), Instant.now());
+    } catch (TaskSubmissionException e) {
+      LOGGER.error("Task submission failed: {}", e.getMessage(), e);
+      taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), prepareExceptionMessage(e));
+    } catch (Exception e) {
+      String fullStacktrace = ExceptionUtils.getStackTrace(e);
+      LOGGER.error("Task submission failed: {}", fullStacktrace);
+      taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), fullStacktrace);
     }
+  }
 
-    @Async
-    public void submitTask(SubmitTaskParameters parameters) {
-        try {
-            TaskSubmitter taskSubmitter = taskSubmitterFactory.provideTaskSubmitter(parameters);
-            taskSubmitter.submitTask(parameters);
-            taskDiagnosticInfoDAO.updateQueuedTime(parameters.getTask().getTaskId(), Instant.now());
-        } catch (TaskSubmissionException e) {
-            LOGGER.error("Task submission failed: {}", e.getMessage(), e);
-            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), prepareExceptionMessage(e));
-        } catch (Exception e) {
-            String fullStacktrace = ExceptionUtils.getStackTrace(e);
-            LOGGER.error("Task submission failed: {}", fullStacktrace);
-            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),fullStacktrace);
-        }
-    }
-
-    private String prepareExceptionMessage(TaskSubmissionException exception){
-        return String.format("%s (Source issue: %s)", exception.getMessage(), exception.getCause().getMessage());
-    }
+  private String prepareExceptionMessage(TaskSubmissionException exception) {
+    return String.format("%s (Source issue: %s)", exception.getMessage(), exception.getCause().getMessage());
+  }
 }
 

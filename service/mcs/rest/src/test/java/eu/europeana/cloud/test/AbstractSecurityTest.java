@@ -40,53 +40,54 @@ import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpS
 @RunWith(CassandraTestRunner.class)
 @TestPropertySource(properties = {"numberOfElementsOnPage=100"})
 @WebAppConfiguration
-@ContextConfiguration(classes = {MCSAppInitializer.class, AuthorizationConfiguration.class, TestAuthentificationConfiguration.class,
-        SecurityInitializer.class, ServiceConfiguration.class,
-        UnifiedExceptionsMapper.class, SecurityTestContext.class})
+@ContextConfiguration(classes = {MCSAppInitializer.class, AuthorizationConfiguration.class,
+    TestAuthentificationConfiguration.class,
+    SecurityInitializer.class, ServiceConfiguration.class,
+    UnifiedExceptionsMapper.class, SecurityTestContext.class})
 public abstract class AbstractSecurityTest {
 
-    @Rule
-    public SpringClassRule springRule = new SpringClassRule();
+  @Rule
+  public SpringClassRule springRule = new SpringClassRule();
 
-    @Rule
-    public SpringMethodRule methodRule = new SpringMethodRule();
+  @Rule
+  public SpringMethodRule methodRule = new SpringMethodRule();
 
-    @Autowired
-    protected WebApplicationContext applicationContext;
+  @Autowired
+  protected WebApplicationContext applicationContext;
 
-    protected MockMvc mockMvc;
+  protected MockMvc mockMvc;
 
-    protected HttpServletRequest URI_INFO;
+  protected HttpServletRequest URI_INFO;
 
-    /****/
+  /****/
 
-    @Before
-    public void prepareMockMvc() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
+  @Before
+  public void prepareMockMvc() {
+    mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 
-        URI_INFO = mockHttpServletRequest();
-    }
-
-
-    protected String getBaseUri() {
-        return "localhost:80/";
-    }
+    URI_INFO = mockHttpServletRequest();
+  }
 
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+  protected String getBaseUri() {
+    return "localhost:80/";
+  }
 
-    @Before
-    public synchronized void clear() {
-        SecurityContextHolder.clearContext();
-    }
 
-    protected synchronized void login(String name, String password) {
-        Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
-        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
-    }
+  @Autowired
+  private AuthenticationManager authenticationManager;
 
-    protected synchronized void logoutEveryone() {
-        SecurityContextHolder.getContext().setAuthentication(null);
-    }
+  @Before
+  public synchronized void clear() {
+    SecurityContextHolder.clearContext();
+  }
+
+  protected synchronized void login(String name, String password) {
+    Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
+    SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+  }
+
+  protected synchronized void logoutEveryone() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 }

@@ -22,42 +22,43 @@ import static org.mockito.Mockito.mock;
 @Configuration
 public class SecurityTestContext {
 
-    @Bean()
-    @Order(100)
-    public CassandraConnectionProvider aasCassandraProvider() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_AAS_KEYSPACE, "", "");
-    }
+  @Bean()
+  @Order(100)
+  public CassandraConnectionProvider aasCassandraProvider() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_AAS_KEYSPACE, "", "");
+  }
 
-    @Bean()
-    @Order(100)
-    public CassandraConnectionProvider dbService() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
-    }
+  @Bean()
+  @Order(100)
+  public CassandraConnectionProvider dbService() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
+  }
 
-    @Bean()
-    @Order(100)
-    public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-        return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
-    }
+  @Bean()
+  @Order(100)
+  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
+    return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
+  }
 
-    //mock
-    @Bean
-    public UISClientHandler uisHandler() {
-        return mock(UISClientHandlerImpl.class);
-    }
+  //mock
+  @Bean
+  public UISClientHandler uisHandler() {
+    return mock(UISClientHandlerImpl.class);
+  }
 
-    @Bean
-    public CassandraDataSetService cassandraDataSetService() {
-        return Mockito.mock(CassandraDataSetService.class);
-    }
+  @Bean
+  public CassandraDataSetService cassandraDataSetService() {
+    return Mockito.mock(CassandraDataSetService.class);
+  }
 
-    @Bean
-    public CassandraRecordService cassandraRecordService() {
-        return Mockito.mock(CassandraRecordService.class);
-    }
+  @Bean
+  public CassandraRecordService cassandraRecordService() {
+    return Mockito.mock(CassandraRecordService.class);
+  }
 
-    @Bean
-    public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService, PermissionEvaluator permissionEvaluator) {
-        return Mockito.mock(DataSetPermissionsVerifier.class);
-    }
+  @Bean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+      PermissionEvaluator permissionEvaluator) {
+    return Mockito.mock(DataSetPermissionsVerifier.class);
+  }
 }

@@ -40,130 +40,132 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class HttpHarvestingBoltTest {
 
-    private static final String TASK_NAME = "TASK_NAME";
-    private static final long TASK_ID = -5964014235733572511L;
-    private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
-    private String fileUrl;
+  private static final String TASK_NAME = "TASK_NAME";
+  private static final long TASK_ID = -5964014235733572511L;
+  private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
+  private String fileUrl;
 
 
-    private StormTaskTuple tuple ;
+  private StormTaskTuple tuple;
 
-    @InjectMocks
-    private HttpHarvestingBolt bolt;
+  @InjectMocks
+  private HttpHarvestingBolt bolt;
 
-    @Mock
-    private Tuple anchorTuple;
+  @Mock
+  private Tuple anchorTuple;
 
-    @Mock
-    private OutputCollector outputCollector;
+  @Mock
+  private OutputCollector outputCollector;
 
-    @Captor
-    private ArgumentCaptor<List<Object>> resultTupleCaptor;
+  @Captor
+  private ArgumentCaptor<List<Object>> resultTupleCaptor;
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+  @Rule
+  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
-    @Before
-    public void setup() throws IllegalAccessException {
-        wireMockRule.resetAll();
-        fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
-        tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
-        PowerMockito.field(HttpHarvestingBolt.class,"SLEEP_TIME_BETWEEN_RETRIES_MS").setInt(bolt,100);
-        bolt.prepare();
-    }
+  @Before
+  public void setup() throws IllegalAccessException {
+    wireMockRule.resetAll();
+    fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
+    tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
+    PowerMockito.field(HttpHarvestingBolt.class, "SLEEP_TIME_BETWEEN_RETRIES_MS").setInt(bolt, 100);
+    bolt.prepare();
+  }
 
-    @Test
-    public void shouldHarvestEdmFile() throws IOException {
-        mockFileOnHttpServer("record.xml");
+  @Test
+  public void shouldHarvestEdmFile() throws IOException {
+    mockFileOnHttpServer("record.xml");
 
-        bolt.execute(anchorTuple,tuple);
+    bolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector).emit(eq(anchorTuple),resultTupleCaptor.capture());
-        StormTaskTuple resultTuple = getResultStormTaskTuple();
-        assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
-        assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-        assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
-        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
-                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
-    }
+    verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
+    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
+    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+    assertEquals("http://more.locloud.eu/object/DCU/24927017",
+        resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+    //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+    assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+        anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
+  }
 
-    @Test
-    public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {
-        mockErrorOnHttpOnFirstTryServer("record.xml");
+  @Test
+  public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {
+    mockErrorOnHttpOnFirstTryServer("record.xml");
 
-        bolt.execute(anchorTuple,tuple);
+    bolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-        StormTaskTuple resultTuple = getResultStormTaskTuple();
-        assertArrayEquals(readTestFile("record.xml"),resultTuple.getFileData());
-        assertEquals("/100/object_DCU_24927017",resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-        assertEquals("http://more.locloud.eu/object/DCU/24927017",resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
-        //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
-        assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
-                anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
-    }
+    verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
+    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
+    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+    assertEquals("http://more.locloud.eu/object/DCU/24927017",
+        resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+    //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
+    assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
+        anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
+  }
 
-    @Test
-    public void shouldEmitErrorNotificationWhenCantLoadFilePermanently() {
-        mockErrorOnHttpOnServer("record.xml");
+  @Test
+  public void shouldEmitErrorNotificationWhenCantLoadFilePermanently() {
+    mockErrorOnHttpOnServer("record.xml");
 
-        bolt.execute(anchorTuple,tuple);
+    bolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector,never()).emit(eq(anchorTuple), any());
-        verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME),eq(anchorTuple),resultTupleCaptor.capture());
-    }
+    verify(outputCollector, never()).emit(eq(anchorTuple), any());
+    verify(outputCollector).emit(eq(NOTIFICATION_STREAM_NAME), eq(anchorTuple), resultTupleCaptor.capture());
+  }
 
-    private byte[] readTestFile(String fileName) throws IOException {
-        return getClass().getResourceAsStream("/__files/"+fileName).readAllBytes();
-    }
+  private byte[] readTestFile(String fileName) throws IOException {
+    return getClass().getResourceAsStream("/__files/" + fileName).readAllBytes();
+  }
 
-    private void mockFileOnHttpServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withFixedDelay(150)
-                        .withBodyFile(fileName)));
-    }
+  private void mockFileOnHttpServer(String fileName) {
+    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withFixedDelay(150)
+            .withBodyFile(fileName)));
+  }
 
-    private void mockErrorOnHttpOnServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-                .willReturn(aResponse()
-                        .withStatus(500)
-                        .withFixedDelay(150)));
+  private void mockErrorOnHttpOnServer(String fileName) {
+    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+        .willReturn(aResponse()
+            .withStatus(500)
+            .withFixedDelay(150)));
 
-    }
+  }
 
-    private void mockErrorOnHttpOnFirstTryServer(String fileName) {
-        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-                .inScenario("Retry")
-                .whenScenarioStateIs(STARTED)
-                .willReturn(aResponse()
-                        .withStatus(500)
-                        .withFixedDelay(150))
-                        .willSetStateTo("retried"));
+  private void mockErrorOnHttpOnFirstTryServer(String fileName) {
+    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+        .inScenario("Retry")
+        .whenScenarioStateIs(STARTED)
+        .willReturn(aResponse()
+            .withStatus(500)
+            .withFixedDelay(150))
+        .willSetStateTo("retried"));
 
-        wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-                .inScenario("Retry")
-                .whenScenarioStateIs("retried")
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withFixedDelay(150)
-                        .withBodyFile(fileName)));
-    }
+    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+        .inScenario("Retry")
+        .whenScenarioStateIs("retried")
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withFixedDelay(150)
+            .withBodyFile(fileName)));
+  }
 
-    private String fileRelativeUrl(String fileName) {
-        return TASK_RELATIVE_URL +fileName;
-    }
+  private String fileRelativeUrl(String fileName) {
+    return TASK_RELATIVE_URL + fileName;
+  }
 
-    private StormTaskTuple getResultStormTaskTuple() {
-        return StormTaskTuple.fromValues(resultTupleCaptor.getValue());
-    }
+  private StormTaskTuple getResultStormTaskTuple() {
+    return StormTaskTuple.fromValues(resultTupleCaptor.getValue());
+  }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters()  {
-        HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        parameters.put(PluginParameterKeys.METIS_DATASET_ID, "100");
-        return parameters;
-    }
+  private HashMap<String, String> prepareStormTaskTupleParameters() {
+    HashMap<String, String> parameters = new HashMap<>();
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    parameters.put(PluginParameterKeys.METIS_DATASET_ID, "100");
+    return parameters;
+  }
 }

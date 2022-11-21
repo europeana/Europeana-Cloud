@@ -15,53 +15,53 @@ import java.net.MalformedURLException;
  * Created by Tarek on 9/24/2019.
  */
 public class IndexingRevisionWriter extends RevisionWriterBolt {
-    private static final long serialVersionUID = 1L;
 
-    private final String successNotificationMessage;
+  private static final long serialVersionUID = 1L;
 
-    public IndexingRevisionWriter(
-            String ecloudMcsAddress,
-            String ecloudMcsUser,
-            String ecloudMcsUserPassword,
-            String successNotificationMessage) {
-        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
-        this.successNotificationMessage = successNotificationMessage;
+  private final String successNotificationMessage;
+
+  public IndexingRevisionWriter(
+      String ecloudMcsAddress,
+      String ecloudMcsUser,
+      String ecloudMcsUserPassword,
+      String successNotificationMessage) {
+    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+    this.successNotificationMessage = successNotificationMessage;
+  }
+
+  @Override
+  protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    LOGGER.info("{} executed", getClass().getSimpleName());
+    try {
+      addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
+      emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
+    } catch (MalformedURLException e) {
+      LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+          stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
+          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    } catch (MCSException | DriverException e) {
+      LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
+      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
+          stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
+          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
     }
+  }
 
-    @Override
-    protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        LOGGER.info("{} executed", getClass().getSimpleName());
-        try {
-            addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
-            emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
-        } catch (MalformedURLException e) {
-            LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-        } catch (MCSException | DriverException e) {
-            LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-            emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-                    stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
-                    StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-        }
-    }
-
-    protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        NotificationTuple nt = NotificationTuple.prepareIndexingNotification(
-                stormTaskTuple.getTaskId(),
-                stormTaskTuple.isMarkedAsDeleted(),
-                stormTaskTuple.getFileUrl(),
-                RecordState.SUCCESS,
-                successNotificationMessage,
-                "",
-                stormTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID),
-                "",
-                StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple)
-        );
-        outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
-    }
-
+  protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    NotificationTuple nt = NotificationTuple.prepareIndexingNotification(
+        stormTaskTuple.getTaskId(),
+        stormTaskTuple.isMarkedAsDeleted(),
+        stormTaskTuple.getFileUrl(),
+        RecordState.SUCCESS,
+        successNotificationMessage,
+        "",
+        stormTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID),
+        "",
+        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple)
+    );
+    outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+  }
 
 
 }

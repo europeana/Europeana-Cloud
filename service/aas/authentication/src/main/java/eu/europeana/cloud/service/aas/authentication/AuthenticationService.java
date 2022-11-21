@@ -10,16 +10,16 @@ import eu.europeana.cloud.service.aas.authentication.exception.*;
  */
 public interface AuthenticationService {
 
-    void createUser(User user) throws DatabaseConnectionException, UserExistsException,
-            InvalidUsernameException, InvalidPasswordException;
+  void createUser(User user) throws DatabaseConnectionException, UserExistsException,
+      InvalidUsernameException, InvalidPasswordException;
 
-    void updateUser(User user)
-            throws DatabaseConnectionException, UserDoesNotExistException,
-            InvalidPasswordException;
+  void updateUser(User user)
+      throws DatabaseConnectionException, UserDoesNotExistException,
+      InvalidPasswordException;
 
-    User getUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
+  User getUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
 
-    void lockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
+  void lockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
 
-    void unlockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
+  void unlockUser(String userName) throws DatabaseConnectionException, UserDoesNotExistException;
 }

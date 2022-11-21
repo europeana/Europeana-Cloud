@@ -18,42 +18,42 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class TestContextConfiguration {
 
 
-    @Bean
-    public CassandraConnectionProvider cassandraConnectionProvider() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), "aas_test", "", "");
-    }
+  @Bean
+  public CassandraConnectionProvider cassandraConnectionProvider() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), "aas_test", "", "");
+  }
 
-    @Bean
-    public CassandraMutableAclService mutableAclService() {
-        return new CassandraMutableAclService(cassandraAclRepository(),
-                null,
-                permissionGrantingStrategy(),
-                authorizationStrategy(),
-                permissionFactory());
-    }
+  @Bean
+  public CassandraMutableAclService mutableAclService() {
+    return new CassandraMutableAclService(cassandraAclRepository(),
+        null,
+        permissionGrantingStrategy(),
+        authorizationStrategy(),
+        permissionFactory());
+  }
 
-    @Bean
-    public CassandraAclRepository cassandraAclRepository() {
-        return new CassandraAclRepository(cassandraConnectionProvider(), true);
-    }
+  @Bean
+  public CassandraAclRepository cassandraAclRepository() {
+    return new CassandraAclRepository(cassandraConnectionProvider(), true);
+  }
 
-    @Bean
-    public DefaultPermissionFactory permissionFactory() {
-        return new DefaultPermissionFactory();
-    }
+  @Bean
+  public DefaultPermissionFactory permissionFactory() {
+    return new DefaultPermissionFactory();
+  }
 
-    @Bean
-    public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
-        return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
-    }
+  @Bean
+  public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
+    return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
+  }
 
 
-    @Bean
-    public AclAuthorizationStrategyImpl authorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(
-                new SimpleGrantedAuthority(Role.ADMIN),
-                new SimpleGrantedAuthority(Role.ADMIN),
-                new SimpleGrantedAuthority(Role.ADMIN)
-        );
-    }
+  @Bean
+  public AclAuthorizationStrategyImpl authorizationStrategy() {
+    return new AclAuthorizationStrategyImpl(
+        new SimpleGrantedAuthority(Role.ADMIN),
+        new SimpleGrantedAuthority(Role.ADMIN),
+        new SimpleGrantedAuthority(Role.ADMIN)
+    );
+  }
 }
