@@ -1,23 +1,30 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
+
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 
 @Service
 public class KafkaTopicSelector {
 
   private final Map<String, List<String>> availableTopic;
 
-  private final Random rand;
+  private final Random random;
   private TasksByStateDAO tasksByStateDAO;
 
   private TaskStatusSynchronizer taskStatusSynchronizer;
@@ -29,7 +36,7 @@ public class KafkaTopicSelector {
         new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)));
     this.tasksByStateDAO = tasksByStateDAO;
     this.taskStatusSynchronizer = taskStatusSynchronizer;
-    this.rand = new Random();
+    this.random = new Random();
   }
 
   public String findPreferredTopicNameFor(String topologyName) {
@@ -51,7 +58,7 @@ public class KafkaTopicSelector {
     if (freeTopics.isEmpty()) {
       return Optional.empty();
     } else {
-      return Optional.of(freeTopics.get(rand.nextInt(freeTopics.size())));
+      return Optional.of(freeTopics.get(random.nextInt(freeTopics.size())));
     }
   }
 
@@ -72,7 +79,7 @@ public class KafkaTopicSelector {
 
   private String randomTopic(String topologyName) {
     List<String> topicsForOneTopology = topicsForOneTopology(topologyName);
-    return topicsForOneTopology.get(rand.nextInt(topicsForOneTopology.size()));
+    return topicsForOneTopology.get(random.nextInt(topicsForOneTopology.size()));
   }
 
   private List<String> topicsForOneTopology(String topologyName) {
