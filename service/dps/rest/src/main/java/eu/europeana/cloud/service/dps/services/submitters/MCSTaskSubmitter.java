@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -17,16 +19,17 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
-
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MCSTaskSubmitter {
 
@@ -56,7 +59,7 @@ public class MCSTaskSubmitter {
     this.password = password;
   }
 
-  public void execute(SubmitTaskParameters submitParameters) {
+  public void execute(SubmitTaskParameters submitParameters) throws InterruptedException {
     DpsTask task = submitParameters.getTask();
     try {
       LOGGER.info("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
@@ -86,6 +89,7 @@ public class MCSTaskSubmitter {
     } catch (InterruptedException e) {
       LOGGER.error("MCSTaskSubmitter encountered interruption for taskId={}", task.getTaskId(), e);
       Thread.currentThread().interrupt();
+      throw new InterruptedException("MCS service encountered interruption exception for taskId=" + task.getTaskId());
     } catch (Exception e) {
       LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
       taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());

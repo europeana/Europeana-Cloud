@@ -1,5 +1,20 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -12,12 +27,23 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.DpsRecord;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,18 +54,6 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.*;
-
-import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({MCSTaskSubmitter.class, MCSReader.class})
@@ -172,7 +186,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() {
+  public void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
     when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(true);
 
@@ -182,7 +196,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() {
+  public void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
 
     submitter.execute(submitParameters);
@@ -191,7 +205,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_errorInExecution_verifyTaskDropped() {
+  public void executeMcsBasedTask_errorInExecution_verifyTaskDropped() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
     doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService)
                                                             .submitRecord(any(DpsRecord.class), anyString());
@@ -202,7 +216,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneFileUrl() {
+  public void executeMcsBasedTask_oneFileUrl() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
 
     submitter.execute(submitParameters);
@@ -212,7 +226,7 @@ public class MCSTaskSubmitterTest {
 
 
   @Test
-  public void executeMcsBasedTask_threeFileUrls() {
+  public void executeMcsBasedTask_threeFileUrls() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Arrays.asList(FILE_URL_1, FILE_URL_2, FILE_URL_3));
 
     submitter.execute(submitParameters);
@@ -221,7 +235,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_3000FileUrls() {
+  public void executeMcsBasedTask_3000FileUrls() throws InterruptedException {
     List<String> fileUrls = new ArrayList<>();
     for (int i = 0; i < 3000; i++) {
       fileUrls.add(FILE_URL_1);
@@ -234,7 +248,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneDatasetWithOneFile() {
+  public void executeMcsBasedTask_oneDatasetWithOneFile() throws InterruptedException {
     task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
     when(dataSetServiceClient.getRepresentationIterator(eq(DATASET_PROVIDER_1), eq(DATASET_ID_1))).thenReturn(
         representationIterator);
@@ -247,7 +261,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneDatasetWithThreeFiles() {
+  public void executeMcsBasedTask_oneDatasetWithThreeFiles() throws InterruptedException {
     task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
     when(dataSetServiceClient.getRepresentationIterator(eq(DATASET_PROVIDER_1), eq(DATASET_ID_1))).thenReturn(
         representationIterator);
@@ -260,7 +274,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneLastRevisionWithOneFile() throws MCSException {
+  public void executeMcsBasedTask_oneLastRevisionWithOneFile() throws MCSException, InterruptedException {
     task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
     task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
     task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
@@ -290,7 +304,8 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_lastRevisionsForTwoObject_verifyTwoRecordsSentToKafka() throws MCSException {
+  public void executeMcsBasedTask_lastRevisionsForTwoObject_verifyTwoRecordsSentToKafka()
+      throws MCSException, InterruptedException {
     prepareInvocationForLastRevisionOfTwoObjects();
 
     submitter.execute(submitParameters);
@@ -299,7 +314,8 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_lastRevisionsForTwoObjectAndLimitTo1_verifyOnlyOneRecordSentToKafka() throws MCSException {
+  public void executeMcsBasedTask_lastRevisionsForTwoObjectAndLimitTo1_verifyOnlyOneRecordSentToKafka()
+      throws MCSException, InterruptedException {
     prepareInvocationForLastRevisionOfTwoObjects();
     task.addParameter(PluginParameterKeys.SAMPLE_SIZE, "1");
 
@@ -309,7 +325,8 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyThreeRecordsSentToKafka() throws MCSException {
+  public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyThreeRecordsSentToKafka()
+      throws MCSException, InterruptedException {
     prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
 
     submitter.execute(submitParameters);
@@ -318,7 +335,8 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyOnlyTwoRecordSentToKafka() throws MCSException {
+  public void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyOnlyTwoRecordSentToKafka()
+      throws MCSException, InterruptedException {
     prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
     task.addParameter(PluginParameterKeys.SAMPLE_SIZE, "2");
 
@@ -328,7 +346,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneFile() throws MCSException {
+  public void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneFile() throws MCSException, InterruptedException {
     task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
     task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
     task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
@@ -356,7 +374,7 @@ public class MCSTaskSubmitterTest {
   }
 
   @Test
-  public void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneDeletedRecord() throws MCSException {
+  public void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneDeletedRecord() throws MCSException, InterruptedException {
     task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
     task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
     task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);

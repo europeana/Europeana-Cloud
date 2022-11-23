@@ -39,6 +39,9 @@ public class SubmitTaskService {
     } catch (TaskSubmissionException e) {
       LOGGER.error("Task submission failed: {}", e.getMessage(), e);
       taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), prepareExceptionMessage(e));
+    } catch (InterruptedException e) {
+      LOGGER.error("Task submission failed due to interruption exception: {}", ExceptionUtils.getStackTrace(e));
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       String fullStacktrace = ExceptionUtils.getStackTrace(e);
       LOGGER.error("Task submission failed: {}", fullStacktrace);

@@ -30,7 +30,7 @@ public class OtherTopologiesTaskSubmitter implements TaskSubmitter {
   private MCSTaskSubmitter mcsTaskSubmitter;
 
   @Override
-  public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
+  public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException, InterruptedException {
     int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
     LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 

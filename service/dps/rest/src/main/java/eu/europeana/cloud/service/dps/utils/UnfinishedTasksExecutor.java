@@ -89,13 +89,19 @@ public class UnfinishedTasksExecutor {
     if (tasksToBeRestarted.isEmpty()) {
       LOGGER.info("No tasks to be resumed");
     } else {
-      for (TaskInfo taskInfo : tasksToBeRestarted) {
-        resumeTask(taskInfo);
+      try {
+        for (TaskInfo taskInfo : tasksToBeRestarted) {
+          resumeTask(taskInfo);
+        }
+      } catch (InterruptedException ex) {
+        LOGGER.error("Interruption has been encountered while execution was being resumed for task list={}", tasksToBeRestarted,
+            ex);
+        Thread.currentThread().interrupt();
       }
     }
   }
 
-  private void resumeTask(TaskInfo taskInfo) {
+  private void resumeTask(TaskInfo taskInfo) throws InterruptedException {
     try {
       LOGGER.info("Resuming execution for: {}", taskInfo);
       var submitTaskParameters = prepareSubmitTaskParameters(taskInfo);

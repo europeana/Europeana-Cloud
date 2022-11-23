@@ -5,5 +5,5 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 
 public interface TaskSubmitter {
 
-  void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException;
+  void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException, InterruptedException;
 }
