@@ -33,8 +33,7 @@ public class TaskStatusCheckerTest {
     taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
     PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
     when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
-    TaskStatusChecker.init(cassandraConnectionProvider);
-    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
 
   }
 
@@ -69,10 +68,8 @@ public class TaskStatusCheckerTest {
 
   @Test
   public void TaskStatusCheckerShouldOnlyBeInitialedOnce() {
-    TaskStatusChecker.init(cassandraConnectionProvider);
-    TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
-    TaskStatusChecker.init(cassandraConnectionProvider);
-    TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+    TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
+    TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
     Assert.assertEquals(firstTaskStatusChecker, secondTaskStatusChecker);
 
   }

@@ -160,12 +160,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     synchronized (AbstractDpsBolt.class) {
       if (taskStatusChecker == null) {
-        try {
-          TaskStatusChecker.init(cassandraConnectionProvider);
-        } catch (IllegalStateException e) {
-          LOGGER.info("It was already initialized Before");
-        }
-        taskStatusChecker = TaskStatusChecker.getTaskStatusChecker();
+        taskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
       }
     }
 

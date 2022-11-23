@@ -25,51 +25,41 @@ public class TaskStatusChecker {
 
   private static TaskStatusChecker instance;
 
-  /**
-   * Volatile is used to assure that cache variable reference is not cached because new instances of TaskStatusChecker change
-   * cache reference to reference on newly constructed object. Additionally instances of that class are thread safe by default.
-   */
-  @SuppressWarnings("java:S3077")
-  private static volatile LoadingCache<Long, Boolean> cache;
+  private LoadingCache<Long, Boolean> cache;
 
   private CassandraTaskInfoDAO taskDAO;
 
   private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
-    TaskStatusChecker.cache = CacheBuilder.newBuilder()
-                                          .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
-                                          .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
-                                          .build(new CacheLoader<Long, Boolean>() {
-                                            public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
-                                              return isDroppedTask(taskId);
-                                            }
-                                          });
+    cache = CacheBuilder.newBuilder()
+                        .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
+                        .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+                        .build(new CacheLoader<>() {
+                          public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
+                            return isDroppedTask(taskId);
+                          }
+                        });
     this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
   }
 
   public TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
-    TaskStatusChecker.cache = CacheBuilder.newBuilder()
-                                          .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
-                                          .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
-                                          .build(new CacheLoader<Long, Boolean>() {
-                                            public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
-                                              return isDroppedTask(taskId);
-                                            }
-                                          });
+    cache = CacheBuilder.newBuilder()
+                        .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
+                        .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+                        .build(new CacheLoader<>() {
+                          public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
+                            return isDroppedTask(taskId);
+                          }
+                        });
     this.taskDAO = taskDAO;
   }
 
-  public static synchronized TaskStatusChecker getTaskStatusChecker() {
+  public static synchronized TaskStatusChecker getTaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
     if (instance == null) {
-      throw new IllegalStateException("TaskStatusChecker has not been initialized!. Please initialize it first");
+      instance = new TaskStatusChecker(cassandraConnectionProvider);
     }
     return instance;
   }
 
-  public static synchronized void init(CassandraConnectionProvider cassandraConnectionProvider) {
-    if (instance == null) {
-      instance = new TaskStatusChecker(cassandraConnectionProvider);
-    }
-  }
 
   public boolean hasDroppedStatus(long taskId) {
     try {
