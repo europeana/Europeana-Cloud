@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.test.TestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ public class AspectedTest2Impl implements AspectedTest2Interface {
   public AspectedTest2Impl() {
   }
 
-  @Retryable(delay = 1000)
+  @Retryable(delay = TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS)
   public String testMethod05_fails_3(String s1, int i2) {
     currentAttempt++;
     if (currentAttempt <= 3) {

@@ -54,6 +54,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -83,6 +84,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.test.TestUtils;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import java.util.Collections;
 import java.util.Date;
@@ -178,6 +180,10 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         depublicationService
     );
     when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
+
+    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DEFAULT_REST_ATTEMPTS", TestUtils.DEFAULT_MAX_RETRY_COUNT);
+    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DELAY_BETWEEN_REST_ATTEMPTS",
+        TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
   }
 
   @Test

@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.commons.utils;
 
+import static org.mockito.Mockito.spy;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.ContextConfiguration;
@@ -15,6 +17,6 @@ public class RetryAspectConfiguration {
 
   @Bean
   public AspectedTestSpringCtx aspectedTest() {
-    return new AspectedTestSpringCtxImpl();
+    return spy(AspectedTestSpringCtxImpl.class);
   }
 }

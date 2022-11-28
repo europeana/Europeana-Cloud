@@ -23,6 +23,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpHarvestingBolt.class);
   private static int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
+  private static int MAX_RETRIES_COUNT = 6;
   private transient IdentifierSupplier identifierSupplier;
   private transient HttpClient httpClient;
 
@@ -78,7 +79,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     //Because data are always loaded from the same given application server, relatively big retry count,
     //and time is used to assure some resistance for server, inaccessibility.
     return RetryableMethodExecutor.<HttpResponse<byte[]>, Exception>
-                                      execute("Loading file by http failed!", 6, SLEEP_TIME_BETWEEN_RETRIES_MS,
+                                      execute("Loading file by http failed!", MAX_RETRIES_COUNT, SLEEP_TIME_BETWEEN_RETRIES_MS,
         () -> loadHttpFile(tuple));
   }
 

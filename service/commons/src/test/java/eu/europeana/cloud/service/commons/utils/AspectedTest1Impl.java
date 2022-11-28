@@ -1,10 +1,11 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.test.TestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Retryable(delay = 1000)
+@Retryable(delay = TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS)
 public class AspectedTest1Impl implements AspectedTest1Interface {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AspectedTest1Impl.class);
@@ -31,7 +32,7 @@ public class AspectedTest1Impl implements AspectedTest1Interface {
   }
 
   @Override
-  @Retryable(maxAttempts = 2, delay = 20 * 1000)  //overwrite default values
+  @Retryable(maxAttempts = 2, delay = TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS)  //overwrite default values
   public String testMethod03_fails_1() {
     currentAttempt++;
     if (currentAttempt <= 1) {
@@ -42,7 +43,7 @@ public class AspectedTest1Impl implements AspectedTest1Interface {
   }
 
   @Override
-  @Retryable(maxAttempts = 2, delay = 1000) //overwrite default values
+  @Retryable(maxAttempts = 2, delay = TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS) //overwrite default values
   public String testMethod04_fails_3() {
     currentAttempt++;
     if (currentAttempt <= 3) {

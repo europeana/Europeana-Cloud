@@ -1,18 +1,22 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.AopTestUtils;
 
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @RunWith(SpringRunner.class)
 public class RetryAspectSpringTest {
+
 
   @Autowired
   private AspectedTestSpringCtx aspectedTest;
@@ -23,39 +27,49 @@ public class RetryAspectSpringTest {
   }
 
   @Test
-  public void shoudCallDefault3Times() {
+  public void shouldCallDefault3Times() {
     long startTime = Instant.now().toEpochMilli();
     String result = aspectedTest.test_default("Text to process");
     long endTime = Instant.now().toEpochMilli();
 
     assertTrue(result.contains("Text to process"));
-    assertTrue(endTime - startTime >= 2 * 1000);
+    assertTrue(endTime - startTime >= 2 * 100);
+    Mockito.verify((AspectedTestSpringCtxImpl) AopTestUtils.getTargetObject(aspectedTest),
+        Mockito.times(3)).test_default(anyString());
   }
 
   @Test
-  public void shoudCall10Times() {
+  public void shouldCall10Times() {
     long startTime = Instant.now().toEpochMilli();
-    aspectedTest.test_delay_500_10();
+    aspectedTest.test_delay_100_retries_10();
     long endTime = Instant.now().toEpochMilli();
 
-    assertTrue(endTime - startTime >= 9 * 500);
-  }
-
-  @Test(expected = TestRuntimeExpection.class)
-  public void shoudCall6TimesAndFail() {
-    long startTime = Instant.now().toEpochMilli();
-    aspectedTest.test_delay_2000_6();
-    long endTime = Instant.now().toEpochMilli();
-
-    assertTrue(endTime - startTime >= 5 * 2000);
+    assertTrue(endTime - startTime >= 9 * 100);
+    Mockito.verify((AspectedTestSpringCtxImpl) AopTestUtils.getTargetObject(aspectedTest),
+        Mockito.times(10)).test_delay_100_retries_10();
   }
 
   @Test
-  public void shoudCall4Times() {
+  public void shouldCall6TimesAndFail() {
     long startTime = Instant.now().toEpochMilli();
-    aspectedTest.test_delay_3000_4();
+    try {
+      aspectedTest.test_delay_100_retries_6();
+    } catch (TestRuntimeExpection ignored) {
+    }
+    long endTime = Instant.now().toEpochMilli();
+    assertTrue(endTime - startTime >= 5 * 100);
+    Mockito.verify((AspectedTestSpringCtxImpl) AopTestUtils.getTargetObject(aspectedTest),
+        Mockito.times(6)).test_delay_100_retries_6();
+  }
+
+  @Test
+  public void shouldCall4Times() {
+    long startTime = Instant.now().toEpochMilli();
+    aspectedTest.test_delay_100_retries_4();
     long endTime = Instant.now().toEpochMilli();
 
-    assertTrue(endTime - startTime >= 3 * 3000);
+    assertTrue(endTime - startTime >= 2 * 100);
+    Mockito.verify((AspectedTestSpringCtxImpl) AopTestUtils.getTargetObject(aspectedTest),
+        Mockito.times(4)).test_delay_100_retries_4();
   }
 }
