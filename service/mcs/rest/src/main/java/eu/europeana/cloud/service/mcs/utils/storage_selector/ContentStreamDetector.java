@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Detect {@link InputStream} media type.

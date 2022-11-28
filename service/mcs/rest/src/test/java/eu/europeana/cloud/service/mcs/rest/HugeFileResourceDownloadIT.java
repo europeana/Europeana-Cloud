@@ -1,27 +1,27 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsByteArray;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.function.Consumer;
-
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * This tests checks if content is streamed (not put entirely into memory) when downloading file.

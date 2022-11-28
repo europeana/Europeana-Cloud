@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.uis.encoder;
 
-import org.apache.commons.codec.binary.Base32;
-
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.apache.commons.codec.binary.Base32;
 
 /**
  * IdGenerator generate unique id. The characters consists of Base32 dictionary. The implementation ensures that the same input

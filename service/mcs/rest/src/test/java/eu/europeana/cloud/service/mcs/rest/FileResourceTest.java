@@ -1,5 +1,20 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.putFile;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsByteArray;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsErrorInfo;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -11,6 +26,11 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.ws.rs.core.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -19,22 +39,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-
-import javax.ws.rs.core.HttpHeaders;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
-
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * FileResourceTest

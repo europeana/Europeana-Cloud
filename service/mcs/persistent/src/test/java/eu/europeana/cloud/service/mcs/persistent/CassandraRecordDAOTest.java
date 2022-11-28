@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import static org.hamcrest.CoreMatchers.is;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -9,17 +11,14 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import java.util.Date;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.Date;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * Created by pwozniak on 2/20/17.

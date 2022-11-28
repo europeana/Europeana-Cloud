@@ -7,9 +7,8 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.storm.tuple.Tuple;
-
 import java.net.MalformedURLException;
+import org.apache.storm.tuple.Tuple;
 
 /**
  * Created by Tarek on 9/24/2019.

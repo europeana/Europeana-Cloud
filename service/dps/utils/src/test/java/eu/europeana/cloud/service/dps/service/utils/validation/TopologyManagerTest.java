@@ -1,14 +1,15 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 
 public class TopologyManagerTest {

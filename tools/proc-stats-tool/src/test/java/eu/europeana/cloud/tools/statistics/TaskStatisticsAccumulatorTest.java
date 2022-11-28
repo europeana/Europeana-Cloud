@@ -1,12 +1,11 @@
 package eu.europeana.cloud.tools.statistics;
 
+import static org.junit.Assert.assertEquals;
+
+import java.time.LocalDateTime;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.LocalDateTime;
-
-import static org.junit.Assert.assertEquals;
 
 public class TaskStatisticsAccumulatorTest {
 

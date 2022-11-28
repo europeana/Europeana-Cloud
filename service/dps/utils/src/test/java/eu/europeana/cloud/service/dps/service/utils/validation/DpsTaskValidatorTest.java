@@ -1,5 +1,12 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -7,17 +14,17 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.InputDataType.*;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class DpsTaskValidatorTest {

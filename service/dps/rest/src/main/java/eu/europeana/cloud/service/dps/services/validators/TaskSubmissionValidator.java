@@ -1,5 +1,11 @@
 package eu.europeana.cloud.service.dps.services.validators;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_DATASET_ID;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH;
+
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
@@ -9,17 +15,13 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import org.springframework.stereotype.Service;
-
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
-
-import static eu.europeana.cloud.service.dps.InputDataType.*;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import org.springframework.stereotype.Service;
 
 /**
  * This service will be used during submission time to validate if given task submission is correct.<br/> For now we are checking

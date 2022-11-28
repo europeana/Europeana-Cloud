@@ -1,22 +1,30 @@
 package eu.europeana.cloud.client.dps.rest;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.common.model.dps.NodeReport;
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.DpsException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
-
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 /**
  * This class was made with intention to have easy way to run rest requests to DPS application.<br/> This is intentionally

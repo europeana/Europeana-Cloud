@@ -10,8 +10,6 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
@@ -24,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Extractor implements AutoCloseable {

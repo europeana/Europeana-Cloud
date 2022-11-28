@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.converters.GenericOneToOneConverter;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
-
 import java.util.Date;
 import java.util.Optional;
 

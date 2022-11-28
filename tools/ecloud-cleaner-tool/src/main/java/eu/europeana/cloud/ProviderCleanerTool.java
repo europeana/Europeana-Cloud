@@ -4,13 +4,17 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.persisted.ProviderRemover;
 import eu.europeana.cloud.utils.CommandLineHelper;
 import eu.europeana.cloud.utils.Toolkit;
-import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProviderCleanerTool {
 

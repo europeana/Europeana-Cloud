@@ -1,14 +1,18 @@
 package eu.europeana.cloud.persisted;
 
-import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.Mockito.*;
 
 public class RemoverImplTest {
 

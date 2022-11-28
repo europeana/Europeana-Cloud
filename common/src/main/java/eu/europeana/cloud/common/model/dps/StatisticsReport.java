@@ -1,9 +1,9 @@
 package eu.europeana.cloud.common.model.dps;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Model class for statistics report.

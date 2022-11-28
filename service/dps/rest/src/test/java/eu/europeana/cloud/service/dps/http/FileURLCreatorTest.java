@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.http;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class FileURLCreatorTest {
 

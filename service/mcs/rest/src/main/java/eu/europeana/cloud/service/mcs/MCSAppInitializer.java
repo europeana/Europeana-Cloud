@@ -1,6 +1,9 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.service.mcs.config.*;
+import eu.europeana.cloud.service.mcs.config.AuthenticationConfiguration;
+import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
+import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
+import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;

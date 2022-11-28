@@ -1,19 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 
 /**
  * Set of parameters to submit task to

@@ -2,7 +2,6 @@ package eu.europeana.cloud.common.selectors;
 
 import com.eaio.uuid.UUID;
 import eu.europeana.cloud.common.model.Representation;
-
 import java.util.List;
 
 /**

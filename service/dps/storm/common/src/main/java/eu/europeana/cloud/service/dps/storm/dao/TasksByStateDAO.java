@@ -1,5 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_APP_ID_COL_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_START_TIME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_STATE_COL_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TABLE;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TASK_ID_COL_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TOPIC_NAME_COL_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TOPOLOGY_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_INFO_STATE;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -8,15 +18,11 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-import org.apache.commons.lang3.EnumUtils;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
+import org.apache.commons.lang3.EnumUtils;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class TasksByStateDAO extends CassandraDAO {

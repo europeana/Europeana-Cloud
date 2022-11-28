@@ -14,11 +14,29 @@
  */
 package eu.europeana.aas.authorization.repository;
 
+import static eu.europeana.aas.authorization.repository.AclUtils.ROLE_ADMIN;
+import static eu.europeana.aas.authorization.repository.AclUtils.aoi_class;
+import static eu.europeana.aas.authorization.repository.AclUtils.assertAclEntry;
+import static eu.europeana.aas.authorization.repository.AclUtils.assertAclObjectIdentity;
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclEntry;
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclObjectIdentity;
+import static eu.europeana.aas.authorization.repository.AclUtils.sid1;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.aas.authorization.CassandraTestBase;
 import eu.europeana.aas.authorization.TestContextConfiguration;
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,11 +47,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.*;
-
-import static eu.europeana.aas.authorization.repository.AclUtils.*;
-import static org.junit.Assert.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)

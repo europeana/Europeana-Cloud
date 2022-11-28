@@ -4,13 +4,12 @@ import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import java.util.Date;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Submits record to storm cluster by sending it to valid Kafka topic. Class is also responsible for adding suitable entry in

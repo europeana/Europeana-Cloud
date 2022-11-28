@@ -1,20 +1,19 @@
 package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
-import com.google.common.io.Resources;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-
 import static eu.europeana.cloud.service.mcs.rest.Helper.readFully;
 import static eu.europeana.cloud.service.mcs.utils.storage_selector.ContentStreamDetector.detectMediaType;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import com.google.common.io.Resources;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author krystian.

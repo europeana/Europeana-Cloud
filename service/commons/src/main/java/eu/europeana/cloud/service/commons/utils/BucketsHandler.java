@@ -5,7 +5,6 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.utils.Bucket;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

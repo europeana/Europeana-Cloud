@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
 import com.google.common.base.Throwables;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.Properties;
 
 /**
  * Utility class for reading eCloud topology properties.

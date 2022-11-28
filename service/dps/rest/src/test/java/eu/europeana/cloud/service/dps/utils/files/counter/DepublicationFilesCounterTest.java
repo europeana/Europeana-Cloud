@@ -1,19 +1,18 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.concurrent.ThreadLocalRandom;
-
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_DATASET_ID;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
+import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import java.util.concurrent.ThreadLocalRandom;
+import org.junit.Before;
+import org.junit.Test;
 
 public class DepublicationFilesCounterTest {
 

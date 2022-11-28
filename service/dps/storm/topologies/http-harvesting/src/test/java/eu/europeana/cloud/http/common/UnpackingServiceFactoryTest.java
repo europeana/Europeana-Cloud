@@ -1,12 +1,12 @@
 package eu.europeana.cloud.http.common;
 
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
 import eu.europeana.cloud.http.service.FileUnpackingService;
 import eu.europeana.cloud.http.service.GzUnpackingService;
 import eu.europeana.cloud.http.service.ZipUnpackingService;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 
 public class UnpackingServiceFactoryTest {

@@ -1,6 +1,18 @@
 package eu.europeana.cloud.service.mcs.rest;
 
 
+import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsCloudTagResultSlice;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -9,6 +21,9 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,22 +31,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**

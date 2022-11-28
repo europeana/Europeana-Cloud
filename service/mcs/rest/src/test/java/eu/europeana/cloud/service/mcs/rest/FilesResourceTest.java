@@ -1,31 +1,5 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import com.google.common.hash.Hashing;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.http.MediaType;
-
-import javax.ws.rs.core.HttpHeaders;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
-
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
@@ -37,6 +11,30 @@ import static org.junit.Assert.assertNotSame;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.google.common.hash.Hashing;
+import eu.europeana.cloud.common.model.DataProvider;
+import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.web.ParamConstants;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import eu.europeana.cloud.test.CassandraTestRunner;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
+import javax.ws.rs.core.HttpHeaders;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.http.MediaType;
 
 /**
  * FileResourceTest

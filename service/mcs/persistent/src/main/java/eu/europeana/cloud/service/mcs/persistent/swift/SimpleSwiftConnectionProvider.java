@@ -1,14 +1,13 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
+import java.util.NoSuchElementException;
+import javax.annotation.PreDestroy;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.util.NoSuchElementException;
 
 /**
  * Manage connection for Openstack Swift using jClouds library.

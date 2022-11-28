@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.commons.utils;
 
+import static org.junit.Assert.assertTrue;
+
+import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.time.Instant;
-
-import static org.junit.Assert.assertTrue;
 
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @RunWith(SpringRunner.class)

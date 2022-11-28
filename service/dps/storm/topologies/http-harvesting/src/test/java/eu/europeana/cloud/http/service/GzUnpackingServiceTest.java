@@ -1,14 +1,16 @@
 package eu.europeana.cloud.http.service;
 
-import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
-import org.apache.commons.io.FileUtils;
-import org.junit.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-
-import static org.junit.Assert.*;
+import org.apache.commons.io.FileUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Test;
 
 
 public class GzUnpackingServiceTest {

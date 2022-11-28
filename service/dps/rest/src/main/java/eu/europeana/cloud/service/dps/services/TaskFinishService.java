@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.dps.services;
 
+import static eu.europeana.cloud.common.model.dps.TaskState.PROCESSED;
+import static eu.europeana.cloud.common.model.dps.TaskState.QUEUED;
+import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
+
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -7,16 +11,13 @@ import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingServ
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.common.model.dps.TaskState.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Class is responsible for finishing tasks that, were processed on Storm. It periodically checks number of performed records for

@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-
 import java.net.MalformedURLException;
 
 public class StormTaskTupleHelper {

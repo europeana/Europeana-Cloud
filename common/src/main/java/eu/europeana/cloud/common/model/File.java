@@ -1,11 +1,10 @@
 package eu.europeana.cloud.common.model;
 
-import eu.europeana.cloud.service.mcs.Storage;
-
-import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-
 import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
+
+import eu.europeana.cloud.service.mcs.Storage;
+import java.net.URI;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Metadata of a file (content) in a certain representation version of a record.

@@ -1,12 +1,15 @@
 package migrations.service.dps.V2;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
-
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import com.datastax.driver.core.*;
 
 public class V2_3__copy_errors_to_tables implements JavaMigration {
 

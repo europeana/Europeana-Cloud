@@ -1,9 +1,6 @@
 package eu.europeana.cloud.migrator.processing;
 
 import eu.europeana.cloud.migrator.ResourceMigratorApp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +8,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommandExecutor {
 

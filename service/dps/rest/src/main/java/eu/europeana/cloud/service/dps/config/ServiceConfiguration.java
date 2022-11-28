@@ -1,5 +1,24 @@
 package eu.europeana.cloud.service.dps.config;
 
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_HOSTS;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_KEYSPACE;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_PASSWORD;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_PORT;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_USERNAME;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_APPLICATION_ID;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_HOSTS;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_KEYSPACE;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_PASSWORD;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_PORT;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_USERNAME;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_KAFKA_BROKER;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_MACHINE_LOCATION;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_MCS_LOCATION;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_NAMELIST;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_USER;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_USER_PASSWORD;
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_UIS_LOCATION;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
@@ -14,10 +33,24 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.TaskFinishService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.services.postprocessors.*;
+import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingScheduler;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
+import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.storm.dao.*;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
@@ -25,9 +58,14 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -39,10 +77,6 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.Arrays;
-
-import static eu.europeana.cloud.service.dps.config.JndiNames.*;
 
 @Configuration
 @EnableWebMvc

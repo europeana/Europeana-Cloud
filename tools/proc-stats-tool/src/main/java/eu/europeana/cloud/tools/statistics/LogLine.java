@@ -1,12 +1,11 @@
 package eu.europeana.cloud.tools.statistics;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Setter
 @Getter

@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import java.util.Properties;
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MESSAGE_TIMEOUT_IN_SECONDS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
+
+import java.util.Properties;
 
 public class TopologyPropertiesValidator {
 

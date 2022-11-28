@@ -12,7 +12,6 @@ import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-
 import java.util.ArrayList;
 import java.util.List;
 

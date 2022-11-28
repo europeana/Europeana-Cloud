@@ -1,13 +1,12 @@
 package eu.europeana.cloud.readers;
 
-import org.junit.Test;
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class CSVReaderTest {
 

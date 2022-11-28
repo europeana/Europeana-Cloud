@@ -1,31 +1,50 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
+
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Exposes API related for records.

@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.DEPUBLICATION_TOPOLOGY;
+
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -11,8 +13,6 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.DEPUBLICATION_TOPOLOGY;
 
 @Service
 public class DepublicationTaskSubmitter implements TaskSubmitter {

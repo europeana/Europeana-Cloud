@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static org.mockito.Mockito.mock;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -14,10 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
-
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
-import static org.mockito.Mockito.mock;
 
 @Configuration
 public class SecurityTestContext {

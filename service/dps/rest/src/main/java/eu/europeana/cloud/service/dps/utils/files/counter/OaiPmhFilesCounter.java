@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.utils.DpsTaskToOaiHarvestConverter;
@@ -9,8 +11,6 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 /**
  * Counts the number of records to harvest from a specified OAI-PMH repository.

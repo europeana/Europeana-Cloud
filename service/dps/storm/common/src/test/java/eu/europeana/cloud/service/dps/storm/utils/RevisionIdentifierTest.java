@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.common.model.Revision;
-import org.junit.Test;
-
 import java.util.Date;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class RevisionIdentifierTest {
 

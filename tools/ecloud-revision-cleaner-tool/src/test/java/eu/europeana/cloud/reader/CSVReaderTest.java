@@ -1,13 +1,13 @@
 package eu.europeana.cloud.reader;
 
-import eu.europeana.cloud.data.RevisionInformation;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import eu.europeana.cloud.data.RevisionInformation;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class CSVReaderTest {
 

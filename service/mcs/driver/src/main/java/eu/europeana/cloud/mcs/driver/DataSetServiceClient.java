@@ -1,5 +1,21 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_EXISTING_ONLY;
+import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
+import static eu.europeana.cloud.common.web.ParamConstants.F_PERMISSION;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
+import static eu.europeana.cloud.common.web.ParamConstants.F_USERNAME;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
+
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
@@ -9,21 +25,20 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.mcs.exception.*;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 /**
  * Client for managing datasets in MCS.

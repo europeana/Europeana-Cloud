@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.FirstFlag;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

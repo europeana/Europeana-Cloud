@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.Row;
-
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;

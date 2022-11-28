@@ -1,10 +1,22 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Mockito.mock;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Properties;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.apache.storm.task.OutputCollector;
@@ -18,17 +30,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Properties;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static org.mockito.Mockito.mock;
 
 @RunWith(JUnitParamsRunner.class)
 public class ValidationBoltTest {

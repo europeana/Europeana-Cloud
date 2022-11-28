@@ -1,27 +1,38 @@
 package eu.europeana.cloud.service.mcs.rest.aatests;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+
 import com.google.common.collect.ImmutableList;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.rest.*;
+import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.rest.DataSetsResource;
+import eu.europeana.cloud.service.mcs.rest.RecordsResource;
+import eu.europeana.cloud.service.mcs.rest.RepresentationResource;
+import eu.europeana.cloud.service.mcs.rest.RepresentationVersionResource;
+import eu.europeana.cloud.service.mcs.rest.RepresentationsResource;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import javax.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-
-import javax.validation.constraints.NotNull;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 
 //@RunWith(SpringJUnit4ClassRunner.class)
 

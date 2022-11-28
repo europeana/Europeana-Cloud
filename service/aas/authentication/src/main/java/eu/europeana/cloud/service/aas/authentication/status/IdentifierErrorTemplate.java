@@ -2,8 +2,11 @@ package eu.europeana.cloud.service.aas.authentication.status;
 
 import eu.europeana.cloud.common.exceptions.GenericException;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.service.aas.authentication.exception.*;
-
+import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
+import eu.europeana.cloud.service.aas.authentication.exception.InvalidPasswordException;
+import eu.europeana.cloud.service.aas.authentication.exception.InvalidUsernameException;
+import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
+import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
 import javax.ws.rs.core.Response.Status;
 
 /**

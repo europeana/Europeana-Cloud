@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
+import org.apache.commons.io.IOUtils;
 
 /**
  * @author krystian.

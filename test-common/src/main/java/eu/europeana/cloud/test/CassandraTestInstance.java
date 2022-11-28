@@ -1,22 +1,27 @@
 package eu.europeana.cloud.test;
 
-import com.datastax.driver.core.*;
+import static java.lang.Thread.sleep;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.WriteType;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.RetryPolicy;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.CassandraContainer;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.lang.Thread.sleep;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.CassandraContainer;
 
 public final class CassandraTestInstance {
 
@@ -78,8 +83,8 @@ public final class CassandraTestInstance {
    * @return cassandra test instance
    */
   public static synchronized CassandraTestInstance getInstance(String keyspaceSchemaCql, String keyspace) {
-        if (instance == null) {
-          instance = new CassandraTestInstance();
+    if (instance == null) {
+      instance = new CassandraTestInstance();
     }
     instance.initKeyspaceIfNeeded(keyspaceSchemaCql, keyspace);
     return instance;

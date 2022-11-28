@@ -1,24 +1,22 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
 import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import java.util.Collections;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostProcessingSchedulerTest {

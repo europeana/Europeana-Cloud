@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.commons.md5;
 
-import com.google.common.collect.Sets;
-import org.apache.commons.io.FileUtils;
-import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 
+import com.google.common.collect.Sets;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -11,8 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
-
-import static org.junit.Assert.*;
+import org.apache.commons.io.FileUtils;
+import org.junit.Test;
 
 public class FileMd5GenerationServiceTest {
 

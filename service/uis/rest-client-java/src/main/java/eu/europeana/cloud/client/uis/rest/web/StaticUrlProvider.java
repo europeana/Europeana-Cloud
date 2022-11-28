@@ -1,9 +1,9 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
+import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
 
 /**
  * URL provider for UIS client

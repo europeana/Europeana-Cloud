@@ -1,15 +1,19 @@
 package migrations.service.uis.V2;
 
+import static migrations.common.TableCopier.hasNextRow;
+
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketSize;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
-
 import java.util.Iterator;
 import java.util.UUID;
-import com.datastax.driver.core.*;
-
-import static migrations.common.TableCopier.hasNextRow;
 
 /**
  * @author Tarek.

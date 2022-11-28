@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RetryableMethodExecutor {
 

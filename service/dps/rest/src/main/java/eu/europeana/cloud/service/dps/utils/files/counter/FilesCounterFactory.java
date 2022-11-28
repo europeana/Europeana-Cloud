@@ -1,13 +1,15 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.springframework.stereotype.Component;
-
-import static eu.europeana.cloud.service.dps.InputDataType.*;
 
 /**
  * Created by Tarek on 4/6/2016.

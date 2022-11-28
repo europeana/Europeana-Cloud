@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.utils.TaskCountersAggregator;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -9,8 +11,6 @@ import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 /**
  * Created by Tarek on 4/6/2016. File counters inside a dataset task

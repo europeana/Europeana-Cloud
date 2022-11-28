@@ -14,7 +14,11 @@
  */
 package eu.europeana.aas.authorization.repository;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.RegularStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.Delete;
@@ -25,12 +29,18 @@ import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Implementation of <code>AclRepository</code> using the DataStax Java Driver.

@@ -1,6 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -8,6 +17,10 @@ import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.time.Instant;
 import org.apache.commons.io.FileUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -15,14 +28,11 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.time.Instant;
-
-import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class OaiHarvestedRecordCategorizationBoltTest {
 

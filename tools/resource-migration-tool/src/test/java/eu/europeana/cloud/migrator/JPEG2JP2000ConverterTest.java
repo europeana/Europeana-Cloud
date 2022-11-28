@@ -1,16 +1,15 @@
 package eu.europeana.cloud.migrator;
 
-import eu.europeana.cloud.migrator.processing.JPEG2JP2000Converter;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import eu.europeana.cloud.migrator.processing.JPEG2JP2000Converter;
 import java.io.File;
 import java.net.URI;
 import java.nio.file.Paths;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class JPEG2JP2000ConverterTest {
 

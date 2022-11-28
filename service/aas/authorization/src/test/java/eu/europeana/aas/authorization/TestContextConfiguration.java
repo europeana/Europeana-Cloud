@@ -1,6 +1,5 @@
 package eu.europeana.aas.authorization;
 
-import eu.europeana.aas.authorization.CassandraMutableAclService;
 import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Role;

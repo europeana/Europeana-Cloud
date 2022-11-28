@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.NoHostAvailableException;
-import com.datastax.driver.core.exceptions.QueryExecutionException;
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.annotation.Retryable;
-import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-
-import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_DIAGNOSTIC_INFO_FINISH_ON_STORM_TIME;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_DIAGNOSTIC_INFO_ID;
@@ -24,6 +10,19 @@ import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColum
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_DIAGNOSTIC_INFO_STARTED_RECORDS_COUNT;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_DIAGNOSTIC_INFO_START_ON_STORM_TIME;
 import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_DIAGNOSTIC_INFO_TABLE;
+
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.QueryExecutionException;
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Optional;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class TaskDiagnosticInfoDAO extends CassandraDAO {

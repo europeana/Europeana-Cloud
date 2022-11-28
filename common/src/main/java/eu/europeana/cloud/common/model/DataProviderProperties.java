@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.model;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Represents administrative informations about data provider.

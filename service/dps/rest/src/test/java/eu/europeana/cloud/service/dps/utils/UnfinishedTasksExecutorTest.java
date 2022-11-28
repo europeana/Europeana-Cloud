@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -10,16 +12,17 @@ import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.*;
-
-import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {UnfinishedTasksContext.class, UnfinishedTasksExecutor.class})
 @RunWith(SpringRunner.class)

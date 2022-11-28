@@ -1,7 +1,6 @@
 package eu.europeana.cloud.readers;
 
 import eu.europeana.cloud.api.TaskIdsReader;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

@@ -18,16 +18,18 @@ import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeParseException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by pwozniak on 4/6/18

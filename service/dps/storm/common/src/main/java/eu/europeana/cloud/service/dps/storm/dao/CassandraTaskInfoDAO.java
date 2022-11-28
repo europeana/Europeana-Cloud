@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
@@ -13,11 +15,8 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-
 import java.util.Date;
 import java.util.Optional;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 /**
  * The {@link eu.europeana.cloud.common.model.dps.TaskInfo} DAO

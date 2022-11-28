@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.throttling;
 
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.MediaThrottlingFractionEvaluator;
-
 import java.util.Random;
 
 /**

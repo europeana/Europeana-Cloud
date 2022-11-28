@@ -1,19 +1,21 @@
 package eu.europeana.cloud.service.mcs.persistent.swift;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
-import static org.junit.Assert.*;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author krystian.

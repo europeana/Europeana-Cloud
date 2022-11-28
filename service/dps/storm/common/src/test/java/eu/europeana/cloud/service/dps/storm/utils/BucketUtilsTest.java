@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import com.google.common.io.Resources;
-import org.apache.commons.io.Charsets;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
+import com.google.common.io.Resources;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import org.apache.commons.io.Charsets;
+import org.junit.Test;
 
 public class BucketUtilsTest {
 

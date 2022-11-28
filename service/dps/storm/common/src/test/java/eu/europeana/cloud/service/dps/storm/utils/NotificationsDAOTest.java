@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import static org.junit.Assert.assertEquals;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 public class NotificationsDAOTest extends CassandraTestBase {
 

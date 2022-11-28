@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.mcs.rest;
 
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import org.junit.Test;
-
-import java.math.BigInteger;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import java.math.BigInteger;
+import org.junit.Test;
 
 /**
  * ContentRangeTest

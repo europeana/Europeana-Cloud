@@ -1,5 +1,11 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
@@ -9,13 +15,9 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.test.WiremockHelper;
+import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.*;
 
 /**
  * Tests the UISClient, using Wiremock.

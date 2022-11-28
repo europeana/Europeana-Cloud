@@ -1,5 +1,22 @@
 package eu.europeana.cloud.jobs;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID;
+import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID2;
+import static eu.europeana.cloud.service.dps.test.TestConstants.DATA_PROVIDER;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_PROVIDER;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.VERSION;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -9,21 +26,17 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.test.TestHelper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RevisionRemoverJobTest {

@@ -1,5 +1,23 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.TAG;
+import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
@@ -12,6 +30,11 @@ import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import java.net.URI;
+import java.util.Date;
+import java.util.Map;
+import java.util.TimeZone;
+import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.After;
 import org.junit.Before;
@@ -19,22 +42,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.ws.rs.core.MediaType;
-import java.net.URI;
-import java.util.Date;
-import java.util.Map;
-import java.util.TimeZone;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**

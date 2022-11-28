@@ -1,15 +1,20 @@
 package migrations.service.mcs.V18;
 
+import static migrations.common.TableCopier.hasNextRow;
+
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
-import com.datastax.driver.core.*;
-import migrations.service.mcs.V18.jobs.DataCopier;
-
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import java.util.Iterator;
-import java.util.concurrent.*;
-
-import static migrations.common.TableCopier.hasNextRow;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import migrations.service.mcs.V18.jobs.DataCopier;
 
 /**
  * Created by Tarek on 4/26/19

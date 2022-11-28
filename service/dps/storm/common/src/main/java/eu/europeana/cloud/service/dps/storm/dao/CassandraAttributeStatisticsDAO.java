@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -9,11 +11,8 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
-
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class CassandraAttributeStatisticsDAO extends CassandraDAO {

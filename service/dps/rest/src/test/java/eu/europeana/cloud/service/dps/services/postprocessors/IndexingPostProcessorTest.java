@@ -1,5 +1,17 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -9,6 +21,10 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,14 +36,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(IndexingPostProcessor.class)

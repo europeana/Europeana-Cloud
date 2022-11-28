@@ -1,6 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
+
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.utils.Clock;
@@ -15,19 +17,16 @@ import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import lombok.Data;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
+import lombok.Data;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores a Record on the cloud.

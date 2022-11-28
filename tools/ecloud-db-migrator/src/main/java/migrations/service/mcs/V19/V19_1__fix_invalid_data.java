@@ -3,11 +3,15 @@ package migrations.service.mcs.V19;
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.ReadTimeoutException;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
-
-import java.util.*;
+import java.util.Iterator;
+import java.util.UUID;
 
 
 public class V19_1__fix_invalid_data implements JavaMigration {

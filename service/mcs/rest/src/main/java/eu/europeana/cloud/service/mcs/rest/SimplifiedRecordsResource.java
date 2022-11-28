@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
+
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
@@ -9,12 +11,13 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.

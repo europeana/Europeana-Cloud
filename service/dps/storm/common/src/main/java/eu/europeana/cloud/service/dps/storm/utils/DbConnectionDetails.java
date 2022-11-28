@@ -1,9 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import java.io.Serializable;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.io.Serializable;
 
 /**
  * Encapsulates information need for database connection;

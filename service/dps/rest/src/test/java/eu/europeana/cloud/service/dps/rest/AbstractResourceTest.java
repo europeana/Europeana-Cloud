@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import static org.mockito.Mockito.reset;
+
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
@@ -7,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import static org.mockito.Mockito.reset;
 
 public class AbstractResourceTest {
 

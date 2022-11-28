@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
+
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.File;
@@ -8,23 +10,28 @@ import eu.europeana.cloud.common.selectors.LatestPersistentRepresentationVersion
 import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.function.Consumer;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_FILE_ACCESS_RESOURCE;
 
 /**
  * Gives (read) access to files stored in ecloud in simplified (friendly) way. <br/> The latest persistent version of

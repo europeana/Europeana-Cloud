@@ -3,11 +3,10 @@ package eu.europeana.cloud.executer;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.api.TaskIdsReader;
 import eu.europeana.cloud.readers.CommaSeparatorReaderImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Tarek on 4/16/2019.

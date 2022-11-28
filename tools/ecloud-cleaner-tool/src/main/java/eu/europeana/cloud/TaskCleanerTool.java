@@ -4,11 +4,15 @@ import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.executer.RemoverInvoker;
 import eu.europeana.cloud.persisted.RemoverImpl;
 import eu.europeana.cloud.utils.CommandLineHelper;
-import org.apache.commons.cli.*;
+import java.io.IOException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * Created by Tarek on 4/16/2019.

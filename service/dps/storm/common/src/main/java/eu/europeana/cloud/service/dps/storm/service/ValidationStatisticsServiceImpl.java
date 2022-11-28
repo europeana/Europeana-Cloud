@@ -3,19 +3,18 @@ package eu.europeana.cloud.service.dps.storm.service;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.GeneralStatistics;
-import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeReport;
+import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ValidationStatisticsServiceImpl implements ValidationStatisticsService {

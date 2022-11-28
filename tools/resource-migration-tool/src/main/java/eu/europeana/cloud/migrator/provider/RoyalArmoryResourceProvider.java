@@ -2,10 +2,9 @@ package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.ResourceMigrator;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public class RoyalArmoryResourceProvider
     extends DefaultResourceProvider {

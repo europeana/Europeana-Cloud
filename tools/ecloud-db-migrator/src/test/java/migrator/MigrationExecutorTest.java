@@ -1,19 +1,22 @@
 package migrator;
 
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import migrator.validators.*;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import java.util.ArrayList;
+import java.util.List;
+import migrator.validators.V10_validator;
+import migrator.validators.V12_validator;
+import migrator.validators.V13_validator;
+import migrator.validators.V14_validator;
+import migrator.validators.V2_validator;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * @author krystian.
