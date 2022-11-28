@@ -155,9 +155,6 @@ public class CassandraRecordService implements RecordService {
 
     checkIfDatasetExists(dataSetId, providerId);
 
-    if (version == null) {
-      version = generateTimeUUID();
-    }
     // check if data provider exists
     if (uis.getProvider(providerId) == null) {
       throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
@@ -176,9 +173,12 @@ public class CassandraRecordService implements RecordService {
     }
 
     boolean cloudExists = uis.existsCloudId(cloudId);
-    Date now = Calendar.getInstance().getTime();
     if (cloudExists) {
       LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
+      if (version == null) {
+        version = generateTimeUUID();
+      }
+      Date now = Calendar.getInstance().getTime();
       Representation representation =
           recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
       dataSetService.addAssignmentToMainTables(

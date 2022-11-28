@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.net.MalformedURLException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -89,7 +90,9 @@ public class MCSTaskSubmitter {
     } catch (InterruptedException e) {
       LOGGER.error("MCSTaskSubmitter encountered interruption for taskId={}", task.getTaskId(), e);
       Thread.currentThread().interrupt();
-      throw new InterruptedException("MCS service encountered interruption exception for taskId=" + task.getTaskId());
+      throw new InterruptedException(
+          String.format("MCS service encountered interruption exception for taskId=%s with message: %s and stack trace: %s",
+              task.getTaskId(), e.getMessage(), Arrays.toString(e.getStackTrace())));
     } catch (Exception e) {
       LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
       taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
