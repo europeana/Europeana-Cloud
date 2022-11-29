@@ -15,6 +15,12 @@
             <Layout type="PatternLayout" pattern="${pattern}"/>
             <TimeBasedTriggeringPolicy/>
         </Appender>
+        <Appender type="RollingFile" name="SwiftModifications" append="true"
+          fileName="${sys:logsDir}swift-modifications.log" filePattern="${sys:logsDir}swift-modifications.log.%d{yyyy-MM}">
+            <Layout type="PatternLayout"
+              pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT};%X{swiftObjectOperation};%X{swiftObjectName}%n"/>
+            <TimeBasedTriggeringPolicy/>
+        </Appender>
     </Appenders>
 
     <Loggers>
@@ -23,6 +29,9 @@
             <AppenderRef ref="FILE"/>
         </Root>
         <Logger name="eu.europeana.cloud.service.mcs" level="debug"/>
+        <logger name="SwiftModifications" additivity="false" level="info">
+            <AppenderRef ref="SwiftModifications"/>
+        </logger>
     </Loggers>
 
 </Configuration>
