@@ -52,6 +52,18 @@ public class TaskStatusChecker {
     this.taskDAO = taskDAO;
   }
 
+  protected TaskStatusChecker(CassandraTaskInfoDAO taskDAO, int checkingInterval) {
+    cache = CacheBuilder.newBuilder()
+                        .refreshAfterWrite(checkingInterval, TimeUnit.MILLISECONDS)
+                        .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
+                        .build(new CacheLoader<>() {
+                          public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
+                            return isDroppedTask(taskId);
+                          }
+                        });
+    this.taskDAO = taskDAO;
+  }
+
   public static synchronized TaskStatusChecker getTaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
     if (instance == null) {
       instance = new TaskStatusChecker(cassandraConnectionProvider);

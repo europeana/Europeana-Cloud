@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,6 +32,8 @@ public class TaskStatusCheckerTest {
   private static CassandraConnectionProvider cassandraConnectionProvider;
   private final static long TASK_ID = 1234;
   private final static long TASK_ID2 = 123456;
+  private final static int STATUS_CHECKER_CACHE_CHECK_INTERVAL = 100;
+  private final static double SAFETY_THRESHOLD_PERCENTAGE = 0.1;
 
   @BeforeClass
   public static void init() throws Exception {
@@ -40,7 +41,7 @@ public class TaskStatusCheckerTest {
     taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
     PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
     when(CassandraTaskInfoDAO.getInstance(isA(CassandraConnectionProvider.class))).thenReturn(taskInfoDAO);
-    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
+    taskStatusChecker = new TaskStatusChecker(taskInfoDAO, STATUS_CHECKER_CACHE_CHECK_INTERVAL);
 
   }
 
@@ -62,13 +63,13 @@ public class TaskStatusCheckerTest {
       if (i < 5) {
         task2killedFlag = taskStatusChecker.hasDroppedStatus(TASK_ID2);
       }
-      Thread.sleep(6000);
+      Thread.sleep((long) (STATUS_CHECKER_CACHE_CHECK_INTERVAL * (1 + SAFETY_THRESHOLD_PERCENTAGE)));
     }
-    verify(taskInfoDAO, times(8)).isDroppedTask(eq(TASK_ID));
-    verify(taskInfoDAO, times(5)).isDroppedTask(eq(TASK_ID2));
+    verify(taskInfoDAO, times(8)).isDroppedTask(TASK_ID);
+    verify(taskInfoDAO, times(5)).isDroppedTask(TASK_ID2);
     assertTrue(task1killedFlag);
     assertTrue(task2killedFlag);
-    Thread.sleep(20000);
+    Thread.sleep((long) (STATUS_CHECKER_CACHE_CHECK_INTERVAL * (1 + SAFETY_THRESHOLD_PERCENTAGE)));
     verifyNoMoreInteractions(taskInfoDAO);
 
   }
