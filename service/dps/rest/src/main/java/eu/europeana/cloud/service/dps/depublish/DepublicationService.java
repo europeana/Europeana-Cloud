@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class DepublicationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DepublicationService.class);
-  private static final long PROGRESS_POLLING_PERIOD = 5_000;
+  private static long PROGRESS_POLLING_PERIOD = 5_000;
 
   private final TaskStatusChecker taskStatusChecker;
   private final DatasetDepublisher depublisher;
