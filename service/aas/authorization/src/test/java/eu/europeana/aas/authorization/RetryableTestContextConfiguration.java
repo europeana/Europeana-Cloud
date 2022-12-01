@@ -1,6 +1,7 @@
 package eu.europeana.aas.authorization;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.aas.authorization.repository.AclRepository;
@@ -26,7 +27,7 @@ public class RetryableTestContextConfiguration {
 
   @Bean
   public RetryAspect retryAspect() {
-    return new RetryAspect();
+    return spy(RetryAspect.class);
   }
 
   @Bean
