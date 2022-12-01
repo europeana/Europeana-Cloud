@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -35,8 +35,8 @@ public class TaskStatusCheckerTest {
   private final static int STATUS_CHECKER_CACHE_CHECK_INTERVAL = 100;
   private final static double SAFETY_THRESHOLD_PERCENTAGE = 0.1;
 
-  @BeforeClass
-  public static void init() throws Exception {
+  @Before
+  public void init() throws Exception {
     cassandraConnectionProvider = mock(CassandraConnectionProvider.class);
     taskInfoDAO = Mockito.mock(CassandraTaskInfoDAO.class);
     PowerMockito.mockStatic(CassandraTaskInfoDAO.class);
@@ -79,7 +79,5 @@ public class TaskStatusCheckerTest {
     TaskStatusChecker firstTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
     TaskStatusChecker secondTaskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);
     Assert.assertEquals(firstTaskStatusChecker, secondTaskStatusChecker);
-
   }
-
 }
