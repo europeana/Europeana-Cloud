@@ -3,6 +3,7 @@ package eu.europeana.cloud.persisted;
 import eu.europeana.cloud.api.Remover;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
@@ -21,8 +22,8 @@ public class RemoverImpl implements Remover {
   private final CassandraTaskErrorsDAO taskErrorDAO;
   private final ValidationStatisticsServiceImpl statisticsService;
 
-  private static final int DEFAULT_RETRIES = 5;
-  private static final int SLEEP_TIME = 3000;
+  private static int DEFAULT_RETRIES = 5;
+  private static int SLEEP_TIME = 3000;
 
 
   public RemoverImpl(String hosts, int port, String keyspaceName, String userName, String password) {
@@ -44,72 +45,30 @@ public class RemoverImpl implements Remover {
 
   @Override
   public void removeNotifications(long taskId) {
-    int retries = DEFAULT_RETRIES;
-
-    while (true) {
-      try {
-        subTaskInfoDAO.removeNotifications(taskId);
-        break;
-      } catch (Exception e) {
-        if (retries-- > 0) {
-          LOGGER.warn("Error while removing the logs. Retries left: {}", retries);
-          waitForTheNextCall();
-        } else {
-          LOGGER.error("Error while removing the logs.");
-          throw e;
-        }
-      }
-    }
+    RetryableMethodExecutor
+        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+          subTaskInfoDAO.removeNotifications(taskId);
+          return null;
+        });
   }
 
   @Override
   public void removeErrorReports(long taskId) {
-    int retries = DEFAULT_RETRIES;
-    while (true) {
-      try {
-        taskErrorDAO.removeErrors(taskId);
-        break;
-      } catch (Exception e) {
-        if (retries-- > 0) {
-          LOGGER.warn("Error while removing the error reports. Retries left: {}", retries);
-          waitForTheNextCall();
-        } else {
-          LOGGER.error("Error while removing the error reports.");
-          throw e;
-        }
-      }
-    }
-
+    RetryableMethodExecutor
+        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+          taskErrorDAO.removeErrors(taskId);
+          return null;
+        });
   }
 
   @Override
   public void removeStatistics(long taskId) {
-    int retries = DEFAULT_RETRIES;
-    while (true) {
-      try {
-        statisticsService.removeStatistics(taskId);
-        break;
-      } catch (Exception e) {
-        if (retries-- > 0) {
-          LOGGER.warn("Error while removing the validation statistics. Retries left: {}", retries);
-          waitForTheNextCall();
-        } else {
-          LOGGER.error("Error while removing the validation statistics.");
-          throw e;
-        }
-      }
-    }
+    RetryableMethodExecutor
+        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+          statisticsService.removeStatistics(taskId);
+          return null;
+        });
 
   }
-
-  private void waitForTheNextCall() {
-    try {
-      Thread.sleep(SLEEP_TIME);
-    } catch (InterruptedException e1) {
-      Thread.currentThread().interrupt();
-      LOGGER.error(e1.getMessage());
-    }
-  }
-
 
 }
