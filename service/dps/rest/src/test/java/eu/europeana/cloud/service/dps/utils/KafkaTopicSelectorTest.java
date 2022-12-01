@@ -22,7 +22,7 @@ import org.springframework.core.env.Environment;
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaTopicSelectorTest {
 
-  private static final int SAMPLES_COUNT = 100000;
+  private static final int SAMPLES_COUNT = 10_000;
   private static final double TOLERANCE = 0.02;
   private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
   private static final String TOPOLOGY = "topology";
