@@ -3,10 +3,12 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import eu.europeana.aas.authorization.ExtendedAclService;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
@@ -18,6 +20,7 @@ import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
@@ -66,12 +69,18 @@ public class CassandraBasedTestContext {
 
   @Bean
   public CassandraDataSetService cassandraDataSetService() {
-    return Mockito.spy(new CassandraDataSetService());
+    return spy(new CassandraDataSetService());
   }
 
   @Bean
   public CassandraRecordService cassandraRecordService() {
-    return Mockito.spy(new CassandraRecordService());
+    return spy(new CassandraRecordService());
+  }
+
+  @Bean
+  @Primary
+  public RetryAspect retryAspect() {
+    return spy(new RetryAspect());
   }
 
   @Bean
