@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.RecordState;
@@ -7,16 +11,11 @@ import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
 
 
 public class ReportServiceTest extends CassandraTestBase {
@@ -31,7 +30,7 @@ public class ReportServiceTest extends CassandraTestBase {
   public void setup() {
     CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
-    service = new ReportService(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
+    service = new ReportService(new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD));
     subtaskInfoDao = NotificationsDAO.getInstance(db);
   }
 
