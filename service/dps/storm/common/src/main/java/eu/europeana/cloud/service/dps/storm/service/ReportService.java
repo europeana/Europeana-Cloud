@@ -37,7 +37,7 @@ public class ReportService implements TaskExecutionReportService {
    * @param dbService instance of CassandraConnectionProvider
    */
   public ReportService(CassandraConnectionProvider dbService) {
-    reportDAO = new ReportDAO(dbService);
+    reportDAO = ReportDAO.getInstance(dbService);
   }
 
 

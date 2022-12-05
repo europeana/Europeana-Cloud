@@ -8,12 +8,15 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import java.util.UUID;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class ReportDAO extends CassandraDAO {
 
+
+  private static ReportDAO instance;
   private PreparedStatement selectErrorsStatement;
   private PreparedStatement selectErrorStatement;
   private PreparedStatement selectErrorCounterStatement;
@@ -22,6 +25,13 @@ public class ReportDAO extends CassandraDAO {
 
   public ReportDAO(CassandraConnectionProvider dbService) {
     super(dbService);
+  }
+
+  public static synchronized ReportDAO getInstance(CassandraConnectionProvider cassandra) {
+    if (instance == null) {
+      instance = RetryableMethodExecutor.createRetryProxy(new ReportDAO(cassandra));
+    }
+    return instance;
   }
 
   public void prepareStatements() {
