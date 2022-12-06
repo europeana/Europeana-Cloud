@@ -18,7 +18,7 @@ public class TaskStatusChecker {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatusChecker.class);
 
-  public static final int CHECKING_INTERVAL_IN_SECONDS = 5;
+  public static final int CHECKING_INTERVAL_IN_MILLISECONDS = 5_000;
   public static final int CONCURRENCY_LEVEL = 1000;
   public static final int SIZE = 100;
 
@@ -29,27 +29,11 @@ public class TaskStatusChecker {
   private CassandraTaskInfoDAO taskDAO;
 
   private TaskStatusChecker(CassandraConnectionProvider cassandraConnectionProvider) {
-    cache = CacheBuilder.newBuilder()
-                        .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
-                        .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
-                        .build(new CacheLoader<>() {
-                          public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
-                            return isDroppedTask(taskId);
-                          }
-                        });
-    this.taskDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
+    this(CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider), CHECKING_INTERVAL_IN_MILLISECONDS);
   }
 
   public TaskStatusChecker(CassandraTaskInfoDAO taskDAO) {
-    cache = CacheBuilder.newBuilder()
-                        .refreshAfterWrite(CHECKING_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
-                        .concurrencyLevel(CONCURRENCY_LEVEL).maximumSize(SIZE).softValues()
-                        .build(new CacheLoader<>() {
-                          public Boolean load(Long taskId) throws TaskInfoDoesNotExistException {
-                            return isDroppedTask(taskId);
-                          }
-                        });
-    this.taskDAO = taskDAO;
+    this(taskDAO, CHECKING_INTERVAL_IN_MILLISECONDS);
   }
 
   protected TaskStatusChecker(CassandraTaskInfoDAO taskDAO, int checkingInterval) {
