@@ -12,11 +12,32 @@ import org.slf4j.LoggerFactory;
 
 public class RetryableMethodExecutor {
 
+  public static final Integer OVERRIDE_ATTEMPT_COUNT;
+  public static final Integer OVERRIDE_DELAY_BETWEEN_ATTEMPTS;
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
   public static final int DEFAULT_REST_ATTEMPTS = 8;
 
   public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
+  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ATTEMPT_COUNT";
+  private static final String DELAY_VALUE_PROPERTY_NAME = "DELAY_VALUE";
+
+
+  static {
+    Integer attemptCountFromSystemEnv = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getenv(
+        ATTEMPT_COUNT_PROPERTY_NAME));
+    Integer delayValueFromSystemEnv = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getenv(
+        DELAY_VALUE_PROPERTY_NAME));
+
+    Integer attemptCountFromJVMVariable = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getProperty(
+        ATTEMPT_COUNT_PROPERTY_NAME));
+    Integer delayValueFromJVMVariable = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getProperty(
+        DELAY_VALUE_PROPERTY_NAME));
+
+    OVERRIDE_ATTEMPT_COUNT = (attemptCountFromSystemEnv == null) ? attemptCountFromJVMVariable : attemptCountFromSystemEnv;
+    OVERRIDE_DELAY_BETWEEN_ATTEMPTS = (delayValueFromSystemEnv == null) ? delayValueFromJVMVariable : delayValueFromSystemEnv;
+  }
+
 
   public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
     return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
@@ -28,6 +49,10 @@ public class RetryableMethodExecutor {
   public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts,
       int sleepTimeBetweenRetriesMs,
       GenericCallable<V, E> callable) throws E {
+    maxAttempts =
+        RetryableMethodExecutorHelper.overrideWhenValueIsPresent(maxAttempts, OVERRIDE_ATTEMPT_COUNT);
+    sleepTimeBetweenRetriesMs =
+        RetryableMethodExecutorHelper.overrideWhenValueIsPresent(sleepTimeBetweenRetriesMs, OVERRIDE_DELAY_BETWEEN_ATTEMPTS);
     while (true) {
       try {
         return callable.call();
