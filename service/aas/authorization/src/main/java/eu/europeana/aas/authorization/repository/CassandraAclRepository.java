@@ -62,7 +62,7 @@ public class CassandraAclRepository implements AclRepository {
   private static final String ACL_TABLE_ACL_ORDER_FIELD = "aclorder";
 
   private static final String CHILDREN_TABLE_ID_FIELD = "id";
-  private static final String CHILDREN_TABLE_CHILD_ID_FIELD = "childId";
+  private static final String CHILDREND_TABLE_CHILD_ID_FIELD = "childId";
 
   private static final String[] AOI_KEYS = new String[]{"id", "objId",
       "objClass", "isInheriting", "owner", "isOwnerPrincipal",
@@ -75,6 +75,8 @@ public class CassandraAclRepository implements AclRepository {
 
   private static final String ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED
       = "Repository could now establish connection to cassandra database";
+  static final int ACL_REPO_DEFAULT_MAX_ATTEMPTS = 3;
+
   private RegularStatement createChildrenTable;
   private RegularStatement createAoisTable;
   private RegularStatement createAclsTable;
@@ -117,7 +119,7 @@ public class CassandraAclRepository implements AclRepository {
     this(session, keyspace);
     if (initSchema) {
       createAoisTable();
-      createChildrenTable();
+      createChilrenTable();
       createAclsTable();
     }
   }
@@ -141,7 +143,7 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   @Override
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS, errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
   public Map<AclObjectIdentity, Set<AclEntry>> findAcls(List<AclObjectIdentity> objectIdsToLookup) {
     assertAclObjectIdentityList(objectIdsToLookup);
 
@@ -197,7 +199,7 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   @Override
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS, errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
   public AclObjectIdentity findAclObjectIdentity(AclObjectIdentity objectId) {
     assertAclObjectIdentity(objectId);
 
@@ -218,7 +220,7 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   @Override
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS, errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
   public List<AclObjectIdentity> findAclObjectIdentityChildren(AclObjectIdentity objectId) {
     assertAclObjectIdentity(objectId);
 
@@ -241,7 +243,7 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   @Override
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS, errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
   public void deleteAcls(List<AclObjectIdentity> objectIdsToDelete) {
     assertAclObjectIdentityList(objectIdsToDelete);
 
@@ -266,7 +268,7 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   @Override
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS, errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
   public void saveAcl(AclObjectIdentity aoi) {
     assertAclObjectIdentity(aoi);
     if (LOG.isDebugEnabled()) {
@@ -297,7 +299,9 @@ public class CassandraAclRepository implements AclRepository {
 
     Batch batch = QueryBuilder.batch();
     ResultSet resultSet =
-        RetryableMethodExecutor.executeOnAcl(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
+        RetryableMethodExecutor.execute(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
+            ACL_REPO_DEFAULT_MAX_ATTEMPTS,
+            Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS,
             () -> executeStatement(session, QueryBuilder
                 .select()
                 .all()
@@ -332,7 +336,7 @@ public class CassandraAclRepository implements AclRepository {
       if (persistedAoi.getParentRowId() != null) {
         batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE)
                               .where(QueryBuilder.eq(CHILDREN_TABLE_ID_FIELD, persistedAoi.getParentRowId()))
-                              .and(QueryBuilder.eq(CHILDREN_TABLE_CHILD_ID_FIELD, aoi.getRowId())));
+                              .and(QueryBuilder.eq(CHILDREND_TABLE_CHILD_ID_FIELD, aoi.getRowId())));
       }
     }
     if (entries != null && !entries.isEmpty()) {
@@ -349,7 +353,9 @@ public class CassandraAclRepository implements AclRepository {
             new Object[]{aoi.getParentRowId(), aoi.getRowId(), aoi.getId(), aoi.getObjectClass()}));
       }
     }
-    RetryableMethodExecutor.executeOnAcl(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
+    RetryableMethodExecutor.execute(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
+        ACL_REPO_DEFAULT_MAX_ATTEMPTS,
+        Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS,
         () -> executeStatement(session, batch));
 
     if (LOG.isDebugEnabled()) {
@@ -445,7 +451,7 @@ public class CassandraAclRepository implements AclRepository {
   /**
    * Creates the schema for the table holding <code>AclObjectIdentity</code> representations.
    */
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
   public void createAoisTable() {
     try {
       executeStatement(session, createAoisTable);
@@ -457,8 +463,8 @@ public class CassandraAclRepository implements AclRepository {
   /**
    * Creates the schema for the table holding <code>AclObjectIdentity</code> children.
    */
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
-  public void createChildrenTable() {
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
+  public void createChilrenTable() {
     try {
       executeStatement(session, createChildrenTable);
     } catch (AlreadyExistsException e) {
@@ -469,7 +475,7 @@ public class CassandraAclRepository implements AclRepository {
   /**
    * Creates the schema for the table holding <code>AclEntry</code> representations.
    */
-  @Retryable(errorMessage = ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED)
+  @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
   public void createAclsTable() {
     try {
       executeStatement(session, createAclsTable);

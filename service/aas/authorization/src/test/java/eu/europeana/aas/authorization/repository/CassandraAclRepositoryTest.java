@@ -57,23 +57,20 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
   @Autowired
   private CassandraAclRepository service;
 
-  private boolean isInitialized = false;
 
   @Before
-  public void setUp() {
-    if (!isInitialized) {
-      service.createAoisTable();
-      service.createAclsTable();
-      service.createChildrenTable();
-      isInitialized = true;
-    }
+  public void setUp() throws Exception {
+    service.createAoisTable();
+    service.createAclsTable();
+    service.createChilrenTable();
+
     SecurityContextHolder
         .getContext()
         .setAuthentication(
             new UsernamePasswordAuthenticationToken(
                 sid1,
                 "password",
-                List.of(new SimpleGrantedAuthority(
+                Arrays.asList(new SimpleGrantedAuthority(
                     ROLE_ADMIN))));
   }
 

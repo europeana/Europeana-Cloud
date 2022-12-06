@@ -57,8 +57,6 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private static final String aoi_class = "a.b.c.Class";
   private static final String ROLE_ADMIN = Role.ADMIN;
 
-  private boolean isInitialized = false;
-
   @Autowired
   private CassandraMutableAclService service;
 
@@ -66,14 +64,11 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private CassandraAclRepository repository;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
 
-    if (!isInitialized) {
-      repository.createAoisTable();
-      repository.createAclsTable();
-      repository.createChildrenTable();
-      isInitialized = true;
-    }
+    repository.createAoisTable();
+    repository.createAclsTable();
+    repository.createChilrenTable();
 
     loginAsUser(sid1);
   }

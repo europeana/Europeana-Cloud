@@ -48,7 +48,7 @@ public class RetryAspect {
     return ((MethodSignature) proceedingJoinPoint.getSignature()).getMethod();
   }
 
-  public Retryable getAnnotationForMethodOrClass(ProceedingJoinPoint proceedingJoinPoint) {
+  private Retryable getAnnotationForMethodOrClass(ProceedingJoinPoint proceedingJoinPoint) {
     //Get annotation from method (directly or from interface)
     Retryable retryAnnotation = AnnotationUtils.findAnnotation(getMethod(proceedingJoinPoint), Retryable.class);
 

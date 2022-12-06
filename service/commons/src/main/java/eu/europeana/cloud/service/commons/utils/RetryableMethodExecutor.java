@@ -15,10 +15,8 @@ public class RetryableMethodExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
   public static int DEFAULT_REST_ATTEMPTS = 8;
-  public static int DELAY_BETWEEN_REST_ATTEMPTS = 5_000;
 
-  public static int DEFAULT_ACL_ATTEMPTS = 3;
-  public static int DELAY_BETWEEN_ACL_ATTEMPTS = 10_000;
+  public static int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
 
   public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
     return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
@@ -46,10 +44,6 @@ public class RetryableMethodExecutor {
         }
       }
     }
-  }
-
-  public static <V, E extends Throwable> V executeOnAcl(String errorMessage, GenericCallable<V, E> callable) throws E {
-    return execute(errorMessage, DEFAULT_ACL_ATTEMPTS, DELAY_BETWEEN_ACL_ATTEMPTS, callable);
   }
 
   private static void waitForSpecificTime(int milliSecond) {
