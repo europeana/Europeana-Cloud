@@ -11,44 +11,36 @@ import static eu.europeana.cloud.common.web.ParamConstants.TAG;
 import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.common.collect.ImmutableMap;
-import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
-import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import eu.europeana.cloud.test.TestUtils;
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.util.UriComponentsBuilder;
 
 
@@ -73,26 +65,8 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   private Revision revisionForDataProvider;
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @Autowired
-  private RetryAspect retryAspect;
-
-  public void changeProxySettings() {
-    Retryable retryable = mock(Retryable.class);
-    when(retryable.delay()).thenReturn(TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
-    when(retryable.maxAttempts()).thenReturn(TestUtils.DEFAULT_MAX_RETRY_COUNT_FOR_TESTS_WITH_RETRIES);
-    when(retryable.errorMessage()).thenReturn("TestErrorMessage");
-    try {
-      doReturn(retryable)
-          .when(retryAspect)
-          .getAnnotationForMethodOrClass(any(ProceedingJoinPoint.class));
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Before
   public void mockUp() throws Exception {
-    changeProxySettings();
     recordService = applicationContext.getBean(RecordService.class);
     dataSetService = applicationContext.getBean(DataSetService.class);
     uisHandler = applicationContext.getBean(UISClientHandler.class);
