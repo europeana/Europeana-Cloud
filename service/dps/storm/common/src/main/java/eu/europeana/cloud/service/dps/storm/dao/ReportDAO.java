@@ -27,6 +27,10 @@ public class ReportDAO extends CassandraDAO {
     super(dbService);
   }
 
+  public ReportDAO() {
+    //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
+  }
+
   public static synchronized ReportDAO getInstance(CassandraConnectionProvider cassandra) {
     if (instance == null) {
       instance = RetryableMethodExecutor.createRetryProxy(new ReportDAO(cassandra));
