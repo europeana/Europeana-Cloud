@@ -20,7 +20,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.test.TestUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +35,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpHarvestingBoltTest {
@@ -43,6 +43,7 @@ public class HttpHarvestingBoltTest {
   private static final String TASK_NAME = "TASK_NAME";
   private static final long TASK_ID = -5964014235733572511L;
   private static final String TASK_RELATIVE_URL = "/http_harvest/task_-5964014235733572511/";
+  private String fileUrl;
 
 
   private StormTaskTuple tuple;
@@ -63,12 +64,11 @@ public class HttpHarvestingBoltTest {
   public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
   @Before
-  public void setup() {
+  public void setup() throws IllegalAccessException {
     wireMockRule.resetAll();
-    String fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
+    fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
     tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
-    TestUtils.changeFieldValueForObject(bolt, "SLEEP_TIME_BETWEEN_RETRIES_MS", 1);
-    TestUtils.changeFieldValueForObject(bolt, "MAX_RETRIES_COUNT", 2);
+    PowerMockito.field(HttpHarvestingBolt.class, "SLEEP_TIME_BETWEEN_RETRIES_MS").setInt(bolt, 100);
     bolt.prepare();
   }
 

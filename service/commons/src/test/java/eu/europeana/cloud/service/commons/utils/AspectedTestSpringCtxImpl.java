@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
 
-@Retryable(delay = 100)
+@Retryable
 public class AspectedTestSpringCtxImpl implements AspectedTestSpringCtx {
 
   private int attemptNumber = 0;
@@ -16,18 +16,21 @@ public class AspectedTestSpringCtxImpl implements AspectedTestSpringCtx {
     return String.format("Processed '%s'", someData);
   }
 
-  public void test_delay_100_retries_10() {
+  public void test_delay_500_10() {
     throwTwoTimesException(9);
   }
 
-  public void test_delay_100_retries_6() {
+  public void test_delay_2000_6() {
     throwTwoTimesException(6);
   }
 
-  public void test_delay_100_retries_4() {
+  public void test_delay_3000_4() {
     throwTwoTimesException(3);
   }
 
+  public void test_delay_1000_errorMessage_BIG_ERROR() {
+    throwTwoTimesException(3);
+  }
 
   private void throwTwoTimesException(int exceptionsNumber) {
     attemptNumber++;

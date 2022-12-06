@@ -10,18 +10,15 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.test.TestUtils;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -53,14 +50,6 @@ public class EuropeanaIdFinderTest {
 
   private final List<CloudId> idsFromUIS = new ArrayList<>();
   private final ResultSlice<CloudId> resultSlice = new ResultSlice<>(null, idsFromUIS);
-
-  @BeforeClass
-  public static void initTest() {
-    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DEFAULT_REST_ATTEMPTS",
-        TestUtils.DEFAULT_MAX_RETRY_COUNT_FOR_TESTS_WITH_RETRIES);
-    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DELAY_BETWEEN_REST_ATTEMPTS",
-        TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
-  }
 
   @Before
   public void before() throws CloudException {

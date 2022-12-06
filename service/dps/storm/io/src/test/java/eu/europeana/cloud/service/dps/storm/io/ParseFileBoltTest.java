@@ -14,13 +14,11 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.test.TestUtils;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -69,14 +67,6 @@ public class ParseFileBoltTest {
 
   private StormTaskTuple stormTaskTuple;
   private static List<String> expectedParametersKeysList;
-
-  @BeforeClass
-  public static void initTest() {
-    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DEFAULT_REST_ATTEMPTS",
-        TestUtils.DEFAULT_MAX_RETRY_COUNT_FOR_TESTS_WITH_RETRIES);
-    TestUtils.changeFieldValueForClass(RetryableMethodExecutor.class, "DELAY_BETWEEN_REST_ATTEMPTS",
-        TestUtils.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
-  }
 
   @BeforeClass
   public static void init() {
