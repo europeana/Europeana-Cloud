@@ -19,25 +19,26 @@ public class RetryableMethodExecutor {
   public static final int DEFAULT_REST_ATTEMPTS = 8;
 
   public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
-  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ATTEMPT_COUNT";
-  private static final String DELAY_VALUE_PROPERTY_NAME = "DELAY_VALUE";
+  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT";
+  private static final String DELAY_VALUE_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_DELAY";
 
 
   static {
-    Integer attemptCountFromSystemEnv = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getenv(
-        ATTEMPT_COUNT_PROPERTY_NAME));
-    Integer delayValueFromSystemEnv = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getenv(
-        DELAY_VALUE_PROPERTY_NAME));
-
-    Integer attemptCountFromJVMVariable = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getProperty(
-        ATTEMPT_COUNT_PROPERTY_NAME));
-    Integer delayValueFromJVMVariable = RetryableMethodExecutorHelper.getIntegerFromPropertyValue(System.getProperty(
-        DELAY_VALUE_PROPERTY_NAME));
-
-    OVERRIDE_ATTEMPT_COUNT = (attemptCountFromSystemEnv == null) ? attemptCountFromJVMVariable : attemptCountFromSystemEnv;
-    OVERRIDE_DELAY_BETWEEN_ATTEMPTS = (delayValueFromSystemEnv == null) ? delayValueFromJVMVariable : delayValueFromSystemEnv;
+    OVERRIDE_ATTEMPT_COUNT = getSystemPropertyOrEnvVariable(ATTEMPT_COUNT_PROPERTY_NAME);
+    OVERRIDE_DELAY_BETWEEN_ATTEMPTS = getSystemPropertyOrEnvVariable(DELAY_VALUE_PROPERTY_NAME);
   }
 
+  private static Integer getSystemPropertyOrEnvVariable(String propertyName) {
+    return Optional.ofNullable(System.getProperty(propertyName))
+                   .map(Integer::parseInt)
+                   .orElseGet(() -> Optional.ofNullable(System.getenv(propertyName))
+                                            .map(Integer::parseInt)
+                                            .orElse(null));
+  }
+
+  public static boolean areRetryParamsOverridden() {
+    return OVERRIDE_ATTEMPT_COUNT != null || OVERRIDE_DELAY_BETWEEN_ATTEMPTS != null;
+  }
 
   public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
     return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
@@ -49,10 +50,8 @@ public class RetryableMethodExecutor {
   public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts,
       int sleepTimeBetweenRetriesMs,
       GenericCallable<V, E> callable) throws E {
-    maxAttempts =
-        RetryableMethodExecutorHelper.overrideWhenValueIsPresent(maxAttempts, OVERRIDE_ATTEMPT_COUNT);
-    sleepTimeBetweenRetriesMs =
-        RetryableMethodExecutorHelper.overrideWhenValueIsPresent(sleepTimeBetweenRetriesMs, OVERRIDE_DELAY_BETWEEN_ATTEMPTS);
+    maxAttempts = Optional.ofNullable(OVERRIDE_ATTEMPT_COUNT).orElse(maxAttempts);
+    sleepTimeBetweenRetriesMs = Optional.ofNullable(OVERRIDE_DELAY_BETWEEN_ATTEMPTS).orElse(sleepTimeBetweenRetriesMs);
     while (true) {
       try {
         return callable.call();
