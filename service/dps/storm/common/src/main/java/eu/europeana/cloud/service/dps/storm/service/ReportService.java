@@ -1,24 +1,24 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.ErrorDetails;
-import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.ErrorNotification;
+import eu.europeana.cloud.common.model.dps.Notification;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
+import eu.europeana.cloud.service.dps.storm.ErrorType;
+import eu.europeana.cloud.service.dps.storm.conversion.SubTaskInfoConverter;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
-import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -51,11 +51,24 @@ public class ReportService implements TaskExecutionReportService {
   @Override
   public TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
     long taskIdValue = Long.parseLong(taskId);
-    Row taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
-    if (taskInfo != null) {
-      return TaskInfoConverter.fromDBRow(taskInfo);
+    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
+    return Optional.ofNullable(taskInfo)
+                   .orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
+  }
+
+  @Override
+  public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
+    long taskIdValue = Long.parseLong(taskId);
+    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
+    if (taskInfo == null || !taskInfo.getTopologyName().equals(topologyName)) {
+      throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
-    throw new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE);
+  }
+
+  @Override
+  public boolean checkIfReportExists(String taskId) {
+    long taskIdValue = Long.parseLong(taskId);
+    return !reportDAO.getErrorTypes(taskIdValue).isEmpty();
   }
 
 
@@ -72,33 +85,31 @@ public class ReportService implements TaskExecutionReportService {
     long taskIdValue = Long.parseLong(taskId);
     List<SubTaskInfo> result = new ArrayList<>();
     for (int i = NotificationsDAO.bucketNumber(to); i >= NotificationsDAO.bucketNumber(from); i--) {
-      ResultSet detailedTaskReportResultSet = reportDAO.getNotification(taskIdValue, from, to, i);
-      result.addAll(convertDetailedTaskReportToListOfSubTaskInfo(detailedTaskReportResultSet));
+      List<Notification> notifications = reportDAO.getNotifications(taskIdValue, from, to, i);
+      notifications.forEach(
+          notification -> result.add(SubTaskInfoConverter.fromNotification(notification))
+      );
     }
-
     return result;
   }
 
 
-  private List<SubTaskInfo> convertDetailedTaskReportToListOfSubTaskInfo(ResultSet data) {
-    List<SubTaskInfo> subTaskInfoList = new ArrayList<>();
-
-    for (Row row : data) {
-      Map<String, String> additionalInformationMap =
-          row.getMap(CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION, String.class, String.class);
-
-      SubTaskInfo subTaskInfo = new SubTaskInfo(row.getInt(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM),
-          row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE),
-          RecordState.valueOf(row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_STATE)),
-          row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT),
-          additionalInformationMap.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
-          additionalInformationMap.get(NotificationsDAO.EUROPEANA_ID_KEY),
-          additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY) !=
-              null ? Long.parseLong(additionalInformationMap.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
-          row.getString(CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE));
-      subTaskInfoList.add(subTaskInfo);
-    }
-    return subTaskInfoList;
+  /**
+   * Retrieve sample of identifiers for the given error type
+   *
+   * @param task task identifier
+   * @param errorType type of error
+   * @return task error info objects with sample identifiers
+   */
+  @Override
+  public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount)
+      throws AccessDeniedOrObjectDoesNotExistException {
+    long taskId = Long.parseLong(task);
+    TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
+    taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
+    String message = getErrorMessage(taskId, new HashMap<>(), errorType);
+    taskErrorInfo.setMessage(message);
+    return new TaskErrorsInfo(taskId, List.of(taskErrorInfo));
   }
 
   /**
@@ -114,21 +125,16 @@ public class ReportService implements TaskExecutionReportService {
     List<TaskErrorInfo> errors = new ArrayList<>();
     TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
-    ResultSet rs = reportDAO.getErrorStatements(taskId);
-    if (!rs.iterator().hasNext()) {
+    List<ErrorType> errorTypes = reportDAO.getErrorTypes(taskId);
+    if (errorTypes.isEmpty()) {
       return result;
     }
-
     Map<String, String> errorMessages = new HashMap<>();
-
-    while (rs.iterator().hasNext()) {
-      Row row = rs.one();
-
-      String errorType = row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString();
-      String message = getErrorMessage(taskId, errorMessages, errorType);
-      int occurrences = row.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
-      List<ErrorDetails> errorDetails = retrieveErrorDetails(taskId, errorType, idsCount);
-      errors.add(new TaskErrorInfo(errorType, message, occurrences, errorDetails));
+    for (ErrorType errorType : errorTypes) {
+      String uuid = errorType.getUuid();
+      String message = getErrorMessage(taskId, errorMessages, uuid);
+      List<ErrorDetails> errorDetails = retrieveErrorDetails(taskId, uuid, idsCount);
+      errors.add(new TaskErrorInfo(uuid, message, errorType.getCount(), errorDetails));
     }
     return result;
   }
@@ -152,18 +158,16 @@ public class ReportService implements TaskExecutionReportService {
       return errorDetails;
     }
 
-    ResultSet rs = reportDAO.getErrorStatement(taskId, UUID.fromString(errorType), idsCount);
-    if (!rs.iterator().hasNext()) {
+    List<ErrorNotification> errorNotifications = reportDAO.getErrorNotifications(taskId, UUID.fromString(errorType), idsCount);
+    if (errorNotifications.isEmpty()) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
 
-    while (rs.iterator().hasNext()) {
-      Row row = rs.one();
-      errorDetails.add(new ErrorDetails(
-          row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_RESOURCE),
-          row.getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ADDITIONAL_INFORMATIONS)
-      ));
-    }
+    errorNotifications.forEach(errorNotification ->
+        errorDetails.add(new ErrorDetails(
+            errorNotification.getResource(),
+            errorNotification.getAdditionalInformations()
+        )));
     return errorDetails;
   }
 
@@ -182,33 +186,14 @@ public class ReportService implements TaskExecutionReportService {
       throws AccessDeniedOrObjectDoesNotExistException {
     String message = errorMessages.get(errorType);
     if (message == null) {
-      ResultSet rs = reportDAO.getErrorStatement(taskId, UUID.fromString(errorType), FETCH_ONE);
-      if (!rs.iterator().hasNext()) {
+      List<ErrorNotification> errorNotifications = reportDAO.getErrorNotifications(taskId, UUID.fromString(errorType), FETCH_ONE);
+      if (errorNotifications.isEmpty()) {
         throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
       }
-      message = rs.one().getString(CassandraTablesAndColumnsNames.ERROR_NOTIFICATION_ERROR_MESSAGE);
+      message = errorNotifications.get(0).getErrorMessage();
       errorMessages.put(errorType, message);
     }
     return message;
-  }
-
-
-  /**
-   * Retrieve sample of identifiers for the given error type
-   *
-   * @param task task identifier
-   * @param errorType type of error
-   * @return task error info objects with sample identifiers
-   */
-  @Override
-  public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount)
-      throws AccessDeniedOrObjectDoesNotExistException {
-    long taskId = Long.parseLong(task);
-    TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
-    taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
-    String message = getErrorMessage(taskId, new HashMap<>(), errorType);
-    taskErrorInfo.setMessage(message);
-    return new TaskErrorsInfo(taskId, List.of(taskErrorInfo));
   }
 
 
@@ -222,35 +207,18 @@ public class ReportService implements TaskExecutionReportService {
    * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
    */
   private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
-    ResultSet rs = reportDAO.getErrorCounter(taskId, UUID.fromString(errorType));
-    if (!rs.iterator().hasNext()) {
+    ErrorType errType = reportDAO.getErrorType(taskId, UUID.fromString(errorType));
+    if (errType == null) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
 
     TaskErrorInfo taskErrorInfo = new TaskErrorInfo();
     taskErrorInfo.setErrorType(errorType);
 
-    Row row = rs.one();
-    taskErrorInfo.setOccurrences(row.getInt(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER));
+    taskErrorInfo.setOccurrences(errType.getCount());
 
     return taskErrorInfo;
   }
 
-
-  @Override
-  public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-    long taskIdValue = Long.parseLong(taskId);
-    Row taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
-    if (taskInfo == null || !taskInfo.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME).equals(topologyName)) {
-      throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
-    }
-  }
-
-  @Override
-  public boolean checkIfReportExists(String taskId) {
-    long taskIdValue = Long.parseLong(taskId);
-    ResultSet rs = reportDAO.getErrorStatements(taskIdValue);
-    return rs.iterator().hasNext();
-  }
 
 }

@@ -4,8 +4,14 @@ import com.datastax.driver.core.Row;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+/**
+ * Class converting from DB rows or other class instances to TaskInfo class instance
+ */
+public final class TaskInfoConverter {
 
-public class TaskInfoConverter {
+  private TaskInfoConverter() {
+  }
+
 
   /**
    * Converts database row to the {@link TaskInfo} class instance.
