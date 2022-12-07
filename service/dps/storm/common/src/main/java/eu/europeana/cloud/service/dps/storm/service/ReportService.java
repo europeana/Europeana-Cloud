@@ -56,6 +56,13 @@ public class ReportService implements TaskExecutionReportService {
                    .orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
   }
 
+  /**
+   * Check if Task specified by id and name of topology that it belongs to exists. If it doesn't exist then exception will be
+   * thrown
+   *
+   * @param taskId id of task
+   * @param topologyName name of topology that task belong to
+   */
   @Override
   public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
     long taskIdValue = Long.parseLong(taskId);
@@ -65,6 +72,12 @@ public class ReportService implements TaskExecutionReportService {
     }
   }
 
+  /**
+   * Check if there is any report regarding task with id given by taskId param
+   *
+   * @param taskId id of task
+   * @return true or false depends on if any report exists for specified task
+   */
   @Override
   public boolean checkIfReportExists(String taskId) {
     long taskIdValue = Long.parseLong(taskId);
