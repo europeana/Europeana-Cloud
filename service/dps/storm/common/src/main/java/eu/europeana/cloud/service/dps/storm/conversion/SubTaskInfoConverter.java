@@ -23,16 +23,15 @@ public final class SubTaskInfoConverter {
    */
   public static SubTaskInfo fromNotification(Notification notification) {
     Map<String, String> additionalInformation = notification.getAdditionalInformation();
-    return new SubTaskInfo(
-        notification.getResourceNum(),
-        notification.getResource(),
-        RecordState.valueOf(notification.getState()),
-        notification.getInfoText(),
-        additionalInformation.get(NotificationsDAO.STATE_DESCRIPTION_KEY),
-        additionalInformation.get(NotificationsDAO.EUROPEANA_ID_KEY),
-        additionalInformation.get(NotificationsDAO.PROCESSING_TIME_KEY) !=
-            null ? Long.parseLong(additionalInformation.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L,
-        notification.getResultResource()
-    );
+    return SubTaskInfo.builder()
+                      .resourceNum(notification.getResourceNum())
+                      .resource(notification.getResource())
+                      .recordState(RecordState.valueOf(notification.getState()))
+                      .info(notification.getInfoText())
+                      .additionalInformations(additionalInformation.get(NotificationsDAO.STATE_DESCRIPTION_KEY))
+                      .europeanaId(additionalInformation.get(NotificationsDAO.EUROPEANA_ID_KEY))
+                      .processingTime(additionalInformation.get(NotificationsDAO.PROCESSING_TIME_KEY) !=
+                          null ? Long.parseLong(additionalInformation.get(NotificationsDAO.PROCESSING_TIME_KEY)) : 0L)
+                      .resultResource(notification.getResultResource()).build();
   }
 }
