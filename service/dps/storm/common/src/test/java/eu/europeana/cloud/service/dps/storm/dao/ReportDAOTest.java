@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.ERROR_TYPE;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TASK_ID_LONG;
+import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TASK_ID;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreErrorType;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreNotification;
 import static org.junit.Assert.assertEquals;
@@ -42,54 +42,54 @@ public class ReportDAOTest extends CassandraTestBase {
 
   @Test
   public void getTaskInfoRecordTest() {
-    assertNull(reportDAO.getTaskInfoRecord(TASK_ID_LONG));
+    assertNull(reportDAO.getTaskInfoRecord(TASK_ID));
     ReportTestUtils.createAndStoreTaskInfo(taskInfoDAO);
-    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(TASK_ID_LONG);
-    assertEquals(TASK_ID_LONG, taskInfo.getId());
+    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(TASK_ID);
+    assertEquals(TASK_ID, taskInfo.getId());
   }
 
   @Test
   public void getNotificationsTest() {
-    assertEquals(0, reportDAO.getNotifications(TASK_ID_LONG, 1, 5, 0).size());
+    assertEquals(0, reportDAO.getNotifications(TASK_ID, 1, 5, 0).size());
     createAndStoreNotification(1, notificationsDAO);
     createAndStoreNotification(2, notificationsDAO);
     createAndStoreNotification(3, notificationsDAO);
     createAndStoreNotification(4, notificationsDAO);
     createAndStoreNotification(5, notificationsDAO);
-    assertEquals(5, reportDAO.getNotifications(TASK_ID_LONG, 1, 5, 0).size());
-    assertEquals(0, reportDAO.getNotifications(TASK_ID_LONG, 6, 10, 0).size());
+    assertEquals(5, reportDAO.getNotifications(TASK_ID, 1, 5, 0).size());
+    assertEquals(0, reportDAO.getNotifications(TASK_ID, 6, 10, 0).size());
     createAndStoreNotification(6, notificationsDAO);
     createAndStoreNotification(6, notificationsDAO);
-    assertEquals(1, reportDAO.getNotifications(TASK_ID_LONG, 6, 10, 0).size());
+    assertEquals(1, reportDAO.getNotifications(TASK_ID, 6, 10, 0).size());
   }
 
   @Test
   public void getErrorTypesTest() {
-    assertEquals(0, reportDAO.getErrorTypes(TASK_ID_LONG).size());
+    assertEquals(0, reportDAO.getErrorTypes(TASK_ID).size());
     createAndStoreErrorType(ERROR_TYPE1, errorsDAO);
-    assertEquals(1, reportDAO.getErrorTypes(TASK_ID_LONG).size());
+    assertEquals(1, reportDAO.getErrorTypes(TASK_ID).size());
     createAndStoreErrorType(ERROR_TYPE2, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE3, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE4, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE5, errorsDAO);
-    assertEquals(5, reportDAO.getErrorTypes(TASK_ID_LONG).size());
+    assertEquals(5, reportDAO.getErrorTypes(TASK_ID).size());
     createAndStoreErrorType(ERROR_TYPE5, errorsDAO);
-    assertEquals(5, reportDAO.getErrorTypes(TASK_ID_LONG).size());
+    assertEquals(5, reportDAO.getErrorTypes(TASK_ID).size());
   }
 
   @Test
   public void getErrorNotificationsTest() {
-    assertEquals(0, reportDAO.getErrorNotifications(TASK_ID_LONG, UUID.fromString(ERROR_TYPE), 1).size());
+    assertEquals(0, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 1).size());
     ReportTestUtils.createAndStoreErrorNotification(ERROR_TYPE, errorsDAO);
-    assertEquals(1, reportDAO.getErrorNotifications(TASK_ID_LONG, UUID.fromString(ERROR_TYPE), 1).size());
+    assertEquals(1, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 1).size());
     ReportTestUtils.createAndStoreErrorNotification(ERROR_TYPE, errorsDAO);
-    assertEquals(1, reportDAO.getErrorNotifications(TASK_ID_LONG, UUID.fromString(ERROR_TYPE), 5).size());
+    assertEquals(1, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 5).size());
   }
 
   @Test
   public void getErrorTypeTest() {
-    assertNull(reportDAO.getErrorType(TASK_ID_LONG, UUID.fromString(ERROR_TYPE)));
+    assertNull(reportDAO.getErrorType(TASK_ID, UUID.fromString(ERROR_TYPE)));
     ReportTestUtils.createAndStoreErrorType(ERROR_TYPE, errorsDAO);
-    assertNotNull(reportDAO.getErrorType(TASK_ID_LONG, UUID.fromString(ERROR_TYPE)));
+    assertNotNull(reportDAO.getErrorType(TASK_ID, UUID.fromString(ERROR_TYPE)));
   }
 }

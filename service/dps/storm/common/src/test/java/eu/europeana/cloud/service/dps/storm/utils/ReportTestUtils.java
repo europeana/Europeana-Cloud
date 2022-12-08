@@ -14,13 +14,12 @@ import java.util.Map;
 public class ReportTestUtils {
 
 
-  public static final long TASK_ID_LONG = 111;
-  public static final String TASK_ID = "111";
+  public static final long TASK_ID = 111;
   public static final String TOPOLOGY_NAME = "some_topology";
   public static final String ERROR_TYPE = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b2";
 
   public static void createAndStoreErrorType(String errorType, CassandraTaskErrorsDAO errorsDAO) {
-    errorsDAO.insertErrorCounter(TASK_ID_LONG, errorType, 5);
+    errorsDAO.insertErrorCounter(TASK_ID, errorType, 5);
   }
 
   public static List<SubTaskInfo> createAndStoreSubtaskInfoRange(int to, NotificationsDAO notificationsDAO) {
@@ -40,12 +39,12 @@ public class ReportTestUtils {
   }
 
   public static void createAndStoreErrorNotification(String errorType, CassandraTaskErrorsDAO errorsDAO) {
-    errorsDAO.insertError(TASK_ID_LONG, errorType, "some_error_message", "some_resource", "some_additional_information");
+    errorsDAO.insertError(TASK_ID, errorType, "some_error_message", "some_resource", "some_additional_information");
   }
 
   public static void createAndStoreTaskInfo(CassandraTaskInfoDAO taskInfoDAO) {
     TaskInfo exampleTaskInfo = new TaskInfo();
-    exampleTaskInfo.setId(TASK_ID_LONG);
+    exampleTaskInfo.setId(TASK_ID);
     exampleTaskInfo.setState(TaskState.QUEUED);
     exampleTaskInfo.setTopologyName(TOPOLOGY_NAME);
     taskInfoDAO.insert(exampleTaskInfo);
@@ -54,7 +53,7 @@ public class ReportTestUtils {
   public static SubTaskInfo createAndStoreNotification(int resourceNum, NotificationsDAO subtaskInfoDao) {
     SubTaskInfo info = new SubTaskInfo(resourceNum, "resource" + resourceNum, RecordState.QUEUED, "info", "additionalInformation",
         "europeanaId", 0L, "resultResource" + resourceNum);
-    subtaskInfoDao.insert(info.getResourceNum(), TASK_ID_LONG, TOPOLOGY_NAME,
+    subtaskInfoDao.insert(info.getResourceNum(), TASK_ID, TOPOLOGY_NAME,
         info.getResource(), info.getRecordState().toString(), info.getInfo(),
         Map.of(
             NotificationsDAO.STATE_DESCRIPTION_KEY, info.getAdditionalInformations(),

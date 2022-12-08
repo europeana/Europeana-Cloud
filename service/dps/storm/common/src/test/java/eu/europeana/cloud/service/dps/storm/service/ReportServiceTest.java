@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.service;
 
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.ERROR_TYPE;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TASK_ID;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TASK_ID_LONG;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TOPOLOGY_NAME;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreErrorNotification;
 import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreErrorType;
@@ -28,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import java.util.List;
 import org.junit.Before;
@@ -57,7 +57,7 @@ public class ReportServiceTest extends CassandraTestBase {
     createAndStoreTaskInfo(taskInfoDAO);
     TaskInfo taskInfo = service.getTaskProgress(TASK_ID);
     assertEquals(TaskState.QUEUED, taskInfo.getState());
-    assertEquals(TASK_ID_LONG, taskInfo.getId());
+    assertEquals(ReportTestUtils.TASK_ID, taskInfo.getId());
   }
 
   @Test

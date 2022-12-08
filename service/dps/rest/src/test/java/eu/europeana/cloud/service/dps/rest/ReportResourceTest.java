@@ -1,13 +1,36 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.common.model.dps.AttributeStatistics;
+import eu.europeana.cloud.common.model.dps.ErrorDetails;
+import eu.europeana.cloud.common.model.dps.NodeReport;
+import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,18 +40,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
@@ -71,9 +82,9 @@ public class ReportResourceTest extends AbstractResourceTest {
   @Test
   public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-    doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
+    doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
-    when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 1, 100)).thenReturn(subTaskInfoList);
+    when(reportService.getDetailedTaskReport(TASK_ID, 1, 100)).thenReturn(subTaskInfoList);
 
     ResultActions response = mockMvc.perform(get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
 
@@ -84,9 +95,9 @@ public class ReportResourceTest extends AbstractResourceTest {
   public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
     doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService)
-                                                            .checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
+                                                            .checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
-    when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 1, 100)).thenReturn(subTaskInfoList);
+    when(reportService.getDetailedTaskReport(TASK_ID, 1, 100)).thenReturn(subTaskInfoList);
 
     ResultActions response = mockMvc.perform(
         get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -98,9 +109,9 @@ public class ReportResourceTest extends AbstractResourceTest {
   @Test
   public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
-    when(reportService.getDetailedTaskReport(Long.toString(TASK_ID), 120, 150)).thenReturn(subTaskInfoList);
+    when(reportService.getDetailedTaskReport(TASK_ID, 120, 150)).thenReturn(subTaskInfoList);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
-    doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
+    doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     ResultActions response = mockMvc.perform(
         get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
     assertDetailedReportResponse(subTaskInfoList.get(0), response);
@@ -111,7 +122,7 @@ public class ReportResourceTest extends AbstractResourceTest {
   public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-    when(reportService.getGeneralTaskErrorReport(Long.toString(TASK_ID), 10)).thenReturn(errorsInfo);
+    when(reportService.getGeneralTaskErrorReport(TASK_ID, 10)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
         get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -127,8 +138,8 @@ public class ReportResourceTest extends AbstractResourceTest {
   @Test
   public void shouldCheckIfReportExists() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-    doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
-    when(reportService.checkIfReportExists(Long.toString(TASK_ID))).thenReturn(true);
+    doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
+    when(reportService.checkIfReportExists(TASK_ID)).thenReturn(true);
     ResultActions response = mockMvc.perform(head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
     response.andExpect(status().isOk());
   }
@@ -137,8 +148,8 @@ public class ReportResourceTest extends AbstractResourceTest {
   @Test
   public void shouldReturn405InCaseOfException() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
-    doNothing().when(reportService).checkIfTaskExists(Long.toString(TASK_ID), TOPOLOGY_NAME);
-    when(reportService.checkIfReportExists(Long.toString(TASK_ID))).thenReturn(false);
+    doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
+    when(reportService.checkIfReportExists(TASK_ID)).thenReturn(false);
 
     ResultActions response = mockMvc.perform(
         head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
@@ -151,7 +162,7 @@ public class ReportResourceTest extends AbstractResourceTest {
   public void shouldGetSpecificErrorReport() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
-    when(reportService.getSpecificTaskErrorReport(Long.toString(TASK_ID), ERROR_TYPES[0], 100)).thenReturn(errorsInfo);
+    when(reportService.getSpecificTaskErrorReport(TASK_ID, ERROR_TYPES[0], 100)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
         get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("error", ERROR_TYPES[0]));
@@ -165,7 +176,7 @@ public class ReportResourceTest extends AbstractResourceTest {
   public void shouldGetGeneralErrorReport() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
-    when(reportService.getGeneralTaskErrorReport(Long.toString(TASK_ID), 0)).thenReturn(errorsInfo);
+    when(reportService.getGeneralTaskErrorReport(TASK_ID, 0)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
         get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)

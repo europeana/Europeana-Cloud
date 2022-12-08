@@ -49,9 +49,8 @@ public class ReportService implements TaskExecutionReportService {
    * @throws AccessDeniedOrObjectDoesNotExistException thrown in case of insufficient permission or task not existing
    */
   @Override
-  public TaskInfo getTaskProgress(String taskId) throws AccessDeniedOrObjectDoesNotExistException {
-    long taskIdValue = Long.parseLong(taskId);
-    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
+  public TaskInfo getTaskProgress(long taskId) throws AccessDeniedOrObjectDoesNotExistException {
+    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskId);
     return Optional.ofNullable(taskInfo)
                    .orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
   }
@@ -64,9 +63,8 @@ public class ReportService implements TaskExecutionReportService {
    * @param topologyName name of topology that task belong to
    */
   @Override
-  public void checkIfTaskExists(String taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-    long taskIdValue = Long.parseLong(taskId);
-    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskIdValue);
+  public void checkIfTaskExists(long taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
+    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskId);
     if (taskInfo == null || !taskInfo.getTopologyName().equals(topologyName)) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
@@ -79,9 +77,8 @@ public class ReportService implements TaskExecutionReportService {
    * @return true or false depends on if any report exists for specified task
    */
   @Override
-  public boolean checkIfReportExists(String taskId) {
-    long taskIdValue = Long.parseLong(taskId);
-    return !reportDAO.getErrorTypes(taskIdValue).isEmpty();
+  public boolean checkIfReportExists(long taskId) {
+    return !reportDAO.getErrorTypes(taskId).isEmpty();
   }
 
 
@@ -94,11 +91,10 @@ public class ReportService implements TaskExecutionReportService {
    * @return Array of SubTaskInfo class objects
    */
   @Override
-  public List<SubTaskInfo> getDetailedTaskReport(String taskId, int from, int to) {
-    long taskIdValue = Long.parseLong(taskId);
+  public List<SubTaskInfo> getDetailedTaskReport(long taskId, int from, int to) {
     List<SubTaskInfo> result = new ArrayList<>();
     for (int i = NotificationsDAO.bucketNumber(to); i >= NotificationsDAO.bucketNumber(from); i--) {
-      List<Notification> notifications = reportDAO.getNotifications(taskIdValue, from, to, i);
+      List<Notification> notifications = reportDAO.getNotifications(taskId, from, to, i);
       notifications.forEach(
           notification -> result.add(SubTaskInfoConverter.fromNotification(notification))
       );
@@ -110,14 +106,13 @@ public class ReportService implements TaskExecutionReportService {
   /**
    * Retrieve sample of identifiers for the given error type
    *
-   * @param task task identifier
+   * @param taskId task identifier
    * @param errorType type of error
    * @return task error info objects with sample identifiers
    */
   @Override
-  public TaskErrorsInfo getSpecificTaskErrorReport(String task, String errorType, int idsCount)
+  public TaskErrorsInfo getSpecificTaskErrorReport(long taskId, String errorType, int idsCount)
       throws AccessDeniedOrObjectDoesNotExistException {
-    long taskId = Long.parseLong(task);
     TaskErrorInfo taskErrorInfo = getTaskErrorInfo(taskId, errorType);
     taskErrorInfo.setErrorDetails(retrieveErrorDetails(taskId, errorType, idsCount));
     String message = getErrorMessage(taskId, new HashMap<>(), errorType);
@@ -128,13 +123,12 @@ public class ReportService implements TaskExecutionReportService {
   /**
    * Retrieve all errors that occurred for the given task
    *
-   * @param task task identifier
+   * @param taskId task identifier
    * @return task error info object
    * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
    */
   @Override
-  public TaskErrorsInfo getGeneralTaskErrorReport(String task, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
-    long taskId = Long.parseLong(task);
+  public TaskErrorsInfo getGeneralTaskErrorReport(long taskId, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
     List<TaskErrorInfo> errors = new ArrayList<>();
     TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
