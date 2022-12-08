@@ -78,7 +78,6 @@
         <module>service/mcs</module>
         <module>service/aas</module>
         <module>service/commons</module>
-        <module>tools</module>
         <module>test-common</module>
         <module>service/ecloud-web-commons</module>
     </modules>
