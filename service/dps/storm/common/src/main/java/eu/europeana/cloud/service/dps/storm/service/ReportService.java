@@ -133,9 +133,6 @@ public class ReportService implements TaskExecutionReportService {
     TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
     List<ErrorType> errorTypes = reportDAO.getErrorTypes(taskId);
-    if (errorTypes.isEmpty()) {
-      return result;
-    }
     Map<String, String> errorMessages = new HashMap<>();
     for (ErrorType errorType : errorTypes) {
       String uuid = errorType.getUuid();
