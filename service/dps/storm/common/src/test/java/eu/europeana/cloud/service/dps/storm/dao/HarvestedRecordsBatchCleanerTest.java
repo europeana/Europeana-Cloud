@@ -1,26 +1,26 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import com.google.common.collect.ImmutableList;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
@@ -32,7 +32,8 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
   @Before
   public void setup() {
-    CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+        CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
     HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
     dao = RetryableMethodExecutor.createRetryProxy(rawDao);

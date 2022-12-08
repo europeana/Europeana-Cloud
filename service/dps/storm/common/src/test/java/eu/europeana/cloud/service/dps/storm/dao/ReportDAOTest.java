@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils;
@@ -31,7 +32,8 @@ public class ReportDAOTest extends CassandraTestBase {
 
   @Before
   public void setup() {
-    CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+        CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
     reportDAO = ReportDAO.getInstance(db);
     notificationsDAO = NotificationsDAO.getInstance(db);

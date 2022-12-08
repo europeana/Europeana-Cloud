@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Lists;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
@@ -44,9 +45,10 @@ public class ReportServiceTest extends CassandraTestBase {
 
   @Before
   public void setup() {
-    CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+        CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
-    service = new ReportService(new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD));
+    service = new ReportService(db);
     notificationsDAO = NotificationsDAO.getInstance(db);
     taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);
     errorsDAO = CassandraTaskErrorsDAO.getInstance(db);
