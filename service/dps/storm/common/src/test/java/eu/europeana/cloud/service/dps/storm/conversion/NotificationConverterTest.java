@@ -14,7 +14,6 @@ import org.junit.Test;
 public class NotificationConverterTest {
 
   public static final HashMap<String, String> ADDITIONAL_INFORMATION = new HashMap<>();
-  public static final int COUNT = 5;
   public static final int BUCKET_NUMBER = 1;
   public static final int RESOURCE_NUM = 2;
   public static final String INFO_TEXT = "some_info_text";
@@ -23,7 +22,6 @@ public class NotificationConverterTest {
   public static final String STATE = "some_state";
   public static final String TOPOLOGY_NAME = "some_topology_name";
   private static final long TASK_ID = 111L;
-  private static final String ERROR_TYPE = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b2";
   Row row = mock(Row.class);
 
 
