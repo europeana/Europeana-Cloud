@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ReportTestUtils {
+public class ServiceAndDAOTestUtils {
 
 
   public static final long TASK_ID = 111;
@@ -39,7 +39,11 @@ public class ReportTestUtils {
   }
 
   public static void createAndStoreErrorNotification(String errorType, CassandraTaskErrorsDAO errorsDAO) {
-    errorsDAO.insertError(TASK_ID, errorType, "some_error_message", "some_resource", "some_additional_information");
+    createAndStoreErrorNotification(errorType, errorsDAO, "some_resource");
+  }
+
+  public static void createAndStoreErrorNotification(String errorType, CassandraTaskErrorsDAO errorsDAO, String resource) {
+    errorsDAO.insertError(TASK_ID, errorType, "some_error_message", resource, "some_additional_information");
   }
 
   public static void createAndStoreTaskInfo(CassandraTaskInfoDAO taskInfoDAO) {

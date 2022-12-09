@@ -1,15 +1,15 @@
-package eu.europeana.cloud.service.dps.storm.utils;
+package eu.europeana.cloud.service.dps.storm.dao;
+
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreNotification;
+import static org.junit.Assert.assertEquals;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 public class NotificationsDAOTest extends CassandraTestBase {
 
@@ -51,6 +51,33 @@ public class NotificationsDAOTest extends CassandraTestBase {
     int result = subtaskInfoDao.getProcessedFilesCount(TASK_ID);
 
     assertEquals(count, result);
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenNoNotificationsRecords() {
+    assertEquals(0, subtaskInfoDao.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(TASK_ID, 1, 5, 0).size());
+  }
+
+  @Test
+  public void shouldReturnAllNotificationsInContinuousRange() {
+    createAndStoreNotification(1, subtaskInfoDao);
+    createAndStoreNotification(2, subtaskInfoDao);
+    createAndStoreNotification(3, subtaskInfoDao);
+    createAndStoreNotification(4, subtaskInfoDao);
+    createAndStoreNotification(5, subtaskInfoDao);
+    assertEquals(5, subtaskInfoDao.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(TASK_ID, 1, 5, 0).size());
+  }
+
+  @Test
+  public void shouldNotReturnNotificationsFromOutsideOfRange() {
+    createAndStoreNotification(1, subtaskInfoDao);
+    createAndStoreNotification(2, subtaskInfoDao);
+    createAndStoreNotification(3, subtaskInfoDao);
+    createAndStoreNotification(4, subtaskInfoDao);
+    createAndStoreNotification(5, subtaskInfoDao);
+    assertEquals(0, subtaskInfoDao.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(TASK_ID, 6, 10, 0).size());
+    assertEquals(0, subtaskInfoDao.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(TASK_ID, 6, 6, 0).size());
+    assertEquals(0, subtaskInfoDao.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(TASK_ID, 0, 0, 0).size());
   }
 
   private void insertNotifications(int count) {

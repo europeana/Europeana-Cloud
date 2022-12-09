@@ -1,13 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.ERROR_TYPE;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TASK_ID;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreErrorNotification;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreErrorType;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreNotification;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreSubtaskInfoRange;
-import static eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils.createAndStoreTaskInfo;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.ERROR_TYPE;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.TASK_ID;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.TOPOLOGY_NAME;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreErrorNotification;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreErrorType;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreNotification;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreSubtaskInfoRange;
+import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreTaskInfo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -28,7 +28,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
-import eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils;
+import eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import java.util.List;
 import org.junit.Before;
@@ -60,7 +60,7 @@ public class TaskExecutionReportServiceImplTest extends CassandraTestBase {
     createAndStoreTaskInfo(taskInfoDAO);
     TaskInfo taskInfo = service.getTaskProgress(TASK_ID);
     assertEquals(TaskState.QUEUED, taskInfo.getState());
-    assertEquals(ReportTestUtils.TASK_ID, taskInfo.getId());
+    assertEquals(ServiceAndDAOTestUtils.TASK_ID, taskInfo.getId());
   }
 
   @Test
