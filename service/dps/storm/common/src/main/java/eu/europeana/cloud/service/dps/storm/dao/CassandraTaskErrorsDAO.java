@@ -142,11 +142,11 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
    *
    * @param taskId identifier of task
    * @param errorTypeUUID error type of errors
-   * @return List of  ErrorType class instances
+   * @return Optional of ErrorType class instances
    */
-  public ErrorType getErrorType(long taskId, UUID errorTypeUUID) {
+  public Optional<ErrorType> getErrorType(long taskId, UUID errorTypeUUID) {
     ResultSet rs = dbService.getSession().execute(selectErrorTypeStatement.bind(taskId, errorTypeUUID));
-    return (rs.iterator().hasNext()) ? ErrorTypeConverter.fromDBRow(rs.one()) : null;
+    return (rs.iterator().hasNext()) ? Optional.of(ErrorTypeConverter.fromDBRow(rs.one())) : Optional.empty();
   }
 
   public Iterator<String> getMessagesUuids(long taskId) {
