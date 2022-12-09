@@ -35,10 +35,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-public class ReportServiceTest extends CassandraTestBase {
+public class TaskExecutionReportServiceImplTest extends CassandraTestBase {
+
   private static final String ERROR_TYPE1 = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b3";
   private static final String ERROR_TYPE2 = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b4";
-  private ReportService service;
+  private TaskExecutionReportServiceImpl service;
   private NotificationsDAO notificationsDAO;
   private CassandraTaskInfoDAO taskInfoDAO;
   private CassandraTaskErrorsDAO errorsDAO;
@@ -51,7 +52,7 @@ public class ReportServiceTest extends CassandraTestBase {
     notificationsDAO = NotificationsDAO.getInstance(db);
     taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);
     errorsDAO = CassandraTaskErrorsDAO.getInstance(db);
-    service = new ReportService(notificationsDAO, errorsDAO, taskInfoDAO);
+    service = new TaskExecutionReportServiceImpl(notificationsDAO, errorsDAO, taskInfoDAO);
   }
 
   @Test

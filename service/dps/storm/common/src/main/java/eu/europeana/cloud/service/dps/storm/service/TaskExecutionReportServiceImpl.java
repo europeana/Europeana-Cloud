@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * Report service powered by Cassandra.
  */
-public class ReportService implements TaskExecutionReportService {
+public class TaskExecutionReportServiceImpl implements TaskExecutionReportService {
 
   private static final String RETRIEVING_ERROR_MESSAGE = "Specified task or error type does not exist!";
   private static final String TASK_NOT_EXISTS_ERROR_MESSAGE = "The task with the provided id doesn't exist!";
@@ -40,7 +40,7 @@ public class ReportService implements TaskExecutionReportService {
    * @param taskErrorsDAO instance of CassandraTaskErrorsDAO
    * @param taskInfoDAO instance of CassandraTaskInfoDAO
    */
-  public ReportService(NotificationsDAO notificationsDAO, CassandraTaskErrorsDAO taskErrorsDAO,
+  public TaskExecutionReportServiceImpl(NotificationsDAO notificationsDAO, CassandraTaskErrorsDAO taskErrorsDAO,
       CassandraTaskInfoDAO taskInfoDAO) {
     this.taskErrorsDAO = taskErrorsDAO;
     this.notificationsDAO = notificationsDAO;

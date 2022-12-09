@@ -23,7 +23,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class NotificationBoltTest extends CassandraTestBase {
   private NotificationBolt testedBolt;
   private CassandraTaskInfoDAO taskInfoDAO;
   private CassandraTaskErrorsDAO taskErrorsDAO;
-  private ReportService reportService;
+  private TaskExecutionReportServiceImpl reportService;
   private NotificationsDAO subtaskDAO;
   private ProcessedRecordsDAO processedRecordsDAO;
   private int resourceCounter = 0;
@@ -76,7 +76,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     taskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     subtaskDAO = NotificationsDAO.getInstance(db);
     processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
-    reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
+    reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
   }
 
   private void createBolt() {
@@ -345,7 +345,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     //given
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
         CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
-    ReportService reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
+    TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 330;
     int errors = 5;
@@ -392,7 +392,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     //given
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
         CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
-    ReportService reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
+    TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 20;
     int errors = 9;

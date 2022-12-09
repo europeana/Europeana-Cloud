@@ -51,7 +51,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -115,8 +115,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
 
   @Bean
-  public ReportService taskReportService() {
-    return new ReportService(subTaskInfoDAO(), taskErrorDAO(), taskInfoDAO());
+  public TaskExecutionReportServiceImpl taskReportService() {
+    return new TaskExecutionReportServiceImpl(subTaskInfoDAO(), taskErrorDAO(), taskInfoDAO());
   }
 
   @Bean
