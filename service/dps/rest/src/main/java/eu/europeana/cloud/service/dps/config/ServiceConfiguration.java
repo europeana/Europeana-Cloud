@@ -48,6 +48,7 @@ import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
@@ -114,8 +115,13 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
+  public ReportDAO reportDAO() {
+    return ReportDAO.getInstance(dpsCassandraProvider());
+  }
+
+  @Bean
   public ReportService taskReportService() {
-    return new ReportService(dpsCassandraProvider());
+    return new ReportService(reportDAO());
   }
 
   @Bean

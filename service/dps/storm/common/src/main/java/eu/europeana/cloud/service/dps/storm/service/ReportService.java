@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
-import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.ErrorDetails;
 import eu.europeana.cloud.common.model.dps.ErrorNotification;
 import eu.europeana.cloud.common.model.dps.Notification;
@@ -34,10 +33,10 @@ public class ReportService implements TaskExecutionReportService {
   /**
    * Constructor of Cassandra report service.
    *
-   * @param dbService instance of CassandraConnectionProvider
+   * @param reportDAO instance of ReportDAO class
    */
-  public ReportService(CassandraConnectionProvider dbService) {
-    reportDAO = ReportDAO.getInstance(dbService);
+  public ReportService(ReportDAO reportDAO) {
+    this.reportDAO = reportDAO;
   }
 
 
