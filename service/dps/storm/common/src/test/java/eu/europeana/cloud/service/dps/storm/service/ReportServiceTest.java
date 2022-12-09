@@ -27,7 +27,6 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.ReportTestUtils;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -49,10 +48,10 @@ public class ReportServiceTest extends CassandraTestBase {
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
         CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
-    service = new ReportService(ReportDAO.getInstance(db));
     notificationsDAO = NotificationsDAO.getInstance(db);
     taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);
     errorsDAO = CassandraTaskErrorsDAO.getInstance(db);
+    service = new ReportService(notificationsDAO, errorsDAO, taskInfoDAO);
   }
 
   @Test

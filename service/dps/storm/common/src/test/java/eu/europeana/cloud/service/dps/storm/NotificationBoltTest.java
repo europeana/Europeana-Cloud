@@ -18,10 +18,10 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.service.ReportService;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
@@ -59,6 +59,7 @@ public class NotificationBoltTest extends CassandraTestBase {
   private OutputCollector collector;
   private NotificationBolt testedBolt;
   private CassandraTaskInfoDAO taskInfoDAO;
+  private CassandraTaskErrorsDAO taskErrorsDAO;
   private ReportService reportService;
   private NotificationsDAO subtaskDAO;
   private ProcessedRecordsDAO processedRecordsDAO;
@@ -72,10 +73,10 @@ public class NotificationBoltTest extends CassandraTestBase {
         CassandraTestInstance.getPort(), KEYSPACE, USER_NAME,
         PASSWORD);
     taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);
-    reportService = new ReportService(ReportDAO.getInstance(db));
-
+    taskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
     subtaskDAO = NotificationsDAO.getInstance(db);
     processedRecordsDAO = ProcessedRecordsDAO.getInstance(db);
+    reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
   }
 
   private void createBolt() {
@@ -344,7 +345,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     //given
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
         CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
-    ReportService reportService = new ReportService(ReportDAO.getInstance(db));
+    ReportService reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 330;
     int errors = 5;
@@ -391,7 +392,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     //given
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
         CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
-    ReportService reportService = new ReportService(ReportDAO.getInstance(db));
+    ReportService reportService = new ReportService(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 20;
     int errors = 9;

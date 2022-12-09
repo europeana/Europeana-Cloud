@@ -11,8 +11,9 @@ import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.conversion.SubTaskInfoConverter;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,15 +29,22 @@ public class ReportService implements TaskExecutionReportService {
   private static final String RETRIEVING_ERROR_MESSAGE = "Specified task or error type does not exist!";
   private static final String TASK_NOT_EXISTS_ERROR_MESSAGE = "The task with the provided id doesn't exist!";
   private static final int FETCH_ONE = 1;
-  private final ReportDAO reportDAO;
+  private final NotificationsDAO notificationsDAO;
+  private final CassandraTaskErrorsDAO taskErrorsDAO;
+  private final CassandraTaskInfoDAO taskInfoDAO;
 
   /**
-   * Constructor of Cassandra report service.
+   * Constructor of Report service
    *
-   * @param reportDAO instance of ReportDAO class
+   * @param notificationsDAO instance of notificationDAO
+   * @param taskErrorsDAO instance of CassandraTaskErrorsDAO
+   * @param taskInfoDAO instance of CassandraTaskInfoDAO
    */
-  public ReportService(ReportDAO reportDAO) {
-    this.reportDAO = reportDAO;
+  public ReportService(NotificationsDAO notificationsDAO, CassandraTaskErrorsDAO taskErrorsDAO,
+      CassandraTaskInfoDAO taskInfoDAO) {
+    this.taskErrorsDAO = taskErrorsDAO;
+    this.notificationsDAO = notificationsDAO;
+    this.taskInfoDAO = taskInfoDAO;
   }
 
 
@@ -49,9 +57,8 @@ public class ReportService implements TaskExecutionReportService {
    */
   @Override
   public TaskInfo getTaskProgress(long taskId) throws AccessDeniedOrObjectDoesNotExistException {
-    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskId);
-    return Optional.ofNullable(taskInfo)
-                   .orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
+    Optional<TaskInfo> taskInfo = taskInfoDAO.findById(taskId);
+    return taskInfo.orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
   }
 
   /**
@@ -63,8 +70,8 @@ public class ReportService implements TaskExecutionReportService {
    */
   @Override
   public void checkIfTaskExists(long taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
-    TaskInfo taskInfo = reportDAO.getTaskInfoRecord(taskId);
-    if (taskInfo == null || !taskInfo.getTopologyName().equals(topologyName)) {
+    Optional<TaskInfo> taskInfo = taskInfoDAO.findById(taskId);
+    if (taskInfo.isEmpty() || !taskInfo.get().getTopologyName().equals(topologyName)) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
   }
@@ -77,7 +84,7 @@ public class ReportService implements TaskExecutionReportService {
    */
   @Override
   public boolean checkIfReportExists(long taskId) {
-    return !reportDAO.getErrorTypes(taskId).isEmpty();
+    return !taskErrorsDAO.getErrorTypes(taskId).isEmpty();
   }
 
 
@@ -93,7 +100,8 @@ public class ReportService implements TaskExecutionReportService {
   public List<SubTaskInfo> getDetailedTaskReport(long taskId, int from, int to) {
     List<SubTaskInfo> result = new ArrayList<>();
     for (int i = NotificationsDAO.bucketNumber(to); i >= NotificationsDAO.bucketNumber(from); i--) {
-      List<Notification> notifications = reportDAO.getNotifications(taskId, from, to, i);
+      List<Notification> notifications = notificationsDAO.getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(taskId,
+          from, to, i);
       notifications.forEach(
           notification -> result.add(SubTaskInfoConverter.fromNotification(notification))
       );
@@ -131,7 +139,7 @@ public class ReportService implements TaskExecutionReportService {
     List<TaskErrorInfo> errors = new ArrayList<>();
     TaskErrorsInfo result = new TaskErrorsInfo(taskId, errors);
 
-    List<ErrorType> errorTypes = reportDAO.getErrorTypes(taskId);
+    List<ErrorType> errorTypes = taskErrorsDAO.getErrorTypes(taskId);
     Map<String, String> errorMessages = new HashMap<>();
     for (ErrorType errorType : errorTypes) {
       String uuid = errorType.getUuid();
@@ -161,7 +169,8 @@ public class ReportService implements TaskExecutionReportService {
       return errorDetails;
     }
 
-    List<ErrorNotification> errorNotifications = reportDAO.getErrorNotifications(taskId, UUID.fromString(errorType), idsCount);
+    List<ErrorNotification> errorNotifications = taskErrorsDAO.getErrorNotificationsWithGivenLimit(taskId,
+        UUID.fromString(errorType), idsCount);
     if (errorNotifications.isEmpty()) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
@@ -189,7 +198,8 @@ public class ReportService implements TaskExecutionReportService {
       throws AccessDeniedOrObjectDoesNotExistException {
     String message = errorMessages.get(errorType);
     if (message == null) {
-      List<ErrorNotification> errorNotifications = reportDAO.getErrorNotifications(taskId, UUID.fromString(errorType), FETCH_ONE);
+      List<ErrorNotification> errorNotifications = taskErrorsDAO.getErrorNotificationsWithGivenLimit(taskId,
+          UUID.fromString(errorType), FETCH_ONE);
       if (errorNotifications.isEmpty()) {
         throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
       }
@@ -210,7 +220,7 @@ public class ReportService implements TaskExecutionReportService {
    * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
    */
   private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
-    ErrorType errType = reportDAO.getErrorType(taskId, UUID.fromString(errorType));
+    ErrorType errType = taskErrorsDAO.getErrorType(taskId, UUID.fromString(errorType));
     if (errType == null) {
       throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
     }
