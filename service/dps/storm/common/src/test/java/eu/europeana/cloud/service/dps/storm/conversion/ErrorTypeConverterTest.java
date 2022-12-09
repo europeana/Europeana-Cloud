@@ -27,7 +27,7 @@ public class ErrorTypeConverterTest {
   }
 
   @Test
-  public void fromDBRow() {
+  public void shouldProperlyConvertFromDBRow() {
     ErrorType errorType = ErrorTypeConverter.fromDBRow(row);
     assertEquals(TASK_ID, errorType.getTaskId());
     assertEquals(ERROR_TYPE, errorType.getUuid());

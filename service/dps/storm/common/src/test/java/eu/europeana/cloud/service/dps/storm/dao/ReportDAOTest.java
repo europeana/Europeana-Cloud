@@ -43,54 +43,82 @@ public class ReportDAOTest extends CassandraTestBase {
 
 
   @Test
-  public void getTaskInfoRecordTest() {
-    assertNull(reportDAO.getTaskInfoRecord(TASK_ID));
+  public void shouldReturnTaskInfo() {
     ReportTestUtils.createAndStoreTaskInfo(taskInfoDAO);
     TaskInfo taskInfo = reportDAO.getTaskInfoRecord(TASK_ID);
     assertEquals(TASK_ID, taskInfo.getId());
   }
 
+
   @Test
-  public void getNotificationsTest() {
+  public void shouldReturnNullWhenNoErrorsTypeInDatabase() {
+    assertEquals(0, reportDAO.getErrorTypes(TASK_ID).size());
+    assertNull(reportDAO.getErrorType(TASK_ID, UUID.fromString(ERROR_TYPE)));
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenNoErrorsNotificationInDatabase() {
+    assertEquals(0, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 1).size());
+  }
+
+  @Test
+  public void shouldReturnEmptyListWhenNoNotificationInDatabase() {
     assertEquals(0, reportDAO.getNotifications(TASK_ID, 1, 5, 0).size());
+  }
+
+  @Test
+  public void shouldReturnAllNotificationsInContinuousRange() {
     createAndStoreNotification(1, notificationsDAO);
     createAndStoreNotification(2, notificationsDAO);
     createAndStoreNotification(3, notificationsDAO);
     createAndStoreNotification(4, notificationsDAO);
     createAndStoreNotification(5, notificationsDAO);
     assertEquals(5, reportDAO.getNotifications(TASK_ID, 1, 5, 0).size());
-    assertEquals(0, reportDAO.getNotifications(TASK_ID, 6, 10, 0).size());
-    createAndStoreNotification(6, notificationsDAO);
-    createAndStoreNotification(6, notificationsDAO);
-    assertEquals(1, reportDAO.getNotifications(TASK_ID, 6, 10, 0).size());
   }
 
   @Test
-  public void getErrorTypesTest() {
-    assertEquals(0, reportDAO.getErrorTypes(TASK_ID).size());
+  public void shouldNotReturnNotificationsFromOutsideOfRange() {
+    createAndStoreNotification(1, notificationsDAO);
+    createAndStoreNotification(2, notificationsDAO);
+    createAndStoreNotification(3, notificationsDAO);
+    createAndStoreNotification(4, notificationsDAO);
+    createAndStoreNotification(5, notificationsDAO);
+    assertEquals(0, reportDAO.getNotifications(TASK_ID, 6, 10, 0).size());
+    assertEquals(0, reportDAO.getNotifications(TASK_ID, 6, 6, 0).size());
+    assertEquals(0, reportDAO.getNotifications(TASK_ID, 0, 0, 0).size());
+  }
+
+  @Test
+  public void shouldReturnOneRecordWhenSameRecordAddedMultipleTimes() {
+    createAndStoreNotification(1, notificationsDAO);
+    createAndStoreNotification(1, notificationsDAO);
+    assertEquals(1, reportDAO.getNotifications(TASK_ID, 1, 10, 0).size());
+    createAndStoreErrorType(ERROR_TYPE1, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE1, errorsDAO);
     assertEquals(1, reportDAO.getErrorTypes(TASK_ID).size());
+
+  }
+
+
+  @Test
+  public void shouldReturnAllErrorTypes() {
+    createAndStoreErrorType(ERROR_TYPE1, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE2, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE3, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE4, errorsDAO);
     createAndStoreErrorType(ERROR_TYPE5, errorsDAO);
     assertEquals(5, reportDAO.getErrorTypes(TASK_ID).size());
-    createAndStoreErrorType(ERROR_TYPE5, errorsDAO);
-    assertEquals(5, reportDAO.getErrorTypes(TASK_ID).size());
   }
 
+
   @Test
-  public void getErrorNotificationsTest() {
-    assertEquals(0, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 1).size());
+  public void shouldProperlyReturnErrorNotification() {
     ReportTestUtils.createAndStoreErrorNotification(ERROR_TYPE, errorsDAO);
     assertEquals(1, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 1).size());
-    ReportTestUtils.createAndStoreErrorNotification(ERROR_TYPE, errorsDAO);
-    assertEquals(1, reportDAO.getErrorNotifications(TASK_ID, UUID.fromString(ERROR_TYPE), 5).size());
   }
 
   @Test
-  public void getErrorTypeTest() {
-    assertNull(reportDAO.getErrorType(TASK_ID, UUID.fromString(ERROR_TYPE)));
+  public void shouldProperlyReturnErrorType() {
     ReportTestUtils.createAndStoreErrorType(ERROR_TYPE, errorsDAO);
     assertNotNull(reportDAO.getErrorType(TASK_ID, UUID.fromString(ERROR_TYPE)));
   }

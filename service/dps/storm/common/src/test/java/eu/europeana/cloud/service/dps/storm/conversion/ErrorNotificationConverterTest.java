@@ -32,7 +32,7 @@ public class ErrorNotificationConverterTest {
   }
 
   @Test
-  public void fromDBRow() {
+  public void shouldProperlyConvertFromDBRow() {
     ErrorNotification errorNotification = ErrorNotificationConverter.fromDBRow(row);
     assertEquals(TASK_ID, errorNotification.getTaskId());
     assertEquals(SOME_RESOURCE, errorNotification.getResource());

@@ -40,7 +40,7 @@ public class SubTaskInfoConverterTest {
   }
 
   @Test
-  public void fromNotification() {
+  public void shouldProperlyConvertFromNotification() {
     SubTaskInfo taskInfo = SubTaskInfoConverter.fromNotification(notification);
     assertEquals(RESOURCE_NUM, taskInfo.getResourceNum());
     assertEquals(RESOURCE, taskInfo.getResource());

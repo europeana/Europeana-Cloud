@@ -42,7 +42,7 @@ public class NotificationConverterTest {
   }
 
   @Test
-  public void fromDBRow() {
+  public void shouldProperlyConvertFromDBRow() {
     Notification notification = NotificationConverter.fromDBRow(row);
     assertEquals(TASK_ID, notification.getTaskId());
     assertEquals(BUCKET_NUMBER, notification.getBucketNumber());

@@ -57,7 +57,7 @@ public class TaskInfoConverterTest {
   }
 
   @Test
-  public void fromDBRow() {
+  public void shouldProperlyConvertFromDBRow() {
     TaskInfo taskInfo = TaskInfoConverter.fromDBRow(row);
     assertEquals(TASK_ID, taskInfo.getId());
     assertEquals(TOPOLOGY_NAME, taskInfo.getTopologyName());
