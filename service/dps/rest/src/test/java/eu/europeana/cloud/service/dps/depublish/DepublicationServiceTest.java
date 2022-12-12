@@ -25,7 +25,6 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import eu.europeana.cloud.test.TestUtils;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
@@ -36,7 +35,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -79,15 +77,9 @@ public class DepublicationServiceTest {
   private IndexWrapper indexWrapper;
 
   private Indexer indexer;
-
-  @BeforeClass
-  public static void initTest() {
-    TestUtils.changeFieldValueForClass(DepublicationService.class, "PROGRESS_POLLING_PERIOD",
-        100);
-  }
-
   @Before
   public void setup() throws IndexingException {
+    service.setProgressPollingPeriod(100);
     indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
     Mockito.reset(updater, taskStatusChecker, indexer, recordStatusUpdater);
     MockitoAnnotations.initMocks(this);
