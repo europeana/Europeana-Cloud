@@ -8,6 +8,9 @@ public interface AspectedTestSpringCtx {
 
   String test_default(String someData);
 
+  @Retryable
+  void failGivenAmountOfTimes(int failCount, int delay);
+
   @Retryable(delay = 500, maxAttempts = 10)
   void test_delay_500_10();
 
@@ -17,6 +20,4 @@ public interface AspectedTestSpringCtx {
   @Retryable(delay = 3000, maxAttempts = 4)
   void test_delay_3000_4();
 
-  @Retryable(delay = 1000, errorMessage = "BIG_ERROR")
-  void test_delay_1000_errorMessage_BIG_ERROR();
 }

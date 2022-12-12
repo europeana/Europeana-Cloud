@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -14,6 +15,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -28,6 +30,8 @@ import org.mockito.MockitoAnnotations;
 
 public class RevisionWriterBoltTest {
 
+  private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
+
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
 
@@ -39,6 +43,7 @@ public class RevisionWriterBoltTest {
 
   @Captor
   private ArgumentCaptor<Revision> captor;
+
 
   @Before
   public void init() {
@@ -102,7 +107,8 @@ public class RevisionWriterBoltTest {
     Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class))).thenThrow(MCSException.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     testMock.execute(anchorTuple, prepareTuple());
-    Mockito.verify(revisionServiceClient, Mockito.times(8)).addRevision(any(), any(), any(), any(Revision.class));
+    Mockito.verify(revisionServiceClient, Mockito.times(retryAttemptsCount))
+           .addRevision(any(), any(), any(), any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 

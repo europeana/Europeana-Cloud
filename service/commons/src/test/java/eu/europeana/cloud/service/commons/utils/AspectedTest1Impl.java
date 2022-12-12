@@ -11,6 +11,10 @@ public class AspectedTest1Impl implements AspectedTest1Interface {
 
   protected int currentAttempt = 0;
 
+  public void resetAttempts() {
+    this.currentAttempt = 0;
+  }
+
   @Override
   public String testMethod01_fails_2(String s1, int i2) {
     currentAttempt++;
@@ -43,13 +47,21 @@ public class AspectedTest1Impl implements AspectedTest1Interface {
 
   @Override
   @Retryable(maxAttempts = 2, delay = 1000) //overwrite default values
-  public String testMethod04_fails_3() {
+  public void testMethod04_fails_3() {
     currentAttempt++;
     if (currentAttempt <= 3) {
       LOGGER.info("Failed attempt number {}", currentAttempt);
       throw new TestRuntimeExpection();
     }
-    return "SUCCESS";
   }
 
+  @Override
+  @Retryable
+  public void failGivenAmountOfTimes(int failCount) {
+    currentAttempt++;
+    if (currentAttempt <= failCount) {
+      LOGGER.info("Failed attempt number {}", currentAttempt);
+      throw new TestRuntimeExpection();
+    }
+  }
 }

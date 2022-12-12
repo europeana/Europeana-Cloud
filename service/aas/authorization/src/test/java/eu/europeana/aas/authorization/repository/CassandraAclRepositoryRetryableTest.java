@@ -10,7 +10,9 @@ import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.aas.authorization.RetryableTestContextConfiguration;
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +38,8 @@ public class CassandraAclRepositoryRetryableTest {
 
   @Before
   public void prepare() {
-    maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
+    maxAttemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT)
+                              .orElse(CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS);
 
     when(session.execute(Mockito.any(Statement.class)))
         .thenThrow(new DriverException("Driver error has occurred!"));

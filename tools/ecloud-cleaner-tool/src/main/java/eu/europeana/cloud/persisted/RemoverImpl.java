@@ -7,8 +7,6 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -16,14 +14,14 @@ import org.slf4j.LoggerFactory;
  */
 public class RemoverImpl implements Remover {
 
-  static final Logger LOGGER = LoggerFactory.getLogger(RemoverImpl.class);
+  public static final String LOG_REMOVAL_ERROR = "Error while removing the logs.";
+  protected static final int DEFAULT_RETRIES = 5;
+  protected static final int SLEEP_TIME = 3000;
+
 
   private final NotificationsDAO subTaskInfoDAO;
   private final CassandraTaskErrorsDAO taskErrorDAO;
   private final ValidationStatisticsServiceImpl statisticsService;
-
-  private static int DEFAULT_RETRIES = 5;
-  private static int SLEEP_TIME = 3000;
 
 
   public RemoverImpl(String hosts, int port, String keyspaceName, String userName, String password) {
@@ -42,11 +40,10 @@ public class RemoverImpl implements Remover {
     this.statisticsService = statisticsService;
   }
 
-
   @Override
   public void removeNotifications(long taskId) {
     RetryableMethodExecutor
-        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+        .execute(LOG_REMOVAL_ERROR, DEFAULT_RETRIES, SLEEP_TIME, () -> {
           subTaskInfoDAO.removeNotifications(taskId);
           return null;
         });
@@ -55,7 +52,7 @@ public class RemoverImpl implements Remover {
   @Override
   public void removeErrorReports(long taskId) {
     RetryableMethodExecutor
-        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+        .execute(LOG_REMOVAL_ERROR, DEFAULT_RETRIES, SLEEP_TIME, () -> {
           taskErrorDAO.removeErrors(taskId);
           return null;
         });
@@ -64,7 +61,7 @@ public class RemoverImpl implements Remover {
   @Override
   public void removeStatistics(long taskId) {
     RetryableMethodExecutor
-        .execute("Error while removing the logs.", DEFAULT_RETRIES, SLEEP_TIME, () -> {
+        .execute(LOG_REMOVAL_ERROR, DEFAULT_RETRIES, SLEEP_TIME, () -> {
           statisticsService.removeStatistics(taskId);
           return null;
         });

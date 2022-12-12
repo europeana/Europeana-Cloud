@@ -26,6 +26,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -33,6 +34,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -54,6 +56,7 @@ public class WriteRecordBoltTest {
   private final int TASK_ID = 1;
   private final String TASK_NAME = "TASK_NAME";
   private final byte[] FILE_DATA = "Data".getBytes();
+  private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
 
   @Captor
   ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
@@ -127,7 +130,7 @@ public class WriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+  public void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
         prepareStormTaskTupleParameters(), new Revision());
@@ -140,12 +143,13 @@ public class WriteRecordBoltTest {
     doThrow(MCSException.class).when(recordServiceClient)
                                .createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
     writeRecordBolt.execute(anchorTuple, tuple);
-    verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(),
+    verify(recordServiceClient, times(retryAttemptsCount)).createRepresentation(any(), any(), any(), any(), any(),
+        any(InputStream.class), any(),
         any());
   }
 
   @Test
-  public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+  public void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
         prepareStormTaskTupleParameters(), new Revision());
@@ -158,7 +162,8 @@ public class WriteRecordBoltTest {
     doThrow(DriverException.class).when(recordServiceClient)
                                   .createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(), any());
     writeRecordBolt.execute(anchorTuple, tuple);
-    verify(recordServiceClient, times(8)).createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(),
+    verify(recordServiceClient, times(retryAttemptsCount)).createRepresentation(any(), any(), any(), any(), any(),
+        any(InputStream.class), any(),
         any());
   }
 

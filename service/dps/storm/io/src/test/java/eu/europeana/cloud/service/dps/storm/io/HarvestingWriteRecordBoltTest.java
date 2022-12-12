@@ -28,6 +28,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -40,6 +41,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -60,6 +62,8 @@ public class HarvestingWriteRecordBoltTest {
   private final byte[] FILE_DATA = "Data".getBytes();
   private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
   private OAIPMHHarvestingDetails oaipmhHarvestingDetails;
+
+  private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -136,7 +140,7 @@ public class HarvestingWriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetry7TimesBeforeFailingWhenThrowingMCSException() throws Exception {
+  public void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     CloudId cloudId = mock(CloudId.class);
     when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
@@ -149,7 +153,7 @@ public class HarvestingWriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetry7TimesBeforeFailingWhenThrowingDriverException() throws Exception {
+  public void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     CloudId cloudId = mock(CloudId.class);
     when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
@@ -161,10 +165,22 @@ public class HarvestingWriteRecordBoltTest {
     assertFailingExpectationWhenCreatingRepresentation();
   }
 
-  private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
+  @Test
+  public void shouldRetryBeforeFailingWhenMappingAdditionalLocalId() throws Exception {
+    //given
+    Tuple anchorTuple = mock(TupleImpl.class);
+    CloudId cloudId = mock(CloudId.class);
+    when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
+    when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
+
+    when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier")).thenThrow(
+        CloudException.class);
+    //when
+    oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
+
+    //then
     verify(outputCollector, times(0)).emit(anyList());
-    verify(recordServiceClient, times(8)).createRepresentation(anyString(), anyString(), anyString(), any(), any(),
-        any(InputStream.class), any(), anyString());
+    verify(uisClient, times(retryAttemptsCount)).createMapping(anyString(), anyString(), anyString());
     verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
 
   }
@@ -228,34 +244,23 @@ public class HarvestingWriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetry7BeforeFailingWhenMappingAdditionalLocalId() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    CloudId cloudId = mock(CloudId.class);
-    when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-    when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
-
-    when(uisClient.createMapping(cloudId.getId(), SOURCE + DATA_PROVIDER, "additionalLocalIdentifier")).thenThrow(
-        CloudException.class);
-    //when
-    oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
-
-    //then
-    verify(outputCollector, times(0)).emit(anyList());
-    verify(uisClient, times(8)).createMapping(anyString(), anyString(), anyString());
-    verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
-
-  }
-
-  @Test
-  public void shouldRetry7TimesBeforeFailingWhenCreatingNewCloudId() throws Exception {
+  public void shouldRetryBeforeFailingWhenCreatingNewCloudId() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     CloudException exception = new CloudException("", new RecordDoesNotExistException(new ErrorInfo()));
     when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
     doThrow(CloudException.class).when(uisClient).createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID);
     oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
     verify(outputCollector, times(0)).emit(anyList());
-    verify(uisClient, times(8)).createCloudId(anyString(), anyString());
+    verify(uisClient, times(retryAttemptsCount)).createCloudId(anyString(), anyString());
+    verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
+
+  }
+
+  private void assertFailingExpectationWhenCreatingRepresentation() throws MCSException, IOException {
+    verify(outputCollector, times(0)).emit(anyList());
+    verify(recordServiceClient, times(retryAttemptsCount)).createRepresentation(anyString(), anyString(), anyString(), any(),
+        any(),
+        any(InputStream.class), any(), anyString());
     verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
 
   }
