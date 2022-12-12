@@ -58,12 +58,16 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
   private CassandraAclRepository service;
 
 
-  @Before
-  public void setUp() throws Exception {
-    service.createAoisTable();
-    service.createAclsTable();
-    service.createChilrenTable();
+  private boolean isInitialized = false;
 
+  @Before
+  public void setUp() {
+    if (!isInitialized) {
+      service.createAoisTable();
+      service.createAclsTable();
+      service.createChildrenTable();
+      isInitialized = true;
+    }
     SecurityContextHolder
         .getContext()
         .setAuthentication(

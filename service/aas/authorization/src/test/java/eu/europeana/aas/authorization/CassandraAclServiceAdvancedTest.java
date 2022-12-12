@@ -49,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
+public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
   private static final String sid1 = "sid1@system";
   private static final String sid2 = "sid2@system";
@@ -57,6 +57,8 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private static final String aoi_class = "a.b.c.Class";
   private static final String ROLE_ADMIN = Role.ADMIN;
 
+
+  private boolean isInitialized = false;
   @Autowired
   private CassandraMutableAclService service;
 
@@ -64,17 +66,20 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private CassandraAclRepository repository;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
 
-    repository.createAoisTable();
-    repository.createAclsTable();
-    repository.createChilrenTable();
+    if (!isInitialized) {
+      repository.createAoisTable();
+      repository.createAclsTable();
+      repository.createChildrenTable();
+      isInitialized = true;
+    }
 
     loginAsUser(sid1);
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
   }
 
   @Test

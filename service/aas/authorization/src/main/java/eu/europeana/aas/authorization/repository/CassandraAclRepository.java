@@ -119,7 +119,7 @@ public class CassandraAclRepository implements AclRepository {
     this(session, keyspace);
     if (initSchema) {
       createAoisTable();
-      createChilrenTable();
+      createChildrenTable();
       createAclsTable();
     }
   }
@@ -464,7 +464,7 @@ public class CassandraAclRepository implements AclRepository {
    * Creates the schema for the table holding <code>AclObjectIdentity</code> children.
    */
   @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
-  public void createChilrenTable() {
+  public void createChildrenTable() {
     try {
       executeStatement(session, createChildrenTable);
     } catch (AlreadyExistsException e) {
