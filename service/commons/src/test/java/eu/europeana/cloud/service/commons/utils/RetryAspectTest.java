@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import eu.europeana.cloud.common.annotation.Retryable;
 import java.util.Optional;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
@@ -30,6 +31,11 @@ public class RetryAspectTest {
     factory.addAspect(aspect);
 
     aspectTestProxy = factory.getProxy();
+  }
+
+  @Before
+  public void resetAttempts() {
+    aspectTestTarget.resetAttempts();
   }
 
   @Test

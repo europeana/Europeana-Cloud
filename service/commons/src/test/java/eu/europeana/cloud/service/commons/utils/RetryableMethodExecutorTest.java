@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Optional;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -121,13 +122,14 @@ public class RetryableMethodExecutorTest {
 
   @Test
   public void shouldUseOverridedMethodSettingsOnErrorClassWithRetryAnnotationWhenExecutedByProxy() {
+    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     TestDaoWithClassLevelRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao2);
     try {
       retryableDao.methodWithOverridedRetryableAnnotation();
       fail();
     } catch (TestRuntimeExpection ignore) {
     }
-    Mockito.verify(testDao2, Mockito.times(attemptCount))
+    Mockito.verify(testDao2, Mockito.times(1))
            .methodWithOverridedRetryableAnnotation();
 
   }
