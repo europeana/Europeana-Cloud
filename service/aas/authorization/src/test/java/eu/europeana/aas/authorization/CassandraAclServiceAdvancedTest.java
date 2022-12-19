@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,9 +77,6 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
     loginAsUser(sid1);
   }
 
-  @After
-  public void tearDown() {
-  }
 
   @Test
   public void testDeleteAclWithChildrenReccursion() {
