@@ -77,7 +77,7 @@ public class RetryAspectSpringTest {
   }
 
   @Test
-  public void shouldOverrideRetryParams() {
+  public void shouldOverrideRetryParamsAndMethodShouldSuccessAfterFailingAllowedNumberOfTimes() {
     Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(Retryable.DEFAULT_MAX_ATTEMPTS);
     int delay = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_DELAY_BETWEEN_ATTEMPTS)
@@ -87,8 +87,16 @@ public class RetryAspectSpringTest {
     aspectedTest.failGivenAmountOfTimes(attemptCount - 1, delay);
     long endTime = Instant.now().toEpochMilli();
 
-    aspectedTest.resetAttempts();
     assertTrue(endTime - startTime >= (long) (attemptCount - 1) * delay);
+  }
+
+  @Test
+  public void shouldOverrideRetryParamsAndThrowExceptionAfterFailingAllRetries() {
+    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+    int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(Retryable.DEFAULT_MAX_ATTEMPTS);
+    int delay = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_DELAY_BETWEEN_ATTEMPTS)
+                        .orElse(Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
     assertThrows(TestRuntimeExpection.class, () -> aspectedTest.failGivenAmountOfTimes(attemptCount, delay));
   }
+
 }

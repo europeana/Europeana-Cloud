@@ -13,7 +13,6 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import java.util.Optional;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
@@ -22,8 +21,8 @@ public class RetryAspectTest {
   private static AspectedTest1Impl aspectTestTarget;
   private static AspectedTest1Interface aspectTestProxy;
 
-  @BeforeClass
-  public static void prepareTests() {
+  @Before
+  public void prepareTests() {
     aspectTestTarget = spy(new AspectedTest1Impl());
 
     AspectJProxyFactory factory = new AspectJProxyFactory(aspectTestTarget);
@@ -33,10 +32,6 @@ public class RetryAspectTest {
     aspectTestProxy = factory.getProxy();
   }
 
-  @Before
-  public void resetAttempts() {
-    aspectTestTarget.resetAttempts();
-  }
 
   @Test
   public void shouldCallThreeTimesAspectedMethodWithSuccess() {
@@ -88,14 +83,21 @@ public class RetryAspectTest {
   }
 
   @Test
-  public void testIfOverriddenRetryParams() {
+  public void shouldOverrideRetryParamsAndMethodShouldSuccessAfterFailingAllowedNumberOfTimes() {
     Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(
         Retryable.DEFAULT_MAX_ATTEMPTS);
     aspectTestProxy.failGivenAmountOfTimes(attemptCount - 1);
     verify(aspectTestTarget, times(attemptCount)).failGivenAmountOfTimes(anyInt());
-    aspectTestProxy.resetAttempts();
+  }
+
+  @Test
+  public void shouldOverrideRetryParamsAndThrowExceptionAfterFailingAllRetries() {
+    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+    int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(
+        Retryable.DEFAULT_MAX_ATTEMPTS);
     assertThrows(TestRuntimeExpection.class, () -> aspectTestProxy.failGivenAmountOfTimes(attemptCount));
+    verify(aspectTestTarget, times(attemptCount)).failGivenAmountOfTimes(anyInt());
   }
 
 }
