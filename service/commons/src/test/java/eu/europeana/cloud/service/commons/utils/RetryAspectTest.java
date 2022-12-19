@@ -15,7 +15,11 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
-
+/**
+ * Several tests from this class is skipped when overridden value for retries attempt is set because it makes those tests
+ * purposeless. In case when that value is set then some extra tests will be executed in order to assure that overriding work as
+ * intended
+ */
 public class RetryAspectTest {
 
   private static AspectedTest1Impl aspectTestTarget;

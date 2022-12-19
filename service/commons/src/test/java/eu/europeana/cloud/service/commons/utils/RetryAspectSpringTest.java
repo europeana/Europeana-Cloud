@@ -16,6 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+/**
+ * Several tests from this class is skipped when overridden value for retries attempt is set because it makes those tests
+ * purposeless. In case when that value is set then some extra tests will be executed in order to assure that overriding work as
+ * intended
+ */
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @RunWith(SpringRunner.class)
 public class RetryAspectSpringTest {
@@ -59,9 +64,7 @@ public class RetryAspectSpringTest {
   public void shouldCall6TimesAndFail() {
     Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     long startTime = Instant.now().toEpochMilli();
-    assertThrows(TestRuntimeExpection.class, () -> aspectedTest.test_delay_2000_6()
-
-    );
+    assertThrows(TestRuntimeExpection.class, () -> aspectedTest.test_delay_2000_6());
     long endTime = Instant.now().toEpochMilli();
     assertTrue(endTime - startTime >= 5 * 2000);
   }
