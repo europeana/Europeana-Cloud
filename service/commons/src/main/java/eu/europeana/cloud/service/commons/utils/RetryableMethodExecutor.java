@@ -12,28 +12,27 @@ import org.slf4j.LoggerFactory;
 
 public class RetryableMethodExecutor {
 
-  public static final Integer OVERRIDE_ATTEMPT_COUNT;
-  public static final Integer OVERRIDE_DELAY_BETWEEN_ATTEMPTS;
+
+  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT";
+  public static final Integer OVERRIDE_ATTEMPT_COUNT = getSystemPropertyOrEnvVariable(ATTEMPT_COUNT_PROPERTY_NAME);
+  private static final String DELAY_VALUE_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_DELAY";
+  public static final Integer OVERRIDE_DELAY_BETWEEN_ATTEMPTS = getSystemPropertyOrEnvVariable(DELAY_VALUE_PROPERTY_NAME);
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
   public static final int DEFAULT_REST_ATTEMPTS = 8;
 
   public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
-  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT";
-  private static final String DELAY_VALUE_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_DELAY";
 
-
-  static {
-    OVERRIDE_ATTEMPT_COUNT = getSystemPropertyOrEnvVariable(ATTEMPT_COUNT_PROPERTY_NAME);
-    OVERRIDE_DELAY_BETWEEN_ATTEMPTS = getSystemPropertyOrEnvVariable(DELAY_VALUE_PROPERTY_NAME);
-  }
 
   private static Integer getSystemPropertyOrEnvVariable(String propertyName) {
-    return Optional.ofNullable(System.getProperty(propertyName))
-                   .map(Integer::parseInt)
-                   .orElseGet(() -> Optional.ofNullable(System.getenv(propertyName))
-                                            .map(Integer::parseInt)
-                                            .orElse(null));
+    String jvmVariable = System.getProperty(propertyName);
+    if (jvmVariable != null) {
+      return !jvmVariable.isEmpty() ? Integer.parseInt(jvmVariable) : null;
+    } else {
+      return Optional.ofNullable(System.getenv(propertyName))
+                     .map(Integer::parseInt)
+                     .orElse(null);
+    }
   }
 
   public static boolean areRetryParamsOverridden() {
