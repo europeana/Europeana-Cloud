@@ -35,7 +35,7 @@ public class ReportDAO extends CassandraDAO {
   private PreparedStatement selectTaskInfo;
   private PreparedStatement selectNotifications;
 
-  private ReportDAO(CassandraConnectionProvider dbService) {
+  public ReportDAO(CassandraConnectionProvider dbService) {
     super(dbService);
   }
 

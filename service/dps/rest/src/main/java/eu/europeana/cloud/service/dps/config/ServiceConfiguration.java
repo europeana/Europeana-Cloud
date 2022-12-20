@@ -123,12 +123,12 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
   public ReportDAO reportDAO() {
-    return ReportDAO.getInstance(dpsCassandraProvider());
+      return new ReportDAO(dpsCassandraProvider());
   }
 
   @Bean
   public ReportService taskReportService() {
-    return new ReportService(reportDAO());
+      return new ReportService(reportDAO());
   }
 
     @Bean
