@@ -22,6 +22,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -135,13 +136,10 @@ public class XsltBoltTest {
 
   private byte[] readFile(String fileName) throws IOException {
     Optional<URL> optResource = Optional.ofNullable(getClass().getResource(fileName));
-    if (optResource.isPresent()) {
-      String myXml = IOUtils.toString(optResource.get(),
-          Charsets.UTF_8);
-      byte[] bytes = myXml.getBytes(StandardCharsets.UTF_8);
-      InputStream contentStream = new ByteArrayInputStream(bytes);
-      return IOUtils.toByteArray(contentStream);
-    }
-    return null;
+    String myXml = IOUtils.toString(optResource.orElseThrow(FileNotFoundException::new),
+        Charsets.UTF_8);
+    byte[] bytes = myXml.getBytes(StandardCharsets.UTF_8);
+    InputStream contentStream = new ByteArrayInputStream(bytes);
+    return IOUtils.toByteArray(contentStream);
   }
 }
