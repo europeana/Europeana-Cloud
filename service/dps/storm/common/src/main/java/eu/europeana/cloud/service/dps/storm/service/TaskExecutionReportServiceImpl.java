@@ -48,26 +48,13 @@ public class TaskExecutionReportServiceImpl implements TaskExecutionReportServic
   }
 
 
-  /**
-   * Retrieve progress of task with id equal to taskId.
-   *
-   * @param taskId id of task
-   * @return taskInfo object
-   * @throws AccessDeniedOrObjectDoesNotExistException thrown in case of insufficient permission or task not existing
-   */
   @Override
   public TaskInfo getTaskProgress(long taskId) throws AccessDeniedOrObjectDoesNotExistException {
     Optional<TaskInfo> taskInfo = taskInfoDAO.findById(taskId);
     return taskInfo.orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(TASK_NOT_EXISTS_ERROR_MESSAGE));
   }
 
-  /**
-   * Check if Task specified by id and name of topology that it belongs to exists. If it doesn't exist then exception will be
-   * thrown
-   *
-   * @param taskId id of task
-   * @param topologyName name of topology that task belong to
-   */
+
   @Override
   public void checkIfTaskExists(long taskId, String topologyName) throws AccessDeniedOrObjectDoesNotExistException {
     Optional<TaskInfo> taskInfo = taskInfoDAO.findById(taskId);
@@ -76,26 +63,12 @@ public class TaskExecutionReportServiceImpl implements TaskExecutionReportServic
     }
   }
 
-  /**
-   * Check if there is any report regarding task with id given by taskId param
-   *
-   * @param taskId id of task
-   * @return true or false depends on if any report exists for specified task
-   */
   @Override
   public boolean checkIfReportExists(long taskId) {
     return !taskErrorsDAO.getErrorTypes(taskId).isEmpty();
   }
 
 
-  /**
-   * Retrieve detailed task report
-   *
-   * @param taskId id of task
-   * @param from minimum value of notification resource number
-   * @param to maximum value of notification resource number
-   * @return Array of SubTaskInfo class objects
-   */
   @Override
   public List<SubTaskInfo> getDetailedTaskReport(long taskId, int from, int to) {
     List<SubTaskInfo> result = new ArrayList<>();
@@ -110,13 +83,6 @@ public class TaskExecutionReportServiceImpl implements TaskExecutionReportServic
   }
 
 
-  /**
-   * Retrieve sample of identifiers for the given error type
-   *
-   * @param taskId task identifier
-   * @param errorType type of error
-   * @return task error info objects with sample identifiers
-   */
   @Override
   public TaskErrorsInfo getSpecificTaskErrorReport(long taskId, String errorType, int idsCount)
       throws AccessDeniedOrObjectDoesNotExistException {
@@ -127,13 +93,7 @@ public class TaskExecutionReportServiceImpl implements TaskExecutionReportServic
     return new TaskErrorsInfo(taskId, List.of(taskErrorInfo));
   }
 
-  /**
-   * Retrieve all errors that occurred for the given task
-   *
-   * @param taskId task identifier
-   * @return task error info object
-   * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
-   */
+
   @Override
   public TaskErrorsInfo getGeneralTaskErrorReport(long taskId, int idsCount) throws AccessDeniedOrObjectDoesNotExistException {
     List<TaskErrorInfo> errors = new ArrayList<>();
