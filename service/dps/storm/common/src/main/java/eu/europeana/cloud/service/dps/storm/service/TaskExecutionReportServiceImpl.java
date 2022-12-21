@@ -180,17 +180,12 @@ public class TaskExecutionReportServiceImpl implements TaskExecutionReportServic
    * @throws AccessDeniedOrObjectDoesNotExistException in case of missing task definition
    */
   private TaskErrorInfo getTaskErrorInfo(long taskId, String errorType) throws AccessDeniedOrObjectDoesNotExistException {
-    Optional<ErrorType> optErrType = taskErrorsDAO.getErrorType(taskId, UUID.fromString(errorType));
-    if (optErrType.isEmpty()) {
-      throw new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE);
-    }
-    ErrorType errType = optErrType.get();
-    TaskErrorInfo taskErrorInfo = new TaskErrorInfo();
-    taskErrorInfo.setErrorType(errorType);
-    taskErrorInfo.setOccurrences(errType.getCount());
-
-    return taskErrorInfo;
+    return taskErrorsDAO.getErrorType(taskId, UUID.fromString(errorType))
+                        .map(eT ->
+                            TaskErrorInfo.builder()
+                                         .errorType(errorType)
+                                         .occurrences(eT.getCount())
+                                         .build())
+                        .orElseThrow(() -> new AccessDeniedOrObjectDoesNotExistException(RETRIEVING_ERROR_MESSAGE));
   }
-
-
 }

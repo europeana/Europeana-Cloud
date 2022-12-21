@@ -1,10 +1,12 @@
 package eu.europeana.cloud.common.model.dps;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Builder;
 
 @XmlRootElement()
+@Builder
 public class TaskErrorInfo {
 
   private String errorType;
