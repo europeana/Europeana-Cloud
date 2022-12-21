@@ -1,24 +1,25 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord.builder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.Streams;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.Before;
-import org.junit.Test;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord.builder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
@@ -33,7 +34,8 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
     @Before
     public void setup() {
-        CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
+        CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+        CassandraTestInstance.getPort(), KEYSPACE, USER, PASSWORD);
         HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
         dao = RetryableMethodExecutor.createRetryProxy(rawDao);
     }

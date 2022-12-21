@@ -15,6 +15,10 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +28,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Date;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -83,10 +88,10 @@ public class TopologyTasksResource {
      */
 
     @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+    @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
     public TaskInfo getTaskProgress(
             @PathVariable final String topologyName,
-            @PathVariable final String taskId) throws
+            @PathVariable final Long taskId) throws
                             AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
         LOGGER.info("Checking task progress for: {}", taskId);
         taskSubmissionValidator.assertContainTopology(topologyName);
@@ -133,7 +138,7 @@ public class TopologyTasksResource {
     @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
     public ResponseEntity<Void> restartTask(
             final HttpServletRequest request,
-            @PathVariable final long taskId,
+            @PathVariable final Long taskId,
             @PathVariable final String topologyName
     ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
         var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
@@ -164,13 +169,13 @@ public class TopologyTasksResource {
     @ReturnType("java.lang.Void")
     public ResponseEntity<Void> grantPermissions(
             @PathVariable String topologyName,
-            @PathVariable String taskId,
+            @PathVariable Long taskId,
             @RequestParam String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
         taskSubmissionValidator.assertContainTopology(topologyName);
 
         if (taskId != null) {
-            permissionManager.grantPermissionsForTask(taskId, username);
+            permissionManager.grantPermissionsForTask(String.valueOf(taskId), username);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
@@ -195,15 +200,15 @@ public class TopologyTasksResource {
      */
 
     @PostMapping(path = "{taskId}/kill")
-    @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+    @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', write)")
     public ResponseEntity<String> killTask(
             @PathVariable String topologyName,
-            @PathVariable String taskId,
+            @PathVariable Long taskId,
             @RequestParam(defaultValue = "Dropped by the user") String info)
                     throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
         taskSubmissionValidator.assertContainTopology(topologyName);
         reportService.checkIfTaskExists(taskId, topologyName);
-        taskStatusUpdater.setTaskDropped(Long.parseLong(taskId), info);
+        taskStatusUpdater.setTaskDropped(taskId, info);
         return ResponseEntity.ok("The task was killed because of " + info);
     }
 
