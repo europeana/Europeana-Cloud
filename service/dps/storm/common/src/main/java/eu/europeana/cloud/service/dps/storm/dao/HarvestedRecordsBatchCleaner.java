@@ -4,10 +4,9 @@ import com.datastax.driver.core.BatchStatement;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 public class HarvestedRecordsBatchCleaner implements AutoCloseable {
 

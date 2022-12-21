@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.Row;
-import lombok.Builder;
-import lombok.Data;
-
 import java.util.Date;
 import java.util.UUID;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder

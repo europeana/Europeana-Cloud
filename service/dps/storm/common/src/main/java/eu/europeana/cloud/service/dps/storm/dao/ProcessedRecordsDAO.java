@@ -1,5 +1,18 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_ADDITIONAL_INFORMATIONS;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_ATTEMPT_NUMBER;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_BUCKET_NUMBER;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_DST_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_INFO_TEXT;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_RECORD_ID;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_START_TIME;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_STATE;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_TABLE;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_TASK_ID;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.PROCESSED_RECORDS_TOPOLOGY_NAME;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -13,13 +26,9 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.BucketUtils;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 /**
  * DAO for processing data in  {@link CassandraTablesAndColumnsNames#PROCESSED_RECORDS_TOPOLOGY_NAME}

@@ -8,13 +8,12 @@ import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
 import eu.europeana.normalization.util.NormalizationConfigurationException;
 import eu.europeana.normalization.util.NormalizationException;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Call the remote normalization service in order to normalize and clean an edm record.

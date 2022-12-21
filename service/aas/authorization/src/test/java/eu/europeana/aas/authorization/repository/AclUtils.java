@@ -1,10 +1,10 @@
 package eu.europeana.aas.authorization.repository;
 
+import static org.junit.Assert.assertEquals;
+
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import eu.europeana.cloud.common.model.Role;
-
-import static org.junit.Assert.assertEquals;
 
 class AclUtils {
 

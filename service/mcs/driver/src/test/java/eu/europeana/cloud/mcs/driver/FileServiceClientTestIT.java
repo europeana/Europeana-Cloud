@@ -1,18 +1,19 @@
 package eu.europeana.cloud.mcs.driver;
 
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.springframework.http.MediaType;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static org.junit.Assert.*;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
+import org.springframework.http.MediaType;
 
 
 public class FileServiceClientTestIT {

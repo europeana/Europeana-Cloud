@@ -4,15 +4,13 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
  * <p>Contains the categorization algorithm for the full OAI harvesting. It based on the OAI dateStamp and published and preview
- * harvested dates.
- * To further understand why the {@link #DATE_BUFFER_IN_MINUTES} has a value of minutes equivalent to 2 days(2880), here is an
- * example:</p>
+ * harvested dates. To further understand why the {@link #DATE_BUFFER_IN_MINUTES} has a value of minutes equivalent to 2
+ * days(2880), here is an example:</p>
  *
  * <p>Some repositories do not have time support and would always return a rounded down date.<br/>
  * In our example a record from repository has response dateStamp 2021-01-01T00:00:00Z<br/> The record from the server can at any
@@ -38,8 +36,8 @@ import java.time.temporal.ChronoUnit;
  * record)</p><br/>
  *
  * <p>As you can see on the third incremental harvest we still had to process the record because the stored date for the record
- * was 2021-01-02T00:10:00Z,
- * and only after that, on the fourth time onward, the record will have surpassed the buffer and we would ignore it.</p>
+ * was 2021-01-02T00:10:00Z, and only after that, on the fourth time onward, the record will have surpassed the buffer and we
+ * would ignore it.</p>
  */
 public class OaiPmhTopologyCategorizationService extends HarvestedRecordCategorizationService {
 

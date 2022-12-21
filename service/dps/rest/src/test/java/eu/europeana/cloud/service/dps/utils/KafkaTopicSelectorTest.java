@@ -1,9 +1,17 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
+import static junit.framework.TestCase.assertEquals;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.HashMultiset;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,19 +19,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
-import static junit.framework.TestCase.assertEquals;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaTopicSelectorTest {
 
-  private static final int SAMPLES_COUNT = 100000;
+  private static final int SAMPLES_COUNT = 10_000;
   private static final double TOLERANCE = 0.02;
   private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
   private static final String TOPOLOGY = "topology";

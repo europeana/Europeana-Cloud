@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import com.google.common.base.Stopwatch;
-import org.apache.storm.policy.IWaitStrategy;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
 import static org.junit.Assert.assertEquals;
+
+import com.google.common.base.Stopwatch;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.apache.storm.policy.IWaitStrategy;
+import org.junit.Before;
+import org.junit.Test;
 
 public class FastCancelingSpoutWaitStrategyTest {
 

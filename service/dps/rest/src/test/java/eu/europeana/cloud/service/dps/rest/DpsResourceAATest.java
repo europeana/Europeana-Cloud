@@ -1,5 +1,18 @@
 package eu.europeana.cloud.service.dps.rest;
 
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static junit.framework.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -15,6 +28,12 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import javax.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,20 +45,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-
-import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-import static junit.framework.Assert.assertEquals;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
@@ -269,7 +274,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, XSLT_TOPOLOGY_NAME);
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     topologyTasksResource.getTaskProgress(XSLT_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
   }
 
@@ -289,7 +294,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 
     login(RONALDO, RONALD_PASSWORD);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
   }
@@ -338,7 +343,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     //when
     try {
       topologyTasksResource.getTaskProgress(XSLT_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId());
@@ -358,7 +363,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     //when
     try {
       topologyTasksResource.killTask(XSLT_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(), "Dropped by the user");
@@ -376,7 +381,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(ADMIN, XSLT_TOPOLOGY_NAME);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
 
     //when
@@ -396,7 +401,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(ADMIN, XSLT_TOPOLOGY_NAME);
-    submitTaskAndWait(XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     //when
     try {
       ResponseEntity<String> response = topologyTasksResource.killTask(XSLT_TOPOLOGY_NAME, "" + XSLT_TASK.getTaskId(),
@@ -406,18 +411,6 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     } catch (Exception e) {
       fail();
     }
-  }
-
-  void submitTaskAndWait(DpsTask dpsTask, String topologyName)
-      throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException,
-      IOException {
-    topologyTasksResource.submitTask(request, dpsTask, topologyName);
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
   }
 
 }

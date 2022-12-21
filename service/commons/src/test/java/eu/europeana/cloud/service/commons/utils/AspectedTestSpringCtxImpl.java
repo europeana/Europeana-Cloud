@@ -16,6 +16,11 @@ public class AspectedTestSpringCtxImpl implements AspectedTestSpringCtx {
     return String.format("Processed '%s'", someData);
   }
 
+  @Override
+  public void failGivenAmountOfTimes(int failCount, int delay) {
+    throwTwoTimesException(failCount);
+  }
+
   public void test_delay_500_10() {
     throwTwoTimesException(9);
   }
@@ -28,9 +33,6 @@ public class AspectedTestSpringCtxImpl implements AspectedTestSpringCtx {
     throwTwoTimesException(3);
   }
 
-  public void test_delay_1000_errorMessage_BIG_ERROR() {
-    throwTwoTimesException(3);
-  }
 
   private void throwTwoTimesException(int exceptionsNumber) {
     attemptNumber++;

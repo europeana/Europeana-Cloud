@@ -1,5 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -7,13 +12,10 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.MaximumParallelizationValidator;
-import org.apache.commons.validator.routines.UrlValidator;
-
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
+import org.apache.commons.validator.routines.UrlValidator;
 
 public class DpsTaskValidator {
 

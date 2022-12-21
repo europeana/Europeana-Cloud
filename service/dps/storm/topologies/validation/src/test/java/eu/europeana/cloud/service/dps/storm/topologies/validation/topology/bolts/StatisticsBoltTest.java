@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
+import static org.mockito.Mockito.mock;
+
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
@@ -11,6 +15,11 @@ import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceI
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -21,14 +30,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
-import static org.mockito.Mockito.mock;
 
 public class StatisticsBoltTest extends CassandraTestBase {
 

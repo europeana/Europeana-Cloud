@@ -1,23 +1,43 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Optional;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Optional;
-
 public class RetryableMethodExecutor {
 
+
+  private static final String ATTEMPT_COUNT_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT";
+  public static final Integer OVERRIDE_ATTEMPT_COUNT = getSystemPropertyOrEnvVariable(ATTEMPT_COUNT_PROPERTY_NAME);
+  private static final String DELAY_VALUE_PROPERTY_NAME = "ECLOUD_OVERRIDE_RETRIES_DELAY";
+  public static final Integer OVERRIDE_DELAY_BETWEEN_ATTEMPTS = getSystemPropertyOrEnvVariable(DELAY_VALUE_PROPERTY_NAME);
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryableMethodExecutor.class);
 
   public static final int DEFAULT_REST_ATTEMPTS = 8;
 
   public static final int DELAY_BETWEEN_REST_ATTEMPTS = 5000;
+
+
+  private static Integer getSystemPropertyOrEnvVariable(String propertyName) {
+    String jvmVariable = System.getProperty(propertyName);
+    if (jvmVariable != null) {
+      return !jvmVariable.isEmpty() ? Integer.parseInt(jvmVariable) : null;
+    } else {
+      return Optional.ofNullable(System.getenv(propertyName))
+                     .map(Integer::parseInt)
+                     .orElse(null);
+    }
+  }
+
+  public static boolean areRetryParamsOverridden() {
+    return OVERRIDE_ATTEMPT_COUNT != null || OVERRIDE_DELAY_BETWEEN_ATTEMPTS != null;
+  }
 
   public static <V, E extends Exception> V executeOnRest(String errorMessage, GenericCallable<V, E> callable) throws E {
     return execute(errorMessage, DEFAULT_REST_ATTEMPTS, DELAY_BETWEEN_REST_ATTEMPTS, callable);
@@ -29,6 +49,8 @@ public class RetryableMethodExecutor {
   public static <V, E extends Throwable> V execute(String errorMessage, int maxAttempts,
       int sleepTimeBetweenRetriesMs,
       GenericCallable<V, E> callable) throws E {
+    maxAttempts = Optional.ofNullable(OVERRIDE_ATTEMPT_COUNT).orElse(maxAttempts);
+    sleepTimeBetweenRetriesMs = Optional.ofNullable(OVERRIDE_DELAY_BETWEEN_ATTEMPTS).orElse(sleepTimeBetweenRetriesMs);
     while (true) {
       try {
         return callable.call();

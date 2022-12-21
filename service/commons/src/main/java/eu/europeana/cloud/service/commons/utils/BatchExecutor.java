@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.commons.utils;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import java.util.List;
 
 /**

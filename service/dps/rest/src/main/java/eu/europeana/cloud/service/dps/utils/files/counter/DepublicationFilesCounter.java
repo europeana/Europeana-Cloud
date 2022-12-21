@@ -7,9 +7,6 @@ import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.indexing.exception.IndexingException;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 public class DepublicationFilesCounter extends FilesCounter {
 
   private final DatasetDepublisher depublisher;

@@ -1,19 +1,19 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
+import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
+
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.common.model.dps.TaskState.*;
 
 /**
  * Component responsible for executing postprocessing for the tasks. It uses Scheduler for that.

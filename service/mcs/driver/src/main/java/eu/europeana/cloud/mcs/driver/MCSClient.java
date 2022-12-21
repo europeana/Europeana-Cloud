@@ -1,18 +1,10 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import lombok.Getter;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,8 +12,15 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.function.Supplier;
-
-import static eu.europeana.cloud.common.utils.UrlUtils.removeLastSlash;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+import lombok.Getter;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 /**
  * Base class for MCS clients

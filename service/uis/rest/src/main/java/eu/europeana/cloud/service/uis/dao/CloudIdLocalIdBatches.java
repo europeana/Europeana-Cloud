@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis.dao;
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
-
 import java.util.ArrayList;
 
 public class CloudIdLocalIdBatches {

@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 import com.google.gson.Gson;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.Storage;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author krystian.

@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.commons.urls;
 
 import eu.europeana.cloud.common.model.Representation;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 

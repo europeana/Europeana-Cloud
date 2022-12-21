@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.uis;
 
-import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
+import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.fail;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class IdGeneratorTest {
 

@@ -1,26 +1,37 @@
 package eu.europeana.cloud.service.dps.storm;
 
 
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.FILE_CONTENT_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.INPUT_FILES_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.PARAMETERS_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.RECORD_ATTEMPT_NUMBER;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.REVISIONS;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.SOURCE_TO_HARVEST;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.TASK_ID_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.TASK_NAME_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.io.IOUtils;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.io.IOUtils;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 
 
 /**

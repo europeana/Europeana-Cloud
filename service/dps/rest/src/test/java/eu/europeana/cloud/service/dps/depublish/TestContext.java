@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.depublish;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -10,9 +13,6 @@ import eu.europeana.indexing.Indexer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Configuration
 @EnableAsync

@@ -12,11 +12,10 @@ import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.SpringUser;
 import eu.europeana.cloud.service.aas.authentication.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.aas.authentication.status.IdentifierErrorTemplate;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.Set;
 
 /**
  * Used to create / retrieve / update <code>User</code> objects from ecloud's database.

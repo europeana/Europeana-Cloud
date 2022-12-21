@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+
 import eu.europeana.cloud.service.dps.DpsTask;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 /**
  * Created by Tarek on 4/6/2016. File counters inside a Record task

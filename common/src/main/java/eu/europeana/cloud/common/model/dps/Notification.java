@@ -1,11 +1,10 @@
 package eu.europeana.cloud.common.model.dps;
 
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Map;
 
 /**
  * Describes fields in <b>'notifications'</b> table

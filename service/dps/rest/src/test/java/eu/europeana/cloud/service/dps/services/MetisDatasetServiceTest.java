@@ -1,5 +1,11 @@
 package eu.europeana.cloud.service.dps.services;
 
+import static org.hamcrest.Matchers.samePropertyValuesAs;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+
 import eu.europeana.cloud.common.model.dps.MetisDataset;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
@@ -7,18 +13,11 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class MetisDatasetServiceTest {
 

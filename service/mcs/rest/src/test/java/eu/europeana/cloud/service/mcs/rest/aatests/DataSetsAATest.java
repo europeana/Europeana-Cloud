@@ -11,14 +11,13 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.rest.DataSetResource;
 import eu.europeana.cloud.service.mcs.rest.DataSetsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
+import javax.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-
-import javax.validation.constraints.NotNull;
 
 public class DataSetsAATest extends AbstractSecurityTest {
 

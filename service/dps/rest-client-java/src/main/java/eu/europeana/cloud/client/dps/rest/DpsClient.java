@@ -1,6 +1,27 @@
 package eu.europeana.cloud.client.dps.rest;
 
-import eu.europeana.cloud.common.model.dps.*;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.DATASET_ID;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.DETAILED_TASK_REPORT_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.ELEMENT_REPORT_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.ERROR;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.ERRORS_TASK_REPORT_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.IDS_COUNT;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.KILL_TASK_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASET_PUBLISHED_RECORDS_SEARCH;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.PERMIT_TOPOLOGY_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.STATISTICS_REPORT_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASKS_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_CLEAN_DATASET_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_ID;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_PROGRESS_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TOPOLOGY_NAME;
+
+import eu.europeana.cloud.common.model.dps.MetisDataset;
+import eu.europeana.cloud.common.model.dps.NodeReport;
+import eu.europeana.cloud.common.model.dps.StatisticsReport;
+import eu.europeana.cloud.common.model.dps.SubTaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.RestInterfaceConstants;
@@ -9,14 +30,11 @@ import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServiceUnavailableException;
@@ -27,13 +45,13 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
-
-import static eu.europeana.cloud.service.dps.RestInterfaceConstants.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The REST API client for the Data Processing service.

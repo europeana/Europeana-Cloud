@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import eu.europeana.aas.authorization.ExtendedAclService;
@@ -15,10 +19,6 @@ import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.AclPermissionEvaluator;
-
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Configuration
 public class BasicResourceTestContext {

@@ -1,20 +1,19 @@
 package eu.europeana.cloud.service.dps.storm.notification;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NotificationEntryCacheBuilder {
 

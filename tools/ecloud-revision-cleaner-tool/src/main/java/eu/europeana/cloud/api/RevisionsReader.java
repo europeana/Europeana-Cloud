@@ -1,7 +1,6 @@
 package eu.europeana.cloud.api;
 
 import eu.europeana.cloud.data.RevisionInformation;
-
 import java.io.IOException;
 import java.util.List;
 

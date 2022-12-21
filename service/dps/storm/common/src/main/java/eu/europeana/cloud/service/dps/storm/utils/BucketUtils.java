@@ -1,8 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import org.apache.commons.codec.digest.MurmurHash3;
-
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.codec.digest.MurmurHash3;
 
 public class BucketUtils {
 

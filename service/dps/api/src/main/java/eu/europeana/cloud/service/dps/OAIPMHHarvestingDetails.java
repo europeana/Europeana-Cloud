@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps;
 
 import com.google.common.base.Objects;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement()
 public class OAIPMHHarvestingDetails implements Serializable {

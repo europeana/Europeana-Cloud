@@ -9,10 +9,9 @@ import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * Data provider service using Cassandra as database.

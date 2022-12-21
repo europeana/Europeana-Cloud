@@ -1,16 +1,15 @@
 package eu.europeana.cloud.migrator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.migrator.provider.DefaultResourceProvider;
 import eu.europeana.cloud.migrator.provider.RoyalArmoryResourceProvider;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.net.URI;
 import java.nio.file.Paths;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RoyalArmoryResourceProviderTest {
 

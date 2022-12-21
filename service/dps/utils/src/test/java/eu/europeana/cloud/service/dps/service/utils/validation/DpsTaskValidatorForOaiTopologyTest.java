@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 public class DpsTaskValidatorForOaiTopologyTest {
 

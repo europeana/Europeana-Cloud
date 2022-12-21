@@ -1,11 +1,15 @@
 package migrator.validators;
 
-import com.datastax.driver.core.*;
-import migrator.EmbeddedCassandra;
-import org.junit.Assert;
-
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.TableMetadata;
 import java.util.HashMap;
 import java.util.Map;
+import migrator.EmbeddedCassandra;
+import org.junit.Assert;
 
 public class V2_validator {
 

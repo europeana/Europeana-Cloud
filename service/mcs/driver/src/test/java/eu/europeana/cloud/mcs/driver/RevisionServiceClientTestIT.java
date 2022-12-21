@@ -1,15 +1,15 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.junit.Test;
-
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class RevisionServiceClientTestIT {
 

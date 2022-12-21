@@ -1,19 +1,17 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import static org.apache.commons.lang.Validate.notEmpty;
+
 import eu.europeana.cloud.service.mcs.Storage;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.ContentDaoNotFoundException;
 import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
-
-import static org.apache.commons.lang.Validate.notEmpty;
 
 
 /**

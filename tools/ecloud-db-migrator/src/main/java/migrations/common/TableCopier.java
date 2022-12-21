@@ -1,8 +1,13 @@
 package migrations.common;
 
-import java.util.Iterator;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
+import java.util.Iterator;
 
 /**
  * @author krystian.

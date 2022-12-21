@@ -2,7 +2,6 @@ package eu.europeana.cloud.reader;
 
 import eu.europeana.cloud.api.RevisionsReader;
 import eu.europeana.cloud.data.RevisionInformation;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

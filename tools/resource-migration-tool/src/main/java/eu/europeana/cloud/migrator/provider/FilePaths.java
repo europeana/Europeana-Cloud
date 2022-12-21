@@ -1,18 +1,19 @@
 package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.migrator.ResourceMigrator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by helin on 2016-02-09.

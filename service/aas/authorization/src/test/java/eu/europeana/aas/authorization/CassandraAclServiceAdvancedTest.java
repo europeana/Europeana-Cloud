@@ -14,9 +14,17 @@
  */
 package eu.europeana.aas.authorization;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.common.model.Role;
-import org.junit.After;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,23 +33,22 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.*;
+import org.springframework.security.acls.model.AccessControlEntry;
+import org.springframework.security.acls.model.Acl;
+import org.springframework.security.acls.model.AlreadyExistsException;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.NotFoundException;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
+public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
   private static final String sid1 = "sid1@system";
   private static final String sid2 = "sid2@system";
@@ -49,6 +56,8 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private static final String aoi_class = "a.b.c.Class";
   private static final String ROLE_ADMIN = Role.ADMIN;
 
+
+  private boolean isInitialized = false;
   @Autowired
   private CassandraMutableAclService service;
 
@@ -56,18 +65,18 @@ public class CassandraAclServiceTestAdvanced extends CassandraTestBase {
   private CassandraAclRepository repository;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
 
-    repository.createAoisTable();
-    repository.createAclsTable();
-    repository.createChilrenTable();
+    if (!isInitialized) {
+      repository.createAoisTable();
+      repository.createAclsTable();
+      repository.createChildrenTable();
+      isInitialized = true;
+    }
 
     loginAsUser(sid1);
   }
 
-  @After
-  public void tearDown() throws Exception {
-  }
 
   @Test
   public void testDeleteAclWithChildrenReccursion() {

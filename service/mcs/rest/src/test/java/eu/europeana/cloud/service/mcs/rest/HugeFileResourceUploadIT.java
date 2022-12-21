@@ -1,9 +1,24 @@
 package eu.europeana.cloud.service.mcs.rest;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,22 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.reset;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
@@ -77,8 +76,8 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
   /**
    * Mock answer for
-   * {@link RecordService#putContent(String, String, String, eu.europeana.cloud.common.model.File, java.io.InputStream) putContent}
-   * method. Only counts bytes in input stream.
+   * {@link RecordService#putContent(String, String, String, eu.europeana.cloud.common.model.File, java.io.InputStream)
+   * putContent} method. Only counts bytes in input stream.
    */
   static class MockPutContentMethod implements Answer<Object> {
 

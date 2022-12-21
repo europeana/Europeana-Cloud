@@ -1,23 +1,32 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
+import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.TAG;
+import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REVISION_ADD;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REVISION_ADD_WITH_PROVIDER;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REVISION_ADD_WITH_PROVIDER_TAG;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REVISION_DELETE;
+
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-
+import java.net.URI;
+import java.util.Set;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.Set;
-
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 /**
  * Created by Tarek on 8/2/2016.

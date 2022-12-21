@@ -1,11 +1,17 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,13 +20,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 
 /**
  *

@@ -1,18 +1,19 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
+
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.SampleSizeForIncrementalHarvestingValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.SingleOutputDatasetValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.SingleRepositoryValidator;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static eu.europeana.cloud.service.dps.InputDataType.*;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
 
 public class DpsTaskValidatorFactory {
 

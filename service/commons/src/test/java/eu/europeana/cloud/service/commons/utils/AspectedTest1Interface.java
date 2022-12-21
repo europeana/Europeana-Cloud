@@ -8,5 +8,9 @@ public interface AspectedTest1Interface {
 
   String testMethod03_fails_1();
 
-  String testMethod04_fails_3();
+  void testMethod04_fails_3();
+
+  void failGivenAmountOfTimes(int failCount);
+
+  void resetAttempts();
 }

@@ -3,12 +3,11 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Tuple for notifications utilities.

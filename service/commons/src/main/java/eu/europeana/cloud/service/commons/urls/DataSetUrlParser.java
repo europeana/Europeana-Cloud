@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.commons.urls;
 
 import eu.europeana.cloud.common.model.DataSet;
-
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;

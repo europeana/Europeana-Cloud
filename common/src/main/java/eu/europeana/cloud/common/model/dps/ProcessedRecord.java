@@ -1,11 +1,10 @@
 package eu.europeana.cloud.common.model.dps;
 
+import java.util.Date;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Date;
 
 /**
  * Class represents one row in processed_records db table

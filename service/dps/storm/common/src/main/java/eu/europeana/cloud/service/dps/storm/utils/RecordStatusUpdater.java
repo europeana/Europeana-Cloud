@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-
 import java.util.Map;
 
 /**

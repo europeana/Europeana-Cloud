@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
-import eu.europeana.cloud.service.dps.DpsTask;
-
 import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+
+import eu.europeana.cloud.service.dps.DpsTask;
 
 /**
  * Verifies if REPOSITORY_URLS contains only one entry

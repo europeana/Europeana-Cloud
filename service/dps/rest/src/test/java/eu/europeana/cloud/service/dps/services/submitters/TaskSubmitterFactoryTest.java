@@ -1,12 +1,12 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import static org.junit.Assert.assertTrue;
+
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertTrue;
 
 
 public class TaskSubmitterFactoryTest {

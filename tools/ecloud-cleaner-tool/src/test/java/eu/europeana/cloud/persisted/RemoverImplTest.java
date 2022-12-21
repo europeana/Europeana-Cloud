@@ -1,14 +1,19 @@
 package eu.europeana.cloud.persisted;
 
-import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.Mockito.*;
 
 public class RemoverImplTest {
 
@@ -26,7 +31,11 @@ public class RemoverImplTest {
 
   private RemoverImpl removerImpl;
 
+  private final int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT)
+                                           .orElse(RemoverImpl.DEFAULT_RETRIES);
   private static final long TASK_ID = 1234;
+
+
 
   @Before
   public void init() {
@@ -36,44 +45,45 @@ public class RemoverImplTest {
 
   @Test
   public void shouldSuccessfullyRemoveNotifications() {
-    doNothing().when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
+    doNothing().when(subTaskInfoDAO).removeNotifications(TASK_ID);
     removerImpl.removeNotifications(TASK_ID);
-    verify(subTaskInfoDAO, times(1)).removeNotifications((eq(TASK_ID)));
+    verify(subTaskInfoDAO, times(1)).removeNotifications((TASK_ID));
   }
 
   @Test(expected = Exception.class)
-  public void shouldRetry5TimesBeforeFailing() {
-    doThrow(Exception.class).when(subTaskInfoDAO).removeNotifications(eq(TASK_ID));
+  public void shouldRetryBeforeFailing() {
+    doThrow(Exception.class).when(subTaskInfoDAO).removeNotifications(TASK_ID);
     removerImpl.removeNotifications(TASK_ID);
-    verify(subTaskInfoDAO, times(6)).removeNotifications((eq(TASK_ID)));
+    verify(subTaskInfoDAO, times(attemptCount)).removeNotifications((TASK_ID));
   }
 
 
   @Test
   public void shouldSuccessfullyRemoveErrors() {
-    doNothing().when(taskErrorDAO).removeErrors(eq(TASK_ID));
+    doNothing().when(taskErrorDAO).removeErrors(TASK_ID);
     removerImpl.removeErrorReports(TASK_ID);
-    verify(taskErrorDAO, times(1)).removeErrors((eq(TASK_ID)));
+    verify(taskErrorDAO, times(1)).removeErrors((TASK_ID));
   }
 
   @Test(expected = Exception.class)
-  public void shouldRetry5TimesBeforeFailingWhileRemovingErrorReports() {
-    doThrow(Exception.class).when(taskErrorDAO).removeErrors(eq(TASK_ID));
+  public void shouldRetryBeforeFailingWhileRemovingErrorReports() {
+    doThrow(Exception.class).when(taskErrorDAO).removeErrors(TASK_ID);
     removerImpl.removeErrorReports(TASK_ID);
-    verify(taskErrorDAO, times(6)).removeErrors((eq(TASK_ID)));
+    verify(taskErrorDAO, times(attemptCount)).removeErrors((TASK_ID));
   }
 
   @Test
   public void shouldSuccessfullyRemoveStatistics() {
-    doNothing().when(statisticsService).removeStatistics(eq(TASK_ID));
+    doNothing().when(statisticsService).removeStatistics(TASK_ID);
     removerImpl.removeStatistics(TASK_ID);
-    verify(statisticsService, times(1)).removeStatistics((eq(TASK_ID)));
+    verify(statisticsService, times(1)).removeStatistics((TASK_ID));
   }
 
   @Test(expected = Exception.class)
-  public void shouldRetry5TimesBeforeFailingWhileRemovingStatistics() {
-    doThrow(Exception.class).when(statisticsService).removeStatistics(eq(TASK_ID));
+  public void shouldRetryBeforeFailingWhileRemovingStatistics() {
+    doThrow(Exception.class).when(statisticsService).removeStatistics(TASK_ID);
     removerImpl.removeStatistics(TASK_ID);
-    verify(statisticsService, times(6)).removeStatistics((eq(TASK_ID)));
+    verify(statisticsService, times(attemptCount)).removeStatistics((TASK_ID));
+
   }
 }

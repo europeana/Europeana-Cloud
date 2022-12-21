@@ -1,11 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import org.apache.storm.policy.IWaitStrategy;
-
-import java.util.Map;
-
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
+
+import java.util.Map;
+import org.apache.storm.policy.IWaitStrategy;
 
 public class FastCancelingSpoutWaitStrategy implements IWaitStrategy {
 

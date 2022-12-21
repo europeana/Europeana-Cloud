@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Test;
 
 /**
  * @author krystian.

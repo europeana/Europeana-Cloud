@@ -5,12 +5,11 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
-import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.io.Serializable;
+import javax.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 @Builder
 @AllArgsConstructor

@@ -94,6 +94,18 @@
             <version>${version.powermock}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${version.awaitility}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility-proxy</artifactId>
+            <version>${version.awaitility-proxy}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

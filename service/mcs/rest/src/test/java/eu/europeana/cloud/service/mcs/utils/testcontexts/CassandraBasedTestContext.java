@@ -1,5 +1,9 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static org.mockito.Mockito.mock;
+
 import eu.europeana.aas.authorization.ExtendedAclService;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -17,10 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
-
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
-import static org.mockito.Mockito.mock;
 
 @Configuration
 public class CassandraBasedTestContext {

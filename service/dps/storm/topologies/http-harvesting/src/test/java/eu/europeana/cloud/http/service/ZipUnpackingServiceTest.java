@@ -1,17 +1,17 @@
 package eu.europeana.cloud.http.service;
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
-import static org.junit.Assert.*;
 
 public class ZipUnpackingServiceTest {
 

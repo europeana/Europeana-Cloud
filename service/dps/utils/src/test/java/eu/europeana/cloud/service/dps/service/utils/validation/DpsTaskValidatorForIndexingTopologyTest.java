@@ -1,19 +1,24 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.HARVEST_DATE;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_DATASET_ID;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.REPRESENTATION_NAME;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.REVISION_NAME;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.REVISION_PROVIDER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.REVISION_TIMESTAMP;
+
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import org.junit.Test;
 
 public class DpsTaskValidatorForIndexingTopologyTest {
 

@@ -1,11 +1,18 @@
 package eu.europeana.aas.authorization.repository;
 
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclEntry;
+import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclObjectIdentity;
+import static org.mockito.Mockito.when;
+
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.aas.authorization.RetryableTestContextConfiguration;
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
+import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,12 +20,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.List;
-
-import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclObjectIdentity;
-import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclEntry;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {RetryableTestContextConfiguration.class})
@@ -37,7 +38,8 @@ public class CassandraAclRepositoryRetryableTest {
 
   @Before
   public void prepare() {
-    maxAttemptCount = CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS;
+    maxAttemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT)
+                              .orElse(CassandraAclRepository.ACL_REPO_DEFAULT_MAX_ATTEMPTS);
 
     when(session.execute(Mockito.any(Statement.class)))
         .thenThrow(new DriverException("Driver error has occurred!"));

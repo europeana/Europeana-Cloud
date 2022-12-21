@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.utils;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 import java.util.Date;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
  * Created by Tarek on 11/30/2017. Class uses number of ms from year 1970 as date representation. It is caused by the fact, that

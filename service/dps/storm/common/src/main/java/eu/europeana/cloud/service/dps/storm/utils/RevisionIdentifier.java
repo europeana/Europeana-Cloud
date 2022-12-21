@@ -1,13 +1,12 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.Revision;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.With;
-
-import java.util.Date;
 
 @Getter
 @With

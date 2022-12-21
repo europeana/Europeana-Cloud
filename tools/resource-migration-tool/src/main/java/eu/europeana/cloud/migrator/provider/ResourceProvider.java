@@ -1,7 +1,6 @@
 package eu.europeana.cloud.migrator.provider;
 
 import eu.europeana.cloud.common.model.DataProviderProperties;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Map;

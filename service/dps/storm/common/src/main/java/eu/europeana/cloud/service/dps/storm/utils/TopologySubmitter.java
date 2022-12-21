@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import java.util.Map;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class TopologySubmitter {
 

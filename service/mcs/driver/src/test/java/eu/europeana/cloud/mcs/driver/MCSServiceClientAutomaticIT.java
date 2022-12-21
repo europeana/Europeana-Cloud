@@ -1,26 +1,27 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.mcs.driver.Config.MCS_URL;
+import static eu.europeana.cloud.mcs.driver.Config.OTHER_USER;
+import static eu.europeana.cloud.mcs.driver.Config.UIS_URL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
-
-import static eu.europeana.cloud.mcs.driver.Config.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import javax.ws.rs.core.MediaType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class MCSServiceClientAutomaticIT {
 

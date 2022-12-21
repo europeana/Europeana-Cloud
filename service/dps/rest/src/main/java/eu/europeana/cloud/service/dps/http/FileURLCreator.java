@@ -1,12 +1,11 @@
 package eu.europeana.cloud.service.dps.http;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Creates URL for file that was prepared for the HTTP topology. It will be used by the topology to download the file and import

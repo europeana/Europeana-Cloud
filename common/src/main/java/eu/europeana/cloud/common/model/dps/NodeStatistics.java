@@ -1,8 +1,8 @@
 package eu.europeana.cloud.common.model.dps;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Statistics for a node.

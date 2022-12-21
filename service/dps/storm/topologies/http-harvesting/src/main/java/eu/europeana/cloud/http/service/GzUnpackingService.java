@@ -3,16 +3,19 @@ package eu.europeana.cloud.http.service;
 import eu.europeana.cloud.http.common.CompressionFileExtension;
 import eu.europeana.cloud.http.common.UnpackingServiceFactory;
 import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.rauschig.jarchivelib.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.rauschig.jarchivelib.ArchiveFormat;
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
+import org.rauschig.jarchivelib.CompressionType;
+import org.rauschig.jarchivelib.IOUtils;
 
 
 public class GzUnpackingService implements FileUnpackingService {

@@ -1,12 +1,11 @@
 package eu.europeana.cloud.common.utils;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.Date;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import java.util.Date;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class DateAdapterTest {
 

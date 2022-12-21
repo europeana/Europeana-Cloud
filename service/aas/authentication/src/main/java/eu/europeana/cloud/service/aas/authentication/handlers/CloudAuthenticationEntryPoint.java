@@ -1,16 +1,15 @@
 package eu.europeana.cloud.service.aas.authentication.handlers;
 
 import eu.europeana.cloud.common.response.ErrorInfo;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-
+import java.io.IOException;
+import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import java.io.IOException;
-import java.io.PrintWriter;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 /**
  * Authentication should only be done by a request to the correct URI and proper authentication. All requests should fail with a

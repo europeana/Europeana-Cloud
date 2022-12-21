@@ -1,5 +1,7 @@
 package eu.europeana.cloud.test;
 
+import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
+
 import eu.europeana.cloud.service.mcs.MCSAppInitializer;
 import eu.europeana.cloud.service.mcs.SecurityInitializer;
 import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
@@ -7,6 +9,7 @@ import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.SecurityTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthentificationConfiguration;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -23,10 +26,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import javax.servlet.http.HttpServletRequest;
-
-import static eu.europeana.cloud.service.mcs.rest.AbstractResourceTest.mockHttpServletRequest;
 
 
 /**
