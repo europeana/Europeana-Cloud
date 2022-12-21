@@ -6,11 +6,15 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Statement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.dps.Notification;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.storm.conversion.NotificationConverter;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +34,7 @@ public class NotificationsDAO extends CassandraDAO {
   private PreparedStatement subtaskInsertStatement;
   private PreparedStatement processedFilesCountStatement;
   private PreparedStatement removeNotificationsByTaskId;
+  private PreparedStatement selectNotificationFromGivenBucketAndInGivenResourceNumRange;
 
 
   /**
@@ -50,43 +55,21 @@ public class NotificationsDAO extends CassandraDAO {
     return instance;
   }
 
-
-  @Override
-  protected void prepareStatements() {
-    subtaskInsertStatement = dbService.getSession().prepare(
-        String.format("insert into %s(%s, %s, %s, %s, %s, %s, %s, %s, %s) values (?,?,?,?,?,?,?,?,?)",
-            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
-            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
-            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
-            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
-            CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME,
-            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE,
-            CassandraTablesAndColumnsNames.NOTIFICATION_STATE,
-            CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT,
-            CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION,
-            CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
-        )
-    );
-    subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-    processedFilesCountStatement = dbService.getSession().prepare(
-        String.format("select %s from %s where %s = ? and %s = ? order by %s desc limit 1",
-            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
-            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
-            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
-            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
-            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
-        )
-    );
-    processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
-
-    removeNotificationsByTaskId = dbService.getSession().prepare(
-        String.format("delete from %s where %s = ? and %s = ?",
-            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
-            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
-            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
-        )
-    );
+  /**
+   * Retrieves notification records from cassandra notification table with given task_id
+   *
+   * @param taskId identifier of task
+   * @param from minimum notification resource number value
+   * @param to maximum notification resource number value
+   * @param i cassandra bucket number
+   * @return List of notification class instances
+   */
+  public List<Notification> getNotificationsFromGivenBucketAndWithinGivenResourceNumRange(long taskId, int from, int to, int i) {
+    Statement selectFromNotification = selectNotificationFromGivenBucketAndInGivenResourceNumRange.bind(taskId, i, from, to);
+    List<Notification> notifications = new ArrayList<>();
+    dbService.getSession().execute(selectFromNotification)
+             .forEach(row -> notifications.add(NotificationConverter.fromDBRow(row)));
+    return notifications;
   }
 
   public void insert(int resourceNum, long taskId, String topologyName, String resource, String state,
@@ -137,5 +120,55 @@ public class NotificationsDAO extends CassandraDAO {
   public static int bucketNumber(int resourceNum) {
     return resourceNum / BUCKET_SIZE;
   }
+
+  @Override
+  protected void prepareStatements() {
+    subtaskInsertStatement = dbService.getSession().prepare(
+        String.format("insert into %s(%s, %s, %s, %s, %s, %s, %s, %s, %s) values (?,?,?,?,?,?,?,?,?)",
+            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
+            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
+            CassandraTablesAndColumnsNames.NOTIFICATION_TOPOLOGY_NAME,
+            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE,
+            CassandraTablesAndColumnsNames.NOTIFICATION_STATE,
+            CassandraTablesAndColumnsNames.NOTIFICATION_INFO_TEXT,
+            CassandraTablesAndColumnsNames.NOTIFICATION_ADDITIONAL_INFORMATION,
+            CassandraTablesAndColumnsNames.NOTIFICATION_RESULT_RESOURCE
+        )
+    );
+    subtaskInsertStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+    processedFilesCountStatement = dbService.getSession().prepare(
+        String.format("select %s from %s where %s = ? and %s = ? order by %s desc limit 1",
+            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM,
+            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER,
+            CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM
+        )
+    );
+    processedFilesCountStatement.setConsistencyLevel(dbService.getConsistencyLevel());
+
+    removeNotificationsByTaskId = dbService.getSession().prepare(
+        String.format("delete from %s where %s = ? and %s = ?",
+            CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE,
+            CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID,
+            CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER
+        )
+    );
+
+    selectNotificationFromGivenBucketAndInGivenResourceNumRange = dbService.getSession().prepare(
+        "SELECT *"
+            + "FROM " + CassandraTablesAndColumnsNames.NOTIFICATIONS_TABLE
+            + " WHERE " + CassandraTablesAndColumnsNames.NOTIFICATION_TASK_ID + " = ?"
+            + " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_BUCKET_NUMBER + " = ?"
+            + " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " >= ?"
+            + " AND " + CassandraTablesAndColumnsNames.NOTIFICATION_RESOURCE_NUM + " <= ?"
+    );
+
+
+  }
+
 
 }

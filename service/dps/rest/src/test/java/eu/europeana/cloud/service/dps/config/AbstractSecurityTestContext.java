@@ -20,7 +20,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
@@ -75,8 +75,8 @@ public class AbstractSecurityTestContext {
   }
 
   @Bean
-  public ReportService dpsReportService() {
-    return Mockito.mock(ReportService.class);
+  public TaskExecutionReportServiceImpl dpsReportService() {
+    return Mockito.mock(TaskExecutionReportServiceImpl.class);
   }
 
   @Bean

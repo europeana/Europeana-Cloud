@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
@@ -63,8 +63,8 @@ public class DPSServiceTestContext {
   }
 
   @Bean
-  public ReportService reportService() {
-    return Mockito.mock(ReportService.class);
+  public TaskExecutionReportServiceImpl reportService() {
+    return Mockito.mock(TaskExecutionReportServiceImpl.class);
   }
 
   @Bean

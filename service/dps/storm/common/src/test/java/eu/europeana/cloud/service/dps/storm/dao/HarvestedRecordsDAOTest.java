@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Streams;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -33,7 +34,8 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
   @Before
   public void setup() {
-    CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+        CassandraTestInstance.getPort(), KEYSPACE, USER,
         PASSWORD);
     HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
     dao = RetryableMethodExecutor.createRetryProxy(rawDao);

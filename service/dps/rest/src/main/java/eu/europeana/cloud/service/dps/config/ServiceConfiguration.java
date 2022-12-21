@@ -51,7 +51,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -114,13 +114,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
-  public ReportService taskReportService() {
-    return new ReportService(
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
+  public TaskExecutionReportServiceImpl taskReportService() {
+    return new TaskExecutionReportServiceImpl(subTaskInfoDAO(), taskErrorDAO(), taskInfoDAO());
   }
 
   @Bean

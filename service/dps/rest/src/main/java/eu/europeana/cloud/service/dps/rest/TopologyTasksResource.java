@@ -88,10 +88,10 @@ public class TopologyTasksResource {
    */
 
   @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  @PreAuthorize("hasPermission(#taskId,'" + TASK_PREFIX + "', read)")
+  @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskInfo getTaskProgress(
       @PathVariable final String topologyName,
-      @PathVariable final String taskId) throws
+      @PathVariable final Long taskId) throws
       AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
     LOGGER.info("Checking task progress for: {}", taskId);
     taskSubmissionValidator.assertContainTopology(topologyName);
@@ -138,7 +138,7 @@ public class TopologyTasksResource {
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<Void> restartTask(
       final HttpServletRequest request,
-      @PathVariable final long taskId,
+      @PathVariable final Long taskId,
       @PathVariable final String topologyName
   ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
@@ -170,13 +170,13 @@ public class TopologyTasksResource {
   @ReturnType("java.lang.Void")
   public ResponseEntity<Void> grantPermissions(
       @PathVariable String topologyName,
-      @PathVariable String taskId,
+      @PathVariable Long taskId,
       @RequestParam String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
     taskSubmissionValidator.assertContainTopology(topologyName);
 
     if (taskId != null) {
-      permissionManager.grantPermissionsForTask(taskId, username);
+      permissionManager.grantPermissionsForTask(String.valueOf(taskId), username);
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
@@ -203,15 +203,15 @@ public class TopologyTasksResource {
    */
 
   @PostMapping(path = "{taskId}/kill")
-  @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId,'" + TASK_PREFIX + "', write)")
+  @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', write)")
   public ResponseEntity<String> killTask(
       @PathVariable String topologyName,
-      @PathVariable String taskId,
+      @PathVariable Long taskId,
       @RequestParam(defaultValue = "Dropped by the user") String info)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     taskSubmissionValidator.assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
-    taskStatusUpdater.setTaskDropped(Long.parseLong(taskId), info);
+    taskStatusUpdater.setTaskDropped(taskId, info);
     return ResponseEntity.ok("The task was killed because of " + info);
   }
 
