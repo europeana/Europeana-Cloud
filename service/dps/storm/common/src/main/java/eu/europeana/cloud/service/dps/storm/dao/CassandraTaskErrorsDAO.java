@@ -33,7 +33,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
   private static CassandraTaskErrorsDAO instance = null;
   private PreparedStatement insertErrorStatement;
   private PreparedStatement insertErrorCounterStatement;
-  private PreparedStatement selectErrorCountsStatement;
   private PreparedStatement selectErrorCountsForErrorTypeStatement;
   private PreparedStatement removeErrorCountsStatement;
   private PreparedStatement removeErrorNotifications;
@@ -119,23 +118,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
         errorNotification.getAdditionalInformations());
   }
 
-  /**
-   * Return the number of errors of all types for a given task.
-   *
-   * @param taskId task identifier
-   * @return number of all errors for the task
-   */
-  public int getErrorCount(long taskId) {
-    ResultSet rs = dbService.getSession().execute(selectErrorCountsStatement.bind(taskId));
-    int count = 0;
-
-    while (rs.iterator().hasNext()) {
-      Row row = rs.one();
-
-      count += row.getLong(CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER);
-    }
-    return count;
-  }
 
   /**
    * Retrieves errorType record from cassandra error_type table with given task_id and error_type
@@ -149,11 +131,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
     return (rs.iterator().hasNext()) ? Optional.of(ErrorTypeConverter.fromDBRow(rs.one())) : Optional.empty();
   }
 
-  public Iterator<String> getMessagesUuids(long taskId) {
-    return Iterators.transform(
-        dbService.getSession().execute(selectErrorTypesStatement.bind(taskId)).iterator(),
-        row -> row.getUUID(CassandraTablesAndColumnsNames.ERROR_TYPES_ERROR_TYPE).toString());
-  }
 
   /**
    * Returns the number of errors of one given type of the error for a given task.
@@ -242,11 +219,6 @@ public class CassandraTaskErrorsDAO extends CassandraDAO {
             + ") VALUES (?,?,?)"
     );
 
-    selectErrorCountsStatement = dbService.getSession().prepare(
-        "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
-            + " FROM " + CassandraTablesAndColumnsNames.ERROR_TYPES_TABLE
-            + " WHERE " + CassandraTablesAndColumnsNames.ERROR_TYPES_TASK_ID + " = ? "
-    );
 
     selectErrorCountsForErrorTypeStatement = dbService.getSession().prepare(
         "SELECT " + CassandraTablesAndColumnsNames.ERROR_TYPES_COUNTER
