@@ -45,7 +45,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     try {
       String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
-      String output = enrichmentWorker.process(fileContent);
+      String output = enrichmentWorker.process(fileContent).getProcessedRecord();
       LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
       emitEnrichedContent(anchorTuple, stormTaskTuple, output);
       LOGGER.info("Emmited enrichment on {}", output);
