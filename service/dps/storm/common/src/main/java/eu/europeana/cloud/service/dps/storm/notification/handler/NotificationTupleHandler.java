@@ -19,6 +19,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
+import eu.europeana.enrichment.rest.client.report.Report;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,6 +75,7 @@ public class NotificationTupleHandler {
 
       statementsToBeExecutedInBatch.addAll(prepareCommonStatementsForAllTuples(notification, config.getNotificationCacheEntry()));
       statementsToBeExecutedInBatch.addAll(prepareStatementsForErrors(notificationTuple, config.getNotificationCacheEntry()));
+      statementsToBeExecutedInBatch.addAll(prepareStatementsForReports(notificationTuple, config.getNotificationCacheEntry()));
       statementsToBeExecutedInBatch.addAll(prepareStatementsForRecordState(notificationTuple, config));
       batchExecutor.executeAll(statementsToBeExecutedInBatch);
     }
@@ -124,21 +126,40 @@ public class NotificationTupleHandler {
         || (notificationTuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null);
   }
 
+  private boolean isReportPresent(NotificationTuple notificationTuple) {
+    return !notificationTuple.getReportSet().isEmpty();
+  }
+
   private List<BoundStatement> prepareStatementsForErrors(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {
-    //
-    if (!isError(notificationTuple)) {
-      return Collections.emptyList();
+    if (isError(notificationTuple)) {
+      ErrorNotification errorNotification = prepareErrorNotificationFromTuple(notificationTuple, nCache);
+      return getStatementsToBeExecutedFromErrorNotification(notificationTuple, nCache, errorNotification);
     }
+    return Collections.emptyList();
+  }
+
+  private List<BoundStatement> prepareStatementsForReports(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {
     List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
-    //
-    ErrorNotification errorNotification = prepareErrorNotification(notificationTuple, nCache);
-    var errorType = nCache.getErrorType(errorNotification.getErrorMessage());
+    if (isReportPresent(notificationTuple)) {
+      List<ErrorNotification> errorNotifications = prepareErrorNotificationsFromTupleReports(notificationTuple, nCache);
+      errorNotifications.forEach(
+          errorNotification -> statementsToBeExecuted.addAll(
+              getStatementsToBeExecutedFromErrorNotification(notificationTuple, nCache, errorNotification))
+      );
+    }
+    return statementsToBeExecuted;
+  }
+
+  private List<BoundStatement> getStatementsToBeExecutedFromErrorNotification(NotificationTuple notificationTuple,
+      NotificationCacheEntry nCache, ErrorNotification errorNotification) {
+    ErrorType errorType = nCache.getErrorType(errorNotification.getErrorMessage());
+    List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
     errorType.incrementCounter();
     statementsToBeExecuted.add(taskErrorDAO.insertErrorCounterStatement(notificationTuple.getTaskId(), errorType));
-    //insert error
+
     if (!maximumNumberOfErrorsReached(errorType)) {
       statementsToBeExecuted.add(taskErrorDAO.insertErrorStatement(
-          prepareErrorNotification(notificationTuple, nCache)
+          errorNotification
       ));
     } else {
       LOGGER.warn("Will not store the error message because threshold reached for taskId={}. ", notificationTuple.getTaskId());
@@ -146,7 +167,39 @@ public class NotificationTupleHandler {
     return statementsToBeExecuted;
   }
 
-  private ErrorNotification prepareErrorNotification(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {
+  private List<ErrorNotification> prepareErrorNotificationsFromTupleReports(NotificationTuple notificationTuple,
+      NotificationCacheEntry nCache) {
+    ArrayList<ErrorNotification> errorNotifications = new ArrayList<>();
+    notificationTuple.getReportSet().forEach(
+        report ->
+            errorNotifications.add(prepareErrorNotificationFromReport(notificationTuple, report, nCache))
+    );
+    return errorNotifications;
+  }
+
+  private ErrorNotification prepareErrorNotificationFromReport(NotificationTuple notificationTuple, Report report,
+      NotificationCacheEntry nCache) {
+    String resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
+    String errorMessage = String.format("Report message:%s", report.getMessage());
+    String additionalInformation = String.format(
+        "ReportInformation:%nMessageType:%s%nProcessingMode:%s%nHTTPStatus:%s%nValue:%s%nStackTrace:%s",
+        report.getMessageType(),
+        report.getMode(),
+        report.getStatus(),
+        report.getValue(),
+        report.getStackTrace());
+    return ErrorNotification.builder()
+                            .taskId(notificationTuple.getTaskId())
+                            .errorType(nCache.getErrorType(errorMessage).getUuid())
+                            .errorMessage(errorMessage)
+                            .resource(resource)
+                            .additionalInformations(prepareAdditionalInformation(additionalInformation))
+                            .build();
+  }
+
+
+  private ErrorNotification prepareErrorNotificationFromTuple(NotificationTuple notificationTuple,
+      NotificationCacheEntry nCache) {
     var resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
     //
     //store notification error

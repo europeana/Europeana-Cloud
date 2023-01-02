@@ -19,7 +19,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
@@ -69,7 +71,8 @@ public class EnrichmentBoltTest {
 
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, new HashMap<>(), null);
-    when(enrichmentWorker.process(anyString())).thenReturn(new ProcessedResult<>("enriched file content"));
+    String fileContent = new String(tuple.getFileData());
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("enriched file content", new HashSet<>()));
     enrichmentBolt.execute(anchorTuple, tuple);
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), Mockito.any(List.class));
     Mockito.verify(outputCollector, Mockito.times(0))
@@ -80,26 +83,26 @@ public class EnrichmentBoltTest {
   @SuppressWarnings("unchecked")
   public void sendErrorNotificationWhenTheEnrichmentFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-
+    Fields fields = mock(Fields.class);
+    when(fields.contains(anyString())).thenReturn(false);
+    when(anchorTuple.getFields()).thenReturn(fields);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
         prepareStormTaskTupleParameters(), null);
-    // String errorMessage = "Dereference or Enrichment Exception";
-    HashSet<Report> reports = new HashSet<>();
-    IllegalArgumentException e = new IllegalArgumentException("Input RDF string cannot be null.");
-    reports.add(Report.buildEnrichmentError().withValue(new String(tuple.getFileData())).withException(e).build());
-    when(enrichmentWorker.process(anyString())).thenReturn(new ProcessedResult<>(null, reports));
+    String fileContent = new String(tuple.getFileData());
+    String errorMessage = "Dereference or Enrichment Exception";
+    Report report = Report.buildEnrichmentError().withMessage(errorMessage).build();
+    Set<Report> reports = new HashSet<>();
+    reports.add(report);
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment failed", reports));
     enrichmentBolt.execute(anchorTuple, tuple);
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
     Mockito.verify(outputCollector, Mockito.times(1))
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
     var val = (Map<String, String>) capturedValues.get(1);
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION)
-                         .contains("emote Enrichment/dereference service caused the problem!. The full error:"));
-    // TODO:
-    // Fix that check after implementing handling new dereference/enrichment report mechanism at ecloud side
-    // Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("ENRICHMENT"));
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
   }
 
   private HashMap<String, String> prepareStormTaskTupleParameters() {

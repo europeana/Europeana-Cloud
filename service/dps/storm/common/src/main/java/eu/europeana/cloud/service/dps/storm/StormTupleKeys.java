@@ -31,6 +31,8 @@ public final class StormTupleKeys {
 
   public static final String THROTTLING_GROUPING_ATTRIBUTE = "THROTTLING_ATTRIBUTE";
 
+  public static final String REPORT_SET_TUPLE_KEY = "REPORT_SET";
+
   private StormTupleKeys() {
   }
 }

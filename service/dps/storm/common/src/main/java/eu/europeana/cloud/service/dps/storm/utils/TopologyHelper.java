@@ -44,8 +44,10 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
+import eu.europeana.enrichment.rest.client.report.Report;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,9 +105,9 @@ public final class TopologyHelper {
           parseInt(topologyProperties.getProperty(THRIFT_PORT)));
       config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
           topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-      config.put(Config.NIMBUS_SEEDS, Arrays.asList(topologyProperties.getProperty(NIMBUS_SEEDS)));
+      config.put(Config.NIMBUS_SEEDS, Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)));
       config.put(Config.STORM_ZOOKEEPER_SERVERS,
-          Arrays.asList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+          Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
 
       config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
     }
@@ -128,7 +130,7 @@ public final class TopologyHelper {
 
     config.put(TOPOLOGY_KRYO_REGISTER, Arrays.asList(LinkedHashMap.class.getName(),
         OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-        DataSetCleanerParameters.class.getName()));
+        DataSetCleanerParameters.class.getName(), Report.class.getName()));
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
     config.put(SPOUT_SLEEP_MS, getValue(topologyProperties, SPOUT_SLEEP_MS, DEFAULT_SPOUT_SLEEP_MS));

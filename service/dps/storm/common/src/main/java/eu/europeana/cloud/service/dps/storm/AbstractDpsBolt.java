@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
-
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.REPORT_SET_TUPLE_KEY;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
@@ -18,11 +18,14 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.enrichment.rest.client.report.Report;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -117,7 +120,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       e.printStackTrace(new PrintWriter(stack));
       emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
           stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple), null);
       outputCollector.ack(tuple);
     }
   }
@@ -176,7 +179,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       String additionalInformation) {
     emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
         stormTaskTuple.getFileUrl(), message, additionalInformation,
-        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple), stormTaskTuple.getReportSet());
   }
 
   /**
@@ -190,10 +193,22 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
    */
 
   protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
-      String message, String additionalInformation, long processingStartTime) {
+      String message, String additionalInformation, long processingStartTime, Set<Report> reports) {
     NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDeleted, resource, RecordState.ERROR,
         message, additionalInformation, processingStartTime);
+    if (reports != null) {
+      nt.addReports(reports);
+    }
+    if (anchorTuple != null && anchorTuple.getFields() != null && anchorTuple.getFields().contains(REPORT_SET_TUPLE_KEY)) {
+      nt.addReports((HashSet<Report>) anchorTuple.getValueByField(REPORT_SET_TUPLE_KEY));
+    }
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+  }
+
+  protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
+      String message, String additionalInformation, long processingStartTime) {
+    emitErrorNotification(anchorTuple, taskId, markedAsDeleted, resource, message, additionalInformation, processingStartTime,
+        null);
   }
 
   protected void emitSuccessNotification(Tuple anchorTuple, long taskId, boolean markedAsDelete, String resource,

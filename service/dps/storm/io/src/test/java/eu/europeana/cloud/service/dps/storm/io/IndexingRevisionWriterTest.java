@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -69,7 +70,7 @@ public class IndexingRevisionWriterTest {
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
-    assertEquals(2, list.size());
+    assertEquals(3, list.size());
     Map<String, String> parameters = (Map<String, String>) list.get(1);
     assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
   }
@@ -88,7 +89,7 @@ public class IndexingRevisionWriterTest {
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
-    assertEquals(2, list.size());
+    assertEquals(3, list.size());
     Map<String, String> parameters = (Map<String, String>) list.get(1);
     assertEquals("SUCCESS", parameters.get(NotificationParameterKeys.STATE));
   }
@@ -107,7 +108,7 @@ public class IndexingRevisionWriterTest {
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
-    assertEquals(2, list.size());
+    assertEquals(3, list.size());
     Map<String, String> parameters = (Map<String, String>) list.get(1);
     assertEquals("ERROR", parameters.get(NotificationParameterKeys.STATE));
   }
@@ -116,7 +117,7 @@ public class IndexingRevisionWriterTest {
   @SuppressWarnings("unchecked")
   public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
-    Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class)))
+    when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class)))
            .thenThrow(MCSException.class);
     RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
     testMock.execute(anchorTuple, prepareTuple());

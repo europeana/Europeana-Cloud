@@ -3,14 +3,19 @@ package eu.europeana.cloud.enrichment.bolts;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
 import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
+import eu.europeana.enrichment.rest.client.report.ProcessedResult;
+import eu.europeana.enrichment.rest.client.report.ProcessedResult.RecordStatus;
+import eu.europeana.enrichment.rest.client.report.Report;
+import eu.europeana.enrichment.rest.client.report.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -45,28 +50,47 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     try {
       String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
-      String output = enrichmentWorker.process(fileContent).getProcessedRecord();
-      LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-      emitEnrichedContent(anchorTuple, stormTaskTuple, output);
-      LOGGER.info("Emmited enrichment on {}", output);
+      ProcessedResult<String> result = enrichmentWorker.process(fileContent);
+      Set<Report> reports = result.getReport()
+                                  .stream()
+                                  .filter(rm -> rm.getMessageType() != Type.IGNORE)
+                                  .collect(Collectors.toSet());
+      if (RecordStatus.CONTINUE.equals(result.getRecordStatus())) {
+        stormTaskTuple.addReports(reports);
+        LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
+        emitEnrichedContent(anchorTuple, stormTaskTuple, result.getProcessedRecord());
+        LOGGER.info("Emitted enrichment on {}", result.getProcessedRecord());
+      } else {
+        LOGGER.error("Error occurred during process of enrichment");
+        stormTaskTuple.addReports(reports);
+        Set<Report> errorReports = reports
+            .stream().filter(
+                rm -> rm.getMessageType() == Type.ERROR
+            ).collect(Collectors.toSet());
+        String errorAdditionalInformation;
+        if (errorReports.size() == 1) {
+          errorAdditionalInformation = String.format("%s during %s", errorReports.iterator().next().getMessage(),
+              errorReports.iterator().next().getMode());
+        } else {
+          errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReports.size());
+        }
+        emitErrorNotification(anchorTuple,
+            stormTaskTuple,
+            "Error occurred during enrichment/dereference process",
+            errorAdditionalInformation);
+      }
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
       LOGGER.error("Exception while Enriching/dereference", e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(),
+      emitErrorNotification(anchorTuple,
+          stormTaskTuple,
+          e.getMessage(),
           "Remote Enrichment/dereference service caused the problem!. The full error: "
-              + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+              + ExceptionUtils.getStackTrace(e));
       outputCollector.ack(anchorTuple);
     }
-  }
-
-  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
-      throws Exception {
-    prepareStormTaskTupleForEmission(stormTaskTuple, output);
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
   }
 
   @Override
@@ -83,5 +107,11 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     } catch (DereferenceException | EnrichmentException e) {
       throw new RuntimeException("Could not instantiate EnrichmentBolt due Exception in enrich worker creating", e);
     }
+  }
+
+  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
+      throws Exception {
+    prepareStormTaskTupleForEmission(stormTaskTuple, output);
+    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
   }
 }

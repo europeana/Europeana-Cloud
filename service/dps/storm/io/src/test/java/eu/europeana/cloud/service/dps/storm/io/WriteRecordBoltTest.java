@@ -91,7 +91,7 @@ public class WriteRecordBoltTest {
     verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(1));
     Values value = captor.getAllValues().get(0);
-    assertEquals(9, value.size());
+    assertEquals(10, value.size());
     assertTrue(value.get(4) instanceof Map);
     Map<String, String> parameters = (Map<String, String>) value.get(4);
     assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
@@ -121,7 +121,7 @@ public class WriteRecordBoltTest {
     verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(1));
     Values value = captor.getAllValues().get(0);
-    assertEquals(9, value.size());
+    assertEquals(10, value.size());
     assertTrue(value.get(4) instanceof Map);
     Map<String, String> parameters = (Map<String, String>) value.get(4);
     assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
