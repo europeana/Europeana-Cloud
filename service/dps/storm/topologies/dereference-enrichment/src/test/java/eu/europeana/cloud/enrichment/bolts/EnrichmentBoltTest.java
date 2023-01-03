@@ -2,7 +2,6 @@ package eu.europeana.cloud.enrichment.bolts;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +12,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
@@ -83,14 +82,11 @@ public class EnrichmentBoltTest {
   @SuppressWarnings("unchecked")
   public void sendErrorNotificationWhenTheEnrichmentFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    Fields fields = mock(Fields.class);
-    when(fields.contains(anyString())).thenReturn(false);
-    when(anchorTuple.getFields()).thenReturn(fields);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
         prepareStormTaskTupleParameters(), null);
     String fileContent = new String(tuple.getFileData());
-    String errorMessage = "Dereference or Enrichment Exception";
+    String errorMessage = "Dereference or Enrichment Error";
     Report report = Report.buildEnrichmentError().withMessage(errorMessage).build();
     Set<Report> reports = new HashSet<>();
     reports.add(report);
@@ -103,11 +99,85 @@ public class EnrichmentBoltTest {
     var val = (Map<String, String>) capturedValues.get(1);
     Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("ENRICHMENT"));
     Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
+    HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(2);
+    Assert.assertTrue(capturedReports.contains(report));
   }
 
   private HashMap<String, String> prepareStormTaskTupleParameters() {
     HashMap<String, String> parameters = new HashMap<>();
     parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return parameters;
+  }
+
+  @Test
+  public void shouldProperlySendReportsToNotificationBoltInCaseOfErrorReports() throws IOException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
+        prepareStormTaskTupleParameters(), null);
+    String fileContent = new String(tuple.getFileData());
+    String errorMessage = "Dereference or Enrichment Error";
+    String warnMessage = "Dereference or Enrichment Warning";
+    String ignoreMessage = "Dereference or Enrichment Ignore";
+
+    Set<Report> reports = new HashSet<>();
+
+    Report reportEnrichmentError = Report.buildEnrichmentError().withMessage(errorMessage).build();
+    Report reportEnrichmentWarn = Report.buildEnrichmentWarn().withMessage(warnMessage).build();
+    Report reportEnrichmentIgnore = Report.buildEnrichmentIgnore().withMessage(ignoreMessage).build();
+    Report reportDereferenceWarn = Report.buildDereferenceWarn().withMessage(warnMessage).build();
+    Report reportDereferenceIgnore = Report.buildDereferenceIgnore().withMessage(ignoreMessage).build();
+    reports.add(reportEnrichmentError);
+    reports.add(reportEnrichmentWarn);
+    reports.add(reportEnrichmentIgnore);
+    reports.add(reportDereferenceWarn);
+    reports.add(reportDereferenceIgnore);
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment failed", reports));
+    enrichmentBolt.execute(anchorTuple, tuple);
+    Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+    Values capturedValues = captor.getValue();
+    var val = (Map<String, String>) capturedValues.get(1);
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("ENRICHMENT"));
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
+    HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(2);
+    Assert.assertTrue(capturedReports.contains(reportEnrichmentError));
+    Assert.assertTrue(capturedReports.contains(reportEnrichmentWarn));
+    Assert.assertTrue(capturedReports.contains(reportDereferenceWarn));
+    Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore));
+    Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore));
+  }
+
+  @Test
+  public void shouldProperlySendReportsToNotificationBoltInCaseOfOnlyWarnReports() throws IOException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
+        prepareStormTaskTupleParameters(), null);
+    String fileContent = new String(tuple.getFileData());
+    String warnMessage = "Dereference or Enrichment Warning";
+    String ignoreMessage = "Dereference or Enrichment Ignore";
+    Set<Report> reports = new HashSet<>();
+
+    Report reportEnrichmentWarn = Report.buildEnrichmentWarn().withMessage(warnMessage).build();
+    Report reportEnrichmentIgnore = Report.buildEnrichmentIgnore().withMessage(ignoreMessage).build();
+    Report reportDereferenceWarn = Report.buildDereferenceWarn().withMessage(warnMessage).build();
+    Report reportDereferenceIgnore = Report.buildDereferenceIgnore().withMessage(ignoreMessage).build();
+    reports.add(reportEnrichmentWarn);
+    reports.add(reportEnrichmentIgnore);
+    reports.add(reportDereferenceWarn);
+    reports.add(reportDereferenceIgnore);
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment failed", reports));
+    enrichmentBolt.execute(anchorTuple, tuple);
+    Mockito.verify(outputCollector, Mockito.times(0))
+           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class), Mockito.any(List.class));
+    Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
+    Values capturedValues = captor.getValue();
+    HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(9);
+    Assert.assertTrue(capturedReports.contains(reportEnrichmentWarn));
+    Assert.assertTrue(capturedReports.contains(reportDereferenceWarn));
+    Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore));
+    Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore));
   }
 }

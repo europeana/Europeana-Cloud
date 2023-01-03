@@ -27,12 +27,15 @@ import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTup
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.enrichment.rest.client.report.Report;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
@@ -350,9 +353,6 @@ public class NotificationBoltTest extends CassandraTestBase {
 
   @Test
   public void testNotificationProgressPercentage() throws Exception {
-    //given
-    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-        CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
     TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 330;
@@ -404,9 +404,6 @@ public class NotificationBoltTest extends CassandraTestBase {
 
   @Test
   public void testNotificationForErrors() throws Exception {
-    //given
-    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-        CassandraTestInstance.getPort(), KEYSPACE, USER_NAME, PASSWORD);
     TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
     long taskId = 1;
     int expectedSize = 20;
@@ -434,6 +431,33 @@ public class NotificationBoltTest extends CassandraTestBase {
 
     assertEquals(1, errorsInfo.getErrors().size());
     assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
+  }
+
+  @Test
+  public void shouldProperlyExecuteTupleWithReports() throws AccessDeniedOrObjectDoesNotExistException {
+    TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
+    long taskId = 1;
+    TaskState taskState = TaskState.CURRENTLY_PROCESSING;
+    String taskInfo = "";
+    insertTaskToDB(taskId, null, 1, taskState, taskInfo);
+
+    //when
+    Tuple tuple = prepareTupleWithReport(taskId, 10, 10);
+
+    TaskInfo beforeExecute = reportService.getTaskProgress(taskId);
+
+    testedBolt.execute(tuple);
+
+    TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(taskId, 0);
+
+    assertEquals(0, beforeExecute.getProcessedRecordsCount());
+    assertThat(beforeExecute.getState(), is(TaskState.CURRENTLY_PROCESSING));
+    assertEquals(0, beforeExecute.getProcessedErrorsCount());
+
+    List<TaskErrorInfo> errors = errorsInfo.getErrors();
+    assertEquals(3, errors.size());
+    int sumOfOccurrences = errors.stream().map(TaskErrorInfo::getOccurrences).reduce(0, Integer::sum);
+    assertEquals(21, sumOfOccurrences);
   }
 
   @Test
@@ -522,6 +546,23 @@ public class NotificationBoltTest extends CassandraTestBase {
           resultResource, 1L)));
     }
     return result;
+  }
+
+  private Tuple prepareTupleWithReport(long taskId, int errorReportCount, int warningReportCount) {
+    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(taskId, false, "resource",
+        RecordState.ERROR, "text", "additionalInformation", "", 1L);
+    HashSet<Report> reports = new HashSet<>();
+    for (int i = 0; i < errorReportCount; i++) {
+      reports.add(Report.buildEnrichmentError().withMessage("EnrichmentError").withValue(String.valueOf(i)).build());
+    }
+    for (int i = 0; i < warningReportCount; i++) {
+      reports.add(
+          new Random().nextInt() == 1 ? Report.buildEnrichmentWarn().withMessage("EnrichmentWarning").withValue(String.valueOf(i))
+                                              .build()
+              : Report.buildDereferenceWarn().withMessage("DereferenceWarning").withValue(String.valueOf(i)).build());
+    }
+    notificationTuple.addReports(reports);
+    return createTestTuple(notificationTuple);
   }
 
   private TaskInfo createTaskInfo(long taskId, int containElement, String topologyName, TaskState state, String info,
