@@ -99,8 +99,7 @@ public class EnrichmentBoltTest {
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
     var val = (Map<String, String>) capturedValues.get(1);
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("ENRICHMENT"));
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Number of errors that occurred during enrichment:"));
     HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(2);
     Assert.assertTrue(capturedReports.contains(report));
   }
@@ -142,8 +141,7 @@ public class EnrichmentBoltTest {
            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
     var val = (Map<String, String>) capturedValues.get(1);
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("ENRICHMENT"));
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains(errorMessage));
+    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Number of errors that occurred during enrichment:"));
     HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(2);
     Assert.assertTrue(capturedReports.contains(reportEnrichmentError));
     Assert.assertTrue(capturedReports.contains(reportEnrichmentWarn));

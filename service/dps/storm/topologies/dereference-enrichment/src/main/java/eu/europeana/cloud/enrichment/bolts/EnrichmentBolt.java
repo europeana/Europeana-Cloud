@@ -85,21 +85,15 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   private void dropRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, Set<Report> reports) {
     LOGGER.error("Error occurred during process of enrichment");
     stormTaskTuple.addReports(reports);
-    Set<Report> errorReports = reports
-        .stream().filter(
-            rm -> rm.getMessageType() == Type.ERROR
-        ).collect(Collectors.toSet());
-    String errorAdditionalInformation;
-    if (errorReports.size() == 1) {
-      errorAdditionalInformation = String.format("%s during %s", errorReports.iterator().next().getMessage(),
-          errorReports.iterator().next().getMode());
-    } else {
-      errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReports.size());
-    }
+    Integer errorReportCount = reports
+            .stream().filter(
+                    rm -> rm.getMessageType() == Type.ERROR
+            ).collect(Collectors.toSet()).size();
+    String errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReportCount);
     emitErrorNotification(anchorTuple,
             stormTaskTuple,
-        "Error occurred during enrichment/dereference process",
-        errorAdditionalInformation);
+            "Error occurred during enrichment/dereference process",
+            errorAdditionalInformation);
   }
 
   private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> reports) throws Exception {
