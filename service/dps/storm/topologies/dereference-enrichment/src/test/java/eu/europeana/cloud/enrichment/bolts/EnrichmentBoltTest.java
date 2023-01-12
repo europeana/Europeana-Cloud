@@ -34,6 +34,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import javax.validation.constraints.AssertTrue;
+
 public class EnrichmentBoltTest {
 
   public static final String DEREFERENCE_URL = "https:/dereference.org";
@@ -132,7 +134,8 @@ public class EnrichmentBoltTest {
     reports.add(reportEnrichmentIgnore);
     reports.add(reportDereferenceWarn);
     reports.add(reportDereferenceIgnore);
-    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment failed", reports));
+
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment succeeded", reports));
     enrichmentBolt.execute(anchorTuple, tuple);
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
     Mockito.verify(outputCollector, Mockito.times(1))
@@ -147,6 +150,52 @@ public class EnrichmentBoltTest {
     Assert.assertTrue(capturedReports.contains(reportDereferenceWarn));
     Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore));
     Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore));
+  }
+
+
+  @Test
+  public void shouldSendEmptyReportSetToNotificationBoltInCaseOfOnlyIgnoreReports() throws IOException {
+    Tuple anchorTuple = mock(TupleImpl.class);
+    byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
+            prepareStormTaskTupleParameters(), null);
+    String fileContent = new String(tuple.getFileData());
+    String ignoreMessage_0 = "Dereference or Enrichment Ignore_0";
+    String ignoreMessage_1 = "Dereference or Enrichment Ignore_1";
+    String ignoreMessage_2 = "Dereference or Enrichment Ignore_2";
+    String ignoreMessage_3 = "Dereference or Enrichment Ignore_3";
+    String ignoreMessage_4 = "Dereference or Enrichment Ignore_4";
+    String ignoreMessage_5 = "Dereference or Enrichment Ignore_5";
+
+    Set<Report> reports = new HashSet<>();
+
+    Report reportEnrichmentIgnore_0 = Report.buildEnrichmentIgnore().withMessage(ignoreMessage_0).build();
+    Report reportEnrichmentIgnore_1 = Report.buildEnrichmentIgnore().withMessage(ignoreMessage_1).build();
+    Report reportEnrichmentIgnore_2 = Report.buildEnrichmentIgnore().withMessage(ignoreMessage_2).build();
+    Report reportDereferenceIgnore_0 = Report.buildDereferenceIgnore().withMessage(ignoreMessage_3).build();
+    Report reportDereferenceIgnore_1 = Report.buildDereferenceIgnore().withMessage(ignoreMessage_4).build();
+    Report reportDereferenceIgnore_2 = Report.buildDereferenceIgnore().withMessage(ignoreMessage_5).build();
+    reports.add(reportEnrichmentIgnore_0);
+    reports.add(reportEnrichmentIgnore_1);
+    reports.add(reportEnrichmentIgnore_2);
+    reports.add(reportDereferenceIgnore_0);
+    reports.add(reportDereferenceIgnore_1);
+    reports.add(reportDereferenceIgnore_2);
+
+    when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("Enrichment succeeded", reports));
+    enrichmentBolt.execute(anchorTuple, tuple);
+    Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
+    Mockito.verify(outputCollector, Mockito.times(1))
+            .emit(Mockito.any(Tuple.class), captor.capture());
+    Values capturedValues = captor.getValue();
+    HashSet<Report> capturedReports = (HashSet<Report>) capturedValues.get(9);
+    Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore_0));
+    Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore_1));
+    Assert.assertFalse(capturedReports.contains(reportEnrichmentIgnore_2));
+    Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore_0));
+    Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore_1));
+    Assert.assertFalse(capturedReports.contains(reportDereferenceIgnore_2));
+    Assert.assertEquals(0, capturedReports.size());
   }
 
   @Test
