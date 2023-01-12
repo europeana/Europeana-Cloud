@@ -48,49 +48,68 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     try {
-      String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
+      String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       ProcessedResult<String> result = enrichmentWorker.process(fileContent);
-      Set<Report> reports = result.getReport()
-                                  .stream()
-                                  .filter(rm -> rm.getMessageType() != Type.IGNORE)
-                                  .collect(Collectors.toSet());
-      if (RecordStatus.CONTINUE.equals(result.getRecordStatus())) {
-        stormTaskTuple.addReports(reports);
-        LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-        emitEnrichedContent(anchorTuple, stormTaskTuple, result.getProcessedRecord());
-        LOGGER.info("Emitted enrichment on {}", result.getProcessedRecord());
+      Set<Report> reports = filterOutIgnoredReports(result.getReport());
+      if (shouldRecordBeFurtherProcessed(result)) {
+        processRecord(anchorTuple, stormTaskTuple, result, reports);
       } else {
-        LOGGER.error("Error occurred during process of enrichment");
-        stormTaskTuple.addReports(reports);
-        Set<Report> errorReports = reports
-            .stream().filter(
-                rm -> rm.getMessageType() == Type.ERROR
-            ).collect(Collectors.toSet());
-        String errorAdditionalInformation;
-        if (errorReports.size() == 1) {
-          errorAdditionalInformation = String.format("%s during %s", errorReports.iterator().next().getMessage(),
-              errorReports.iterator().next().getMode());
-        } else {
-          errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReports.size());
-        }
-        emitErrorNotification(anchorTuple,
-            stormTaskTuple,
-            "Error occurred during enrichment/dereference process",
-            errorAdditionalInformation);
+        dropRecord(anchorTuple, stormTaskTuple, reports);
       }
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      LOGGER.error("Exception while Enriching/dereference", e);
-      emitErrorNotification(anchorTuple,
-          stormTaskTuple,
-          e.getMessage(),
-          "Remote Enrichment/dereference service caused the problem!. The full error: "
-              + ExceptionUtils.getStackTrace(e));
-      outputCollector.ack(anchorTuple);
+      handleProcessingError(anchorTuple, stormTaskTuple, e);
     }
+  }
+
+  private static Set<Report> filterOutIgnoredReports(Set<Report> reports) {
+    return reports
+            .stream()
+            .filter(rm -> rm.getMessageType() != Type.IGNORE)
+            .collect(Collectors.toSet());
+  }
+
+  private void handleProcessingError(Tuple anchorTuple, StormTaskTuple stormTaskTuple, Exception e) {
+    LOGGER.error("Exception while Enriching/dereference", e);
+    emitErrorNotification(anchorTuple,
+            stormTaskTuple,
+        e.getMessage(),
+        "Remote Enrichment/dereference service caused the problem!. The full error: "
+            + ExceptionUtils.getStackTrace(e));
+    outputCollector.ack(anchorTuple);
+  }
+
+  private void dropRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, Set<Report> reports) {
+    LOGGER.error("Error occurred during process of enrichment");
+    stormTaskTuple.addReports(reports);
+    Set<Report> errorReports = reports
+        .stream().filter(
+            rm -> rm.getMessageType() == Type.ERROR
+        ).collect(Collectors.toSet());
+    String errorAdditionalInformation;
+    if (errorReports.size() == 1) {
+      errorAdditionalInformation = String.format("%s during %s", errorReports.iterator().next().getMessage(),
+          errorReports.iterator().next().getMode());
+    } else {
+      errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReports.size());
+    }
+    emitErrorNotification(anchorTuple,
+            stormTaskTuple,
+        "Error occurred during enrichment/dereference process",
+        errorAdditionalInformation);
+  }
+
+  private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> reports) throws Exception {
+    LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
+    emitEnrichedContent(anchorTuple, stormTaskTuple, result.getProcessedRecord(), reports);
+    LOGGER.info("Emitted enrichment on {}", result.getProcessedRecord());
+  }
+
+  private static boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {
+    return RecordStatus.CONTINUE.equals(result.getRecordStatus());
   }
 
   @Override
@@ -109,9 +128,10 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
   }
 
-  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
+  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output, Set<Report> processingReports)
       throws Exception {
     prepareStormTaskTupleForEmission(stormTaskTuple, output);
+    stormTaskTuple.addReports(processingReports);
     outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
   }
 }
