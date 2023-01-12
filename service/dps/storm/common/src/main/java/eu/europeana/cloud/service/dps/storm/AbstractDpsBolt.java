@@ -199,10 +199,14 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     if (reports != null) {
       nt.addReports(reports);
     }
+    addReportIfPresent(anchorTuple, nt);
+    outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+  }
+
+  private static void addReportIfPresent(Tuple anchorTuple, NotificationTuple nt) {
     if (anchorTuple != null && anchorTuple.getFields() != null && anchorTuple.getFields().contains(REPORT_SET_TUPLE_KEY)) {
       nt.addReports((HashSet<Report>) anchorTuple.getValueByField(REPORT_SET_TUPLE_KEY));
     }
-    outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
   protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
@@ -218,6 +222,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
     nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
     nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
+    addReportIfPresent(anchorTuple, nt);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
@@ -226,6 +231,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       long processingStartTime) {
     NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDelete,
         resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
+    addReportIfPresent(anchorTuple, nt);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
@@ -235,6 +241,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     NotificationTuple tuple = NotificationTuple.prepareNotification(taskId, markedAsDeleted,
         resource, RecordState.SUCCESS, message, additionalInformation, "", processingStartTime);
     tuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
+    addReportIfPresent(anchorTuple, tuple);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 
