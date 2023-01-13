@@ -9,15 +9,15 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import java.net.MalformedURLException;
-import java.util.List;
 import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.util.List;
 
 /**
  * Bolt that will check if there are duplicates in harvested records.</br> Duplicates, in this context, are representation
@@ -59,21 +59,15 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         handleDuplicatedRepresentation(anchorTuple, tuple, representation);
         return;
       }
-      emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-          tuple.getFileUrl(), "", "",
-          tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
-          StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
-      logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+      emitSuccessNotification(anchorTuple, tuple, "", "");
+        logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     } catch (MalformedURLException | MCSException e) {
-      logger.error("Error while detecting duplicates", e);
-      emitErrorNotification(
-          anchorTuple,
-          tuple.getTaskId(),
-          tuple.isMarkedAsDeleted(),
-          tuple.getFileUrl(),
-          "Error while detecting duplicates",
-          e.getMessage(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+        logger.error("Error while detecting duplicates", e);
+        emitErrorNotification(
+                anchorTuple,
+                tuple,
+                "Error while detecting duplicates",
+                e.getMessage());
     }
     outputCollector.ack(anchorTuple);
   }
@@ -82,16 +76,13 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       throws MCSException {
     logger.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
     removeRevision(tuple, representation);
-    removeRepresentation(representation);
-    emitErrorNotification(
-        anchorTuple,
-        tuple.getTaskId(),
-        tuple.isMarkedAsDeleted(),
-        tuple.getFileUrl(),
-        "Duplicate detected",
-        "Duplicate detected for " + tuple.getFileUrl(),
-        StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
-    outputCollector.ack(anchorTuple);
+      removeRepresentation(representation);
+      emitErrorNotification(
+              anchorTuple,
+              tuple,
+              "Duplicate detected",
+              "Duplicate detected for " + tuple.getFileUrl());
+      outputCollector.ack(anchorTuple);
   }
 
   private void removeRepresentation(Representation representation) throws MCSException {

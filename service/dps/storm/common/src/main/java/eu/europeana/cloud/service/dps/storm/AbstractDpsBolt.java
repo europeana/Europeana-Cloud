@@ -1,13 +1,5 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.REPORT_SET_TUPLE_KEY;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
-import static java.lang.Integer.parseInt;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
@@ -16,16 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.enrichment.rest.client.report.Report;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -34,6 +17,15 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static java.lang.Integer.parseInt;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
@@ -118,9 +110,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     if (stormTaskTuple != null) {
       var stack = new StringWriter();
       e.printStackTrace(new PrintWriter(stack));
-      emitErrorNotification(tuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(), stack.toString(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple), null);
+      emitErrorNotification(tuple, stormTaskTuple, e.getMessage(), stack.toString());
       outputCollector.ack(tuple);
     }
   }
@@ -175,78 +165,34 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
-  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message,
-      String additionalInformation) {
-    emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-        stormTaskTuple.getFileUrl(), message, additionalInformation,
-        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple), stormTaskTuple.getReportSet());
-  }
-
-  /**
-   * Emit {@link NotificationTuple} with error notification to {@link #NOTIFICATION_STREAM_NAME}. Only one notification call per
-   * resource per task.
-   *
-   * @param taskId task ID
-   * @param resource affected resource (e.g. file URL)
-   * @param message short text
-   * @param additionalInformation the rest of information (e.g. stack trace)
-   */
-
-  protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
-      String message, String additionalInformation, long processingStartTime, Set<Report> reports) {
-    NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDeleted, resource, RecordState.ERROR,
-        message, additionalInformation, processingStartTime);
-    if (reports != null) {
-      nt.addReports(reports);
-    }
-    addReportIfPresent(anchorTuple, nt);
+  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.ERROR,
+            message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  private static void addReportIfPresent(Tuple anchorTuple, NotificationTuple nt) {
-    if (anchorTuple != null && anchorTuple.getFields() != null && anchorTuple.getFields().contains(REPORT_SET_TUPLE_KEY)) {
-      nt.addReports((HashSet<Report>) anchorTuple.getValueByField(REPORT_SET_TUPLE_KEY));
-    }
-  }
 
-  protected void emitErrorNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
-      String message, String additionalInformation, long processingStartTime) {
-    emitErrorNotification(anchorTuple, taskId, markedAsDeleted, resource, message, additionalInformation, processingStartTime,
-        null);
-  }
-
-  protected void emitSuccessNotification(Tuple anchorTuple, long taskId, boolean markedAsDelete, String resource,
-      String message, String additionalInformation, String resultResource,
-      String unifiedErrorMessage, String detailedErrorMessage, long processingStartTime) {
-    NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDelete,
-        resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
-    nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
-    nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
-    addReportIfPresent(anchorTuple, nt);
+  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
+                                         String message, String additionalInformation,
+                                         String unifiedErrorMessage, String detailedErrorMessage) {
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResourceAndErrorMessage(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation, unifiedErrorMessage, detailedErrorMessage);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  protected void emitSuccessNotification(Tuple anchorTuple, long taskId, boolean markedAsDelete, String resource,
-      String message, String additionalInformation, String resultResource,
-      long processingStartTime) {
-    NotificationTuple nt = NotificationTuple.prepareNotification(taskId, markedAsDelete,
-        resource, RecordState.SUCCESS, message, additionalInformation, resultResource, processingStartTime);
-    addReportIfPresent(anchorTuple, nt);
+  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  protected void emitIgnoredNotification(Tuple anchorTuple, long taskId, boolean markedAsDeleted, String resource,
-      String message, String additionalInformation,
-      long processingStartTime) {
-    NotificationTuple tuple = NotificationTuple.prepareNotification(taskId, markedAsDeleted,
-        resource, RecordState.SUCCESS, message, additionalInformation, "", processingStartTime);
+  protected void emitIgnoredNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
+                                         String message, String additionalInformation) {
+    NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     tuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
-    addReportIfPresent(anchorTuple, tuple);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 
   protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString)
-      throws MalformedURLException {
+          throws MalformedURLException {
     stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
     final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
     stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));

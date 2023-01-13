@@ -7,15 +7,15 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
-import java.io.InputStream;
-import java.time.Instant;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.time.Instant;
 
 
 /**
@@ -51,6 +51,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple t) {
     final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    t.setFileUrl(file);
     try (InputStream is = getFileStreamByStormTuple(t)) {
       t.setFileData(is);
       outputCollector.emit(anchorTuple, t.toStormTuple());
@@ -59,15 +60,15 @@ public class ReadFileBolt extends AbstractDpsBolt {
       handleInterruption(e, anchorTuple);
     } catch (RepresentationNotExistsException | FileNotExistsException |
              WrongContentRangeException ex) {
-      LOGGER.warn("Can not retrieve file at {}", file);
-      emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, "Can not retrieve file",
-          "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
-      outputCollector.ack(anchorTuple);
+        LOGGER.warn("Can not retrieve file at {}", file);
+        emitErrorNotification(anchorTuple, t, "Can not retrieve file",
+                "The cause of the error is:" + ex.getCause());
+        outputCollector.ack(anchorTuple);
     } catch (Exception ex) {
-      LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
-      emitErrorNotification(anchorTuple, t.getTaskId(), t.isMarkedAsDeleted(), file, ex.getMessage(),
-          "The cause of the error is:" + ex.getCause(), StormTaskTupleHelper.getRecordProcessingStartTime(t));
-      outputCollector.ack(anchorTuple);
+        LOGGER.error("ReadFileBolt error: {}", ex.getMessage());
+        emitErrorNotification(anchorTuple, t, ex.getMessage(),
+                "The cause of the error is:" + ex.getCause());
+        outputCollector.ack(anchorTuple);
     }
   }
 

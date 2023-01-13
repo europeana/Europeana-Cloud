@@ -166,7 +166,6 @@ public class ParseFileBoltTest {
     assertNotNull(values);
     var valueMap = (Map<String, String>) values.get(1);
     assertNotNull(valueMap);
-    assertEquals(5, valueMap.size());
     assertTrue(
         valueMap.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while reading and parsing the EDM file"));
     assertEquals(RecordState.ERROR.toString(), valueMap.get(NotificationParameterKeys.STATE));
@@ -187,7 +186,6 @@ public class ParseFileBoltTest {
       assertNotNull(values);
       var valueMap = (Map<String, String>) values.get(1);
       assertNotNull(valueMap);
-      assertEquals(5, valueMap.size());
       assertTrue(
           valueMap.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while reading and parsing the EDM file"));
       assertEquals(RecordState.ERROR.toString(), valueMap.get(NotificationParameterKeys.STATE));

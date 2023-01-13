@@ -65,7 +65,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
   }
 
-  private static Set<Report> filterOutIgnoredReports(Set<Report> reports) {
+  private Set<Report> filterOutIgnoredReports(Set<Report> reports) {
     return reports
             .stream()
             .filter(rm -> rm.getMessageType() != Type.IGNORE)
@@ -96,13 +96,13 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             errorAdditionalInformation);
   }
 
-  private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> reports) throws Exception {
+  private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> filteredReports) throws Exception {
     LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-    emitEnrichedContent(anchorTuple, stormTaskTuple, result.getProcessedRecord(), reports);
+    emitEnrichedContent(anchorTuple, stormTaskTuple, result, filteredReports);
     LOGGER.info("Emitted enrichment on {}", result.getProcessedRecord());
   }
 
-  private static boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {
+  private boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {
     return RecordStatus.CONTINUE.equals(result.getRecordStatus());
   }
 
@@ -122,10 +122,10 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
   }
 
-  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output, Set<Report> processingReports)
-      throws Exception {
-    prepareStormTaskTupleForEmission(stormTaskTuple, output);
-    stormTaskTuple.addReports(processingReports);
+  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> reports)
+          throws Exception {
+    prepareStormTaskTupleForEmission(stormTaskTuple, result.getProcessedRecord());
+    stormTaskTuple.addReports(reports);
     outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
   }
 }

@@ -1,26 +1,26 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
-
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import java.io.IOException;
-import java.time.Instant;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.Instant;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
@@ -66,25 +66,20 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
       } catch (HarvesterException | IOException | EuropeanaIdException e) {
         LOGGER.error("Exception on harvesting", e);
-        emitErrorNotification(
-            anchorTuple,
-            stormTaskTuple.getTaskId(),
-            stormTaskTuple.isMarkedAsDeleted(),
-            stormTaskTuple.getFileUrl(),
-            "Error while harvesting a record",
-            "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause(),
-            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-        LOGGER.error(e.getMessage());
+          emitErrorNotification(
+                  anchorTuple,
+                  stormTaskTuple,
+                  "Error while harvesting a record",
+                  "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
+          LOGGER.error(e.getMessage());
       }
     } else {
-      emitErrorNotification(
-          anchorTuple,
-          stormTaskTuple.getTaskId(),
-          stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA),
-          "Invalid parameters",
-          null,
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        stormTaskTuple.setFileUrl(DPS_TASK_INPUT_DATA);
+        emitErrorNotification(
+                anchorTuple,
+                stormTaskTuple,
+                "Invalid parameters",
+                null);
     }
     LOGGER.info("Harvesting finished in: {}ms for {}", Clock.millisecondsSince(harvestingStartTime),
         stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));

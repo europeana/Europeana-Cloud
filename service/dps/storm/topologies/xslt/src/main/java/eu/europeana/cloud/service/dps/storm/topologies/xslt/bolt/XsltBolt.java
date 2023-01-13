@@ -6,20 +6,16 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
-import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
-import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import eu.europeana.metis.transformation.service.TransformationException;
-import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
+import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 public class XsltBolt extends AbstractDpsBolt {
 
@@ -58,10 +54,8 @@ public class XsltBolt extends AbstractDpsBolt {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}", e.getMessage());
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(), ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-      outputCollector.ack(anchorTuple);
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), ExceptionUtils.getStackTrace(e));
+        outputCollector.ack(anchorTuple);
     } finally {
       if (writer != null) {
         try {

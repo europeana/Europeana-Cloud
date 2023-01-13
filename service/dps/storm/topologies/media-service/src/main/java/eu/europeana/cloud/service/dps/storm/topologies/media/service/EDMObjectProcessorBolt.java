@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
-
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
@@ -11,7 +8,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -19,10 +15,6 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -30,6 +22,14 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.Set;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
 
@@ -119,14 +119,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
       return;
     } catch (RdfDeserializationException e) {
       LOGGER.error("Unable to deserialize the file it will be dropped. The full error is:{} ", ExceptionUtils.getStackTrace(e));
-      emitErrorNotification(
-          anchorTuple,
-          stormTaskTuple.getTaskId(),
-          stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(),
-          "Unable to deserialize the file",
-          "The cause of the error is:" + e.getCause(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        emitErrorNotification(
+                anchorTuple,
+                stormTaskTuple,
+                "Unable to deserialize the file",
+                "The cause of the error is:" + e.getCause());
     } catch (Exception e) {
       LOGGER.error("Exception while reading and parsing file for processing the edm:object resource." +
           " The full error is:{} ", ExceptionUtils.getStackTrace(e));

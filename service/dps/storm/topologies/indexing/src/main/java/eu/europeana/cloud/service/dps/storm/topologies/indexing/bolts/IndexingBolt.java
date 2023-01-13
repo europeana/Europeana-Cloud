@@ -14,10 +14,14 @@ import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeParseException;
@@ -26,10 +30,6 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -178,10 +178,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
   private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
     LOGGER.error(errorMessage, e);
-    emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-        stormTaskTuple.getFileUrl(), errorMessage,
-        "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e),
-        StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    emitErrorNotification(anchorTuple, stormTaskTuple, errorMessage,
+            "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
   }
 
   private void updateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, boolean recordDeleted) {

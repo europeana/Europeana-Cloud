@@ -2,18 +2,18 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
 import eu.europeana.normalization.util.NormalizationConfigurationException;
 import eu.europeana.normalization.util.NormalizationException;
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Call the remote normalization service in order to normalize and clean an edm record.
@@ -53,31 +53,23 @@ public class NormalizationBolt extends AbstractDpsBolt {
 
       if (normalizationResult.getErrorMessage() != null) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());
-        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-            stormTaskTuple.getFileUrl(), normalizationResult.getErrorMessage(), "Error during normalization.",
-            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+          emitErrorNotification(anchorTuple, stormTaskTuple, normalizationResult.getErrorMessage(), "Error during normalization.");
       } else {
         String output = normalizationResult.getNormalizedRecordInEdmXml();
         emitNormalizedContent(anchorTuple, stormTaskTuple, output);
       }
     } catch (NormalizationConfigurationException e) {
-      LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(),
-          "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+                "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e));
     } catch (NormalizationException e) {
-      LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(),
-          "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+                "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e));
     } catch (MalformedURLException e) {
-      LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(),
-          "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+                "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
     }
     outputCollector.ack(anchorTuple);
   }

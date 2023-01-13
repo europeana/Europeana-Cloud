@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -127,6 +128,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
   private void ackIgnoredMessage(Object messageId) {
     super.ack(messageId);
+  }
+
+  private StormTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
+    StormTaskTuple stormTaskTuple = new StormTaskTuple();
+    stormTaskTuple.setTaskId(message.getTaskId());
+    stormTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
+    stormTaskTuple.setFileUrl(message.getRecordId());
+    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, String.valueOf(System.currentTimeMillis()));
+    return stormTaskTuple;
   }
 
   public class ECloudOutputCollector extends SpoutOutputCollector {
@@ -283,14 +293,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
       LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
+      StormTaskTuple stormTaskTuple = getStormTaskTupleFromMessage(message);
       var notificationTuple = NotificationTuple.prepareNotification(
-          message.getTaskId(),
-          message.isMarkedAsDeleted(),
-          message.getRecordId(),
-          RecordState.ERROR,
-          "Max retries reached",
-          "Max retries reached",
-          System.currentTimeMillis());
+              stormTaskTuple,
+              RecordState.ERROR,
+              "Max retries reached",
+              "Max retries reached"
+      );
       return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);
     }
 

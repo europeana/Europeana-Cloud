@@ -77,12 +77,10 @@ public abstract class ParseFileBolt extends ReadFileBolt {
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      LOGGER.error("Unable to read and parse file ", e);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(),
-          "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-      outputCollector.ack(anchorTuple);
+        LOGGER.error("Unable to read and parse file ", e);
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+                "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
+        outputCollector.ack(anchorTuple);
     }
     LOGGER.info("File parsing finished in: {}ms", Clock.millisecondsSince(processingStartTime));
   }

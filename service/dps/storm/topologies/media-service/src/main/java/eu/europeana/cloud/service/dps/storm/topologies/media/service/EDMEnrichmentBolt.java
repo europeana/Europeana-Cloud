@@ -8,13 +8,18 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.time.Instant;
@@ -22,11 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
 
@@ -65,12 +65,10 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       } catch (RetryInterruptedException e) {
         handleInterruption(e, anchorTuple);
       } catch (Exception ex) {
-        LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-        emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-            stormTaskTuple.getFileUrl(), ex.getMessage(),
-            SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
-            StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-        outputCollector.ack(anchorTuple);
+          LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
+          emitErrorNotification(anchorTuple, stormTaskTuple, ex.getMessage(),
+                  SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex));
+          outputCollector.ack(anchorTuple);
       }
     } else {
       final String file = stormTaskTuple.getFileUrl();
@@ -125,11 +123,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
           handleInterruption(e, anchorTuple);
           return;
         } catch (Exception ex) {
-          LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-          emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(),
-              stormTaskTuple.isMarkedAsDeleted(), stormTaskTuple.getFileUrl(), ex.getMessage(),
-              SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex),
-              StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
+            emitErrorNotification(anchorTuple, stormTaskTuple, ex.getMessage(),
+                    SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex));
         }
         ackAllSourceTuplesForFile(tempEnrichedFile);
       } else {

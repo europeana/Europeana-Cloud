@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +62,11 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
   private void ignoreRecordAsNotChanged(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
       CategorizationResult categorizationResult) {
     emitIgnoredNotification(
-        anchorTuple,
-        stormTaskTuple.getTaskId(),
-        stormTaskTuple.isMarkedAsDeleted(),
-        stormTaskTuple.getFileUrl(),
-        "Record ignored.",
-        "Record ignored in this incremental processing because it was already processed. Record datestamp: "
-            + categorizationResult.getCategorizationParameters().getRecordDateStamp()
-            + ".", StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+            anchorTuple,
+            stormTaskTuple,
+            "Record ignored.",
+            "Record ignored in this incremental processing because it was already processed. Record datestamp: "
+                    + categorizationResult.getCategorizationParameters().getRecordDateStamp()
+                    + ".");
   }
 }

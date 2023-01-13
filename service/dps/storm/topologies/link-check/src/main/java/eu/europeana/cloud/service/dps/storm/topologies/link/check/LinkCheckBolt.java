@@ -3,17 +3,17 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.ToString;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by pwozniak on 2/5/19
@@ -53,29 +53,26 @@ public class LinkCheckBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
     if (tuple.isMarkedAsDeleted()) {
-      emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(), tuple.getFileUrl(), "",
-          "Record deleted - no links were checked.", "", StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
-      outputCollector.ack(anchorTuple);
-      return;
+        emitSuccessNotification(anchorTuple, tuple, "",
+                "Record deleted - no links were checked.");
+        outputCollector.ack(anchorTuple);
+        return;
     }
 
     var resourceInfo = readResourceInfoFromTuple(tuple);
     if (!hasLinksForCheck(resourceInfo)) {
-      emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(), tuple.getFileUrl(), "",
-          "The EDM file has no resources", "", StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
-      outputCollector.ack(anchorTuple);
+        emitSuccessNotification(anchorTuple, tuple, "",
+                "The EDM file has no resources");
+        outputCollector.ack(anchorTuple);
     } else {
       FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
       edmFile.addSourceTuple(anchorTuple);
       if (isFileFullyProcessed(edmFile)) {
         cache.remove(edmFile.fileUrl);
         if (edmFile.errors == null || edmFile.errors.isEmpty()) {
-          emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-              tuple.getFileUrl(), "", "", "", StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+            emitSuccessNotification(anchorTuple, tuple, "", "");
         } else {
-          emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-              tuple.getFileUrl(), "", "", "", "resource exception", edmFile.errors,
-              StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+            emitSuccessNotification(anchorTuple, tuple, "", "", "resource exception", edmFile.errors);
         }
         ackAllSourceTuplesForFile(edmFile);
       }

@@ -6,7 +6,11 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,15 +18,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HttpHarvestingBolt extends AbstractDpsBolt {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpHarvestingBolt.class);
-  private static int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
+  private static final int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
   private transient IdentifierSupplier identifierSupplier;
   private transient HttpClient httpClient;
 
@@ -49,10 +49,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
       outputCollector.fail(anchorTuple);
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
-      emitErrorNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(), tuple.getFileUrl(),
-          "Error while reading a file",
-          "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+      emitErrorNotification(anchorTuple, tuple, "Error while reading a file",
+              "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage());
       outputCollector.ack(anchorTuple);
     }
   }

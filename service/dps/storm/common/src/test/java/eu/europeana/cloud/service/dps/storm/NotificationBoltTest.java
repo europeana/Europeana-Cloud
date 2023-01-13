@@ -26,6 +26,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.enrichment.rest.client.report.Report;
 import java.util.ArrayList;
@@ -97,8 +98,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   @Test
   public void shouldProperlyExecuteRegularTuple() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1,
-        RecordState.SUCCESS, "", "", 0));
+    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
+            RecordState.SUCCESS, "", ""));
 
     testedBolt.execute(tuple);
 
@@ -116,8 +117,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   @Test
   public void shouldProperlyExecuteIgnoredRecordTuple() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1,
-        RecordState.SUCCESS, "", "", 0);
+    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
+            RecordState.SUCCESS, "", "");
     notificationTuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
     Tuple tuple = createTestTuple(notificationTuple);
 
@@ -137,8 +138,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   @Test
   public void shouldProperlyExecuteDeletedRecordTuple() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(TASK_ID, true, RESOURCE_1,
-        RecordState.SUCCESS, "", "", 0));
+    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, true),
+            RecordState.SUCCESS, "", ""));
 
     testedBolt.execute(tuple);
 
@@ -156,8 +157,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   @Test
   public void shouldProperlyExecuteFailedTuple() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1,
-        RecordState.ERROR, "", "", 0));
+    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
+            RecordState.ERROR, "", ""));
 
     testedBolt.execute(tuple);
 
@@ -175,8 +176,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   @Test
   public void shouldProperlyExecuteFailedDeletedRecordTuple() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(TASK_ID, true, RESOURCE_1,
-        RecordState.ERROR, "", "", 0));
+    Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, true),
+            RecordState.ERROR, "", ""));
 
     testedBolt.execute(tuple);
 
@@ -310,21 +311,21 @@ public class NotificationBoltTest extends CassandraTestBase {
   public void shouldProperlyRestoreAllCountersAfterBoltRecreate() throws Exception {
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 6, TaskState.QUEUED, "");
 
-    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1,
-        RecordState.SUCCESS, "", "", 0)));
-    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_2,
-        RecordState.SUCCESS, "", "", 0);
+    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
+            RecordState.SUCCESS, "", "")));
+    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_2, false),
+            RecordState.SUCCESS, "", "");
     notificationTuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
     testedBolt.execute(createTestTuple(notificationTuple));
-    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(TASK_ID, true, RESOURCE_3,
-        RecordState.SUCCESS, "", "", 0)));
-    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_4,
-        RecordState.ERROR, "", "", 0)));
-    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(TASK_ID, true, RESOURCE_5,
-        RecordState.ERROR, "", "", 0)));
+    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_3, true),
+            RecordState.SUCCESS, "", "")));
+    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_4, false),
+            RecordState.ERROR, "", "")));
+    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_5, true),
+            RecordState.ERROR, "", "")));
     createBolt();
-    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_6,
-        RecordState.SUCCESS, "", "", 0)));
+    testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_6, false),
+            RecordState.SUCCESS, "", "")));
 
     TaskInfo taskProgress = reportService.getTaskProgress(TASK_ID);
     List<SubTaskInfo> notifications = reportService.getDetailedTaskReport(TASK_ID, 0, 100);
@@ -342,12 +343,30 @@ public class NotificationBoltTest extends CassandraTestBase {
     return createNotificationTuple(taskId, state, resource);
   }
 
+  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted) {
+    return createStormTaskTuple(taskId, resource, markAsDeleted, "", "0");
+  }
+
+  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String processingTime) {
+    return createStormTaskTuple(taskId, resource, markAsDeleted, "", processingTime);
+  }
+
+  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String resultResource, String processingTime) {
+    StormTaskTuple tuple = new StormTaskTuple();
+    tuple.setTaskId(taskId);
+    tuple.setMarkedAsDeleted(markAsDeleted);
+    tuple.setFileUrl(resource);
+    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
+    tuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultResource);
+    return tuple;
+  }
+
   private Tuple createNotificationTuple(long taskId, RecordState state, String resource) {
     String text = "text";
     String additionalInformation = "additionalInformation";
     String resultResource = "";
-    return createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource, state, text,
-        additionalInformation, resultResource, 1L));
+    return createTestTuple(NotificationTuple.prepareNotificationWithResultResource(createStormTaskTuple(taskId, resource, false, resultResource, "1"), state, text,
+            additionalInformation));
   }
 
 
@@ -484,9 +503,9 @@ public class NotificationBoltTest extends CassandraTestBase {
   public void shouldProperlyExecuteTupleWithHugeErrorsList() throws AccessDeniedOrObjectDoesNotExistException {
 
     insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, TaskState.QUEUED, "");
-    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(TASK_ID, false, RESOURCE_1, RecordState.SUCCESS,
-        "",
-        "", "", 1L);
+    NotificationTuple notificationTuple = NotificationTuple.prepareNotificationWithResultResource(createStormTaskTuple(TASK_ID, RESOURCE_1, false, "", "0"), RecordState.SUCCESS,
+            "",
+            "");
     notificationTuple.addParameter(NotificationParameterKeys.UNIFIED_ERROR_MESSAGE, "Unified_error_message");
     notificationTuple.addParameter(NotificationParameterKeys.EXCEPTION_ERROR_MESSAGE, LARGE_STACK_TRACE);
 
@@ -536,30 +555,29 @@ public class NotificationBoltTest extends CassandraTestBase {
     }
 
     for (int i = 0; i < errors; i++) {
-      result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, false, resource + String.valueOf(i),
-          RecordState.ERROR, text, additionalInformation, resultResource, 1L)));
+      result.add(createTestTuple(NotificationTuple.prepareNotificationWithResultResource(createStormTaskTuple(TASK_ID, resource + i, false, resultResource, "1"),
+              RecordState.ERROR, text, additionalInformation)));
     }
 
     while (result.size() < size) {
-      result.add(createTestTuple(NotificationTuple.prepareNotification(taskId, false,
-          resource + String.valueOf(result.size()), RecordState.SUCCESS, text, additionalInformation,
-          resultResource, 1L)));
+      result.add(createTestTuple(NotificationTuple.prepareNotificationWithResultResource(createStormTaskTuple(TASK_ID, String.valueOf(result.size()), false, resultResource, "1"),
+              RecordState.SUCCESS, text, additionalInformation)));
     }
     return result;
   }
 
   private Tuple prepareTupleWithReport(long taskId, int errorReportCount, int warningReportCount) {
-    NotificationTuple notificationTuple = NotificationTuple.prepareNotification(taskId, false, "resource",
-        RecordState.ERROR, "text", "additionalInformation", "", 1L);
+    NotificationTuple notificationTuple = NotificationTuple.prepareNotificationWithResultResource(createStormTaskTuple(taskId, "resource", false, "", "1"),
+            RecordState.ERROR, "text", "additionalInformation");
     HashSet<Report> reports = new HashSet<>();
     for (int i = 0; i < errorReportCount; i++) {
       reports.add(Report.buildEnrichmentError().withMessage("EnrichmentError").withValue(String.valueOf(i)).build());
     }
     for (int i = 0; i < warningReportCount; i++) {
       reports.add(
-          new Random().nextInt() == 1 ? Report.buildEnrichmentWarn().withMessage("EnrichmentWarning").withValue(String.valueOf(i))
-                                              .build()
-              : Report.buildDereferenceWarn().withMessage("DereferenceWarning").withValue(String.valueOf(i)).build());
+              new Random().nextInt() == 1 ? Report.buildEnrichmentWarn().withMessage("EnrichmentWarning").withValue(String.valueOf(i))
+                      .build()
+                      : Report.buildDereferenceWarn().withMessage("DereferenceWarning").withValue(String.valueOf(i)).build());
     }
     notificationTuple.addReports(reports);
     return createTestTuple(notificationTuple);

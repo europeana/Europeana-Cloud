@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.enrichment.rest.client.report.Report;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,21 +39,6 @@ public class NotificationTuple {
 
   }
 
-  public static NotificationTuple prepareNotification(long taskId, boolean markedAsDeleted, String resource,
-      RecordState state, String text, String additionalInformation,
-      long processingStartTime) {
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.put(NotificationParameterKeys.RESOURCE, resource);
-    parameters.put(NotificationParameterKeys.STATE, state.toString());
-    parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-    parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
-    if (markedAsDeleted) {
-      parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    }
-
-    return new NotificationTuple(taskId, parameters);
-  }
 
   @SuppressWarnings("unchecked")
   public static NotificationTuple fromStormTuple(Tuple tuple) {
@@ -61,41 +47,40 @@ public class NotificationTuple {
         (Set<Report>) tuple.getValueByField(REPORT_SET_FIELD_NAME));
   }
 
-  public static NotificationTuple prepareNotification(long taskId, boolean markedAsDeleted, String resource,
-      RecordState state, String text, String additionalInformation, String resultResource,
-      long processingStartTime) {
+  public static NotificationTuple prepareNotification(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation) {
     Map<String, Object> parameters = new HashMap<>();
-    parameters.put(NotificationParameterKeys.RESOURCE, resource);
+    parameters.put(NotificationParameterKeys.RESOURCE, stormTaskTuple.getFileUrl());
     parameters.put(NotificationParameterKeys.STATE, state.toString());
-    parameters.put(NotificationParameterKeys.INFO_TEXT, text);
+    parameters.put(NotificationParameterKeys.INFO_TEXT, message);
     parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
-    parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
-    if (markedAsDeleted) {
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    if (stormTaskTuple.isMarkedAsDeleted()) {
       parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
     }
-
-    return new NotificationTuple(taskId, parameters);
+    return new NotificationTuple(stormTaskTuple.getTaskId(), parameters, stormTaskTuple.getReportSet());
   }
 
 
-  public static NotificationTuple prepareIndexingNotification(long taskId, boolean markedAsDeleted,
-      String resource,
-      RecordState state, String text,
-      String additionalInformation, String europeanaId,
-      String resultResource, long processingStartTime) {
-    Map<String, Object> parameters = new HashMap<>();
-    if (markedAsDeleted) {
-      parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    }
-    parameters.put(NotificationParameterKeys.RESOURCE, resource);
-    parameters.put(NotificationParameterKeys.STATE, state.toString());
-    parameters.put(NotificationParameterKeys.INFO_TEXT, text);
-    parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
-    parameters.put(NotificationParameterKeys.EUROPEANA_ID, europeanaId);
-    parameters.put(NotificationParameterKeys.RESULT_RESOURCE, resultResource);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingStartTime);
-    return new NotificationTuple(taskId, parameters);
+  public static NotificationTuple prepareNotificationWithResultResource(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation) {
+    NotificationTuple nt = prepareNotification(stormTaskTuple, state, message, additionalInformation);
+    nt.addParameter(NotificationParameterKeys.RESULT_RESOURCE, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+    return nt;
+  }
+
+  public static NotificationTuple prepareNotificationWithResultResourceAndErrorMessage(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation, String unifiedErrorMessage, String detailedErrorMessage) {
+    NotificationTuple nt = prepareNotificationWithResultResource(stormTaskTuple, state, message, additionalInformation);
+    nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
+    nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
+    return nt;
+  }
+
+
+  public static NotificationTuple prepareIndexingNotification(StormTaskTuple stormTaskTuple,
+                                                              RecordState state, String message,
+                                                              String additionalInformation) {
+    NotificationTuple nt = prepareNotification(stormTaskTuple, state, message, additionalInformation);
+    nt.addParameter(NotificationParameterKeys.EUROPEANA_ID, stormTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID));
+    return nt;
   }
 
   public long getTaskId() {

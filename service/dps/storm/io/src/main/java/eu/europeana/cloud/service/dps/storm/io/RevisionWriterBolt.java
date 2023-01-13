@@ -10,14 +10,14 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import java.net.MalformedURLException;
-import java.time.Instant;
-import java.util.Date;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Adds defined revisions to given representationVersion. This is default implementation where simply 'SuccessNotification' is
@@ -61,14 +61,10 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
     } catch (MalformedURLException e) {
       LOGGER.error("URL is malformed: {} ", resourceURL);
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     } catch (MCSException | DriverException e) {
-      LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-          stormTaskTuple.getFileUrl(), e.getMessage(), "The cause of the error is:" + e.getCause(),
-          StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+        LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     }
     LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
   }
@@ -77,10 +73,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     if (tupleContainsErrors(tuple)) {
       emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
     } else {
-      emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-          tuple.getFileUrl(), "", "",
-          tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
-          StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+        emitSuccessNotification(anchorTuple, tuple, "", "");
     }
   }
 
@@ -89,12 +82,9 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   }
 
   private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, StormTaskTuple tuple) {
-    emitSuccessNotification(anchorTuple, tuple.getTaskId(), tuple.isMarkedAsDeleted(),
-        tuple.getFileUrl(), "", "",
-        tuple.getParameter(PluginParameterKeys.OUTPUT_URL),
-        tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
-        tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
-        StormTaskTupleHelper.getRecordProcessingStartTime(tuple));
+      emitSuccessNotification(anchorTuple, tuple, "", "",
+              tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+              tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
   }
 
   private String getResourceUrl(StormTaskTuple stormTaskTuple) {
