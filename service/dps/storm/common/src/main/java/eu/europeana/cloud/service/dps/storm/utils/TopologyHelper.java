@@ -1,41 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_FETCH_MAX_BYTES;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_MAX_POLL_RECORDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_MAX_SPOUT_PENDING;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_MS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DEFAULT_TUPLE_PROCESSING_TIME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.BOOTSTRAP_SERVERS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DEFAULT_MAXIMUM_PARALLELIZATION;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.FETCH_MAX_BYTES;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_POLL_RECORDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_SPOUT_PENDING;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_TASK_PARALLELISM;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MESSAGE_TIMEOUT_IN_SECONDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NIMBUS_SEEDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.THRIFT_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPICS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.WORKER_COUNT;
-import static java.lang.Integer.parseInt;
-import static org.apache.storm.Config.TOPOLOGY_KRYO_REGISTER;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
@@ -45,13 +9,6 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
 import eu.europeana.enrichment.rest.client.report.Report;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
@@ -60,6 +17,16 @@ import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static java.lang.Integer.parseInt;
+import static org.apache.storm.Config.TOPOLOGY_KRYO_REGISTER;
 
 /**
  * Created by Tarek on 7/15/2016.
@@ -118,24 +85,28 @@ public final class TopologyHelper {
     config.put(CASSANDRA_HOSTS,
         getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null));
     config.put(CASSANDRA_PORT,
-        getValue(topologyProperties, CASSANDRA_PORT, staticMode ? DEFAULT_CASSANDRA_PORT : null));
+            getValue(topologyProperties, CASSANDRA_PORT, staticMode ? DEFAULT_CASSANDRA_PORT : null));
     config.put(CASSANDRA_KEYSPACE_NAME,
-        getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, staticMode ? DEFAULT_CASSANDRA_KEYSPACE_NAME : null));
+            getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, staticMode ? DEFAULT_CASSANDRA_KEYSPACE_NAME : null));
     config.put(CASSANDRA_USERNAME,
-        getValue(topologyProperties, CASSANDRA_USERNAME, staticMode ? DEFAULT_CASSANDRA_USERNAME : null));
+            getValue(topologyProperties, CASSANDRA_USERNAME, staticMode ? DEFAULT_CASSANDRA_USERNAME : null));
     config.put(CASSANDRA_SECRET_TOKEN,
-        getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null));
+            getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null));
 
     config.setMaxSpoutPending(getValue(topologyProperties, MAX_SPOUT_PENDING, DEFAULT_MAX_SPOUT_PENDING));
-
-    config.put(TOPOLOGY_KRYO_REGISTER, Arrays.asList(LinkedHashMap.class.getName(),
-        OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-        DataSetCleanerParameters.class.getName(), Report.class.getName()));
+    List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
+            .filter(field -> Arrays.asList("messageType", "mode", "status").contains(field.getName()))
+            .map(field -> field.getType().getName())
+            .collect(Collectors.toList());
+    kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
+            OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
+            DataSetCleanerParameters.class.getName(), Report.class.getName()));
+    config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
     config.put(SPOUT_SLEEP_MS, getValue(topologyProperties, SPOUT_SLEEP_MS, DEFAULT_SPOUT_SLEEP_MS));
     config.put(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, getValue(topologyProperties,
-        SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
+            SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
     return config;
   }
 
