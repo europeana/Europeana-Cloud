@@ -1,33 +1,21 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
 import com.datastax.driver.core.BoundStatement;
-import eu.europeana.cloud.common.model.dps.ErrorNotification;
-import eu.europeana.cloud.common.model.dps.Notification;
-import eu.europeana.cloud.common.model.dps.ProcessedRecord;
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.dps.Constants;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 import eu.europeana.enrichment.rest.client.report.Report;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Instant;
+import java.util.*;
 
 public class NotificationTupleHandler {
 
@@ -180,14 +168,14 @@ public class NotificationTupleHandler {
   private ErrorNotification prepareErrorNotificationFromReport(NotificationTuple notificationTuple, Report report,
       NotificationCacheEntry nCache) {
     String resource = String.valueOf(notificationTuple.getParameters().get(NotificationParameterKeys.RESOURCE));
-    String errorMessage = String.format("Report message:%s", report.getMessage());
+    String errorMessage = String.format("%s", report.getMessage());
     String additionalInformation = String.format(
-        "ReportInformation:%nMessageType:%s%nProcessingMode:%s%nHTTPStatus:%s%nValue:%s%nStackTrace:%s",
-        report.getMessageType(),
-        report.getMode(),
-        report.getStatus(),
-        report.getValue(),
-        report.getStackTrace());
+            "MessageType:%s; ProcessingMode:%s; HTTPStatus:%s; Value:%s; StackTrace:%s",
+            report.getMessageType(),
+            report.getMode(),
+            report.getStatus(),
+            report.getValue(),
+            report.getStackTrace());
     return ErrorNotification.builder()
                             .taskId(notificationTuple.getTaskId())
                             .errorType(nCache.getErrorType(errorMessage).getUuid())

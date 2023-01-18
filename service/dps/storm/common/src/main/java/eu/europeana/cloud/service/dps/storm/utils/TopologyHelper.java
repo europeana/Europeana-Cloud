@@ -8,9 +8,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
-import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.Report;
-import eu.europeana.enrichment.rest.client.report.Type;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
@@ -99,12 +97,10 @@ public final class TopologyHelper {
     List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
             .filter(field -> Arrays.asList("messageType", "mode", "status").contains(field.getName()))
             .map(field -> field.getType().getName())
-            .distinct()
             .collect(Collectors.toList());
     kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
             OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-            DataSetCleanerParameters.class.getName(), Report.class.getName(), Type.class.getName(),
-            EnrichmentWorker.Mode.class.getName()));
+            DataSetCleanerParameters.class.getName(), Report.class.getName()));
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
