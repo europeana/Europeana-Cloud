@@ -54,10 +54,10 @@ public class UUIDWrapper {
     @Override
     public long getNodeIdentifier() {
       try {
-        byte[] md5 = MessageDigest.getInstance("MD5").digest(recordId.getBytes(StandardCharsets.UTF_8));
-        return ByteBuffer.wrap(md5).getLong();
-      } catch (NoSuchAlgorithmException var3) {
-        throw new InternalError("MD5 not supported", var3);
+        byte[] sha512 = MessageDigest.getInstance("SHA-512").digest(recordId.getBytes(StandardCharsets.UTF_8));
+        return ByteBuffer.wrap(sha512).getLong();
+      } catch (NoSuchAlgorithmException e) {
+        throw new InternalError("SHA-512 not supported", e);
       }
 
     }
