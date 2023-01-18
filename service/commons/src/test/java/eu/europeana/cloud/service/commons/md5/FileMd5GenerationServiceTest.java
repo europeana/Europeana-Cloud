@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -79,7 +81,7 @@ public class FileMd5GenerationServiceTest {
 
 
   @Test
-  public void shouldGenerateTheSameUUIDsAsEarlier() throws URISyntaxException, IOException {
+  public void shouldGenerateTheSameUUIDsAsEarlier() throws IOException {
     assertEquals(UUID.fromString("de709ba0-6d52-31e5-a7c1-24793dca071d"), FileMd5GenerationService.generateUUID(
         FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile()))));
     assertEquals(UUID.fromString("7d13c967-fcb9-3dbf-8243-0ae4c03bb299"), FileMd5GenerationService.generateUUID(
@@ -158,7 +160,7 @@ public class FileMd5GenerationServiceTest {
   private void testUIIDGenerationDirectlyandByServiceFilePath(String filename) throws URISyntaxException, IOException {
     Path pathToFile = Paths.get(ClassLoader.getSystemResource(filename).toURI());
 
-    byte[] md5 = FileMd5GenerationService.generate(pathToFile);
+    byte[] md5 = generateMd5(pathToFile);
     UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5ToUUID(md5);
 
     UUID uuidDirect = FileMd5GenerationService.generateUUID(pathToFile);
@@ -169,7 +171,7 @@ public class FileMd5GenerationServiceTest {
   private void testUIIDGenerationDirectlyandByServiceFileData(String filename) throws URISyntaxException, IOException {
     byte[] fileData = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource(filename).toURI()));
 
-    byte[] md5 = FileMd5GenerationService.generate(fileData);
+    byte[] md5 = generateMd5(fileData);
     UUID uuidConvertedFromMd5 = FileMd5GenerationService.md5ToUUID(md5);
 
     UUID uuidDirect = FileMd5GenerationService.generateUUID(fileData);
@@ -181,7 +183,7 @@ public class FileMd5GenerationServiceTest {
     Path pathToFile = Paths.get(ClassLoader.getSystemResource(filename).toURI());
 
     byte[] md5FromApacheCommons = org.apache.commons.codec.digest.DigestUtils.md5(Files.newInputStream(pathToFile));
-    byte[] ms5FromDefaultJava = FileMd5GenerationService.generate(Files.readAllBytes(pathToFile));
+    byte[] ms5FromDefaultJava = generateMd5(Files.readAllBytes(pathToFile));
 
     assertArrayEquals(md5FromApacheCommons, ms5FromDefaultJava);
   }
@@ -198,5 +200,18 @@ public class FileMd5GenerationServiceTest {
   private void assertNotEquals(UUID... uuids) {
     assertEquals(uuids.length, Sets.newHashSet(uuids).size());
   }
+
+  public static byte[] generateMd5(Path filePath) throws IOException {
+    return generateMd5(Files.readAllBytes(filePath));
+  }
+
+  public static byte[] generateMd5(byte[] fileBytes) {
+    try {
+      return MessageDigest.getInstance("MD5").digest(fileBytes);
+    } catch (NoSuchAlgorithmException var3) {
+      throw new InternalError("MD5 not supported", var3);
+    }
+  }
+
 
 }

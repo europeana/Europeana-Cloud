@@ -125,6 +125,9 @@ public class SwiftContentDAO implements ContentDAO {
 
   private DigestInputStream md5InputStream(InputStream is) {
     try {
+      @SuppressWarnings("java:S4790") //The md5 is used here not for security, but as file checksum,
+      // which is part of S3 and eCloud API. The meaningful here is collision probability,
+      // which is very low 1.47*10-29. So we could use it here safety.
       MessageDigest md = MessageDigest.getInstance("MD5");
       return new DigestInputStream(is, md);
     } catch (NoSuchAlgorithmException ex) {

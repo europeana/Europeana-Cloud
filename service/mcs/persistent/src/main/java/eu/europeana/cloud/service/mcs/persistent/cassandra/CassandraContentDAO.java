@@ -170,6 +170,10 @@ public class CassandraContentDAO implements ContentDAO {
 
   private DigestInputStream prepareMd5DigestStream(InputStream is) {
     try {
+      @SuppressWarnings("java:S4790") //The md5 is used here not for security, but for as file checksum.
+      // The meaningful here is collision probability, which is very low 1.47*10-29.
+      // So we could use it here safety. Anyway we could not change algorithm without changing API and
+      // rebuilding Cassandra DB with stored md5.
       MessageDigest md = MessageDigest.getInstance("MD5");
       return new DigestInputStream(is, md);
     } catch (NoSuchAlgorithmException ex) {
