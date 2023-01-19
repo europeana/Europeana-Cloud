@@ -13,6 +13,7 @@ import java.util.Random;
  */
 public class ThrottlingTupleGroupSelector {
 
+  @SuppressWarnings("java:S2245") //Random is used here only for distribute messages through many bolts. So the usage is secure.
   Random random = new Random();
 
   public String generateForEdmObjectProcessingBolt(StormTaskTuple tuple) {
