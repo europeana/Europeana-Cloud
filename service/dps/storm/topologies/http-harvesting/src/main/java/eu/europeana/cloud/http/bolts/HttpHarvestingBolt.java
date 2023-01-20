@@ -1,5 +1,7 @@
 package eu.europeana.cloud.http.bolts;
 
+import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
+
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -65,7 +67,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
   private String probeMimeType(String fileUrl, byte[] fileContent) throws IOException {
     String extension = FilenameUtils.getExtension(fileUrl);
-    Path tempFile = Files.createTempFile("http_harvest", "." + extension);
+    Path tempFile = createSecureTempFile("http_harvest", "." + extension);
     Files.write(tempFile, fileContent);
     String mimeType = Files.probeContentType(tempFile);
     Files.delete(tempFile);
