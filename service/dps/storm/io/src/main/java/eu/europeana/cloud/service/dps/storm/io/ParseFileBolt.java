@@ -6,19 +6,20 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
-import java.io.InputStream;
-import java.time.Instant;
-import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Created by Tarek on 12/6/2018.
@@ -54,16 +55,19 @@ public abstract class ParseFileBolt extends ReadFileBolt {
     Instant processingStartTime = Instant.now();
     try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
       byte[] fileContent = IOUtils.toByteArray(stream);
+      if (FileDataChecker.isFileDataNullOrBlank(fileContent)) {
+        LOGGER.warn("File data to be parsed is null or blank!");
+      }
       List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
       int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
       if (linksCount == 0) {
         StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
-        LOGGER.debug("The EDM file has no resource Links ");
+        LOGGER.warn("The EDM file has no resource Links ");
         outputCollector.emit(anchorTuple, tuple.toStormTuple());
       } else {
         LOGGER.debug("Found {} resources for {} : {}", rdfResourceEntries.size(),
-            stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER),
-            rdfResourceEntries);
+                stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER),
+                rdfResourceEntries);
         for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
           if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
             break;

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -75,7 +76,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     var resourcesToBeProcessed = 0;
     try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
       byte[] fileContent = IOUtils.toByteArray(stream);
-
+      if (FileDataChecker.isFileDataNullOrBlank(fileContent)) {
+        LOGGER.warn("File data to be processed is null or blank!");
+      }
       LOGGER.debug("Searching for main thumbnail in the resource");
       RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
       LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);

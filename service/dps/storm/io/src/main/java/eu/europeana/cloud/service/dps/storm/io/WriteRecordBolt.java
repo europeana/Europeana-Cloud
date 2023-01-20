@@ -1,8 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.utils.Clock;
@@ -13,20 +11,24 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import lombok.Data;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.Data;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
 
 /**
  * Stores a Record on the cloud.
@@ -141,14 +143,17 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
   protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
     LOGGER.debug("Creating new representation with the following params {}", writeParams);
+    if (FileDataChecker.isFileDataNullOrBlank(stormTaskTuple.getFileData())) {
+      LOGGER.warn("File to be uploaded is null or blank!");
+    }
     return RetryableMethodExecutor.executeOnRest("Error while creating representation and uploading file", () ->
-        recordServiceClient.createRepresentation(
-            writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
-            writeParams.getNewVersion(),
-            writeParams.getDataSetId(),
-            stormTaskTuple.getFileByteDataAsStream(),
-            writeParams.getNewFileName(),
-            TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE)));
+            recordServiceClient.createRepresentation(
+                    writeParams.getCloudId(), writeParams.getRepresentationName(), writeParams.getProviderId(),
+                    writeParams.getNewVersion(),
+                    writeParams.getDataSetId(),
+                    stormTaskTuple.getFileByteDataAsStream(),
+                    writeParams.getNewFileName(),
+                    TaskTupleUtility.getParameterFromTuple(stormTaskTuple, PluginParameterKeys.OUTPUT_MIME_TYPE)));
   }
 
   protected UUID generateNewVersionId(StormTaskTuple tuple) {

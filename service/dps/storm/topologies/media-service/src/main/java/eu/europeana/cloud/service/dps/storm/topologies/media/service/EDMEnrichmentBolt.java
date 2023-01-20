@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
@@ -58,7 +59,11 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
       LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
       try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
-        EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(IOUtils.toByteArray(stream));
+        byte[] data = IOUtils.toByteArray(stream);
+        if (FileDataChecker.isFileDataNullOrBlank(data)) {
+          LOGGER.warn("File data to be EDMEnriched is null or blank!");
+        }
+        EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(data);
         prepareStormTaskTuple(stormTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
         outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
         outputCollector.ack(anchorTuple);
@@ -79,6 +84,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
             tempEnrichedFile = new TempEnrichedFile();
             tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
             byte[] bytes = IOUtils.toByteArray(stream);
+            if (FileDataChecker.isFileDataNullOrBlank(bytes)) {
+              LOGGER.warn("File data to be parsed is null or blank!");
+            }
             tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
             LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
           }
