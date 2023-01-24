@@ -1,25 +1,16 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class TopologiesTopicsParser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopologiesTopicsParser.class);
 
-  /**
-   * INPUT_VALUE_REGEX is used to parse strings that are passed from configuration files, so there is no possibility of strings
-   * being long enough to cause stack overflow
-   */
-  @SuppressWarnings("java:S5998")
-  private static final String INPUT_VALUE_REGEX = "(\\w+:([\\w\\-]*,?)+;?)+";
+
+  private static final String INPUT_VALUE_REGEX = "(\\w++:([\\w\\-]*+,?)++;?)++";
 
   public Map<String, List<String>> parse(String topicsList) {
     if (isInputValid(topicsList)) {
