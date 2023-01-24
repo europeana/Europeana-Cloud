@@ -5,11 +5,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
-import java.io.InputStream;
-import java.io.Serializable;
-import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+
+import javax.annotation.PostConstruct;
+import java.io.InputStream;
+import java.io.Serializable;
 
 @Builder
 @AllArgsConstructor
@@ -22,6 +23,8 @@ public class AmazonClient implements Serializable {
   private final String awsBucket;
 
   @PostConstruct
+  @SuppressWarnings("java:S6263")
+  // Credentials are loaded from configuration files that require SSH-key and VPN to access or inner company gitlab account with proper permissions.
   synchronized void init() {
     if (amazonS3 == null) {
       amazonS3 = new AmazonS3Client(new BasicAWSCredentials(
