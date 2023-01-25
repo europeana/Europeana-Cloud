@@ -19,13 +19,7 @@ import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
-import java.util.EnumMap;
-import java.util.Map;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -36,6 +30,9 @@ import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebMvc
@@ -156,6 +153,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     return new BucketsHandler(dbService().getSession());
   }
 
+  @SuppressWarnings("S5693") // Limit size is part of system requirements
   @Bean
   public CommonsMultipartResolver multipartResolver() {
     CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
