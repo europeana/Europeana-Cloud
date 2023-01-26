@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.commons.md5;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -18,18 +16,6 @@ public class FileMd5GenerationService {
   private static final Pattern HEX_NUMBER_PATTER = Pattern.compile(HEX_NUMBER_REGEXP);
 
   private FileMd5GenerationService() {
-  }
-
-  public static byte[] generate(Path filePath) throws IOException {
-    return generate(Files.readAllBytes(filePath));
-  }
-
-  public static byte[] generate(byte[] fileBytes) {
-    try {
-      return MessageDigest.getInstance("MD5").digest(fileBytes);
-    } catch (NoSuchAlgorithmException var3) {
-      throw new InternalError("MD5 not supported", var3);
-    }
   }
 
   public static UUID generateUUID(Path filePath) throws IOException {

@@ -13,6 +13,8 @@ public class LoggingFilter implements HandlerInterceptor {
   private static final String REQUEST_ID_ATTRIBUTE_NAME = "requestId";
 
   @Override
+  @SuppressWarnings("java:S2245") //Random is used here only for mark logs that are part of one request.
+  //The usage is secure, because it is only for log readability.
   public boolean preHandle(HttpServletRequest servletRequest,
       HttpServletResponse hsr1, Object handler) {
     MDC.put(REQUEST_ID_ATTRIBUTE_NAME, RandomStringUtils.randomAlphanumeric(6));

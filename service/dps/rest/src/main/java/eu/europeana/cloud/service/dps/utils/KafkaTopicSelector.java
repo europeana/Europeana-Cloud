@@ -24,6 +24,7 @@ public class KafkaTopicSelector {
 
   private final Map<String, List<String>> availableTopic;
 
+  @SuppressWarnings("java:S2245") //Random is used here only for even usage of all topics. So the usage is secure.
   private final Random random;
   private TasksByStateDAO tasksByStateDAO;
 

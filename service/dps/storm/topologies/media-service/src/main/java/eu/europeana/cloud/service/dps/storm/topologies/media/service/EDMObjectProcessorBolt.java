@@ -70,6 +70,8 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     @SuppressWarnings("java:S1941")
     var processingStartTime = Instant.now();
     var exception = new StringBuilder();
+    @SuppressWarnings("java:S2245") //Random is used here only for connect begin and end log
+    // operations used in statistics, and the usage is secure.
     var opId = RandomStringUtils.random(12, "0123456789abcdef");
     logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
 

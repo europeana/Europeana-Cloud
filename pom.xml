@@ -138,7 +138,7 @@
         <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.32</version.slf4j>
-        <version.spring-framework>5.2.20.RELEASE</version.spring-framework>
+        <version.spring-framework>5.2.22.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
 
         <version.servlet>4.0.1</version.servlet>
@@ -150,7 +150,7 @@
         <version.commonio>2.10.0</version.commonio>
         <version.uuid>3.5</version.uuid>
         <version.swift>2.2.1</version.swift>
-        <version.gson>2.3.1</version.gson>
+        <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
         <version.storm>2.3.0</version.storm>
@@ -181,6 +181,7 @@
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
         <version.wiremock>2.27.2</version.wiremock>
+        <version.zt-zip>1.15</version.zt-zip>
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
