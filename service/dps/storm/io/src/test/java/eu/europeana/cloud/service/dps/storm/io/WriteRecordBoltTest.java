@@ -51,7 +51,7 @@ import org.mockito.MockitoAnnotations;
 public class WriteRecordBoltTest {
 
   private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
-  private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-88029720479f");
+  private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-8c50aca96d65");
   private static final String NEW_FILE_NAME = "0e7b8802-9720-379f-9abb-672abfa81076";
   private final int TASK_ID = 1;
   private final String TASK_NAME = "TASK_NAME";
