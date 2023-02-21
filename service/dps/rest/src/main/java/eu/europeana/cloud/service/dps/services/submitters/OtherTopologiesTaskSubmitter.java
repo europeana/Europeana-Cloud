@@ -13,42 +13,42 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OtherTopologiesTaskSubmitter implements TaskSubmitter{
+public class OtherTopologiesTaskSubmitter implements TaskSubmitter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OtherTopologiesTaskSubmitter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OtherTopologiesTaskSubmitter.class);
 
-    @Autowired
-    private KafkaTopicSelector kafkaTopicSelector;
+  @Autowired
+  private KafkaTopicSelector kafkaTopicSelector;
 
-    @Autowired
-    private FilesCounterFactory filesCounterFactory;
+  @Autowired
+  private FilesCounterFactory filesCounterFactory;
 
-    @Autowired
-    private TaskStatusUpdater taskStatusUpdater;
+  @Autowired
+  private TaskStatusUpdater taskStatusUpdater;
 
-    @Autowired
-    private MCSTaskSubmitter mcsTaskSubmitter;
+  @Autowired
+  private MCSTaskSubmitter mcsTaskSubmitter;
 
-    @Override
-    public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
-        int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
-        LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
+  @Override
+  public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException, InterruptedException {
+    int expectedCount = getFilesCountInsideTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
+    LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
-        if (expectedCount == 0) {
-            taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),"The task doesn't include any records");
-            return;
-        }
-
-        String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
-        parameters.setTopicName(preferredTopicName);
-        parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
-        taskStatusUpdater.updateSubmitParameters(parameters);
-
-        mcsTaskSubmitter.execute(parameters);
+    if (expectedCount == 0) {
+      taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
+      return;
     }
 
-    private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
-        FilesCounter filesCounter = filesCounterFactory.createFilesCounter(task, topologyName);
-        return filesCounter.getFilesCount(task);
-    }
+    String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
+    parameters.setTopicName(preferredTopicName);
+    parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
+    taskStatusUpdater.updateSubmitParameters(parameters);
+
+    mcsTaskSubmitter.execute(parameters);
+  }
+
+  private int getFilesCountInsideTask(DpsTask task, String topologyName) throws TaskSubmissionException {
+    FilesCounter filesCounter = filesCounterFactory.createFilesCounter(task, topologyName);
+    return filesCounter.getFilesCount(task);
+  }
 }

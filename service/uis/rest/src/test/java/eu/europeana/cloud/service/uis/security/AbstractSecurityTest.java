@@ -11,23 +11,23 @@ import org.springframework.test.context.ContextConfiguration;
 
 
 @ContextConfiguration(locations = {
-		"classpath:uis-security-business-context-test.xml",
-        "classpath:authentication-context-test.xml", // authentication uses a static InMemory list of usernames, passwords
-        "classpath:authorization-context-test.xml" // authorization uses Embedded cassandra
-        })
+    "classpath:uis-security-business-context-test.xml",
+    "classpath:authentication-context-test.xml", // authentication uses a static InMemory list of usernames, passwords
+    "classpath:authorization-context-test.xml" // authorization uses Embedded cassandra
+})
 public abstract class AbstractSecurityTest extends CassandraTestBase {
-	
-    @Autowired
-    @Qualifier("authenticationManager")
-    private AuthenticationManager authenticationManager;
 
-    @After
-    public void clear() {
-        SecurityContextHolder.clearContext();
-    }
+  @Autowired
+  @Qualifier("authenticationManager")
+  private AuthenticationManager authenticationManager;
 
-    protected void login(String name, String password) {
-        Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
-        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
-    }
+  @After
+  public void clear() {
+    SecurityContextHolder.clearContext();
+  }
+
+  protected void login(String name, String password) {
+    Authentication auth = new UsernamePasswordAuthenticationToken(name, password);
+    SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+  }
 }

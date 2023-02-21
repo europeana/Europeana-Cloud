@@ -5,17 +5,20 @@ package eu.europeana.cloud.cassandra;
  */
 public class CassandraConnectionProviderSingleton {
 
-    private CassandraConnectionProviderSingleton() {
+  private static CassandraConnectionProvider cassandraConnectionProvider;
 
+  private CassandraConnectionProviderSingleton() {
+
+  }
+
+  public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port,
+      String keyspaceName,
+      String userName,
+      String password) {
+    if (cassandraConnectionProvider == null) {
+      cassandraConnectionProvider = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
     }
-
-    private static CassandraConnectionProvider cassandraConnectionProvider;
-
-    public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
-        if (cassandraConnectionProvider == null) {
-            cassandraConnectionProvider = new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-        }
-        return cassandraConnectionProvider;
-    }
+    return cassandraConnectionProvider;
+  }
 }
 

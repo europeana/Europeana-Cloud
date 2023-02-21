@@ -1,8 +1,0 @@
-# configuration for records-ids-extractor
-uis.url=
-mcs.url=
-ecloud.user=
-ecloud.password=
-dataset.provider=
-revision.provider=
-representation.name=

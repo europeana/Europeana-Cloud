@@ -17,23 +17,23 @@ import eu.europeana.cloud.common.response.ErrorInfo;
  */
 public class DatabaseConnectionException extends GenericException {
 
-    private static final long serialVersionUID = 2743985314014225235L;
+  private static final long serialVersionUID = 2743985314014225235L;
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param e
-     */
-    public DatabaseConnectionException(ErrorInfo e) {
-        super(e);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param e
+   */
+  public DatabaseConnectionException(ErrorInfo e) {
+    super(e);
+  }
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param errorInfo
-     */
-    public DatabaseConnectionException(IdentifierErrorInfo errorInfo) {
-        super(errorInfo);
-    }
+  /**
+   * Creates a new instance of this class.
+   *
+   * @param errorInfo
+   */
+  public DatabaseConnectionException(IdentifierErrorInfo errorInfo) {
+    super(errorInfo);
+  }
 }

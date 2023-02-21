@@ -5,20 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class CannotPersistEmptyRepresentationException extends MCSException {
 
-    /**
-     * Constructs a CannotPersistEmptyRepresentationException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     */
-    public CannotPersistEmptyRepresentationException(String message) {
-        super(message);
-    }
+  /**
+   * Constructs a CannotPersistEmptyRepresentationException with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public CannotPersistEmptyRepresentationException(String message) {
+    super(message);
+  }
 
 
-    /**
-     * Constructs a CannotPersistEmptyRepresentationException with no specified detail message.
-     */
-    public CannotPersistEmptyRepresentationException() {
-    }
+  /**
+   * Constructs a CannotPersistEmptyRepresentationException with no specified detail message.
+   */
+  public CannotPersistEmptyRepresentationException() {
+  }
 }

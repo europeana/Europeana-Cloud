@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.model.dps;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Created by Tarek on 2/4/2019.
@@ -9,43 +9,45 @@ import java.util.List;
 
 @XmlRootElement()
 public class NodeReport {
-    private String nodeValue;
 
-    private long occurrence;
-    private List<AttributeStatistics> attributeStatistics;
+  private String nodeValue;
 
-    public List<AttributeStatistics> getAttributeStatistics() {
-        return attributeStatistics;
-    }
+  private long occurrence;
+  private List<AttributeStatistics> attributeStatistics;
 
-    public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
-        this.attributeStatistics = attributeStatistics;
-    }
+  public NodeReport(String nodeValue, long occurrence, List<AttributeStatistics> attributeStatistics) {
+    this.nodeValue = nodeValue;
+    this.occurrence = occurrence;
+    this.attributeStatistics = attributeStatistics;
+  }
 
-    public NodeReport(String nodeValue, long occurrence, List<AttributeStatistics> attributeStatistics) {
-        this.nodeValue = nodeValue;
-        this.occurrence = occurrence;
-        this.attributeStatistics = attributeStatistics;
-    }
+  public NodeReport() {
+  }
 
-    public NodeReport() {
-    }
+  public List<AttributeStatistics> getAttributeStatistics() {
+    return attributeStatistics;
+  }
 
-    public String getNodeValue() {
-        return nodeValue;
-    }
+  public void setAttributeStatistics(List<AttributeStatistics> attributeStatistics) {
+    this.attributeStatistics = attributeStatistics;
+  }
 
-    public void setNodeValue(String nodeValue) {
-        this.nodeValue = nodeValue;
-    }
 
-    public long getOccurrence() {
-        return occurrence;
-    }
+  public String getNodeValue() {
+    return nodeValue;
+  }
 
-    public void setOccurrence(long occurrence) {
-        this.occurrence = occurrence;
-    }
+  public void setNodeValue(String nodeValue) {
+    this.nodeValue = nodeValue;
+  }
+
+  public long getOccurrence() {
+    return occurrence;
+  }
+
+  public void setOccurrence(long occurrence) {
+    this.occurrence = occurrence;
+  }
 
 
 }

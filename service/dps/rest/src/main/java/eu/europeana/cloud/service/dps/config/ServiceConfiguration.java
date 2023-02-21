@@ -48,11 +48,10 @@ import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import eu.europeana.cloud.service.dps.storm.service.ReportService;
+import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -69,12 +68,12 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
-import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -86,307 +85,308 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableAspectJAutoProxy
 @EnableAsync
 @EnableScheduling
-public class ServiceConfiguration implements WebMvcConfigurer {
+public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
-    private final Environment environment;
+  private final Environment environment;
 
-    public ServiceConfiguration(Environment environment) {
-        this.environment = environment;
-    }
+  public ServiceConfiguration(Environment environment) {
+    this.environment = environment;
+  }
 
-    @Override
-    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        configurer.setTaskExecutor(asyncExecutor());
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingFilter());
-    }
-
-    @Bean
-    public MethodValidationPostProcessor methodValidationPostProcessor() {
-        return new MethodValidationPostProcessor();
-    }
-
-    @Bean
-    public RecordExecutionSubmitService recordKafkaSubmitService() {
-        return new RecordKafkaSubmitService(
-                environment.getProperty(JNDI_KEY_KAFKA_BROKER),
-                taskStatusUpdater());
-    }
-
-    @Bean
-    public RecordSubmitService recordSubmitService() {
-        return new RecordSubmitService(processedRecordsDAO(), recordKafkaSubmitService());
-    }
-
-  @Bean
-  public ReportDAO reportDAO() {
-      return new ReportDAO(dpsCassandraProvider());
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new LoggingFilter());
   }
 
   @Bean
-  public ReportService taskReportService() {
-      return new ReportService(reportDAO());
+  public MethodValidationPostProcessor methodValidationPostProcessor() {
+    return new MethodValidationPostProcessor();
   }
 
-    @Bean
-    public TopologyManager topologyManger() {
-        return new TopologyManager(environment.getProperty(JNDI_KEY_TOPOLOGY_NAMELIST));
+  @Bean
+  public RecordExecutionSubmitService recordKafkaSubmitService() {
+    return new RecordKafkaSubmitService(environment.getProperty(JNDI_KEY_KAFKA_BROKER));
+  }
+
+  @Bean
+  public RecordSubmitService recordSubmitService() {
+    return new RecordSubmitService(processedRecordsDAO(), recordKafkaSubmitService());
+  }
+
+  @Bean
+  public TaskExecutionReportServiceImpl taskReportService() {
+    return new TaskExecutionReportServiceImpl(subTaskInfoDAO(), taskErrorDAO(), taskInfoDAO());
+  }
+
+  @Bean
+  public TopologyManager topologyManger() {
+    return new TopologyManager(environment.getProperty(JNDI_KEY_TOPOLOGY_NAMELIST));
+  }
+
+  @Bean
+  public CassandraConnectionProvider dpsCassandraProvider() {
+    return new CassandraConnectionProvider(
+        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
+        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
+        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
+        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
+        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
+  }
+
+  @Bean
+  public CassandraConnectionProvider aasCassandraProvider() {
+    String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
+    Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
+    String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
+    String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
+    String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
+
+    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+  }
+
+  @Bean
+  public String applicationIdentifier() {
+    return environment.getProperty(JNDI_KEY_APPLICATION_ID);
+  }
+
+  @Bean
+  public MethodInvokingFactoryBean methodInvokingFactoryBean() {
+    var result = new MethodInvokingFactoryBean();
+    result.setTargetClass(SecurityContextHolder.class);
+    result.setTargetMethod("setStrategyName");
+    result.setArguments("MODE_INHERITABLETHREADLOCAL");
+    return result;
+  }
+
+  @Bean
+  public CassandraTaskInfoDAO taskInfoDAO() {
+    return new CassandraTaskInfoDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
+    return new TaskDiagnosticInfoDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public HarvestedRecordsDAO harvestedRecordsDAO() {
+    return new HarvestedRecordsDAO(dpsCassandraProvider());
+  }
+
+
+  @Bean
+  public CassandraTaskErrorsDAO taskErrorDAO() {
+    return new CassandraTaskErrorsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public TasksByStateDAO tasksByStateDAO() {
+    return new TasksByStateDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public ValidationStatisticsServiceImpl validationStatisticsService() {
+    return new ValidationStatisticsServiceImpl(
+        cassandraGeneralStatisticsDAO(),
+        cassandraNodeStatisticsDAO(),
+        cassandraAttributeStatisticsDAO(),
+        cassandraStatisticsReportDAO());
+  }
+
+  @Bean
+  public GeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
+    return new GeneralStatisticsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO() {
+    return new CassandraNodeStatisticsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO() {
+    return new CassandraAttributeStatisticsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public StatisticsReportDAO cassandraStatisticsReportDAO() {
+    return new StatisticsReportDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public TaskStatusChecker taskStatusChecker() {
+    return new TaskStatusChecker(taskInfoDAO());
+  }
+
+  @Bean
+  public NotificationsDAO subTaskInfoDAO() {
+    return new NotificationsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public ProcessedRecordsDAO processedRecordsDAO() {
+    return new ProcessedRecordsDAO(dpsCassandraProvider());
+  }
+
+  @Bean
+  public TaskStatusUpdater taskStatusUpdater() {
+    return new TaskStatusUpdater(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier());
+  }
+
+  @Bean
+  public TaskStatusSynchronizer taskStatusSynchronizer() {
+    return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO(), taskStatusUpdater());
+  }
+
+  @Bean
+  public RecordStatusUpdater recordStatusUpdater(NotificationsDAO cassandraSubTaskInfoDAO) {
+    return new RecordStatusUpdater(cassandraSubTaskInfoDAO);
+  }
+
+  @Bean
+  public MCSTaskSubmitter mcsTaskSubmitter() {
+    return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+  }
+
+  @Bean
+  public FileURLCreator fileURLCreator() {
+    String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
+    if (machineLocation == null) {
+      throw new BeanCreationException(
+          String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
     }
+    return new FileURLCreator(machineLocation);
+  }
 
-    @Bean
-    public CassandraConnectionProvider dpsCassandraProvider() {
-        return new CassandraConnectionProvider(
-                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
-                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
-                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
-                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
-                environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
-    }
+  @Bean
+  public PostProcessorFactory postProcessorFactory() {
+    return new PostProcessorFactory(
+        Arrays.asList(harvestingPostProcessor(), indexingPostProcessor())
+    );
+  }
 
-    @Bean
-    public CassandraConnectionProvider aasCassandraProvider() {
-        String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
-        Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
-        String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
-        String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
-        String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
+  @Bean
+  public HarvestingPostProcessor harvestingPostProcessor() {
+    return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
+        recordServiceClient(), revisionServiceClient(), uisClient(), taskStatusUpdater(),
+        taskStatusChecker());
+  }
 
-        return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-    }
+  @Bean
+  public IndexingPostProcessor indexingPostProcessor() {
+    return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker(), indexWrapper());
+  }
 
-    @Bean
-    public String applicationIdentifier() {
-        return environment.getProperty(JNDI_KEY_APPLICATION_ID);
-    }
+  @Bean
+  public UISClient uisClient() {
+    return new UISClient(
+        uisLocation(),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+  }
 
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        var result = new MethodInvokingFactoryBean();
-        result.setTargetClass(SecurityContextHolder.class);
-        result.setTargetMethod("setStrategyName");
-        result.setArguments("MODE_INHERITABLETHREADLOCAL");
-        return result;
-    }
+  @Bean
+  public DataSetServiceClient dataSetServiceClient() {
+    return new DataSetServiceClient(
+        mcsLocation(),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+  }
 
-    @Bean
-    public CassandraTaskInfoDAO taskInfoDAO() {
-        return new CassandraTaskInfoDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public RecordServiceClient recordServiceClient() {
+    return new RecordServiceClient(
+        mcsLocation(),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+  }
 
-    @Bean
-    public TaskDiagnosticInfoDAO taskDiagnosticInfoDAO() {
-        return new TaskDiagnosticInfoDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public RevisionServiceClient revisionServiceClient() {
+    return new RevisionServiceClient(
+        mcsLocation(),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
+        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+  }
 
-    @Bean
-    public HarvestedRecordsDAO harvestedRecordsDAO() {
-        return new HarvestedRecordsDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public RetryAspect retryAspect() {
+    return new RetryAspect();
+  }
 
+  @Bean
+  public PostProcessingService postProcessingService() {
+    return new PostProcessingService(
+        postProcessorFactory(),
+        taskInfoDAO(),
+        taskDiagnosticInfoDAO(),
+        taskStatusUpdater());
+  }
 
-    @Bean
-    public CassandraTaskErrorsDAO taskErrorDAO() {
-        return new CassandraTaskErrorsDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public TaskFinishService taskFinishService(PostProcessingService postProcessingService,
+      TasksByStateDAO tasksByStateDAO,
+      CassandraTaskInfoDAO taskInfoDAO,
+      TaskStatusUpdater taskStatusUpdater,
+      String applicationIdentifier
+  ) {
+    return new TaskFinishService(postProcessingService, tasksByStateDAO, taskInfoDAO, taskStatusUpdater, applicationIdentifier);
+  }
 
-    @Bean
-    public TasksByStateDAO tasksByStateDAO() {
-        return new TasksByStateDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public PostProcessingScheduler postProcessingScheduler(
+      PostProcessingService postProcessingService,
+      TasksByStateDAO tasksByStateDAO,
+      TaskStatusUpdater taskStatusUpdater,
+      String applicationIdentifier
+  ) {
+    return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
+  }
 
-    @Bean
-    public ValidationStatisticsServiceImpl validationStatisticsService() {
-        return new ValidationStatisticsServiceImpl(
-                cassandraGeneralStatisticsDAO(),
-                cassandraNodeStatisticsDAO(),
-                cassandraAttributeStatisticsDAO(),
-                cassandraStatisticsReportDAO());
-    }
+  @Bean
+  public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever,
+      HarvestedRecordsDAO harvestedRecordsDAO) {
+    return new MetisDatasetService(datasetStatsRetriever, harvestedRecordsDAO);
+  }
 
-    @Bean
-    public GeneralStatisticsDAO cassandraGeneralStatisticsDAO() {
-        return new GeneralStatisticsDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public DatasetStatsRetriever datasetStatsRetriever(IndexWrapper indexWrapper) {
+    return new DatasetStatsRetriever(indexWrapper);
+  }
 
-    @Bean
-    public CassandraNodeStatisticsDAO cassandraNodeStatisticsDAO() {
-        return new CassandraNodeStatisticsDAO(dpsCassandraProvider());
-    }
+  @Bean
+  public IndexWrapper indexWrapper() {
+    return new IndexWrapper();
+  }
 
-    @Bean
-    public CassandraAttributeStatisticsDAO cassandraAttributeStatisticsDAO() {
-        return new CassandraAttributeStatisticsDAO(dpsCassandraProvider());
-    }
+  @Bean
+  @Override
+  public AsyncTaskExecutor getAsyncExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(40);
+    executor.setMaxPoolSize(40);
+    executor.setQueueCapacity(10);
+    executor.setThreadNamePrefix("DPSThreadPool-");
+    return executor;
+  }
 
-    @Bean
-    public StatisticsReportDAO cassandraStatisticsReportDAO() {
-        return new StatisticsReportDAO(dpsCassandraProvider());
-    }
+  @Bean("postProcessingExecutor")
+  public AsyncTaskExecutor postProcessingExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(16);
+    executor.setMaxPoolSize(16);
+    executor.setQueueCapacity(10);
+    executor.setThreadNamePrefix("post-proprocessing-");
+    return executor;
+  }
 
-    @Bean
-    public TaskStatusChecker taskStatusChecker() {
-        return new TaskStatusChecker(taskInfoDAO());
-    }
+  private String mcsLocation() {
+    return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+  }
 
-    @Bean
-    public NotificationsDAO subTaskInfoDAO() {
-        return new NotificationsDAO(dpsCassandraProvider());
-    }
-
-    @Bean
-    public ProcessedRecordsDAO processedRecordsDAO() {
-        return new ProcessedRecordsDAO(dpsCassandraProvider());
-    }
-
-    @Bean
-    public TaskStatusUpdater taskStatusUpdater() {
-        return new TaskStatusUpdater(taskInfoDAO(), tasksByStateDAO(), applicationIdentifier());
-    }
-
-    @Bean
-    public TaskStatusSynchronizer taskStatusSynchronizer() {
-        return new TaskStatusSynchronizer(taskInfoDAO(), tasksByStateDAO(), taskStatusUpdater());
-    }
-
-    @Bean
-    public RecordStatusUpdater recordStatusUpdater(NotificationsDAO cassandraSubTaskInfoDAO) {
-        return new RecordStatusUpdater(cassandraSubTaskInfoDAO);
-    }
-
-    @Bean
-    public MCSTaskSubmitter mcsTaskSubmitter() {
-        return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
-    }
-
-    @Bean
-    public FileURLCreator fileURLCreator() {
-        String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
-        if (machineLocation == null) {
-            throw new BeanCreationException(String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
-        }
-        return new FileURLCreator(machineLocation);
-    }
-
-    @Bean
-    public PostProcessorFactory postProcessorFactory() {
-        return new PostProcessorFactory(
-                Arrays.asList(harvestingPostProcessor(), indexingPostProcessor())
-        );
-    }
-
-    @Bean
-    public HarvestingPostProcessor harvestingPostProcessor() {
-        return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-                recordServiceClient(), revisionServiceClient(), uisClient(), taskStatusUpdater(),
-                taskStatusChecker());
-    }
-
-    @Bean
-    public IndexingPostProcessor indexingPostProcessor() {
-        return new IndexingPostProcessor(taskStatusUpdater(), harvestedRecordsDAO(), taskStatusChecker(), indexWrapper());
-    }
-
-    @Bean
-    public UISClient uisClient() {
-        return new UISClient(
-                uisLocation(),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
-    }
-
-    @Bean
-    public DataSetServiceClient dataSetServiceClient() {
-        return new DataSetServiceClient(
-                mcsLocation(),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
-    }
-
-    @Bean
-    public RecordServiceClient recordServiceClient() {
-        return new RecordServiceClient(
-                mcsLocation(),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
-    }
-
-    @Bean
-    public RevisionServiceClient revisionServiceClient() {
-        return new RevisionServiceClient(
-                mcsLocation(),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-                environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
-    }
-
-    @Bean
-    public RetryAspect retryAspect() {
-        return new RetryAspect();
-    }
-
-    @Bean
-    public PostProcessingService postProcessingService() {
-        return new PostProcessingService(
-                postProcessorFactory(),
-                taskInfoDAO(),
-                taskDiagnosticInfoDAO(),
-                taskStatusUpdater());
-    }
-
-    @Bean
-    public TaskFinishService taskFinishService(PostProcessingService postProcessingService,
-                                               TasksByStateDAO tasksByStateDAO,
-                                               CassandraTaskInfoDAO taskInfoDAO,
-                                               TaskStatusUpdater taskStatusUpdater,
-                                               String applicationIdentifier
-    ) {
-        return new TaskFinishService(postProcessingService, tasksByStateDAO, taskInfoDAO, taskStatusUpdater, applicationIdentifier);
-    }
-
-    @Bean
-    public PostProcessingScheduler postProcessingScheduler(
-            PostProcessingService postProcessingService,
-            TasksByStateDAO tasksByStateDAO,
-            TaskStatusUpdater taskStatusUpdater,
-            String applicationIdentifier
-    ) {
-        return new PostProcessingScheduler(postProcessingService, tasksByStateDAO, taskStatusUpdater, applicationIdentifier);
-    }
-
-    @Bean
-    public MetisDatasetService metisDatasetService(DatasetStatsRetriever datasetStatsRetriever, HarvestedRecordsDAO harvestedRecordsDAO) {
-        return new MetisDatasetService(datasetStatsRetriever, harvestedRecordsDAO);
-    }
-
-    @Bean
-    public DatasetStatsRetriever datasetStatsRetriever(IndexWrapper indexWrapper) {
-        return new DatasetStatsRetriever(indexWrapper);
-    }
-
-    @Bean
-    public IndexWrapper indexWrapper(){
-        return new IndexWrapper();
-    }
-
-    @Bean
-    public AsyncTaskExecutor asyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(40);
-        executor.setMaxPoolSize(40);
-        executor.setQueueCapacity(10);
-        executor.setThreadNamePrefix("DPSThreadPool-");
-        return executor;
-    }
-
-    private String mcsLocation() {
-        return environment.getProperty(JNDI_KEY_MCS_LOCATION);
-    }
-
-    private String uisLocation() {
-        return environment.getProperty(JNDI_KEY_UIS_LOCATION);
-    }
+  private String uisLocation() {
+    return environment.getProperty(JNDI_KEY_UIS_LOCATION);
+  }
 }

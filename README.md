@@ -24,7 +24,7 @@ Please check out the [tutorial for the Europeana Cloud API] (https://confluence.
 Lombock is used in this project, so necessary plugin should be present in IDE to compile classes.
 
 ## Docker
-Tomcat Application containing aas, uis, mcs and dps, can be executed as docker image.
+Tomcat Application containing uis, mcs and dps, can be executed as docker image.
 
 Dockerfile is placed in Europeana project root folder. Image can be build in this folder, after building project by Maven to 
 create application binaries available in subsequent target directories of AAS, UIS, MCS and DPS modules.   

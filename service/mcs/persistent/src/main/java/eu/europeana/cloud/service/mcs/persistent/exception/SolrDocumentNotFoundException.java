@@ -5,13 +5,12 @@ package eu.europeana.cloud.service.mcs.persistent.exception;
  */
 public class SolrDocumentNotFoundException extends Exception {
 
-    /**
-     * Constructs a SolrDocumentNotFoundException with the specified Solr query.
-     * 
-     * @param query
-     *            the Solr query
-     */
-    public SolrDocumentNotFoundException(String query) {
-        super(String.format("Solr document not found for query %s", query));
-    }
+  /**
+   * Constructs a SolrDocumentNotFoundException with the specified Solr query.
+   *
+   * @param query the Solr query
+   */
+  public SolrDocumentNotFoundException(String query) {
+    super(String.format("Solr document not found for query %s", query));
+  }
 }

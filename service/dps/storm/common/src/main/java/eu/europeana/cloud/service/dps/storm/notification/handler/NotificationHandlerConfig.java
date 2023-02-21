@@ -11,13 +11,14 @@ import lombok.Getter;
 @Getter
 @Builder
 public class NotificationHandlerConfig {
-   /**
-     * {@link RecordState} that should be inserted into <b>notifications</b> table.
-     */
-    private RecordState recordStateToBeSet;
-    /**
-     * Holds information taken from cache
-     */
-    private NotificationCacheEntry notificationCacheEntry;
+
+  /**
+   * {@link RecordState} that should be inserted into <b>notifications</b> table.
+   */
+  private RecordState recordStateToBeSet;
+  /**
+   * Holds information taken from cache
+   */
+  private NotificationCacheEntry notificationCacheEntry;
 
 }

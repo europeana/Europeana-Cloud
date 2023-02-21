@@ -11,5 +11,6 @@ import lombok.ToString;
 @Getter
 @ToString
 public class OAIHeader {
-    private String identifier;
+
+  private String identifier;
 }

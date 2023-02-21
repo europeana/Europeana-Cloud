@@ -7,12 +7,12 @@ package eu.europeana.cloud.service.dps;
  */
 public interface TaskExecutionKillService {
 
-    /**
-     * Set kill flag to task.
-     *
-     * @param taskId task id to kill
-     */
-    void killTask(long taskId,String info);
+  /**
+   * Set kill flag to task.
+   *
+   * @param taskId task id to kill
+   */
+  void killTask(long taskId, String info);
 
 
 }

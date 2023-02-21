@@ -1,8 +1,12 @@
 package eu.europeana.cloud.common.model.dps;
 
-import lombok.*;
-
 import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -11,10 +15,11 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskByTaskState {
-    private TaskState state;
-    private String topologyName;
-    private Long id;
-    private String applicationId;
-    private Date startTime;
-    private String topicName;
+
+  private TaskState state;
+  private String topologyName;
+  private Long id;
+  private String applicationId;
+  private Date startTime;
+  private String topicName;
 }

@@ -1,7 +1,0 @@
-"metis_dataset_id","record_id","latest_harvest_revision_timestamp","preview_harvest_revision_timestamp","published_harvest_revision_timestamp"
-"filltest2","/filltest2/item_123","1618222127555","1618222127555","1618222127555"
-"filltest2","/filltest2/item_234","1618222127555","1618222127555",
-"filltest3","/filltest3/item_345","1618222127555","1618222127555","1618222127555"
-"filltest3","/filltest3/item_456","1618228127555","1618222127555","1618222127555"
-"filltest3","/filltest3/item_567","1618228127555","1618224127555","1618222127555"
-"filltest3","/filltest3/item_678","1618222127555","1618222127555","1618222027555"

@@ -11,22 +11,23 @@ import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
  */
 public class OaiHarvestedRecordCategorizationBolt extends HarvestedRecordCategorizationBolt {
 
-    private final DbConnectionDetails dbConnectionDetails;
+  private final DbConnectionDetails dbConnectionDetails;
 
-    public OaiHarvestedRecordCategorizationBolt(DbConnectionDetails dbConnectionDetails) {
-        this.dbConnectionDetails = dbConnectionDetails;
-    }
+  public OaiHarvestedRecordCategorizationBolt(DbConnectionDetails dbConnectionDetails) {
+    this.dbConnectionDetails = dbConnectionDetails;
+  }
 
-    @Override
-    public void prepare() {
-        var cassandraConnectionProvider =
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-                        dbConnectionDetails.getHosts(),
-                        dbConnectionDetails.getPort(),
-                        dbConnectionDetails.getKeyspaceName(),
-                        dbConnectionDetails.getUserName(),
-                        dbConnectionDetails.getPassword());
+  @Override
+  public void prepare() {
+    var cassandraConnectionProvider =
+        CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+            dbConnectionDetails.getHosts(),
+            dbConnectionDetails.getPort(),
+            dbConnectionDetails.getKeyspaceName(),
+            dbConnectionDetails.getUserName(),
+            dbConnectionDetails.getPassword());
 
-        harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
-    }
+    harvestedRecordCategorizationService = new OaiPmhTopologyCategorizationService(
+        HarvestedRecordsDAO.getInstance(cassandraConnectionProvider));
+  }
 }

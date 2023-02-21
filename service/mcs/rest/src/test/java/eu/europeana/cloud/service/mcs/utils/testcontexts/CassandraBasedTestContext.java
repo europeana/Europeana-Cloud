@@ -1,8 +1,12 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
-import eu.europeana.aas.acl.ExtendedAclService;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static org.mockito.Mockito.mock;
+
+import eu.europeana.aas.authorization.ExtendedAclService;
+import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.service.commons.permissions.PermissionsGrantingManager;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
@@ -18,64 +22,61 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
 
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
-import static org.mockito.Mockito.mock;
-
 @Configuration
 public class CassandraBasedTestContext {
 
-    @Bean()
-    @Order(100)
-    public CassandraConnectionProvider aasCassandraProvider() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_AAS_KEYSPACE, "", "");
-    }
+  @Bean()
+  @Order(100)
+  public CassandraConnectionProvider aasCassandraProvider() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_AAS_KEYSPACE, "", "");
+  }
 
-    @Bean()
-    @Order(100)
-    public CassandraConnectionProvider dbService() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
-    }
+  @Bean()
+  @Order(100)
+  public CassandraConnectionProvider dbService() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
+  }
 
-    @Bean()
-    @Order(100)
-    public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-        return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
-    }
+  @Bean()
+  @Order(100)
+  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
+    return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
+  }
 
-    //mock
-    @Bean
-    public UISClientHandler uisHandler() {
-        return mock(UISClientHandlerImpl.class);
-    }
+  //mock
+  @Bean
+  public UISClientHandler uisHandler() {
+    return mock(UISClientHandlerImpl.class);
+  }
 
-    @Bean
-    public MutableAclService mutableAclService() {
-        return mock(ExtendedAclService.class);
-    }
+  @Bean
+  public MutableAclService mutableAclService() {
+    return mock(ExtendedAclService.class);
+  }
 
-    @Bean
-    public PermissionsGrantingManager permissionsGrantingManager() {
-        return mock(PermissionsGrantingManager.class);
-    }
+  @Bean
+  public PermissionsGrantingManager permissionsGrantingManager() {
+    return mock(PermissionsGrantingManager.class);
+  }
 
-    @Bean
-    public PermissionEvaluator permissionEvaluator() {
-        return mock(PermissionEvaluator.class);
-    }
+  @Bean
+  public PermissionEvaluator permissionEvaluator() {
+    return mock(PermissionEvaluator.class);
+  }
 
-    @Bean
-    public CassandraDataSetService cassandraDataSetService() {
-        return Mockito.spy(new CassandraDataSetService());
-    }
+  @Bean
+  public CassandraDataSetService cassandraDataSetService() {
+    return Mockito.spy(new CassandraDataSetService());
+  }
 
-    @Bean
-    public CassandraRecordService cassandraRecordService() {
-        return Mockito.spy(new CassandraRecordService());
-    }
+  @Bean
+  public CassandraRecordService cassandraRecordService() {
+    return Mockito.spy(new CassandraRecordService());
+  }
 
-    @Bean
-    public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService, PermissionEvaluator permissionEvaluator) {
-        return Mockito.mock(DataSetPermissionsVerifier.class);
-    }
+  @Bean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+      PermissionEvaluator permissionEvaluator) {
+    return Mockito.mock(DataSetPermissionsVerifier.class);
+  }
 }

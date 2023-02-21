@@ -5,7 +5,7 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class DataSetAssignmentException extends MCSException {
 
-    public DataSetAssignmentException(String message) {
-        super(message);
-    }
+  public DataSetAssignmentException(String message) {
+    super(message);
+  }
 }

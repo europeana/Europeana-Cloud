@@ -10,16 +10,16 @@ import org.slf4j.LoggerFactory;
  */
 public class DatasetStatsRetriever {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStatsRetriever.class);
-    private final IndexWrapper indexWrapper;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStatsRetriever.class);
+  private final IndexWrapper indexWrapper;
 
-    public DatasetStatsRetriever(IndexWrapper indexWrapper) {
-        this.indexWrapper = indexWrapper;
-    }
+  public DatasetStatsRetriever(IndexWrapper indexWrapper) {
+    this.indexWrapper = indexWrapper;
+  }
 
-    public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
-        LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
-        return indexWrapper.getIndexer(metisDataSetParameters.getTargetIndexingDatabase())
-                .countRecords(metisDataSetParameters.getDataSetId());
-    }
+  public long getTotalRecordsForDataset(MetisDataSetParameters metisDataSetParameters) throws IndexingException {
+    LOGGER.info("Reading total number of records for {}", metisDataSetParameters);
+    return indexWrapper.getIndexer(metisDataSetParameters.getTargetIndexingDatabase())
+                       .countRecords(metisDataSetParameters.getDataSetId());
+  }
 }

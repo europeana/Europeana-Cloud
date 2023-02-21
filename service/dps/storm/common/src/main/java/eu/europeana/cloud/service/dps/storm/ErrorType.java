@@ -11,13 +11,13 @@ import lombok.ToString;
 @ToString
 public class ErrorType {
 
-    private long taskId;
-    private String uuid;
-    private String message;
-    private int count;
+  private long taskId;
+  private String uuid;
+  private String message;
+  private int count;
 
-    public void incrementCounter(){
-        this.count ++;
-    }
+  public void incrementCounter() {
+    this.count++;
+  }
 
 }

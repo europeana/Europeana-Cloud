@@ -69,12 +69,6 @@ CREATE TABLE data_set_assignments_by_revision_id_buckets (
       PRIMARY KEY (object_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
-CREATE TABLE data_set_representation_names(
-       provider_id varchar,
-       dataset_id varchar,
-       representation_names set<text>,
-       PRIMARY KEY ((provider_id, dataset_id))
-)WITH comment='Retrieve information about the representations supported in a providers dataset';
 
 CREATE TABLE datasets_buckets (
     provider_id varchar,

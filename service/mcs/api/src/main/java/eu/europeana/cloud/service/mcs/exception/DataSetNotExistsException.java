@@ -5,20 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class DataSetNotExistsException extends MCSException {
 
-    /**
-     * Constructs a DataSetNotExistsException with no specified detail message.
-     */
-    public DataSetNotExistsException() {
-    }
+  /**
+   * Constructs a DataSetNotExistsException with no specified detail message.
+   */
+  public DataSetNotExistsException() {
+  }
 
 
-    /**
-     * Constructs a DataSetNotExistsException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     */
-    public DataSetNotExistsException(String message) {
-        super(message);
-    }
+  /**
+   * Constructs a DataSetNotExistsException with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public DataSetNotExistsException(String message) {
+    super(message);
+  }
 }

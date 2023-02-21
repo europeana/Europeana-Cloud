@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +18,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 public class XsltBolt extends AbstractDpsBolt {
+
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
 
@@ -51,13 +51,11 @@ public class XsltBolt extends AbstractDpsBolt {
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
-      handleInterruption(e,anchorTuple);
+      handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      LOGGER.error("XsltBolt error:{}",  e.getMessage());
-      emitErrorNotification(anchorTuple, stormTaskTuple.getTaskId(), stormTaskTuple.isMarkedAsDeleted(),
-              stormTaskTuple.getFileUrl(), e.getMessage(), ExceptionUtils.getStackTrace(e),
-              StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-      outputCollector.ack(anchorTuple);
+      LOGGER.error("XsltBolt error:{}", e.getMessage());
+        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), ExceptionUtils.getStackTrace(e));
+        outputCollector.ack(anchorTuple);
     } finally {
       if (writer != null) {
         try {

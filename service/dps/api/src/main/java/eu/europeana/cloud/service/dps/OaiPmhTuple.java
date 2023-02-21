@@ -7,46 +7,48 @@ import java.util.Set;
  * @author akrystian.
  */
 public class OaiPmhTuple {
-    Set<String> schemas;
-    Set<String> excludedSchemas;
-    Set<String> sets;
-    Set<String> excludedSets;
-    Date from;
-    Date until;
 
-    public OaiPmhTuple() {
-    }
+  Set<String> schemas;
+  Set<String> excludedSchemas;
+  Set<String> sets;
+  Set<String> excludedSets;
+  Date from;
+  Date until;
 
-    public OaiPmhTuple(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludedSets, Date from, Date until) {
-        this.schemas = schemas;
-        this.excludedSchemas = excludedSchemas;
-        this.sets = sets;
-        this.excludedSets = excludedSets;
-        this.from = from;
-        this.until = until;
-    }
+  public OaiPmhTuple() {
+  }
 
-    public Set<String> getSchemas() {
-        return schemas;
-    }
+  public OaiPmhTuple(Set<String> schemas, Set<String> excludedSchemas, Set<String> sets, Set<String> excludedSets, Date from,
+      Date until) {
+    this.schemas = schemas;
+    this.excludedSchemas = excludedSchemas;
+    this.sets = sets;
+    this.excludedSets = excludedSets;
+    this.from = from;
+    this.until = until;
+  }
 
-    public Set<String> getExcludedSchemas() {
-        return excludedSchemas;
-    }
+  public Set<String> getSchemas() {
+    return schemas;
+  }
 
-    public Set<String> getSets() {
-        return sets;
-    }
+  public Set<String> getExcludedSchemas() {
+    return excludedSchemas;
+  }
 
-    public Set<String> getExcludedSets() {
-        return excludedSets;
-    }
+  public Set<String> getSets() {
+    return sets;
+  }
 
-    public Date getFrom() {
-        return from;
-    }
+  public Set<String> getExcludedSets() {
+    return excludedSets;
+  }
 
-    public Date getUntil() {
-        return until;
-    }
+  public Date getFrom() {
+    return from;
+  }
+
+  public Date getUntil() {
+    return until;
+  }
 }

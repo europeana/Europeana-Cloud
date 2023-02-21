@@ -5,11 +5,11 @@ package eu.europeana.cloud.swiftmigrate;
  */
 public class CustomFileNameMigrator extends SwiftMigrator {
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public String nameConversion(final String s) {
-        return s.contains("|") ? s.replace("|", "_") : null;
-    }
+  /**
+   * {@inheritDoc }
+   */
+  @Override
+  public String nameConversion(final String s) {
+    return s.contains("|") ? s.replace("|", "_") : null;
+  }
 }

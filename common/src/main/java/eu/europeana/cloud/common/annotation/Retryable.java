@@ -11,25 +11,26 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Retryable {
 
-    int DEFAULT_DELAY_BETWEEN_ATTEMPTS = 10 * 1000;
+  int DEFAULT_DELAY_BETWEEN_ATTEMPTS = 10 * 1000;
 
-    /**
-     * Maximum number of attempts while retry mechanism works
-     * Default value is set to 3
-     * @return Number of attempt
-     */
-    int maxAttempts() default 3;
+  int DEFAULT_MAX_ATTEMPTS = 3;
 
-    /**
-     * Number of milliseconds between fails attempt and next try
-     * Default value is set to 10[s]= 10*1000[ms]
-     * @return Number of milliseconds
-     */
-    int delay() default DEFAULT_DELAY_BETWEEN_ATTEMPTS;
+  /**
+   * Maximum number of attempts while retry mechanism works Default value is set to 3
+   *
+   * @return Number of attempt
+   */
+  int maxAttempts() default DEFAULT_MAX_ATTEMPTS;
 
-    /**
-     *
-     * @return
-     */
-    String errorMessage() default "";
+  /**
+   * Number of milliseconds between fails attempt and next try Default value is set to 10[s]= 10*1000[ms]
+   *
+   * @return Number of milliseconds
+   */
+  int delay() default DEFAULT_DELAY_BETWEEN_ATTEMPTS;
+
+  /**
+   * @return
+   */
+  String errorMessage() default "";
 }

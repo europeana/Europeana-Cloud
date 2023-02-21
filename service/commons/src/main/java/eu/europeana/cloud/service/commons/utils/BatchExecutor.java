@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.commons.utils;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-
 import java.util.List;
 
 /**
@@ -11,35 +10,36 @@ import java.util.List;
  */
 public class BatchExecutor {
 
-    private static final int RETRY_COUNT = 10;
-    private static final int SLEEP_BETWEEN_RETRIES_MS = 10000;
+  private static final int RETRY_COUNT = 10;
+  private static final int SLEEP_BETWEEN_RETRIES_MS = 10000;
 
-    private final CassandraConnectionProvider dbService;
+  private static BatchExecutor instance = null;
 
-    private static BatchExecutor instance = null;
+  private final CassandraConnectionProvider dbService;
 
-    public BatchExecutor(CassandraConnectionProvider dbService) {
-        this.dbService = dbService;
+
+  public BatchExecutor(CassandraConnectionProvider dbService) {
+    this.dbService = dbService;
+  }
+
+  public static synchronized BatchExecutor getInstance(CassandraConnectionProvider cassandra) {
+    if (instance == null) {
+      instance = new BatchExecutor(cassandra);
     }
+    return instance;
+  }
 
-    public static synchronized BatchExecutor getInstance(CassandraConnectionProvider cassandra) {
-        if (instance == null) {
-            instance = new BatchExecutor(cassandra);
-        }
-        return instance;
-    }
+  public void executeAll(List<BoundStatement> statements) {
+    BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
+    statements.forEach(batchStatement::add);
+    executeWithRetries(batchStatement);
+  }
 
-    public void executeAll(List<BoundStatement> statements) {
-        BatchStatement batchStatement = new BatchStatement(BatchStatement.Type.LOGGED);
-        statements.forEach(batchStatement::add);
-        executeWithRetries(batchStatement);
-    }
-
-    private void executeWithRetries(BatchStatement batchStatement) {
-        RetryableMethodExecutor.execute("Unable to execute batch", RETRY_COUNT,
-                SLEEP_BETWEEN_RETRIES_MS, () -> {
-                    dbService.getSession().execute(batchStatement);
-                    return null;
-                });
-    }
+  private void executeWithRetries(BatchStatement batchStatement) {
+    RetryableMethodExecutor.execute("Unable to execute batch", RETRY_COUNT,
+        SLEEP_BETWEEN_RETRIES_MS, () -> {
+          dbService.getSession().execute(batchStatement);
+          return null;
+        });
+  }
 }

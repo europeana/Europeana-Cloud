@@ -1,28 +1,32 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class PostProcessorFactory {
-    private final Map<String, TaskPostProcessor> services;
 
-    public PostProcessorFactory(List<TaskPostProcessor> services) {
-        Map<String, TaskPostProcessor> postProcessorsMap = new HashMap<>();
+  private final Map<String, TaskPostProcessor> services;
 
-        services.forEach(postProcessor ->
-                postProcessor.getProcessedTopologies().forEach(topologyName -> postProcessorsMap.put(topologyName, postProcessor))
-        );
+  public PostProcessorFactory(List<TaskPostProcessor> services) {
+    Map<String, TaskPostProcessor> postProcessorsMap = new HashMap<>();
 
-        this.services = Collections.unmodifiableMap(postProcessorsMap);
-    }
+    services.forEach(postProcessor ->
+        postProcessor.getProcessedTopologies().forEach(topologyName -> postProcessorsMap.put(topologyName, postProcessor))
+    );
 
-    public TaskPostProcessor getPostProcessor(TaskByTaskState taskByTaskState) {
-        return findPostProcessor(taskByTaskState).orElseThrow(() -> new PostProcessingException(
-                String.format("No PostProcessor for given topology: '%s'", taskByTaskState.getTopologyName())));
-    }
+    this.services = Collections.unmodifiableMap(postProcessorsMap);
+  }
 
-    public Optional<TaskPostProcessor> findPostProcessor(TaskByTaskState taskByTaskState) {
-        return Optional.ofNullable(services.get(taskByTaskState.getTopologyName()));
-    }
+  public TaskPostProcessor getPostProcessor(TaskByTaskState taskByTaskState) {
+    return findPostProcessor(taskByTaskState).orElseThrow(() -> new PostProcessingException(
+        String.format("No PostProcessor for given topology: '%s'", taskByTaskState.getTopologyName())));
+  }
+
+  public Optional<TaskPostProcessor> findPostProcessor(TaskByTaskState taskByTaskState) {
+    return Optional.ofNullable(services.get(taskByTaskState.getTopologyName()));
+  }
 }

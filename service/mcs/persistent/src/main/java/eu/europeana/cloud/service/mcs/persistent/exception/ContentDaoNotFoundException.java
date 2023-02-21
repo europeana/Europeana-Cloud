@@ -6,7 +6,8 @@ package eu.europeana.cloud.service.mcs.persistent.exception;
  * @author krystian.
  */
 public class ContentDaoNotFoundException extends RuntimeException {
-    public ContentDaoNotFoundException(String message) {
-        super(message);
-    }
+
+  public ContentDaoNotFoundException(String message) {
+    super(message);
+  }
 }

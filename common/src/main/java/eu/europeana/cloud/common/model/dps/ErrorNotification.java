@@ -14,9 +14,9 @@ import lombok.ToString;
 @ToString
 public class ErrorNotification {
 
-    private long taskId;
-    private String errorType;
-    private String errorMessage;
-    private String resource;
-    private String additionalInformations;
+  private long taskId;
+  private String errorType;
+  private String errorMessage;
+  private String resource;
+  private String additionalInformations;
 }

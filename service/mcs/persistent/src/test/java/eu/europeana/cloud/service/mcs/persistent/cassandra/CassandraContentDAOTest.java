@@ -11,13 +11,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author krystian.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = { "classpath:/cassandraContentDAOTestContext.xml"})
+@ContextConfiguration(value = {"classpath:/cassandraContentDAOTestContext.xml"})
 public class CassandraContentDAOTest extends ContentDAOTest {
 
-    CassandraTestBase testBase = new CassandraTestBase() {};
+  CassandraTestBase testBase = new CassandraTestBase() {
+  };
 
-    @After
-    public void tearDown(){
-        testBase.truncateAll();
-    }
+  @After
+  public void tearDown() {
+    testBase.truncateAll();
+  }
 }

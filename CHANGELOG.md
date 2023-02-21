@@ -1,10 +1,21 @@
 # Change Log
 
+## [v8](https://github.com/europeana/Europeana-Cloud/tree/v8) (2022-09-19)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v7...v8)
+
+**Merged pull requests:**
+
+- Feat/met 4651 cleanup script 4 acl [\#351](https://github.com/europeana/Europeana-Cloud/pull/351) ([pWoz](https://github.com/pWoz))
+- MET-4721 missing annotations added. [\#350](https://github.com/europeana/Europeana-Cloud/pull/350) ([pWoz](https://github.com/pWoz))
+- Feat/met 4710 topologies migration to dedicated users [\#349](https://github.com/europeana/Europeana-Cloud/pull/349) ([pWoz](https://github.com/pWoz))
+- Bugfix/met 4264 task status change order [\#348](https://github.com/europeana/Europeana-Cloud/pull/348) ([pWoz](https://github.com/pWoz))
+
 ## [v7](https://github.com/europeana/Europeana-Cloud/tree/v7) (2022-07-11)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v6.1...v7)
 
 **Merged pull requests:**
 
+- Feat/met 4524 new a&a model for uis [\#340](https://github.com/europeana/Europeana-Cloud/pull/340) ([pWoz](https://github.com/pWoz))
 - Feat/met 4524 new a&a model for aas [\#339](https://github.com/europeana/Europeana-Cloud/pull/339) ([pWoz](https://github.com/pWoz))
 
 ## [v6.1](https://github.com/europeana/Europeana-Cloud/tree/v6.1) (2022-04-05)
@@ -193,6 +204,7 @@
 **Merged pull requests:**
 
 - MET-1577: added info when no persistent version is present for a record [\#206](https://github.com/europeana/Europeana-Cloud/pull/206) ([helinek](https://github.com/helinek))
+- Feat/met 1591 create media topollogy [\#204](https://github.com/europeana/Europeana-Cloud/pull/204) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.1.2](https://github.com/europeana/Europeana-Cloud/tree/v1.1.2) (2018-12-18)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.1.1...v1.1.2)
@@ -241,7 +253,6 @@
 
 **Merged pull requests:**
 
-- Feat/met 1591 create media topollogy [\#204](https://github.com/europeana/Europeana-Cloud/pull/204) ([tarekkh](https://github.com/tarekkh))
 - Met 1323 [\#181](https://github.com/europeana/Europeana-Cloud/pull/181) ([olanowak](https://github.com/olanowak))
 - MET-1235 , extend the changes to include other topologies [\#180](https://github.com/europeana/Europeana-Cloud/pull/180) ([tarekkh](https://github.com/tarekkh))
 - MET-1235 , Add indexing stack trace error to additional info column [\#178](https://github.com/europeana/Europeana-Cloud/pull/178) ([tarekkh](https://github.com/tarekkh))
@@ -262,7 +273,6 @@
 - Met 597 [\#168](https://github.com/europeana/Europeana-Cloud/pull/168) ([tarekkh](https://github.com/tarekkh))
 - MET-1178 using europeana ids to create cloud in HTTP harvesting topology [\#167](https://github.com/europeana/Europeana-Cloud/pull/167) ([olanowak](https://github.com/olanowak))
 - Met 1076 [\#165](https://github.com/europeana/Europeana-Cloud/pull/165) ([pWoz](https://github.com/pWoz))
-- MET-1177 using europeana identifiers in OAI Topology [\#164](https://github.com/europeana/Europeana-Cloud/pull/164) ([olanowak](https://github.com/olanowak))
 - MET-1186 Add extra parameter handling in transformation topology. [\#163](https://github.com/europeana/Europeana-Cloud/pull/163) ([stzanakis](https://github.com/stzanakis))
 - MET-1172 [\#162](https://github.com/europeana/Europeana-Cloud/pull/162) ([tarekkh](https://github.com/tarekkh))
 
@@ -271,6 +281,7 @@
 
 **Merged pull requests:**
 
+- MET-1177 using europeana identifiers in OAI Topology [\#164](https://github.com/europeana/Europeana-Cloud/pull/164) ([olanowak](https://github.com/olanowak))
 - MET-1052 , emit files batch by batch when reading using revisions [\#161](https://github.com/europeana/Europeana-Cloud/pull/161) ([tarekkh](https://github.com/tarekkh))
 - Met 1023 [\#160](https://github.com/europeana/Europeana-Cloud/pull/160) ([pWoz](https://github.com/pWoz))
 - MET-1096 [\#159](https://github.com/europeana/Europeana-Cloud/pull/159) ([tarekkh](https://github.com/tarekkh))
@@ -377,9 +388,9 @@
 - ECL-1186 , Adapt XSLT topology to work with the new writing bolt [\#70](https://github.com/europeana/Europeana-Cloud/pull/70) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1187 [\#69](https://github.com/europeana/Europeana-Cloud/pull/69) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1130 dpstask validator accept external sources [\#68](https://github.com/europeana/Europeana-Cloud/pull/68) ([akrystian](https://github.com/akrystian))
+- Ecl 1127 [\#67](https://github.com/europeana/Europeana-Cloud/pull/67) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1156 record harvesting bolt [\#65](https://github.com/europeana/Europeana-Cloud/pull/65) ([pWoz](https://github.com/pWoz))
 - Ecl 1132 - cassandra backup script  [\#64](https://github.com/europeana/Europeana-Cloud/pull/64) ([akrystian](https://github.com/akrystian))
-- ECL-1094 , Representation Name parameter should be mandatory for DPS … [\#52](https://github.com/europeana/Europeana-Cloud/pull/52) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.6.1](https://github.com/europeana/Europeana-Cloud/tree/v0.6.1) (2017-06-16)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6...v0.6.1)
@@ -394,8 +405,10 @@
 - Ecl 1058 [\#58](https://github.com/europeana/Europeana-Cloud/pull/58) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1097 [\#57](https://github.com/europeana/Europeana-Cloud/pull/57) ([helinek](https://github.com/helinek))
 - Ecl 1095 [\#56](https://github.com/europeana/Europeana-Cloud/pull/56) ([tarekkh](https://github.com/tarekkh))
+- Ecl 1092 revision support for xslt topology [\#55](https://github.com/europeana/Europeana-Cloud/pull/55) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1092 revision support for xslt topology [\#54](https://github.com/europeana/Europeana-Cloud/pull/54) ([helinek](https://github.com/helinek))
 - Ecl 1070 [\#53](https://github.com/europeana/Europeana-Cloud/pull/53) ([tarekkh](https://github.com/tarekkh))
+- ECL-1094 , Representation Name parameter should be mandatory for DPS … [\#52](https://github.com/europeana/Europeana-Cloud/pull/52) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.6](https://github.com/europeana/Europeana-Cloud/tree/v0.6) (2017-02-23)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6-revisions...v0.6)
@@ -409,14 +422,12 @@
 
 **Merged pull requests:**
 
-- Ecl 1127 [\#67](https://github.com/europeana/Europeana-Cloud/pull/67) ([tarekkh](https://github.com/tarekkh))
-- Ecl 1092 revision support for xslt topology [\#55](https://github.com/europeana/Europeana-Cloud/pull/55) ([tarekkh](https://github.com/tarekkh))
 - ECL-998, implement workflow 4 and add java client for query num 9 [\#50](https://github.com/europeana/Europeana-Cloud/pull/50) ([tarekkh](https://github.com/tarekkh))
 - ECL-997, implement workflow 2 [\#49](https://github.com/europeana/Europeana-Cloud/pull/49) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1023 [\#48](https://github.com/europeana/Europeana-Cloud/pull/48) ([tarekkh](https://github.com/tarekkh))
 - Ecl 958 [\#46](https://github.com/europeana/Europeana-Cloud/pull/46) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1047 [\#45](https://github.com/europeana/Europeana-Cloud/pull/45) ([akrystian](https://github.com/akrystian))
-- Ecl 974 cassandra migration tool [\#26](https://github.com/europeana/Europeana-Cloud/pull/26) ([akrystian](https://github.com/akrystian))
+- ECL-1019,unexpected behaviour while updating DPS.basic\_info in a mult… [\#30](https://github.com/europeana/Europeana-Cloud/pull/30) ([tarekkh](https://github.com/tarekkh))
 
 ## [ecloud_2017_01_31_freeze](https://github.com/europeana/Europeana-Cloud/tree/ecloud_2017_01_31_freeze) (2017-01-31)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.5.1...ecloud_2017_01_31_freeze)
@@ -425,7 +436,6 @@
 
 - Ecl 1028,q 6 b [\#44](https://github.com/europeana/Europeana-Cloud/pull/44) ([tarekkh](https://github.com/tarekkh))
 - Ecl 960 query no 9 [\#33](https://github.com/europeana/Europeana-Cloud/pull/33) ([pWoz](https://github.com/pWoz))
-- ECL-1019,unexpected behaviour while updating DPS.basic\_info in a mult… [\#30](https://github.com/europeana/Europeana-Cloud/pull/30) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.5.1](https://github.com/europeana/Europeana-Cloud/tree/v0.5.1) (2017-01-17)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/test_env_23_09_2016...v0.5.1)
@@ -444,6 +454,7 @@
 - ECL-1011,add jmeter test cases [\#29](https://github.com/europeana/Europeana-Cloud/pull/29) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1012 test upload and download on mcs [\#28](https://github.com/europeana/Europeana-Cloud/pull/28) ([akrystian](https://github.com/akrystian))
 - Ecl 996 [\#27](https://github.com/europeana/Europeana-Cloud/pull/27) ([tarekkh](https://github.com/tarekkh))
+- Ecl 974 cassandra migration tool [\#26](https://github.com/europeana/Europeana-Cloud/pull/26) ([akrystian](https://github.com/akrystian))
 - ECL-879-records-downloader-tool [\#24](https://github.com/europeana/Europeana-Cloud/pull/24) ([tarekkh](https://github.com/tarekkh))
 - Ecl 958 [\#21](https://github.com/europeana/Europeana-Cloud/pull/21) ([akrystian](https://github.com/akrystian))
 
@@ -467,6 +478,7 @@
 - Ecl 929 read dataset bolt refactoring [\#11](https://github.com/europeana/Europeana-Cloud/pull/11) ([tarekkh](https://github.com/tarekkh))
 - Ecl 931 remove unnecessary data [\#10](https://github.com/europeana/Europeana-Cloud/pull/10) ([tarekkh](https://github.com/tarekkh))
 - Ecl 926 refactor xslt bolt [\#9](https://github.com/europeana/Europeana-Cloud/pull/9) ([tarekkh](https://github.com/tarekkh))
+- Ecl 928 [\#8](https://github.com/europeana/Europeana-Cloud/pull/8) ([tarekkh](https://github.com/tarekkh))
 - Ecl 753 method not allowed [\#7](https://github.com/europeana/Europeana-Cloud/pull/7) ([pWoz](https://github.com/pWoz))
 - ECL-890 upgrade jersey to version 2.23.1 [\#5](https://github.com/europeana/Europeana-Cloud/pull/5) ([akrystian](https://github.com/akrystian))
 - Ecl 885 fix listing cloud ids for data provider [\#4](https://github.com/europeana/Europeana-Cloud/pull/4) ([akrystian](https://github.com/akrystian))
@@ -502,7 +514,6 @@
 ## [ecloud-parent-0.1](https://github.com/europeana/Europeana-Cloud/tree/ecloud-parent-0.1) (2014-02-03)
 **Merged pull requests:**
 
-- Ecl 928 [\#8](https://github.com/europeana/Europeana-Cloud/pull/8) ([tarekkh](https://github.com/tarekkh))
 - Updates MireDot to v1.2.2 and adds free open source licenses. [\#1](https://github.com/europeana/Europeana-Cloud/pull/1) ([bertvh](https://github.com/bertvh))
 
 

@@ -8,14 +8,14 @@ import org.apache.storm.tuple.Tuple;
  */
 public class RevisionWriterBoltForOAI extends RevisionWriterBolt {
 
-    public RevisionWriterBoltForOAI(String ecloudMcsAddress,
-                                    String ecloudMcsUser,
-                                    String ecloudMcsUserPassword) {
-        super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
-    }
+  public RevisionWriterBoltForOAI(String ecloudMcsAddress,
+      String ecloudMcsUser,
+      String ecloudMcsUserPassword) {
+    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  }
 
-    @Override
-    protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-    }
+  @Override
+  protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+  }
 }

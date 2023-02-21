@@ -2,12 +2,11 @@ package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javax.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Unique Identifier model
@@ -20,19 +19,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 @AllArgsConstructor
 public class CloudId {
 
-    static final String XSI_TYPE = "cloudId";
+  static final String XSI_TYPE = "cloudId";
 
-    @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
-    private final String xsiType = XSI_TYPE;
+  @JacksonXmlProperty(namespace = "http://www.w3.org/2001/XMLSchema-instance", localName = "type", isAttribute = true)
+  private final String xsiType = XSI_TYPE;
 
-    /* The unique identifier */
-    private String id;
+  /* The unique identifier */
+  private String id;
 
-    /* A providerId/recordId combo */
-    private LocalId localId;
+  /* A providerId/recordId combo */
+  private LocalId localId;
 
-    @Override
-    public String toString() {
-        return String.format("{%ncloudId: %s%n record: %s%n}", this.id, this.localId.toString());
-    }
+  @Override
+  public String toString() {
+    return String.format("{%ncloudId: %s%n record: %s%n}", this.id, this.localId.toString());
+  }
 }

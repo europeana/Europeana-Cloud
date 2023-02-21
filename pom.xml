@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>8</version>
+    <version>9</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v8</tag>
+        <tag>v9</tag>
     </scm>
     <developers>
         <developer>
@@ -78,7 +78,6 @@
         <module>service/mcs</module>
         <module>service/aas</module>
         <module>service/commons</module>
-        <module>tools</module>
         <module>test-common</module>
         <module>service/ecloud-web-commons</module>
     </modules>
@@ -121,7 +120,11 @@
         <repository>
             <id>miredot</id>
             <name>MireDot Releases</name>
-            <url>https://nexus.qmino.com/content/repositories/miredot</url>
+            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
+        </repository>
+        <repository>
+            <id>clojars</id>
+            <url>https://repo.clojars.org/</url>
         </repository>
     </repositories>
     <properties>
@@ -131,9 +134,11 @@
         <version.junit>4.13.2</version.junit>
         <version.powermock>2.0.9</version.powermock>
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
+        <version.awaitility>4.2.0</version.awaitility>
+        <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.32</version.slf4j>
-        <version.spring-framework>5.2.20.RELEASE</version.spring-framework>
+        <version.spring-framework>5.2.22.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
 
         <version.servlet>4.0.1</version.servlet>
@@ -145,7 +150,7 @@
         <version.commonio>2.10.0</version.commonio>
         <version.uuid>3.5</version.uuid>
         <version.swift>2.2.1</version.swift>
-        <version.gson>2.3.1</version.gson>
+        <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
         <version.storm>2.3.0</version.storm>
@@ -158,7 +163,7 @@
         <skipITs>true</skipITs>
         <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
-        <version.cassandra-driver>3.9.0</version.cassandra-driver>
+        <version.cassandra-driver>3.11.3</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
@@ -167,15 +172,16 @@
         <version.tika>2.3.0</version.tika>
         <version.jibx>1.2.6</version.jibx>
         <version.jdom>2.0.6</version.jdom>
-        <version.jackson>2.12.5</version.jackson>
+        <version.jackson>2.13.0</version.jackson>
         <version.jacoco>0.8.7</version.jacoco>
-        <version.metis>8</version.metis>
+        <version.metis>9</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>30.1.1-jre</version.guava>
         <version.lombok>1.18.10</version.lombok>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
         <version.wiremock>2.27.2</version.wiremock>
+        <version.zt-zip>1.15</version.zt-zip>
 
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -436,7 +442,7 @@
         <pluginRepository>
             <id>miredot</id>
             <name>MireDot Releases</name>
-            <url>https://nexus.qmino.com/content/repositories/miredot</url>
+            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
         </pluginRepository>
     </pluginRepositories>
     <distributionManagement>

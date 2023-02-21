@@ -8,13 +8,13 @@ import org.springframework.test.context.ContextConfiguration;
 @EnableAspectJAutoProxy
 public class RetryAspectConfiguration {
 
-    @Bean
-    public RetryAspect retryAspect() {
-        return new RetryAspect();
-    }
+  @Bean
+  public RetryAspect retryAspect() {
+    return new RetryAspect();
+  }
 
-    @Bean
-    public AspectedTestSpringCtx aspectedTest() {
-        return new AspectedTestSpringCtxImpl();
-    }
+  @Bean
+  public AspectedTestSpringCtx aspectedTest() {
+    return new AspectedTestSpringCtxImpl();
+  }
 }

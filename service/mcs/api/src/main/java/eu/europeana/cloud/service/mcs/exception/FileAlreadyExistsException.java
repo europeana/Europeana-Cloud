@@ -5,20 +5,19 @@ package eu.europeana.cloud.service.mcs.exception;
  */
 public class FileAlreadyExistsException extends MCSException {
 
-    /**
-     * Constructs a FileAlreadyExistsException with no specified detail message.
-     */
-    public FileAlreadyExistsException() {
-    }
+  /**
+   * Constructs a FileAlreadyExistsException with no specified detail message.
+   */
+  public FileAlreadyExistsException() {
+  }
 
 
-    /**
-     * Constructs a FileAlreadyExistsException with the specified detail message.
-     * 
-     * @param message
-     *            the detail message
-     */
-    public FileAlreadyExistsException(String message) {
-        super(message);
-    }
+  /**
+   * Constructs a FileAlreadyExistsException with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public FileAlreadyExistsException(String message) {
+    super(message);
+  }
 }

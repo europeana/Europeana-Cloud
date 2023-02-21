@@ -5,7 +5,7 @@ package eu.europeana.cloud.service.dps.metis.indexing;
  */
 public class DatasetCleaningException extends Exception {
 
-    public DatasetCleaningException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public DatasetCleaningException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -1,19 +1,20 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 public interface ECloudSpoutMXBean {
-    String showSpoutToString();
 
-    String showOffsetManagers();
+  String showSpoutToString();
 
-    String showEmitted() ;
+  String showOffsetManagers();
 
-    String getLastConsumedMessageId();
+  String showEmitted();
 
-    String getLastConsumedMessage();
+  String getLastConsumedMessageId();
 
-    String getLastAckedMessageId();
+  String getLastConsumedMessage();
 
-    String getLastFailedMessageId();
+  String getLastAckedMessageId();
 
-    long getMaxSpoutPending();
+  String getLastFailedMessageId();
+
+  long getMaxSpoutPending();
 }

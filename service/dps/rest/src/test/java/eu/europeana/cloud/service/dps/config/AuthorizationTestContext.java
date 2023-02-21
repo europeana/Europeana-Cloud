@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.config;
 
-import eu.europeana.aas.acl.CassandraMutableAclService;
-import eu.europeana.aas.acl.repository.CassandraAclRepository;
+import eu.europeana.aas.authorization.CassandraMutableAclService;
+import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -26,83 +26,86 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Import({AclPermissionEvaluator.class})
 public class AuthorizationTestContext {
 
-    @Bean
-    TopologyManager topologyManager() {
-        return Mockito.mock(TopologyManager.class);
-    }
+  @Bean
+  TopologyManager topologyManager() {
+    return Mockito.mock(TopologyManager.class);
+  }
 
-    @Bean
-    public MutableAclService aclService(CassandraAclRepository aclRepository, DefaultPermissionGrantingStrategy permissionGrantingStrategy, AclAuthorizationStrategyImpl authorizationStrategy, DefaultPermissionFactory permissionFactory) {
-        return new CassandraMutableAclService(
-                aclRepository,
-                null,
-                permissionGrantingStrategy,
-                authorizationStrategy,
-                permissionFactory);
-    }
+  @Bean
+  public MutableAclService aclService(CassandraAclRepository aclRepository,
+      DefaultPermissionGrantingStrategy permissionGrantingStrategy, AclAuthorizationStrategyImpl authorizationStrategy,
+      DefaultPermissionFactory permissionFactory) {
+    return new CassandraMutableAclService(
+        aclRepository,
+        null,
+        permissionGrantingStrategy,
+        authorizationStrategy,
+        permissionFactory);
+  }
 
-    @Bean
-    public CassandraConnectionProvider provider() {
-        return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), "ecloud_aas_tests", "", "");
-    }
-
-
-    @Bean
-    public CassandraAclRepository aclRepository(CassandraConnectionProvider provider) {
-        return new CassandraAclRepository(provider, true);
-    }
+  @Bean
+  public CassandraConnectionProvider provider() {
+    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), "ecloud_aas_tests", "", "");
+  }
 
 
-    @Bean
-    public DefaultPermissionGrantingStrategy permissionGrantingStrategy(ConsoleAuditLogger auditLogger) {
-        return new DefaultPermissionGrantingStrategy(auditLogger);
-    }
-
-    @Bean
-    public DefaultPermissionFactory permissionFactory() {
-        return new DefaultPermissionFactory();
-    }
-
-    @Bean
-    public AclAuthorizationStrategyImpl authorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(
-                simpleGrantedAuthority()
-        );
-    }
-
-    @Bean
-    public ConsoleAuditLogger auditLogger() {
-        return new ConsoleAuditLogger();
-    }
+  @Bean
+  public CassandraAclRepository aclRepository(CassandraConnectionProvider provider) {
+    return new CassandraAclRepository(provider, true);
+  }
 
 
-    @Bean
-    public SimpleGrantedAuthority simpleGrantedAuthority() {
-        return new SimpleGrantedAuthority(Role.ADMIN);
-    }
+  @Bean
+  public DefaultPermissionGrantingStrategy permissionGrantingStrategy(ConsoleAuditLogger auditLogger) {
+    return new DefaultPermissionGrantingStrategy(auditLogger);
+  }
+
+  @Bean
+  public DefaultPermissionFactory permissionFactory() {
+    return new DefaultPermissionFactory();
+  }
+
+  @Bean
+  public AclAuthorizationStrategyImpl authorizationStrategy() {
+    return new AclAuthorizationStrategyImpl(
+        simpleGrantedAuthority()
+    );
+  }
+
+  @Bean
+  public ConsoleAuditLogger auditLogger() {
+    return new ConsoleAuditLogger();
+  }
 
 
-    @Bean
-    public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator, AclPermissionCacheOptimizer permissionCacheOptimizer) {
-        DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
+  @Bean
+  public SimpleGrantedAuthority simpleGrantedAuthority() {
+    return new SimpleGrantedAuthority(Role.ADMIN);
+  }
 
-        result.setPermissionEvaluator(permissionEvaluator);
-        result.setPermissionCacheOptimizer(permissionCacheOptimizer);
 
-        return result;
-    }
+  @Bean
+  public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
+      AclPermissionCacheOptimizer permissionCacheOptimizer) {
+    DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
 
-    @Bean
-    public AclPermissionCacheOptimizer permissionCacheOptimizer(CassandraMutableAclService aclService) {
-        return new AclPermissionCacheOptimizer(aclService);
-    }
+    result.setPermissionEvaluator(permissionEvaluator);
+    result.setPermissionCacheOptimizer(permissionCacheOptimizer);
 
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
-        result.setTargetClass(SecurityContextHolder.class);
-        result.setTargetMethod("setStrategyName");
-        result.setArguments("MODE_INHERITABLETHREADLOCAL");
-        return result;
-    }
+    return result;
+  }
+
+  @Bean
+  public AclPermissionCacheOptimizer permissionCacheOptimizer(CassandraMutableAclService aclService) {
+    return new AclPermissionCacheOptimizer(aclService);
+  }
+
+  @Bean
+  public MethodInvokingFactoryBean methodInvokingFactoryBean() {
+    MethodInvokingFactoryBean result = new MethodInvokingFactoryBean();
+    result.setTargetClass(SecurityContextHolder.class);
+    result.setTargetMethod("setStrategyName");
+    result.setArguments("MODE_INHERITABLETHREADLOCAL");
+    return result;
+  }
 }

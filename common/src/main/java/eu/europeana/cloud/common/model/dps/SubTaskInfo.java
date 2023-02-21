@@ -1,11 +1,10 @@
 package eu.europeana.cloud.common.model.dps;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement()
 @AllArgsConstructor
@@ -13,21 +12,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Data
 @NoArgsConstructor
 public class SubTaskInfo {
-    private int resourceNum;
-    private String resource;
-    private RecordState recordState;
-    private String info;
-    private String additionalInformations;
-    private String europeanaId;
-    private long processingTime;
-    private String resultResource;
 
-    public SubTaskInfo(String resource) {
-        this(0, resource, null, null, null, null, 0L);
-    }
+  private int resourceNum;
+  private String resource;
+  private RecordState recordState;
+  private String info;
+  private String additionalInformations;
+  private String europeanaId;
+  private long processingTime;
+  private String resultResource;
 
-    public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info, String additionalInformations, String europeanaId, long processingTime) {
-        this(resourceNum, resource, recordState, info, additionalInformations, europeanaId, processingTime, null);
-    }
+  public SubTaskInfo(String resource) {
+    this(0, resource, null, null, null, null, 0L);
+  }
+
+  public SubTaskInfo(int resourceNum, String resource, RecordState recordState, String info,
+      String additionalInformation, String europeanaId, long processingTime) {
+    this(resourceNum, resource, recordState, info, additionalInformation, europeanaId, processingTime, null);
+  }
 }
 

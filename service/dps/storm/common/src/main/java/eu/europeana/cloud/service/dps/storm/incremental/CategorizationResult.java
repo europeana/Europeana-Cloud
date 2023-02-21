@@ -10,20 +10,21 @@ import lombok.Getter;
 @Builder
 @Getter
 public class CategorizationResult {
-    private final Category category;
-    private final CategorizationParameters categorizationParameters;
-    private final HarvestedRecord harvestedRecord;
 
-    public boolean shouldBeProcessed(){
-        return category.equals(Category.ELIGIBLE_FOR_PROCESSING);
-    }
+  private final Category category;
+  private final CategorizationParameters categorizationParameters;
+  private final HarvestedRecord harvestedRecord;
 
-    public boolean shouldBeDropped(){
-        return category.equals(Category.ALREADY_PROCESSED);
-    }
+  public boolean shouldBeProcessed() {
+    return category.equals(Category.ELIGIBLE_FOR_PROCESSING);
+  }
 
-    public enum Category {
-        ELIGIBLE_FOR_PROCESSING,
-        ALREADY_PROCESSED
-    }
+  public boolean shouldBeDropped() {
+    return category.equals(Category.ALREADY_PROCESSED);
+  }
+
+  public enum Category {
+    ELIGIBLE_FOR_PROCESSING,
+    ALREADY_PROCESSED
+  }
 }

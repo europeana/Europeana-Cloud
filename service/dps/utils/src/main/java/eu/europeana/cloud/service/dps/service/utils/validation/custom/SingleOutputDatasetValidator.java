@@ -8,16 +8,16 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
  */
 public class SingleOutputDatasetValidator extends CustomValidator {
 
-    private static final String MESSAGE = "There should be exactly one output dataset.";
+  private static final String MESSAGE = "There should be exactly one output dataset.";
 
-    @Override
-    public boolean test(DpsTask dpsTask) {
-        return dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS) != null
-                && dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS).split(",").length == 1;
-    }
+  @Override
+  public boolean test(DpsTask dpsTask) {
+    return dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS) != null
+        && dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS).split(",").length == 1;
+  }
 
-    @Override
-    public String detailedMessage() {
-        return MESSAGE;
-    }
+  @Override
+  public String detailedMessage() {
+    return MESSAGE;
+  }
 }
