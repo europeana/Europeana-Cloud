@@ -3,14 +3,15 @@ package eu.europeana.cloud.service.dps.utils;
 import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,6 +34,9 @@ public class GhostTaskService {
 
   @Autowired
   private CassandraTaskInfoDAO taskInfoDAO;
+
+  @Autowired
+  private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
   private final Set<String> availableTopic;
 
@@ -64,11 +68,25 @@ public class GhostTaskService {
   }
 
   private boolean isGhost(TaskInfo task) {
-    return isDateTooOld(task.getSentTimestamp()) && ((task.getStartTimestamp() == null) || isDateTooOld(
-        task.getStartTimestamp()));
+    return taskDidNotProgressOnStormRecently(task) || taskIsVeryOld(task);
   }
 
-  private boolean isDateTooOld(Date date) {
-    return date.toInstant().isBefore(Instant.now().minus(10, ChronoUnit.DAYS));
+  private boolean taskDidNotProgressOnStormRecently(TaskInfo task) {
+    return isDateTooOld(task.getSentTimestamp().toInstant())
+        && taskDiagnosticInfoDAO.findById(task.getId())
+                                .map(TaskDiagnosticInfo::getLastRecordFinishedOnStormTime)
+                                .map(this::isDateTooOld)
+                                .orElse(true);
   }
+
+  private boolean taskIsVeryOld(TaskInfo task) {
+    //Value 60 days is related with Cassandra TTL period for tables notifications and processed_records
+    //If task is older this data could disappear, and task could not finish forever.
+    return task.getSentTimestamp().toInstant().isBefore(Instant.now().minus(60, ChronoUnit.DAYS));
+  }
+
+  private boolean isDateTooOld(Instant date) {
+    return date.isBefore(Instant.now().minus(2, ChronoUnit.DAYS));
+  }
+
 }
