@@ -29,14 +29,14 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RE
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static java.lang.Integer.parseInt;
 
+import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
-import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForOAI;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForHarvesting;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
@@ -55,7 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * OAIPMHHarvestingTopology main class where its definition is formulated
  */
 public class OAIPMHHarvestingTopology {
 
@@ -63,10 +63,19 @@ public class OAIPMHHarvestingTopology {
   private static final String TOPOLOGY_PROPERTIES_FILE = "oai-topology-config.properties";
   private static final Logger LOGGER = LoggerFactory.getLogger(OAIPMHHarvestingTopology.class);
 
+  /**
+   * Main constructor for the {@link OAIPMHHarvestingTopology} class
+   * @param defaultPropertyFile   location of the file containing default topology properties
+   * @param providedPropertyFile  location of the file containing topology properties that will override default properties
+   */
   public OAIPMHHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
     PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
   }
 
+  /**
+   * Builds actual topology
+   * @return created topology definition
+   */
   public final StormTopology buildTopology() {
     TopologyBuilder builder = new TopologyBuilder();
 
@@ -78,7 +87,7 @@ public class OAIPMHHarvestingTopology {
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForOAI(
+    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
@@ -150,16 +159,20 @@ public class OAIPMHHarvestingTopology {
                               .build();
   }
 
+  /**
+   * Method executed by the Storm engine while deploying topology on the cluster
+   * @param args list of all needed arguments (in thi case: location of the properties file)
+   */
   public static void main(String[] args) {
     try {
       LOGGER.info("Assembling '{}'", TopologiesNames.OAI_TOPOLOGY);
       if (args.length <= 1) {
         String providedPropertyFile = (args.length == 1 ? args[0] : "");
 
-        OAIPMHHarvestingTopology OAIPMHHarvestingTopology =
+        OAIPMHHarvestingTopology oaipmhHarvestingTopology =
             new OAIPMHHarvestingTopology(TOPOLOGY_PROPERTIES_FILE, providedPropertyFile);
 
-        StormTopology stormTopology = OAIPMHHarvestingTopology.buildTopology();
+        StormTopology stormTopology = oaipmhHarvestingTopology.buildTopology();
         Config config = buildConfig(topologyProperties);
 
         LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
