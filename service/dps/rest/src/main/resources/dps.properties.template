@@ -1,0 +1,38 @@
+maxIdentifiersCount=100
+harvestingTasksDir=/var/www/http_harvest
+
+
+#### Zookeeper settings #####
+zookeeper.address=
+
+#### Cassandra settings #####
+cassandra.AASKeyspace=
+cassandra.AASUser=
+cassandra.AASPassword=
+cassandra.DPSKeyspace=
+cassandra.DPSUser=
+cassandra.DPSPassword=
+cassandra.MCSKeyspace=
+cassandra.MCSUser=
+cassandra.MCSPassword=
+cassandra.hosts=
+cassandra.port=
+
+#### Kafka settings ####
+kafka.topologyAvailableTopics=
+kafka.brokerLocation=
+kafka.groupId=
+
+
+#### Topology settings ####
+topology.user=
+topology.password=
+topology.nameList=
+
+
+
+#### Misc settings ####
+misc.appId=
+misc.machineLocation=
+misc.mcsLocation=
+misc.uisLocation=

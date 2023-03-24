@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.controller;
 
 import eu.europeana.cloud.service.dps.config.AbstractSecurityTestContext;
 import eu.europeana.cloud.service.dps.config.AuthentificationTestContext;

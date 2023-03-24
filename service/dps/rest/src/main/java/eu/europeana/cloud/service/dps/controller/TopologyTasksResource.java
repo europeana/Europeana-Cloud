@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.controller;
 
 import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.TaskInfo;

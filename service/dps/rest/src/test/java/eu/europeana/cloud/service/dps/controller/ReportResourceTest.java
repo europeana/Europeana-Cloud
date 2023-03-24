@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.controller;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,19 +28,24 @@ public class GhostTaskService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GhostTaskService.class);
 
-  @Autowired
   private TasksByStateDAO tasksByStateDAO;
 
-  @Autowired
   private CassandraTaskInfoDAO taskInfoDAO;
 
-  @Autowired
   private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
 
   private final Set<String> availableTopic;
 
-  public GhostTaskService(Environment environment) {
-    availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS))
+  @Autowired
+  public GhostTaskService(TasksByStateDAO tasksByStateDAO,
+      CassandraTaskInfoDAO cassandraTaskInfoDAO,
+      TaskDiagnosticInfoDAO taskDiagnosticInfo,
+      KafkaProperties kafkaProperties) {
+    this.tasksByStateDAO = tasksByStateDAO;
+    this.taskInfoDAO = cassandraTaskInfoDAO;
+    this.taskDiagnosticInfoDAO = taskDiagnosticInfo;
+    availableTopic = new TopologiesTopicsParser().parse(kafkaProperties.getTopologyAvailableTopics())
                                                  .values().stream().flatMap(List::stream).collect(Collectors.toSet());
   }
 

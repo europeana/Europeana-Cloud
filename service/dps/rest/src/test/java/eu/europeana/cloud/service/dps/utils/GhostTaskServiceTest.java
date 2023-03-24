@@ -1,9 +1,8 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -13,6 +12,7 @@ import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
@@ -28,12 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@TestPropertySource(properties = {JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS
-    + "=oai_topology:oai_topology_1,oai_topology_2,oai_topology_3;validation_topology:validation_topology_1"})
 @ContextConfiguration(classes = {GhostTaskService.class, GhostTaskServiceTestContext.class})
 public class GhostTaskServiceTest {
 
@@ -58,6 +55,9 @@ public class GhostTaskServiceTest {
                         .build();
 
   @Autowired
+  private static KafkaProperties kafkaProperties;
+
+  @Autowired
   private GhostTaskService service;
 
   @Autowired
@@ -68,6 +68,7 @@ public class GhostTaskServiceTest {
 
   @Autowired
   private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
 
   @Before
   public void setup() {

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.HashMultiset;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import java.util.ArrayList;
@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.env.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KafkaTopicSelectorTest {
@@ -33,7 +32,7 @@ public class KafkaTopicSelectorTest {
 
 
   @Mock
-  private Environment environment;
+  private KafkaProperties kafkaProperties;
 
   @Mock
   private TasksByStateDAO tasksByStateDAO;
@@ -46,8 +45,8 @@ public class KafkaTopicSelectorTest {
 
   @Before
   public void setup() {
-    when(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)).thenReturn(TOPIC_CONFIG);
-    selector = new KafkaTopicSelector(environment, tasksByStateDAO, taskStatusSynchronizer);
+    when(kafkaProperties.getTopologyAvailableTopics()).thenReturn(TOPIC_CONFIG);
+    selector = new KafkaTopicSelector(tasksByStateDAO, taskStatusSynchronizer, kafkaProperties);
     selectionCounts = HashMultiset.create();
   }
 

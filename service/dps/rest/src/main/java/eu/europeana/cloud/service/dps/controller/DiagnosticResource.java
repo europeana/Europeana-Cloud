@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.rest;
+package eu.europeana.cloud.service.dps.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

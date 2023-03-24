@@ -1,23 +1,5 @@
 package eu.europeana.cloud.service.dps.config;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_KEYSPACE;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_PASSWORD;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_AAS_CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_APPLICATION_ID;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_KEYSPACE;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_PASSWORD;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_DPS_CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_KAFKA_BROKER;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_MACHINE_LOCATION;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_MCS_LOCATION;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_NAMELIST;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_USER;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_UIS_LOCATION;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
@@ -28,6 +10,11 @@ import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
+import eu.europeana.cloud.service.dps.properties.CassandraProperties;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
+import eu.europeana.cloud.service.dps.properties.MiscProperties;
+import eu.europeana.cloud.service.dps.properties.TopologyProperties;
+import eu.europeana.cloud.service.dps.properties.ZookeeperProperties;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
@@ -60,13 +47,13 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -74,28 +61,51 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebMvc
-@PropertySource("classpath:dps.properties")
-@ComponentScan("eu.europeana.cloud.service.dps")
-@EnableAspectJAutoProxy
 @EnableAsync
 @EnableScheduling
+@PropertySource("classpath:dps.properties")
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
-  private final Environment environment;
+  private ZookeeperProperties zookeeperProperties;
+  private KafkaProperties kafkaProperties;
+  private CassandraProperties cassandraProperties;
+  private MiscProperties miscProperties;
+  private TopologyProperties topologyProperties;
 
-  public ServiceConfiguration(Environment environment) {
-    this.environment = environment;
+
+  @Autowired
+  public ServiceConfiguration(ZookeeperProperties zookeeperProperties,
+      KafkaProperties kafkaProperties,
+      CassandraProperties cassandraProperties,
+      MiscProperties miscProperties,
+      TopologyProperties topologyProperties) {
+    this.kafkaProperties = kafkaProperties;
+    this.cassandraProperties = cassandraProperties;
+    this.zookeeperProperties = zookeeperProperties;
+    this.miscProperties = miscProperties;
+    this.topologyProperties = topologyProperties;
   }
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new LoggingFilter());
+  }
+
+  @Bean
+  public DispatcherServlet dispatcherServlet() {
+    return new DispatcherServlet();
+  }
+
+  @Bean
+  public DispatcherServletRegistrationBean dispatcherServletRegistration() {
+    DispatcherServletRegistrationBean registration = new DispatcherServletRegistrationBean(dispatcherServlet(), "/services/");
+    registration.setName(DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_REGISTRATION_BEAN_NAME);
+    return registration;
   }
 
   @Bean
@@ -105,7 +115,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public RecordExecutionSubmitService recordKafkaSubmitService() {
-    return new RecordKafkaSubmitService(environment.getProperty(JNDI_KEY_KAFKA_BROKER));
+    return new RecordKafkaSubmitService(kafkaProperties.getBrokerLocation());
   }
 
   @Bean
@@ -120,33 +130,34 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public TopologyManager topologyManger() {
-    return new TopologyManager(environment.getProperty(JNDI_KEY_TOPOLOGY_NAMELIST));
+    return new TopologyManager(topologyProperties.getNameList());
   }
 
   @Bean
   public CassandraConnectionProvider dpsCassandraProvider() {
     return new CassandraConnectionProvider(
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_HOSTS),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PORT, Integer.class),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_KEYSPACE),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_USERNAME),
-        environment.getProperty(JNDI_KEY_DPS_CASSANDRA_PASSWORD));
+        cassandraProperties.getHosts(),
+        Integer.parseInt(cassandraProperties.getPort()),
+        cassandraProperties.getDPSKeyspace(),
+        cassandraProperties.getDPSUser(),
+        cassandraProperties.getDPSPassword());
   }
 
   @Bean
   public CassandraConnectionProvider aasCassandraProvider() {
-    String hosts = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_HOSTS);
-    Integer port = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PORT, Integer.class);
-    String keyspaceName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_KEYSPACE);
-    String userName = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_USERNAME);
-    String password = environment.getProperty(JNDI_KEY_AAS_CASSANDRA_PASSWORD);
-
-    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
+    return new CassandraConnectionProvider(
+        cassandraProperties.getHosts(),
+        Integer.parseInt(cassandraProperties.getPort()),
+        cassandraProperties.getAASKeyspace(),
+        cassandraProperties.getAASUser(),
+        cassandraProperties.getAASPassword()
+    );
   }
 
   @Bean
+
   public String applicationIdentifier() {
-    return environment.getProperty(JNDI_KEY_APPLICATION_ID);
+    return miscProperties.getAppId();
   }
 
   @Bean
@@ -246,16 +257,16 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public MCSTaskSubmitter mcsTaskSubmitter() {
     return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+        topologyProperties.getUser(),
+        topologyProperties.getPassword());
   }
 
   @Bean
   public FileURLCreator fileURLCreator() {
-    String machineLocation = environment.getProperty(JNDI_KEY_MACHINE_LOCATION);
+    String machineLocation = miscProperties.getMachineLocation();
     if (machineLocation == null) {
       throw new BeanCreationException(
-          String.format("Property '%s' must be set in configuration file", JNDI_KEY_MACHINE_LOCATION));
+          String.format("Property 'misc.machineLocation' must be set in properties file"));
     }
     return new FileURLCreator(machineLocation);
   }
@@ -283,32 +294,32 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   public UISClient uisClient() {
     return new UISClient(
         uisLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+        topologyProperties.getUser(),
+        topologyProperties.getPassword());
   }
 
   @Bean
   public DataSetServiceClient dataSetServiceClient() {
     return new DataSetServiceClient(
         mcsLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+        topologyProperties.getUser(),
+        topologyProperties.getPassword());
   }
 
   @Bean
   public RecordServiceClient recordServiceClient() {
     return new RecordServiceClient(
         mcsLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+        topologyProperties.getUser(),
+        topologyProperties.getPassword());
   }
 
   @Bean
   public RevisionServiceClient revisionServiceClient() {
     return new RevisionServiceClient(
         mcsLocation(),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER),
-        environment.getProperty(JNDI_KEY_TOPOLOGY_USER_PASSWORD));
+        topologyProperties.getUser(),
+        topologyProperties.getPassword());
   }
 
   @Bean
@@ -383,10 +394,10 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   private String mcsLocation() {
-    return environment.getProperty(JNDI_KEY_MCS_LOCATION);
+    return miscProperties.getMcsLocation();
   }
 
   private String uisLocation() {
-    return environment.getProperty(JNDI_KEY_UIS_LOCATION);
+    return miscProperties.getUisLocation();
   }
 }
