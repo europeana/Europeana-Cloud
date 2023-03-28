@@ -15,12 +15,6 @@ import eu.europeana.metis.mediaprocessing.RdfSerializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.storm.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.time.Instant;
@@ -28,6 +22,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
 
@@ -56,7 +56,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     // It is assigning time stamp to variable, so It has to be assigned there.
     @SuppressWarnings("java:S1941")
     Instant processingStartTime = Instant.now();
-    if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null) {
+    if (stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT) == null
+        || Objects.equals(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT), "0")) {
       LOGGER.warn(NO_RESOURCES_DETAILED_MESSAGE);
       try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
         byte[] data = IOUtils.toByteArray(stream);
