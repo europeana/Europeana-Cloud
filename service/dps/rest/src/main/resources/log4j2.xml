@@ -20,7 +20,6 @@
         <Root level="info">
             <!-- Log only to file <AppenderRef ref="STDOUT"/> -->
             <AppenderRef ref="FILE"/>
-            <AppenderRef ref="STDOUT"/>
         </Root>
     </Loggers>
 </Configuration>
