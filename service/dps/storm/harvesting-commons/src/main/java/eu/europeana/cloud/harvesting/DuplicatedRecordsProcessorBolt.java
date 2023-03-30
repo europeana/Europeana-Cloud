@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
+package eu.europeana.cloud.harvesting;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -22,16 +22,24 @@ import java.util.List;
 /**
  * Bolt that will check if there are duplicates in harvested records.</br> Duplicates, in this context, are representation
  * versions that have the same cloud_id, representation name and revision</br>
+ * <p>In case of duplicate detection current representation version is removed from the system and error is reported.</p>
  */
 public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
-  private static final Logger logger = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
+  private static final long serialVersionUID = 1L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
   private transient RecordServiceClient recordServiceClient;
   private transient RevisionServiceClient revisionServiceClient;
   private final String ecloudMcsAddress;
   private final String ecloudMcsUser;
   private final String ecloudMcsUserPassword;
 
+  /**
+   * Constructs instance of the {@link DuplicatedRecordsProcessorBolt}
+   * @param ecloudMcsAddress      location of the MCS
+   * @param ecloudMcsUser         username required for communication with MCS
+   * @param ecloudMcsUserPassword user password required for communication with MCS
+   */
   public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.ecloudMcsUser = ecloudMcsUser;
@@ -51,7 +59,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
-    logger.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+    LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     try {
       Representation representation = extractRepresentationInfoFromTuple(tuple);
       List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
@@ -60,9 +68,9 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         return;
       }
       emitSuccessNotification(anchorTuple, tuple, "", "");
-        logger.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+        LOGGER.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     } catch (MalformedURLException | MCSException e) {
-        logger.error("Error while detecting duplicates", e);
+        LOGGER.error("Error while detecting duplicates", e);
         emitErrorNotification(
                 anchorTuple,
                 tuple,
@@ -74,7 +82,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
       throws MCSException {
-    logger.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
+    LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
     removeRevision(tuple, representation);
       removeRepresentation(representation);
       emitErrorNotification(
@@ -131,7 +139,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   @Override
   protected void cleanInvalidData(StormTaskTuple tuple) {
     int attemptNumber = tuple.getRecordAttemptNumber();
-    logger.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
+    LOGGER.error("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
     // nothing to clean here when the message is reprocessed
   }
 }
