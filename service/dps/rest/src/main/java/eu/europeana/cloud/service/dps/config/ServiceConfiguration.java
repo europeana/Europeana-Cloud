@@ -11,8 +11,8 @@ import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.properties.CassandraProperties;
+import eu.europeana.cloud.service.dps.properties.GeneralProperties;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
-import eu.europeana.cloud.service.dps.properties.MiscProperties;
 import eu.europeana.cloud.service.dps.properties.TopologyProperties;
 import eu.europeana.cloud.service.dps.properties.ZookeeperProperties;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletRegistrationBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -71,24 +72,30 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @PropertySource("classpath:dps.properties")
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
-  private ZookeeperProperties zookeeperProperties;
   private KafkaProperties kafkaProperties;
-  private CassandraProperties cassandraProperties;
-  private MiscProperties miscProperties;
+  private GeneralProperties generalProperties;
   private TopologyProperties topologyProperties;
 
-
   @Autowired
-  public ServiceConfiguration(ZookeeperProperties zookeeperProperties,
+  public ServiceConfiguration(
       KafkaProperties kafkaProperties,
-      CassandraProperties cassandraProperties,
-      MiscProperties miscProperties,
+      GeneralProperties generalProperties,
       TopologyProperties topologyProperties) {
     this.kafkaProperties = kafkaProperties;
-    this.cassandraProperties = cassandraProperties;
-    this.zookeeperProperties = zookeeperProperties;
-    this.miscProperties = miscProperties;
+    this.generalProperties = generalProperties;
     this.topologyProperties = topologyProperties;
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "cassandra.aas")
+  public CassandraProperties cassandraAASProperties() {
+    return new CassandraProperties();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "cassandra.dps")
+  public CassandraProperties cassandraDPSProperties() {
+    return new CassandraProperties();
   }
 
   @Override
@@ -103,7 +110,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public DispatcherServletRegistrationBean dispatcherServletRegistration() {
-    DispatcherServletRegistrationBean registration = new DispatcherServletRegistrationBean(dispatcherServlet(), "/services/");
+    DispatcherServletRegistrationBean registration = new DispatcherServletRegistrationBean(dispatcherServlet(),
+        generalProperties.getContextPath());
     registration.setName(DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_REGISTRATION_BEAN_NAME);
     return registration;
   }
@@ -136,28 +144,28 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public CassandraConnectionProvider dpsCassandraProvider() {
     return new CassandraConnectionProvider(
-        cassandraProperties.getHosts(),
-        Integer.parseInt(cassandraProperties.getPort()),
-        cassandraProperties.getDPSKeyspace(),
-        cassandraProperties.getDPSUser(),
-        cassandraProperties.getDPSPassword());
+        cassandraDPSProperties().getHosts(),
+        cassandraDPSProperties().getPort(),
+        cassandraDPSProperties().getKeyspace(),
+        cassandraDPSProperties().getUser(),
+        cassandraDPSProperties().getPassword());
   }
 
   @Bean
   public CassandraConnectionProvider aasCassandraProvider() {
     return new CassandraConnectionProvider(
-        cassandraProperties.getHosts(),
-        Integer.parseInt(cassandraProperties.getPort()),
-        cassandraProperties.getAASKeyspace(),
-        cassandraProperties.getAASUser(),
-        cassandraProperties.getAASPassword()
+        cassandraAASProperties().getHosts(),
+        cassandraAASProperties().getPort(),
+        cassandraAASProperties().getKeyspace(),
+        cassandraAASProperties().getUser(),
+        cassandraAASProperties().getPassword()
     );
   }
 
   @Bean
 
   public String applicationIdentifier() {
-    return miscProperties.getAppId();
+    return generalProperties.getAppId();
   }
 
   @Bean
@@ -263,7 +271,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public FileURLCreator fileURLCreator() {
-    String machineLocation = miscProperties.getMachineLocation();
+    String machineLocation = generalProperties.getMachineLocation();
     if (machineLocation == null) {
       throw new BeanCreationException(
           String.format("Property 'misc.machineLocation' must be set in properties file"));
@@ -394,10 +402,10 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   private String mcsLocation() {
-    return miscProperties.getMcsLocation();
+    return generalProperties.getMcsLocation();
   }
 
   private String uisLocation() {
-    return miscProperties.getUisLocation();
+    return generalProperties.getUisLocation();
   }
 }

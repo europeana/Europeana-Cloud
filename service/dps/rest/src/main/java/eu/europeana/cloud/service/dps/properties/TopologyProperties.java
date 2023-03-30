@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 @Setter
 @ConfigurationProperties(prefix = "topology")
 public class TopologyProperties {
-
   private String user;
   private String password;
   private String nameList;

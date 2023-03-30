@@ -8,11 +8,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "misc")
-public class MiscProperties {
+@ConfigurationProperties(prefix = "general")
+public class GeneralProperties {
 
   private String appId;
   private String machineLocation;
   private String mcsLocation;
   private String uisLocation;
+  private String contextPath;
 }
