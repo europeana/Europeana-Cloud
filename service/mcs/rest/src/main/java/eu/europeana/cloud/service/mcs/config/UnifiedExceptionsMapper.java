@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * Maps exceptions thrown by services to {@link ResponseEntity}.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.mcs.rest"})
+@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.mcs.controller"})
 public class UnifiedExceptionsMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);

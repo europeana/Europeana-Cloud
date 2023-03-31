@@ -47,16 +47,21 @@ import org.springframework.stereotype.Service;
 public class CassandraDataSetService implements DataSetService {
 
   @Autowired
-  private CassandraDataSetDAO dataSetDAO;
+  public CassandraDataSetService(CassandraDataSetDAO dataSetDAO, CassandraRecordDAO recordDAO, UISClientHandler uis,
+      BucketsHandler bucketsHandler) {
+    this.dataSetDAO = dataSetDAO;
+    this.recordDAO = recordDAO;
+    this.uis = uis;
+    this.bucketsHandler = bucketsHandler;
+  }
 
-  @Autowired
-  private CassandraRecordDAO recordDAO;
+  private final CassandraDataSetDAO dataSetDAO;
 
-  @Autowired
-  private UISClientHandler uis;
+  private final CassandraRecordDAO recordDAO;
 
-  @Autowired
-  private BucketsHandler bucketsHandler;
+  private final UISClientHandler uis;
+
+  private final BucketsHandler bucketsHandler;
 
   /**
    * @inheritDoc

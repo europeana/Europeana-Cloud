@@ -7,9 +7,13 @@ import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.acls.AclPermissionCacheOptimizer;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -23,13 +27,15 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 @Configuration
 public class AuthorizationConfiguration {
 
-  private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-  private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
-  private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-  private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
-  private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
-
-  /* Ecloud persistent authorization application context. Permissions are stored in cassandra. */
+  @Bean
+  public CassandraConnectionProvider aasCassandraProvider() {
+    return new CassandraConnectionProvider(
+        cassandraAASProperties().getHosts(),
+        cassandraAASProperties().getPort(),
+        cassandraAASProperties().getKeyspace(),
+        cassandraAASProperties().getUser(),
+        cassandraAASProperties().getPassword());
+  }
 
   /* Custom success handler, answers requests with 200 OK. */
   @Bean
@@ -63,6 +69,11 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "cassandra.aas")
+  protected CassandraProperties cassandraAASProperties() {
+    return new CassandraProperties();
+  }
+  @Bean
   public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
     return new DefaultPermissionGrantingStrategy(auditLogger());
   }
@@ -78,16 +89,7 @@ public class AuthorizationConfiguration {
     return new DefaultPermissionFactory();
   }
 
-  @Bean
-  public CassandraConnectionProvider aasCassandraProvider(Environment environment) {
-    String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
-    Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
-    String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
-    String userName = environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME);
-    String password = environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD);
 
-    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-  }
 
   @Bean
   public ConsoleAuditLogger auditLogger() {
@@ -124,5 +126,11 @@ public class AuthorizationConfiguration {
   @Bean
   public AclPermissionEvaluator permissionEvaluator(ExtendedAclService aclService) {
     return new AclPermissionEvaluator(aclService);
+  }
+
+  @Bean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+      PermissionEvaluator permissionEvaluator) {
+    return new DataSetPermissionsVerifier(dataSetService, permissionEvaluator);
   }
 }

@@ -33,8 +33,8 @@ import org.springframework.stereotype.Repository;
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.
  */
-@Repository
 @Retryable
+@Repository
 public class CassandraRecordDAO {
 
   private static final String KEY_FILES = "files";
@@ -44,9 +44,11 @@ public class CassandraRecordDAO {
   // json serializer/deserializer
   private final Gson gson = new Gson();
   private final Gson revisionGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
-
   @Autowired
-  @Qualifier("dbService")
+  public CassandraRecordDAO(@Qualifier("mcsCassandraConnectionProvider")CassandraConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
+
   private CassandraConnectionProvider connectionProvider;
 
   private PreparedStatement insertRepresentationStatement;

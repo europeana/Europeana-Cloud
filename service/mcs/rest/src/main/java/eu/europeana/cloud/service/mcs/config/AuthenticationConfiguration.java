@@ -22,12 +22,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 //<expression-handler ref="expressionHandler" /> ??
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
-  private static final String JNDI_KEY_CASSANDRA_HOSTS = "/aas/cassandra/hosts";
-  private static final String JNDI_KEY_CASSANDRA_PORT = "/aas/cassandra/port";
-  private static final String JNDI_KEY_CASSANDRA_KEYSPACE = "/aas/cassandra/authentication-keyspace";
-  private static final String JNDI_KEY_CASSANDRA_USERNAME = "/aas/cassandra/user";
-  private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/aas/cassandra/password";
-
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.httpBasic()
@@ -57,19 +51,8 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
   /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
   @Bean
-  public CassandraConnectionProvider aasCassandraProvider(Environment environment) {
-    String hosts = environment.getProperty(JNDI_KEY_CASSANDRA_HOSTS);
-    Integer port = environment.getProperty(JNDI_KEY_CASSANDRA_PORT, Integer.class);
-    String keyspaceName = environment.getProperty(JNDI_KEY_CASSANDRA_KEYSPACE);
-    String userName = environment.getProperty(JNDI_KEY_CASSANDRA_USERNAME);
-    String password = environment.getProperty(JNDI_KEY_CASSANDRA_PASSWORD);
-
-    return new CassandraConnectionProvider(hosts, port, keyspaceName, userName, password);
-  }
-
-  @Bean
-  public CassandraUserDAO userDAO(Environment environment) {
-    return new CassandraUserDAO(aasCassandraProvider(environment));
+  public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
+    return new CassandraUserDAO(aasCassandraProvider);
   }
 
   @Bean

@@ -44,15 +44,17 @@ public class CassandraContentDAO implements ContentDAO {
   private static final String MSG_FILE_ALREADY_EXISTS = "File %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
 
-  @Autowired
-  @Qualifier("dbService")
-  private CassandraConnectionProvider connectionProvider;
+  private final CassandraConnectionProvider connectionProvider;
 
   private PreparedStatement insertStatement;
   private PreparedStatement selectStatement;
   private PreparedStatement deleteStatement;
 
   private final StreamCompressor streamCompressor = new StreamCompressor();
+  @Autowired
+  public CassandraContentDAO(@Qualifier(value = "mcsCassandraConnectionProvider") CassandraConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
 
   @PostConstruct
   private void prepareStatements() {

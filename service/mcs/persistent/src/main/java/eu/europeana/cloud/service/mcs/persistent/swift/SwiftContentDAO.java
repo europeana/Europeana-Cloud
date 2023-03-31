@@ -38,9 +38,12 @@ public class SwiftContentDAO implements ContentDAO {
     @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
     // This name needs to break Sonar logger naming convention.
     private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
+    @Autowired
+  public SwiftContentDAO(SwiftConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
 
-  @Autowired
-  private SwiftConnectionProvider connectionProvider;
+  private final SwiftConnectionProvider connectionProvider;
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {

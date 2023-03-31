@@ -56,19 +56,24 @@ public class CassandraRecordService implements RecordService {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
 
   @Autowired
-  private CassandraRecordDAO recordDAO;
+  public CassandraRecordService(CassandraRecordDAO recordDAO, DataSetService dataSetService, CassandraDataSetDAO dataSetDAO,
+      DynamicContentProxy contentDAO, UISClientHandler uis) {
+    this.recordDAO = recordDAO;
+    this.dataSetService = dataSetService;
+    this.dataSetDAO = dataSetDAO;
+    this.contentDAO = contentDAO;
+    this.uis = uis;
+  }
 
-  @Autowired
-  private DataSetService dataSetService;
+  private final CassandraRecordDAO recordDAO;
 
-  @Autowired
-  private CassandraDataSetDAO dataSetDAO;
+  private final DataSetService dataSetService;
 
-  @Autowired
-  private DynamicContentProxy contentDAO;
+  private final CassandraDataSetDAO dataSetDAO;
 
-  @Autowired
-  private UISClientHandler uis;
+  private final DynamicContentProxy contentDAO;
+
+  private final UISClientHandler uis;
 
 
   /**

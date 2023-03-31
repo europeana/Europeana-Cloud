@@ -33,8 +33,8 @@ import org.springframework.stereotype.Repository;
 /**
  * Data set repository that uses Cassandra nosql database.
  */
-@Repository
 @Retryable
+@Repository
 public class CassandraDataSetDAO {
 
   // separator between provider id and dataset id in serialized compound
@@ -51,7 +51,10 @@ public class CassandraDataSetDAO {
   private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
 
   @Autowired
-  @Qualifier("dbService")
+  public CassandraDataSetDAO(@Qualifier("mcsCassandraConnectionProvider")CassandraConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
+
   private CassandraConnectionProvider connectionProvider;
 
   private PreparedStatement createDataSetStatement;

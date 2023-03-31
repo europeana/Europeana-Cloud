@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="info" strict="true" name="mcsLoggerConfig">
-    <Properties>
-        <Property name="logsDir">${env:CATALINA_HOME}/logs/</Property>
-        <Property name="fileName">${sys:logsDir}mcs.log</Property>
-        <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>
-        <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} mcs [requestId=%X{requestId}] [%C] - %p : %m%n</Property>
-    </Properties>
+<Configuration status="info" strict="true" name="mcsLoggerConfig"><Properties>
+    <Property name="logsDir">${sys:tomcatHome}/logs/</Property>
+    <Property name="fileName">${logsDir}mcs.log</Property>
+    <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>
+    <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} mcs [requestId=%X{requestId}] [%C] - %p : %m%n</Property>
+</Properties>
 
     <Appenders>
         <Appender type="Console" name="STDOUT">
