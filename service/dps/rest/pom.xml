@@ -22,6 +22,20 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <groupId>org.springframework.boot</groupId>
                 <version>${version.spring-boot}</version>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>repackage</goal>
+                  </goals>
+                  <configuration>
+                    <classifier>exec</classifier>
+                  </configuration>
+                </execution>
+              </executions>
+                <configuration>
+                  <mainClass>eu.europeana.cloud.service.dps.DPSApplication</mainClass>
+                  <layout>ZIP</layout>
+                </configuration>
             </plugin>
             <!--configuration of miredot - REST API documentation generator. -->
             <plugin>
