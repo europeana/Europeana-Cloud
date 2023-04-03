@@ -54,8 +54,6 @@ public class GhostTaskServiceTest {
                         .lastRecordFinishedOnStormTime(Instant.now().minus(3, ChronoUnit.DAYS))
                         .build();
 
-  @Autowired
-  private static KafkaProperties kafkaProperties;
 
   @Autowired
   private GhostTaskService service;
