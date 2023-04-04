@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import java.util.Date;
 import java.util.List;
 import org.junit.Assert;
@@ -24,7 +25,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Created by pwozniak on 2/20/17.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
+@ContextConfiguration(classes = {SpiedServicesTestContext.class})
 public class CassandraRecordDAOTest extends CassandraTestBase {
 
   @Autowired

@@ -26,6 +26,7 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
+import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,7 +45,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
+@ContextConfiguration(classes = {SpiedServicesTestContext.class})
 public class CassandraRecordServiceTest extends CassandraTestBase {
 
   private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
