@@ -1,6 +1,6 @@
 numberOfElementsOnPage=100
 objectStoreSizeThreshold=524288
-
+server.servlet.context-path=/mcs
 
 #### Cassandra settings ####
 cassandra.aas.keyspace=
@@ -25,4 +25,3 @@ swift.password=
 
 #### General settings ####
 general.uisLocation=
-general.contextPath=/mcs/

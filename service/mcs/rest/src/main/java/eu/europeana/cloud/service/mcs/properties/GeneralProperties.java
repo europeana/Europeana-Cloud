@@ -12,5 +12,4 @@ import org.springframework.stereotype.Component;
 public class GeneralProperties {
 
   private String uisLocation;
-  private String contextPath;
 }
