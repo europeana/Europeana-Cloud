@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.dps.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.properties.GeneralProperties;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.properties.TopologyProperties;
-import eu.europeana.cloud.service.dps.properties.ZookeeperProperties;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
@@ -49,8 +48,6 @@ import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletRegistrationBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,7 +59,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -101,19 +97,6 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new LoggingFilter());
-  }
-
-  @Bean
-  public DispatcherServlet dispatcherServlet() {
-    return new DispatcherServlet();
-  }
-
-  @Bean
-  public DispatcherServletRegistrationBean dispatcherServletRegistration() {
-    DispatcherServletRegistrationBean registration = new DispatcherServletRegistrationBean(dispatcherServlet(),
-        generalProperties.getContextPath());
-    registration.setName(DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_REGISTRATION_BEAN_NAME);
-    return registration;
   }
 
   @Bean

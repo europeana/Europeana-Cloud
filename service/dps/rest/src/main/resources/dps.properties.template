@@ -1,5 +1,6 @@
 maxIdentifiersCount=100
 harvestingTasksDir=/var/www/http_harvest
+server.servlet.context-path=/services
 
 #### Cassandra settings #####
 cassandra.aas.keyspace=
@@ -32,4 +33,3 @@ general.appId=
 general.machineLocation=
 general.mcsLocation=
 general.uisLocation=
-general.contextPath=

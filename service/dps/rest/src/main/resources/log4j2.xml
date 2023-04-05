@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" strict="true" name="dpsLoggerConfig">
     <Properties>
+        <Property name="tomcatHome">.</Property>
         <Property name="logsDir">${sys:tomcatHome}/logs/</Property>
         <Property name="fileName">${logsDir}dps.log</Property>
         <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>

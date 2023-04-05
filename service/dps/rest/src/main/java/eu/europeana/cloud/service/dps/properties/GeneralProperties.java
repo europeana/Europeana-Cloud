@@ -15,5 +15,4 @@ public class GeneralProperties {
   private String machineLocation;
   private String mcsLocation;
   private String uisLocation;
-  private String contextPath;
 }
