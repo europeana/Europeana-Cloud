@@ -28,16 +28,12 @@ import java.util.Arrays;
 import javax.annotation.PostConstruct;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 /**
  * Provides content DAO operations for Cassandra.
  *
  * @author krystian.
  */
-@Repository
 public class CassandraContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
@@ -51,8 +47,7 @@ public class CassandraContentDAO implements ContentDAO {
   private PreparedStatement deleteStatement;
 
   private final StreamCompressor streamCompressor = new StreamCompressor();
-  @Autowired
-  public CassandraContentDAO(@Qualifier(value = "mcsCassandraConnectionProvider") CassandraConnectionProvider connectionProvider) {
+  public CassandraContentDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }
 

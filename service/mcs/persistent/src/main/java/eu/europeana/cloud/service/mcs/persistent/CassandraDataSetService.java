@@ -37,16 +37,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * Implementation of data set service using Cassandra database.
  */
-@Service
 public class CassandraDataSetService implements DataSetService {
 
-  @Autowired
   public CassandraDataSetService(CassandraDataSetDAO dataSetDAO, CassandraRecordDAO recordDAO, UISClientHandler uis,
       BucketsHandler bucketsHandler) {
     this.dataSetDAO = dataSetDAO;

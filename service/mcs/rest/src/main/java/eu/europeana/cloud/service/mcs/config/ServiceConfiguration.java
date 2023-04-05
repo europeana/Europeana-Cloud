@@ -49,9 +49,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
 
+
   @Bean
   public UISClientHandler uisHandler() {
-    return new UISClientHandlerImpl();
+    return new UISClientHandlerImpl(uisClient());
   }
 
   @Bean

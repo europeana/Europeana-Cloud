@@ -26,15 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.
  */
 @Retryable
-@Repository
 public class CassandraRecordDAO {
 
   private static final String KEY_FILES = "files";
@@ -44,8 +40,7 @@ public class CassandraRecordDAO {
   // json serializer/deserializer
   private final Gson gson = new Gson();
   private final Gson revisionGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
-  @Autowired
-  public CassandraRecordDAO(@Qualifier("mcsCassandraConnectionProvider")CassandraConnectionProvider connectionProvider) {
+  public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }
 

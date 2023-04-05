@@ -44,18 +44,15 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * Implementation of record service using Cassandra as storage.
  */
-@Service
 public class CassandraRecordService implements RecordService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraRecordService.class);
 
-  @Autowired
+
   public CassandraRecordService(CassandraRecordDAO recordDAO, DataSetService dataSetService, CassandraDataSetDAO dataSetDAO,
       DynamicContentProxy contentDAO, UISClientHandler uis) {
     this.recordDAO = recordDAO;

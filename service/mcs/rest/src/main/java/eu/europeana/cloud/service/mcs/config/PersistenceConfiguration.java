@@ -3,10 +3,17 @@ package eu.europeana.cloud.service.mcs.config;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.Storage;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
+import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.properties.SwiftProperties;
 import java.util.EnumMap;
@@ -69,5 +76,59 @@ public class PersistenceConfiguration {
   @ConfigurationProperties(prefix = "cassandra.mcs")
   protected CassandraProperties cassandraMCSProperties() {
     return new CassandraProperties();
+  }
+
+
+  @Bean
+  public CassandraRecordService cassandraRecordService(
+      CassandraRecordDAO cassandraRecordDAO,
+      CassandraDataSetService cassandraDataSetService,
+      CassandraDataSetDAO cassandraDataSetDAO,
+      DynamicContentProxy dynamicContentProxy,
+      UISClientHandler uisClientHandler
+  ) {
+    return new CassandraRecordService(
+        cassandraRecordDAO,
+        cassandraDataSetService,
+        cassandraDataSetDAO,
+        dynamicContentProxy,
+        uisClientHandler
+    );
+  }
+
+  @Bean
+  public CassandraDataSetDAO cassandraDataSetDAO(
+      @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
+    return new CassandraDataSetDAO(cassandraConnectionProvider);
+  }
+
+  @Bean
+  public CassandraDataSetService cassandraDataSetService(
+      CassandraDataSetDAO cassandraDataSetDAO,
+      CassandraRecordDAO cassandraRecordDAO,
+      UISClientHandler uisClientHandler,
+      BucketsHandler bucketsHandler) {
+    return new CassandraDataSetService(
+        cassandraDataSetDAO,
+        cassandraRecordDAO,
+        uisClientHandler,
+        bucketsHandler);
+  }
+
+  @Bean
+  public CassandraRecordDAO cassandraRecordDAO(
+      @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
+    return new CassandraRecordDAO(cassandraConnectionProvider);
+  }
+
+  @Bean
+  public ContentDAO cassandraContentDAO(
+      @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
+    return new CassandraContentDAO(cassandraConnectionProvider);
+  }
+
+  @Bean
+  public ContentDAO swiftContentDAO(SwiftConnectionProvider swiftConnectionProvider) {
+    return new SwiftContentDAO(swiftConnectionProvider);
   }
 }

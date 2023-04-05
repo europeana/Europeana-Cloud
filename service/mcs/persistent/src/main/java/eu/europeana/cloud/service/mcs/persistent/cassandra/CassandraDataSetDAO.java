@@ -26,15 +26,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 /**
  * Data set repository that uses Cassandra nosql database.
  */
 @Retryable
-@Repository
 public class CassandraDataSetDAO {
 
   // separator between provider id and dataset id in serialized compound
@@ -50,8 +46,8 @@ public class CassandraDataSetDAO {
 
   private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
 
-  @Autowired
-  public CassandraDataSetDAO(@Qualifier("mcsCassandraConnectionProvider")CassandraConnectionProvider connectionProvider) {
+
+  public CassandraDataSetDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }
 

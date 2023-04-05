@@ -20,13 +20,10 @@ import org.jclouds.io.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 /**
  * Provides DAO operations for Openstack Swift.
  */
-@Repository
 public class SwiftContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
@@ -38,7 +35,6 @@ public class SwiftContentDAO implements ContentDAO {
     @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
     // This name needs to break Sonar logger naming convention.
     private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
-    @Autowired
   public SwiftContentDAO(SwiftConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }

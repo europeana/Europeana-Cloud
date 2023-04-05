@@ -12,7 +12,7 @@ public class UisIntegrationTestContext {
 
   @Bean
   public UISClientHandlerImpl uisClientHandler() {
-    return new UISClientHandlerImpl();
+    return new UISClientHandlerImpl(uisClient());
   }
 
   @Bean
