@@ -4,12 +4,15 @@ package eu.europeana.cloud.service.mcs.controller;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.CassandraBasedTestContext;
+import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -20,7 +23,9 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(
     classes = {ServiceConfiguration.class, UnifiedExceptionsMapper.class,
-        CassandraBasedTestContext.class})
+        CassandraBasedTestContext.class, PropertyBeansContext.class})
+@WebMvcTest
+@TestPropertySource("classpath:mcs-test.properties")
 public abstract class CassandraBasedAbstractResourceTest {
 
   @Rule

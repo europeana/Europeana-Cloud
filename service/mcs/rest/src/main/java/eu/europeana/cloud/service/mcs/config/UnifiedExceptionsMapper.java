@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -45,8 +44,11 @@ public class UnifiedExceptionsMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
-  @Autowired
-  private HttpServletRequest request;
+  private final HttpServletRequest request;
+
+  public UnifiedExceptionsMapper(HttpServletRequest request) {
+    this.request = request;
+  }
 
   /**
    * Maps {@link CannotModifyPersistentRepresentationException} to {@link ResponseEntity}. Returns a response with HTTP status

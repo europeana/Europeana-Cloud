@@ -32,7 +32,6 @@ public class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
   @Autowired
   private UISClient uisClient;
 
-  private static boolean setUpIsDone = false;
 
   private static final String PROVIDER_ID = "providerId";
   private static final String CLOUD_ID = "cloudId";
@@ -44,15 +43,10 @@ public class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
 
   @Before
   public void init() throws CloudException, RepresentationNotExistsException {
-    if (setUpIsDone) {
-      return;
-    }
     Mockito.reset(uisClient);
     Mockito.reset(recordService);
     setupUisClient();
     setupRecordService();
-
-    setUpIsDone = true;
   }
 
   @Test(expected = ProviderNotExistsException.class)

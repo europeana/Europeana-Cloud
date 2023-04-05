@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO
 import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.event.LoggerListener;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -19,7 +18,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-//<expression-handler ref="expressionHandler" /> ??
 public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
 
   @Override

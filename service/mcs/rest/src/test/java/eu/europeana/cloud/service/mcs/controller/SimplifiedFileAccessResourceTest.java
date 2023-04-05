@@ -55,19 +55,15 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
   private HttpServletRequest URI_INFO;
   /****/
 
-  private static boolean setUpIsDone = false;
 
   @Before
   public void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException {
-    if (setUpIsDone) {
-      return;
-    }
+
     setupUisClient();
     setupRecordService();
     setupPermissionEvaluator();
     setupAuthentication();
 
-    setUpIsDone = true;
   }
 
   @Test(expected = RecordNotExistsException.class)

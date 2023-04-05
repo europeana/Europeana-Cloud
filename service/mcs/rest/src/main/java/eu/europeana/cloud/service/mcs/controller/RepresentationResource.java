@@ -50,7 +50,7 @@ public class RepresentationResource {
    * exists.
    * @summary get a representation
    */
-  @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_HTML_VALUE})
   @PreAuthorize("isAuthenticated()")
   @ResponseBody
   public Representation getRepresentation(

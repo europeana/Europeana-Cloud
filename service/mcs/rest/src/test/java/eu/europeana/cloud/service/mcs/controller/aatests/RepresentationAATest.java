@@ -9,6 +9,11 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.controller.DataSetsResource;
+import eu.europeana.cloud.service.mcs.controller.RecordsResource;
+import eu.europeana.cloud.service.mcs.controller.RepresentationResource;
+import eu.europeana.cloud.service.mcs.controller.RepresentationVersionResource;
+import eu.europeana.cloud.service.mcs.controller.RepresentationsResource;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
 import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
@@ -18,11 +23,6 @@ import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.controller.DataSetsResource;
-import eu.europeana.cloud.service.mcs.controller.RecordsResource;
-import eu.europeana.cloud.service.mcs.controller.RepresentationResource;
-import eu.europeana.cloud.service.mcs.controller.RepresentationVersionResource;
-import eu.europeana.cloud.service.mcs.controller.RepresentationsResource;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import eu.europeana.cloud.test.AbstractSecurityTest;
@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
-//@RunWith(SpringJUnit4ClassRunner.class)
 
 public class RepresentationAATest extends AbstractSecurityTest {
 

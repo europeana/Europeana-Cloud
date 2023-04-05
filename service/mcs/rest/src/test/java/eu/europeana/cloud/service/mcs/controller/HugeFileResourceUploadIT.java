@@ -7,13 +7,16 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,12 +41,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
 
   private static RecordService recordService;
+  private static DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
   @Before
   public void mockUp() {
     recordService = applicationContext.getBean(RecordService.class);
+    dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+
   }
 
   @After
@@ -60,7 +66,7 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
     MockPutContentMethod mockPutContent = new MockPutContentMethod();
     doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
         any(InputStream.class));
-
+    doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(any(Representation.class));
     MessageDigest md = MessageDigest.getInstance("MD5");
     DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);
 

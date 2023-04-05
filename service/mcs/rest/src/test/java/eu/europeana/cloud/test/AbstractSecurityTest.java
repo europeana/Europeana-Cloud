@@ -3,9 +3,9 @@ package eu.europeana.cloud.test;
 import static eu.europeana.cloud.service.mcs.controller.AbstractResourceTest.mockHttpServletRequest;
 
 import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
-import eu.europeana.cloud.service.mcs.config.PersistenceConfiguration;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
+import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.SecurityTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthentificationConfiguration;
 import javax.servlet.http.HttpServletRequest;
@@ -36,12 +36,12 @@ import org.springframework.web.context.WebApplicationContext;
 //		"classpath:aaTestContext.xml"
 //        })
 @RunWith(CassandraTestRunner.class)
-@TestPropertySource(properties = {"numberOfElementsOnPage=100"})
 @WebAppConfiguration
-@ContextConfiguration(classes = {AuthorizationConfiguration.class,
-    TestAuthentificationConfiguration.class,
-     ServiceConfiguration.class, PersistenceConfiguration.class,
+@ContextConfiguration(classes = {
+    TestAuthentificationConfiguration.class, PropertyBeansContext.class,
+    ServiceConfiguration.class, AuthorizationConfiguration.class,
     UnifiedExceptionsMapper.class, SecurityTestContext.class})
+@TestPropertySource("classpath:mcs-test.properties")
 public abstract class AbstractSecurityTest {
 
   @Rule

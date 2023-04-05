@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -20,17 +21,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableAsync
-@PropertySource("classpath:mcs.properties")
+@PropertySource(value = "classpath:mcs.properties", ignoreResourceNotFound = true)
+@ComponentScan("eu.europeana.cloud.service.mcs.controller")
 public class ServiceConfiguration implements WebMvcConfigurer {
 
-  private final GeneralProperties generalProperties;
+
+  public final GeneralProperties generalProperties;
+
+  private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
 
   @Autowired
   public ServiceConfiguration(GeneralProperties generalProperties) {
     this.generalProperties = generalProperties;
   }
-
-  private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
@@ -41,7 +44,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
     configurer.setTaskExecutor(asyncExecutor());
   }
-
 
   @Bean
   public Integer objectStoreSizeThreshold() {

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -50,9 +51,10 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
   static final private String revisionProviderId = "ABC";
   static final private String revisionName = "rev1";
   static final private String version = "1.0";
+  static final private String representationName = "rep1";
   static final private Date revisionTimestamp = new Date();
   static final private RepresentationRevisionResponse representationResponse = new RepresentationRevisionResponse(globalId,
-      schema, version, Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
+      schema, version, List.of(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
       null)), revisionProviderId, revisionName, revisionTimestamp);
 
   @Before
@@ -125,11 +127,13 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
   public void getRepresentationByRevisionsThrowExceptionWhenReturnsEmptyObjectIfRevisionDoesNotExists()
       throws Exception {
     List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
-    expectedResponse.add(new RepresentationRevisionResponse());
-
+    RepresentationRevisionResponse response = mock(RepresentationRevisionResponse.class);
+    when(response.getRepresentationName()).thenReturn(representationName);
+    when(response.getCloudId()).thenReturn(globalId);
+    when(response.getVersion()).thenReturn(version);
+    expectedResponse.add(response);
     doReturn(expectedResponse).when(recordService).getRepresentationRevisions(globalId,
         schema, revisionProviderId, revisionName, null);
-
     doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
 
     mockMvc.perform(get(URITools.getRepresentationRevisionsPath(globalId, schema, revisionName))

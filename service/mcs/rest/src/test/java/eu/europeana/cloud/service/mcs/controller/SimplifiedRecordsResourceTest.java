@@ -31,7 +31,6 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
   @Autowired
   private UISClient uisClient;
 
-  private static boolean setUpIsDone = false;
 
   private static final String PROVIDER_ID = "providerId";
   private static final String NOT_EXISTING_PROVIDER_ID = "notExistingProviderId";
@@ -44,13 +43,8 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
 
   @Before
   public void init() throws CloudException, RecordNotExistsException {
-    if (setUpIsDone) {
-      return;
-    }
     setupUisClient();
     setupRecordService();
-
-    setUpIsDone = true;
   }
 
   @Test(expected = ProviderNotExistsException.class)
