@@ -41,24 +41,13 @@ public class CassandraContentDAO implements ContentDAO {
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
 
   private final CassandraConnectionProvider connectionProvider;
-
+  private final StreamCompressor streamCompressor = new StreamCompressor();
   private PreparedStatement insertStatement;
   private PreparedStatement selectStatement;
   private PreparedStatement deleteStatement;
 
-  private final StreamCompressor streamCompressor = new StreamCompressor();
   public CassandraContentDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
-  }
-
-  @PostConstruct
-  private void prepareStatements() {
-    Session s = connectionProvider.getSession();
-    insertStatement = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
-
-    selectStatement = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
-
-    deleteStatement = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
   }
 
   /**
@@ -127,6 +116,16 @@ public class CassandraContentDAO implements ContentDAO {
     String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
     Long contentLength = countingInputStream.getCount();
     return new PutResult(md5, contentLength);
+  }
+
+  @PostConstruct
+  private void prepareStatements() {
+    Session s = connectionProvider.getSession();
+    insertStatement = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
+
+    selectStatement = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
+
+    deleteStatement = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
   }
 
   private void checkIfObjectNotExists(String trgObjectId) throws FileAlreadyExistsException {

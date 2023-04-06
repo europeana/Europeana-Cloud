@@ -7,9 +7,9 @@ import lombok.Setter;
 @Getter
 public class CassandraProperties {
 
-  private String Keyspace;
-  private String User;
-  private String Password;
+  private String keyspace;
+  private String user;
+  private String password;
   private String hosts;
   private int port;
 }

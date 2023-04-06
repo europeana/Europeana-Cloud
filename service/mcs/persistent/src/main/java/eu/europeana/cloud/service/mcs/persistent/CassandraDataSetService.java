@@ -43,6 +43,11 @@ import java.util.stream.Collectors;
  */
 public class CassandraDataSetService implements DataSetService {
 
+  private final CassandraDataSetDAO dataSetDAO;
+  private final CassandraRecordDAO recordDAO;
+  private final UISClientHandler uis;
+  private final BucketsHandler bucketsHandler;
+
   public CassandraDataSetService(CassandraDataSetDAO dataSetDAO, CassandraRecordDAO recordDAO, UISClientHandler uis,
       BucketsHandler bucketsHandler) {
     this.dataSetDAO = dataSetDAO;
@@ -50,14 +55,6 @@ public class CassandraDataSetService implements DataSetService {
     this.uis = uis;
     this.bucketsHandler = bucketsHandler;
   }
-
-  private final CassandraDataSetDAO dataSetDAO;
-
-  private final CassandraRecordDAO recordDAO;
-
-  private final UISClientHandler uis;
-
-  private final BucketsHandler bucketsHandler;
 
   /**
    * @inheritDoc
@@ -442,17 +439,6 @@ public class CassandraDataSetService implements DataSetService {
     }
   }
 
-
-  ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
-      String revisionName, Date revisionTimestamp, String representationName,
-      String nextToken, int limit) {
-    String id = createProviderDataSetId(providerId, dataSetId);
-    return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
-        (bucket, pagingState, localLimit) ->
-            dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
-                revisionName, revisionTimestamp, representationName, pagingState, localLimit));
-  }
-
   private <E> ResultSlice<E> loadPage(String dataId, String nextToken, int limit,
       String bucketsTableName, OneBucketLoader<E> oneBucketLoader) {
 
@@ -553,7 +539,6 @@ public class CassandraDataSetService implements DataSetService {
     return listDataSetAssignments(providerId, dataSetId, null, 1).getResults().isEmpty();
   }
 
-
   private void checkIfRepresentationExists(String representationName, String version, String cloudId)
       throws RepresentationNotExistsException {
     Representation rep = recordDAO.getRepresentation(cloudId, representationName, version);
@@ -569,5 +554,15 @@ public class CassandraDataSetService implements DataSetService {
   public interface OneBucketLoader<E> {
 
     ResultSlice<E> loadData(Bucket bucket, PagingState pagingState, int localLimit);
+  }
+
+  ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,
+      String revisionName, Date revisionTimestamp, String representationName,
+      String nextToken, int limit) {
+    String id = createProviderDataSetId(providerId, dataSetId);
+    return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
+        (bucket, pagingState, localLimit) ->
+            dataSetDAO.getDataSetsRevisions(providerId, dataSetId, bucket.getBucketId(), revisionProviderId,
+                revisionName, revisionTimestamp, representationName, pagingState, localLimit));
   }
 }

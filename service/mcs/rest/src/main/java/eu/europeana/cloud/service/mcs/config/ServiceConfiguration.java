@@ -26,9 +26,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ServiceConfiguration implements WebMvcConfigurer {
 
 
-  public final GeneralProperties generalProperties;
-
   private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
+  public final GeneralProperties generalProperties;
 
   @Autowired
   public ServiceConfiguration(GeneralProperties generalProperties) {
@@ -51,7 +50,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
 
-
   @Bean
   public UISClientHandler uisHandler() {
     return new UISClientHandlerImpl(uisClient());
@@ -61,7 +59,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   public UISClient uisClient() {
     return new UISClient(generalProperties.getUisLocation());
   }
-
 
 
   @SuppressWarnings("S5693") // Limit size is part of system requirements

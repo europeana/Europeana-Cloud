@@ -45,157 +45,25 @@ public class CassandraDataSetDAO {
   public static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
   private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
-
+  private final CassandraConnectionProvider connectionProvider;
+  private PreparedStatement createDataSetStatement;
+  private PreparedStatement deleteDataSetStatement;
+  private PreparedStatement addAssignmentStatement;
+  private PreparedStatement addAssignmentByRepresentationStatement;
+  private PreparedStatement removeAssignmentByRepresentationsStatement;
+  private PreparedStatement removeAssignmentStatement;
+  private PreparedStatement listDataSetRepresentationsStatement;
+  private PreparedStatement listDataSetsStatement;
+  private PreparedStatement getDataSetStatement;
+  private PreparedStatement getDataSetsForRepresentationVersionStatement;
+  private PreparedStatement getOneDataSetForRepresentationStatement;
+  private PreparedStatement hasProvidedRepresentationNameStatement;
+  private PreparedStatement addDataSetsRevisionStatement;
+  private PreparedStatement getDataSetsRevisionStatement;
+  private PreparedStatement removeDataSetsRevisionStatement;
 
   public CassandraDataSetDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
-  }
-
-  private CassandraConnectionProvider connectionProvider;
-
-  private PreparedStatement createDataSetStatement;
-
-  private PreparedStatement deleteDataSetStatement;
-
-  private PreparedStatement addAssignmentStatement;
-
-  private PreparedStatement addAssignmentByRepresentationStatement;
-
-  private PreparedStatement removeAssignmentByRepresentationsStatement;
-
-  private PreparedStatement removeAssignmentStatement;
-
-  private PreparedStatement listDataSetRepresentationsStatement;
-
-  private PreparedStatement listDataSetsStatement;
-
-  private PreparedStatement getDataSetStatement;
-
-  private PreparedStatement getDataSetsForRepresentationVersionStatement;
-
-  private PreparedStatement getOneDataSetForRepresentationStatement;
-
-  private PreparedStatement hasProvidedRepresentationNameStatement;
-
-  private PreparedStatement addDataSetsRevisionStatement;
-
-  private PreparedStatement getDataSetsRevisionStatement;
-
-  private PreparedStatement removeDataSetsRevisionStatement;
-
-  @PostConstruct
-  private void prepareStatements() {
-    createDataSetStatement = connectionProvider.getSession().prepare(
-        "INSERT INTO " +
-            "data_sets(provider_id, dataset_id, description, creation_date) " +
-            "VALUES (?,?,?,?);"
-    );
-
-    deleteDataSetStatement = connectionProvider.getSession().prepare(
-        "DELETE FROM " +
-            "data_sets " +
-            "WHERE provider_id = ? AND dataset_id = ?;"
-    );
-
-    addAssignmentStatement = connectionProvider.getSession().prepare(
-        "INSERT " +
-            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) "
-            +
-            "VALUES (?,?,?,?,?,?);"
-    );
-
-    addAssignmentByRepresentationStatement = connectionProvider.getSession().prepare(
-        "INSERT " +
-            "INTO data_set_assignments_by_representations (cloud_id, schema_id, version_id, provider_dataset_id, creation_date) "
-            +
-            "VALUES (?,?,?,?,?);"
-    );
-
-    removeAssignmentStatement = connectionProvider.getSession().prepare(
-        "DELETE " +
-            "FROM data_set_assignments_by_data_set " +
-            "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;"
-    );
-
-    removeAssignmentByRepresentationsStatement = connectionProvider.getSession().prepare(
-        "DELETE " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ? AND provider_dataset_id = ? IF EXISTS;"
-    );
-
-    listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
-        "SELECT cloud_id, schema_id, version_id " +
-            "FROM data_set_assignments_by_data_set " +
-            "WHERE provider_dataset_id = ? AND bucket_id = ? " +
-            "LIMIT ?;"
-    );
-
-    listDataSetsStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_id, dataset_id, description " +
-            "FROM data_sets " +
-            "WHERE provider_id = ? AND dataset_id >= ?" +
-            "LIMIT ?;"
-    );
-
-    getDataSetStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_id, dataset_id, description " +
-            "FROM data_sets " +
-            "WHERE provider_id = ? AND dataset_id = ?;"
-    );
-
-    getDataSetsForRepresentationVersionStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_dataset_id " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;"
-    );
-
-    getOneDataSetForRepresentationStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_dataset_id " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? LIMIT 1;"
-    );
-
-    hasProvidedRepresentationNameStatement = connectionProvider.getSession().prepare(
-        "SELECT schema_id, cloud_id " +
-            "FROM data_set_assignments_by_data_set " +
-            "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? " +
-            "LIMIT 1;"
-    );
-
-    addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
-        "INSERT " +
-            "INTO data_set_assignments_by_revision_id_v1 (provider_id, dataset_id, bucket_id, " +
-            "revision_provider_id, revision_name, revision_timestamp, " +
-            "representation_id, cloud_id, published, acceptance, mark_deleted) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
-    );
-
-    removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
-        "DELETE " +
-            "FROM data_set_assignments_by_revision_id_v1 " +
-            "WHERE provider_id = ? " +
-            "AND dataset_id = ? " +
-            "AND bucket_id = ? " +
-            "AND revision_provider_id = ? " +
-            "AND revision_name = ? " +
-            "AND revision_timestamp = ? " +
-            "AND representation_id = ? " +
-            "AND cloud_id = ? " +
-            "IF EXISTS;"
-    );
-
-    getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
-        "SELECT cloud_id, published, acceptance, mark_deleted " +
-            "FROM data_set_assignments_by_revision_id_v1 " +
-            "WHERE provider_id = ? " +
-            "AND dataset_id = ? " +
-            "AND bucket_id = ? " +
-            "AND revision_provider_id = ? " +
-            "AND revision_name = ? " +
-            "AND revision_timestamp = ? " +
-            "AND representation_id = ? " +
-            "LIMIT ?;"
-    );
   }
 
   public ResultSlice<DatasetAssignment> getDataSetAssignments(String providerDataSetId, String bucketId, PagingState state,
@@ -401,7 +269,6 @@ public class CassandraDataSetDAO {
     connectionProvider.getSession().execute(boundStatement);
   }
 
-
   public boolean datasetBucketHasAnyAssignment(String representationName, String providerDatasetId, Bucket bucket) {
     BoundStatement boundStatement = hasProvidedRepresentationNameStatement.bind(
         providerDatasetId, UUID.fromString(bucket.getBucketId()), representationName);
@@ -468,6 +335,121 @@ public class CassandraDataSetDAO {
     } else {
       return new ResultSlice<>(null, result);
     }
+  }
+
+  @PostConstruct
+  private void prepareStatements() {
+    createDataSetStatement = connectionProvider.getSession().prepare(
+        "INSERT INTO " +
+            "data_sets(provider_id, dataset_id, description, creation_date) " +
+            "VALUES (?,?,?,?);"
+    );
+
+    deleteDataSetStatement = connectionProvider.getSession().prepare(
+        "DELETE FROM " +
+            "data_sets " +
+            "WHERE provider_id = ? AND dataset_id = ?;"
+    );
+
+    addAssignmentStatement = connectionProvider.getSession().prepare(
+        "INSERT " +
+            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) "
+            +
+            "VALUES (?,?,?,?,?,?);"
+    );
+
+    addAssignmentByRepresentationStatement = connectionProvider.getSession().prepare(
+        "INSERT " +
+            "INTO data_set_assignments_by_representations (cloud_id, schema_id, version_id, provider_dataset_id, creation_date) "
+            +
+            "VALUES (?,?,?,?,?);"
+    );
+
+    removeAssignmentStatement = connectionProvider.getSession().prepare(
+        "DELETE " +
+            "FROM data_set_assignments_by_data_set " +
+            "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;"
+    );
+
+    removeAssignmentByRepresentationsStatement = connectionProvider.getSession().prepare(
+        "DELETE " +
+            "FROM data_set_assignments_by_representations " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ? AND provider_dataset_id = ? IF EXISTS;"
+    );
+
+    listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
+        "SELECT cloud_id, schema_id, version_id " +
+            "FROM data_set_assignments_by_data_set " +
+            "WHERE provider_dataset_id = ? AND bucket_id = ? " +
+            "LIMIT ?;"
+    );
+
+    listDataSetsStatement = connectionProvider.getSession().prepare(
+        "SELECT provider_id, dataset_id, description " +
+            "FROM data_sets " +
+            "WHERE provider_id = ? AND dataset_id >= ?" +
+            "LIMIT ?;"
+    );
+
+    getDataSetStatement = connectionProvider.getSession().prepare(
+        "SELECT provider_id, dataset_id, description " +
+            "FROM data_sets " +
+            "WHERE provider_id = ? AND dataset_id = ?;"
+    );
+
+    getDataSetsForRepresentationVersionStatement = connectionProvider.getSession().prepare(
+        "SELECT provider_dataset_id " +
+            "FROM data_set_assignments_by_representations " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;"
+    );
+
+    getOneDataSetForRepresentationStatement = connectionProvider.getSession().prepare(
+        "SELECT provider_dataset_id " +
+            "FROM data_set_assignments_by_representations " +
+            "WHERE cloud_id = ? AND schema_id = ? LIMIT 1;"
+    );
+
+    hasProvidedRepresentationNameStatement = connectionProvider.getSession().prepare(
+        "SELECT schema_id, cloud_id " +
+            "FROM data_set_assignments_by_data_set " +
+            "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? " +
+            "LIMIT 1;"
+    );
+
+    addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
+        "INSERT " +
+            "INTO data_set_assignments_by_revision_id_v1 (provider_id, dataset_id, bucket_id, " +
+            "revision_provider_id, revision_name, revision_timestamp, " +
+            "representation_id, cloud_id, published, acceptance, mark_deleted) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+    );
+
+    removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
+        "DELETE " +
+            "FROM data_set_assignments_by_revision_id_v1 " +
+            "WHERE provider_id = ? " +
+            "AND dataset_id = ? " +
+            "AND bucket_id = ? " +
+            "AND revision_provider_id = ? " +
+            "AND revision_name = ? " +
+            "AND revision_timestamp = ? " +
+            "AND representation_id = ? " +
+            "AND cloud_id = ? " +
+            "IF EXISTS;"
+    );
+
+    getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
+        "SELECT cloud_id, published, acceptance, mark_deleted " +
+            "FROM data_set_assignments_by_revision_id_v1 " +
+            "WHERE provider_id = ? " +
+            "AND dataset_id = ? " +
+            "AND bucket_id = ? " +
+            "AND revision_provider_id = ? " +
+            "AND revision_name = ? " +
+            "AND revision_timestamp = ? " +
+            "AND representation_id = ? " +
+            "LIMIT ?;"
+    );
   }
 
 }
