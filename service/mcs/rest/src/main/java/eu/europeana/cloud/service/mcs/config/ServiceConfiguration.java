@@ -21,7 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableAsync
-@PropertySource(value = "classpath:mcs.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:mcs.properties")
 @ComponentScan("eu.europeana.cloud.service.mcs.controller")
 public class ServiceConfiguration implements WebMvcConfigurer {
 
