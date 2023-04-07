@@ -14,17 +14,7 @@
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <groupId>org.springframework.boot</groupId>
-                <scope>import</scope>
-                <type>pom</type>
-                <version>${version.spring-boot}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -54,21 +44,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-commons</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                    <groupId>org.springframework.boot</groupId>
-                </exclusion>
-            </exclusions>
-            <groupId>org.springframework.boot</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
-            <groupId>org.springframework.boot</groupId>
         </dependency>
 
         <dependency>
@@ -128,8 +103,9 @@
         </dependency>
         <!--tests -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-test</artifactId>
+            <groupId>org.springframework</groupId>
+            <version>${version.spring-framework}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

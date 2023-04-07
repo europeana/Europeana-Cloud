@@ -19,10 +19,10 @@ import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import java.util.EnumMap;
 import java.util.Map;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@TestConfiguration
+@Configuration
 public class SpiedServicesTestContext {
 
   @Bean
