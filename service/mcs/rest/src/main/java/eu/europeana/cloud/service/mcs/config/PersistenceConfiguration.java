@@ -18,23 +18,23 @@ import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.properties.SwiftProperties;
 import java.util.EnumMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 @Configuration
-@EnableAsync
 public class PersistenceConfiguration {
 
-  @Autowired
-  public PersistenceConfiguration(SwiftProperties swiftProperties) {
-    this.swiftProperties = swiftProperties;
+  @Bean
+  public SwiftConnectionProvider swiftConnectionProvider(SwiftProperties swiftProperties) {
+    return new SimpleSwiftConnectionProvider(
+        swiftProperties.getProvider(),
+        swiftProperties.getContainer(),
+        swiftProperties.getEndpoint(),
+        swiftProperties.getUser(),
+        swiftProperties.getPassword());
   }
-
-  private final SwiftProperties swiftProperties;
 
   @Bean
   @Qualifier("mcsCassandraConnectionProvider")
@@ -48,13 +48,9 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  public SwiftConnectionProvider swiftConnectionProvider() {
-    return new SimpleSwiftConnectionProvider(
-        swiftProperties.getProvider(),
-        swiftProperties.getContainer(),
-        swiftProperties.getEndpoint(),
-        swiftProperties.getUser(),
-        swiftProperties.getPassword());
+  @ConfigurationProperties(prefix = "swift")
+  protected SwiftProperties swiftProperties() {
+    return new SwiftProperties();
   }
 
   @Bean

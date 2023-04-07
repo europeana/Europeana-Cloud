@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -27,11 +27,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
 
   private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
-  public final GeneralProperties generalProperties;
 
-  @Autowired
-  public ServiceConfiguration(GeneralProperties generalProperties) {
-    this.generalProperties = generalProperties;
+  @Bean
+  @ConfigurationProperties(prefix = "general")
+  public GeneralProperties generalProperties() {
+    return new GeneralProperties();
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
   public UISClient uisClient() {
-    return new UISClient(generalProperties.getUisLocation());
+    return new UISClient(generalProperties().getUisLocation());
   }
 
 

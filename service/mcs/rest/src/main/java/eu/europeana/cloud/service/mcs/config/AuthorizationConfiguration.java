@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticatio
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,13 +29,14 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 public class AuthorizationConfiguration {
 
   @Bean
-  public CassandraConnectionProvider aasCassandraProvider() {
+  public CassandraConnectionProvider aasCassandraProvider(
+      @Qualifier("aasProperties") CassandraProperties cassandraAASProperties) {
     return new CassandraConnectionProvider(
-        cassandraAASProperties().getHosts(),
-        cassandraAASProperties().getPort(),
-        cassandraAASProperties().getKeyspace(),
-        cassandraAASProperties().getUser(),
-        cassandraAASProperties().getPassword());
+        cassandraAASProperties.getHosts(),
+        cassandraAASProperties.getPort(),
+        cassandraAASProperties.getKeyspace(),
+        cassandraAASProperties.getUser(),
+        cassandraAASProperties.getPassword());
   }
 
   /* Custom success handler, answers requests with 200 OK. */
@@ -69,6 +71,7 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
+  @Qualifier("aasProperties")
   @ConfigurationProperties(prefix = "cassandra.aas")
   protected CassandraProperties cassandraAASProperties() {
     return new CassandraProperties();
