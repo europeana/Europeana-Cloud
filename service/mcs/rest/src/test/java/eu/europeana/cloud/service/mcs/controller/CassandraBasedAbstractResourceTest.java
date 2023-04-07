@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -24,6 +25,7 @@ import org.springframework.web.context.WebApplicationContext;
     classes = {ServiceConfiguration.class, UnifiedExceptionsMapper.class,
         CassandraBasedTestContext.class, PropertyBeansContext.class})
 @WebMvcTest
+@TestPropertySource("classpath:mcs-test.properties")
 public abstract class CassandraBasedAbstractResourceTest {
 
   @Rule

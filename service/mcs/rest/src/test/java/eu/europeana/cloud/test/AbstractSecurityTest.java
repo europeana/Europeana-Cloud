@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -40,6 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
     TestAuthentificationConfiguration.class, PropertyBeansContext.class,
     ServiceConfiguration.class, AuthorizationConfiguration.class,
     UnifiedExceptionsMapper.class, SecurityTestContext.class})
+@TestPropertySource("classpath:mcs-test.properties")
 public abstract class AbstractSecurityTest {
 
   @Rule
