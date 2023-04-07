@@ -10,7 +10,7 @@ public class MCSApplication {
   private static final Logger LOGGER = LoggerFactory.getLogger(MCSApplication.class);
 
   public static void main(String[] args) {
-    LOGGER.info("DPS Rest Application starting...");
+    LOGGER.info("MCS Rest Application starting...");
     SpringApplication.run(MCSApplication.class, args);
   }
 }
