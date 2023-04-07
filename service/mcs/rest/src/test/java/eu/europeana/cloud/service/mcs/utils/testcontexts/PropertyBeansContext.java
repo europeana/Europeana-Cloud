@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
 
-import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
+import eu.europeana.cloud.service.commons.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.mcs.properties.SwiftProperties;
 import eu.europeana.cloud.test.CassandraTestInstance;

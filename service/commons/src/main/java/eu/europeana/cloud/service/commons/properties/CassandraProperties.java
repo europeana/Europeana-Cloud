@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.properties;
+package eu.europeana.cloud.service.commons.properties;
 
 import lombok.Getter;
 import lombok.Setter;

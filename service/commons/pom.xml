@@ -90,6 +90,12 @@
             <version>3.3.3</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <artifactId>lombok</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <scope>compile</scope>
+            <version>${version.lombok}</version>
+        </dependency>
 
 
     </dependencies>

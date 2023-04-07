@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -14,7 +15,6 @@ import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
-import eu.europeana.cloud.service.mcs.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.properties.SwiftProperties;
 import java.util.EnumMap;
 import java.util.Map;
