@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 public class PersistenceConfiguration {
 
   @Bean
-  public SwiftConnectionProvider swiftConnectionProvider(SwiftProperties swiftProperties) {
+  SwiftConnectionProvider swiftConnectionProvider(SwiftProperties swiftProperties) {
     return new SimpleSwiftConnectionProvider(
         swiftProperties.getProvider(),
         swiftProperties.getContainer(),
@@ -38,7 +38,7 @@ public class PersistenceConfiguration {
 
   @Bean
   @Qualifier("mcsCassandraConnectionProvider")
-  public CassandraConnectionProvider mcsCassandraProvider() {
+  CassandraConnectionProvider mcsCassandraProvider() {
     return new CassandraConnectionProvider(
         cassandraMCSProperties().getHosts(),
         cassandraMCSProperties().getPort(),
@@ -49,12 +49,12 @@ public class PersistenceConfiguration {
 
   @Bean
   @ConfigurationProperties(prefix = "swift")
-  protected SwiftProperties swiftProperties() {
+  SwiftProperties swiftProperties() {
     return new SwiftProperties();
   }
 
   @Bean
-  public DynamicContentProxy dynamicContentProxy(ContentDAO swiftContentDAO, ContentDAO cassandraContentDAO) {
+  DynamicContentProxy dynamicContentProxy(ContentDAO swiftContentDAO, ContentDAO cassandraContentDAO) {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
     params.put(Storage.OBJECT_STORAGE, swiftContentDAO);
@@ -64,19 +64,19 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  public BucketsHandler bucketsHandler() {
+  BucketsHandler bucketsHandler() {
     return new BucketsHandler(mcsCassandraProvider().getSession());
   }
 
   @Bean
   @ConfigurationProperties(prefix = "cassandra.mcs")
-  protected CassandraProperties cassandraMCSProperties() {
+  CassandraProperties cassandraMCSProperties() {
     return new CassandraProperties();
   }
 
 
   @Bean
-  public CassandraRecordService cassandraRecordService(
+  CassandraRecordService cassandraRecordService(
       CassandraRecordDAO cassandraRecordDAO,
       CassandraDataSetService cassandraDataSetService,
       CassandraDataSetDAO cassandraDataSetDAO,
@@ -93,13 +93,13 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  public CassandraDataSetDAO cassandraDataSetDAO(
+  CassandraDataSetDAO cassandraDataSetDAO(
       @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
     return new CassandraDataSetDAO(cassandraConnectionProvider);
   }
 
   @Bean
-  public CassandraDataSetService cassandraDataSetService(
+  CassandraDataSetService cassandraDataSetService(
       CassandraDataSetDAO cassandraDataSetDAO,
       CassandraRecordDAO cassandraRecordDAO,
       UISClientHandler uisClientHandler,
@@ -112,19 +112,19 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  public CassandraRecordDAO cassandraRecordDAO(
+  CassandraRecordDAO cassandraRecordDAO(
       @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
     return new CassandraRecordDAO(cassandraConnectionProvider);
   }
 
   @Bean
-  public ContentDAO cassandraContentDAO(
+  ContentDAO cassandraContentDAO(
       @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
     return new CassandraContentDAO(cassandraConnectionProvider);
   }
 
   @Bean
-  public ContentDAO swiftContentDAO(SwiftConnectionProvider swiftConnectionProvider) {
+  ContentDAO swiftContentDAO(SwiftConnectionProvider swiftConnectionProvider) {
     return new SwiftContentDAO(swiftConnectionProvider);
   }
 }

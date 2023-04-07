@@ -37,24 +37,24 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
+  CloudAuthenticationEntryPoint cloudAuthenticationEntryPoint() {
     return new CloudAuthenticationEntryPoint();
   }
 
   @Bean
-  public LoggerListener loggerListener() {
+  LoggerListener loggerListener() {
     return new LoggerListener();
   }
 
   /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
   @Bean
-  public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
+  CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraUserDAO(aasCassandraProvider);
   }
 
   @Bean
-  public CassandraAuthenticationService authenticationService() {
+  CassandraAuthenticationService authenticationService() {
     return new CassandraAuthenticationService();
   }
 

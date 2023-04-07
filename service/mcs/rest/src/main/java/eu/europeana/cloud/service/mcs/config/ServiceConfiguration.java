@@ -30,7 +30,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
   @ConfigurationProperties(prefix = "general")
-  public GeneralProperties generalProperties() {
+  GeneralProperties generalProperties() {
     return new GeneralProperties();
   }
 
@@ -45,37 +45,37 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  public Integer objectStoreSizeThreshold() {
+  Integer objectStoreSizeThreshold() {
     return 524288;
   }
 
 
   @Bean
-  public UISClientHandler uisHandler() {
+  UISClientHandler uisHandler() {
     return new UISClientHandlerImpl(uisClient());
   }
 
   @Bean
-  public UISClient uisClient() {
+  UISClient uisClient() {
     return new UISClient(generalProperties().getUisLocation());
   }
 
 
   @SuppressWarnings("S5693") // Limit size is part of system requirements
   @Bean
-  public CommonsMultipartResolver multipartResolver() {
+  CommonsMultipartResolver multipartResolver() {
     CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
     multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
     return multipartResolver;
   }
 
   @Bean
-  public RetryAspect retryAspect() {
+  RetryAspect retryAspect() {
     return new RetryAspect();
   }
 
   @Bean
-  public AsyncTaskExecutor asyncExecutor() {
+  AsyncTaskExecutor asyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(10);
     executor.setMaxPoolSize(40);

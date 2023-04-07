@@ -29,7 +29,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 public class AuthorizationConfiguration {
 
   @Bean
-  public CassandraConnectionProvider aasCassandraProvider(
+  CassandraConnectionProvider aasCassandraProvider(
       @Qualifier("aasProperties") CassandraProperties cassandraAASProperties) {
     return new CassandraConnectionProvider(
         cassandraAASProperties.getHosts(),
@@ -41,14 +41,14 @@ public class AuthorizationConfiguration {
 
   /* Custom success handler, answers requests with 200 OK. */
   @Bean
-  public CloudAuthenticationSuccessHandler cloudSecuritySuccessHandler() {
+  CloudAuthenticationSuccessHandler cloudSecuritySuccessHandler() {
     return new CloudAuthenticationSuccessHandler();
   }
 
 
   /* Custom failure handler, answers requests with 401. */
   @Bean
-  public SimpleUrlAuthenticationFailureHandler cloudSecurityFailureHandler() {
+  SimpleUrlAuthenticationFailureHandler cloudSecurityFailureHandler() {
     return new SimpleUrlAuthenticationFailureHandler();
   }
 
@@ -56,7 +56,7 @@ public class AuthorizationConfiguration {
   /* ========= PERMISSION STORAGE in CASSANDRA (Using Spring security ACL) ========= */
 
   @Bean
-  public ExtendedAclService aclService(CassandraAclRepository aclRepository) {
+  ExtendedAclService aclService(CassandraAclRepository aclRepository) {
     return new CassandraMutableAclService(
         aclRepository,
         null,
@@ -66,51 +66,51 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
-  public CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
+  CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraAclRepository(aasCassandraProvider, false);
   }
 
   @Bean
   @Qualifier("aasProperties")
   @ConfigurationProperties(prefix = "cassandra.aas")
-  protected CassandraProperties cassandraAASProperties() {
+  CassandraProperties cassandraAASProperties() {
     return new CassandraProperties();
   }
+
   @Bean
-  public DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
+  DefaultPermissionGrantingStrategy permissionGrantingStrategy() {
     return new DefaultPermissionGrantingStrategy(auditLogger());
   }
 
   @Bean
-  public AclAuthorizationStrategyImpl authorizationStrategy() {
+  AclAuthorizationStrategyImpl authorizationStrategy() {
     return new AclAuthorizationStrategyImpl(simpleGrantedAuthority());
   }
 
 
   @Bean
-  public DefaultPermissionFactory permissionFactory() {
+  DefaultPermissionFactory permissionFactory() {
     return new DefaultPermissionFactory();
   }
 
 
-
   @Bean
-  public ConsoleAuditLogger auditLogger() {
+  ConsoleAuditLogger auditLogger() {
     return new ConsoleAuditLogger();
   }
 
   @Bean
-  public SimpleGrantedAuthority simpleGrantedAuthority() {
+  SimpleGrantedAuthority simpleGrantedAuthority() {
     return new SimpleGrantedAuthority(Role.ADMIN);
   }
 
   @Bean
-  public PermissionsGrantingManager permissionsGrantingManager() {
+  PermissionsGrantingManager permissionsGrantingManager() {
     return new PermissionsGrantingManager();
   }
 
   @Bean
-  public DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
+  DefaultMethodSecurityExpressionHandler expressionHandler(AclPermissionEvaluator permissionEvaluator,
       AclPermissionCacheOptimizer permissionCacheOptimizer) {
     DefaultMethodSecurityExpressionHandler result = new DefaultMethodSecurityExpressionHandler();
 
@@ -121,18 +121,18 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
-  public AclPermissionCacheOptimizer permissionCacheOptimizer(ExtendedAclService aclService) {
+  AclPermissionCacheOptimizer permissionCacheOptimizer(ExtendedAclService aclService) {
     return new AclPermissionCacheOptimizer(aclService);
   }
 
 
   @Bean
-  public AclPermissionEvaluator permissionEvaluator(ExtendedAclService aclService) {
+  AclPermissionEvaluator permissionEvaluator(ExtendedAclService aclService) {
     return new AclPermissionEvaluator(aclService);
   }
 
   @Bean
-  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+  DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
       PermissionEvaluator permissionEvaluator) {
     return new DataSetPermissionsVerifier(dataSetService, permissionEvaluator);
   }
