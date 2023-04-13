@@ -270,9 +270,23 @@
         </resources>
         <plugins>
             <plugin>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <groupId>org.springframework.boot</groupId>
-            <version>${version.spring-boot}</version>
+              <artifactId>spring-boot-maven-plugin</artifactId>
+              <configuration>
+                <layout>ZIP</layout>
+                <mainClass>eu.europeana.cloud.service.dps.DPSApplication</mainClass>
+              </configuration>
+              <executions>
+                <execution>
+                  <configuration>
+                    <classifier>exec</classifier>
+                  </configuration>
+                  <goals>
+                    <goal>repackage</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <groupId>org.springframework.boot</groupId>
+              <version>${version.spring-boot}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
