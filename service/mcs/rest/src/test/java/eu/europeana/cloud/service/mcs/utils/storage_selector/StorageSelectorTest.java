@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.utils.storage_selector;
 
-import static eu.europeana.cloud.service.mcs.rest.Helper.readFully;
+import static eu.europeana.cloud.service.mcs.controller.Helper.readFully;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 

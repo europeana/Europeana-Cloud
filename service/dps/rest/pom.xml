@@ -346,6 +346,10 @@
             <version>${version.metis}</version>
             <exclusions>
                 <exclusion>
+                    <artifactId>woodstox-core-asl</artifactId>
+                    <groupId>org.codehaus.woodstox</groupId>
+                </exclusion>
+                <exclusion>
                     <artifactId>surefire-junit47</artifactId>
                     <groupId>org.apache.maven.surefire</groupId>
                 </exclusion>

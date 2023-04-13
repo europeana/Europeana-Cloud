@@ -9,6 +9,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -25,7 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
+@ContextConfiguration(classes = {SpiedServicesTestContext.class})
 public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 
   @Autowired

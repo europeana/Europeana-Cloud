@@ -20,31 +20,30 @@ import org.jclouds.io.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 /**
  * Provides DAO operations for Openstack Swift.
  */
-@Repository
 public class SwiftContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
-    private static final String SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE = "swiftObjectOperation";
-    private static final String SWIFT_OBJECT_NAME_LOG_ATTRIBUTE = "swiftObjectName";
+  private static final String SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE = "swiftObjectOperation";
+  private static final String SWIFT_OBJECT_NAME_LOG_ATTRIBUTE = "swiftObjectName";
 
-    @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
-    // This name needs to break Sonar logger naming convention.
-    private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
+  @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
+  // This name needs to break Sonar logger naming convention.
+  private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
+  private final SwiftConnectionProvider connectionProvider;
 
-  @Autowired
-  private SwiftConnectionProvider connectionProvider;
+  public SwiftContentDAO(SwiftConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {
-        logOperation(fileName, "PUT");
+    logOperation(fileName, "PUT");
     BlobStore blobStore = connectionProvider.getBlobStore();
     String container = connectionProvider.getContainer();
     CountingInputStream countingInputStream = new CountingInputStream(data);
@@ -86,7 +85,7 @@ public class SwiftContentDAO implements ContentDAO {
   @Override
   public void copyContent(String sourceObjectId, String trgObjectId)
       throws FileNotExistsException, FileAlreadyExistsException {
-        logOperation(trgObjectId, "COPY");
+    logOperation(trgObjectId, "COPY");
     BlobStore blobStore = connectionProvider.getBlobStore();
     if (!blobStore.blobExists(connectionProvider.getContainer(), sourceObjectId)) {
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceObjectId));
@@ -103,7 +102,7 @@ public class SwiftContentDAO implements ContentDAO {
   @Override
   public void deleteContent(String fileName)
       throws FileNotExistsException {
-        logOperation(fileName, "DELETE");
+    logOperation(fileName, "DELETE");
     BlobStore blobStore = connectionProvider.getBlobStore();
     if (!blobStore.blobExists(connectionProvider.getContainer(), fileName)) {
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
@@ -112,16 +111,16 @@ public class SwiftContentDAO implements ContentDAO {
     blobStore.removeBlob(container, fileName);
   }
 
-    private void logOperation(String fileName, String operation) {
-        try {
-            MDC.put(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
-            MDC.put(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
-            SWIFT_MODIFICATIONS_LOGGER.info("Executed: {} on Swift for file: {}", operation, fileName);
-        } finally {
-            MDC.remove(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE);
-            MDC.remove(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE);
-        }
+  private void logOperation(String fileName, String operation) {
+    try {
+      MDC.put(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
+      MDC.put(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
+      SWIFT_MODIFICATIONS_LOGGER.info("Executed: {} on Swift for file: {}", operation, fileName);
+    } finally {
+      MDC.remove(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE);
+      MDC.remove(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE);
     }
+  }
 
   private DigestInputStream md5InputStream(InputStream is) {
     try {

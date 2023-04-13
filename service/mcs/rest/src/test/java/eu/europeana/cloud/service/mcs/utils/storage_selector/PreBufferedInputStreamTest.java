@@ -4,7 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.io.Resources;
-import eu.europeana.cloud.service.mcs.rest.Helper;
+import eu.europeana.cloud.service.mcs.controller.Helper;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;

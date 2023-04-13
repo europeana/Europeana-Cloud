@@ -14,12 +14,12 @@ import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 
-@Configuration
+@TestConfiguration
 public class SecurityTestContext {
 
   @Bean()
@@ -40,7 +40,6 @@ public class SecurityTestContext {
     return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
   }
 
-  //mock
   @Bean
   public UISClientHandler uisHandler() {
     return mock(UISClientHandlerImpl.class);
