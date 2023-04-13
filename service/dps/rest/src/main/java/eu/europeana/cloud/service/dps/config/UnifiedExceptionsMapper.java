@@ -28,7 +28,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  */
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.dps.rest"})
+@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.dps.controller"})
 public class UnifiedExceptionsMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);

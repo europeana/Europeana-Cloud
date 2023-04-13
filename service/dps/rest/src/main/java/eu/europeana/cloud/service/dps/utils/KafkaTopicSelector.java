@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,10 +31,12 @@ public class KafkaTopicSelector {
   private TaskStatusSynchronizer taskStatusSynchronizer;
 
 
-  public KafkaTopicSelector(Environment environment, TasksByStateDAO tasksByStateDAO,
-      TaskStatusSynchronizer taskStatusSynchronizer) {
+  @Autowired
+  public KafkaTopicSelector(TasksByStateDAO tasksByStateDAO,
+      TaskStatusSynchronizer taskStatusSynchronizer,
+      KafkaProperties kafkaProperties) {
     availableTopic = Collections.unmodifiableMap(
-        new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS)));
+        new TopologiesTopicsParser().parse(kafkaProperties.getTopologyAvailableTopics()));
     this.tasksByStateDAO = tasksByStateDAO;
     this.taskStatusSynchronizer = taskStatusSynchronizer;
     this.random = new Random();
