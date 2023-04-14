@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
+
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
@@ -16,6 +19,10 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -23,14 +30,6 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.util.Set;
-
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 public class EDMObjectProcessorBolt extends ReadFileBolt {
 
@@ -90,13 +89,13 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
       resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
 
       if (edmObjectResourceEntry != null) {
-        resourcesToBeProcessed++;
         LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
 
         ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry,
             mainThumbnailAvailable);
 
         if (resourceExtractionResult != null) {
+          resourcesToBeProcessed++;
           StormTaskTuple tuple = null;
           Set<String> thumbnailTargetNames = null;
           String metadataJson = null;
