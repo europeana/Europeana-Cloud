@@ -63,7 +63,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-media-service</artifactId>
-            <version>${version.metis}</version>
+            <version>10</version>
             <exclusions>
                 <exclusion>
                     <artifactId>org.springframework</artifactId>
