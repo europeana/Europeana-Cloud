@@ -10,6 +10,6 @@ RUN apk update && apk add \
     bind-tools \
     vim
 VOLUME /tmp
-COPY target/*.jar /home/ecloud/uis.jar
-ENTRYPOINT java -DtomcatHome=${TOMCAT_HOME} -jar /home/ecloud/uis.jar --spring.config.additional-location=file:${CONFIG_DIRECTORY}/uis.properties
+COPY target/*.jar /home/ecloud/mcs.jar
+ENTRYPOINT java -DtomcatHome=${TOMCAT_HOME} -jar /home/ecloud/mcs.jar --spring.config.additional-location=file:${CONFIG_DIRECTORY}/mcs.properties
 EXPOSE 8012/tcp

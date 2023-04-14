@@ -10,7 +10,41 @@
     <artifactId>ecloud-service-mcs-rest</artifactId>
     <name>Europeana Cloud: Metadata and Content Service REST</name>
 
-    <dependencies>
+    <build>
+    <plugins>
+      <plugin>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <groupId>org.springframework.boot</groupId>
+        <version>${version.spring-boot}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>@{jacocoArgLine} -Xmx3072m</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>persistent/</exclude>
+          <exclude>persistent-authentication/</exclude>
+          <exclude>persistent-authorization/</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    </build>
+
+  <dependencies>
         <dependency>
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
@@ -247,56 +281,15 @@
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-web-commons</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
+          <scope>compile</scope>
+          <version>${project.version}</version>
         </dependency>
-        <dependency>
+      <dependency>
         <artifactId>metrics-core</artifactId>
         <groupId>com.codahale.metrics</groupId>
         <version>3.0.2</version>
-    </dependency>
+      </dependency>
     </dependencies>
-
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>persistent/</exclude>
-                    <exclude>persistent-authentication/</exclude>
-                    <exclude>persistent-authorization/</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-              <artifactId>spring-boot-maven-plugin</artifactId>
-              <configuration>
-                <layout>ZIP</layout>
-                <mainClass>eu.europeana.cloud.service.dps.DPSApplication</mainClass>
-              </configuration>
-              <executions>
-                <execution>
-                  <configuration>
-                    <classifier>exec</classifier>
-                  </configuration>
-                  <goals>
-                    <goal>repackage</goal>
-                  </goals>
-                </execution>
-              </executions>
-              <groupId>org.springframework.boot</groupId>
-              <version>${version.spring-boot}</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>@{jacocoArgLine} -Xmx3072m</argLine>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencyManagement>
         <dependencies>
             <dependency>

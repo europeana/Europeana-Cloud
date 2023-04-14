@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
-import eu.europeana.cloud.service.dps.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.properties.GeneralProperties;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.properties.TopologyProperties;
@@ -44,14 +43,16 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
+import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
 import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -65,21 +66,40 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableAsync
 @EnableScheduling
-@PropertySource("classpath:dps.properties")
+@PropertySources({
+    @PropertySource(value = "classpath:dps.properties", ignoreResourceNotFound = true),
+    @PropertySource(value = "classpath:indexing.properties", ignoreResourceNotFound = true)
+})
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
-  private KafkaProperties kafkaProperties;
-  private GeneralProperties generalProperties;
-  private TopologyProperties topologyProperties;
+  @Bean
+  @ConfigurationProperties(prefix = "indexing.preview")
+  public IndexingProperties previewIndexingProperties() {
+    return new IndexingProperties();
+  }
 
-  @Autowired
-  public ServiceConfiguration(
-      KafkaProperties kafkaProperties,
-      GeneralProperties generalProperties,
-      TopologyProperties topologyProperties) {
-    this.kafkaProperties = kafkaProperties;
-    this.generalProperties = generalProperties;
-    this.topologyProperties = topologyProperties;
+  @Bean
+  @ConfigurationProperties(prefix = "indexing.publish")
+  public IndexingProperties publishIndexingProperties() {
+    return new IndexingProperties();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "kafka")
+  public KafkaProperties kafkaProperties() {
+    return new KafkaProperties();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "general")
+  public GeneralProperties generalProperties() {
+    return new GeneralProperties();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "topology")
+  public TopologyProperties topologyProperties() {
+    return new TopologyProperties();
   }
 
   @Bean
@@ -106,7 +126,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public RecordExecutionSubmitService recordKafkaSubmitService() {
-    return new RecordKafkaSubmitService(kafkaProperties.getBrokerLocation());
+    return new RecordKafkaSubmitService(kafkaProperties().getBrokerLocation());
   }
 
   @Bean
@@ -121,7 +141,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public TopologyManager topologyManger() {
-    return new TopologyManager(topologyProperties.getNameList());
+    return new TopologyManager(topologyProperties().getNameList());
   }
 
   @Bean
@@ -148,7 +168,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
 
   public String applicationIdentifier() {
-    return generalProperties.getAppId();
+    return generalProperties().getAppId();
   }
 
   @Bean
@@ -248,16 +268,16 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public MCSTaskSubmitter mcsTaskSubmitter() {
     return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
-        topologyProperties.getUser(),
-        topologyProperties.getPassword());
+        topologyProperties().getUser(),
+        topologyProperties().getPassword());
   }
 
   @Bean
   public FileURLCreator fileURLCreator() {
-    String machineLocation = generalProperties.getMachineLocation();
+    String machineLocation = generalProperties().getMachineLocation();
     if (machineLocation == null) {
       throw new BeanCreationException(
-          String.format("Property 'misc.machineLocation' must be set in properties file"));
+          "Property 'misc.machineLocation' must be set in properties file");
     }
     return new FileURLCreator(machineLocation);
   }
@@ -285,32 +305,32 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   public UISClient uisClient() {
     return new UISClient(
         uisLocation(),
-        topologyProperties.getUser(),
-        topologyProperties.getPassword());
+        topologyProperties().getUser(),
+        topologyProperties().getPassword());
   }
 
   @Bean
   public DataSetServiceClient dataSetServiceClient() {
     return new DataSetServiceClient(
         mcsLocation(),
-        topologyProperties.getUser(),
-        topologyProperties.getPassword());
+        topologyProperties().getUser(),
+        topologyProperties().getPassword());
   }
 
   @Bean
   public RecordServiceClient recordServiceClient() {
     return new RecordServiceClient(
         mcsLocation(),
-        topologyProperties.getUser(),
-        topologyProperties.getPassword());
+        topologyProperties().getUser(),
+        topologyProperties().getPassword());
   }
 
   @Bean
   public RevisionServiceClient revisionServiceClient() {
     return new RevisionServiceClient(
         mcsLocation(),
-        topologyProperties.getUser(),
-        topologyProperties.getPassword());
+        topologyProperties().getUser(),
+        topologyProperties().getPassword());
   }
 
   @Bean
@@ -354,13 +374,13 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
-  public DatasetStatsRetriever datasetStatsRetriever(IndexWrapper indexWrapper) {
-    return new DatasetStatsRetriever(indexWrapper);
+  public DatasetStatsRetriever datasetStatsRetriever() {
+    return new DatasetStatsRetriever(indexWrapper());
   }
 
   @Bean
   public IndexWrapper indexWrapper() {
-    return new IndexWrapper();
+    return new IndexWrapper(previewIndexingProperties(), publishIndexingProperties());
   }
 
   @Bean
@@ -385,10 +405,10 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   private String mcsLocation() {
-    return generalProperties.getMcsLocation();
+    return generalProperties().getMcsLocation();
   }
 
   private String uisLocation() {
-    return generalProperties.getUisLocation();
+    return generalProperties().getUisLocation();
   }
 }

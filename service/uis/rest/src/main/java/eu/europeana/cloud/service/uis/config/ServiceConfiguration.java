@@ -14,7 +14,11 @@ import eu.europeana.cloud.service.web.common.LoggingFilter;
 import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -29,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 @ComponentScan("eu.europeana.cloud.service.uis")
 @EnableAspectJAutoProxy
-@PropertySource("classpath:uis.properties.template")
+@PropertySource(value = "classpath:uis.properties", ignoreResourceNotFound = true)
 public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
