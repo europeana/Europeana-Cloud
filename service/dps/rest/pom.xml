@@ -19,8 +19,8 @@
         <plugins>
             <plugin>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <groupId>org.springframework.boot</groupId>
-                <version>${version.spring-boot}</version>
+              <groupId>org.springframework.boot</groupId>
+              <version>${version.spring-boot}</version>
               <executions>
                 <execution>
                   <goals>
@@ -29,17 +29,29 @@
                 </execution>
               </executions>
             </plugin>
-            <!--configuration of miredot - REST API documentation generator. -->
-            <plugin>
-                <artifactId>miredot-plugin</artifactId>
-                <configuration>
-                    <!--valid until January 1st, 2020-->
-                    <analysis>
-                        <checks>
-                            <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                            <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                            <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                            <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>indexing.properties</exclude>
+                <exclude>dps.properties</exclude>
+              </excludes>
+            </configuration>
+            <groupId>org.apache.maven.plugins</groupId>
+            <version>3.1.0</version>
+          </plugin>
+
+          <!--configuration of miredot - REST API documentation generator. -->
+          <plugin>
+            <artifactId>miredot-plugin</artifactId>
+            <configuration>
+              <!--valid until January 1st, 2020-->
+              <analysis>
+                <checks>
+                  <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
+                  <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
+                  <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
+                  <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
                             <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
                             <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
                             <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
