@@ -2,6 +2,7 @@ package eu.europeana.cloud.enrichment.bolts;
 
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
@@ -118,7 +119,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
       enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
           enricherProvider.create());
     } catch (DereferenceException | EnrichmentException e) {
-      throw new RuntimeException("Could not instantiate EnrichmentBolt due Exception in enrich worker creating", e);
+      throw new BoltInitializationException("Could not instantiate EnrichmentBolt due Exception in enrich worker creating", e);
     }
   }
 
