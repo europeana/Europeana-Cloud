@@ -9,7 +9,16 @@ RUN apk update && apk add \
     net-tools \
     bind-tools \
     vim
-VOLUME /tmp
+ARG JVM_ARGS="-Dcom.sun.management.jmxremote.ssl=false \
+                      -Dcom.sun.management.jmxremote.authenticate=false \
+                      -Dcom.sun.management.jmxremote.port=8012 \
+                      -Dcom.sun.management.jmxremote.rmi.port=8012 \
+                      -Dcom.sun.management.jmxremote.host=127.0.0.1 \
+                      -Djava.rmi.server.hostname=127.0.0.1"
+ARG SPRING_ARGS="--spring.jmx.enabled=true \
+                        --spring.config.additional-location=file:/etc/ecloud/mcs.properties"
+ENV JVM_ARGS=$JVM_ARGS
+ENV SPRING_ARGS=$SPRING_ARGS
 COPY target/*.jar /home/ecloud/mcs.jar
-ENTRYPOINT java -DmcsLogsLocation=/var/log/ecloud/mcs -jar /home/ecloud/mcs.jar --spring.config.additional-location=file:/etc/ecloud/mcs/conf/mcs.properties
+ENTRYPOINT java -DmcsLogsLocation=/var/log/ecloud/mcs/${appInstanceName} ${JVM_ARGS} -jar /home/ecloud/mcs.jar ${SPRING_ARGS}
 EXPOSE 8012/tcp

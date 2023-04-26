@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" strict="true" name="uisLoggerConfig">
     <Properties>
-      <Property name="logsDir">.</Property>
+      <Property name="uisLogsLocation">.</Property>
       <Property name="logsDir">${sys:uisLogsLocation}/</Property>
       <Property name="fileName">${logsDir}uis.log</Property>
       <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" strict="true" name="mcsLoggerConfig"><Properties>
-    <Property name="logsDir">.</Property>
+    <Property name="mcsLogsLocation">.</Property>
     <Property name="logsDir">${sys:mcsLogsLocation}/</Property>
     <Property name="fileName">${logsDir}mcs.log</Property>
     <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>

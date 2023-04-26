@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" strict="true" name="dpsLoggerConfig">
     <Properties>
-        <Property name="logsDir">.</Property>
+        <Property name="dpsLogsLocation">.</Property>
         <Property name="logsDir">${sys:dpsLogsLocation}/</Property>
         <Property name="fileName">${logsDir}dps.log</Property>
         <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}</Property>
