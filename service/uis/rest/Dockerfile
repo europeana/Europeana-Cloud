@@ -11,5 +11,5 @@ RUN apk update && apk add \
     vim
 VOLUME /tmp
 COPY target/*.jar /home/ecloud/uis.jar
-ENTRYPOINT java -DtomcatHome=${TOMCAT_HOME} -jar /home/ecloud/uis.jar --spring.config.additional-location=file:${CONFIG_DIRECTORY}/uis.properties
+ENTRYPOINT java -DuisLogsLocation=/var/log/ecloud/uis -jar /home/ecloud/uis.jar --spring.config.additional-location=file:/etc/ecloud/uis/conf/uis.properties
 EXPOSE 8012/tcp

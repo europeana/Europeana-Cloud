@@ -11,5 +11,5 @@ RUN apk update && apk add \
     vim
 VOLUME /tmp
 COPY target/*.jar /home/ecloud/mcs.jar
-ENTRYPOINT java -DtomcatHome=${TOMCAT_HOME} -jar /home/ecloud/mcs.jar --spring.config.additional-location=file:${CONFIG_DIRECTORY}/mcs.properties
+ENTRYPOINT java -DmcsLogsLocation=/var/log/ecloud/mcs -jar /home/ecloud/mcs.jar --spring.config.additional-location=file:/etc/ecloud/mcs/conf/mcs.properties
 EXPOSE 8012/tcp
