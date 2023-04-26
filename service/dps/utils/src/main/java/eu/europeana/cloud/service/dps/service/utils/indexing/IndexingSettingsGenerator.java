@@ -73,7 +73,7 @@ public class IndexingSettingsGenerator {
     }
     indexingSettings
         .setMongoDatabaseName(indexingProperties.getMongoDbName());
-    indexingSettings.setRecordRedirectDatabaseName(indexingProperties.getMongoRedirects());
+    indexingSettings.setRecordRedirectDatabaseName(indexingProperties.getMongoRedirectsDbName());
 
     if (mongoCredentialsProvidedFor(indexingProperties)) {
       indexingSettings.setMongoCredentials(

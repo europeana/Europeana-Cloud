@@ -43,7 +43,7 @@ public class IndexingPropertiesTransformer {
     indexingProperties.setMongoApplicationName(properties.getProperty(prefix + MONGO_APPLICATION_NAME));
     indexingProperties.setMongoInstances(properties.getProperty(prefix + MONGO_INSTANCES));
     indexingProperties.setMongoPoolSize(Integer.parseInt(properties.getProperty(prefix + MONGO_POOL_SIZE)));
-    indexingProperties.setMongoRedirects(properties.getProperty(prefix + MONGO_REDIRECTS_DB_NAME));
+    indexingProperties.setMongoRedirectsDbName(properties.getProperty(prefix + MONGO_REDIRECTS_DB_NAME));
     indexingProperties.setMongoPortNumber(Integer.parseInt(properties.getProperty(prefix + MONGO_PORT_NUMBER)));
     indexingProperties.setMongoAuthDb(properties.getProperty(prefix + MONGO_AUTH_DB));
     indexingProperties.setMongoUseSSL(properties.getProperty(prefix + MONGO_USE_SSL));

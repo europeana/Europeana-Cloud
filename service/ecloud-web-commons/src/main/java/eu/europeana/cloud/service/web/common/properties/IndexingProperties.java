@@ -12,7 +12,7 @@ public class IndexingProperties {
   private String mongoInstances;
   private int mongoPortNumber;
   private String mongoDbName;
-  private String mongoRedirects;
+  private String mongoRedirectsDbName;
   private String mongoUsername;
   private String mongoPassword;
   private String mongoAuthDb;
