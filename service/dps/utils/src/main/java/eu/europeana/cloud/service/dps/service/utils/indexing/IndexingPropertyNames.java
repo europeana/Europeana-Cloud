@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.service.utils.indexing;
 
 public class IndexingPropertyNames {
 
-  public static final String PREVIEW_PREFIX = "preview";
-  public static final String PUBLISH_PREFIX = "publish";
+  public static final String PREVIEW_PREFIX = "indexing.preview";
+  public static final String PUBLISH_PREFIX = "indexing.publish";
   public static final String MONGO_INSTANCES = "mongoInstances";
   public static final String MONGO_PORT_NUMBER = "mongoPortNumber";
   public static final String MONGO_DB_NAME = "mongoDbName";
