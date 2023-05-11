@@ -13,7 +13,9 @@
         </Appender>
         <Appender type="RollingFile" name="FILE" append="true" fileName="${fileName}" filePattern="${filePattern}">
             <Layout type="PatternLayout" pattern="${pattern}"/>
-            <TimeBasedTriggeringPolicy/>
+            <DefaultRolloverStrategy max="20"/>
+            <SizeBasedTriggeringPolicy size="512MB"/>
+            <TimeBasedTriggeringPolicy interval="24" modulate="true"/>
         </Appender>
     </Appenders>
     <Loggers>
