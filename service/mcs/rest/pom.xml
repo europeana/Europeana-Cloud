@@ -17,12 +17,41 @@
         <executions>
           <execution>
             <goals>
+              <goal>build-info</goal>
               <goal>repackage</goal>
             </goals>
           </execution>
         </executions>
         <groupId>org.springframework.boot</groupId>
         <version>${version.spring-boot}</version>
+      </plugin>
+      <plugin>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <configuration>
+          <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+          <prefix>git</prefix>
+          <verbose>false</verbose>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <id>get-the-git-infos</id>
+            <phase>initialize</phase>
+          </execution>
+          <execution>
+            <goals>
+              <goal>validateRevision</goal>
+            </goals>
+            <id>validate-the-git-infos</id>
+            <phase>package</phase>
+          </execution>
+        </executions>
+        <groupId>io.github.git-commit-id</groupId>
+        <version>${version.git-commit-maven}</version>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
