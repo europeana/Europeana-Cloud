@@ -5,6 +5,7 @@ import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -97,7 +98,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
       gson = new Gson();
     } catch (Exception e) {
       LOGGER.error("Unable to initialize RDF Deserializer ", e);
-      throw new RuntimeException(e);
+      throw new BoltInitializationException(e);
     }
   }
 }

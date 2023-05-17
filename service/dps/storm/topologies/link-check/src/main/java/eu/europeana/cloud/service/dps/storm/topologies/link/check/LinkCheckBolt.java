@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -40,7 +41,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
       cache = new HashMap<>(CACHE_SIZE);
     } catch (Exception e) {
       LOGGER.error("error while initializing Link checker {}", e.getCause(), e);
-      throw new RuntimeException("error while initializing Link checker", e);
+      throw new BoltInitializationException("error while initializing Link checker", e);
     }
 
   }
