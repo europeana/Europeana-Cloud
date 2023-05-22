@@ -60,7 +60,7 @@ CREATE TABLE representation_revisions (
        PRIMARY KEY ((cloud_id, representation_id), revision_provider_id, revision_name, revision_timestamp, version_id)
 )WITH CLUSTERING ORDER BY (revision_provider_id ASC, revision_name ASC, revision_timestamp DESC, version_id ASC) AND comment='Retrieve version_id based on the rest known fields of the primary key';
 
-CREATE TABLE data_set_assignments_by_revision_id_v1 (
+CREATE TABLE data_set_assignments_by_revision_id_v2 (
        provider_id varchar,
        dataset_id varchar,
        bucket_id timeuuid,
@@ -69,10 +69,11 @@ CREATE TABLE data_set_assignments_by_revision_id_v1 (
        revision_timestamp timestamp,
        representation_id varchar,
        cloud_id varchar,
+       version_id timeuuid,
        published boolean,
        acceptance boolean,
        mark_deleted boolean,
-       PRIMARY KEY ((provider_id, dataset_id, bucket_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id)
+       PRIMARY KEY ((provider_id, dataset_id, bucket_id), revision_provider_id, revision_name, revision_timestamp, representation_id, cloud_id, version_id)
 )WITH comment='Retrieve cloud Ids based on a known provider_id, dataset_id, revision_id';
 
 CREATE TABLE data_set_assignments_by_revision_id_buckets (

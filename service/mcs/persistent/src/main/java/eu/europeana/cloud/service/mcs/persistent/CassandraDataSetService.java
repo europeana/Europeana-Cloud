@@ -90,7 +90,7 @@ public class CassandraDataSetService implements DataSetService {
 
       for (Revision revision : rep.getRevisions()) {
         addDataSetsRevision(providerId, dataSetId, revision,
-            schema, recordId);
+            schema, recordId, version);
       }
     }
   }
@@ -109,7 +109,7 @@ public class CassandraDataSetService implements DataSetService {
 
     // now we have to insert rows for each data set
     for (CompoundDataSetId dsID : dataSets) {
-      addDataSetsRevision(dsID.getDataSetProviderId(), dsID.getDataSetId(), revision, schema, globalId);
+      addDataSetsRevision(dsID.getDataSetProviderId(), dsID.getDataSetId(), revision, schema, globalId, version);
     }
   }
 
@@ -146,7 +146,7 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName,
-      String cloudId) {
+      String cloudId, String version_id) {
     //
     String providerDataSetId = createProviderDataSetId(providerId, datasetId);
     Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
@@ -156,7 +156,7 @@ public class CassandraDataSetService implements DataSetService {
     }
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
     //
-    dataSetDAO.addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId);
+    dataSetDAO.addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, version_id);
   }
 
 
@@ -174,7 +174,7 @@ public class CassandraDataSetService implements DataSetService {
 
     if (representation != null) {
       for (Revision revision : representation.getRevisions()) {
-        removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId);
+        removeDataSetsRevision(providerId, dataSetId, revision, schema, recordId, versionId);
       }
     }
 
@@ -337,9 +337,9 @@ public class CassandraDataSetService implements DataSetService {
         version);
     for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
 
-      //data_set_assignments_by_revision_id_v1
+      //data_set_assignments_by_revision_id_v2
       removeDataSetsRevision(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), revision,
-          representationName, cloudId);
+          representationName, cloudId, version);
     }
 
     //representation revisions
@@ -353,13 +353,13 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName,
-      String cloudId) {
+      String cloudId, String version_id) {
 
     List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(
         DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, createProviderDataSetId(providerId, datasetId));
 
     for (Bucket bucket : availableBuckets) {
-      if (dataSetDAO.removeDataSetRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId)) {
+      if (dataSetDAO.removeDataSetRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, version_id)) {
         bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
         return;
       }
