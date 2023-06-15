@@ -145,6 +145,7 @@
         <version.git-commit-maven>5.0.0</version.git-commit-maven>
         <version.servlet>4.0.1</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
+        <version.openapi>1.7.0</version.openapi>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
             to avoid data corruption in Cassandra.
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->

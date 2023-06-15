@@ -26,6 +26,26 @@
         <version>${version.spring-boot}</version>
       </plugin>
       <plugin>
+        <artifactId>springdoc-openapi-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <configuration>
+              <javadocProvider>therapi</javadocProvider>
+              <packagesToScan>
+                <package>eu.europeana.cloud</package>
+              </packagesToScan>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>generate-docs</id>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+        <groupId>org.springdoc</groupId>
+        <version>1.4</version>
+      </plugin>
+      <plugin>
         <artifactId>git-commit-id-maven-plugin</artifactId>
         <configuration>
           <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
@@ -88,37 +108,49 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
                 <exclusion>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                    <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-logging</artifactId>
+                  <groupId>org.springframework.boot</groupId>
                 </exclusion>
             </exclusions>
-            <groupId>org.springframework.boot</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
           <groupId>org.springframework.boot</groupId>
         </dependency>
-      <dependency>
-        <artifactId>spring-boot-starter-actuator</artifactId>
-        <groupId>org.springframework.boot</groupId>
-      </dependency>
-      <dependency>
-        <artifactId>spring-boot-starter-security</artifactId>
-        <groupId>org.springframework.boot</groupId>
-      </dependency>
-      <dependency>
-        <artifactId>springdoc-openapi-ui</artifactId>
-        <groupId>org.springdoc</groupId>
-        <version>${version.spring-doc}</version>
-      </dependency>
-      <dependency>
-        <artifactId>spring-boot-starter-test</artifactId>
-        <groupId>org.springframework.boot</groupId>
-        <scope>test</scope>
-      </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-security</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <groupId>org.springdoc</groupId>
+      <version>${version.openapi}</version>
+    </dependency>
+    <dependency>
+      <artifactId>springdoc-openapi-javadoc</artifactId>
+      <groupId>org.springdoc</groupId>
+      <version>${version.openapi}</version>
+    </dependency>
 
-      <dependency>
-        <artifactId>ecloud-service-uis-rest-client-java</artifactId>
+    <dependency>
+      <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+      <groupId>com.github.therapi</groupId>
+      <version>0.13.0</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <artifactId>ecloud-service-uis-rest-client-java</artifactId>
         <groupId>eu.europeana.cloud</groupId>
         <version>${project.version}</version>
       </dependency>
