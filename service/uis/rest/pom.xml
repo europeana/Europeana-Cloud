@@ -45,26 +45,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>springdoc-openapi-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <javadocProvider>therapi</javadocProvider>
-                            <packagesToScan>
-                                <package>eu.europeana.cloud</package>
-                            </packagesToScan>
-                        </configuration>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <id>generate-docs</id>
-                        <phase>compile</phase>
-                    </execution>
-                </executions>
-                <groupId>org.springdoc</groupId>
-                <version>1.4</version>
-            </plugin>
-            <plugin>
                 <artifactId>git-commit-id-maven-plugin</artifactId>
                 <configuration>
                     <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
