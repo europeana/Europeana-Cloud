@@ -49,7 +49,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
 
   private SimpleDateFormat dateFormat;
 
-  private CassandraDataSetDAO dataSetDAO;
+  private static final String VERSION_ID = "b75fe730-f893-11ed-9c21-0242da5f01d7";
 
   @Before
   public void mockUp() {
@@ -57,7 +57,6 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     dataSetService = applicationContext.getBean(DataSetService.class);
     dataSetWebTarget = DataSetRevisionsResource.class.getAnnotation(RequestMapping.class).value()[0];
     dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    dataSetDAO = applicationContext.getBean(CassandraDataSetDAO.class);
   }
 
   @After
@@ -78,7 +77,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
 
     // when
     ResultActions response = mockMvc.perform(
@@ -109,7 +108,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
 
     // when
     ResultActions response = mockMvc.perform(
@@ -163,9 +162,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
     // when
     ResultActions response = mockMvc.perform(
                                         get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId).
@@ -196,9 +195,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     String cloudId = "cloudId";
     String cloudId2 = "cloudId2";
     String cloudId3 = "cloudId3";
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
+    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
 
     // when get first page (set page size to 1)
     ResultActions response = mockMvc.perform(
