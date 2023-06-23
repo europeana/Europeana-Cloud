@@ -47,6 +47,7 @@ import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
 import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -71,6 +72,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     @PropertySource(value = "classpath:indexing.properties", ignoreResourceNotFound = true)
 })
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
+
+  @Value("${AppId}")
+  public String applicationIdentifier;
 
   @Bean
   @ConfigurationProperties(prefix = "indexing.preview")
@@ -165,10 +169,14 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     );
   }
 
+  //  Remove upper variant when fully migrated to kubernetes
   @Bean
-
   public String applicationIdentifier() {
-    return generalProperties().getAppId();
+    if (applicationIdentifier == null || applicationIdentifier.isBlank()) {
+      return generalProperties().getAppId();
+    } else {
+      return applicationIdentifier;
+    }
   }
 
   @Bean
