@@ -20,5 +20,5 @@ ARG SPRING_ARGS="--spring.jmx.enabled=true \
 ENV JVM_ARGS=$JVM_ARGS
 ENV SPRING_ARGS=$SPRING_ARGS
 COPY target/*.jar /home/ecloud/mcs.jar
-ENTRYPOINT java -DmcsLogsLocation=/var/log/ecloud/mcs/${appInstanceName} ${JVM_ARGS} -jar /home/ecloud/mcs.jar ${SPRING_ARGS}
+ENTRYPOINT java -DmcsLogsLocation=/var/log/ecloud/mcs/${AppId} ${JVM_ARGS} -jar /home/ecloud/mcs.jar ${SPRING_ARGS}
 EXPOSE 8012/tcp

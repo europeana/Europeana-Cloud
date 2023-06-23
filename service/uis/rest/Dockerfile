@@ -21,5 +21,5 @@ ENV JVM_ARGS=$JVM_ARGS
 ENV SPRING_ARGS=$SPRING_ARGS
 VOLUME /tmp
 COPY target/*.jar /home/ecloud/uis.jar
-ENTRYPOINT java -DuisLogsLocation=/var/log/ecloud/uis/${appInstanceName} ${JVM_ARGS} -jar /home/ecloud/uis.jar ${SPRING_ARGS}
+ENTRYPOINT java -DuisLogsLocation=/var/log/ecloud/uis/${AppId} ${JVM_ARGS} -jar /home/ecloud/uis.jar ${SPRING_ARGS}
 EXPOSE 8012/tcp
