@@ -276,11 +276,6 @@
             <version>${version.slf4j}</version>
         </dependency>
         <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
             <version>${version.metis}</version>

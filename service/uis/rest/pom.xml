@@ -301,11 +301,6 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet}</version>
         </dependency>
-        <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
     </dependencies>
 
 </project>

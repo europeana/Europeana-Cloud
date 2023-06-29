@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.controller;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -167,7 +166,6 @@ public class TopologyTasksResource {
 
   @PostMapping(path = "{taskId}/permit")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  @ReturnType("java.lang.Void")
   public ResponseEntity<Void> grantPermissions(
       @PathVariable String topologyName,
       @PathVariable Long taskId,
