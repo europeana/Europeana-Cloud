@@ -29,6 +29,62 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${version.spring-boot}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <configuration>
+                    <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <prefix>git</prefix>
+                    <verbose>false</verbose>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <id>get-the-git-infos</id>
+                        <phase>initialize</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <id>validate-the-git-infos</id>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <groupId>io.github.git-commit-id</groupId>
+                <version>${version.git-commit-maven}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>uis.properties</exclude>
+                    </excludes>
+                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>3.1.0</version>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,8 +119,21 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.7.0</version>
+            <version>${version.openapi}</version>
         </dependency>
+
+        <dependency>
+            <artifactId>springdoc-openapi-javadoc</artifactId>
+            <groupId>org.springdoc</groupId>
+            <version>${version.openapi}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+            <groupId>com.github.therapi</groupId>
+            <version>0.13.0</version>
+        </dependency>
+
 
         <dependency>
             <artifactId>metrics-core</artifactId>
@@ -121,7 +190,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
 
         <!-- Authentication + Authorization -->
         <dependency>
@@ -232,67 +301,6 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet}</version>
         </dependency>
-        <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${version.spring-boot}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build-info</goal>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>git-commit-id-maven-plugin</artifactId>
-                <configuration>
-                    <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-                    <prefix>git</prefix>
-                    <verbose>false</verbose>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                        <id>get-the-git-infos</id>
-                        <phase>initialize</phase>
-                    </execution>
-                    <execution>
-                        <goals>
-                            <goal>validateRevision</goal>
-                        </goals>
-                        <id>validate-the-git-infos</id>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-                <groupId>io.github.git-commit-id</groupId>
-                <version>${version.git-commit-maven}</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>uis.properties</exclude>
-                    </excludes>
-                </configuration>
-                <groupId>org.apache.maven.plugins</groupId>
-                <version>3.1.0</version>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

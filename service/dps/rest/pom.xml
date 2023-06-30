@@ -69,95 +69,6 @@
             <groupId>org.apache.maven.plugins</groupId>
             <version>3.1.0</version>
           </plugin>
-
-          <!--configuration of miredot - REST API documentation generator. -->
-          <plugin>
-            <artifactId>miredot-plugin</artifactId>
-            <configuration>
-              <!--valid until January 1st, 2020-->
-              <analysis>
-                <checks>
-                  <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                  <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                  <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                  <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-                            <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-                            <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-                            <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-                            <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
-                        </checks>
-                    </analysis>
-                    <licence>
-                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==
-                    </licence>
-                    <output>
-                        <html>
-                            <initialCollapseLevel>100</initialCollapseLevel>
-                        </html>
-                    </output>
-                    <restModel>
-                        <externalSources>
-                            <sourceDirs>
-                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
-                                <sourceDir>${project.parent.basedir}/api/src/main/java</sourceDir>
-                            </sourceDirs>
-                        </externalSources>
-                        <fieldVisibility>
-                            <CREATOR>PUBLIC_ONLY</CREATOR>
-                            <FIELD>PUBLIC_ONLY</FIELD>
-                            <GETTER>PUBLIC_ONLY</GETTER>
-                            <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-                            <SETTER>PUBLIC_ONLY</SETTER>
-                        </fieldVisibility>
-                        <httpStatusCodes>
-                            <httpStatusCode>
-                                <defaultMessage>The service call has completed successfully.</defaultMessage>
-                                <document>always</document>
-                                <httpCode>200</httpCode>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <defaultMessage>Internal server exception. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                                <document>always</document>
-                                <httpCode>500</httpCode>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <defaultMessage>Access denied or object does not exist. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
-                                </document>
-                                <httpCode>405</httpCode>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <defaultMessage>Access denied or Topology does not exist. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException
-                                </document>
-                                <httpCode>405</httpCode>
-                            </httpStatusCode>
-                        </httpStatusCodes>
-                        <titleNamingStrategies>
-                            <strategy>tag: summary</strategy>
-                            <strategy>tag: title</strategy>
-                            <strategy>firstsentence</strategy>
-                        </titleNamingStrategies>
-                    </restModel>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <groupId>com.qmino</groupId>
-                <version>${version.miredotPlugin}</version>
-            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -231,6 +142,21 @@
         <artifactId>spring-boot-configuration-processor</artifactId>
         <groupId>org.springframework.boot</groupId>
         <optional>true</optional>
+      </dependency>
+      <dependency>
+        <artifactId>springdoc-openapi-ui</artifactId>
+        <groupId>org.springdoc</groupId>
+        <version>${version.openapi}</version>
+      </dependency>
+      <dependency>
+        <artifactId>springdoc-openapi-javadoc</artifactId>
+        <groupId>org.springdoc</groupId>
+        <version>${version.openapi}</version>
+      </dependency>
+      <dependency>
+        <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+        <groupId>com.github.therapi</groupId>
+        <version>0.13.0</version>
       </dependency>
       <dependency>
         <artifactId>ecloud-web-commons</artifactId>
@@ -348,11 +274,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
             <version>${version.slf4j}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.metis</groupId>

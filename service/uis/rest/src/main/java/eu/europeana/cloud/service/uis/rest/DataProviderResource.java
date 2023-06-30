@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
@@ -108,7 +107,6 @@ public class DataProviderResource {
   @PostMapping(value = RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
-  @ReturnType("eu.europeana.cloud.common.model.CloudId")
   public ResponseEntity<CloudId> createIdMapping(
       @PathVariable String providerId,
       @PathVariable String cloudId,

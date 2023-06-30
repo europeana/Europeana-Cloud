@@ -118,11 +118,6 @@
             <url>https://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
         </repository>
         <repository>
-            <id>miredot</id>
-            <name>MireDot Releases</name>
-            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
-        </repository>
-        <repository>
             <id>clojars</id>
             <url>https://repo.clojars.org/</url>
         </repository>
@@ -145,6 +140,7 @@
         <version.git-commit-maven>5.0.0</version.git-commit-maven>
         <version.servlet>4.0.1</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
+        <version.openapi>1.7.0</version.openapi>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
             to avoid data corruption in Cassandra.
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
@@ -163,7 +159,6 @@
         <version.log4j>2.17.2</version.log4j>
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
-        <version.miredotPlugin>2.2.1-Java10</version.miredotPlugin>
 
         <version.cassandra-driver>3.11.3</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
@@ -440,13 +435,6 @@
             <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>miredot</id>
-            <name>MireDot Releases</name>
-            <url>https://secure-nexus.miredot.com/content/repositories/miredot/</url>
-        </pluginRepository>
-    </pluginRepositories>
     <distributionManagement>
         <repository>
             <id>artifactory.eanadev.org</id>
