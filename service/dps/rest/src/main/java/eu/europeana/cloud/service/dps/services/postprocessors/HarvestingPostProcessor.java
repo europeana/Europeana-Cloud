@@ -14,6 +14,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.RepresentationParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -106,6 +107,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
       }
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
+    } catch (RetryInterruptedException e) {
+      throw e;
     } catch (Exception exception) {
       throw new PostProcessingException(
           String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
