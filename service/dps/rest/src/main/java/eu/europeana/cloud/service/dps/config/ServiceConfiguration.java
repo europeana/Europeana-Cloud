@@ -169,14 +169,9 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     );
   }
 
-  //  Remove upper variant when fully migrated to kubernetes
   @Bean
   public String applicationIdentifier() {
-    if (applicationIdentifier == null || applicationIdentifier.isBlank()) {
-      return generalProperties().getAppId();
-    } else {
       return applicationIdentifier;
-    }
   }
 
   @Bean
