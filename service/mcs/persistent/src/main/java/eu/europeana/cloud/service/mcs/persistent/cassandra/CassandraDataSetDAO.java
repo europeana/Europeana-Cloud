@@ -19,6 +19,9 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -45,7 +48,10 @@ public class CassandraDataSetDAO {
   public static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
   private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
-  private final CassandraConnectionProvider connectionProvider;
+
+  @Autowired
+  @Qualifier("dbService")
+  private CassandraConnectionProvider connectionProvider;
   private PreparedStatement createDataSetStatement;
   private PreparedStatement deleteDataSetStatement;
   private PreparedStatement addAssignmentStatement;
@@ -61,10 +67,6 @@ public class CassandraDataSetDAO {
   private PreparedStatement addDataSetsRevisionStatement;
   private PreparedStatement getDataSetsRevisionStatement;
   private PreparedStatement removeDataSetsRevisionStatement;
-
-  public CassandraDataSetDAO(CassandraConnectionProvider connectionProvider) {
-    this.connectionProvider = connectionProvider;
-  }
 
   public ResultSlice<DatasetAssignment> getDataSetAssignments(String providerDataSetId, String bucketId, PagingState state,
       int limit) {
