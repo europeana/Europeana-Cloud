@@ -20,5 +20,5 @@ ARG SPRING_ARGS="--spring.jmx.enabled=true \
 ENV JVM_ARGS=$JVM_ARGS
 ENV SPRING_ARGS=$SPRING_ARGS
 COPY target/*.jar /home/ecloud/dps.jar
-ENTRYPOINT java -DdpsLogsLocation=/var/log/ecloud/dps/${appInstanceName} ${JVM_ARGS} -jar /home/ecloud/dps.jar ${SPRING_ARGS}
+ENTRYPOINT java -DdpsLogsLocation=/var/log/ecloud/dps/${AppId} ${JVM_ARGS} -jar /home/ecloud/dps.jar ${SPRING_ARGS}
 EXPOSE 8012/tcp

@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class GeneralProperties {
 
-  private String appId;
   private String machineLocation;
   private String mcsLocation;
   private String uisLocation;
