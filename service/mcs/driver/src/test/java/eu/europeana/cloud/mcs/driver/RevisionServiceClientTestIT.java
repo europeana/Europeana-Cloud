@@ -27,15 +27,11 @@ public class RevisionServiceClientTestIT {
     String revisionName = "<enter_revision_name_here>";
     String revisionProviderId = "<enter_revision_provider_id_here>";
     Date creationTimeStamp = GregorianCalendar.getInstance().getTime();
-    boolean acceptance = true;
-    boolean published = true;
     boolean deleted = false;
     Revision revision = new Revision(
         revisionName,
         revisionProviderId,
         creationTimeStamp,
-        acceptance,
-        published,
         deleted
     );
 

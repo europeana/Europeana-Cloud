@@ -27,7 +27,6 @@ import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
-import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
 import java.net.MalformedURLException;
 import java.util.Date;
@@ -459,7 +458,8 @@ public class IndexingBoltTest {
   private void mockIndexer(MediaTier recordMediaTier) throws IndexingException {
     doAnswer(params -> {
       Predicate<TierResults> tierResultsConsumer = params.getArgument(2);
-      TierResults result = new TierResults(recordMediaTier, MetadataTier.TC);
+      TierResults result = Mockito.mock(TierResults.class);
+      when(result.getMediaTier()).thenReturn(recordMediaTier);
       tierResultsConsumer.test(result);
       return null;
     }).when(indexer).index(anyString(), any(), any());

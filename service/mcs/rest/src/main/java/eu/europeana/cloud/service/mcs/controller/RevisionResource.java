@@ -68,7 +68,7 @@ public class RevisionResource {
    * @param version a specific version of the representation(required).
    * @param revisionName the name of revision (required).
    * @param revisionProviderId revision provider id (required).
-   * @param tag tag flag (acceptance,published,deleted)
+   * @param tag tag flag (deleted)
    * @return URI to specific revision with specific tag inside a version.
    * @throws RepresentationNotExistsException representation does not exist in specified version
    * @throws RevisionIsNotValidException if the added revision was not valid
@@ -87,7 +87,7 @@ public class RevisionResource {
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
     ParamUtil.validate("tag", tag,
-        Arrays.asList(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()));
+        Arrays.asList(Tags.DELETED.getTag()));
     //
     Representation representation = Representation.fromFields(cloudId, representationName, version);
     //
@@ -139,7 +139,7 @@ public class RevisionResource {
    * @param version a specific version of the representation(required).
    * @param revisionName the name of revision (required).
    * @param revisionProviderId revision provider id (required).
-   * @param tags set of tags (acceptance,published,deleted)
+   * @param tags set of tags (deleted)
    * @return URI to a revision tags inside a version.
    * @throws RepresentationNotExistsException representation does not exist in specified version
    * @throws RevisionIsNotValidException if the added revision was not valid
@@ -158,7 +158,7 @@ public class RevisionResource {
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
     ParamUtil.validateTags(tags,
-        new HashSet<>(Sets.newHashSet(Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag())));
+        new HashSet<>(Sets.newHashSet(Tags.DELETED.getTag())));
     //
     Representation representation = Representation.fromFields(cloudId, representationName, version);
     //

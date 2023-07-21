@@ -68,8 +68,7 @@ public class HarvestingPostProcessorTest {
   private static final Date REVISION_TIMESTAMP = new Date(0);
   private static final String REVISION_PROVIDER = "revisionProvider";
   private static final String REVISION_NAME = "revisionName";
-  private static final Revision RESULT_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP,
-      false, false, true);
+  private static final Revision RESULT_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP, true);
   private static final String HARVEST_DATE_STRING = "2021-05-26T08:00:00.000Z";
   private static final Date HARVEST_DATE = DateHelper.parseISODate(HARVEST_DATE_STRING);
   private static final Date OLDER_DATE = DateHelper.parseISODate("2021-05-26T07:30:00.000Z");

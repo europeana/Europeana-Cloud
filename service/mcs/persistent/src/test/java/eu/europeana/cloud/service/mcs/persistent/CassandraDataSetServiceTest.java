@@ -449,7 +449,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     DataSet ds = createDataset();
     Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID, ds.getId());
-    Revision revision = new Revision(REVISION, PROVIDER_ID, date, true, true, false);
+    Revision revision = new Revision(REVISION, PROVIDER_ID, date, false);
     cassandraRecordService.addRevision(representation.getCloudId(),
         representation.getRepresentationName(), representation.getVersion(), revision);
     cassandraDataSetService.updateAllRevisionDatasetsEntries(representation.getCloudId(),

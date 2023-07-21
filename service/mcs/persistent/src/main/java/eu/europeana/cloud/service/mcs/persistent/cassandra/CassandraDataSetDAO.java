@@ -283,8 +283,7 @@ public class CassandraDataSetDAO {
     BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
             providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
             revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
-            UUID.fromString(version_id),
-            revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+            UUID.fromString(version_id), revision.isDeleted());
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -325,8 +324,7 @@ public class CassandraDataSetDAO {
     int available = rs.getAvailableWithoutFetching();
     for (int i = 0; i < available; i++) {
       Row row = rs.one();
-      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("published"),
-          row.getBool("mark_deleted"), row.getBool("acceptance")));
+      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("mark_deleted")));
     }
     PagingState ps = rs.getExecutionInfo().getPagingState();
     if ((result.size() == limit) && !rs.isExhausted()) {
@@ -421,8 +419,8 @@ public class CassandraDataSetDAO {
         "INSERT " +
             "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
             "revision_provider_id, revision_name, revision_timestamp, " +
-            "representation_id, cloud_id, version_id, published, acceptance, mark_deleted) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
+            "representation_id, cloud_id, version_id, mark_deleted) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?);"
     );
 
     removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
@@ -441,7 +439,7 @@ public class CassandraDataSetDAO {
     );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
-        "SELECT cloud_id, version_id, published, acceptance, mark_deleted " +
+        "SELECT cloud_id, version_id, mark_deleted " +
             "FROM data_set_assignments_by_revision_id_v2 " +
             "WHERE provider_id = ? " +
             "AND dataset_id = ? " +

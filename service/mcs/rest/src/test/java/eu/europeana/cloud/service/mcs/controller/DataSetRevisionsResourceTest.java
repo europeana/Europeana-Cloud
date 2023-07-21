@@ -73,7 +73,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     String revisionProviderId = "revisionProviderId";
     String representationName = "representationName";
     String cloudId = "cloudId";
-    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
+    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), false);
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
@@ -102,8 +102,8 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     String revisionName2 = "revisionName2";
     String revisionProviderId = "revisionProviderId";
     String representationName = "representationName";
-    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
-    Revision revision2 = new Revision(revisionName2, revisionProviderId, new Date(), true, false, false);
+    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), false);
+    Revision revision2 = new Revision(revisionName2, revisionProviderId, new Date(), false);
     String cloudId = "cloudId";
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
@@ -155,7 +155,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     String representationName = "representationName";
     String revisionName = "revisionName";
     String revisionProviderId = "revisionProviderId";
-    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
+    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), false);
     String cloudId = "cloudId";
     String cloudId2 = "cloudId2";
     String cloudId3 = "cloudId3";
@@ -191,7 +191,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
 
-    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), true, false, false);
+    Revision revision = new Revision(revisionName, revisionProviderId, new Date(), false);
     String cloudId = "cloudId";
     String cloudId2 = "cloudId2";
     String cloudId3 = "cloudId3";

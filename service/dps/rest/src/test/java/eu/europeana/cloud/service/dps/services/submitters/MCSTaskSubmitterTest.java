@@ -86,7 +86,7 @@ public class MCSTaskSubmitterTest {
   private static final String VERSION_1 = "ec3c18b0-7354-11ea-b16e-04922659f621";
   private static final URI REPRESENTATON_URI_1 = URI.create(REPRESENTATION_URI_STRING_1);
   private static final Revision REVISION_1 = new Revision(REVISION_NAME, REVISION_PROVIDER_1,
-      parseISODate(FILE_CREATION_DATE_STRING_1), false, false, false);
+      parseISODate(FILE_CREATION_DATE_STRING_1), false);
   private static final Representation REPRESENTATION_1 = new Representation(
       CLOUD_ID1,
       REPRESENTATION_NAME,
@@ -102,7 +102,7 @@ public class MCSTaskSubmitterTest {
 
   //File2
   private static final Revision DELETED_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER_1,
-      parseISODate(FILE_CREATION_DATE_STRING_1), false, false, true);
+      parseISODate(FILE_CREATION_DATE_STRING_1), true);
   private static final Representation DELETED_REPRESENTATION = new Representation(
       CLOUD_ID1,
       REPRESENTATION_NAME,
@@ -290,7 +290,7 @@ public class MCSTaskSubmitterTest {
     )).thenReturn(cloudTagsResponseResultSlice);
 
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false, false, false));
+    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
 
     when(recordServiceClient.getRepresentationsByRevision(
         eq(CLOUD_ID1),
@@ -361,7 +361,7 @@ public class MCSTaskSubmitterTest {
         isNull()
     )).thenReturn(dataChunk);
     when(dataChunk.getResults()).thenReturn(dataList);
-    dataList.add(new CloudTagsResponse(CLOUD_ID1, false, false, false));
+    dataList.add(new CloudTagsResponse(CLOUD_ID1, false));
     when(recordServiceClient.getRepresentationsByRevision(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
@@ -389,7 +389,7 @@ public class MCSTaskSubmitterTest {
         isNull()
     )).thenReturn(dataChunk);
     when(dataChunk.getResults()).thenReturn(dataList);
-    dataList.add(new CloudTagsResponse(CLOUD_ID1, false, true, false));
+    dataList.add(new CloudTagsResponse(CLOUD_ID1, true));
     when(recordServiceClient.getRepresentationsByRevision(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
@@ -418,8 +418,8 @@ public class MCSTaskSubmitterTest {
     )).thenReturn(cloudTagsResponseResultSlice);
 
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false, false, false));
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID2, false, false, false));
+    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
+    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID2, false));
 
     when(recordServiceClient.getRepresentationsByRevision(
         eq(CLOUD_ID1),
@@ -449,7 +449,7 @@ public class MCSTaskSubmitterTest {
         eq(null))).thenReturn(cloudTagsResponseResultSlice);
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
     when(cloudTagsResponseResultSlice.getNextSlice()).thenReturn(EXAMPLE_DATE, EXAMPLE_DATE, null);
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false, false, false));
+    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
 
     when(recordServiceClient.getRepresentationsByRevision(
         eq(CLOUD_ID1),
