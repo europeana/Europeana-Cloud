@@ -1,6 +1,6 @@
 package eu.europeana.cloud.swiftmigrate;
 
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleSwiftConnectionProvider;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -64,25 +64,9 @@
             <version>${version.uuid}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-blobstore</artifactId>
-            <version>${version.swift}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jsr311-api</artifactId>
-                    <groupId>javax.ws.rs</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.jclouds.api</groupId>
-            <artifactId>openstack-keystone</artifactId>
-            <version>${version.swift}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jclouds.api</groupId>
-            <artifactId>openstack-swift</artifactId>
-            <version>${version.swift}</version>
+            <artifactId>s3</artifactId>
+            <version>${version.jclouds}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

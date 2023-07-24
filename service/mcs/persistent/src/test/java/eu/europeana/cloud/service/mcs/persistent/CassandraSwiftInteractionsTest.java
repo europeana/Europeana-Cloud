@@ -9,7 +9,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.junit.After;
@@ -32,7 +32,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
   private CassandraRecordService cassandraRecordService;
 
   @Autowired
-  private SwiftContentDAO swiftContentDAO;
+    private S3ContentDAO s3ContentDAO;
 
   @Autowired
   private UISClientHandler uisHandler;
@@ -44,7 +44,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
 
   @After
   public void resetMocks() {
-    Mockito.reset(swiftContentDAO);
+	Mockito.reset(s3ContentDAO);
     Mockito.reset(uisHandler);
   }
 
@@ -55,7 +55,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
            .getProvider(providerId);
     Mockito.doReturn(true).when(uisHandler).existsCloudId("id");
     // prepare failure
-    Mockito.doThrow(new MockException()).when(swiftContentDAO)
+	Mockito.doThrow(new MockException()).when(s3ContentDAO)
            .putContent(anyString(), any(InputStream.class));
     // given representation
     DataSet ds = cassandraDataSetService.createDataSet(providerId, "ds_name",

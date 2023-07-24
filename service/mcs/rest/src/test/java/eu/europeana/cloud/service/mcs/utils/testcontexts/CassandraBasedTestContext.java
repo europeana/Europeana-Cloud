@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
@@ -39,8 +39,8 @@ public class CassandraBasedTestContext {
 
   @Bean()
   @Order(100)
-  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-    return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
+    public SimpleS3ConnectionProvider s3ConnectionProvider() {
+        return new SimpleS3ConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
   }
 
   //mock

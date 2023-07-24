@@ -149,7 +149,7 @@
         <version.commonscodec>1.15</version.commonscodec>
         <version.commonio>2.10.0</version.commonio>
         <version.uuid>3.5</version.uuid>
-        <version.swift>2.2.1</version.swift>
+        <version.jclouds>2.2.1</version.jclouds>
         <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>

@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.mcs.persistent.swift;
+package eu.europeana.cloud.service.mcs.persistent.s3;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

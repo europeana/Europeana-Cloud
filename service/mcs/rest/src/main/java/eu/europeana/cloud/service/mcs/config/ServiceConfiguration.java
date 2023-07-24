@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
@@ -48,11 +48,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   private static final String JNDI_KEY_CASSANDRA_USERNAME = "/mcs/cassandra/user";
   private static final String JNDI_KEY_CASSANDRA_PASSWORD = "/mcs/cassandra/password";
 
-  private static final String JNDI_KEY_SWIFT_PROVIDER = "/mcs/swift/provider";
-  private static final String JNDI_KEY_SWIFT_CONTAINER = "/mcs/swift/container";
-  private static final String JNDI_KEY_SWIFT_ENDPOINT = "/mcs/swift/endpoint";
-  private static final String JNDI_KEY_SWIFT_USER = "/mcs/swift/user";
-  private static final String JNDI_KEY_SWIFT_PASSWORD = "/mcs/swift/password";
+    private static final String JNDI_KEY_S3_PROVIDER = "/mcs/s3/provider";
+    private static final String JNDI_KEY_S3_CONTAINER = "/mcs/s3/container";
+    private static final String JNDI_KEY_S3_ENDPOINT = "/mcs/s3/endpoint";
+    private static final String JNDI_KEY_S3_USER = "/mcs/s3/user";
+    private static final String JNDI_KEY_S3_PASSWORD = "/mcs/s3/password";
 
   private static final String JNDI_KEY_UISURL = "/mcs/uis-url";
   private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
@@ -109,10 +109,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  public DynamicContentProxy dynamicContentProxy() {
+    public DynamicContentProxy dynamicContentProxy(SimpleS3ConnectionProvider s3ConnectionProvider) {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
-    params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
+        params.put(Storage.OBJECT_STORAGE, s3ContentDAO(s3ConnectionProvider));
     params.put(Storage.DATA_BASE, cassandraContentDAO());
 
     return new DynamicContentProxy(params);
@@ -124,18 +124,18 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  public ContentDAO swiftContentDAO() {
-    return new SwiftContentDAO();
+    public ContentDAO s3ContentDAO(SimpleS3ConnectionProvider s3ConnectionProvider) {
+        return new S3ContentDAO(s3ConnectionProvider);
   }
 
   @Bean
-  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-    return new SimpleSwiftConnectionProvider(
-        environment.getProperty(JNDI_KEY_SWIFT_PROVIDER),
-        environment.getProperty(JNDI_KEY_SWIFT_CONTAINER),
-        environment.getProperty(JNDI_KEY_SWIFT_ENDPOINT),
-        environment.getProperty(JNDI_KEY_SWIFT_USER),
-        environment.getProperty(JNDI_KEY_SWIFT_PASSWORD));
+    public SimpleS3ConnectionProvider s3ConnectionProvider() {
+        return new SimpleS3ConnectionProvider(
+                environment.getProperty(JNDI_KEY_S3_PROVIDER),
+                environment.getProperty(JNDI_KEY_S3_CONTAINER),
+                environment.getProperty(JNDI_KEY_S3_ENDPOINT),
+                environment.getProperty(JNDI_KEY_S3_USER),
+                environment.getProperty(JNDI_KEY_S3_PASSWORD));
   }
 
   @Bean

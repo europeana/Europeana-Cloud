@@ -8,9 +8,9 @@
 
     <context:annotation-config/>
 
-    <bean id="swiftContentDAO" class="eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO"/>
+    <bean id="s3ContentDAO" class="eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO"/>
 
-    <bean id="connectionProvider" class="eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider">
+    <bean id="connectionProvider" class="eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider">
         <constructor-arg index="0" type="java.lang.String" value="transient"/>
         <constructor-arg index="1" type="java.lang.String" value="test_container"/>
         <constructor-arg index="2" type="java.lang.String" value=""/>

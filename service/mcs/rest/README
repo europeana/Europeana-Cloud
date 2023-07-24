@@ -3,6 +3,6 @@ Metadata and Content Service REST API.
 This application should be deployed on servlet container and has been tested on Tomcat 7.0.
 Default profile uses in-memory implementation of services. 
 
-In order to use Cassandra/OpenStack Swift/Solr services, the application must be built with "persistent" profile. 
+In order to use Cassandra/S3/Solr services, the application must be built with "persistent" profile.
 This implementation relies on external services and all connection details must be provided as jndi properties in Tomcat. 
 See META-INF/context.xml for a list of properties that are used by the application in persistent mode.

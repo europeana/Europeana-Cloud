@@ -1,8 +1,8 @@
-package eu.europeana.cloud.service.mcs.persistent.swift;
+package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import com.google.common.io.BaseEncoding;
+import com.google.common.hash.HashCode;
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CountingInputStream;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
@@ -24,10 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- * Provides DAO operations for Openstack Swift.
+ * Provides DAO operations for S3.
  */
 @Repository
-public class SwiftContentDAO implements ContentDAO {
+public class S3ContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
@@ -39,25 +39,27 @@ public class SwiftContentDAO implements ContentDAO {
     // This name needs to break Sonar logger naming convention.
     private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
 
-  @Autowired
-  private SwiftConnectionProvider connectionProvider;
+    private final S3ConnectionProvider connectionProvider;
+
+    public S3ContentDAO(S3ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {
         logOperation(fileName, "PUT");
     BlobStore blobStore = connectionProvider.getBlobStore();
     String container = connectionProvider.getContainer();
-    CountingInputStream countingInputStream = new CountingInputStream(data);
-    DigestInputStream md5DigestInputStream = md5InputStream(countingInputStream);
     BlobBuilder builder = blobStore.blobBuilder(fileName);
     builder = builder.name(fileName);
-    builder = builder.payload(md5DigestInputStream);
+        ByteSource byteSource = ByteSource.wrap(IOUtils.toByteArray(data));
+        String md5 = DigestUtils.md5Hex(IOUtils.toByteArray(byteSource.openStream()));
+        builder = builder.payload(byteSource)
+                .contentLength(byteSource.size())
+                .contentMD5(HashCode.fromString(md5));
     Blob blob = builder.build();
     blobStore.putBlob(container, blob);
-
-    String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
-    Long contentLength = countingInputStream.getCount();
-    return new PutResult(md5, contentLength);
+        return new PutResult(md5, byteSource.size());
   }
 
   @Override

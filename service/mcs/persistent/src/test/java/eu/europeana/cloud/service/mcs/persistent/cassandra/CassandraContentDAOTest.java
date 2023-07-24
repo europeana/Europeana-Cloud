@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
 import eu.europeana.cloud.service.mcs.persistent.CassandraTestBase;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAOTest;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAOTest;
 import org.junit.After;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
