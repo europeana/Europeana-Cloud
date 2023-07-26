@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Manage connection for S3 using jClouds library.
  */
-@Component
 public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleS3ConnectionProvider.class);

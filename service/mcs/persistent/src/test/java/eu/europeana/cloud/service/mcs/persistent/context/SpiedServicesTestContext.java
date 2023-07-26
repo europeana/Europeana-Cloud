@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import java.util.EnumMap;
 import java.util.Map;
@@ -57,8 +57,8 @@ public class SpiedServicesTestContext {
   }
 
   @Bean
-  public SimpleSwiftConnectionProvider simpleSwiftConnectionProvider() {
-    return spy(new SimpleSwiftConnectionProvider(
+  public SimpleS3ConnectionProvider simpleS3ConnectionProvider() {
+    return spy(new SimpleS3ConnectionProvider(
         "transient",
         "test_container",
         "", "test_user",
@@ -71,8 +71,8 @@ public class SpiedServicesTestContext {
   }
 
   @Bean
-  public SwiftContentDAO swiftContentDAO() {
-    return spy(new SwiftContentDAO(simpleSwiftConnectionProvider()));
+  public S3ContentDAO s3ContentDAO() {
+    return spy(new S3ContentDAO(simpleS3ConnectionProvider()));
   }
 
   @Bean
@@ -85,7 +85,7 @@ public class SpiedServicesTestContext {
   public DynamicContentProxy dynamicContentDAO() {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
-    params.put(Storage.OBJECT_STORAGE, swiftContentDAO());
+    params.put(Storage.OBJECT_STORAGE, s3ContentDAO());
     params.put(Storage.DATA_BASE, cassandraContentDAO());
 
     return spy(new DynamicContentProxy(params));

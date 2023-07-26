@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import eu.europeana.cloud.service.mcs.persistent.context.SwiftTestContext;
+import eu.europeana.cloud.service.mcs.persistent.context.S3TestContext;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

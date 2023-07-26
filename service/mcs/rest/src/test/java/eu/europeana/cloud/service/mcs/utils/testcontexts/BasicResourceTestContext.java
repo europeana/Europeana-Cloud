@@ -62,10 +62,8 @@ public class BasicResourceTestContext {
   @MockBean
   public UISClient uisClient;
 
-
   @Bean
-  public UISClient uisClient() {
-    return mock(UISClient.class);
+  public CassandraDataSetService cassandraDataSetService() {
     return new CassandraDataSetService(
         new CassandraDataSetDAO(dbService()),
         new CassandraRecordDAO(dbService()),
