@@ -22,7 +22,6 @@ import org.jclouds.io.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -34,12 +33,12 @@ public class S3ContentDAO implements ContentDAO {
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
-    private static final String SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE = "swiftObjectOperation";
-    private static final String SWIFT_OBJECT_NAME_LOG_ATTRIBUTE = "swiftObjectName";
+    private static final String S3_OBJECT_OPERATION = "s3ObjectOperation";
+    private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
 
     @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
     // This name needs to break Sonar logger naming convention.
-    private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
+    private static final Logger S3_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("S3Modifications");
 
     private final S3ConnectionProvider connectionProvider;
 
@@ -118,12 +117,12 @@ public class S3ContentDAO implements ContentDAO {
 
     private void logOperation(String fileName, String operation) {
         try {
-            MDC.put(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
-            MDC.put(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
-            SWIFT_MODIFICATIONS_LOGGER.info("Executed: {} on Swift for file: {}", operation, fileName);
+            MDC.put(S3_OBJECT_OPERATION, operation);
+            MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
+            S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}", operation, fileName);
         } finally {
-            MDC.remove(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE);
-            MDC.remove(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE);
+            MDC.remove(S3_OBJECT_OPERATION);
+            MDC.remove(S3_OBJECT_NAME_LOG_ATTRIBUTE);
         }
     }
 

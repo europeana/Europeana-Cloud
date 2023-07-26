@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(value = {"classpath:/spiedServicesTestContext.xml"})
-public class CassandraSwiftInteractionsTest extends CassandraTestBase {
+public class CassandraS3InteractionsTest extends CassandraTestBase {
 
   @Autowired
   private CassandraRecordService cassandraRecordService;
@@ -49,7 +49,7 @@ public class CassandraSwiftInteractionsTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemainConsistentWhenSwiftNotWorks() throws Exception {
+  public void shouldRemainConsistentWhenS3NotWorks() throws Exception {
 
     Mockito.doReturn(new DataProvider()).when(uisHandler)
            .getProvider(providerId);
