@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class SwiftProperties {
+public class S3Properties {
   private String provider;
   private String container;
   private String endpoint;

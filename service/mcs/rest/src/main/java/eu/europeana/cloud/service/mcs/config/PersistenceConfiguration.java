@@ -10,11 +10,11 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
-import eu.europeana.cloud.service.mcs.properties.SwiftProperties;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
+import eu.europeana.cloud.service.mcs.properties.S3Properties;
 import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,13 +27,14 @@ import org.springframework.context.annotation.Configuration;
 public class PersistenceConfiguration {
 
   @Bean
-  SwiftConnectionProvider swiftConnectionProvider(SwiftProperties swiftProperties) {
-    return new SimpleSwiftConnectionProvider(
-        swiftProperties.getProvider(),
-        swiftProperties.getContainer(),
-        swiftProperties.getEndpoint(),
-        swiftProperties.getUser(),
-        swiftProperties.getPassword());
+  S3ConnectionProvider s3ConnectionProvider(S3Properties s3Properties) {
+    return new SimpleS3ConnectionProvider(
+        s3Properties.getProvider(),
+        s3Properties.getContainer(),
+        s3Properties.getEndpoint(),
+        s3Properties.getUser(),
+        s3Properties.getPassword()) {
+    };
   }
 
   @Bean
@@ -48,16 +49,16 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "swift")
-  SwiftProperties swiftProperties() {
-    return new SwiftProperties();
+  @ConfigurationProperties(prefix = "s3")
+  S3Properties s3Properties() {
+    return new S3Properties();
   }
 
   @Bean
-  DynamicContentProxy dynamicContentProxy(ContentDAO swiftContentDAO, ContentDAO cassandraContentDAO) {
+  DynamicContentProxy dynamicContentProxy(ContentDAO s3ContentDAO, ContentDAO cassandraContentDAO) {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
-    params.put(Storage.OBJECT_STORAGE, swiftContentDAO);
+    params.put(Storage.OBJECT_STORAGE, s3ContentDAO);
     params.put(Storage.DATA_BASE, cassandraContentDAO);
 
     return new DynamicContentProxy(params);
@@ -124,7 +125,7 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  ContentDAO swiftContentDAO(SwiftConnectionProvider swiftConnectionProvider) {
-    return new SwiftContentDAO(swiftConnectionProvider);
+  ContentDAO s3ContentDAO(S3ConnectionProvider s3ConnectionProvider) {
+    return new S3ContentDAO(s3ConnectionProvider);
   }
 }
