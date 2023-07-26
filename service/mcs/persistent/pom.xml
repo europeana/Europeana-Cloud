@@ -57,17 +57,6 @@
             <version>${version.uuid}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-blobstore</artifactId>
-            <version>${version.jclouds}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jsr311-api</artifactId>
-                    <groupId>javax.ws.rs</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.jclouds.api</groupId>
             <artifactId>s3</artifactId>
             <version>${version.jclouds}</version>
