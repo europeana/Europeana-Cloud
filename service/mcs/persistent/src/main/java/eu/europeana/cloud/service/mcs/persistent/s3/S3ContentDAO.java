@@ -1,8 +1,8 @@
-package eu.europeana.cloud.service.mcs.persistent.swift;
+package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import com.google.common.io.BaseEncoding;
+import com.google.common.hash.HashCode;
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CountingInputStream;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.domain.Blob;
@@ -22,41 +24,41 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 /**
- * Provides DAO operations for Openstack Swift.
+ * Provides DAO operations for S3.
  */
-public class SwiftContentDAO implements ContentDAO {
+public class S3ContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
-  private static final String SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE = "swiftObjectOperation";
-  private static final String SWIFT_OBJECT_NAME_LOG_ATTRIBUTE = "swiftObjectName";
+  private static final String S3_OBJECT_OPERATION = "s3ObjectOperation";
+  private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
 
   @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
   // This name needs to break Sonar logger naming convention.
-  private static final Logger SWIFT_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("SwiftModifications");
-  private final SwiftConnectionProvider connectionProvider;
+  private static final Logger S3_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("S3Modifications");
 
-  public SwiftContentDAO(SwiftConnectionProvider connectionProvider) {
-    this.connectionProvider = connectionProvider;
-  }
+    private final S3ConnectionProvider connectionProvider;
+
+    public S3ContentDAO(S3ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {
     logOperation(fileName, "PUT");
     BlobStore blobStore = connectionProvider.getBlobStore();
     String container = connectionProvider.getContainer();
-    CountingInputStream countingInputStream = new CountingInputStream(data);
-    DigestInputStream md5DigestInputStream = md5InputStream(countingInputStream);
     BlobBuilder builder = blobStore.blobBuilder(fileName);
     builder = builder.name(fileName);
-    builder = builder.payload(md5DigestInputStream);
+        ByteSource byteSource = ByteSource.wrap(IOUtils.toByteArray(data));
+        String md5 = DigestUtils.md5Hex(IOUtils.toByteArray(byteSource.openStream()));
+        builder = builder.payload(byteSource)
+                .contentLength(byteSource.size())
+                .contentMD5(HashCode.fromString(md5));
     Blob blob = builder.build();
     blobStore.putBlob(container, blob);
-
-    String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
-    Long contentLength = countingInputStream.getCount();
-    return new PutResult(md5, contentLength);
+        return new PutResult(md5, byteSource.size());
   }
 
   @Override
@@ -113,12 +115,12 @@ public class SwiftContentDAO implements ContentDAO {
 
   private void logOperation(String fileName, String operation) {
     try {
-      MDC.put(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
-      MDC.put(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
-      SWIFT_MODIFICATIONS_LOGGER.info("Executed: {} on Swift for file: {}", operation, fileName);
+      MDC.put(S3_OBJECT_OPERATION, operation);
+      MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
+      S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}", operation, fileName);
     } finally {
-      MDC.remove(SWIFT_OBJECT_OPERATION_LOG_ATTRIBUTE);
-      MDC.remove(SWIFT_OBJECT_NAME_LOG_ATTRIBUTE);
+      MDC.remove(S3_OBJECT_OPERATION);
+      MDC.remove(S3_OBJECT_NAME_LOG_ATTRIBUTE);
     }
   }
 

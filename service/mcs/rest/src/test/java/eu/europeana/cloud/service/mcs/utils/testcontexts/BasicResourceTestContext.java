@@ -17,7 +17,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -56,14 +56,16 @@ public class BasicResourceTestContext {
   @MockBean
   public DynamicContentProxy dynamicContentProxy;
   @MockBean
-  public SimpleSwiftConnectionProvider swiftConnectionProvider;
+  public SimpleS3ConnectionProvider s3ConnectionProvider;
   @MockBean
   public CassandraRecordService cassandraRecordService;
   @MockBean
   public UISClient uisClient;
 
+
   @Bean
-  public CassandraDataSetService cassandraDataSetService() {
+  public UISClient uisClient() {
+    return mock(UISClient.class);
     return new CassandraDataSetService(
         new CassandraDataSetDAO(dbService()),
         new CassandraRecordDAO(dbService()),
