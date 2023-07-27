@@ -13,7 +13,6 @@ import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import org.junit.Test;
 
 import java.util.Map;
-import org.junit.Test;
 
 /**
  * @author krystian.

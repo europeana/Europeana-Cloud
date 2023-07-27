@@ -31,18 +31,18 @@ public class S3ContentDAO implements ContentDAO {
   private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
-  private static final String S3_OBJECT_OPERATION = "s3ObjectOperation";
+  private static final String S3_OBJECT_OPERATION_LOG_ATTRIBUTE = "s3ObjectOperation";
   private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
 
   @SuppressWarnings("java:S1312") //This is custom logger, so it should have distinguishable name.
   // This name needs to break Sonar logger naming convention.
   private static final Logger S3_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("S3Modifications");
 
-    private final S3ConnectionProvider connectionProvider;
+  private final S3ConnectionProvider connectionProvider;
 
-    public S3ContentDAO(S3ConnectionProvider connectionProvider) {
-        this.connectionProvider = connectionProvider;
-    }
+  public S3ContentDAO(S3ConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
+  }
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException, ContainerNotFoundException {
@@ -51,14 +51,14 @@ public class S3ContentDAO implements ContentDAO {
     String container = connectionProvider.getContainer();
     BlobBuilder builder = blobStore.blobBuilder(fileName);
     builder = builder.name(fileName);
-        ByteSource byteSource = ByteSource.wrap(IOUtils.toByteArray(data));
-        String md5 = DigestUtils.md5Hex(IOUtils.toByteArray(byteSource.openStream()));
-        builder = builder.payload(byteSource)
-                .contentLength(byteSource.size())
-                .contentMD5(HashCode.fromString(md5));
+    ByteSource byteSource = ByteSource.wrap(IOUtils.toByteArray(data));
+    String md5 = DigestUtils.md5Hex(IOUtils.toByteArray(byteSource.openStream()));
+    builder = builder.payload(byteSource)
+                     .contentLength(byteSource.size())
+                     .contentMD5(HashCode.fromString(md5));
     Blob blob = builder.build();
     blobStore.putBlob(container, blob);
-        return new PutResult(md5, byteSource.size());
+    return new PutResult(md5, byteSource.size());
   }
 
   @Override
@@ -115,11 +115,11 @@ public class S3ContentDAO implements ContentDAO {
 
   private void logOperation(String fileName, String operation) {
     try {
-      MDC.put(S3_OBJECT_OPERATION, operation);
+      MDC.put(S3_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
       MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
       S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}", operation, fileName);
     } finally {
-      MDC.remove(S3_OBJECT_OPERATION);
+      MDC.remove(S3_OBJECT_OPERATION_LOG_ATTRIBUTE);
       MDC.remove(S3_OBJECT_NAME_LOG_ATTRIBUTE);
     }
   }
