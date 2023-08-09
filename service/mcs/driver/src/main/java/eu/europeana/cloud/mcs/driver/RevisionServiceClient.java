@@ -127,42 +127,6 @@ public class RevisionServiceClient extends MCSClient {
   }
 
   /**
-   * add a revision
-   *
-   * @param cloudId cloud id of the record (required).
-   * @param representationName schema of representation (required).
-   * @param version a specific version of the representation(required).
-   * @param revisionName the name of revision (required).
-   * @param revisionProviderId revision provider id (required).
-   * @param tags set of tags (acceptance,published,deleted)
-   * @return URI to a revision tags inside a version.
-   * @throws RepresentationNotExistsException when representation does not exist in specified version.
-   * @throws DriverException call to service has not succeeded because of server side error.
-   * @throws MCSException on unexpected situations.
-   */
-  public URI addRevision(String cloudId, String representationName, String version,
-      String revisionName, String revisionProviderId, Set<Tags> tags) throws MCSException {
-
-    Form form = new Form();
-    for (Tags tag : tags) {
-      form.param(F_TAGS, tag.getTag());
-    }
-
-    return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client
-            .target(baseUrl)
-            .path(REVISION_ADD_WITH_PROVIDER)
-            .resolveTemplate(CLOUD_ID, cloudId)
-            .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .resolveTemplate(VERSION, version)
-            .resolveTemplate(REVISION_NAME, revisionName)
-            .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-            .request()
-            .post(Entity.form(form))
-    );
-  }
-
-  /**
    * Remove a revision
    *
    * @param cloudId cloud Id

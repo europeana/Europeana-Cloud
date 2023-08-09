@@ -96,20 +96,4 @@ public class RevisionServiceClientTest {
     instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION,
         new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
   }
-
-
-  @Test
-  public void shouldAddRevisionWithEmptyTagsSet() throws MCSException {
-    //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tags",
-        201,
-        EXPECTED_REVISION_PATH_MULTIPLE_TAGS,
-        null);
-    //
-    Set<Tags> tags = new HashSet<>();
-    URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, tags);
-    assertNotNull(uri);
-    assertEquals(EXPECTED_REVISION_PATH_MULTIPLE_TAGS, uri.toString());
-  }
 }
