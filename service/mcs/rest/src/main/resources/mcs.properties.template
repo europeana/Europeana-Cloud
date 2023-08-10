@@ -16,12 +16,12 @@ cassandra.mcs.hosts=
 cassandra.mcs.port=
 
 
-#### swift settings ####
-swift.provider=
-swift.container=
-swift.endpoint=
-swift.user=
-swift.password=
+#### s3 settings ####
+s3.provider=
+s3.container=
+s3.endpoint=
+s3.user=
+s3.password=
 
 #### General settings ####
 general.uisLocation=
