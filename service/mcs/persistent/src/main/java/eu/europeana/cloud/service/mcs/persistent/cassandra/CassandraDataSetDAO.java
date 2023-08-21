@@ -59,8 +59,19 @@ public class CassandraDataSetDAO {
   private PreparedStatement getOneDataSetForRepresentationStatement;
   private PreparedStatement hasProvidedRepresentationNameStatement;
   private PreparedStatement addDataSetsRevisionStatement;
+  /* Temporary added statement that will store rows in the additional table during migration of
+  data_set_assignments_by_revision_id_v1
+  to
+  data_set_assignments_by_revision_id_v2   */
+  private PreparedStatement addDataSetsRevisionStatementMigrationTable;
   private PreparedStatement getDataSetsRevisionStatement;
   private PreparedStatement removeDataSetsRevisionStatement;
+
+  /* Temporary added statement that will remove rows from the additional table during migration of
+    data_set_assignments_by_revision_id_v1
+    to
+    data_set_assignments_by_revision_id_v2   */
+  private PreparedStatement removeDataSetsRevisionStatementMigrationTable;
 
   public CassandraDataSetDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
@@ -279,25 +290,40 @@ public class CassandraDataSetDAO {
   }
 
   public void addDataSetsRevision(String providerId, String datasetId, String bucketId, Revision revision,
-                                  String representationName, String cloudId, String version_id) {
+                                  String representationName, String cloudId, String versionId) {
     BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
             providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
             revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
-            UUID.fromString(version_id),
+            revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+
+    BoundStatement boundStatementForTempTable = addDataSetsRevisionStatementMigrationTable.bind(
+            providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
+            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
+            UUID.fromString(versionId),
             revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+    ResultSet rsTest = connectionProvider.getSession().execute(boundStatementForTempTable);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
+    QueryTracer.logConsistencyLevel(boundStatement, rsTest);
   }
 
   public boolean removeDataSetRevision(String providerId, String datasetId, String bucketId, Revision revision,
-      String representationName, String cloudId, String version_id) {
+      String representationName, String cloudId, String versionId) {
     BoundStatement boundStatement = removeDataSetsRevisionStatement.bind(
         providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
-        revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, UUID.fromString(version_id));
+        revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId);
+
+    BoundStatement boundStatementForTempTable = removeDataSetsRevisionStatementMigrationTable.bind(
+            providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
+            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, UUID.fromString(versionId));
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+    ResultSet rsTemp = connectionProvider.getSession().execute(boundStatementForTempTable);
+
     QueryTracer.logConsistencyLevel(boundStatement, rs);
+    QueryTracer.logConsistencyLevel(boundStatement, rsTemp);
+
     return rs.wasApplied();
   }
 
@@ -419,15 +445,23 @@ public class CassandraDataSetDAO {
 
     addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
         "INSERT " +
-            "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
+            "INTO data_set_assignments_by_revision_id_v1 (provider_id, dataset_id, bucket_id, " +
             "revision_provider_id, revision_name, revision_timestamp, " +
-            "representation_id, cloud_id, version_id, published, acceptance, mark_deleted) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
+            "representation_id, cloud_id, published, acceptance, mark_deleted) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+    );
+
+    addDataSetsRevisionStatementMigrationTable = connectionProvider.getSession().prepare(
+            "INSERT " +
+                    "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
+                    "revision_provider_id, revision_name, revision_timestamp, " +
+                    "representation_id, cloud_id, version_id, published, acceptance, mark_deleted) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
     );
 
     removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
         "DELETE " +
-            "FROM data_set_assignments_by_revision_id_v2 " +
+            "FROM data_set_assignments_by_revision_id_v1 " +
             "WHERE provider_id = ? " +
             "AND dataset_id = ? " +
             "AND bucket_id = ? " +
@@ -436,8 +470,22 @@ public class CassandraDataSetDAO {
             "AND revision_timestamp = ? " +
             "AND representation_id = ? " +
             "AND cloud_id = ? " +
-            "AND version_id = ? " +
             "IF EXISTS;"
+    );
+
+    removeDataSetsRevisionStatementMigrationTable = connectionProvider.getSession().prepare(
+            "DELETE " +
+                    "FROM data_set_assignments_by_revision_id_v2 " +
+                    "WHERE provider_id = ? " +
+                    "AND dataset_id = ? " +
+                    "AND bucket_id = ? " +
+                    "AND revision_provider_id = ? " +
+                    "AND revision_name = ? " +
+                    "AND revision_timestamp = ? " +
+                    "AND representation_id = ? " +
+                    "AND cloud_id = ? " +
+                    "AND version_id = ? " +
+                    "IF EXISTS;"
     );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
