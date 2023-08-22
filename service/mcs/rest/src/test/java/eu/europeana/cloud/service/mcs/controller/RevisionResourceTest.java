@@ -169,18 +169,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldAddRevisionWithAcceptedTag() throws Exception {
-    mockMvc.perform(post(revisionWebTargetWithTag, Tags.ACCEPTANCE.getTag()))
-           .andExpect(status().isCreated());
-  }
-
-  @Test
-  public void shouldAddRevisionWithPublishedTag() throws Exception {
-    mockMvc.perform(post(revisionWebTargetWithTag, Tags.PUBLISHED.getTag()))
-           .andExpect(status().isCreated());
-  }
-
-  @Test
   public void shouldAddRevisionWithDeletedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithTag, Tags.DELETED.getTag()))
            .andExpect(status().isCreated());
@@ -190,23 +178,6 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithTag, "UNDEFINED"))
            .andExpect(status().isBadRequest());
-  }
-
-
-  @Test
-  public void shouldAddRevisionWithMultipleTags() throws Exception {
-    mockMvc.perform(post(revisionWebTargetWithMultipleTags)
-               .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-               .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.DELETED.getTag()))
-           .andExpect(status().isCreated());
-  }
-
-  @Test
-  public void shouldAddRevisionWithMultipleTags2() throws Exception {
-    mockMvc.perform(post(revisionWebTargetWithMultipleTags)
-               .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-               .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.PUBLISHED.getTag(), Tags.DELETED.getTag()))
-           .andExpect(status().isCreated());
   }
 
   @Test
@@ -220,7 +191,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithMultipleTags)
                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-               .param(F_TAGS, Tags.ACCEPTANCE.getTag(), Tags.DELETED.getTag(), "undefined"))
+               .param(F_TAGS, Tags.DELETED.getTag(), "undefined"))
            .andExpect(status().isBadRequest());
   }
 
@@ -270,7 +241,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     Date date = new Date();
     String revisionTimeStamp = FORMATTER.format(date);
 
-    Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, true, false, false);
+    Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, false);
     dataSetService.createDataSet(PROVIDER_ID, datasetId, "");
     dataSetService.addAssignment(PROVIDER_ID, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
     recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revision);

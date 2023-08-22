@@ -23,20 +23,9 @@ public class CloudTagsResponse implements Comparable {
   private String cloudId;
 
   /**
-   * Published tag
-   */
-  private boolean published;
-
-  /**
    * Deleted tag
    */
   private boolean deleted;
-
-
-  /**
-   * Acceptance tag
-   */
-  private boolean acceptance;
 
   /**
    * Creates a new instance of this class.
@@ -50,16 +39,12 @@ public class CloudTagsResponse implements Comparable {
    * Creates a new instance of this class.
    *
    * @param cloudId
-   * @param published
    * @param deleted
-   * @param acceptance
    */
-  public CloudTagsResponse(String cloudId, boolean published, boolean deleted, boolean acceptance) {
+  public CloudTagsResponse(String cloudId, boolean deleted) {
     super();
     this.cloudId = cloudId;
-    this.published = published;
     this.deleted = deleted;
-    this.acceptance = acceptance;
   }
 
 
@@ -67,21 +52,9 @@ public class CloudTagsResponse implements Comparable {
     return cloudId;
   }
 
-
   public void setCloudId(String cloudId) {
     this.cloudId = cloudId;
   }
-
-
-  public boolean isPublished() {
-    return published;
-  }
-
-
-  public void setPublished(boolean published) {
-    this.published = published;
-  }
-
 
   public boolean isDeleted() {
     return deleted;
@@ -91,25 +64,11 @@ public class CloudTagsResponse implements Comparable {
   public void setDeleted(boolean deleted) {
     this.deleted = deleted;
   }
-
-
-  public boolean isAcceptance() {
-    return acceptance;
-  }
-
-
-  public void setAcceptance(boolean acceptance) {
-    this.acceptance = acceptance;
-  }
-
-
   @Override
   public int hashCode() {
     int hash = 7;
     hash = 37 * hash + Objects.hashCode(this.cloudId);
-    hash = 37 * hash + Objects.hashCode(this.published);
     hash = 37 * hash + Objects.hashCode(this.deleted);
-    hash = 37 * hash + Objects.hashCode(this.acceptance);
     return hash;
   }
 
@@ -125,13 +84,7 @@ public class CloudTagsResponse implements Comparable {
     if (!Objects.equals(this.cloudId, other.cloudId)) {
       return false;
     }
-    if (!Objects.equals(this.published, other.published)) {
-      return false;
-    }
     if (!Objects.equals(this.deleted, other.deleted)) {
-      return false;
-    }
-    if (!Objects.equals(this.acceptance, other.acceptance)) {
       return false;
     }
     return true;
@@ -139,8 +92,7 @@ public class CloudTagsResponse implements Comparable {
 
   @Override
   public String toString() {
-    return "CloudTags{" + "cloudId=" + cloudId + ", published=" + published + ", deleted=" + deleted + ", acceptance="
-        + acceptance + '}';
+    return "CloudTags{" + "cloudId=" + cloudId + ", deleted=" + deleted + "}";
   }
 
   @Override
@@ -151,14 +103,7 @@ public class CloudTagsResponse implements Comparable {
 
     CloudTagsResponse other = (CloudTagsResponse) o;
     if (this.cloudId.equals(other.cloudId)) {
-      if (this.published == other.published) {
-        if (this.deleted == other.deleted) {
-          return Boolean.compare(this.acceptance, other.acceptance);
-        } else {
-          return Boolean.compare(this.deleted, other.deleted);
-        }
-      }
-      return Boolean.compare(this.published, other.published);
+      return Boolean.compare(this.deleted, other.deleted);
     }
     return this.cloudId.compareTo(other.cloudId);
   }

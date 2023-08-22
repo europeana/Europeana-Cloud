@@ -1008,15 +1008,11 @@ public class DataSetServiceClientTest {
     assertThat(cloudIds.size(), is(2));
     CloudTagsResponse cid = cloudIds.get(0);
     assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
-    assertTrue(cid.isAcceptance());
     assertFalse(cid.isDeleted());
-    assertFalse(cid.isPublished());
 
     cid = cloudIds.get(1);
     assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
-    assertFalse(cid.isAcceptance());
     assertFalse(cid.isDeleted());
-    assertTrue(cid.isPublished());
   }
 
   @Test
@@ -1049,15 +1045,11 @@ public class DataSetServiceClientTest {
     assertThat(cloudIds.getResults().size(), is(2));
     CloudTagsResponse cid = cloudIds.getResults().get(0);
     assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
-    assertTrue(cid.isAcceptance());
     assertFalse(cid.isDeleted());
-    assertFalse(cid.isPublished());
 
     cid = cloudIds.getResults().get(1);
     assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
-    assertFalse(cid.isAcceptance());
     assertFalse(cid.isDeleted());
-    assertTrue(cid.isPublished());
   }
 
 }

@@ -21,8 +21,8 @@ public class TestHelper {
 
   public final List<CloudTagsResponse> prepareCloudTagsResponsesList() {
     List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>(2);
-    CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, true, false, false);
-    CloudTagsResponse cloudTagsResponseResponse12 = new CloudTagsResponse(SOURCE + CLOUD_ID2, true, false, false);
+    CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID, false);
+    CloudTagsResponse cloudTagsResponseResponse12 = new CloudTagsResponse(SOURCE + CLOUD_ID2, false);
     cloudTagsResponseList.add(cloudTagsResponseResponse1);
     cloudTagsResponseList.add(cloudTagsResponseResponse12);
     return cloudTagsResponseList;
@@ -31,7 +31,7 @@ public class TestHelper {
   public final List<CloudTagsResponse> prepareCloudTagsResponsesList(int n) {
     List<CloudTagsResponse> cloudTagsResponseList = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
-      CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID + i, true, false, false);
+      CloudTagsResponse cloudTagsResponseResponse1 = new CloudTagsResponse(SOURCE + CLOUD_ID + i, false);
       cloudTagsResponseList.add(cloudTagsResponseResponse1);
     }
     return cloudTagsResponseList;

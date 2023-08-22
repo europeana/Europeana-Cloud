@@ -21,7 +21,7 @@ public class RevisionIdentifierTest {
   @Test
   public void identifiesShouldReturnTrueWhileRevisionNameProviderAndTimestampAreTheSameAsInRevision() {
     RevisionIdentifier id = new RevisionIdentifier(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1);
-    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false, false, false);
+    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false);
 
     assertTrue(id.identifies(revision));
   }
@@ -29,7 +29,7 @@ public class RevisionIdentifierTest {
   @Test
   public void identifiesShouldReturnFalseWhileRevisionNameIsDifferentInRevision() {
     RevisionIdentifier id = new RevisionIdentifier(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1);
-    Revision revision = new Revision(REVISION_NAME_2, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false, false, false);
+    Revision revision = new Revision(REVISION_NAME_2, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false);
 
     assertFalse(id.identifies(revision));
   }
@@ -37,7 +37,7 @@ public class RevisionIdentifierTest {
   @Test
   public void identifiesShouldReturnFalseWhileRevisionProviderIsDifferentInRevision() {
     RevisionIdentifier id = new RevisionIdentifier(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1);
-    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_2, REVISION_TIMESTAMP_1, false, false, false);
+    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_2, REVISION_TIMESTAMP_1, false);
 
     assertFalse(id.identifies(revision));
   }
@@ -45,7 +45,7 @@ public class RevisionIdentifierTest {
   @Test
   public void identifiesShouldReturnFalseWhileTimestampIsDifferentInRevision() {
     RevisionIdentifier id = new RevisionIdentifier(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1);
-    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_2, REVISION_TIMESTAMP_2, false, false, false);
+    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_2, REVISION_TIMESTAMP_2, false);
 
     assertFalse(id.identifies(revision));
   }
@@ -53,7 +53,7 @@ public class RevisionIdentifierTest {
   @Test
   public void identifiesShouldReturnTrueWhileIdentifierHasNotTimestampButRevisionNameProviderAreTheSameAsInRevision() {
     RevisionIdentifier id = new RevisionIdentifier(REVISION_NAME_1, REVISION_PROVIDER_1, null);
-    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false, false, false);
+    Revision revision = new Revision(REVISION_NAME_1, REVISION_PROVIDER_1, REVISION_TIMESTAMP_1, false);
 
     assertTrue(id.identifies(revision));
   }

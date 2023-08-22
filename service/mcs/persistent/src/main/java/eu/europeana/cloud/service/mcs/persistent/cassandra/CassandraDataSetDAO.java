@@ -364,8 +364,7 @@ public class CassandraDataSetDAO {
                                   String representationName, String cloudId, String versionId) {
     BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
             providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
-            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
-            revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, revision.isDeleted());
 
     BoundStatement boundStatementForTempTable = addDataSetsRevisionStatementMigrationTable.bind(
             providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
@@ -433,8 +432,7 @@ public class CassandraDataSetDAO {
     int available = rs.getAvailableWithoutFetching();
     for (int i = 0; i < available; i++) {
       Row row = rs.one();
-      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("published"),
-          row.getBool("mark_deleted"), row.getBool("acceptance")));
+      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("mark_deleted")));
     }
     PagingState ps = rs.getExecutionInfo().getPagingState();
     if ((result.size() == limit) && !rs.isExhausted()) {
@@ -522,8 +520,8 @@ public class CassandraDataSetDAO {
         "INSERT " +
             "INTO data_set_assignments_by_revision_id_v1 (provider_id, dataset_id, bucket_id, " +
             "revision_provider_id, revision_name, revision_timestamp, " +
-            "representation_id, cloud_id, published, acceptance, mark_deleted) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+            "representation_id, cloud_id, mark_deleted) " +
+            "VALUES (?,?,?,?,?,?,?,?,?);"
     );
 
     addDataSetsRevisionStatementMigrationTable = connectionProvider.getSession().prepare(
@@ -564,7 +562,7 @@ public class CassandraDataSetDAO {
     );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
-        "SELECT cloud_id, version_id, published, acceptance, mark_deleted " +
+        "SELECT cloud_id, version_id, mark_deleted " +
             "FROM data_set_assignments_by_revision_id_v2 " +
             "WHERE provider_id = ? " +
             "AND dataset_id = ? " +

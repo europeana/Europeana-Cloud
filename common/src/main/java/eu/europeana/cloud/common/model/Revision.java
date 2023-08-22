@@ -32,24 +32,20 @@ public class Revision implements Serializable {
   @XmlJavaTypeAdapter(DateAdapter.class)
   private Date creationTimeStamp;
 
-  boolean acceptance;
-  boolean published;
   boolean deleted;
 
   public Revision(String revisionName, String providerId) {
-    this(revisionName, providerId, new Date(), false, false, false);
+    this(revisionName, providerId, new Date(), false);
   }
 
   public Revision(String revisionName, String providerId, Date creationTimeStamp) {
-    this(revisionName, providerId, creationTimeStamp, false, false, false);
+    this(revisionName, providerId, creationTimeStamp, false);
   }
 
   public Revision(final Revision revision) {
     this(revision.getRevisionName(),
         revision.getRevisionProviderId(),
         revision.getCreationTimeStamp(),
-        revision.isAcceptance(),
-        revision.isPublished(),
         revision.isDeleted()
     );
   }
@@ -69,12 +65,6 @@ public class Revision implements Serializable {
   private void setRevisionTags(Revision revision, Set<String> tags) {
     if (tags == null || tags.isEmpty()) {
       return;
-    }
-    if (tags.contains(Tags.ACCEPTANCE.getTag())) {
-      revision.setAcceptance(true);
-    }
-    if (tags.contains(Tags.PUBLISHED.getTag())) {
-      revision.setPublished(true);
     }
     if (tags.contains(Tags.DELETED.getTag())) {
       revision.setDeleted(true);

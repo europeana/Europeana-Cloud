@@ -754,7 +754,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
     Representation r = cassandraRecordService.createRepresentation(
         "globalId", "edm", PROVIDER_1_ID, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), true, false, true);
+    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), true);
     cassandraRecordService.addRevision(r.getCloudId(),
         r.getRepresentationName(), r.getVersion(), revision);
     // then
