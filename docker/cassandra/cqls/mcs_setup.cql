@@ -73,8 +73,6 @@ CREATE TABLE data_set_assignments_by_revision_id_v2
     representation_id    varchar,
     cloud_id             varchar,
     version_id           timeuuid,
-    published            boolean,
-    acceptance           boolean,
     mark_deleted         boolean,
     PRIMARY KEY ((provider_id, dataset_id, bucket_id),
     revision_provider_id,

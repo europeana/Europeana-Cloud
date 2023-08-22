@@ -299,8 +299,7 @@ public class CassandraDataSetDAO {
     BoundStatement boundStatementForTempTable = addDataSetsRevisionStatementMigrationTable.bind(
             providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
             revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
-            UUID.fromString(versionId),
-            revision.isPublished(), revision.isAcceptance(), revision.isDeleted());
+            UUID.fromString(versionId), revision.isDeleted());
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     ResultSet rsTest = connectionProvider.getSession().execute(boundStatementForTempTable);
@@ -455,8 +454,8 @@ public class CassandraDataSetDAO {
             "INSERT " +
                     "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
                     "revision_provider_id, revision_name, revision_timestamp, " +
-                    "representation_id, cloud_id, version_id, published, acceptance, mark_deleted) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
+                    "representation_id, cloud_id, version_id, mark_deleted) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?);"
     );
 
     removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
