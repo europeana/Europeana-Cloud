@@ -6,15 +6,15 @@ RUN jar -xf *.jar
 
 FROM eclipse-temurin:11-jdk-alpine
 RUN apk add --no-cache \
-    busybox-extras=1.36.1-r2 \
-    iputils=20221126-r2 \
-    procps=4.0.4-r0 \
-    traceroute=2.1.2-r1 \
-    curl=8.3.0-r0 \
-    wget=1.21.4-r0 \
-    net-tools=2.10-r3 \
-    bind-tools=9.18.16-r0 \
-    vim=9.0.1568-r0
+    busybox-extras \
+    iputils \
+    procps \
+    traceroute \
+    curl \
+    wget \
+    net-tools \
+    bind-tools \
+    vim
 
 ARG JVM_ARGS="-Dcom.sun.management.jmxremote.ssl=false \
                       -Dcom.sun.management.jmxremote.authenticate=false \
@@ -34,3 +34,4 @@ COPY --from=unpack /unpack/BOOT-INF/classes /app
 
 ENTRYPOINT java -DdpsLogsLocation=/var/log/ecloud/dps/$AppId $JVM_ARGS -cp app:app/lib/* eu.europeana.cloud.service.dps.DPSApplication $SPRING_ARGS
 EXPOSE 8012/tcp
+EXPOSE 8080/tcp
