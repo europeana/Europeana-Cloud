@@ -26,14 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.
  */
-@Repository
 @Retryable
 public class CassandraRecordDAO {
 
@@ -44,202 +40,30 @@ public class CassandraRecordDAO {
   // json serializer/deserializer
   private final Gson gson = new Gson();
   private final Gson revisionGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").create();
-
-  @Autowired
-  @Qualifier("dbService")
-  private CassandraConnectionProvider connectionProvider;
-
+  private final CassandraConnectionProvider connectionProvider;
   private PreparedStatement insertRepresentationStatement;
-
   private PreparedStatement deleteRepresentationVersionStatement;
-
   private PreparedStatement deleteRepresentationStatement;
-
   private PreparedStatement getRepresentationVersionStatement;
-
   private PreparedStatement listRepresentationVersionsStatement;
-
   private PreparedStatement listRepresentationVersionsAllSchemasStatement;
-
   private PreparedStatement persistRepresentationStatement;
-
   private PreparedStatement insertFileStatement;
-
   private PreparedStatement insertRevisionStatement;
-
   private PreparedStatement getRepresentationRevisionStatement;
-
   private PreparedStatement getLatestRepresentationRevisionStatement;
-
   private PreparedStatement getAllVersionsForRevisionNameStatement;
-
   private PreparedStatement removeFileStatement;
-
   private PreparedStatement removeRevisionFromRepresentationVersion;
-
   private PreparedStatement removeFileFromRepresentationRevisionsTableStatement;
-
   private PreparedStatement getFilesStatement;
-
   private PreparedStatement getAllRepresentationsForRecordStatement;
-
   private PreparedStatement insertRepresentationRevisionStatement;
-
   private PreparedStatement insertRepresentationRevisionFileStatement;
-
   private PreparedStatement deleteRepresentationRevisionStatement;
 
-  @PostConstruct
-  private void prepareStatements() {
-    Session session = connectionProvider.getSession();
-
-    insertRepresentationStatement = session.prepare(
-        "INSERT INTO " +
-            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) " +
-            "VALUES (?,?,?,?,?,?);"
-    );
-
-    getRepresentationVersionStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    listRepresentationVersionsStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? " +
-            "ORDER BY schema_id DESC, version_id DESC;"
-    );
-
-    listRepresentationVersionsAllSchemasStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ?;"
-    );
-
-    persistRepresentationStatement = session.prepare(
-        "UPDATE representation_versions " +
-            "SET persistent = TRUE, creation_date = ? " +
-            "WHERE cloud_id = ? AND schema_id=? AND version_id = ?;"
-    );
-
-    insertFileStatement = session.prepare(
-        "UPDATE representation_versions " +
-            "SET files[?] = ? " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    insertRevisionStatement = session.prepare(
-        "UPDATE representation_versions " +
-            "SET revisions[?] = ? " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    removeFileStatement = session.prepare(
-        "DELETE files[?] " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    removeRevisionFromRepresentationVersion = session.prepare(
-        "DELETE revisions[?] " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    removeFileFromRepresentationRevisionsTableStatement = session.prepare(
-        "DELETE files[?] " +
-            "FROM representation_revisions " +
-            "WHERE cloud_id = ? AND " +
-            "representation_id = ? AND " +
-            "revision_provider_id = ? AND " +
-            "revision_name = ? AND " +
-            "revision_timestamp = ? AND " +
-            "version_id = ?;"
-    );
-
-    getFilesStatement = session.prepare(
-        "SELECT files " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    getAllRepresentationsForRecordStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? " +
-            "ORDER BY schema_id DESC, version_id DESC;"
-    );
-
-    deleteRepresentationStatement = session.prepare(
-        "DELETE " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ?;"
-    );
-
-    deleteRepresentationVersionStatement = session.prepare(
-        "DELETE " +
-            "FROM representation_versions " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-    );
-
-    getRepresentationRevisionStatement = session.prepare(
-        "SELECT version_id, files, revision_timestamp " +
-            "FROM representation_revisions " +
-            "WHERE cloud_id = ? AND " +
-            "representation_id = ? AND " +
-            "revision_provider_id = ? AND " +
-            "revision_name = ? AND " +
-            "revision_timestamp = ?;"
-    );
-
-    getLatestRepresentationRevisionStatement = session.prepare(
-        "SELECT version_id, files, revision_timestamp " +
-            "FROM representation_revisions " +
-            "WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? " +
-            "LIMIT 1;"
-    );
-
-    getAllVersionsForRevisionNameStatement = session.prepare(
-        "SELECT cloud_id, representation_id, revision_provider_id, revision_name, revision_timestamp, version_id " +
-            "FROM representation_revisions " +
-            "WHERE cloud_id = ? AND " +
-            "representation_id = ? AND " +
-            "revision_provider_id = ? AND " +
-            "revision_name = ? AND " +
-            "revision_timestamp > ? " +
-            "LIMIT 100"
-    );
-
-    insertRepresentationRevisionStatement = session.prepare(
-        "INSERT " +
-            "INTO representation_revisions (cloud_id, representation_id, version_id, revision_provider_id, revision_name, revision_timestamp) "
-            +
-            "VALUES (?,?,?,?,?,?);"
-    );
-
-    insertRepresentationRevisionFileStatement = session.prepare(
-        "UPDATE representation_revisions " +
-            "SET files[?] = ? " +
-            "WHERE cloud_id = ? AND " +
-            "representation_id = ? AND " +
-            "revision_provider_id = ? AND " +
-            "revision_name = ? AND " +
-            "revision_timestamp = ? AND " +
-            "version_id = ?;"
-    );
-
-    deleteRepresentationRevisionStatement = session.prepare(
-        "DELETE " +
-            "FROM representation_revisions " +
-            "WHERE cloud_id = ? AND " +
-            "representation_id = ? AND " +
-            "revision_provider_id = ? AND " +
-            "revision_name = ? AND " +
-            "revision_timestamp = ? AND " +
-            "version_id = ?"
-    );
+  public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {
+    this.connectionProvider = connectionProvider;
   }
 
   /**
@@ -465,15 +289,6 @@ public class CassandraRecordDAO {
     return result;
   }
 
-  private void mapResultSetToRepresentationList(ResultSet rs, List<Representation> result) {
-    for (Row row : rs) {
-      Representation representation = mapToRepresentation(row);
-      representation.setFiles(deserializeFiles(row.getMap(KEY_FILES, String.class, String.class)));
-      representation.setRevisions(deserializeRevisions(row.getMap(KEY_REVISIONS, String.class, String.class)));
-      result.add(representation);
-    }
-  }
-
   /**
    * Adds or modifies given file to list of files of representation.
    *
@@ -513,7 +328,6 @@ public class CassandraRecordDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-
   /**
    * Removes revision entry from list of revisions belonging to record representation.
    *
@@ -532,48 +346,6 @@ public class CassandraRecordDAO {
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
-
-  private Representation mapToRepresentation(Row row) {
-    Representation representation = new Representation();
-    representation.setDataProvider(row.getString("provider_id"));
-    representation.setCloudId(row.getString("cloud_id"));
-    representation.setRepresentationName(row.getString("schema_id"));
-    representation.setVersion(row.getUUID("version_id").toString());
-    representation.setPersistent(row.getBool("persistent"));
-    representation.setCreationDate(row.getTimestamp("creation_date"));
-    return representation;
-  }
-
-  private List<File> deserializeFiles(Map<String, String> fileNameToFile) {
-    if (fileNameToFile == null) {
-      return new ArrayList<>(0);
-    }
-    List<File> files = new ArrayList<>(fileNameToFile.size());
-    for (String fileJSON : fileNameToFile.values()) {
-      files.add(gson.fromJson(fileJSON, File.class));
-    }
-    return files;
-  }
-
-  private List<Revision> deserializeRevisions(Map<String, String> revisionNametoRevision) {
-    if (revisionNametoRevision == null) {
-      return new ArrayList<>(0);
-    }
-    List<Revision> revisions = new ArrayList<>(revisionNametoRevision.size());
-    for (String revisionJSON : revisionNametoRevision.values()) {
-      revisions.add(revisionGson.fromJson(revisionJSON, Revision.class));
-    }
-    return revisions;
-  }
-
-  private String serializeFile(File f) {
-    f.setContentUri(null);
-    return gson.toJson(f);
-  }
-
-  private String serializeRevision(Revision revision) {
-    return revisionGson.toJson(revision);
   }
 
   /**
@@ -595,20 +367,6 @@ public class CassandraRecordDAO {
 
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
-
-  void validateRevision(Revision revision) throws RevisionIsNotValidException {
-    if (revision == null) {
-      throw new RevisionIsNotValidException("Revision can't be null");
-    } else {
-      if (revision.getRevisionProviderId() == null) {
-        throw new RevisionIsNotValidException("Revision should include revisionProviderId");
-      } else if (revision.getRevisionName() == null) {
-        throw new RevisionIsNotValidException("Revision should include revisionName");
-      } else if (revision.getCreationTimeStamp() == null) {
-        throw new RevisionIsNotValidException("Revision should include creationTimestamp");
-      }
-    }
   }
 
   public List<RepresentationRevisionResponse> getRepresentationRevisions(
@@ -725,7 +483,6 @@ public class CassandraRecordDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-
   /**
    * Adds new tuple in table storing associations between representations and revisions
    *
@@ -754,7 +511,6 @@ public class CassandraRecordDAO {
         revisionProviderId, revisionName, revisionTimestamp);
   }
 
-
   /**
    * Deletes tuple from the table holding associations between representations and revisions
    *
@@ -779,12 +535,230 @@ public class CassandraRecordDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
+  @PostConstruct
+  private void prepareStatements() {
+    Session session = connectionProvider.getSession();
+
+    insertRepresentationStatement = session.prepare(
+        "INSERT INTO " +
+            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date) " +
+            "VALUES (?,?,?,?,?,?);"
+    );
+
+    getRepresentationVersionStatement = session.prepare(
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    listRepresentationVersionsStatement = session.prepare(
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? " +
+            "ORDER BY schema_id DESC, version_id DESC;"
+    );
+
+    listRepresentationVersionsAllSchemasStatement = session.prepare(
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ?;"
+    );
+
+    persistRepresentationStatement = session.prepare(
+        "UPDATE representation_versions " +
+            "SET persistent = TRUE, creation_date = ? " +
+            "WHERE cloud_id = ? AND schema_id=? AND version_id = ?;"
+    );
+
+    insertFileStatement = session.prepare(
+        "UPDATE representation_versions " +
+            "SET files[?] = ? " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    insertRevisionStatement = session.prepare(
+        "UPDATE representation_versions " +
+            "SET revisions[?] = ? " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    removeFileStatement = session.prepare(
+        "DELETE files[?] " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    removeRevisionFromRepresentationVersion = session.prepare(
+        "DELETE revisions[?] " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    removeFileFromRepresentationRevisionsTableStatement = session.prepare(
+        "DELETE files[?] " +
+            "FROM representation_revisions " +
+            "WHERE cloud_id = ? AND " +
+            "representation_id = ? AND " +
+            "revision_provider_id = ? AND " +
+            "revision_name = ? AND " +
+            "revision_timestamp = ? AND " +
+            "version_id = ?;"
+    );
+
+    getFilesStatement = session.prepare(
+        "SELECT files " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    getAllRepresentationsForRecordStatement = session.prepare(
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? " +
+            "ORDER BY schema_id DESC, version_id DESC;"
+    );
+
+    deleteRepresentationStatement = session.prepare(
+        "DELETE " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ?;"
+    );
+
+    deleteRepresentationVersionStatement = session.prepare(
+        "DELETE " +
+            "FROM representation_versions " +
+            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+    );
+
+    getRepresentationRevisionStatement = session.prepare(
+        "SELECT version_id, files, revision_timestamp " +
+            "FROM representation_revisions " +
+            "WHERE cloud_id = ? AND " +
+            "representation_id = ? AND " +
+            "revision_provider_id = ? AND " +
+            "revision_name = ? AND " +
+            "revision_timestamp = ?;"
+    );
+
+    getLatestRepresentationRevisionStatement = session.prepare(
+        "SELECT version_id, files, revision_timestamp " +
+            "FROM representation_revisions " +
+            "WHERE cloud_id = ? AND representation_id = ? AND revision_provider_id = ? AND revision_name = ? " +
+            "LIMIT 1;"
+    );
+
+    getAllVersionsForRevisionNameStatement = session.prepare(
+        "SELECT cloud_id, representation_id, revision_provider_id, revision_name, revision_timestamp, version_id " +
+            "FROM representation_revisions " +
+            "WHERE cloud_id = ? AND " +
+            "representation_id = ? AND " +
+            "revision_provider_id = ? AND " +
+            "revision_name = ? AND " +
+            "revision_timestamp > ? " +
+            "LIMIT 100"
+    );
+
+    insertRepresentationRevisionStatement = session.prepare(
+        "INSERT " +
+            "INTO representation_revisions (cloud_id, representation_id, version_id, revision_provider_id, revision_name, revision_timestamp) "
+            +
+            "VALUES (?,?,?,?,?,?);"
+    );
+
+    insertRepresentationRevisionFileStatement = session.prepare(
+        "UPDATE representation_revisions " +
+            "SET files[?] = ? " +
+            "WHERE cloud_id = ? AND " +
+            "representation_id = ? AND " +
+            "revision_provider_id = ? AND " +
+            "revision_name = ? AND " +
+            "revision_timestamp = ? AND " +
+            "version_id = ?;"
+    );
+
+    deleteRepresentationRevisionStatement = session.prepare(
+        "DELETE " +
+            "FROM representation_revisions " +
+            "WHERE cloud_id = ? AND " +
+            "representation_id = ? AND " +
+            "revision_provider_id = ? AND " +
+            "revision_name = ? AND " +
+            "revision_timestamp = ? AND " +
+            "version_id = ?"
+    );
+  }
+
+  private void mapResultSetToRepresentationList(ResultSet rs, List<Representation> result) {
+    for (Row row : rs) {
+      Representation representation = mapToRepresentation(row);
+      representation.setFiles(deserializeFiles(row.getMap(KEY_FILES, String.class, String.class)));
+      representation.setRevisions(deserializeRevisions(row.getMap(KEY_REVISIONS, String.class, String.class)));
+      result.add(representation);
+    }
+  }
+
+  private Representation mapToRepresentation(Row row) {
+    Representation representation = new Representation();
+    representation.setDataProvider(row.getString("provider_id"));
+    representation.setCloudId(row.getString("cloud_id"));
+    representation.setRepresentationName(row.getString("schema_id"));
+    representation.setVersion(row.getUUID("version_id").toString());
+    representation.setPersistent(row.getBool("persistent"));
+    representation.setCreationDate(row.getTimestamp("creation_date"));
+    return representation;
+  }
+
+  private List<File> deserializeFiles(Map<String, String> fileNameToFile) {
+    if (fileNameToFile == null) {
+      return new ArrayList<>(0);
+    }
+    List<File> files = new ArrayList<>(fileNameToFile.size());
+    for (String fileJSON : fileNameToFile.values()) {
+      files.add(gson.fromJson(fileJSON, File.class));
+    }
+    return files;
+  }
+
+  private List<Revision> deserializeRevisions(Map<String, String> revisionNametoRevision) {
+    if (revisionNametoRevision == null) {
+      return new ArrayList<>(0);
+    }
+    List<Revision> revisions = new ArrayList<>(revisionNametoRevision.size());
+    for (String revisionJSON : revisionNametoRevision.values()) {
+      revisions.add(revisionGson.fromJson(revisionJSON, Revision.class));
+    }
+    return revisions;
+  }
+
+  private String serializeFile(File f) {
+    f.setContentUri(null);
+    return gson.toJson(f);
+  }
+
+  private String serializeRevision(Revision revision) {
+    return revisionGson.toJson(revision);
+  }
+
   private void validateParameters(String cloudId, String schema, String version,
       String revisionProviderId, String revisionName, Date revisionTimestamp) {
     // none of the parameters can be null
     if (cloudId == null || schema == null || version == null || revisionProviderId == null || revisionName == null
         || revisionTimestamp == null) {
       throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
+    }
+  }
+
+  void validateRevision(Revision revision) throws RevisionIsNotValidException {
+    if (revision == null) {
+      throw new RevisionIsNotValidException("Revision can't be null");
+    } else {
+      if (revision.getRevisionProviderId() == null) {
+        throw new RevisionIsNotValidException("Revision should include revisionProviderId");
+      } else if (revision.getRevisionName() == null) {
+        throw new RevisionIsNotValidException("Revision should include revisionName");
+      } else if (revision.getCreationTimeStamp() == null) {
+        throw new RevisionIsNotValidException("Revision should include creationTimestamp");
+      }
     }
   }
 }

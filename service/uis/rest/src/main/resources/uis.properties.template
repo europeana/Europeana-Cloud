@@ -1,0 +1,14 @@
+server.servlet.context-path=/uis
+
+#### Cassandra settings #####
+cassandra.aas.keyspace=
+cassandra.aas.user=
+cassandra.aas.password=
+cassandra.aas.hosts=
+cassandra.aas.port=
+
+cassandra.uis.keyspace=
+cassandra.uis.user=
+cassandra.uis.password=
+cassandra.uis.hosts=
+cassandra.uis.port=

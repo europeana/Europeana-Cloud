@@ -54,7 +54,7 @@ public interface DataSetService {
   void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
       throws DataSetNotExistsException, RepresentationNotExistsException;
 
-  void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId);
+  void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
 

@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>9.1</version>
+        <version>11</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -162,7 +162,7 @@
             <artifactId>metis-enrichment-client</artifactId>
             <groupId>eu.europeana.metis</groupId>
             <scope>compile</scope>
-            <version>${version.metis}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>

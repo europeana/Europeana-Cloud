@@ -8,10 +8,11 @@ import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.ContentDaoNotFoundException;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SwiftContentDAO;
-import java.util.Map;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * @author krystian.
@@ -22,7 +23,7 @@ public class DynamicContentProxyTest {
   public void shouldThrowExceptionOnNonExistingDAO() throws FileNotExistsException {
     //given
     final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
-        mock(SwiftContentDAO.class)
+                mock(S3ContentDAO.class)
     ));
 
     //then
@@ -32,7 +33,7 @@ public class DynamicContentProxyTest {
   @Test
   public void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
     //given
-    SwiftContentDAO daoMock = mock(SwiftContentDAO.class);
+        S3ContentDAO daoMock = mock(S3ContentDAO.class);
     final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
     //when

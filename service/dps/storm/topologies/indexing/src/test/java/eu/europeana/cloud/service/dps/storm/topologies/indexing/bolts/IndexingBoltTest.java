@@ -459,7 +459,9 @@ public class IndexingBoltTest {
   private void mockIndexer(MediaTier recordMediaTier) throws IndexingException {
     doAnswer(params -> {
       Predicate<TierResults> tierResultsConsumer = params.getArgument(2);
-      TierResults result = new TierResults(recordMediaTier, MetadataTier.TC);
+      TierResults result = mock(TierResults.class);
+      when(result.getMediaTier()).thenReturn(recordMediaTier);
+      when(result.getMetadataTier()).thenReturn(MetadataTier.TC);
       tierResultsConsumer.test(result);
       return null;
     }).when(indexer).index(anyString(), any(), any());

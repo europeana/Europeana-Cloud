@@ -7,6 +7,10 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TopologyAlreadyExistsException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.status.DpsErrorCode;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -14,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,7 +33,39 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  */
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.dps.rest"})
+@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.dps.controller"})
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "400", description = "Bad request",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "403", description = "Access has been denied",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "404", description = "Resource has not been found",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "405", description = "Resource doesn't exist or access has been denied",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "409", description = "Conflict has been encountered",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+        }),
+    @ApiResponse(responseCode = "500", description = "Internal server error has been encountered",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+})
 public class UnifiedExceptionsMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);

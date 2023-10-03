@@ -2,27 +2,35 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
 import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
-import static org.mockito.Mockito.mock;
 
-import eu.europeana.aas.authorization.ExtendedAclService;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
-import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
+import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import java.util.EnumMap;
+import java.util.Map;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
 
-@Configuration
+@TestConfiguration
 public class CassandraBasedTestContext {
 
   @Bean()
@@ -39,44 +47,82 @@ public class CassandraBasedTestContext {
 
   @Bean()
   @Order(100)
-  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-    return new SimpleSwiftConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
+    public SimpleS3ConnectionProvider s3ConnectionProvider() {
+        return new SimpleS3ConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
   }
 
   //mock
-  @Bean
-  public UISClientHandler uisHandler() {
-    return mock(UISClientHandlerImpl.class);
-  }
+  @MockBean
+  public UISClientHandler uisHandler;
 
-  @Bean
-  public MutableAclService mutableAclService() {
-    return mock(ExtendedAclService.class);
-  }
+  @MockBean
+  public MutableAclService mutableAclService;
 
-  @Bean
-  public PermissionsGrantingManager permissionsGrantingManager() {
-    return mock(PermissionsGrantingManager.class);
-  }
+  @MockBean
+  public PermissionsGrantingManager permissionsGrantingManager;
 
-  @Bean
-  public PermissionEvaluator permissionEvaluator() {
-    return mock(PermissionEvaluator.class);
-  }
-
-  @Bean
-  public CassandraDataSetService cassandraDataSetService() {
-    return Mockito.spy(new CassandraDataSetService());
-  }
-
-  @Bean
-  public CassandraRecordService cassandraRecordService() {
-    return Mockito.spy(new CassandraRecordService());
-  }
+  @MockBean
+  public PermissionEvaluator permissionEvaluator;
 
   @Bean
   public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
       PermissionEvaluator permissionEvaluator) {
     return Mockito.mock(DataSetPermissionsVerifier.class);
+  }
+
+  @Bean
+  public CassandraDataSetService cassandraDataSetService() {
+    return Mockito.spy(new CassandraDataSetService(
+        cassandraDataSetDAO(),
+        cassandraRecordDAO(),
+        uisHandler,
+        bucketsHandler()));
+  }
+
+  @Bean
+  public BucketsHandler bucketsHandler() {
+    return new BucketsHandler(dbService().getSession());
+  }
+
+  @Bean
+  public CassandraDataSetDAO cassandraDataSetDAO() {
+    return new CassandraDataSetDAO(dbService());
+  }
+
+  @Bean
+  public CassandraRecordDAO cassandraRecordDAO() {
+    return new CassandraRecordDAO(dbService());
+  }
+
+  @Bean
+  public S3ContentDAO s3ContentDAO() {
+    return new S3ContentDAO(s3ConnectionProvider());
+  }
+
+  @Bean
+  public CassandraContentDAO cassandraContentDAO() {
+    return new CassandraContentDAO(dbService());
+  }
+
+  @Bean
+  public DynamicContentProxy dynamicContentProxy() {
+    Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
+
+    params.put(Storage.OBJECT_STORAGE, s3ContentDAO());
+    params.put(Storage.DATA_BASE, cassandraContentDAO());
+
+    return new DynamicContentProxy(params);
+  }
+
+  @Bean
+  public CassandraRecordService cassandraRecordService() {
+    return Mockito.spy(new CassandraRecordService(
+        cassandraRecordDAO(),
+        cassandraDataSetService(),
+        cassandraDataSetDAO(),
+        dynamicContentProxy(),
+        uisHandler)
+    );
+
   }
 }

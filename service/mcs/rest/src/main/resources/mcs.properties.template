@@ -1,0 +1,27 @@
+numberOfElementsOnPage=100
+objectStoreSizeThreshold=524288
+server.servlet.context-path=/mcs
+
+#### Cassandra settings ####
+cassandra.aas.keyspace=
+cassandra.aas.user=
+cassandra.aas.password=
+cassandra.aas.hosts=
+cassandra.aas.port=
+
+cassandra.mcs.keyspace=
+cassandra.mcs.user=
+cassandra.mcs.password=
+cassandra.mcs.hosts=
+cassandra.mcs.port=
+
+
+#### s3 settings ####
+s3.provider=
+s3.container=
+s3.endpoint=
+s3.user=
+s3.password=
+
+#### General settings ####
+general.uisLocation=

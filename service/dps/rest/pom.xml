@@ -4,32 +4,72 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>9.1</version>
+        <version>11</version>
     </parent>
 
 
     <artifactId>ecloud-service-dps-rest</artifactId>
-    <packaging>war</packaging>
     <name>Europeana Cloud: Data Processing Service (DPS-REST)</name>
-
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>tomcat</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <spring.config.dir>tomcat</spring.config.dir>
-            </properties>
-        </profile>
-    </profiles>
 
     <build>
-        <finalName>services</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+              <groupId>org.springframework.boot</groupId>
+              <version>${version.spring-boot}</version>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>build-info</goal>
+                    <goal>repackage</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          <plugin>
+            <artifactId>git-commit-id-maven-plugin</artifactId>
+            <configuration>
+              <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
+              <generateGitPropertiesFile>true</generateGitPropertiesFile>
+              <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+              <prefix>git</prefix>
+              <verbose>false</verbose>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>revision</goal>
+                </goals>
+                <id>get-the-git-infos</id>
+                <phase>initialize</phase>
+              </execution>
+              <execution>
+                <goals>
+                  <goal>validateRevision</goal>
+                </goals>
+                <id>validate-the-git-infos</id>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <groupId>io.github.git-commit-id</groupId>
+            <version>${version.git-commit-maven}</version>
+          </plugin>
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>indexing.properties</exclude>
+                <exclude>dps.properties</exclude>
+              </excludes>
+            </configuration>
+            <groupId>org.apache.maven.plugins</groupId>
+            <version>3.1.0</version>
+          </plugin>
+        </plugins>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -40,152 +80,95 @@
                 </excludes>
             </resource>
         </resources>
-        <plugins>
-            <!-- copies spring config file from path defined in profile to resources 
-            dir -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/classes</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources/${spring.config.dir}</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-
-                    <!--
-                    <webResources>
-                        <resource>
-                            <filtering>true</filtering>
-                            <directory>src/main/webapp</directory>
-                            <includes>
-                                <include>**/web.xml</include>
-                            </includes>
-                        </resource>
-                    </webResources>
-                    -->
-                </configuration>
-            </plugin>
-            <!--configuration of miredot - REST API documentation generator. -->
-            <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-plugin</artifactId>
-                <version>${version.miredotPlugin}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!--valid until January 1st, 2020-->
-                    <licence>
-                        cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==
-                    </licence>
-                    <restModel>
-                        <httpStatusCodes>
-                            <httpStatusCode>
-                                <httpCode>200</httpCode>
-                                <document>always</document>
-                                <defaultMessage>The service call has completed successfully.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>500</httpCode>
-                                <document>always</document>
-                                <defaultMessage>Internal server exception. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException
-                                </document>
-                                <defaultMessage>Access denied or object does not exist. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException
-                                </document>
-                                <defaultMessage>Access denied or Topology does not exist. The service call did
-                                    not succeed.
-                                </defaultMessage>
-                            </httpStatusCode>
-                        </httpStatusCodes>
-                        <fieldVisibility>
-                            <GETTER>PUBLIC_ONLY</GETTER>
-                            <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-                            <SETTER>PUBLIC_ONLY</SETTER>
-                            <CREATOR>PUBLIC_ONLY</CREATOR>
-                            <FIELD>PUBLIC_ONLY</FIELD>
-                        </fieldVisibility>
-                        <titleNamingStrategies>
-                            <strategy>tag: summary</strategy>
-                            <strategy>tag: title</strategy>
-                            <strategy>firstsentence</strategy>
-                        </titleNamingStrategies>
-                        <externalSources>
-                            <sourceDirs>
-                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
-                                <sourceDir>${project.parent.basedir}/api/src/main/java</sourceDir>
-                            </sourceDirs>
-                        </externalSources>
-                    </restModel>
-                    <analysis>
-                        <checks>
-                            <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-                            <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                            <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-                            <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                            <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                            <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-                            <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-                            <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
-                        </checks>
-                    </analysis>
-                    <output>
-                        <html>
-                            <initialCollapseLevel>100</initialCollapseLevel>
-                        </html>
-                    </output>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <groupId>org.springframework.boot</groupId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${version.spring-boot}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-web-commons</artifactId>
-            <version>${project.version}</version>
+      <dependency>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <exclusions>
+          <exclusion>
+            <artifactId>spring-boot-starter-logging</artifactId>
+            <groupId>org.springframework.boot</groupId>
+          </exclusion>
+        </exclusions>
+        <groupId>org.springframework.boot</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-boot-starter-log4j2</artifactId>
+        <groupId>org.springframework.boot</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-boot-autoconfigure</artifactId>
+        <groupId>org.springframework.boot</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-boot-starter-security</artifactId>
+        <groupId>org.springframework.boot</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-web</artifactId>
+            <groupId>org.springframework</groupId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
-            <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
-                to avoid data corruption in Cassandra.
-                Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
+            <artifactId>spring-core</artifactId>
+            <groupId>org.springframework</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>spring-orm</artifactId>
+            <groupId>org.springframework</groupId>
+        </dependency>
+      <dependency>
+        <artifactId>spring-context-support</artifactId>
+        <groupId>org.springframework</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+        <groupId>org.springframework.boot</groupId>
+      </dependency>
+      <dependency>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <artifactId>springdoc-openapi-ui</artifactId>
+        <groupId>org.springdoc</groupId>
+        <version>${version.openapi}</version>
+      </dependency>
+      <dependency>
+        <artifactId>springdoc-openapi-javadoc</artifactId>
+        <groupId>org.springdoc</groupId>
+        <version>${version.openapi}</version>
+      </dependency>
+      <dependency>
+        <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+        <groupId>com.github.therapi</groupId>
+        <version>0.13.0</version>
+      </dependency>
+      <dependency>
+        <artifactId>ecloud-web-commons</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+            to avoid data corruption in Cassandra.
+            Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+        <artifactId>commons-codec</artifactId>
+        <groupId>commons-codec</groupId>
             <version>${version.commonscodec}</version>
         </dependency>
 
@@ -198,36 +181,6 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <version>2.0.1.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-taglibs</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>${version.spring-framework}</version>
         </dependency>
 
         <dependency>
@@ -305,19 +258,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${version.spring-framework}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${version.servlet}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!--Jersey -->
         <dependency>
@@ -336,15 +276,14 @@
             <version>${version.slf4j}</version>
         </dependency>
         <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
             <version>${version.metis}</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>woodstox-core-asl</artifactId>
+                    <groupId>org.codehaus.woodstox</groupId>
+                </exclusion>
                 <exclusion>
                     <artifactId>surefire-junit47</artifactId>
                     <groupId>org.apache.maven.surefire</groupId>
@@ -368,6 +307,10 @@
                 <exclusion>
                     <groupId>org.mockito</groupId>
                     <artifactId>mockito-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>woodstox-core-asl</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -416,12 +359,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
-            <version>${version.spring-framework}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>${version.spring-security}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -534,6 +475,10 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${version.jackson}</version>
         </dependency>
-
+        <dependency>
+            <artifactId>metrics-core</artifactId>
+            <groupId>com.codahale.metrics</groupId>
+            <version>3.0.2</version>
+        </dependency>
     </dependencies>
 </project>

@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -74,6 +75,7 @@ public class ValidationBolt extends AbstractDpsBolt {
       transformer = new XsltTransformer(sorterFileLocation);
     } catch (TransformationException ex) {
       LOGGER.info("Exception while initializing the transformer");
+      throw new BoltInitializationException("Exception while initializing the transformer", ex);
     }
   }
 

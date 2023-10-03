@@ -1,0 +1,35 @@
+maxIdentifiersCount=100
+harvestingTasksDir=/var/www/http_harvest
+server.servlet.context-path=/services
+
+#### Cassandra settings #####
+cassandra.aas.keyspace=
+cassandra.aas.user=
+cassandra.aas.password=
+cassandra.aas.hosts=
+cassandra.aas.port=
+
+cassandra.dps.keyspace=
+cassandra.dps.user=
+cassandra.dps.password=
+cassandra.dps.hosts=
+cassandra.dps.port=
+
+#### Kafka settings ####
+kafka.topologyAvailableTopics=
+kafka.brokerLocation=
+kafka.groupId=
+
+
+#### Topology settings ####
+topology.user=
+topology.password=
+topology.nameList=
+
+
+
+#### General settings ####
+general.appId=
+general.machineLocation=
+general.mcsLocation=
+general.uisLocation=

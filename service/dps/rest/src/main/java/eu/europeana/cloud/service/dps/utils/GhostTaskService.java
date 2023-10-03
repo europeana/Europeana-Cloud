@@ -1,16 +1,17 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static eu.europeana.cloud.service.dps.config.JndiNames.JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS;
 
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -19,7 +20,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +28,24 @@ public class GhostTaskService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GhostTaskService.class);
 
-  @Autowired
   private TasksByStateDAO tasksByStateDAO;
 
-  @Autowired
   private CassandraTaskInfoDAO taskInfoDAO;
+
+  private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+
 
   private final Set<String> availableTopic;
 
-  public GhostTaskService(Environment environment) {
-    availableTopic = new TopologiesTopicsParser().parse(environment.getProperty(JNDI_KEY_TOPOLOGY_AVAILABLE_TOPICS))
+  @Autowired
+  public GhostTaskService(TasksByStateDAO tasksByStateDAO,
+      CassandraTaskInfoDAO cassandraTaskInfoDAO,
+      TaskDiagnosticInfoDAO taskDiagnosticInfo,
+      KafkaProperties kafkaProperties) {
+    this.tasksByStateDAO = tasksByStateDAO;
+    this.taskInfoDAO = cassandraTaskInfoDAO;
+    this.taskDiagnosticInfoDAO = taskDiagnosticInfo;
+    availableTopic = new TopologiesTopicsParser().parse(kafkaProperties.getTopologyAvailableTopics())
                                                  .values().stream().flatMap(List::stream).collect(Collectors.toSet());
   }
 
@@ -64,11 +72,25 @@ public class GhostTaskService {
   }
 
   private boolean isGhost(TaskInfo task) {
-    return isDateTooOld(task.getSentTimestamp()) && ((task.getStartTimestamp() == null) || isDateTooOld(
-        task.getStartTimestamp()));
+    return taskDidNotProgressOnStormRecently(task) || taskIsVeryOld(task);
   }
 
-  private boolean isDateTooOld(Date date) {
-    return date.toInstant().isBefore(Instant.now().minus(10, ChronoUnit.DAYS));
+  private boolean taskDidNotProgressOnStormRecently(TaskInfo task) {
+    return isDateTooOld(task.getSentTimestamp().toInstant())
+        && taskDiagnosticInfoDAO.findById(task.getId())
+                                .map(TaskDiagnosticInfo::getLastRecordFinishedOnStormTime)
+                                .map(this::isDateTooOld)
+                                .orElse(true);
   }
+
+  private boolean taskIsVeryOld(TaskInfo task) {
+    //Value 60 days is related with Cassandra TTL period for tables notifications and processed_records
+    //If task is older this data could disappear, and task could not finish forever.
+    return task.getSentTimestamp().toInstant().isBefore(Instant.now().minus(60, ChronoUnit.DAYS));
+  }
+
+  private boolean isDateTooOld(Instant date) {
+    return date.isBefore(Instant.now().minus(2, ChronoUnit.DAYS));
+  }
+
 }

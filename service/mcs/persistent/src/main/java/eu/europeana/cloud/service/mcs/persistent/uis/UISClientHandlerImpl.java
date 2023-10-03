@@ -13,15 +13,17 @@ import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import java.util.Iterator;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Communicates with Unique Identifier Service using UISClient. Used for checking if cloudIds and providers exists in UIS.
  */
 public class UISClientHandlerImpl implements UISClientHandler {
 
-  @Autowired
   private UISClient uisClient;
+
+  public UISClientHandlerImpl(UISClient uisClient) {
+    this.uisClient = uisClient;
+  }
 
   /**
    * @inheritDoc

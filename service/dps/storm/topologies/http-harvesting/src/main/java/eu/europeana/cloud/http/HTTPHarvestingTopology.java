@@ -1,31 +1,11 @@
 package eu.europeana.cloud.http;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RECORD_HARVESTING_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.REVISION_WRITER_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.UIS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.WRITE_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.WRITE_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.NOTIFICATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RECORD_CATEGORIZATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RECORD_HARVESTING_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RECORD_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_NUMBER_OF_TASKS;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 import static java.lang.Integer.parseInt;
 
+import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -33,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
+import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBoltForHarvesting;
 import eu.europeana.cloud.service.dps.storm.io.WriteRecordBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
@@ -50,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * HttpHarvestingTopology main class where its definition is formulated
  * Created by Tarek on 3/22/2018.
  */
 public class HTTPHarvestingTopology {
@@ -58,10 +40,20 @@ public class HTTPHarvestingTopology {
   private static final String TOPOLOGY_PROPERTIES_FILE = "http-topology-config.properties";
   private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHarvestingTopology.class);
 
+  /**
+   *Main constructor for the {@link HTTPHarvestingTopology} class
+   *
+   * @param defaultPropertyFile   location of the file containing default topology properties
+   * @param providedPropertyFile  location of the file containing topology properties that will override default properties
+   */
   public HTTPHarvestingTopology(String defaultPropertyFile, String providedPropertyFile) {
     PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
   }
 
+  /**
+   * Builds actual topology
+   * @return created topology definition
+   */
   public final StormTopology buildTopology() {
     String ecloudMcsAddress = topologyProperties.getProperty(MCS_URL);
     String uisAddress = topologyProperties.getProperty(UIS_URL);
@@ -75,7 +67,7 @@ public class HTTPHarvestingTopology {
         uisAddress,
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
         ecloudMcsAddress,
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
@@ -99,33 +91,41 @@ public class HTTPHarvestingTopology {
            .setNumTasks((getAnInt(REVISION_WRITER_BOLT_NUMBER_OF_TASKS)))
            .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
+    builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
+                            topologyProperties.getProperty(MCS_URL),
+                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+                    ),
+                    (getAnInt(DUPLICATES_BOLT_PARALLEL)))
+            .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
+            .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+
     TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                       Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                       topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                       topologyProperties.getProperty(CASSANDRA_USERNAME),
-                       topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                   getAnInt(NOTIFICATION_BOLT_PARALLEL))
-               .setNumTasks(
-                   (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-               .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-               .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-               .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-               .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
+            builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+                                    Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                                    topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
+                                    topologyProperties.getProperty(CASSANDRA_USERNAME),
+                                    topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                            getAnInt(NOTIFICATION_BOLT_PARALLEL))
+                    .setNumTasks(
+                            (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
+                    .fieldsGrouping(RECORD_HARVESTING_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                            new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                    .fieldsGrouping(RECORD_CATEGORIZATION_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                            new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                    .fieldsGrouping(WRITE_RECORD_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                            new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                    .fieldsGrouping(REVISION_WRITER_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                            new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+                    .fieldsGrouping(DUPLICATES_DETECTOR_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
+                            new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
+    );
 
     return builder.createTopology();
   }
 
   private static int getAnInt(String propertyName) {
     return parseInt(topologyProperties.getProperty(propertyName));
-  }
-
-  public static Properties getProperties() {
-    return topologyProperties;
   }
 
   private DbConnectionDetails prepareConnectionDetails() {
@@ -138,6 +138,10 @@ public class HTTPHarvestingTopology {
                               .build();
   }
 
+  /**
+   * Method executed by the Storm engine while deploying topology on the cluster
+   * @param args list of all needed arguments (in thi case: location of the properties file)
+   */
   public static void main(String[] args) {
     try {
       LOGGER.info("Assembling '{}'", TopologiesNames.HTTP_TOPOLOGY);

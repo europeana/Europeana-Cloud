@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
@@ -153,7 +154,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       gson = new Gson();
       cache = new HashMap<>(CACHE_SIZE);
     } catch (Exception e) {
-      throw new RuntimeException("Error while creating serializer/deserializer", e);
+      throw new BoltInitializationException("Error while creating serializer/deserializer", e);
     }
   }
 

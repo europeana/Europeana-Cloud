@@ -89,13 +89,13 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
       resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
 
       if (edmObjectResourceEntry != null) {
+        resourcesToBeProcessed++;
         LOGGER.debug("Performing media extraction for main thumbnails: {}", edmObjectResourceEntry);
 
         ResourceExtractionResult resourceExtractionResult = mediaExtractor.performMediaExtraction(edmObjectResourceEntry,
             mainThumbnailAvailable);
 
         if (resourceExtractionResult != null) {
-          resourcesToBeProcessed++;
           StormTaskTuple tuple = null;
           Set<String> thumbnailTargetNames = null;
           String metadataJson = null;
@@ -114,6 +114,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
           }
         } else {
+          resourcesToBeProcessed--;
           LOGGER.warn("Media extraction of main thumbnail return null.");
         }
       }

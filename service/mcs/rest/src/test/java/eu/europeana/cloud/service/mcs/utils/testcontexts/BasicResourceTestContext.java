@@ -10,17 +10,21 @@ import eu.europeana.aas.authorization.ExtendedAclService;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.AclPermissionEvaluator;
 
-@Configuration
+@TestConfiguration
 public class BasicResourceTestContext {
 
   @Bean()
@@ -32,53 +36,38 @@ public class BasicResourceTestContext {
     return dbService;
   }
 
-  @Bean
-  public ExtendedAclService aclService() {
-    return mock(ExtendedAclService.class);
-  }
+  @MockBean
+  public ExtendedAclService aclService;
 
   @Bean
   public PermissionsGrantingManager permissionsGrantingManager() {
     return new PermissionsGrantingManager();
   }
 
-  @Bean
-  public AclPermissionEvaluator aclPermissionEvaluator() {
-    return mock(AclPermissionEvaluator.class);
-  }
+  @MockBean
+  public AclPermissionEvaluator aclPermissionEvaluator;
 
-  @Bean
-  public DataSetPermissionsVerifier dataSetPermissionsVerifier() {
-    return mock(DataSetPermissionsVerifier.class);
-  }
+  @MockBean
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @Bean
-  public CassandraDataSetDAO cassandraDataSetDAO() {
-    return mock(CassandraDataSetDAO.class);
-  }
+  @MockBean
+  public CassandraDataSetDAO cassandraDataSetDAO;
 
-  @Bean
-  public DynamicContentProxy dynamicContentProxy() {
-    return mock(DynamicContentProxy.class);
-  }
+  @MockBean
+  public DynamicContentProxy dynamicContentProxy;
+  @MockBean
+  public SimpleS3ConnectionProvider s3ConnectionProvider;
+  @MockBean
+  public CassandraRecordService cassandraRecordService;
+  @MockBean
+  public UISClient uisClient;
 
   @Bean
   public CassandraDataSetService cassandraDataSetService() {
-    return new CassandraDataSetService();
-  }
-
-  @Bean
-  public SimpleSwiftConnectionProvider swiftConnectionProvider() {
-    return mock(SimpleSwiftConnectionProvider.class);
-  }
-
-  @Bean
-  public CassandraRecordService cassandraRecordService() {
-    return mock(CassandraRecordService.class);
-  }
-
-  @Bean
-  public UISClient uisClient() {
-    return mock(UISClient.class);
+    return new CassandraDataSetService(
+        new CassandraDataSetDAO(dbService()),
+        new CassandraRecordDAO(dbService()),
+        mock(UISClientHandler.class),
+        new BucketsHandler(dbService().getSession()));
   }
 }

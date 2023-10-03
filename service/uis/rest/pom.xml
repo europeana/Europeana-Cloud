@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-uis</artifactId>
-        <version>9.1</version>
+        <version>11</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -14,10 +14,139 @@
     </properties>
 
     <artifactId>ecloud-service-uis-rest</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>Europeana Cloud: Unique Identifier Service REST</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>2.7.8</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${version.spring-boot}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <configuration>
+                    <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                    <prefix>git</prefix>
+                    <verbose>false</verbose>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <id>get-the-git-infos</id>
+                        <phase>initialize</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <id>validate-the-git-infos</id>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <groupId>io.github.git-commit-id</groupId>
+                <version>${version.git-commit-maven}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>uis.properties</exclude>
+                    </excludes>
+                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>3.1.0</version>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${version.openapi}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>springdoc-openapi-javadoc</artifactId>
+            <groupId>org.springdoc</groupId>
+            <version>${version.openapi}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+            <groupId>com.github.therapi</groupId>
+            <version>0.13.0</version>
+        </dependency>
+
+
+        <dependency>
+            <artifactId>metrics-core</artifactId>
+            <groupId>com.codahale.metrics</groupId>
+            <version>3.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${version.lombok}</version>
+        </dependency>
+
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-web-commons</artifactId>
@@ -37,34 +166,6 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
             <version>2.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-taglibs</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <version>${version.spring-security}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -89,7 +190,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
 
         <!-- Authentication + Authorization -->
         <dependency>
@@ -153,6 +254,13 @@
 
         <!-- Testing -->
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+            <version>${version.spring-framework}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
@@ -193,132 +301,6 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet}</version>
         </dependency>
-        <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.2</version>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-                    <webResources>
-                        <resource>
-                            <filtering>true</filtering>
-                            <directory>src/main/webapp</directory>
-                            <includes>
-                                <include>**/web.xml</include>
-                            </includes>
-                        </resource>
-                    </webResources>
-                </configuration>
-            </plugin>
-            <!--
-        <plugin>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-plugin</artifactId>
-            <version>${version.miredotPlugin}</version>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>restdoc</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <licence>cHJvamVjdHxldS5ldXJvcGVhbmEuY2xvdWQuKnwyMDIwLTAxLTAxfHRydWV8LTEjTUMwQ0ZRQ1dLRVJCZTd4YWMyVVIxRTZYYU5icitCTXZod0lVSk1TQXl5SWhlRExPMDFLOEx5MWl0V0ZqYzVNPQ==</licence>
-                <restModel>
-                        <httpStatusCodes>
-                            <httpStatusCode>
-                                <httpCode>200</httpCode>
-                                <document>always</document>
-                                <defaultMessage>The service call has completed successfully.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException
-                                </document>
-                                <defaultMessage>Cloud Id Not Found</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException
-                                </document>
-                                <defaultMessage>The supplied provider does not exist</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.uis.exception.RecordExistsException</document>
-                                <defaultMessage>The record already exists</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.uis.exception.RecordIdDoesNotExistException</document>
-                                <defaultMessage>The recordId does not exist</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.uis.exception.IdHasBeenMappedException</document>
-                                <defaultMessage>The record Id for that provider has already been
-                                    mapped to a cloud Id</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException</document>
-                                <defaultMessage>The cloudId already exists</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>500</httpCode>
-                                <document>always</document>
-                                <defaultMessage>Internal server exception. The service call did
-                                    not succeed.</defaultMessage>
-                            </httpStatusCode>
-                        </httpStatusCodes>
-                        <fieldVisibility>
-                            <GETTER>PUBLIC_ONLY</GETTER>
-                            <IS_GETTER>PUBLIC_ONLY</IS_GETTER>
-                            <SETTER>PUBLIC_ONLY</SETTER>
-                            <CREATOR>PUBLIC_ONLY</CREATOR>
-                            <FIELD>PUBLIC_ONLY</FIELD>
-                        </fieldVisibility>
-                        <titleNamingStrategies>
-                            <strategy>tag: summary</strategy>
-                            <strategy>tag: title</strategy>
-                            <strategy>firstsentence</strategy>
-                        </titleNamingStrategies>
-                        <externalSources>
-                            <sourceDirs>
-                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
-                            </sourceDirs>
-                        </externalSources>
-                    </restModel>
-                    <analysis>
-                        <checks>
-                            <JAVADOC_MISSING_SUMMARY>warn</JAVADOC_MISSING_SUMMARY>
-                            <JAVADOC_MISSING_INTERFACEDOCUMENTATION>warn</JAVADOC_MISSING_INTERFACEDOCUMENTATION>
-                            <JAVADOC_MISSING_PARAMETER_DOCUMENTATION>warn</JAVADOC_MISSING_PARAMETER_DOCUMENTATION>
-                            <JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>warn</JAVADOC_MISSING_EXCEPTION_DOCUMENTATION>
-                            <JAVADOC_MISSING_AUTHORS>warn</JAVADOC_MISSING_AUTHORS>
-                            <JAXRS_MISSING_PRODUCES>warn</JAXRS_MISSING_PRODUCES>
-                            <JAXRS_MISSING_CONSUMES>warn</JAXRS_MISSING_CONSUMES>
-                            <REST_UNMAPPED_EXCEPTION>warn</REST_UNMAPPED_EXCEPTION>
-                        </checks>
-                    </analysis>
-                </configuration>
-            </plugin>
-            -->
-        </plugins>
-    </build>
 
 </project>

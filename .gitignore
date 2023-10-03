@@ -19,3 +19,7 @@ solr/custom/overlays/
 
 create_changelog.sh
 /logs
+/uis.log
+/s3-modifications.log
+/mcs.log
+/dps.log

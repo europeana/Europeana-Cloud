@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
-import eu.europeana.cloud.service.dps.rest.TopologyTasksResource;
+import eu.europeana.cloud.service.dps.controller.TopologyTasksResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;

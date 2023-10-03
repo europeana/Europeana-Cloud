@@ -17,56 +17,56 @@ public class IndexingSettingsGeneratorTest {
 
   @Test
   public void shouldGenerateProperSettingsForPreviewDB() throws IOException, IndexingException, URISyntaxException {
-    String previewPrefixWithDelimiter = IndexingSettingsGenerator.PREVIEW_PREFIX + IndexingSettingsGenerator.DELIMITER;
+    String previewPrefixWithDelimiter = IndexingPropertyNames.PREVIEW_PREFIX + IndexingPropertyNames.DELIMITER;
     Properties prop = loadProperties();
 
     IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
     IndexingSettings settings = generator.generateForPreview();
     assertEquals(settings.getMongoDatabaseName(),
-        prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_DB_NAME));
+        prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_DB_NAME));
     assertEquals(settings.getRecordRedirectDatabaseName(),
-        prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
+        prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_REDIRECTS_DB_NAME));
     assertEquals(settings.getMongoProperties().getApplicationName(),
-        prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_APPLICATION_NAME));
+        prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_APPLICATION_NAME));
     assertEquals(settings.getMongoProperties().getMaxConnectionPoolSize().intValue(),
-        Integer.parseInt(prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_POOL_SIZE)));
+        Integer.parseInt(prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_POOL_SIZE)));
 
     List<ServerAddress> mongos = settings.getMongoProperties().getMongoHosts();
     for (ServerAddress mongo : mongos) {
       assertTrue(
-          prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
+          prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_INSTANCES).contains(mongo.getHost()));
       assertEquals(String.valueOf(mongo.getPort()),
-          prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_PORT_NUMBER));
+          prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.MONGO_PORT_NUMBER));
     }
     assertEquals(settings.getSolrProperties().getZookeeperHosts().size(),
-        prop.getProperty(previewPrefixWithDelimiter + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
+        prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.ZOOKEEPER_INSTANCES).split(",").length);
   }
 
   @Test
   public void shouldGenerateProperSettingsForPublishDB() throws IOException, IndexingException, URISyntaxException {
-    String publishPrefixWithDelimiter = IndexingSettingsGenerator.PUBLISH_PREFIX + IndexingSettingsGenerator.DELIMITER;
+    String publishPrefixWithDelimiter = IndexingPropertyNames.PUBLISH_PREFIX + IndexingPropertyNames.DELIMITER;
     Properties prop = loadProperties();
 
     IndexingSettingsGenerator generator = new IndexingSettingsGenerator(prop);
     IndexingSettings settings = generator.generateForPublish();
     assertEquals(settings.getMongoDatabaseName(),
-        prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_DB_NAME));
+        prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_DB_NAME));
     assertEquals(settings.getRecordRedirectDatabaseName(),
-        prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_REDIRECTS_DB_NAME));
+        prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_REDIRECTS_DB_NAME));
     assertEquals(settings.getMongoProperties().getApplicationName(),
-        prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_APPLICATION_NAME));
+        prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_APPLICATION_NAME));
     assertEquals(settings.getMongoProperties().getMaxConnectionPoolSize().intValue(),
-        Integer.parseInt(prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_POOL_SIZE)));
+        Integer.parseInt(prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_POOL_SIZE)));
 
     List<ServerAddress> mongos = settings.getMongoProperties().getMongoHosts();
     for (ServerAddress mongo : mongos) {
       assertTrue(
-          prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_INSTANCES).contains(mongo.getHost()));
+          prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_INSTANCES).contains(mongo.getHost()));
       assertEquals(String.valueOf(mongo.getPort()),
-          prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.MONGO_PORT_NUMBER));
+          prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.MONGO_PORT_NUMBER));
     }
     assertEquals(settings.getSolrProperties().getZookeeperHosts().size(),
-        prop.getProperty(publishPrefixWithDelimiter + IndexingSettingsGenerator.ZOOKEEPER_INSTANCES).split(",").length);
+        prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.ZOOKEEPER_INSTANCES).split(",").length);
   }
 
   private Properties loadProperties() throws IOException {

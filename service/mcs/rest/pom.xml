@@ -4,321 +4,157 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>9.1</version>
+        <version>11</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-rest</artifactId>
-    <packaging>war</packaging>
     <name>Europeana Cloud: Metadata and Content Service REST</name>
 
-    <properties>
-        <main.directory>${project.parent.basedir}</main.directory>
-    </properties>
-
-    <profiles>
-        <profile>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <id>persistent</id>
-            <properties>
-                <spring.config.dir>persistent</spring.config.dir>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>eu.europeana.cloud</groupId>
-                    <artifactId>ecloud-service-mcs-persistent</artifactId>
-                    <version>${project.version}</version>
-                    <exclusions> <!--Remove exclusions if all spring libraries in all project modules will be new-->
-                        <exclusion>
-                            <artifactId>*</artifactId>
-                            <groupId>org.springframework</groupId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>persistent/</exclude>
-                    <exclude>persistent-authentication/</exclude>
-                    <exclude>persistent-authorization/</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <plugins>
-            <!-- copies spring config file from path defined in profile to resources
-                dir -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/classes</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources/${spring.config.dir}</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>@{jacocoArgLine} -Xmx3072m</argLine>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-                </configuration>
-            </plugin>
-            <!--configuration of miredot - REST API documentation generator. -->
-            <plugin>
-                <groupId>com.qmino</groupId>
-                <artifactId>miredot-plugin</artifactId>
-                <version>${version.miredotPlugin}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>restdoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- valid until january 1st, 2020 -->
-                    <licence>chjvamvjdhxlds5ldxjvcgvhbmeuy2xvdwquknwymdiwltaxltaxfhrydwv8ltejtumwq0zrq1dlrvjcztd4ywmyvvixrtzyyu5icitctxzod0lvsk1tqxl5swhlrexpmdfloex5mwl0v0zqyzvnpq==</licence>
-                    <restModel>
-                        <httpStatusCodes>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.cannotmodifypersistentrepresentationexception
-                                </document>
-                                <defaultMessage>cannot modify persistent representation version.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.cannotpersistemptyrepresentationexception
-                                </document>
-                                <defaultMessage>cannot persist representation version which does
-                                    not have any file.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.datasetalreadyexistsexception
-                                </document>
-                                <defaultMessage>cannot create data set because it already exists.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.datasetnotexistsexception
-                                </document>
-                                <defaultMessage>requested data set not exists</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.filealreadyexistsexception
-                                </document>
-                                <defaultMessage>cannot add file to representation version because
-                                    it already exists.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>422</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.filecontenthashmismatchexception
-                                </document>
-                                <defaultMessage>cannot process entity because content md5 and tag
-                                    are not the same
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.filenotexistsexception
-                                </document>
-                                <defaultMessage>requested file does not exist</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.providerhasdatasetsexception
-                                </document>
-                                <defaultMessage>cannot delete provider because it has data sets
-                                    assigned.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>405</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.providerhasrecordsexception
-                                </document>
-                                <defaultMessage>cannot delete provider because there are
-                                    representation versions in system created by this data provider.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.providernotexistsexception
-                                </document>
-                                <defaultMessage>requested data provider does not exist.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.recordnotexistsexception
-                                </document>
-                                <defaultMessage>used cloud id is not registered in unique
-                                    identifier service
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.representationalreadyinsetexception
-                                </document>
-                                <defaultMessage>representation is already assigned into this data
-                                    set.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>401</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.accessdeniedorobjectdoesnotexistexception
-                                </document>
-                                <defaultMessage>there is an attempt to access a resource without the proper permissions.
-                                    or the resource does not exist at all .
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>409</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.provideralreadyexistsexception
-                                </document>
-                                <defaultMessage>data provider with specified id already exists.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.representationnotexistsexception
-                                </document>
-                                <defaultMessage>requested representation (or representation
-                                    version) does not exist.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>404</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.versionnotexistsexception
-                                </document>
-                                <defaultMessage>requested representation version does not exist.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>416</httpCode>
-                                <document>explicit:
-                                    eu.europeana.cloud.service.mcs.exception.wrongcontentrangeexception
-                                </document>
-                                <defaultMessage>requested content range is beyond actual content.</defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>500</httpCode>
-                                <document>always</document>
-                                <defaultMessage>the service call has not succeeded because of
-                                    server side error.
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>200</httpCode>
-                                <document>get</document>
-                                <defaultMessage>service call has completed successfully, the
-                                    requested entity is returned in response
-                                </defaultMessage>
-                            </httpStatusCode>
-                            <httpStatusCode>
-                                <httpCode>204</httpCode>
-                                <document>delete</document>
-                                <defaultMessage>object deleted.</defaultMessage>
-                            </httpStatusCode>
-                        </httpStatusCodes>
-                        <fieldVisibility>
-                            <getter>public_only</getter>
-                            <is_getter>public_only</is_getter>
-                            <setter>public_only</setter>
-                            <creator>public_only</creator>
-                            <field>public_only</field>
-                        </fieldVisibility>
-                        <titleNamingStrategies>
-                            <strategy>tag: summary</strategy>
-                            <strategy>tag: title</strategy>
-                            <strategy>firstsentence</strategy>
-                        </titleNamingStrategies>
-                        <externalSources>
-                            <sourceDirs>
-                                <sourceDir>${project.parent.parent.basedir}/common/src/main/java</sourceDir>
-                            </sourceDirs>
-                        </externalSources>
-                    </restModel>
-                    <analysis>
-                        <checks>
-                            <javadoc_missing_summary>warn</javadoc_missing_summary>
-                            <javadoc_missing_interfacedocumentation>warn</javadoc_missing_interfacedocumentation>
-                            <javadoc_missing_parameter_documentation>warn</javadoc_missing_parameter_documentation>
-                            <javadoc_missing_exception_documentation>warn</javadoc_missing_exception_documentation>
-                            <javadoc_missing_authors>warn</javadoc_missing_authors>
-                            <jaxrs_missing_produces>warn</jaxrs_missing_produces>
-                            <jaxrs_missing_consumes>warn</jaxrs_missing_consumes>
-                            <rest_unmapped_exception>warn</rest_unmapped_exception>
-                        </checks>
-                    </analysis>
-                </configuration>
-            </plugin>
-        </plugins>
+    <plugins>
+      <plugin>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build-info</goal>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <groupId>org.springframework.boot</groupId>
+        <version>${version.spring-boot}</version>
+      </plugin>
+      <plugin>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <configuration>
+          <dotGitDirectory>${project.parent.parent.basedir}/.git</dotGitDirectory>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+          <prefix>git</prefix>
+          <verbose>false</verbose>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <id>get-the-git-infos</id>
+            <phase>initialize</phase>
+          </execution>
+          <execution>
+            <goals>
+              <goal>validateRevision</goal>
+            </goals>
+            <id>validate-the-git-infos</id>
+            <phase>package</phase>
+          </execution>
+        </executions>
+        <groupId>io.github.git-commit-id</groupId>
+        <version>${version.git-commit-maven}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>mcs.properties</exclude>
+          </excludes>
+        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.1.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>@{jacocoArgLine} -Xmx3072m</argLine>
+        </configuration>
+        <version>${maven-surefire-plugin.version}</version>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>persistent/</exclude>
+          <exclude>persistent-authentication/</exclude>
+          <exclude>persistent-authorization/</exclude>
+        </excludes>
+      </resource>
+    </resources>
     </build>
 
-    <dependencies>
+  <dependencies>
         <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-web-commons</artifactId>
-            <version>${project.version}</version>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                  <artifactId>spring-boot-starter-logging</artifactId>
+                  <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
+          <groupId>org.springframework.boot</groupId>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-uis-rest-client-java</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-security</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>springdoc-openapi-ui</artifactId>
+      <groupId>org.springdoc</groupId>
+      <version>${version.openapi}</version>
+    </dependency>
+    <dependency>
+      <artifactId>springdoc-openapi-javadoc</artifactId>
+      <groupId>org.springdoc</groupId>
+      <version>${version.openapi}</version>
+    </dependency>
 
-        <dependency>
-            <groupId>eu.europeana.cloud</groupId>
-            <artifactId>ecloud-service-commons</artifactId>
-            <version>${project.version}</version>
+    <dependency>
+      <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+      <groupId>com.github.therapi</groupId>
+      <version>0.13.0</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <artifactId>ecloud-service-uis-rest-client-java</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ecloud-service-mcs-persistent</artifactId>
+        <exclusions> <!--Remove exclusions if all spring libraries in all project modules will be new-->
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>org.springframework</groupId>
+          </exclusion>
+        </exclusions>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <artifactId>ecloud-common</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <artifactId>ecloud-service-commons</artifactId>
+        <groupId>eu.europeana.cloud</groupId>
+        <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -378,46 +214,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>${version.spring-framework}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-acl</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-taglibs</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-
-
-        <!--This dependency is included here only because Miredot complaints. We can remove it when (if)
-        miredot will be removed. This dependency will still be included as a transitive dependency-->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <version>${version.spring-security}</version>
-        </dependency>
-
 
         <!--For uploading files-->
         <dependency>
@@ -453,11 +249,6 @@
             <artifactId>joda-time</artifactId>
         </dependency>
 
-       <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${version.servlet}</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
@@ -496,12 +287,6 @@
             <version>4.5.13</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${version.spring-framework}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
@@ -531,11 +316,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.qmino</groupId>
-            <artifactId>miredot-annotations</artifactId>
-            <version>1.3.1</version>
-        </dependency>
-        <dependency>
             <artifactId>guava</artifactId>
             <groupId>com.google.guava</groupId>
         </dependency>
@@ -544,5 +324,31 @@
             <artifactId>ecloud-service-aas-permission</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>eu.europeana.cloud</groupId>
+            <artifactId>ecloud-web-commons</artifactId>
+          <scope>compile</scope>
+          <version>${project.version}</version>
+        </dependency>
+      <dependency>
+        <artifactId>metrics-core</artifactId>
+        <groupId>com.codahale.metrics</groupId>
+        <version>3.0.2</version>
+      </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <groupId>org.springframework.boot</groupId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${version.spring-boot}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <properties>
+        <main.directory>${project.parent.basedir}</main.directory>
+        <spring.config.dir>persistent</spring.config.dir>
+    </properties>
 </project>

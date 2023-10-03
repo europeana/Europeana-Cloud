@@ -5,8 +5,9 @@ import static org.apache.commons.lang.Validate.notEmpty;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.exception.ContentDaoNotFoundException;
-import eu.europeana.cloud.service.mcs.persistent.swift.ContentDAO;
-import eu.europeana.cloud.service.mcs.persistent.swift.PutResult;
+import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
+import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

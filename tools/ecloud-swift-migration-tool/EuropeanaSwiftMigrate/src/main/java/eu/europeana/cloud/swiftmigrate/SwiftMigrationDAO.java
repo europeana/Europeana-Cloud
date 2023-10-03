@@ -2,7 +2,7 @@ package eu.europeana.cloud.swiftmigrate;
 
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.persistent.swift.SimpleSwiftConnectionProvider;
+import eu.europeana.cloud.service.mcs.persistent.s3.SimpleSwiftConnectionProvider;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.PageSet;

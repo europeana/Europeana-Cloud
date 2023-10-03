@@ -13,6 +13,9 @@ tests.log
 /services/mcs/mcs-persistent-impl/target/
 /services/mcs/mcs-rest/target/
 
+indexing.properties
+dps.properties
+
 nb-configuration.xml
 nbactions.xml
 /ecloud-solr/customized-solr/target/

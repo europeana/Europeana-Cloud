@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.uis.rest;
 
-import com.qmino.miredot.annotations.ReturnType;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -69,7 +68,6 @@ public class UniqueIdentifierResource {
    */
   @PostMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  @ReturnType("eu.europeana.cloud.common.model.CloudId")
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CloudId> createCloudId(
       @RequestParam String providerId,
@@ -96,7 +94,6 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  @ReturnType("eu.europeana.cloud.common.model.CloudId")
   public ResponseEntity<CloudId> getCloudId(@RequestParam String providerId,
       @RequestParam String recordId)
       throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
@@ -118,7 +115,6 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  @ReturnType("eu.europeana.cloud.common.response.ResultSlice<eu.europeana.cloud.common.model.CloudId>")
   public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable String cloudId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {

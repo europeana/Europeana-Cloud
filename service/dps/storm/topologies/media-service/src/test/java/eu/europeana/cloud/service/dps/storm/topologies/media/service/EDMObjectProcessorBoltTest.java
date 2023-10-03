@@ -132,8 +132,8 @@ public class EDMObjectProcessorBoltTest {
 
       Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
       Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
-      assertEquals("0", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
-      assertEquals("0", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+      assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+      assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
   }
 
@@ -162,8 +162,8 @@ public class EDMObjectProcessorBoltTest {
 
       Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
       Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
-      assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
-      assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+      assertEquals("2", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
+      assertEquals("2", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
   }
 

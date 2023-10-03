@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -54,6 +55,8 @@ public class IndexingPostProcessor extends TaskPostProcessor {
       } else {
         taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "cleaner parameters can not be null");
       }
+    } catch (RetryInterruptedException e) {
+      throw e;
     } catch (Exception exception) {
       throw new PostProcessingException(
           String.format("Error while %s post-process given task: taskId=%d. Dataset was not removed correctly. Cause: %s",

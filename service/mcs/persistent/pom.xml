@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>9.1</version>
+        <version>11</version>
     </parent>
 
     <artifactId>ecloud-service-mcs-persistent</artifactId>
@@ -14,7 +14,7 @@
     <properties>
         <main.directory>${project.parent.basedir}</main.directory>
     </properties>
-	
+
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
@@ -48,13 +48,6 @@
 
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${version.spring-framework}</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
             <version>${version.spring-framework}</version>
         </dependency>
@@ -64,25 +57,9 @@
             <version>${version.uuid}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-blobstore</artifactId>
-            <version>${version.swift}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jsr311-api</artifactId>
-                    <groupId>javax.ws.rs</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.jclouds.api</groupId>
-            <artifactId>openstack-keystone</artifactId>
-            <version>${version.swift}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jclouds.api</groupId>
-            <artifactId>openstack-swift</artifactId>
-            <version>${version.swift}</version>
+            <artifactId>s3</artifactId>
+            <version>${version.jclouds}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -110,10 +87,10 @@
         </dependency>
         <!--tests -->
         <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.springframework</groupId>
             <version>${version.spring-framework}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kubek2k</groupId>
@@ -141,23 +118,28 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>3.3.3</version>
-            <scope>test</scope>
+          <artifactId>mockito-core</artifactId>
+          <scope>test</scope>
+          <version>3.3.3</version>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${version.lombok}</version>
-            <scope>compile</scope>
-        </dependency>
+      <dependency>
+        <artifactId>lombok</artifactId>
+        <groupId>org.projectlombok</groupId>
+        <scope>compile</scope>
+        <version>${version.lombok}</version>
+      </dependency>
+      <dependency>
+        <artifactId>metrics-core</artifactId>
+        <groupId>com.codahale.metrics</groupId>
+        <version>3.0.2</version>
+      </dependency>
     </dependencies>
 	
     <repositories>
         <repository>
             <id>synat-a09-libs-releases-public</id>
             <name>synat-a09-libs-releases-public</name>
-            <url>http://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
+            <url>https://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
         </repository>
         <!--repository>
             <id>eaio.com</id>

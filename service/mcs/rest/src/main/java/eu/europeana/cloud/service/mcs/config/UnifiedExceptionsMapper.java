@@ -18,11 +18,14 @@ import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -40,13 +43,58 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * Maps exceptions thrown by services to {@link ResponseEntity}.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.mcs.rest"})
+@ControllerAdvice(basePackages = {"eu.europeana.cloud.service.mcs.controller"})
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "400", description = "Bad request",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "403", description = "Access has been denied",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "404", description = "Resource has not been found",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "405", description = "Resource doesn't exist or access has been denied",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "409", description = "Conflict has been encountered",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+        }),
+    @ApiResponse(responseCode = "416", description = "Requested range is not satisfiable",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "422", description = "Unprocessable entity has been encountered",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+    @ApiResponse(responseCode = "500", description = "Internal server error has been encountered",
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorInfo.class)),
+            @Content(mediaType = MediaType.APPLICATION_XML_VALUE, schema = @Schema(implementation = ErrorInfo.class))
+        }),
+})
 public class UnifiedExceptionsMapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnifiedExceptionsMapper.class);
 
-  @Autowired
-  private HttpServletRequest request;
+  private final HttpServletRequest request;
+
+  public UnifiedExceptionsMapper(HttpServletRequest request) {
+    this.request = request;
+  }
 
   /**
    * Maps {@link CannotModifyPersistentRepresentationException} to {@link ResponseEntity}. Returns a response with HTTP status
