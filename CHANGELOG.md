@@ -1,5 +1,36 @@
 # Change Log
 
+## [v11](https://github.com/europeana/Europeana-Cloud/tree/v11) (2023-10-03)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v9.3...v11)
+
+**Merged pull requests:**
+
+- MET-5394 mcs prepared for on-line migration \(new table added\) [\#370](https://github.com/europeana/Europeana-Cloud/pull/370) ([pWoz](https://github.com/pWoz))
+
+## [v9.3](https://github.com/europeana/Europeana-Cloud/tree/v9.3) (2023-07-28)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v9.2...v9.3)
+
+**Merged pull requests:**
+
+- Met 5355 prepare e cloud services for multi node deployment [\#368](https://github.com/europeana/Europeana-Cloud/pull/368) ([pWoz](https://github.com/pWoz))
+
+## [v9.2](https://github.com/europeana/Europeana-Cloud/tree/v9.2) (2023-07-05)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v9.1...v9.2)
+
+**Merged pull requests:**
+
+- Bugfix/met 5257 revisions removal [\#367](https://github.com/europeana/Europeana-Cloud/pull/367) ([pWoz](https://github.com/pWoz))
+
+## [v9.1](https://github.com/europeana/Europeana-Cloud/tree/v9.1) (2023-04-14)
+[Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v9...v9.1)
+
+**Merged pull requests:**
+
+- Met 5124 migrate dps to spring boot [\#366](https://github.com/europeana/Europeana-Cloud/pull/366) ([pWoz](https://github.com/pWoz))
+- Met 5152 migrate mcs to spring boot [\#365](https://github.com/europeana/Europeana-Cloud/pull/365) ([pWoz](https://github.com/pWoz))
+- MET-5151 boot for UIS [\#364](https://github.com/europeana/Europeana-Cloud/pull/364) ([pWoz](https://github.com/pWoz))
+- MET-5121 duplicates detection for HTTP topology [\#362](https://github.com/europeana/Europeana-Cloud/pull/362) ([pWoz](https://github.com/pWoz))
+
 ## [v9](https://github.com/europeana/Europeana-Cloud/tree/v9) (2023-02-20)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v8...v9)
 
@@ -7,9 +38,12 @@
 
 - MET-5031 Add new logs for future debugging of the issue [\#360](https://github.com/europeana/Europeana-Cloud/pull/360) ([pWoz](https://github.com/pWoz))
 - Met 5014 resolve dependabot allerts [\#359](https://github.com/europeana/Europeana-Cloud/pull/359) ([pWoz](https://github.com/pWoz))
+- Met 5014 resolve dependabot allerts [\#358](https://github.com/europeana/Europeana-Cloud/pull/358) ([pWoz](https://github.com/pWoz))
+- MET-5031 Add new logs for future debugging of the issue [\#357](https://github.com/europeana/Europeana-Cloud/pull/357) ([pWoz](https://github.com/pWoz))
 - Met 2018 rework error reporting mechanism for dereference enrichment [\#356](https://github.com/europeana/Europeana-Cloud/pull/356) ([pWoz](https://github.com/pWoz))
-- MET-4846 prevent content tier0 from being published [\#353](https://github.com/europeana/Europeana-Cloud/pull/353) ([marcin-rp](https://github.com/marcin-rp))
-- MET-4657 Call enrichment APIs directly instead of via Enrichment REST service [\#352](https://github.com/europeana/Europeana-Cloud/pull/352) ([JoanaCMS](https://github.com/JoanaCMS))
+- change in code [\#355](https://github.com/europeana/Europeana-Cloud/pull/355) ([pWoz](https://github.com/pWoz))
+- MET-4846\_prevent\_tier0\_publish [\#353](https://github.com/europeana/Europeana-Cloud/pull/353) ([marcin-rp](https://github.com/marcin-rp))
+- MET-4657\_MET-4863 Updated code accordingly to the latest changes of Metis framework [\#352](https://github.com/europeana/Europeana-Cloud/pull/352) ([JoanaCMS](https://github.com/JoanaCMS))
 
 ## [v8](https://github.com/europeana/Europeana-Cloud/tree/v8) (2022-09-19)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v7...v8)
@@ -132,7 +166,6 @@
 - Met 2251 change the counter behaviour [\#244](https://github.com/europeana/Europeana-Cloud/pull/244) ([jochen-vermeulen](https://github.com/jochen-vermeulen))
 - MET-2239 file metadata \(mimeType and size\) will be sent to s3 also [\#243](https://github.com/europeana/Europeana-Cloud/pull/243) ([pWoz](https://github.com/pWoz))
 - Met 2194 missing records [\#241](https://github.com/europeana/Europeana-Cloud/pull/241) ([pWoz](https://github.com/pWoz))
-- Met 1934 multithread migration tool [\#227](https://github.com/europeana/Europeana-Cloud/pull/227) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.6.0](https://github.com/europeana/Europeana-Cloud/tree/v1.6.0) (2019-09-26)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.5.1...v1.6.0)
@@ -160,6 +193,7 @@
 - Met 2024 [\#230](https://github.com/europeana/Europeana-Cloud/pull/230) ([tarekkh](https://github.com/tarekkh))
 - MCS dependencies related with logging updated [\#229](https://github.com/europeana/Europeana-Cloud/pull/229) ([pWoz](https://github.com/pWoz))
 - MET-1914 Prepare scripts for files cleaning on monitoring stack [\#228](https://github.com/europeana/Europeana-Cloud/pull/228) ([margraf](https://github.com/margraf))
+- Met 1934 multithread migration tool [\#227](https://github.com/europeana/Europeana-Cloud/pull/227) ([tarekkh](https://github.com/tarekkh))
 
 ## [v1.3.2](https://github.com/europeana/Europeana-Cloud/tree/v1.3.2) (2019-06-03)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.4.0...v1.3.2)
@@ -255,9 +289,9 @@
 - Multithreading spout [\#187](https://github.com/europeana/Europeana-Cloud/pull/187) ([tarekkh](https://github.com/tarekkh))
 - MET-1383: DLS removed from ECloud [\#186](https://github.com/europeana/Europeana-Cloud/pull/186) ([helinek](https://github.com/helinek))
 - MET-1381 persistent version removal is now possible [\#185](https://github.com/europeana/Europeana-Cloud/pull/185) ([pWoz](https://github.com/pWoz))
+- MET-1341 [\#184](https://github.com/europeana/Europeana-Cloud/pull/184) ([tarekkh](https://github.com/tarekkh))
 - Met 1355 [\#183](https://github.com/europeana/Europeana-Cloud/pull/183) ([tarekkh](https://github.com/tarekkh))
 - MET-1265 timeouts in client connections added [\#182](https://github.com/europeana/Europeana-Cloud/pull/182) ([olanowak](https://github.com/olanowak))
-- MET-1203 edm:preview generation modified [\#169](https://github.com/europeana/Europeana-Cloud/pull/169) ([olanowak](https://github.com/olanowak))
 
 ## [v1.0.2](https://github.com/europeana/Europeana-Cloud/tree/v1.0.2) (2018-08-20)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v1.0.1...v1.0.2)
@@ -279,8 +313,8 @@
 
 **Merged pull requests:**
 
-- MET-1341 [\#184](https://github.com/europeana/Europeana-Cloud/pull/184) ([tarekkh](https://github.com/tarekkh))
 -  MET-1239 FastDateFormat used \(because it's thread-safe\) [\#170](https://github.com/europeana/Europeana-Cloud/pull/170) ([olanowak](https://github.com/olanowak))
+- MET-1203 edm:preview generation modified [\#169](https://github.com/europeana/Europeana-Cloud/pull/169) ([olanowak](https://github.com/olanowak))
 - Met 597 [\#168](https://github.com/europeana/Europeana-Cloud/pull/168) ([tarekkh](https://github.com/tarekkh))
 - MET-1178 using europeana ids to create cloud in HTTP harvesting topology [\#167](https://github.com/europeana/Europeana-Cloud/pull/167) ([olanowak](https://github.com/olanowak))
 - Met 1076 [\#165](https://github.com/europeana/Europeana-Cloud/pull/165) ([pWoz](https://github.com/pWoz))
@@ -362,13 +396,11 @@
 - Met 286 [\#94](https://github.com/europeana/Europeana-Cloud/pull/94) ([tarekkh](https://github.com/tarekkh))
 - MET-315: resource is set when the identifier is emitted to record har… [\#93](https://github.com/europeana/Europeana-Cloud/pull/93) ([helinek](https://github.com/helinek))
 - Met 316 [\#92](https://github.com/europeana/Europeana-Cloud/pull/92) ([olanowak](https://github.com/olanowak))
-- MET-167: error reports implemented [\#91](https://github.com/europeana/Europeana-Cloud/pull/91) ([helinek](https://github.com/helinek))
 - MET-314, Validate DPS task for the validation Service [\#90](https://github.com/europeana/Europeana-Cloud/pull/90) ([tarekkh](https://github.com/tarekkh))
 - Met 309 [\#89](https://github.com/europeana/Europeana-Cloud/pull/89) ([tarekkh](https://github.com/tarekkh))
 - MET-270 , Cannot specify output revision in OAI topology [\#88](https://github.com/europeana/Europeana-Cloud/pull/88) ([tarekkh](https://github.com/tarekkh))
 - MET-244 , Improve the current responses of the reporting APIs [\#87](https://github.com/europeana/Europeana-Cloud/pull/87) ([helinek](https://github.com/helinek))
 - MET-163 use completeListSize to count number of records to harvest in OAI-topology [\#86](https://github.com/europeana/Europeana-Cloud/pull/86) ([olanowak](https://github.com/olanowak))
-- Ecl 1218 [\#85](https://github.com/europeana/Europeana-Cloud/pull/85) ([helinek](https://github.com/helinek))
 - Met 162 [\#84](https://github.com/europeana/Europeana-Cloud/pull/84) ([helinek](https://github.com/helinek))
 - Met 161 [\#83](https://github.com/europeana/Europeana-Cloud/pull/83) ([tarekkh](https://github.com/tarekkh))
 
@@ -391,6 +423,8 @@
 
 **Merged pull requests:**
 
+- MET-167: error reports implemented [\#91](https://github.com/europeana/Europeana-Cloud/pull/91) ([helinek](https://github.com/helinek))
+- Ecl 1218 [\#85](https://github.com/europeana/Europeana-Cloud/pull/85) ([helinek](https://github.com/helinek))
 - Ecl 1188 [\#78](https://github.com/europeana/Europeana-Cloud/pull/78) ([tarekkh](https://github.com/tarekkh))
 - ECL-1185: creating new record corrected together with test for it [\#74](https://github.com/europeana/Europeana-Cloud/pull/74) ([helinek](https://github.com/helinek))
 - Ecl 1129 [\#73](https://github.com/europeana/Europeana-Cloud/pull/73) ([tarekkh](https://github.com/tarekkh))
@@ -402,13 +436,14 @@
 - Ecl 1127 [\#67](https://github.com/europeana/Europeana-Cloud/pull/67) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1156 record harvesting bolt [\#65](https://github.com/europeana/Europeana-Cloud/pull/65) ([pWoz](https://github.com/pWoz))
 - Ecl 1132 - cassandra backup script  [\#64](https://github.com/europeana/Europeana-Cloud/pull/64) ([akrystian](https://github.com/akrystian))
+- ECL-1109 - Unit Test fails randomly [\#63](https://github.com/europeana/Europeana-Cloud/pull/63) ([akrystian](https://github.com/akrystian))
+- Ecl 1070 [\#53](https://github.com/europeana/Europeana-Cloud/pull/53) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.6.1](https://github.com/europeana/Europeana-Cloud/tree/v0.6.1) (2017-06-16)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6...v0.6.1)
 
 **Merged pull requests:**
 
-- ECL-1109 - Unit Test fails randomly [\#63](https://github.com/europeana/Europeana-Cloud/pull/63) ([akrystian](https://github.com/akrystian))
 - ECL-1113 mimeType matching improved [\#62](https://github.com/europeana/Europeana-Cloud/pull/62) ([helinek](https://github.com/helinek))
 - Ecl 1122 [\#61](https://github.com/europeana/Europeana-Cloud/pull/61) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1107 limit java clients dependencies [\#60](https://github.com/europeana/Europeana-Cloud/pull/60) ([akrystian](https://github.com/akrystian))
@@ -418,9 +453,8 @@
 - Ecl 1095 [\#56](https://github.com/europeana/Europeana-Cloud/pull/56) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1092 revision support for xslt topology [\#55](https://github.com/europeana/Europeana-Cloud/pull/55) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1092 revision support for xslt topology [\#54](https://github.com/europeana/Europeana-Cloud/pull/54) ([helinek](https://github.com/helinek))
-- Ecl 1070 [\#53](https://github.com/europeana/Europeana-Cloud/pull/53) ([tarekkh](https://github.com/tarekkh))
 - ECL-1094 , Representation Name parameter should be mandatory for DPS … [\#52](https://github.com/europeana/Europeana-Cloud/pull/52) ([tarekkh](https://github.com/tarekkh))
-- Ecl 960 query no 9 [\#33](https://github.com/europeana/Europeana-Cloud/pull/33) ([pWoz](https://github.com/pWoz))
+- ECL-998, implement workflow 4 and add java client for query num 9 [\#50](https://github.com/europeana/Europeana-Cloud/pull/50) ([tarekkh](https://github.com/tarekkh))
 
 ## [v0.6](https://github.com/europeana/Europeana-Cloud/tree/v0.6) (2017-02-23)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/v0.6-revisions...v0.6)
@@ -434,7 +468,6 @@
 
 **Merged pull requests:**
 
-- ECL-998, implement workflow 4 and add java client for query num 9 [\#50](https://github.com/europeana/Europeana-Cloud/pull/50) ([tarekkh](https://github.com/tarekkh))
 - ECL-997, implement workflow 2 [\#49](https://github.com/europeana/Europeana-Cloud/pull/49) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1023 [\#48](https://github.com/europeana/Europeana-Cloud/pull/48) ([tarekkh](https://github.com/tarekkh))
 - Ecl 958 [\#46](https://github.com/europeana/Europeana-Cloud/pull/46) ([tarekkh](https://github.com/tarekkh))
@@ -447,6 +480,7 @@
 **Merged pull requests:**
 
 - Ecl 1028,q 6 b [\#44](https://github.com/europeana/Europeana-Cloud/pull/44) ([tarekkh](https://github.com/tarekkh))
+- Ecl 960 query no 9 [\#33](https://github.com/europeana/Europeana-Cloud/pull/33) ([pWoz](https://github.com/pWoz))
 
 ## [v0.5.1](https://github.com/europeana/Europeana-Cloud/tree/v0.5.1) (2017-01-17)
 [Full Changelog](https://github.com/europeana/Europeana-Cloud/compare/test_env_23_09_2016...v0.5.1)
@@ -460,6 +494,7 @@
 - Ecl 1028 [\#38](https://github.com/europeana/Europeana-Cloud/pull/38) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1000 [\#36](https://github.com/europeana/Europeana-Cloud/pull/36) ([tarekkh](https://github.com/tarekkh))
 - ECL-1027: changes supporting jpg to jp2000 conversion using external … [\#35](https://github.com/europeana/Europeana-Cloud/pull/35) ([olanowak](https://github.com/olanowak))
+- Ecl 957 partitions [\#32](https://github.com/europeana/Europeana-Cloud/pull/32) ([helinek](https://github.com/helinek))
 - ECL-1018, Cannot retrieve progress or notification [\#31](https://github.com/europeana/Europeana-Cloud/pull/31) ([tarekkh](https://github.com/tarekkh))
 - ECL-1011,add jmeter test cases [\#29](https://github.com/europeana/Europeana-Cloud/pull/29) ([tarekkh](https://github.com/tarekkh))
 - Ecl 1012 test upload and download on mcs [\#28](https://github.com/europeana/Europeana-Cloud/pull/28) ([akrystian](https://github.com/akrystian))
@@ -473,7 +508,6 @@
 
 **Merged pull requests:**
 
-- Ecl 957 partitions [\#32](https://github.com/europeana/Europeana-Cloud/pull/32) ([helinek](https://github.com/helinek))
 - Ecl 939 dps results to data set [\#25](https://github.com/europeana/Europeana-Cloud/pull/25) ([tarekkh](https://github.com/tarekkh))
 - Ecl 936 batch request [\#23](https://github.com/europeana/Europeana-Cloud/pull/23) ([tarekkh](https://github.com/tarekkh))
 - Ecl 864 [\#22](https://github.com/europeana/Europeana-Cloud/pull/22) ([akrystian](https://github.com/akrystian))
