@@ -28,7 +28,7 @@
     </Appenders>
     <Loggers>
         <Root level="info">
-            <!-- Log only to file <AppenderRef ref="STDOUT"/> -->
+             <AppenderRef ref="STDOUT"/>
             <AppenderRef ref="FILE"/>
         </Root>
         <Logger name="eu.europeana.cloud.service.mcs" level="debug"/>
