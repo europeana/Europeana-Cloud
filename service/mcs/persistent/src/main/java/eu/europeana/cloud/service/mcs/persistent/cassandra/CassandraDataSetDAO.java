@@ -562,7 +562,7 @@ public class CassandraDataSetDAO {
     );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
-        "SELECT cloud_id, version_id, mark_deleted " +
+        "SELECT cloud_id, mark_deleted " +
             "FROM data_set_assignments_by_revision_id_v1 " +
             "WHERE provider_id = ? " +
             "AND dataset_id = ? " +
