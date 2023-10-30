@@ -72,7 +72,9 @@ public class TaskSubmissionValidator {
     for (String dataSetURL : dataSets) {
       try {
         DataSet dataSet = DataSetUrlParser.parse(dataSetURL);
-        dataSetServiceClient.getDataSetRepresentationsChunk(dataSet.getProviderId(), dataSet.getId(), null);
+        if( !dataSetServiceClient.datasetExists(dataSet.getProviderId(), dataSet.getId())){
+          throw new DataSetNotExistsException();
+        }
         validateProviderId(task, dataSet.getProviderId());
       } catch (MalformedURLException e) {
         throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
