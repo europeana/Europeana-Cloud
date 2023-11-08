@@ -20,6 +20,7 @@ import org.apache.commons.validator.routines.UrlValidator;
 public class DpsTaskValidator {
 
 
+  public static final String WRONG_INPUT_DATA_MESSAGE = "Wrong input data: ";
   private final List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
   private final List<CustomValidator> customValidators = new ArrayList<>();
   private final String validatorName;
@@ -348,7 +349,7 @@ public class DpsTaskValidator {
           tryValidateResourceUrl(expectedInputDataValue);
         }
       } catch (MalformedURLException e) {
-        throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue, e);
+        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue, e);
       }
     }
   }
@@ -356,21 +357,21 @@ public class DpsTaskValidator {
   private void tryValidateResourceUrl(String expectedInputDataValue) throws DpsTaskValidationException {
     UrlValidator urlValidator = new UrlValidator();
     if (!urlValidator.isValid(expectedInputDataValue)) {
-      throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
     }
   }
 
   private void tryValidateFileUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
     UrlParser parser = new UrlParser(expectedInputDataValue);
     if (!parser.isUrlToRepresentationVersionFile()) {
-      throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
     }
   }
 
   private void tryValidateDatasetUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
     UrlParser parser = new UrlParser(expectedInputDataValue);
     if (!parser.isUrlToDataset()) {
-      throw new DpsTaskValidationException("Wrong input data: " + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
     }
   }
 
@@ -413,7 +414,7 @@ public class DpsTaskValidator {
 }
 
 /**
- * Holds the definition of single constraint that should be fullfiled by dpsTask
+ * Holds the definition of single constraint that should be fulfilled by dpsTask
  */
 class DpsTaskConstraint {
 

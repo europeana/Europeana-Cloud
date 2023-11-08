@@ -3,92 +3,95 @@ package eu.europeana.cloud.common.web;
 /**
  * PathConstants
  */
-public interface ParamConstants {
+public final class ParamConstants {
+
 
   // resources' paths
-  String RECORDS = "records";
+  public static final String RECORDS = "records";
 
-  String REPRESENTATIONS = "representations";
+  public static final String REPRESENTATIONS = "representations";
 
-  String VERSIONS = "versions";
-
-  @Deprecated
-  String P_CLOUDID = "CLOUDID";
-
-  String CLOUD_ID = "cloudId";
-
-  String REPRESENTATION_NAME = "representationName";
-
-  String VERSION = "version";
+  public static final String VERSIONS = "versions";
 
   @Deprecated
-  String P_PROVIDER = "DATAPROVIDER";
+  public static final String P_CLOUDID = "CLOUDID";
 
-  String PROVIDER_ID = "providerId";
+  public static final String CLOUD_ID = "cloudId";
 
-  String DATA_SET_ID = "dataSetId";
+  public static final String REPRESENTATION_NAME = "representationName";
 
-  String REVISION_NAME = "revisionName";
-
-  String REVISION_PROVIDER = "revisionProvider";
-
-  String REVISION_PROVIDER_ID = "revisionProviderId";
-
-  String FILE_NAME = "fileName";
+  public static final String VERSION = "version";
 
   @Deprecated
-  String P_LOCALID = "LOCALID";
+  public static final String P_PROVIDER = "DATAPROVIDER";
 
-  String LOCAL_ID = "localId";
+  public static final String PROVIDER_ID = "providerId";
 
-  String USER_NAME = "userName";
+  public static final String DATA_SET_ID = "dataSetId";
 
-  String PERMISSION = "permission";
+  public static final String REVISION_NAME = "revisionName";
 
-  String TAG = "tag";
+  public static final String REVISION_PROVIDER = "revisionProvider";
+
+  public static final String REVISION_PROVIDER_ID = "revisionProviderId";
+
+  public static final String FILE_NAME = "fileName";
+
+  @Deprecated
+  public static final String P_LOCALID = "LOCALID";
+
+  public static final String LOCAL_ID = "localId";
+
+  public static final String USER_NAME = "userName";
+
+  public static final String PERMISSION = "permission";
+
+  public static final String TAG = "tag";
 
   // form parameters' names (also used as query parameters' names)
-  String F_DATASET = "dataSetId";
+  public static final String F_DATASET = "dataSetId";
 
-  String F_DESCRIPTION = "description";
+  public static final String F_DESCRIPTION = "description";
 
-  String F_PROVIDER = "providerId";
+  public static final String F_PROVIDER = "providerId";
 
-  String F_CLOUDID = "cloudId";
+  public static final String F_CLOUDID = "cloudId";
 
-  String F_REPRESENTATIONNAME = "representationName";
+  public static final String F_REPRESENTATIONNAME = "representationName";
 
-  String F_VER = "version";
+  public static final String F_VER = "version";
 
-  String F_FILE_DATA = "data";
+  public static final String F_FILE_DATA = "data";
 
-  String F_FILE_MIME = "mimeType";
+  public static final String F_FILE_MIME = "mimeType";
 
-  String F_FILE_NAME = "fileName";
+  public static final String F_FILE_NAME = "fileName";
 
-  String F_DATE_FROM = "creationDateFrom";
+  public static final String F_DATE_FROM = "creationDateFrom";
 
-  String F_START_FROM = "startFrom";
+  public static final String F_START_FROM = "startFrom";
 
-  String F_LIMIT = "limit";
+  public static final String F_LIMIT = "limit";
 
-  String F_TAG = "tag";
+  public static final String F_TAG = "tag";
 
-  String F_TAGS = "tags";
+  public static final String F_TAGS = "tags";
 
-  String IS_DELETED = "deleted";
+  public static final String IS_DELETED = "deleted";
 
-  String F_REVISION_TIMESTAMP = "revisionTimestamp";
+  public static final String F_REVISION_TIMESTAMP = "revisionTimestamp";
 
-  String F_EXISTING_ONLY = "existingOnly";
+  public static final String F_EXISTING_ONLY = "existingOnly";
 
-  String F_REVISION_PROVIDER_ID = "revisionProviderId";
+  public static final String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
   //header paramiters' names
-  String H_RANGE = "Range";
+  public static final String H_RANGE = "Range";
 
-  String F_PERMISSION = "permission";
+  public static final String F_PERMISSION = "permission";
 
-  String F_USERNAME = "username";
+  public static final String F_USERNAME = "username";
 
+  private ParamConstants() {
+  }
 }

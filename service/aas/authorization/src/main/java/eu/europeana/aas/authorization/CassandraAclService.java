@@ -129,24 +129,8 @@ public class CassandraAclService implements AclService {
 
     // contains FULLY loaded Acl objects
     Map<ObjectIdentity, Acl> result = new HashMap<>();
-    List<ObjectIdentity> objectsToLookup = new ArrayList<>(objects);
-
-    // Check for Acls in the cache
-    if (aclCache != null) {
-      for (ObjectIdentity oi : objects) {
-        boolean aclLoaded = false;
-
-        Acl acl = aclCache.getFromCache(oi);
-        if (acl != null && acl.isSidLoaded(sids)) {
-          // Ensure any cached element supports all the requested SIDs
-          result.put(oi, acl);
-          aclLoaded = true;
-        }
-        if (aclLoaded) {
-          objectsToLookup.remove(oi);
-        }
-      }
-    }
+    List<ObjectIdentity> objectsToLookup = checkCacheForAcls(objects, sids,
+        result);
 
     if (!objectsToLookup.isEmpty()) {
       Map<ObjectIdentity, Acl> loadedAcls = doLookup(objectsToLookup);
@@ -170,6 +154,29 @@ public class CassandraAclService implements AclService {
       LOG.debug("END readAclById: acls: " + result.values());
     }
     return result;
+  }
+
+  private List<ObjectIdentity> checkCacheForAcls(List<ObjectIdentity> objects, List<Sid> sids,
+      Map<ObjectIdentity, Acl> result) {
+    List<ObjectIdentity> objectsToLookup = new ArrayList<>(objects);
+
+    // Check for Acls in the cache
+    if (aclCache != null) {
+      for (ObjectIdentity oi : objects) {
+        boolean aclLoaded = false;
+
+        Acl acl = aclCache.getFromCache(oi);
+        if (acl != null && acl.isSidLoaded(sids)) {
+          // Ensure any cached element supports all the requested SIDs
+          result.put(oi, acl);
+          aclLoaded = true;
+        }
+        if (aclLoaded) {
+          objectsToLookup.remove(oi);
+        }
+      }
+    }
+    return objectsToLookup;
   }
 
   /**

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
+import java.io.Serializable;
 import javax.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,8 +19,9 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ErrorInfo {
+public class ErrorInfo implements Serializable {
 
+  private static final long serialVersionUID = -6146223626718871100L;
   /**
    * Code of error. This is specific for a particular rest api.
    */

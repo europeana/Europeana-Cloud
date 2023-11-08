@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
 public class CassandraMutableAclService extends CassandraAclService implements ExtendedAclService {
 
   private static final Log LOG = LogFactory.getLog(CassandraMutableAclService.class);
+  public static final String OBJECT_IDENTITY_REQUIRED_MESSAGE = "Object Identity required";
 
   /**
    * Constructs a new <code>CassandraMutableAclService</code> object.
@@ -93,7 +94,7 @@ public class CassandraMutableAclService extends CassandraAclService implements E
   private AclObjectIdentity createAclObjectIdentity(ObjectIdentity objectIdentity) {
     // Need to retrieve the current principal, in order to know who "owns"
     // this ACL (can be changed later on)
-    Assert.notNull(objectIdentity, "Object Identity required");
+    Assert.notNull(objectIdentity, OBJECT_IDENTITY_REQUIRED_MESSAGE);
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     PrincipalSid sid = new PrincipalSid(auth);
@@ -134,7 +135,7 @@ public class CassandraMutableAclService extends CassandraAclService implements E
 
   @Override
   public void deleteAcl(ObjectIdentity objectIdentity, boolean deleteChildren) throws ChildrenExistException {
-    Assert.notNull(objectIdentity, "Object Identity required");
+    Assert.notNull(objectIdentity, OBJECT_IDENTITY_REQUIRED_MESSAGE);
     Assert.notNull(objectIdentity.getIdentifier(), "Object Identity doesn't provide an identifier");
 
     if (LOG.isDebugEnabled()) {
@@ -175,7 +176,7 @@ public class CassandraMutableAclService extends CassandraAclService implements E
   @Override
   public MutableAcl updateAcl(MutableAcl acl) throws NotFoundException {
     Assert.notNull(acl, "MutableAcl required");
-    Assert.notNull(acl.getObjectIdentity(), "Object Identity required");
+    Assert.notNull(acl.getObjectIdentity(), OBJECT_IDENTITY_REQUIRED_MESSAGE);
     Assert.notNull(acl.getObjectIdentity().getIdentifier(), "Object Identity doesn't provide an identifier");
 
     if (LOG.isDebugEnabled()) {
