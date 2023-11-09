@@ -45,7 +45,7 @@ public class TaskSubmissionValidator {
       throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
     assertContainTopology(parameters.getTaskInfo().getTopologyName());
     validateTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
-    validateOutputDataSetsIfExist(parameters.getTask());
+    validateOutputDataSets(parameters.getTask());
   }
 
   /**
@@ -67,7 +67,7 @@ public class TaskSubmissionValidator {
     validator.validate(task);
   }
 
-  private void validateOutputDataSetsIfExist(DpsTask task) throws DpsTaskValidationException {
+  private void validateOutputDataSets(DpsTask task) throws DpsTaskValidationException {
     List<String> dataSets = readDataSetsList(task.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
     for (String dataSetURL : dataSets) {
       try {
