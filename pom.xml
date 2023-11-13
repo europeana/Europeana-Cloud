@@ -333,7 +333,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>@{jacocoArgLine} -Xmx2048m</argLine>
+                    <argLine>@{jacocoArgLine} -Xmx2048m -DECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT=2
+                        -DECLOUD_OVERRIDE_RETRIES_DELAY=20
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>

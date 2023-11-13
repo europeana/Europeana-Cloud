@@ -81,7 +81,6 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import java.util.Collections;
@@ -121,7 +120,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
   private final static String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
 
   /* Constants */
-  private final static String DATA_SET_URL = "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets";
+  private final static String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
+  private final static String DATASET_ID = "s1";
   private final static String IMAGE_TIFF = "image/tiff";
   private final static String IMAGE_JP2 = "image/jp2";
   private final static String IC_TOPOLOGY = "ic_topology";
@@ -155,7 +155,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
   }
 
   @Before
-  public void init() {
+  public void init() throws MCSException {
     super.init();
 
     context = applicationContext.getBean(ApplicationContext.class);
@@ -178,6 +178,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         depublicationService
     );
     when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
+    when(dataSetServiceClient.datasetExists(PROVIDER_ID, DATASET_ID)).thenReturn(true);
   }
 
   @Test
@@ -260,9 +261,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = getDpsTaskWithDataSetEntry();
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
-    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
-    doThrow(DataSetNotExistsException.class).when(dataSetServiceClient)
-                                            .getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+    when(dataSetServiceClient.datasetExists(anyString(), anyString())).thenReturn(false);
     prepareMocks(TOPOLOGY_NAME);
 
     ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -276,7 +276,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = getDpsTaskWithDataSetEntry();
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
-    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
     doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
     prepareMocks(TOPOLOGY_NAME);
 
@@ -292,7 +292,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = getDpsTaskWithDataSetEntry();
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
-    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(PluginParameterKeys.PROVIDER_ID, "DIFFERENT_PROVIDER_ID");
     when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(
         new ResultSlice<>());
@@ -310,7 +310,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, "exampleParamName");
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
-    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATA_SET_URL);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
     when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(
         new ResultSlice<>());
     prepareMocks(ENRICHMENT_TOPOLOGY);
@@ -503,7 +503,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = getDpsTaskWithRepositoryURL(OAI_PMH_REPOSITORY_END_POINT);
     task.addParameter(PROVIDER_ID, PROVIDER_ID);
     task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    task.addParameter(OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+    task.addParameter(OUTPUT_DATA_SETS, DATASET_URL);
     OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
     harvestingDetails.setSchema("oai_dc");
     task.setHarvestingDetails(harvestingDetails);
@@ -538,7 +538,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = getDpsTaskWithRepositoryURL(HTTP_COMPRESSED_FILE_URL);
     task.addParameter(PROVIDER_ID, PROVIDER_ID);
     task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    task.addParameter(OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+    task.addParameter(OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
     task.addParameter(REVISION_PROVIDER, "metis_test5");
     task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
@@ -582,7 +582,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
     task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
     task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    task.addParameter(OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+    task.addParameter(OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
     task.addParameter(REVISION_PROVIDER, "metis_test5");
     task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
@@ -604,7 +604,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     task.addParameter(REPRESENTATION_NAME, REPRESENTATION_NAME);
     task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
     task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    task.addParameter(OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+    task.addParameter(OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
     task.addParameter(REVISION_PROVIDER, "metis_test5");
     task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
@@ -626,7 +626,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
     task.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER));
     task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    task.addParameter(OUTPUT_DATA_SETS, "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1");
+    task.addParameter(OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
     task.addParameter(REVISION_PROVIDER, "metis_test5");
     task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
@@ -661,7 +661,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     //given
     DpsTask task = new DpsTask("indexingTask");
     task.addDataEntry(DATASET_URLS,
-        Collections.singletonList("http://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/tiffDataSets"));
+        Collections.singletonList(DATASET_URL));
     task.addParameter(OUTPUT_MIME_TYPE, "image/jp2");
     task.addParameter(MIME_TYPE, "image/tiff");
     task.addParameter(REPRESENTATION_NAME, "REPRESENTATION_NAME");
@@ -999,7 +999,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
 
   private DpsTask getDpsTaskWithDataSetEntry() {
     DpsTask task = new DpsTask(TASK_NAME);
-    task.addDataEntry(DATASET_URLS, Collections.singletonList(DATA_SET_URL));
+    task.addDataEntry(DATASET_URLS, Collections.singletonList(DATASET_URL));
     task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
 
     task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");

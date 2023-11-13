@@ -5,6 +5,7 @@ import static org.mockito.Mockito.reset;
 import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,7 +33,7 @@ public class AbstractResourceTest {
   public AbstractResourceTest() {
   }
 
-  public void init() {
+  public void init() throws MCSException {
     mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 
     topologyManager = applicationContext.getBean(TopologyManager.class);

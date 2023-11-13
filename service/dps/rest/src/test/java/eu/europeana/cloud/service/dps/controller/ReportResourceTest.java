@@ -28,6 +28,7 @@ import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +74,7 @@ public class ReportResourceTest extends AbstractResourceTest {
   }
 
   @Before
-  public void init() {
+  public void init() throws MCSException {
     super.init();
     reportService = applicationContext.getBean(TaskExecutionReportService.class);
     reset(reportService);
