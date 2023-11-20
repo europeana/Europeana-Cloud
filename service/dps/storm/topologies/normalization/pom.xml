@@ -45,7 +45,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-normalization</artifactId>
-            <version>${version.metis}</version>
+            <version>${version.metis.normalization}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
