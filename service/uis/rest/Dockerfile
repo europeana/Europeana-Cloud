@@ -1,10 +1,10 @@
-FROM eclipse-temurin:11-jdk-alpine as unpack
+FROM eclipse-temurin:21-jdk-alpine as unpack
 
 WORKDIR /unpack
 COPY target/*.jar /unpack/
 RUN jar -xf *.jar
 
-FROM eclipse-temurin:11-jdk-alpine
+FROM eclipse-temurin:21-jdk-alpine
 RUN apk add --no-cache \
     busybox-extras \
     iputils \
