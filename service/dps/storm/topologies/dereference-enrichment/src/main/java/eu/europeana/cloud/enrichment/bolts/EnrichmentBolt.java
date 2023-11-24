@@ -59,6 +59,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
         dropRecord(anchorTuple, stormTaskTuple, reports);
       }
       outputCollector.ack(anchorTuple);
+      LOGGER.info("Completed enrichment.");
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
