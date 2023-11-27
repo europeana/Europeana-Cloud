@@ -173,7 +173,7 @@
         <version.metis>12-SNAPSHOT</version.metis>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>30.1.1-jre</version.guava>
-        <version.storm>2.5.0</version.storm>
+        <version.storm>2.6.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
         <version.wiremock>2.27.2</version.wiremock>
