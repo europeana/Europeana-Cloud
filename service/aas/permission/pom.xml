@@ -13,8 +13,8 @@
     <name>Europeana Cloud: Authentication Authorization Service Permission Manager</name>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>${version.jdk}</maven.compiler.source>
+        <maven.compiler.target>${version.jdk}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

@@ -125,7 +125,7 @@
     <properties>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>11</version.jdk>
+        <version.jdk>17</version.jdk>
         <version.junit>4.13.2</version.junit>
         <version.powermock>2.0.9</version.powermock>
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
@@ -179,8 +179,8 @@
         <version.wiremock>2.27.2</version.wiremock>
         <version.zt-zip>1.15</version.zt-zip>
 
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>${version.jdk}</maven.compiler.source>
+        <maven.compiler.target>${version.jdk}</maven.compiler.target>
     </properties>
 
     <profiles>
