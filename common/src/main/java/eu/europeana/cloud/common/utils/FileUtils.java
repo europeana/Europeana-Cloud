@@ -3,7 +3,10 @@ package eu.europeana.cloud.common.utils;
 /**
  * Created by helin on 2015-10-15.
  */
-public class FileUtils {
+public final class FileUtils {
+
+  private FileUtils() {
+  }
 
   /**
    * Generates unique key for file content.
@@ -15,10 +18,14 @@ public class FileUtils {
    * @return
    */
   public static String generateKeyForFile(String cloudId, String representationName, String version, String fileName) {
-    if (cloudId == null || cloudId.isEmpty()
-        || representationName == null || representationName.isEmpty()
-        || version == null || version.isEmpty()
-        || fileName == null || fileName.isEmpty()) {
+    boolean ifCloudIdIsAbsent = cloudId == null || cloudId.isEmpty();
+    boolean ifRepresentationIsAbsent= representationName == null || representationName.isEmpty();
+    boolean ifVersionIsAbsent = version == null || version.isEmpty();
+    boolean ifFileNameIsAbsent = fileName == null || fileName.isEmpty();
+    if ( ifCloudIdIsAbsent
+        || ifRepresentationIsAbsent
+        || ifVersionIsAbsent
+        || ifFileNameIsAbsent) {
       return null;
     }
     return cloudId + "_" + representationName + "_" + version + "_" + fileName;

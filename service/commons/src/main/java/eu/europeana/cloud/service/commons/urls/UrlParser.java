@@ -38,7 +38,7 @@ public class UrlParser {
   private static final List<UrlPart> DATASET_URL_PATTERN =
       Arrays.asList(UrlPart.CONTEXT, UrlPart.DATA_PROVIDERS, UrlPart.DATA_SETS);
 
-  private String[] values;
+  private String[] urlParts;
   private Map<UrlPart, String> parts = new LinkedHashMap<>();
 
   private URL resourceUrl;
@@ -54,60 +54,50 @@ public class UrlParser {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    values = path.split("/");
-    for (int i = 0; i < values.length; i++) {
-      if (values[i].equalsIgnoreCase(UrlPart.RECORDS.getValue())) {
-        if (values.length > i + 1) {
-          parts.put(UrlPart.RECORDS, values[i + 1]);
-          i++;
-        } else {
-          parts.put(UrlPart.RECORDS, null);
-        }
-      } else if (values[i].equalsIgnoreCase(UrlPart.REPRESENTATIONS.getValue())) {
-        if (values.length > i + 1) {
-          parts.put(UrlPart.REPRESENTATIONS, values[i + 1]);
-          i++;
-        } else {
-          parts.put(UrlPart.REPRESENTATIONS, null);
-        }
-      } else if (values[i].equalsIgnoreCase(UrlPart.VERSIONS.getValue())) {
-        if (values.length > i + 1) {
-          parts.put(UrlPart.VERSIONS, values[i + 1]);
-          i++;
-        } else {
-          parts.put(UrlPart.VERSIONS, null);
-        }
-      } else if (values[i].equalsIgnoreCase(UrlPart.FILES.getValue())) {
-        if (values.length > i + 1) {
-          final StringBuilder filePath = new StringBuilder();
-          do {
-            filePath.append(DIR_SEPARATOR + values[i + 1]);
-          } while (++i < values.length - 1);
-          parts.put(UrlPart.FILES, filePath.toString());
-        } else {
-          parts.put(UrlPart.FILES, null);
-        }
-      } else if (values[i].equalsIgnoreCase(UrlPart.DATA_SETS.getValue())) {
-        if (values.length > i + 1) {
-          parts.put(UrlPart.DATA_SETS, values[i + 1]);
-          i++;
-        } else {
-          parts.put(UrlPart.DATA_SETS, null);
-        }
-      } else if (values[i].equalsIgnoreCase(UrlPart.DATA_PROVIDERS.getValue())) {
-        if (values.length > i + 1) {
-          parts.put(UrlPart.DATA_PROVIDERS, values[i + 1]);
-          i++;
-        } else {
-          parts.put(UrlPart.DATA_PROVIDERS, null);
-        }
+    urlParts = path.split("/");
+    for (int i = 0; i < urlParts.length; i++) {
+      if (urlParts[i].equalsIgnoreCase(UrlPart.RECORDS.getValue())) {
+        i = handleUrlPart(i, UrlPart.RECORDS);
+      } else if (urlParts[i].equalsIgnoreCase(UrlPart.REPRESENTATIONS.getValue())) {
+        i = handleUrlPart(i, UrlPart.REPRESENTATIONS);
+      } else if (urlParts[i].equalsIgnoreCase(UrlPart.VERSIONS.getValue())) {
+        i = handleUrlPart(i, UrlPart.VERSIONS);
+      } else if (urlParts[i].equalsIgnoreCase(UrlPart.FILES.getValue())) {
+        i = handleFileUrlPart(i);
+      } else if (urlParts[i].equalsIgnoreCase(UrlPart.DATA_SETS.getValue())) {
+        i = handleUrlPart(i, UrlPart.DATA_SETS);
+      } else if (urlParts[i].equalsIgnoreCase(UrlPart.DATA_PROVIDERS.getValue())) {
+        i = handleUrlPart(i, UrlPart.DATA_PROVIDERS);
       } else {
         if (i == 0) {
-          parts.put(UrlPart.CONTEXT, values[i]);
+          parts.put(UrlPart.CONTEXT, urlParts[i]);
         }
       }
     }
 
+  }
+
+  private int handleFileUrlPart(int i) {
+    if (urlParts.length > i + 1) {
+      final StringBuilder filePath = new StringBuilder();
+      do {
+        filePath.append(DIR_SEPARATOR + urlParts[i + 1]);
+      } while (++i < urlParts.length - 1);
+      parts.put(UrlPart.FILES, filePath.toString());
+    } else {
+      parts.put(UrlPart.FILES, null);
+    }
+    return i;
+  }
+
+  private int handleUrlPart(int i, UrlPart records) {
+    if (urlParts.length > i + 1) {
+      parts.put(records, urlParts[i + 1]);
+      i++;
+    } else {
+      parts.put(records, null);
+    }
+    return i;
   }
 
   /**
