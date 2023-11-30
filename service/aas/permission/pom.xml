@@ -12,12 +12,6 @@
     <packaging>jar</packaging>
     <name>Europeana Cloud: Authentication Authorization Service Permission Manager</name>
 
-    <properties>
-        <maven.compiler.source>${version.jdk}</maven.compiler.source>
-        <maven.compiler.target>${version.jdk}</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

@@ -10,11 +10,6 @@
 
     <artifactId>ecloud-web-commons</artifactId>
 
-    <properties>
-        <maven.compiler.source>${version.jdk}</maven.compiler.source>
-        <maven.compiler.target>${version.jdk}</maven.compiler.target>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
