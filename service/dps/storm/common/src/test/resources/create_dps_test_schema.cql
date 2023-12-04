@@ -46,7 +46,7 @@ CREATE TABLE notifications (
     result_resource varchar,
     PRIMARY KEY((task_id,bucket_number),resource_num)
 ) WITH CLUSTERING ORDER BY (resource_num DESC)
-  AND default_time_to_live = 2592000;
+  AND default_time_to_live = 5184000;
 
 
 CREATE TABLE error_notifications (
@@ -119,7 +119,7 @@ CREATE TABLE processed_records (
     info_text text,
     additional_informations text,
     PRIMARY KEY((task_id, bucket_number), record_id)
-) WITH default_time_to_live = 2592000;
+) WITH default_time_to_live = 5184000;
 
 create table harvested_records(
     metis_dataset_id varchar,

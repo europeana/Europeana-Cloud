@@ -28,6 +28,12 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
 public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
 
+  /*
+   * We disable CSRF because our application is consumed only via direct calls to rest api.
+   * Additionally, each call that require some sort of authentication or authorization always require to send credentials inside request body,
+   * because we don't support remembering password via cookies etc.
+   */
+  @SuppressWarnings("java:S4502")
   protected void configure(HttpSecurity http) throws Exception {
     http.
         httpBasic().and().

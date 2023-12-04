@@ -55,20 +55,22 @@ public class CassandraAclRepository implements AclRepository {
       .getLog(CassandraAclRepository.class);
 
   private static final String AOI_TABLE = "aois";
-  private static final String CHILDREN_TABLE = "children";
   private static final String ACL_TABLE = "acls";
-  private static final String ACL_TABLE_ID_FIELD = "id";
   private static final String ACL_TABLE_SID_FIELD = "sid";
   private static final String ACL_TABLE_ACL_ORDER_FIELD = "aclorder";
 
-  private static final String CHILDREN_TABLE_ID_FIELD = "id";
-  private static final String CHILDREND_TABLE_CHILD_ID_FIELD = "childId";
+  private static final String CHILDREN_TABLE = "children";
+  private static final String CHILDREN_TABLE_CHILD_ID_FIELD = "childId";
 
-  private static final String[] AOI_KEYS = new String[]{"id", "objId",
-      "objClass", "isInheriting", "owner", "isOwnerPrincipal",
+  private static final String COMMON_OBJ_ID_FIELD = "objId";
+  private static final String COMMON_OBJ_CLASS_FIELD = "objClass";
+  private static final String COMMON_ID_FIELD = "id";
+  
+  private static final String[] AOI_KEYS = new String[]{"id", COMMON_OBJ_ID_FIELD,
+          COMMON_OBJ_CLASS_FIELD, "isInheriting", "owner", "isOwnerPrincipal",
       "parentObjId", "parentObjClass"};
-  private static final String[] CHILD_KEYS = new String[]{"id", "childId",
-      "objId", "objClass"};
+  private static final String[] CHILD_KEYS = new String[]{"id", CHILDREN_TABLE_CHILD_ID_FIELD,
+          COMMON_OBJ_ID_FIELD, COMMON_OBJ_CLASS_FIELD};
   private static final String[] ACL_KEYS = new String[]{"id", "aclOrder",
       "sid", "mask", "isSidPrincipal", "isGranting", "isAuditSuccess",
       "isAuditFailure"};
@@ -160,13 +162,8 @@ public class CassandraAclRepository implements AclRepository {
 
     Map<AclObjectIdentity, Set<AclEntry>> resultMap = new HashMap<>();
     for (Row row : resultSet.all()) {
-      resultMap.put(convertToAclObjectIdentity(row, true), new TreeSet<>(new Comparator<AclEntry>() {
-
-        @Override
-        public int compare(AclEntry o1, AclEntry o2) {
-          return Integer.compare(o1.getOrder(), o2.getOrder());
-        }
-      }));
+      resultMap.put(convertToFullAclObjectIdentity(row), new TreeSet<>(
+          Comparator.comparingInt(AclEntry::getOrder)));
     }
 
     resultSet = executeStatement(session, QueryBuilder.select().all().from(keyspace, ACL_TABLE)
@@ -211,7 +208,7 @@ public class CassandraAclRepository implements AclRepository {
         QueryBuilder.select().all().from(keyspace, AOI_TABLE)
                     .where(QueryBuilder.eq("id", objectId.getRowId())))
         .one();
-    AclObjectIdentity objectIdentity = convertToAclObjectIdentity(row, true);
+    AclObjectIdentity objectIdentity = convertToFullAclObjectIdentity(row);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("END findAclObjectIdentity: objectIdentity: " + objectIdentity);
@@ -233,7 +230,7 @@ public class CassandraAclRepository implements AclRepository {
 
     List<AclObjectIdentity> result = new ArrayList<>();
     for (Row row : resultSet.all()) {
-      result.add(convertToAclObjectIdentity(row, false));
+      result.add(convertToSimpleAclObjectIdentity(row));
     }
 
     if (LOG.isDebugEnabled()) {
@@ -298,7 +295,7 @@ public class CassandraAclRepository implements AclRepository {
     assertAclObjectIdentity(aoi);
 
     Batch batch = QueryBuilder.batch();
-    ResultSet resultSet =
+    ResultSet aclTableRS =
         RetryableMethodExecutor.execute(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
             ACL_REPO_DEFAULT_MAX_ATTEMPTS,
             Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS,
@@ -306,9 +303,9 @@ public class CassandraAclRepository implements AclRepository {
                 .select()
                 .all()
                 .from(keyspace, ACL_TABLE)
-                .where(QueryBuilder.eq(ACL_TABLE_ID_FIELD, aoi.getRowId()))));
+                .where(QueryBuilder.eq(COMMON_ID_FIELD, aoi.getRowId()))));
 
-    List<Row> recordsForDeletion = getRecordsForDeletion(entries, resultSet);
+    List<Row> recordsForDeletion = getRecordsForDeletion(entries, aclTableRS);
     getQueriesForDeletion(recordsForDeletion).forEach(batch::add);
 
     if (LOG.isDebugEnabled()) {
@@ -329,14 +326,14 @@ public class CassandraAclRepository implements AclRepository {
                                   aoi.getParentObjectClass()}));
     // Check if parent is different and delete from children table
     boolean parentChanged = false;
-    if (!(persistedAoi.getParentRowId() == null ? aoi.getParentRowId() == null
+    if (!(persistedAoi.getParentRowId() == null ? (aoi.getParentRowId() == null)
         : persistedAoi.getParentRowId().equals(aoi.getParentRowId()))) {
       parentChanged = true;
 
       if (persistedAoi.getParentRowId() != null) {
         batch.add(QueryBuilder.delete().all().from(keyspace, CHILDREN_TABLE)
-                              .where(QueryBuilder.eq(CHILDREN_TABLE_ID_FIELD, persistedAoi.getParentRowId()))
-                              .and(QueryBuilder.eq(CHILDREND_TABLE_CHILD_ID_FIELD, aoi.getRowId())));
+                              .where(QueryBuilder.eq(COMMON_ID_FIELD, persistedAoi.getParentRowId()))
+                              .and(QueryBuilder.eq(CHILDREN_TABLE_CHILD_ID_FIELD, aoi.getRowId())));
       }
     }
     if (entries != null && !entries.isEmpty()) {
@@ -347,11 +344,10 @@ public class CassandraAclRepository implements AclRepository {
                 entry.isAuditFailure()}));
       }
     }
-    if (parentChanged) {
-      if (aoi.getParentRowId() != null) {
+    if (parentChanged && (aoi.getParentRowId() != null)) {
         batch.add(QueryBuilder.insertInto(keyspace, CHILDREN_TABLE).values(CHILD_KEYS,
             new Object[]{aoi.getParentRowId(), aoi.getRowId(), aoi.getId(), aoi.getObjectClass()}));
-      }
+      
     }
     RetryableMethodExecutor.execute(ERROR_MASSAGE_IN_CASE_ALL_RETRY_FAILED,
         ACL_REPO_DEFAULT_MAX_ATTEMPTS,
@@ -363,24 +359,24 @@ public class CassandraAclRepository implements AclRepository {
     }
   }
 
-  private List<Row> getRecordsForDeletion(List<AclEntry> entries, ResultSet resultSet) {
+  private List<Row> getRecordsForDeletion(List<AclEntry> entries, ResultSet aclTableRS) {
     List<Row> recordsForDeletion = new ArrayList<>();
     if (entries != null) {
-      resultSet.forEach(record -> {
+      aclTableRS.forEach(aclTableRow -> {
         Optional<AclEntry> optionalEntry = entries
             .stream()
-            .filter(entry -> record.getString(ACL_TABLE_ID_FIELD).equals(entry.getId())
-                && record.getString(ACL_TABLE_SID_FIELD).equals(entry.getSid())
-                && record.getInt(ACL_TABLE_ACL_ORDER_FIELD) == (entry.getOrder())
+            .filter(entry -> aclTableRow.getString(COMMON_ID_FIELD).equals(entry.getId())
+                && aclTableRow.getString(ACL_TABLE_SID_FIELD).equals(entry.getSid())
+                && aclTableRow.getInt(ACL_TABLE_ACL_ORDER_FIELD) == (entry.getOrder())
             )
             .findFirst();
         if (optionalEntry.isEmpty()) {
-          recordsForDeletion.add(record);
+          recordsForDeletion.add(aclTableRow);
         }
       });
       return recordsForDeletion;
     } else {
-      return resultSet.all();
+      return aclTableRS.all();
     }
   }
 
@@ -390,7 +386,7 @@ public class CassandraAclRepository implements AclRepository {
         QueryBuilder
             .delete()
             .from(keyspace, ACL_TABLE)
-            .where(QueryBuilder.eq(ACL_TABLE_ID_FIELD, row.getString(ACL_TABLE_ID_FIELD)))
+            .where(QueryBuilder.eq(COMMON_ID_FIELD, row.getString(COMMON_ID_FIELD)))
             .and(QueryBuilder.eq(ACL_TABLE_SID_FIELD, row.getString(ACL_TABLE_SID_FIELD)))
             .and(QueryBuilder.eq(ACL_TABLE_ACL_ORDER_FIELD, row.getInt(ACL_TABLE_ACL_ORDER_FIELD)))
     ));
@@ -422,28 +418,40 @@ public class CassandraAclRepository implements AclRepository {
   }
 
   /**
-   * Converts a <code>Row</code> from a Cassandra result to an
+   * Converts a <code>AOI table row</code> from a Cassandra result to an
    * <code>AclObjectIdentity</code> object.
    *
-   * @param row the <code>Row</code> representing an
+   * @param row the <code>AOI table row</code> representing an
    * <code>AclObjectIdentity</code>.
-   * @param fullObject whether the returned <code>AclObjectIdentity</code> object will contain only identification parameters or
-   * will be fully populated.
-   * @return an <code>AclObjectIdentity</code> object with the values retrieved from Cassandra.
+   * @return a full <code>AclObjectIdentity</code> object with the values retrieved from Cassandra.
    */
-  private AclObjectIdentity convertToAclObjectIdentity(Row row, boolean fullObject) {
+  private AclObjectIdentity convertToFullAclObjectIdentity(Row row) {
+    AclObjectIdentity result = null;
+    if (row != null) {
+      result = convertToSimpleAclObjectIdentity(row);
+      result.setOwnerId(row.getString("owner"));
+      result.setEntriesInheriting(row.getBool("isInheriting"));
+      result.setOwnerPrincipal(row.getBool("isOwnerPrincipal"));
+      result.setParentObjectClass(row.getString("parentObjClass"));
+      result.setParentObjectId(row.getString("parentObjId"));
+    }
+    return result;
+  }
+  /**
+   * Converts a <code>child or AOI table row</code> from a Cassandra result to a simple
+   * <code>AclObjectIdentity</code> object. By simple, it means that the result object
+   * will contain only the <code>id</code> and <code>objectClass</code>
+   *
+   * @param row the <code>child or AOI table row</code> representing an
+   * <code>AclObjectIdentity</code>.
+   * @return a simple <code>AclObjectIdentity</code> object with the values retrieved from Cassandra.
+   */
+  private AclObjectIdentity convertToSimpleAclObjectIdentity(Row row) {
     AclObjectIdentity result = null;
     if (row != null) {
       result = new AclObjectIdentity();
-      result.setId(row.getString("objId"));
-      result.setObjectClass(row.getString("objClass"));
-      if (fullObject) {
-        result.setOwnerId(row.getString("owner"));
-        result.setEntriesInheriting(row.getBool("isInheriting"));
-        result.setOwnerPrincipal(row.getBool("isOwnerPrincipal"));
-        result.setParentObjectClass(row.getString("parentObjClass"));
-        result.setParentObjectId(row.getString("parentObjId"));
-      }
+      result.setId(row.getString(COMMON_OBJ_ID_FIELD));
+      result.setObjectClass(row.getString(COMMON_OBJ_CLASS_FIELD));
     }
     return result;
   }
@@ -452,7 +460,7 @@ public class CassandraAclRepository implements AclRepository {
    * Creates the schema for the table holding <code>AclObjectIdentity</code> representations.
    */
   @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
-  public void createAoisTable() {
+  public final void createAoisTable() {
     try {
       executeStatement(session, createAoisTable);
     } catch (AlreadyExistsException e) {
@@ -464,7 +472,7 @@ public class CassandraAclRepository implements AclRepository {
    * Creates the schema for the table holding <code>AclObjectIdentity</code> children.
    */
   @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
-  public void createChildrenTable() {
+  public final void createChildrenTable() {
     try {
       executeStatement(session, createChildrenTable);
     } catch (AlreadyExistsException e) {
@@ -476,7 +484,7 @@ public class CassandraAclRepository implements AclRepository {
    * Creates the schema for the table holding <code>AclEntry</code> representations.
    */
   @Retryable(maxAttempts = ACL_REPO_DEFAULT_MAX_ATTEMPTS)
-  public void createAclsTable() {
+  public final void createAclsTable() {
     try {
       executeStatement(session, createAclsTable);
     } catch (AlreadyExistsException e) {

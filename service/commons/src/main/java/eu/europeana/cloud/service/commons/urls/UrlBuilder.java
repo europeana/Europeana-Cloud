@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.commons.urls;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class UrlBuilder {
@@ -66,25 +67,31 @@ public class UrlBuilder {
       ValuedUrlPart key = new ValuedUrlPart(entry.getKey(), true);
       String value = entry.getValue();
       if (shouldBeIncludedInResult(entry.getKey())) {
-        ValuedUrlPart currentPart = removeFromPartsToInclude(entry.getKey());
-        if (currentPart.isAddValue()) {
-          if (value != null) {
-            if ("".equals(key.getPart().getValue())) {
-              result += "/" + value;
-            } else {
-              result += "/" + key.getPart().getValue() + "/" + value;
-            }
-          } else {
-            throw new UrlBuilderException("Value for: " + key + " is empty");
-          }
-        } else {
-          result += "/" + key.getPart().getValue();
-        }
+        result = buildUrlBasedOnKey(result, entry, key, value);
       }
     }
     if (partsToInclude.size() > 0) {
       String errorMessage = createErrorMessage(partsToInclude);
       throw new UrlBuilderException("Missing parts for given request: " + errorMessage);
+    }
+    return result;
+  }
+
+  private String buildUrlBasedOnKey(String result, Entry<UrlPart, String> entry, ValuedUrlPart key, String value)
+      throws UrlBuilderException {
+    ValuedUrlPart currentPart = removeFromPartsToInclude(entry.getKey());
+    if (currentPart.isAddValue()) {
+      if (value != null) {
+        if ("".equals(key.getPart().getValue())) {
+          result += "/" + value;
+        } else {
+          result += "/" + key.getPart().getValue() + "/" + value;
+        }
+      } else {
+        throw new UrlBuilderException("Value for: " + key + " is empty");
+      }
+    } else {
+      result += "/" + key.getPart().getValue();
     }
     return result;
   }
