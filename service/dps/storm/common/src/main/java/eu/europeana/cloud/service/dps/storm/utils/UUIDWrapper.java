@@ -14,7 +14,7 @@ import java.util.UUID;
 /**
  * Wraps all the operations related with UUIDs
  */
-public class UUIDWrapper {
+public final class UUIDWrapper {
 
 
   private UUIDWrapper() {

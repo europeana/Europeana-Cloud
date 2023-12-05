@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Tarek on 2/6/2018.
  */
-public class DPSExceptionProvider {
+public final class DPSExceptionProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DPSExceptionProvider.class);
 

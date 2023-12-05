@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DpsTaskValidatorFactory {
+public final class DpsTaskValidatorFactory {
 
   private static final DpsTaskValidator ALWAYS_FAIL_VALIDATOR =
       new DpsTaskValidator()

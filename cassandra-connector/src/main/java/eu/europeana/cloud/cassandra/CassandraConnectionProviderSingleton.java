@@ -3,7 +3,7 @@ package eu.europeana.cloud.cassandra;
 /**
  * Created by Tarek on 1/3/2017.
  */
-public class CassandraConnectionProviderSingleton {
+public final class CassandraConnectionProviderSingleton {
 
   private static CassandraConnectionProvider cassandraConnectionProvider;
 

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
-public class Constants {
+public final class Constants {
 
   /**
    * Maximum number of errors (for one error type) that will be served to the client and stored in the database

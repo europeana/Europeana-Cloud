@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DataSetUrlParser {
+public final class DataSetUrlParser {
 
   private DataSetUrlParser() {
   }

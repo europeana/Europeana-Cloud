@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.uis;
 
-public class RestInterfaceConstants {
+public final class RestInterfaceConstants {
 
   //DataSetAssignmentsResource
   public static final String DATA_PROVIDERS = "/data-providers";

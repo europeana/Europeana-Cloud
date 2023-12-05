@@ -7,7 +7,7 @@ import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TopologySubmitter {
+public final class TopologySubmitter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopologySubmitter.class);
 

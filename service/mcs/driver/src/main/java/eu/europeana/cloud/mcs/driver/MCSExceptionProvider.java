@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response;
 /**
  * Class with static method for generating Exceptions from ErrorInfo objects.
  */
-public class MCSExceptionProvider {
+public final class MCSExceptionProvider {
 
   private MCSExceptionProvider() {
   }

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-public class CassandraTablesAndColumnsNames {
+public final class CassandraTablesAndColumnsNames {
 
   //------- TABLES -------
   public static final String TASK_INFO_TABLE = "task_info";

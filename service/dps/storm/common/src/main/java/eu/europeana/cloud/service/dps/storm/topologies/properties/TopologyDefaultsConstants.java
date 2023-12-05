@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.properties;
 
-public class TopologyDefaultsConstants {
+public final class TopologyDefaultsConstants {
 
   public static final int DEFAULT_TUPLE_PROCESSING_TIME = 5 * 60; // 5min
   public static final int DEFAULT_MAX_SPOUT_PENDING = 500; //records

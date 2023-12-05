@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 /**
  * Generates md5 hash from the provided file. Result is in HEX.
  */
-public class FileMd5GenerationService {
+public final class FileMd5GenerationService {
 
   private static final String HEX_NUMBER_REGEXP = "[0-9a-fA-F]*";
   private static final Pattern HEX_NUMBER_PATTER = Pattern.compile(HEX_NUMBER_REGEXP);

@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
-public class DateHelper {
+public final class DateHelper {
 
   private DateHelper() {
   }

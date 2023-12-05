@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 /**
  * Keys for Map of parameters.
  */
-public class NotificationParameterKeys {
+public final class NotificationParameterKeys {
 
   //------- for BASIC INFO -------
   public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
