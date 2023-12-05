@@ -374,7 +374,7 @@ public class CassandraDataSetService implements DataSetService {
   private List<Representation> getRepresentations(List<DatasetAssignment> assignments) {
     return assignments.stream()
                       .map(stub -> recordDAO.getRepresentation(stub.getCloudId(), stub.getSchema(), stub.getVersion()))
-                      .collect(Collectors.toList());
+                      .toList();
   }
 
   /**

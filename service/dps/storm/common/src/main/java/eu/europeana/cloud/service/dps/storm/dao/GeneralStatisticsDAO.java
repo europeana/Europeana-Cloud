@@ -78,7 +78,7 @@ public class GeneralStatisticsDAO extends CassandraDAO {
 
   public List<GeneralStatistics> searchGeneralStatistics(long taskId) {
     return dbService.getSession().execute(searchGeneralStatistcsByTaskIdStatement.bind(taskId))
-                    .all().stream().map(this::createGeneralStatistics).collect(Collectors.toList());
+                    .all().stream().map(this::createGeneralStatistics).toList();
   }
 
   private GeneralStatistics createGeneralStatistics(Row row) {

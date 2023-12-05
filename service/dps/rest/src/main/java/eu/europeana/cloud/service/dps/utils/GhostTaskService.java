@@ -52,7 +52,7 @@ public class GhostTaskService {
   @Scheduled(cron = "0 0 * * * *")
   public void serviceTask() {
     List<TaskInfo> tasks = findGhostTasks();
-    List<Long> ids = tasks.stream().map(TaskInfo::getId).collect(Collectors.toList());
+    List<Long> ids = tasks.stream().map(TaskInfo::getId).toList();
     if (!ids.isEmpty()) {
       LOGGER.error("Ghost task found on server ids: {}", ids);
     } else {
@@ -62,7 +62,7 @@ public class GhostTaskService {
 
   public List<TaskInfo> findGhostTasks() {
     return findTasksInGivenStates(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED).
-        filter(this::isGhost).collect(Collectors.toList());
+        filter(this::isGhost).toList();
   }
 
   private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {

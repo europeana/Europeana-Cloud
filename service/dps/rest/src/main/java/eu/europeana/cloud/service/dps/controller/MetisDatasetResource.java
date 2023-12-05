@@ -61,6 +61,6 @@ public class MetisDatasetResource {
                                   recordIdentifiers)
                               .stream()
                               .map(HarvestedRecord::getRecordLocalId)
-                              .collect(Collectors.toList());
+                              .toList();
   }
 }

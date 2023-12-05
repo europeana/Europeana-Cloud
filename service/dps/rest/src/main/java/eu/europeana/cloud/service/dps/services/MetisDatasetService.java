@@ -54,7 +54,7 @@ public class MetisDatasetService {
         .map(recordIdentifier -> harvestedRecordsDAO.findRecord(metisDataset.getId(), recordIdentifier))
         .flatMap(Optional::stream)
         .filter(aRecord -> aRecord.getPublishedHarvestDate() != null)
-        .collect(Collectors.toList());
+        .toList();
     LOGGER.debug("Found the following record identifiers in {} dataset: {}", metisDataset.getId(), foundHarvestedRecords);
     return foundHarvestedRecords;
   }

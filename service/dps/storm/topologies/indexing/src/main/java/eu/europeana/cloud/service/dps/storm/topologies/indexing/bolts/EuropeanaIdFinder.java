@@ -49,18 +49,18 @@ public class EuropeanaIdFinder {
   }
 
   private List<String> listOfIdsPrefixedByMetisDatasetId(String metisDatasetId, List<String> localIds) {
-    return localIds.stream().filter(id -> isEuropeanaId(metisDatasetId, id)).collect(Collectors.toList());
+    return localIds.stream().filter(id -> isEuropeanaId(metisDatasetId, id)).toList();
   }
 
   private List<String> listOfIdsWhichEuropeanaPostfixIsPartOfRestOfIds(String metisDatasetId, List<String> localIds) {
     List<String> ids = listOfIdsPrefixedByMetisDatasetId(metisDatasetId, localIds);
     return ids.stream().filter(id -> ids.stream().allMatch(
-        otherId -> otherId.contains(europeanaPostfix(id, metisDatasetId)))).collect(Collectors.toList());
+        otherId -> otherId.contains(europeanaPostfix(id, metisDatasetId)))).toList();
   }
 
   private List<String> listOfIdsThatExistInHarvestedRecordsTable(String metisDatasetId, List<String> localIds) {
     return localIds.stream()
-                   .filter(id -> existsInHarvestedRecordsTable(id, metisDatasetId)).collect(Collectors.toList());
+                   .filter(id -> existsInHarvestedRecordsTable(id, metisDatasetId)).toList();
   }
 
   private boolean isEuropeanaId(String metisDatasetId, String id) {
@@ -80,7 +80,7 @@ public class EuropeanaIdFinder {
                                       "Could not get record id for cloud id: " + cloudIdentifier + " from UIS ",
                                       () -> uisClient.getRecordId(cloudIdentifier)).getResults().stream()
                                   .map(CloudId::getLocalId).map(LocalId::getRecordId)
-                                  .collect(Collectors.toList());
+                                  .toList();
   }
 
   private boolean existsInHarvestedRecordsTable(String cloudId, String metisDatasetId) {

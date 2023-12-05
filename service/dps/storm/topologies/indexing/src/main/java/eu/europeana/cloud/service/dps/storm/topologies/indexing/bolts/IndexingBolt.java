@@ -84,7 +84,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     final var datasetIdsToRedirectFrom = stormTaskTuple
             .getParameter(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM);
     final var datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
-            : Arrays.stream(datasetIdsToRedirectFrom.split(",")).map(String::trim).collect(Collectors.toList());
+            : Arrays.stream(datasetIdsToRedirectFrom.split(",")).map(String::trim).toList();
     final var performRedirects = Boolean
             .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
     final Date recordDate;

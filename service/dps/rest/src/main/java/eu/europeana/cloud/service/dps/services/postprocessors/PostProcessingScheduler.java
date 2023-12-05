@@ -74,7 +74,7 @@ public class PostProcessingScheduler {
     LOGGER.debug("Looking for tasks in {} state(s)...", states);
     List<TaskByTaskState> tasks = tasksByStateDAO.findTasksByState(states)
                                                  .stream().filter(task -> applicationId.equals(task.getApplicationId()))
-                                                 .collect(Collectors.toList());
+                                                 .toList();
     LOGGER.debug("Found tasks in {} state(s) : {}", states, tasks);
     return tasks;
   }
