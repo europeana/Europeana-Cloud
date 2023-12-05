@@ -37,8 +37,7 @@ public class PersistenceConfiguration {
     };
   }
 
-  @Bean
-  @Qualifier("mcsCassandraConnectionProvider")
+  @Bean("mcsCassandraConnectionProvider")
   CassandraConnectionProvider mcsCassandraProvider() {
     return new CassandraConnectionProvider(
         cassandraMCSProperties().getHosts(),
