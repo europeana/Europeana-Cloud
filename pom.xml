@@ -125,7 +125,7 @@
     <properties>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>11</version.jdk>
+        <version.jdk>17</version.jdk>
         <version.junit>4.13.2</version.junit>
         <version.powermock>2.0.9</version.powermock>
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
@@ -151,8 +151,7 @@
         <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
-        <version.storm>2.3.0</version.storm>
-        <!-- 0.10.0 is minimum -->
+        <version.lombok>1.18.30</version.lombok>
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -177,14 +176,14 @@
         <!-- -->
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>32.0.0-jre</version.guava>
-        <version.lombok>1.18.10</version.lombok>
+        <version.storm>2.6.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
         <version.wiremock>2.27.2</version.wiremock>
         <version.zt-zip>1.15</version.zt-zip>
 
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>${version.jdk}</maven.compiler.source>
+        <maven.compiler.target>${version.jdk}</maven.compiler.target>
     </properties>
 
     <profiles>

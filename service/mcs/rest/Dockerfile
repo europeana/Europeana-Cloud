@@ -1,10 +1,10 @@
-FROM eclipse-temurin:11-jdk-alpine as unpack
+FROM eclipse-temurin:21-jdk-alpine as unpack
 
 WORKDIR /unpack
 COPY target/*.jar /unpack/
 RUN jar -xf *.jar
 
-FROM eclipse-temurin:11-jdk-alpine
+FROM eclipse-temurin:21-jdk-alpine
 RUN apk add --no-cache \
     busybox-extras \
     iputils \
@@ -16,7 +16,7 @@ RUN apk add --no-cache \
     bind-tools \
     vim
 
-ARG JVM_ARGS="-Dcom.sun.management.jmxremote.ssl=false \
+ARG JVM_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED -Dcom.sun.management.jmxremote.ssl=false \
                       -Dcom.sun.management.jmxremote.authenticate=false \
                       -Dcom.sun.management.jmxremote.port=8012 \
                       -Dcom.sun.management.jmxremote.rmi.port=8012 \

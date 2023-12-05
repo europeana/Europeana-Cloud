@@ -101,6 +101,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         handleException(tuple, stormTaskTuple, e);
       }
     } finally {
+      LOGGER.debug("{} Ended execution.", getClass().getName());
       clearDiagnosticContext();
     }
   }
