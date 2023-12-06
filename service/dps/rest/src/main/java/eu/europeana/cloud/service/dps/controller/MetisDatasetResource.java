@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;

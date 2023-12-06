@@ -11,7 +11,6 @@ import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class GeneralStatisticsDAO extends CassandraDAO {

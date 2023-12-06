@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Class finds Europeana id among different ids mapped to one given cloud id, stored in UIS. Class is needed cause UIS is rather

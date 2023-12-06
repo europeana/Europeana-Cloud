@@ -21,7 +21,6 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.EnumUtils;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
