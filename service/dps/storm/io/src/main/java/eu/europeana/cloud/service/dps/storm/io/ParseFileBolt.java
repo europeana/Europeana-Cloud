@@ -97,8 +97,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
       rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
       gson = new Gson();
     } catch (Exception e) {
-      LOGGER.error("Unable to initialize RDF Deserializer ", e);
-      throw new BoltInitializationException(e);
+      throw new BoltInitializationException("Unable to initialize RDF Deserializer", e);
     }
   }
 }
