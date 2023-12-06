@@ -84,10 +84,7 @@ public class CloudTagsResponse implements Comparable {
     if (!Objects.equals(this.cloudId, other.cloudId)) {
       return false;
     }
-    if (!Objects.equals(this.deleted, other.deleted)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.deleted, other.deleted);
   }
 
   @Override

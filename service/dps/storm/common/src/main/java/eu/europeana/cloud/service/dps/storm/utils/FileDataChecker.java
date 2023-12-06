@@ -10,9 +10,6 @@ public class FileDataChecker {
             return true;
         }
         String fileContent = new String(fileData, StandardCharsets.UTF_8);
-        if (fileContent.isBlank()) {
-            return true;
-        }
-        return false;
+        return fileContent.isBlank();
     }
 }

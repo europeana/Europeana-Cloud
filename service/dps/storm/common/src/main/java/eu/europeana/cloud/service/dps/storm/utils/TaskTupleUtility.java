@@ -10,11 +10,7 @@ public final class TaskTupleUtility {
 
   //check it parameter is provided in StormTaskTuple
   protected static boolean isProvidedAsParameter(StormTaskTuple stormTaskTuple, String parameter) {
-    if (stormTaskTuple.getParameter(parameter) != null) {
-      return true;
-    } else {
-      return false;
-    }
+    return stormTaskTuple.getParameter(parameter) != null;
   }
 
   //if the parameter was provided explicity in StormTaskTuple its value will be returned or its default value provided in PluginParameterKeys will be returned

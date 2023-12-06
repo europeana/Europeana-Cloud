@@ -90,11 +90,7 @@ public class TaskErrorInfo {
     if (errorType != null ? !errorType.equals(taskInfo.errorType) : (taskInfo.errorType != null)) {
       return false;
     }
-    if (errorDetails != null ? !errorDetails.equals(taskInfo.errorDetails) : (taskInfo.errorDetails != null)) {
-      return false;
-    }
-
-    return true;
+    return errorDetails != null ? errorDetails.equals(taskInfo.errorDetails) : (taskInfo.errorDetails == null);
   }
 
 

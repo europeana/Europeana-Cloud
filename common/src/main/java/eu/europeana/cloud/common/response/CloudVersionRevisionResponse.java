@@ -119,10 +119,7 @@ public class CloudVersionRevisionResponse implements Comparable {
     if (!Objects.equals(this.revisionId, other.revisionId)) {
       return false;
     }
-    if (!Objects.equals(this.deleted, other.deleted)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.deleted, other.deleted);
   }
 
   @Override

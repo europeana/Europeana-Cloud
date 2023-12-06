@@ -219,9 +219,6 @@ public class DataProviderProperties {
     if (!Objects.equals(this.contactPerson, other.contactPerson)) {
       return false;
     }
-    if (!Objects.equals(this.remarks, other.remarks)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.remarks, other.remarks);
   }
 }

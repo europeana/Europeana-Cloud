@@ -315,10 +315,7 @@ public class Representation {
     if (!Objects.equals(this.creationDate.toString(), other.creationDate.toString())) {
       return false;
     }
-    if (this.persistent != other.persistent) {
-      return false;
-    }
-    return true;
+    return this.persistent == other.persistent;
   }
 
   @Override

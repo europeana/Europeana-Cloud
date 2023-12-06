@@ -104,9 +104,6 @@ public class DataSet {
     if (!Objects.equals(this.providerId, other.providerId)) {
       return false;
     }
-    if (!Objects.equals(this.description, other.description)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.description, other.description);
   }
 }

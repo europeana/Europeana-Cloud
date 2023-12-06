@@ -62,10 +62,7 @@ public class CompoundDataSetId {
     if (!Objects.equals(this.dataSetId, other.dataSetId)) {
       return false;
     }
-    if (!Objects.equals(this.dataSetProviderId, other.dataSetProviderId)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.dataSetProviderId, other.dataSetProviderId);
   }
 
 

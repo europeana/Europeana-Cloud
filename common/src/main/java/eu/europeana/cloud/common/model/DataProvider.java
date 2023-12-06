@@ -124,10 +124,7 @@ public class DataProvider {
     if (!Objects.equals(this.partitionKey, other.partitionKey)) {
       return false;
     }
-    if (!Objects.equals(this.properties, other.properties)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.properties, other.properties);
   }
 
   @Override

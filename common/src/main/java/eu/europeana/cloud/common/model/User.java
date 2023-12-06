@@ -83,10 +83,7 @@ public class User {
       return false;
     }
     final User other = (User) obj;
-    if (!Objects.equals(this.username, other.username)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.username, other.username);
   }
 
   @Override
