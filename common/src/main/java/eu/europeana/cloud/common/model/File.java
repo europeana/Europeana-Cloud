@@ -164,19 +164,19 @@ public class File {
     if (fileStorage != file.fileStorage) {
       return false;
     }
-    if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) {
+    if (fileName != null ? !fileName.equals(file.fileName) : (file.fileName != null)) {
       return false;
     }
-    if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) {
+    if (mimeType != null ? !mimeType.equals(file.mimeType) : (file.mimeType != null)) {
       return false;
     }
-    if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) {
+    if (md5 != null ? !md5.equals(file.md5) : (file.md5 != null)) {
       return false;
     }
-    if (date != null ? !date.equals(file.date) : file.date != null) {
+    if (date != null ? !date.equals(file.date) : (file.date != null)) {
       return false;
     }
-    return contentUri != null ? contentUri.equals(file.contentUri) : file.contentUri == null;
+    return contentUri != null ? contentUri.equals(file.contentUri) : (file.contentUri == null);
 
   }
 

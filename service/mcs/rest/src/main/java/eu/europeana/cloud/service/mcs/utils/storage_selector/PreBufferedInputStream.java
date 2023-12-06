@@ -126,7 +126,7 @@ public class PreBufferedInputStream extends BufferedInputStream {
     int avail = super.available();
     return inBufferAvailable > (Integer.MAX_VALUE - avail)
         ? Integer.MAX_VALUE
-        : inBufferAvailable + avail;
+        : (inBufferAvailable + avail);
   }
 
   /**

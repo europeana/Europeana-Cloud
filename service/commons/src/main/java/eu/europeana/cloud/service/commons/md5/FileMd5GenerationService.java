@@ -45,11 +45,11 @@ public final class FileMd5GenerationService {
 
     int i;
     for (i = 0; i < 8; ++i) {
-      msb = msb << 8 | (long) (md5Bytes[i] & 255);
+      msb = (msb << 8) | (long) (md5Bytes[i] & 255);
     }
 
     for (i = 8; i < 16; ++i) {
-      lsb = lsb << 8 | (long) (md5Bytes[i] & 255);
+      lsb = (lsb << 8) | (long) (md5Bytes[i] & 255);
     }
 
     return new UUID(msb, lsb);

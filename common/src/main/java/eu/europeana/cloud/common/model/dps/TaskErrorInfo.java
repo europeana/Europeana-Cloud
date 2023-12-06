@@ -84,13 +84,13 @@ public class TaskErrorInfo {
     if (occurrences != taskInfo.occurrences) {
       return false;
     }
-    if (message != null ? !message.equals(taskInfo.message) : taskInfo.message != null) {
+    if (message != null ? !message.equals(taskInfo.message) : (taskInfo.message != null)) {
       return false;
     }
-    if (errorType != null ? !errorType.equals(taskInfo.errorType) : taskInfo.errorType != null) {
+    if (errorType != null ? !errorType.equals(taskInfo.errorType) : (taskInfo.errorType != null)) {
       return false;
     }
-    if (errorDetails != null ? !errorDetails.equals(taskInfo.errorDetails) : taskInfo.errorDetails != null) {
+    if (errorDetails != null ? !errorDetails.equals(taskInfo.errorDetails) : (taskInfo.errorDetails != null)) {
       return false;
     }
 
