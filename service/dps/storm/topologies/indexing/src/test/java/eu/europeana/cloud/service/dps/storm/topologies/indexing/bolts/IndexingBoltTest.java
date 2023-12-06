@@ -228,7 +228,7 @@ public class IndexingBoltTest {
     indexingBolt.execute(anchorTuple, tuple);
     //then
     verify(indexer).index(anyString(), any(), any());
-    verify(indexer).remove(eq(LOCAL_ID));
+    verify(indexer).remove(LOCAL_ID);
     Mockito.verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
