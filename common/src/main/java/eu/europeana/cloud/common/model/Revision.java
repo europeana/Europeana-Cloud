@@ -16,6 +16,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * <p>This class describes revision object used in representation versions</p>
+ * <p>Revision consists for four parts:
+ * <li>name</li>
+ * <li>provider (owner of the revision)</li>
+ * <li>creation timestamp</li>
+ * <li>boolean flag indicating if the revision is marked as deleted</li>
+ *
+ * </p>
+ *
+ */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data
@@ -34,14 +45,32 @@ public class Revision implements Serializable {
 
   boolean deleted;
 
+  /**
+   * Creates new instance of the {@link Revision} class based on provided value
+   *
+   * @param revisionName revision name
+   * @param providerId  revision provider
+   */
   public Revision(String revisionName, String providerId) {
     this(revisionName, providerId, new Date(), false);
   }
 
+  /**
+   * Creates new instance of the {@link Revision} class based on provided value
+   *
+   * @param revisionName revision name
+   * @param providerId  revision provider
+   * @param creationTimeStamp revision timestamp
+   */
   public Revision(String revisionName, String providerId, Date creationTimeStamp) {
     this(revisionName, providerId, creationTimeStamp, false);
   }
 
+  /**
+   * Creates new instance of the {@link Revision} class based on provided value
+   *
+   * @param revision {@link Revision} instance that will be used to construct new one
+   */
   public Revision(final Revision revision) {
     this(revision.getRevisionName(),
         revision.getRevisionProviderId(),
@@ -50,12 +79,30 @@ public class Revision implements Serializable {
     );
   }
 
+  /**
+   * Creates new instance of the {@link Revision} class based on provided value
+   *
+   * @param revisionName revision name
+   * @param revisionProviderId revision provider
+   * @param tag revision tag (see {@link Tags})
+   *
+   * @return new instance of {@link Revision} class
+   */
   public static Revision fromParams(String revisionName, String revisionProviderId, String tag) {
     Revision revision = new Revision(revisionName, revisionProviderId);
     revision.setRevisionTags(revision, new HashSet<>(List.of(tag)));
     return revision;
   }
 
+  /**
+   * Creates new instance of the {@link Revision} class based on provided value
+   *
+   * @param revisionName revision name
+   * @param revisionProviderId revision provider
+   * @param tags list of tags (see {@link Tags})
+   *
+   * @return new instance of {@link Revision} class
+   */
   public static Revision fromParams(String revisionName, String revisionProviderId, Set<String> tags) {
     Revision revision = new Revision(revisionName, revisionProviderId);
     revision.setRevisionTags(revision, tags);

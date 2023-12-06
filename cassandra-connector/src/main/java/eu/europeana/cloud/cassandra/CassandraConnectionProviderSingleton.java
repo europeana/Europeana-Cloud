@@ -11,6 +11,16 @@ public final class CassandraConnectionProviderSingleton {
 
   }
 
+  /**
+   * Instantiates the {@link CassandraConnectionProvider} class with the parameters provided in the method call
+   *
+   * @param hosts IP list of Cassandra nodes in the cluster
+   * @param port  port number used by Cassandra cluster
+   * @param keyspaceName  name of the keysprace on cluster
+   * @param userName  userName used for connection
+   * @param password  password used for connection
+   * @return instance of the {@link CassandraConnectionProvider}
+   */
   public static synchronized CassandraConnectionProvider getCassandraConnectionProvider(String hosts, int port,
       String keyspaceName,
       String userName,

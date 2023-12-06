@@ -44,6 +44,11 @@ public class DataProvider {
   public DataProvider() {
   }
 
+  /**
+   * Creates instance of {@link DataProvider} class with the specified identifier
+   *
+   * @param id identifier that will be used for created data-provider
+   */
   public DataProvider(final String id) {
     this.id = id;
   }

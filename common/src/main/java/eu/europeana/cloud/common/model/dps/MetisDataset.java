@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Holds the data related with dataset as it is stored in Metis
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -23,16 +23,34 @@ public class User {
    */
   private Set<String> roles = new HashSet<>(0);
 
+  /**
+   * Constructs new instance of {@link User} with all empty fields
+   */
+
   public User() {
     this.username = null;
     this.password = null;
   }
+
+  /**
+   * Constructs new instance of {@link User} class with the provided parameters
+   *
+   * @param username user name
+   * @param password user password
+   */
 
   public User(final String username, final String password) {
     this.username = username;
     this.password = password;
   }
 
+  /**
+   * Constructs new instance of {@link User} class with the provided parameters
+   *
+   * @param username user name
+   * @param password user password
+   * @param roles list of user roles
+   */
   public User(final String username, final String password, final Set<String> roles) {
     this.username = username;
     this.password = password;

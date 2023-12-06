@@ -50,11 +50,25 @@ public class File {
   private Storage fileStorage;
 
 
+  /**
+   * Creates new empty instance of {@link File}
+   */
   public File() {
     this.fileStorage = OBJECT_STORAGE;
   }
 
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param fileName file name
+   * @param mimeType mime type
+   * @param md5 md5
+   * @param date lat modification date
+   * @param contentLength content length
+   * @param contentUri content URI
+   * @param fileStorage file location (see {@link Storage})
+   */
   public File(String fileName, String mimeType, String md5, String date,
       long contentLength, URI contentUri, Storage fileStorage) {
     super();
@@ -67,12 +81,27 @@ public class File {
     this.fileStorage = fileStorage;
   }
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param fileName file name
+   * @param mimeType mime type
+   * @param md5 md5
+   * @param date lat modification date
+   * @param contentLength content length
+   * @param contentUri content URI
+   */
   public File(String fileName, String mimeType, String md5, String date,
       long contentLength, URI contentUri) {
     this(fileName, mimeType, md5, date, contentLength, contentUri, OBJECT_STORAGE);
   }
 
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param file instance of the {@link File} class that will be used to construct new object
+   */
   public File(final File file) {
     this(file.getFileName(), file.getMimeType(), file.getMd5(), file.getDate(), file.getContentLength(), file.
         getContentUri(), file.fileStorage);

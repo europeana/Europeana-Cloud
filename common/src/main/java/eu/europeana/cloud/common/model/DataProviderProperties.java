@@ -36,14 +36,14 @@ public class DataProviderProperties {
   /**
    * Creates a new instance of this class.
    *
-   * @param organisationName
-   * @param officialAddress
-   * @param organisationWebsite
-   * @param organisationWebsiteURL
-   * @param digitalLibraryWebsite
-   * @param digitalLibraryURL
-   * @param contactPerson
-   * @param remarks
+   * @param organisationName organization name
+   * @param officialAddress organization official address
+   * @param organisationWebsite organization website
+   * @param organisationWebsiteURL organization website address
+   * @param digitalLibraryWebsite digital library website
+   * @param digitalLibraryURL digital library website URL
+   * @param contactPerson contact person
+   * @param remarks remarks
    */
   public DataProviderProperties(String organisationName, String officialAddress, String organisationWebsite,
       String organisationWebsiteURL, String digitalLibraryWebsite, String digitalLibraryURL,

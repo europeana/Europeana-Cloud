@@ -92,16 +92,16 @@ public class Representation {
   /**
    * Creates a new instance of this class.
    *
-   * @param cloudId
-   * @param representationName
-   * @param version
-   * @param allVersionsUri
-   * @param uri
-   * @param dataProvider
-   * @param files
-   * @param revisions
-   * @param persistent
-   * @param creationDate
+   * @param cloudId cloud identifier
+   * @param representationName representation name
+   * @param version representation version
+   * @param allVersionsUri  uri to all versions
+   * @param uri uri to representation
+   * @param dataProvider data provider
+   * @param files list of files assigned to the representation
+   * @param revisions list of revisions assigned to the representation
+   * @param persistent  boolean value indicating if representation is persistent
+   * @param creationDate representation creation date
    */
   public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
       String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
@@ -122,7 +122,7 @@ public class Representation {
   /**
    * Creates a new instance of this class.
    *
-   * @param representation
+   * @param representation {@link Representation} instance that will be used to construct new one
    */
   public Representation(final Representation representation) {
     this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
@@ -161,6 +161,14 @@ public class Representation {
     return clonedRevisions;
   }
 
+  /**
+   * Creates new instance of the {@link Representation} class based on provided value
+   *
+   * @param cloudId cloud identifier
+   * @param representationName representation name
+   * @param version representation version
+   * @return new intance of the {@link Representation} class
+   */
   public static Representation fromFields(String cloudId, String representationName, String version) {
     Representation r = new Representation();
     r.setCloudId(cloudId);
