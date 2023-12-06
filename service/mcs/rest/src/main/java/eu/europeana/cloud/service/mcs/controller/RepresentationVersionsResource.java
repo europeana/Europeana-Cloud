@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -41,7 +40,6 @@ public class RepresentationVersionsResource {
    * @summary get all representation versions.
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-  @ResponseBody
   public RepresentationsListWrapper listVersions(
       final HttpServletRequest request,
       @PathVariable String cloudId,
