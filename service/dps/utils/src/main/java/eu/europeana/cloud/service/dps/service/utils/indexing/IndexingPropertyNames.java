@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.indexing;
 
-public class IndexingPropertyNames {
+public final class IndexingPropertyNames {
 
   public static final String PREVIEW_PREFIX = "indexing.preview";
   public static final String PUBLISH_PREFIX = "indexing.publish";
@@ -23,5 +23,8 @@ public class IndexingPropertyNames {
   public static final String ZOOKEEPER_CHROOT = "zookeeperChroot";
   public static final String ZOOKEEPER_DEFAULT_COLLECTION = "zookeeperDefaultCollection";
   public static final String DELIMITER = ".";
+
+  private IndexingPropertyNames() {
+  }
 
 }

@@ -6,7 +6,10 @@ import eu.europeana.cloud.http.service.GzUnpackingService;
 import eu.europeana.cloud.http.service.ZipUnpackingService;
 
 
-public class UnpackingServiceFactory {
+public final class UnpackingServiceFactory {
+
+  private UnpackingServiceFactory() {
+  }
 
   private static final ZipUnpackingService ZIP_UNPACKING_SERVICE = new ZipUnpackingService();
   private static final GzUnpackingService GZ_UNPACKING_SERVICE = new GzUnpackingService();

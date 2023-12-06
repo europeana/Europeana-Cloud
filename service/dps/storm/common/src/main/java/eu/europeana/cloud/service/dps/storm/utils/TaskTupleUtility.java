@@ -8,6 +8,9 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
  */
 public final class TaskTupleUtility {
 
+  private TaskTupleUtility() {
+  }
+
   //check it parameter is provided in StormTaskTuple
   protected static boolean isProvidedAsParameter(StormTaskTuple stormTaskTuple, String parameter) {
     return stormTaskTuple.getParameter(parameter) != null;
