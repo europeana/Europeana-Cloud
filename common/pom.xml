@@ -50,6 +50,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>eu.europeana.metis</groupId>
+			<artifactId>metis-common-utils</artifactId>
+			<version>${version.metis}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>eu.europeana.cloud</groupId>
 			<artifactId>test-common</artifactId>
 			<version>${project.version}</version>

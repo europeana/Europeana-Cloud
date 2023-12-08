@@ -12,6 +12,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static eu.europeana.metis.utils.CommonStringValues.CRLF_PATTERN;
+
 public class MetisDatasetService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MetisDatasetService.class);
@@ -46,8 +48,11 @@ public class MetisDatasetService {
    * @return list of found records
    */
   public List<HarvestedRecord> findPublishedRecordsInSet(MetisDataset metisDataset, List<String> recordIdentifiers) {
-    LOGGER.debug("Searching for published record identifiers in {} dataset and the following subset {}", metisDataset.getId(),
-        recordIdentifiers);
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.debug("Searching for published record identifiers in {} dataset and the following subset {}",
+              CRLF_PATTERN.matcher(metisDataset.getId()).replaceAll(""),
+              CRLF_PATTERN.matcher(recordIdentifiers.toString()).replaceAll(""));
+    }
     List<HarvestedRecord> foundHarvestedRecords = recordIdentifiers
         .stream()
         .map(recordIdentifier -> harvestedRecordsDAO.findRecord(metisDataset.getId(), recordIdentifier))

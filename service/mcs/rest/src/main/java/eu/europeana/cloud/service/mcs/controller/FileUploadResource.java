@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+
+import eu.europeana.metis.utils.CommonStringValues;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +84,21 @@ public class FileUploadResource {
       @RequestParam MultipartFile data) throws RepresentationNotExistsException,
       CannotModifyPersistentRepresentationException, RecordNotExistsException,
       ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
-    LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
-        cloudId, representationName, version, fileName, providerId, mimeType);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
+              CommonStringValues.CRLF_PATTERN.matcher(cloudId).replaceAll(""),
+              CommonStringValues.CRLF_PATTERN.matcher(representationName).replaceAll(""),
+              version,
+              CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""),
+              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
+              CommonStringValues.CRLF_PATTERN.matcher(mimeType).replaceAll(""));
+    }
     PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
     Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-    LOGGER.trace("File {} buffered", fileName);
+    if(LOGGER.isTraceEnabled()){
+      LOGGER.trace("File {} buffered",
+              CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""));
+    }
     Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version,
         dataSetId);
 
@@ -125,6 +137,9 @@ public class FileUploadResource {
       RepresentationNotExistsException {
     recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(),
         representation.getVersion());
-    LOGGER.debug("Representation persisted: {}", representation);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Representation persisted: {}",
+              CommonStringValues.CRLF_PATTERN.matcher(representation.toString()).replaceAll(""));
+    }
   }
 }

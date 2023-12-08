@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
+import eu.europeana.metis.utils.CommonStringValues;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -167,7 +168,11 @@ public class CassandraRecordService implements RecordService {
     if (uis.getProvider(providerId) == null) {
       throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
     }
-    LOGGER.debug("Confirmed provider, id={} exists.", providerId);
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.debug("Confirmed provider, id={} exists.",
+              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll("")
+      );
+    }
 
     //
     Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
@@ -195,8 +200,13 @@ public class CassandraRecordService implements RecordService {
           representation.getCloudId(),
           representation.getRepresentationName(),
           representation.getVersion());
-      LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}"
-          , cloudId, representationName, providerId, version);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}",
+                CommonStringValues.CRLF_PATTERN.matcher(cloudId).replaceAll(""),
+                CommonStringValues.CRLF_PATTERN.matcher(representationName).replaceAll(""),
+                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
+                version);
+      }
       return representation;
     } else {
       throw new RecordNotExistsException(cloudId);
@@ -316,7 +326,11 @@ public class CassandraRecordService implements RecordService {
     PutResult result;
     try {
       result = contentDAO.putContent(keyForFile, content, file.getFileStorage());
-      LOGGER.debug("Stored content for file: {} version: {}", file.getFileName(), version);
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.debug("Stored content for file: {} version: {}",
+                CommonStringValues.CRLF_PATTERN.matcher(file.getFileName()).replaceAll(""),
+                CommonStringValues.CRLF_PATTERN.matcher(version).replaceAll(""));
+      }
     } catch (IOException ex) {
       throw new SystemException(ex);
     }

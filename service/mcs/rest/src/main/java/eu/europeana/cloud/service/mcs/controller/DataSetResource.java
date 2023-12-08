@@ -17,6 +17,8 @@ import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+
+import eu.europeana.metis.utils.CommonStringValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -194,8 +196,12 @@ public class DataSetResource {
     ObjectIdentity versionIdentity = new ObjectIdentityImpl(DATASET_PERMISSION_KEY,
         dataSetId + "/" + providerId);
 
-    LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
-        username, versionIdentity.getType(), versionIdentity.getIdentifier());
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+              CommonStringValues.CRLF_PATTERN.matcher(username).replaceAll(""),
+              versionIdentity.getType(),
+              versionIdentity.getIdentifier());
+    }
 
     List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
     permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);

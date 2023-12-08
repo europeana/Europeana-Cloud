@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static eu.europeana.metis.utils.CommonStringValues.CRLF_PATTERN;
+
 /**
  * Resource to manage topologies in the DPS service
  */
@@ -58,7 +60,12 @@ public class TopologiesResource {
       @RequestParam("username") String userName,
       @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
 
-    LOGGER.info("Adding permissions for user '{}' to topology: '{}'", userName, topology);
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Adding permissions for user '{}' to topology: '{}'",
+              CRLF_PATTERN.matcher(userName).replaceAll(""),
+              CRLF_PATTERN.matcher(topology).replaceAll(""));
+    }
+
     assertContainTopology(topology);
     addPermissionsToTopology(topology, userName);
     return ResponseEntity.ok().build();

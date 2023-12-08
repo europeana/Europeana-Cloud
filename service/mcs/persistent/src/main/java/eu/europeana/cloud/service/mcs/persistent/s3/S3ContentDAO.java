@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import eu.europeana.metis.utils.CommonStringValues;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.jclouds.blobstore.BlobStore;
@@ -117,7 +119,11 @@ public class S3ContentDAO implements ContentDAO {
     try {
       MDC.put(S3_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
       MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
-      S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}", operation, fileName);
+      if (S3_MODIFICATIONS_LOGGER.isInfoEnabled()) {
+        S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}",
+                CommonStringValues.CRLF_PATTERN.matcher(operation).replaceAll(""),
+                CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""));
+      }
     } finally {
       MDC.remove(S3_OBJECT_OPERATION_LOG_ATTRIBUTE);
       MDC.remove(S3_OBJECT_NAME_LOG_ATTRIBUTE);
