@@ -58,40 +58,34 @@ public final class TopologyHelper {
   }
 
   public static Config buildConfig(Properties topologyProperties) {
-    return buildConfig(topologyProperties, false);
-  }
-
-  public static Config buildConfig(Properties topologyProperties, boolean staticMode) {
     Config config = new Config();
 
-    if (!staticMode) {
-      config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
-      config.setMaxTaskParallelism(
-          parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
-      config.put(Config.NIMBUS_THRIFT_PORT,
-          parseInt(topologyProperties.getProperty(THRIFT_PORT)));
-      config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-          topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
-      config.put(Config.NIMBUS_SEEDS, Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)));
-      config.put(Config.STORM_ZOOKEEPER_SERVERS,
-          Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
+    config.setNumWorkers(parseInt(topologyProperties.getProperty(WORKER_COUNT)));
+    config.setMaxTaskParallelism(
+        parseInt(topologyProperties.getProperty(MAX_TASK_PARALLELISM)));
+    config.put(Config.NIMBUS_THRIFT_PORT,
+        parseInt(topologyProperties.getProperty(THRIFT_PORT)));
+    config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
+        topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT));
+    config.put(Config.NIMBUS_SEEDS, Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)));
+    config.put(Config.STORM_ZOOKEEPER_SERVERS,
+        Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)));
 
-      config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-    }
+    config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
 
-    config.setDebug(staticMode);
+    config.setDebug(false);
     config.setMessageTimeoutSecs(getValue(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS, DEFAULT_TUPLE_PROCESSING_TIME));
 
     config.put(CASSANDRA_HOSTS,
-        getValue(topologyProperties, CASSANDRA_HOSTS, staticMode ? DEFAULT_CASSANDRA_HOSTS : null));
+        getValue(topologyProperties, CASSANDRA_HOSTS, null));
     config.put(CASSANDRA_PORT,
-            getValue(topologyProperties, CASSANDRA_PORT, staticMode ? DEFAULT_CASSANDRA_PORT : null));
+        getValue(topologyProperties, CASSANDRA_PORT, null));
     config.put(CASSANDRA_KEYSPACE_NAME,
-            getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, staticMode ? DEFAULT_CASSANDRA_KEYSPACE_NAME : null));
+        getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, null));
     config.put(CASSANDRA_USERNAME,
-            getValue(topologyProperties, CASSANDRA_USERNAME, staticMode ? DEFAULT_CASSANDRA_USERNAME : null));
+        getValue(topologyProperties, CASSANDRA_USERNAME, null));
     config.put(CASSANDRA_SECRET_TOKEN,
-            getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null));
+        getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, null));
 
     config.setMaxSpoutPending(getValue(topologyProperties, MAX_SPOUT_PENDING, DEFAULT_MAX_SPOUT_PENDING));
     List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
