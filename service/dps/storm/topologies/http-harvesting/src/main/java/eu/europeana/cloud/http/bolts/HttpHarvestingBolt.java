@@ -2,6 +2,7 @@ package eu.europeana.cloud.http.bolts;
 
 import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -27,6 +28,10 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   private static final int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
   private transient IdentifierSupplier identifierSupplier;
   private transient HttpClient httpClient;
+
+  public HttpHarvestingBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
   @Override
   public void prepare() {

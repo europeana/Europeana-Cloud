@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -65,7 +66,8 @@ public class WriteRecordBoltTest {
   @Mock(name = "recordServiceClient")
   private RecordServiceClient recordServiceClient;
   @InjectMocks
-  private WriteRecordBolt writeRecordBolt = new WriteRecordBolt("http://localhost:8080/mcs", "user", "password");
+  private WriteRecordBolt writeRecordBolt =
+      new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/mcs", "user", "password");
 
   @Before
   public void init() {

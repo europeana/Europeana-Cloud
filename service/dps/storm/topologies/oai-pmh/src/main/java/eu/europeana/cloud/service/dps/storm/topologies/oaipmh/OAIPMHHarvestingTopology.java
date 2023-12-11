@@ -27,6 +27,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RECORD_H
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RECORD_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
@@ -82,22 +83,26 @@ public class OAIPMHHarvestingTopology {
     List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.OAI_TOPOLOGY, topologyProperties);
 
     WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(UIS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
 
     TopologyHelper.addSpoutShuffleGrouping(spoutNames,
-        builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
+        builder.setBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(createCassandraProperties(topologyProperties)),
+                   (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
                .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))));
 
-    builder.setBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(prepareConnectionDetails()),
+    builder.setBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(
+                   createCassandraProperties(topologyProperties)),
                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
            .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
@@ -113,10 +118,10 @@ public class OAIPMHHarvestingTopology {
            .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
     builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
+                   createCassandraProperties(topologyProperties),
                    topologyProperties.getProperty(MCS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                   topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
-               ),
+                   topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                (getAnInt(DUPLICATES_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
            .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
@@ -147,16 +152,6 @@ public class OAIPMHHarvestingTopology {
 
   private static int getAnInt(String parseTasksBoltParallel) {
     return parseInt(topologyProperties.getProperty(parseTasksBoltParallel));
-  }
-
-  private DbConnectionDetails prepareConnectionDetails() {
-    return DbConnectionDetails.builder()
-                              .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
-                              .port(getAnInt(CASSANDRA_PORT))
-                              .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
-                              .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
-                              .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
-                              .build();
   }
 
   /**

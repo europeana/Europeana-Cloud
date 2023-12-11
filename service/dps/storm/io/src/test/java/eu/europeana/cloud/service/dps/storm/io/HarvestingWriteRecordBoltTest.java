@@ -25,6 +25,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -79,6 +80,7 @@ public class HarvestingWriteRecordBoltTest {
 
   @InjectMocks
   private HarvestingWriteRecordBolt oaiWriteRecordBoltT = new HarvestingWriteRecordBolt(
+      new CassandraProperties(),
       "http://localhost:8080/mcs",
       "http://localhost:8080/uis",
       "user",

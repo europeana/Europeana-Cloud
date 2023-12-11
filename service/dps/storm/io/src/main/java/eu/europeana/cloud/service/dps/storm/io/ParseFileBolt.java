@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -31,10 +32,9 @@ public abstract class ParseFileBolt extends ReadFileBolt {
   private transient Gson gson;
   protected transient RdfDeserializer rdfDeserializer;
 
-  public ParseFileBolt(String ecloudMcsAddress,
-      String ecloudMcsUser,
-      String ecloudMcsUserPassword) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  public ParseFileBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   protected abstract List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException;

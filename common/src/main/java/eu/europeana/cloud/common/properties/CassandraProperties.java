@@ -1,5 +1,6 @@
 package eu.europeana.cloud.common.properties;
 
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +9,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class CassandraProperties {
+public class CassandraProperties implements Serializable {
 
     private String keyspace;
     private String user;

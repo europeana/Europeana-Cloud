@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -49,7 +50,7 @@ public class RecordHarvestingBoltTest {
   private IdentifierSupplier identifierSupplier;
 
   @InjectMocks
-  private final RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt();
+  private final RecordHarvestingBolt recordHarvestingBolt = new RecordHarvestingBolt(new CassandraProperties());
 
   private static InputStream getFileContentAsStream(String name) {
     return RecordHarvestingBoltTest.class.getResourceAsStream(name);

@@ -19,6 +19,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.LINK_CHE
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.NOTIFICATION_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.PARSE_FILE_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -59,13 +60,14 @@ public class LinkCheckTopology {
 
     TopologyHelper.addSpoutShuffleGrouping(spoutNames,
         builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(
+                       createCassandraProperties(topologyProperties),
                        topologyProperties.getProperty(MCS_URL),
                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                    (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
                .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS))));
 
-    builder.setBolt(LINK_CHECK_BOLT, new LinkCheckBolt(),
+    builder.setBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),
                (getAnInt(LINK_CHECK_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(LINK_CHECK_BOLT_NUMBER_OF_TASKS)))
            .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));

@@ -63,20 +63,23 @@ public class HTTPHarvestingTopology {
     List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.HTTP_TOPOLOGY, topologyProperties);
 
     WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
+        createCassandraProperties(topologyProperties),
         ecloudMcsAddress,
         uisAddress,
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
+        createCassandraProperties(topologyProperties),
         ecloudMcsAddress,
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
     TopologyHelper.addSpoutShuffleGrouping(spoutNames,
-        builder.setBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(), (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
-               .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))));
+        builder.setBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(createCassandraProperties(topologyProperties)),
+            (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL))).setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS))));
 
-    builder.setBolt(RECORD_CATEGORIZATION_BOLT, new HttpHarvestedRecordCategorizationBolt(prepareConnectionDetails()),
+    builder.setBolt(RECORD_CATEGORIZATION_BOLT,
+               new HttpHarvestedRecordCategorizationBolt(createCassandraProperties(topologyProperties)),
                (getAnInt(RECORD_HARVESTING_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)))
            .customGrouping(RECORD_HARVESTING_BOLT, new ShuffleGrouping());
@@ -92,11 +95,11 @@ public class HTTPHarvestingTopology {
            .customGrouping(WRITE_RECORD_BOLT, new ShuffleGrouping());
 
     builder.setBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
-                            topologyProperties.getProperty(MCS_URL),
-                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
-                    ),
-                    (getAnInt(DUPLICATES_BOLT_PARALLEL)))
+                   createCassandraProperties(topologyProperties),
+                   topologyProperties.getProperty(MCS_URL),
+                   topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                   topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
+               (getAnInt(DUPLICATES_BOLT_PARALLEL)))
             .setNumTasks((getAnInt(DUPLICATES_BOLT_NUMBER_OF_TASKS)))
             .fieldsGrouping(REVISION_WRITER_BOLT, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
 
@@ -126,16 +129,6 @@ public class HTTPHarvestingTopology {
 
   private static int getAnInt(String propertyName) {
     return parseInt(topologyProperties.getProperty(propertyName));
-  }
-
-  private DbConnectionDetails prepareConnectionDetails() {
-    return DbConnectionDetails.builder()
-                              .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
-                              .port(getAnInt(CASSANDRA_PORT))
-                              .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
-                              .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
-                              .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
-                              .build();
   }
 
   /**

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
@@ -63,7 +64,8 @@ public class ParseFileBoltTest {
 
 
   @InjectMocks
-  static ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt("localhost/mcs", "user", "password");
+  static ParseFileForMediaBolt parseFileBolt =
+      new ParseFileForMediaBolt(new CassandraProperties(), "localhost/mcs", "user", "password");
 
   private StormTaskTuple stormTaskTuple;
   private static List<String> expectedParametersKeysList;

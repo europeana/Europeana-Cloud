@@ -23,6 +23,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.NOTIFICA
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RETRIEVE_FILE_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
@@ -68,6 +69,7 @@ public class IndexingTopology {
 
     TopologyBuilder builder = new TopologyBuilder();
     ReadFileBolt readFileBolt = new ReadFileBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
@@ -81,7 +83,7 @@ public class IndexingTopology {
                .setNumTasks(getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS)));
 
     builder.setBolt(INDEXING_BOLT, new IndexingBolt(
-                   prepareConnectionDetails(),
+                   createCassandraProperties(topologyProperties),
                    indexingProperties,
                    topologyProperties.getProperty(UIS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
@@ -91,7 +93,7 @@ public class IndexingTopology {
            .setNumTasks(getAnInt(INDEXING_BOLT_NUMBER_OF_TASKS))
            .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
-    builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(
+    builder.setBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(createCassandraProperties(topologyProperties),
                    topologyProperties.getProperty(MCS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
@@ -117,16 +119,6 @@ public class IndexingTopology {
                    new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
 
     return builder.createTopology();
-  }
-
-  private DbConnectionDetails prepareConnectionDetails() {
-    return DbConnectionDetails.builder()
-                              .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
-                              .port(getAnInt(CASSANDRA_PORT))
-                              .keyspaceName(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
-                              .userName(topologyProperties.getProperty(CASSANDRA_USERNAME))
-                              .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
-                              .build();
   }
 
   public static void main(String[] args) {

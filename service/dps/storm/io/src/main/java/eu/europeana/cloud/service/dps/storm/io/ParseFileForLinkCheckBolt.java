@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
@@ -8,10 +9,9 @@ import java.util.List;
 
 public class ParseFileForLinkCheckBolt extends ParseFileBolt {
 
-  public ParseFileForLinkCheckBolt(String ecloudMcsAddress,
-      String ecloudMcsUser,
-      String ecloudMcsUserPassword) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  public ParseFileForLinkCheckBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {

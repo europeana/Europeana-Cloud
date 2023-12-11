@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -41,8 +42,6 @@ public class IndexingBolt extends AbstractDpsBolt {
   public static final String INDEXING_FILE_ERROR_MESSAGE = "Unable to index file";
   private static final Logger LOGGER = LoggerFactory.getLogger(IndexingBolt.class);
   private transient IndexWrapper indexWrapper;
-  private final DbConnectionDetails dbConnectionDetails;
-
   private final Properties indexingProperties;
   private transient HarvestedRecordsDAO harvestedRecordsDAO;
   private final String uisAddress;
@@ -52,11 +51,11 @@ public class IndexingBolt extends AbstractDpsBolt {
 
 
   public IndexingBolt(
-      DbConnectionDetails dbConnectionDetails,
+      CassandraProperties cassandraProperties,
       Properties indexingProperties,
       String uisAddress, String topologyUserName,
       String topologyUserPassword) {
-    this.dbConnectionDetails = dbConnectionDetails;
+    super(cassandraProperties);
     this.indexingProperties = indexingProperties;
     this.uisAddress = uisAddress;
     this.topologyUserName = topologyUserName;
@@ -143,11 +142,11 @@ public class IndexingBolt extends AbstractDpsBolt {
   private void prepareDao() {
     var cassandraConnectionProvider =
         CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
-            dbConnectionDetails.getHosts(),
-            dbConnectionDetails.getPort(),
-            dbConnectionDetails.getKeyspaceName(),
-            dbConnectionDetails.getUserName(),
-            dbConnectionDetails.getPassword());
+            cassandraProperties.getHosts(),
+            cassandraProperties.getPort(),
+            cassandraProperties.getKeyspace(),
+            cassandraProperties.getUser(),
+            cassandraProperties.getPassword());
     harvestedRecordsDAO = HarvestedRecordsDAO.getInstance(cassandraConnectionProvider);
   }
 

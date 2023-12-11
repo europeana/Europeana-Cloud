@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
@@ -19,12 +20,12 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
 
   private final String successNotificationMessage;
 
-  public IndexingRevisionWriter(
+  public IndexingRevisionWriter(CassandraProperties cassandraProperties,
       String ecloudMcsAddress,
       String ecloudMcsUser,
       String ecloudMcsUserPassword,
       String successNotificationMessage) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     this.successNotificationMessage = successNotificationMessage;
   }
 

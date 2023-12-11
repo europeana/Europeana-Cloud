@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
@@ -62,8 +63,8 @@ public class EnrichmentBoltTest {
 
 
   @InjectMocks
-  private EnrichmentBolt enrichmentBolt = new EnrichmentBolt(DEREFERENCE_URL, ENRICHMENT_ENTITY_MANAGEMENT_URL_URL,
-      ENRICHMENT_ENTITY_API_URL, ENRICHMENT_ENTITY_API_KEY);
+  private EnrichmentBolt enrichmentBolt = new EnrichmentBolt(new CassandraProperties(), DEREFERENCE_URL,
+      ENRICHMENT_ENTITY_MANAGEMENT_URL_URL, ENRICHMENT_ENTITY_API_URL, ENRICHMENT_ENTITY_API_KEY);
 
   @Test
   @SuppressWarnings("unchecked")
