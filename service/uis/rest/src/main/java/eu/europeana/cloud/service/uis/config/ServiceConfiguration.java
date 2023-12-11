@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
-import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

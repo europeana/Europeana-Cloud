@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils.indexing;
 
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
+import eu.europeana.cloud.common.properties.IndexingProperties;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;

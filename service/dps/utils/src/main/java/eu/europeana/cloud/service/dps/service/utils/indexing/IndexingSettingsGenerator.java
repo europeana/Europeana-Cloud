@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils.indexing;
 
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper.IndexingType;
-import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
+import eu.europeana.cloud.common.properties.IndexingProperties;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
 import java.net.InetSocketAddress;
