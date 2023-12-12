@@ -32,7 +32,7 @@ public class CassandraDataProviderService implements DataProviderService {
   public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("getProviders() thresholdProviderId='{}', limit='{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId).replaceAll(""), limit);
+              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId == null ? "null" : thresholdProviderId).replaceAll(""), limit);
     }
     String nextProvider = null;
     List<DataProvider> providers = dataProviderDao.getProviders(thresholdProviderId, limit + 1);
@@ -44,8 +44,8 @@ public class CassandraDataProviderService implements DataProviderService {
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("getProviders() returning providers={} and nextProvider={} for thresholdProviderId='{}', limit='{}'",
               providerSize,
-              CommonStringValues.CRLF_PATTERN.matcher(nextProvider).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId).replaceAll(""),
+              CommonStringValues.CRLF_PATTERN.matcher(nextProvider == null ? "null" : nextProvider).replaceAll(""),
+              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId == null ? "null" : thresholdProviderId).replaceAll(""),
               limit);
     }
     return new ResultSlice<>(nextProvider, providers);
