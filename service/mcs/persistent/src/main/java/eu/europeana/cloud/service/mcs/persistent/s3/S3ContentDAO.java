@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.persistent.s3;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import eu.europeana.metis.utils.CommonStringValues;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.jclouds.blobstore.BlobStore;
@@ -121,8 +121,8 @@ public class S3ContentDAO implements ContentDAO {
       MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
       if (S3_MODIFICATIONS_LOGGER.isInfoEnabled()) {
         S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}",
-                CommonStringValues.CRLF_PATTERN.matcher(operation).replaceAll(""),
-                CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""));
+            LogMessageCleaner.clean(operation),
+            LogMessageCleaner.clean(fileName));
       }
     } finally {
       MDC.remove(S3_OBJECT_OPERATION_LOG_ATTRIBUTE);

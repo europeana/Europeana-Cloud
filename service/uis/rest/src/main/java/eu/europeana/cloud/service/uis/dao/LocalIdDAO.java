@@ -9,11 +9,11 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.util.Optional;
 
-import eu.europeana.metis.utils.CommonStringValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +49,8 @@ public class LocalIdDAO {
   public Optional<CloudId> searchById(String providerId, String recordId) throws DatabaseConnectionException {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Searching cloudId for providerId={} and recordId={}",
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
     }
     try {
       Row row = dbService.getSession().execute(searchByRecordIdStatement.bind(providerId, recordId)).one();
@@ -58,16 +58,16 @@ public class LocalIdDAO {
         CloudId cloudId = createCloudIdFromProviderRecordRow(row);
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Found cloudId={} for providerId={} and recordId={}",
-                  cloudId,
-                  CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                  CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+              cloudId,
+              LogMessageCleaner.clean(providerId),
+              LogMessageCleaner.clean(recordId));
         }
         return Optional.of(cloudId);
       } else {
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("CloudId not found for providerId={} and recordId={}",
-                  CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                  CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+              LogMessageCleaner.clean(providerId),
+              LogMessageCleaner.clean(recordId));
         }
         return Optional.empty();
       }

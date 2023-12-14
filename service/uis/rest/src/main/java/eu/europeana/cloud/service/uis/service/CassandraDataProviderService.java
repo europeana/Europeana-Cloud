@@ -5,13 +5,13 @@ import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.util.List;
 
-import eu.europeana.metis.utils.CommonStringValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,8 @@ public class CassandraDataProviderService implements DataProviderService {
   public ResultSlice<DataProvider> getProviders(String thresholdProviderId, int limit) {
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("getProviders() thresholdProviderId='{}', limit='{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId == null ? "null" : thresholdProviderId).replaceAll(""), limit);
+          LogMessageCleaner.clean(thresholdProviderId),
+          limit);
     }
     String nextProvider = null;
     List<DataProvider> providers = dataProviderDao.getProviders(thresholdProviderId, limit + 1);
@@ -43,10 +44,10 @@ public class CassandraDataProviderService implements DataProviderService {
     }
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("getProviders() returning providers={} and nextProvider={} for thresholdProviderId='{}', limit='{}'",
-              providerSize,
-              CommonStringValues.CRLF_PATTERN.matcher(nextProvider == null ? "null" : nextProvider).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(thresholdProviderId == null ? "null" : thresholdProviderId).replaceAll(""),
-              limit);
+          providerSize,
+          LogMessageCleaner.clean(nextProvider),
+          LogMessageCleaner.clean(thresholdProviderId),
+          limit);
     }
     return new ResultSlice<>(nextProvider, providers);
   }
@@ -58,9 +59,9 @@ public class CassandraDataProviderService implements DataProviderService {
     LOGGER.info("getProvider() providerId='{}'", providerId);
     DataProvider dp = dataProviderDao.getProvider(providerId);
     if (dp == null) {
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("ProviderDoesNotExistException providerId='{}''",
-                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""));
+            LogMessageCleaner.clean(providerId));
       }
       throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
           IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
@@ -74,17 +75,17 @@ public class CassandraDataProviderService implements DataProviderService {
   @Override
   public DataProvider createProvider(String providerId, DataProviderProperties properties)
       throws ProviderAlreadyExistsException {
-    if(LOGGER.isInfoEnabled()){
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("createProvider() providerId='{}', properties='{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              properties);
+          LogMessageCleaner.clean(providerId),
+          properties);
     }
     DataProvider dp = dataProviderDao.getProvider(providerId);
     if (dp != null) {
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("ProviderAlreadyExistsException providerId='{}', properties='{}'",
-                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                properties);
+            LogMessageCleaner.clean(providerId),
+            properties);
       }
       throw new ProviderAlreadyExistsException(new IdentifierErrorInfo(
           IdentifierErrorTemplate.PROVIDER_ALREADY_EXISTS.getHttpCode(),

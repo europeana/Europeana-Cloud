@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -39,7 +40,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
-import eu.europeana.metis.utils.CommonStringValues;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -168,9 +168,9 @@ public class CassandraRecordService implements RecordService {
     if (uis.getProvider(providerId) == null) {
       throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
     }
-    if (LOGGER.isInfoEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Confirmed provider, id={} exists.",
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll("")
+          LogMessageCleaner.clean(providerId)
       );
     }
 
@@ -202,10 +202,10 @@ public class CassandraRecordService implements RecordService {
           representation.getVersion());
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}",
-                CommonStringValues.CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-                CommonStringValues.CRLF_PATTERN.matcher(representationName).replaceAll(""),
-                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                version);
+            LogMessageCleaner.clean(cloudId),
+            LogMessageCleaner.clean(representationName),
+            LogMessageCleaner.clean(providerId),
+            version);
       }
       return representation;
     } else {
@@ -326,10 +326,10 @@ public class CassandraRecordService implements RecordService {
     PutResult result;
     try {
       result = contentDAO.putContent(keyForFile, content, file.getFileStorage());
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Stored content for file: {} version: {}",
-                CommonStringValues.CRLF_PATTERN.matcher(file.getFileName()).replaceAll(""),
-                CommonStringValues.CRLF_PATTERN.matcher(version).replaceAll(""));
+            LogMessageCleaner.clean(file.getFileName()),
+            LogMessageCleaner.clean(version));
       }
     } catch (IOException ex) {
       throw new SystemException(ex);

@@ -4,6 +4,7 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -21,7 +22,6 @@ import java.io.InputStream;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
-import eu.europeana.metis.utils.CommonStringValues;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,18 +86,18 @@ public class FileUploadResource {
       ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
-              CommonStringValues.CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(representationName).replaceAll(""),
-              version,
-              CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(mimeType).replaceAll(""));
+          LogMessageCleaner.clean(cloudId),
+          LogMessageCleaner.clean(representationName),
+          version,
+          LogMessageCleaner.clean(fileName),
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(mimeType));
     }
     PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
     Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-    if(LOGGER.isTraceEnabled()){
+    if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("File {} buffered",
-              CommonStringValues.CRLF_PATTERN.matcher(fileName).replaceAll(""));
+          LogMessageCleaner.clean(fileName));
     }
     Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version,
         dataSetId);
@@ -139,7 +139,7 @@ public class FileUploadResource {
         representation.getVersion());
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Representation persisted: {}",
-              CommonStringValues.CRLF_PATTERN.matcher(representation.toString()).replaceAll(""));
+          LogMessageCleaner.clean(representation));
     }
   }
 }

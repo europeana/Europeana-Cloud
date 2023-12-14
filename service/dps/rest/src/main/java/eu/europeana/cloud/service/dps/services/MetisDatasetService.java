@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
@@ -11,8 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.metis.utils.CommonStringValues.CRLF_PATTERN;
 
 public class MetisDatasetService {
 
@@ -48,10 +47,10 @@ public class MetisDatasetService {
    * @return list of found records
    */
   public List<HarvestedRecord> findPublishedRecordsInSet(MetisDataset metisDataset, List<String> recordIdentifiers) {
-    if (LOGGER.isInfoEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Searching for published record identifiers in {} dataset and the following subset {}",
-              CRLF_PATTERN.matcher(metisDataset.getId()).replaceAll(""),
-              CRLF_PATTERN.matcher(recordIdentifiers.toString()).replaceAll(""));
+          LogMessageCleaner.clean(metisDataset.getId()),
+          LogMessageCleaner.clean(recordIdentifiers));
     }
     List<HarvestedRecord> foundHarvestedRecords = recordIdentifiers
         .stream()

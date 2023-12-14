@@ -2,8 +2,9 @@ package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.EqualsAndHashCode;
+
 import java.net.URI;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -11,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonRootName(DataSet.XSI_TYPE)
+@EqualsAndHashCode
 public class DataSet {
 
   static final String XSI_TYPE = "dataSet";
@@ -78,32 +80,4 @@ public class DataSet {
     this.uri = uri;
   }
 
-
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 97 * hash + Objects.hashCode(this.id);
-    hash = 97 * hash + Objects.hashCode(this.providerId);
-    hash = 97 * hash + Objects.hashCode(this.description);
-    return hash;
-  }
-
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final DataSet other = (DataSet) obj;
-    if (!Objects.equals(this.id, other.id)) {
-      return false;
-    }
-    if (!Objects.equals(this.providerId, other.providerId)) {
-      return false;
-    }
-    return Objects.equals(this.description, other.description);
-  }
 }

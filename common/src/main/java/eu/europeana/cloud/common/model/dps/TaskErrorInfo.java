@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
 @XmlRootElement()
 @Builder
+@EqualsAndHashCode
 public class TaskErrorInfo {
 
   private String errorType;
@@ -70,36 +72,4 @@ public class TaskErrorInfo {
     this.errorType = errorType;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || this.getClass() != o.getClass()) {
-      return false;
-    }
-
-    TaskErrorInfo taskInfo = (TaskErrorInfo) o;
-
-    if (occurrences != taskInfo.occurrences) {
-      return false;
-    }
-    if (message != null ? !message.equals(taskInfo.message) : (taskInfo.message != null)) {
-      return false;
-    }
-    if (errorType != null ? !errorType.equals(taskInfo.errorType) : (taskInfo.errorType != null)) {
-      return false;
-    }
-    return errorDetails != null ? errorDetails.equals(taskInfo.errorDetails) : (taskInfo.errorDetails == null);
-  }
-
-
-  @Override
-  public int hashCode() {
-    int result = errorType != null ? errorType.hashCode() : 0;
-    result = 31 * result + (message != null ? message.hashCode() : 0);
-    result = 31 * result + occurrences;
-    result = 31 * result + (errorDetails != null ? errorDetails.hashCode() : 0);
-    return result;
-  }
 }

@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.dao.CloudIdDAO;
@@ -15,11 +16,8 @@ import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.util.List;
-import eu.europeana.metis.utils.CommonStringValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static eu.europeana.metis.utils.CommonStringValues.CRLF_PATTERN;
 
 /**
  * Cassandra implementation of the Unique Identifier Service
@@ -70,12 +68,13 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
   public CloudId createCloudId(String providerId, String recordId)
       throws DatabaseConnectionException, ProviderDoesNotExistException {
     if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("createCloudId() creating cloudId providerId={}", CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""));
+      LOGGER.info("createCloudId() creating cloudId providerId={}",
+          LogMessageCleaner.clean(providerId));
     }
     if (dataProviderDao.getProvider(providerId) == null) {
       if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("ProviderDoesNotExistException for providerId={}",
-                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""));
+                LogMessageCleaner.clean(providerId));
       }
       throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
           IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
@@ -83,16 +82,16 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
     }
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("createCloudId() creating cloudId providerId='{}', recordId='{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
     }
 
     var cloudIdOpt = localIdDao.searchById(providerId, recordId);
     if (cloudIdOpt.isPresent()) {
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Record already exists providerId={}, recordId={}",
-                CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+            LogMessageCleaner.clean(providerId),
+            LogMessageCleaner.clean(recordId));
       }
       return cloudIdOpt.get();
     }
@@ -115,8 +114,8 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
       throws DatabaseConnectionException, RecordDoesNotExistException {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("getCloudId() providerId='{}', recordId='{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CommonStringValues.CRLF_PATTERN.matcher(recordId).replaceAll(""));
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
     }
     final CloudId cloudId = localIdDao.searchById(providerId, recordId)
                                       .orElseThrow(() -> new RecordDoesNotExistException(new IdentifierErrorInfo(
@@ -147,19 +146,19 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
   public CloudId createIdMapping(String cloudId, String providerId, String recordId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException {
 
-    if(LOGGER.isInfoEnabled()){
+    if (LOGGER.isInfoEnabled()) {
       LOGGER.info("createIdMapping() creating mapping for cloudId='{}', providerId='{}', recordId='{}'",
-              CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-              CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CRLF_PATTERN.matcher(recordId).replaceAll(""));
+          LogMessageCleaner.clean(cloudId),
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
     }
 
     if (dataProviderDao.getProvider(providerId) == null) {
       if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("ProviderDoesNotExistException for cloudId='{}', providerId='{}', recordId='{}'",
-                CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-                CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                CRLF_PATTERN.matcher(recordId).replaceAll(""));
+            LogMessageCleaner.clean(cloudId),
+            LogMessageCleaner.clean(providerId),
+            LogMessageCleaner.clean(recordId));
       }
       throw new ProviderDoesNotExistException(new IdentifierErrorInfo(
           IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST.getHttpCode(),
@@ -170,9 +169,9 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
     if (cloudIds.isEmpty()) {
       if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("CloudIdDoesNotExistException for cloudId='{}', providerId='{}', recordId='{}'",
-                CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-                CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                CRLF_PATTERN.matcher(recordId).replaceAll(""));
+            LogMessageCleaner.clean(cloudId),
+            LogMessageCleaner.clean(providerId),
+            LogMessageCleaner.clean(recordId));
       }
       throw new CloudIdDoesNotExistException(new IdentifierErrorInfo(
           IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
@@ -183,9 +182,9 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
     if (cloudIdOpt.isPresent()) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Record already exists cloudId='{}', providerId='{}', recordId='{}'",
-                CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-                CRLF_PATTERN.matcher(providerId).replaceAll(""),
-                CRLF_PATTERN.matcher(recordId).replaceAll(""));
+            LogMessageCleaner.clean(cloudId),
+            LogMessageCleaner.clean(providerId),
+            LogMessageCleaner.clean(recordId));
       }
       return cloudIdOpt.get();
     }
@@ -202,11 +201,11 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
 
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info(
-              "createIdMapping() new mapping created! new cloudId='{}' for already existing cloudId='{}', providerId='{}', recordId='{}'",
-              newCloudId,
-              CRLF_PATTERN.matcher(cloudId).replaceAll(""),
-              CRLF_PATTERN.matcher(providerId).replaceAll(""),
-              CRLF_PATTERN.matcher(recordId).replaceAll(""));
+          "createIdMapping() new mapping created! new cloudId='{}' for already existing cloudId='{}', providerId='{}', recordId='{}'",
+          newCloudId,
+          LogMessageCleaner.clean(cloudId),
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
     }
 
     return newCloudId;

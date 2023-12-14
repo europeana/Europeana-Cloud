@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static eu.europeana.metis.utils.CommonStringValues.CRLF_PATTERN;
 
 /**
  * Resource to manage topologies in the DPS service
@@ -62,8 +61,8 @@ public class TopologiesResource {
 
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Adding permissions for user '{}' to topology: '{}'",
-              CRLF_PATTERN.matcher(userName).replaceAll(""),
-              CRLF_PATTERN.matcher(topology).replaceAll(""));
+          LogMessageCleaner.clean(userName),
+          LogMessageCleaner.clean(topology));
     }
 
     assertContainTopology(topology);

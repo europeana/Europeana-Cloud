@@ -7,6 +7,7 @@ import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -198,9 +199,9 @@ public class DataSetResource {
 
     if (LOGGER.isInfoEnabled()) {
       LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
-              CommonStringValues.CRLF_PATTERN.matcher(username).replaceAll(""),
-              versionIdentity.getType(),
-              versionIdentity.getIdentifier());
+          LogMessageCleaner.clean(username),
+          versionIdentity.getType(),
+          versionIdentity.getIdentifier());
     }
 
     List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
