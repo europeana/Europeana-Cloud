@@ -80,6 +80,7 @@
         <module>service/commons</module>
         <module>test-common</module>
         <module>service/ecloud-web-commons</module>
+        <module>reports</module>
     </modules>
     <repositories>
         <repository>
@@ -123,6 +124,8 @@
         </repository>
     </repositories>
     <properties>
+        <project.reports.location>${project.basedir}/reports/target/</project.reports.location>
+        <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/reports/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine /> <!-- Leave as is, it's required from jacoco plugin integration -->
         <version.jdk>17</version.jdk>
@@ -217,13 +220,6 @@
                                 <id>agent-for-it</id>
                                 <goals>
                                     <goal>prepare-agent-integration</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>jacoco-site</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>report</goal>
                                 </goals>
                             </execution>
                         </executions>
