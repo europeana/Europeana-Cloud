@@ -131,7 +131,7 @@
         <version.powermock-mockito>2.0.9</version.powermock-mockito>
         <version.awaitility>4.2.0</version.awaitility>
         <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
-        <version.jersey>2.35</version.jersey>
+        <version.jersey>2.41</version.jersey>
         <version.slf4j>1.7.32</version.slf4j>
         <version.spring-framework>5.2.22.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
