@@ -160,7 +160,7 @@
         <logback.version>1.0.1</logback.version>
         <skipITs>true</skipITs>
 
-        <version.cassandra-driver>3.11.3</version.cassandra-driver>
+        <version.cassandra-driver>3.11.5</version.cassandra-driver>
         <version.solr_war>4.5.1</version.solr_war>
         <version.solr>5.2.1</version.solr>
         <version.elasticsearch>1.7.0</version.elasticsearch>
