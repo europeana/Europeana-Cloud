@@ -145,7 +145,7 @@
             to avoid data corruption in Cassandra.
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
         <version.commonscodec>1.16.0</version.commonscodec>
-        <version.commonio>2.10.0</version.commonio>
+        <version.commonio>2.15.1</version.commonio>
         <version.uuid>3.5</version.uuid>
         <version.jclouds>2.2.1</version.jclouds>
         <version.gson>2.10.1</version.gson>
