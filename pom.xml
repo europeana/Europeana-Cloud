@@ -147,7 +147,7 @@
         <version.commonscodec>1.16.0</version.commonscodec>
         <version.commonio>2.15.1</version.commonio>
         <version.uuid>3.5</version.uuid>
-        <version.jclouds>2.2.1</version.jclouds>
+        <version.jclouds>2.5</version.jclouds>
         <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
