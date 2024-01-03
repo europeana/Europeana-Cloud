@@ -137,7 +137,7 @@
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
         <version.spring-boot>2.7.18</version.spring-boot>
         <version.spring-doc>1.7.0</version.spring-doc>
-        <version.git-commit-maven>5.0.0</version.git-commit-maven>
+        <version.git-commit-maven>5.0.1</version.git-commit-maven>
         <version.servlet>4.0.1</version.servlet>
         <version.junitparams>1.0.6</version.junitparams>
         <version.openapi>1.7.0</version.openapi>
