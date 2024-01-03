@@ -139,7 +139,7 @@
         <version.spring-doc>1.7.0</version.spring-doc>
         <version.git-commit-maven>5.0.1</version.git-commit-maven>
         <version.servlet>4.0.1</version.servlet>
-        <version.junitparams>1.0.6</version.junitparams>
+        <version.junitparams>1.1.1</version.junitparams>
         <version.openapi>1.7.0</version.openapi>
         <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
             to avoid data corruption in Cassandra.
