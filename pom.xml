@@ -150,7 +150,8 @@
         <version.jclouds>2.5</version.jclouds>
         <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
-        <version.kafka>1.1.1</version.kafka>
+        <!-- Note kafka dependency is really old Jul 07 2018, but next one is major release and we are two major releases behind-->
+        <version.kafka>3.6.1</version.kafka>
         <version.lombok>1.18.30</version.lombok>
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
