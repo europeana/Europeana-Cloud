@@ -174,7 +174,7 @@
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
         <version.wiremock>2.27.2</version.wiremock>
-        <version.zt-zip>1.15</version.zt-zip>
+        <version.zt-zip>1.16</version.zt-zip>
 
         <maven.compiler.source>${version.jdk}</maven.compiler.source>
         <maven.compiler.target>${version.jdk}</maven.compiler.target>
