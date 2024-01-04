@@ -8,11 +8,11 @@
 #forbid using unset variables in bash script
 set -u
 
-logsDirectory=/home/tomcat_user/logs/
-fileNamesForDeletion=(uis mcs dps iiif)
+logsDirectory=/var/log/ecloud/
+fileNamesForDeletion=(uis mcs dps)
 daysBack=${1:-20}
 
-echo "Deleting log files for directory: "$logsDirectory
+echo "$(date) Deleting log files for directory: "$logsDirectory
 echo "Days back: "$daysBack
 
 date=`date -u --date="$daysBack days ago" +"%Y-%m-%d"`
@@ -20,7 +20,7 @@ echo "Deleting logs for date: "$date
 
 for j in "${fileNamesForDeletion[@]}"
 do
-        filePath=$logsDirectory$j.log.$date.gz
+        filePath=$logsDirectory$j/$j.log.$date-*.log.gz
         echo "Deleting file:"$filePath
         rm $filePath
 done
