@@ -146,6 +146,7 @@
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
         <version.commonscodec>1.16.0</version.commonscodec>
         <version.commonio>2.15.1</version.commonio>
+        <version.commons-lang3>3.14.0</version.commons-lang3>
         <version.uuid>3.5</version.uuid>
         <version.jclouds>2.2.1</version.jclouds>
         <version.gson>2.10.1</version.gson>
@@ -351,7 +352,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.7</version>
+                <version>3.14.0</version>
             </dependency>
             <!--Jersey -->
             <dependency>
