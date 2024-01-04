@@ -156,7 +156,7 @@
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.log4j>2.22.1</version.log4j>
+        <version.log4j>2.17.2</version.log4j>
         <skipITs>true</skipITs>
 
         <version.cassandra-driver>3.11.5</version.cassandra-driver>
