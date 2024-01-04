@@ -151,6 +151,8 @@
         <version.jaxb-runtime>2.3.9</version.jaxb-runtime>
         <version.jclouds>2.2.1</version.jclouds>
         <version.gson>2.10.1</version.gson>
+        <version.base64>2.3.9</version.base64>
+        <version.cloning>1.9.12</version.cloning>
         <!-- TODO ECL-317 -->
         <version.kafka>1.1.1</version.kafka>
         <version.lombok>1.18.30</version.lombok>
