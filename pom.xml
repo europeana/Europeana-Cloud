@@ -148,6 +148,7 @@
         <version.commonio>2.15.1</version.commonio>
         <version.commons-lang3>3.14.0</version.commons-lang3>
         <version.uuid>3.5</version.uuid>
+        <version.jaxb-runtime>2.3.9</version.jaxb-runtime>
         <version.jclouds>2.2.1</version.jclouds>
         <version.gson>2.10.1</version.gson>
         <!-- TODO ECL-317 -->
