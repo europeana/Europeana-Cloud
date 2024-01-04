@@ -11,7 +11,7 @@ import org.apache.tika.parser.AutoDetectParser;
  *
  * @author krystian.
  */
-public class ContentStreamDetector {
+public final class ContentStreamDetector {
 
   private ContentStreamDetector() {
     throw new UnsupportedOperationException("Pure static class!");

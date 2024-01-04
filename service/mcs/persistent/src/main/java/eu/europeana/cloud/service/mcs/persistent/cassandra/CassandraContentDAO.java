@@ -159,7 +159,7 @@ public class CassandraContentDAO implements ContentDAO {
   private byte[] getSelectedBytes(byte[] bytes, long start, long end) {
     byte[] outputBytes;
     final int from = start > -1 ? Ints.checkedCast(start) : 0;
-    final int to = end > -1 ? Ints.checkedCast(end) + 1 : bytes.length;
+    final int to = end > -1 ? (Ints.checkedCast(end) + 1) : bytes.length;
     outputBytes = Arrays.copyOfRange(bytes, from, to);
     return outputBytes;
   }

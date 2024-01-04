@@ -27,6 +27,9 @@ public class Record {
   private List<Representation> representations;
 
 
+  /**
+   * Constructs new instance of {@link Record} class with empty list of representations.
+   */
   public Record() {
     super();
 
@@ -35,6 +38,12 @@ public class Record {
   }
 
 
+  /**
+   * Constructs new instance of {@link Record} class with specified cloudId and list of representations
+   *
+   * @param cloudId cloud identifier that will identify created {@link Record}
+   * @param representations list of representations that will be assigned to the created {@link Record}
+   */
   public Record(String cloudId, List<Representation> representations) {
     super();
     this.cloudId = cloudId;
@@ -42,6 +51,11 @@ public class Record {
   }
 
 
+  /**
+   * Constructs new instance of {@link Record} class based on provided one
+   *
+   * @param record {@link Record} instance that will be used to construct new one
+   */
   public Record(final Record record) {
     this(record.getCloudId(), cloneRepresentations(record.getRepresentations()));
   }

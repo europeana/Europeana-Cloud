@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -167,7 +168,11 @@ public class CassandraRecordService implements RecordService {
     if (uis.getProvider(providerId) == null) {
       throw new ProviderNotExistsException(String.format("Provider %s does not exist.", providerId));
     }
-    LOGGER.debug("Confirmed provider, id={} exists.", providerId);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Confirmed provider, id={} exists.",
+          LogMessageCleaner.clean(providerId)
+      );
+    }
 
     //
     Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
@@ -195,8 +200,13 @@ public class CassandraRecordService implements RecordService {
           representation.getCloudId(),
           representation.getRepresentationName(),
           representation.getVersion());
-      LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}"
-          , cloudId, representationName, providerId, version);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}",
+            LogMessageCleaner.clean(cloudId),
+            LogMessageCleaner.clean(representationName),
+            LogMessageCleaner.clean(providerId),
+            version);
+      }
       return representation;
     } else {
       throw new RecordNotExistsException(cloudId);
@@ -316,7 +326,11 @@ public class CassandraRecordService implements RecordService {
     PutResult result;
     try {
       result = contentDAO.putContent(keyForFile, content, file.getFileStorage());
-      LOGGER.debug("Stored content for file: {} version: {}", file.getFileName(), version);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Stored content for file: {} version: {}",
+            LogMessageCleaner.clean(file.getFileName()),
+            LogMessageCleaner.clean(version));
+      }
     } catch (IOException ex) {
       throw new SystemException(ex);
     }

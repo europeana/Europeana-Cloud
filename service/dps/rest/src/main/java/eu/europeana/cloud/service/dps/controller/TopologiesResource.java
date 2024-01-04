@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import org.slf4j.Logger;
@@ -58,7 +59,12 @@ public class TopologiesResource {
       @RequestParam("username") String userName,
       @PathVariable("topologyName") String topology) throws AccessDeniedOrTopologyDoesNotExistException {
 
-    LOGGER.info("Adding permissions for user '{}' to topology: '{}'", userName, topology);
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Adding permissions for user '{}' to topology: '{}'",
+          LogMessageCleaner.clean(userName),
+          LogMessageCleaner.clean(topology));
+    }
+
     assertContainTopology(topology);
     addPermissionsToTopology(topology, userName);
     return ResponseEntity.ok().build();

@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.net.MalformedURLException;
 
-public class StormTaskTupleHelper {
+public final class StormTaskTupleHelper {
 
   private StormTaskTupleHelper() {
   }

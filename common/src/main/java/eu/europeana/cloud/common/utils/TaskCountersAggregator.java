@@ -2,7 +2,7 @@ package eu.europeana.cloud.common.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 
-public class TaskCountersAggregator {
+public final class TaskCountersAggregator {
 
   private TaskCountersAggregator() {
   }

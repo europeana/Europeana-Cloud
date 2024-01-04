@@ -112,8 +112,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
       amazonClient.init();
       thumbnailUploader = new ThumbnailUploader(taskStatusChecker, amazonClient);
     } catch (Exception e) {
-      LOGGER.error("Error while initialization", e);
-      throw new TopologyGeneralException(e);
+      throw new TopologyGeneralException("Error while initialization", e);
     }
   }
 

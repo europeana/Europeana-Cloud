@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +73,7 @@ public class PostProcessingScheduler {
     LOGGER.debug("Looking for tasks in {} state(s)...", states);
     List<TaskByTaskState> tasks = tasksByStateDAO.findTasksByState(states)
                                                  .stream().filter(task -> applicationId.equals(task.getApplicationId()))
-                                                 .collect(Collectors.toList());
+                                                 .toList();
     LOGGER.debug("Found tasks in {} state(s) : {}", states, tasks);
     return tasks;
   }

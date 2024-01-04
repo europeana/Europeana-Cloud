@@ -13,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -38,7 +37,6 @@ public class RepresentationsResource {
    * @summary get representations
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-  @ResponseBody
   public RepresentationsListWrapper getRepresentations(
       HttpServletRequest httpServletRequest,
       @PathVariable String cloudId) throws RecordNotExistsException {

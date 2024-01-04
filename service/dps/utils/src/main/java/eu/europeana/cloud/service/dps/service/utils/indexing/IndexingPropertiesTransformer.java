@@ -24,7 +24,10 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper.Indexi
 import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
 import java.util.Properties;
 
-public class IndexingPropertiesTransformer {
+public final class IndexingPropertiesTransformer {
+
+  private IndexingPropertiesTransformer() {
+  }
 
   public static IndexingProperties getIndexingPropertiesFromPropertyFile(Properties properties, IndexingType type) {
     String prefix = "";

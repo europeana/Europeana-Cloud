@@ -7,6 +7,7 @@ import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.aas.authentication.SpringUserUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -17,6 +18,8 @@ import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+
+import eu.europeana.metis.utils.CommonStringValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +38,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -113,7 +115,6 @@ public class DataSetResource {
    * @summary get representation versions from a data set
    */
   @GetMapping(value = DATA_SET_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-  @ResponseBody
   public ResultSlice<Representation> getDataSetContents(
       HttpServletRequest httpServletRequest,
       @PathVariable String providerId,
@@ -130,7 +131,6 @@ public class DataSetResource {
   }
 
   @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
-  @ResponseBody
   public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
       throws DataSetNotExistsException {
     dataSetService.checkIfDatasetExists(dataSetId, providerId);
@@ -197,8 +197,12 @@ public class DataSetResource {
     ObjectIdentity versionIdentity = new ObjectIdentityImpl(DATASET_PERMISSION_KEY,
         dataSetId + "/" + providerId);
 
-    LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
-        username, versionIdentity.getType(), versionIdentity.getIdentifier());
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Removing privileges for user '{}' to  '{}' with key '{}'",
+          LogMessageCleaner.clean(username),
+          versionIdentity.getType(),
+          versionIdentity.getIdentifier());
+    }
 
     List<Permission> permissionsToBeRemoved = Arrays.asList(selectedPermission.getSpringPermissions());
     permissionsGrantingManager.removePermissions(versionIdentity, username, permissionsToBeRemoved);

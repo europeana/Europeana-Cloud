@@ -11,6 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public final class SpringUserUtils {
 
+  private SpringUserUtils() {
+  }
+
   /**
    * @return Name of the currently logged in user
    */

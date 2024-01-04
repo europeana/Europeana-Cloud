@@ -2,7 +2,10 @@ package eu.europeana.cloud.common.utils;
 
 import eu.europeana.cloud.common.model.Revision;
 
-public class RevisionUtils {
+public final class RevisionUtils {
+
+  private RevisionUtils() {
+  }
 
   public static String getRevisionKey(String providerId, String revisionName, Long time) {
     return providerId + "_" + revisionName + "_" + time;

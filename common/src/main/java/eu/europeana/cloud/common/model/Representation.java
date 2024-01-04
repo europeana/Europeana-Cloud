@@ -6,11 +6,12 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.EqualsAndHashCode;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -20,6 +21,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @JacksonXmlRootElement
 @JsonRootName(Representation.XSI_TYPE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@EqualsAndHashCode
 public class Representation {
 
   static final String XSI_TYPE = "representation";
@@ -92,16 +94,16 @@ public class Representation {
   /**
    * Creates a new instance of this class.
    *
-   * @param cloudId
-   * @param representationName
-   * @param version
-   * @param allVersionsUri
-   * @param uri
-   * @param dataProvider
-   * @param files
-   * @param revisions
-   * @param persistent
-   * @param creationDate
+   * @param cloudId cloud identifier
+   * @param representationName representation name
+   * @param version representation version
+   * @param allVersionsUri  uri to all versions
+   * @param uri uri to representation
+   * @param dataProvider data provider
+   * @param files list of files assigned to the representation
+   * @param revisions list of revisions assigned to the representation
+   * @param persistent  boolean value indicating if representation is persistent
+   * @param creationDate representation creation date
    */
   public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
       String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
@@ -122,7 +124,7 @@ public class Representation {
   /**
    * Creates a new instance of this class.
    *
-   * @param representation
+   * @param representation {@link Representation} instance that will be used to construct new one
    */
   public Representation(final Representation representation) {
     this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
@@ -161,6 +163,14 @@ public class Representation {
     return clonedRevisions;
   }
 
+  /**
+   * Creates new instance of the {@link Representation} class based on provided value
+   *
+   * @param cloudId cloud identifier
+   * @param representationName representation name
+   * @param version representation version
+   * @return new intance of the {@link Representation} class
+   */
   public static Representation fromFields(String cloudId, String representationName, String version) {
     Representation r = new Representation();
     r.setCloudId(cloudId);
@@ -269,56 +279,6 @@ public class Representation {
 
   private String getACLId() {
     return this.getCloudId() + "/" + this.getRepresentationName() + "/" + this.getVersion();
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 37 * hash + Objects.hashCode(this.cloudId);
-    hash = 37 * hash + Objects.hashCode(this.representationName);
-    hash = 37 * hash + Objects.hashCode(this.version);
-    hash = 37 * hash + Objects.hashCode(this.dataProvider);
-    hash = 37 * hash + Objects.hashCode(this.files);
-    hash = 37 * hash + Objects.hashCode(this.revisions);
-    hash = 37 * hash + Objects.hashCode(this.creationDate);
-    hash = 37 * hash + (this.persistent ? 1 : 0);
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final Representation other = (Representation) obj;
-    if (!Objects.equals(this.cloudId, other.cloudId)) {
-      return false;
-    }
-    if (!Objects.equals(this.representationName, other.representationName)) {
-      return false;
-    }
-    if (!Objects.equals(this.version, other.version)) {
-      return false;
-    }
-    if (!Objects.equals(this.dataProvider, other.dataProvider)) {
-      return false;
-    }
-    if (!Objects.equals(this.files, other.files)) {
-      return false;
-    }
-    if (!Objects.equals(this.revisions, other.revisions)) {
-      return false;
-    }
-    if (!Objects.equals(this.creationDate.toString(), other.creationDate.toString())) {
-      return false;
-    }
-    if (this.persistent != other.persistent) {
-      return false;
-    }
-    return true;
   }
 
   @Override

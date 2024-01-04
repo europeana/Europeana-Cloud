@@ -91,7 +91,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
   public List<String> searchNodeStatisticsValues(long taskId, String nodeXpath) {
     return dbService.getSession().execute(searchNodesStatementAll.bind(taskId, nodeXpath)).all().stream()
                     .map(row -> row.getString(CassandraTablesAndColumnsNames.NODE_STATISTICS_VALUE))
-                    .collect(Collectors.toList());
+                    .toList();
   }
 
   public void removeNodeStatistics(long taskId, String nodeXpath) {
@@ -101,7 +101,7 @@ public class CassandraNodeStatisticsDAO extends CassandraDAO {
   public List<NodeStatistics> getNodeStatistics(long taskId, String parentXpath, String nodeXpath, int limit) {
     return dbService.getSession().execute(searchNodesStatement.bind(taskId, nodeXpath, limit)).all().stream()
                     .map(row -> createNodeStatistics(parentXpath, nodeXpath, row))
-                    .collect(Collectors.toList());
+                    .toList();
   }
 
   private NodeStatistics createNodeStatistics(String parentXpath, String nodeXpath, Row row) {

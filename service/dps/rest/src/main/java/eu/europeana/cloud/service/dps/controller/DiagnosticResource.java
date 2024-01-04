@@ -113,7 +113,7 @@ public class DiagnosticResource {
     List<JoinedTaskInfo> taskInfoList = tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES).stream()
                                                        .map(TaskByTaskState::getId).map(taskInfoDAO::findById)
                                                        .flatMap(Optional::stream)
-                                                       .map(this::loadExtraInfo).collect(Collectors.toList());
+                                                       .map(this::loadExtraInfo).toList();
     return mapper().writeValueAsString(taskInfoList);
   }
 

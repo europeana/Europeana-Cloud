@@ -9,9 +9,11 @@ import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.IdentifierErrorInfo;
 import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +47,28 @@ public class LocalIdDAO {
 
   @Retryable
   public Optional<CloudId> searchById(String providerId, String recordId) throws DatabaseConnectionException {
-    LOGGER.debug("Searching cloudId for providerId={} and recordId={}", providerId, recordId);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Searching cloudId for providerId={} and recordId={}",
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(recordId));
+    }
     try {
       Row row = dbService.getSession().execute(searchByRecordIdStatement.bind(providerId, recordId)).one();
       if (row != null) {
         CloudId cloudId = createCloudIdFromProviderRecordRow(row);
-        LOGGER.debug("Found cloudId={} for providerId={} and recordId={}", cloudId, providerId, recordId);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Found cloudId={} for providerId={} and recordId={}",
+              cloudId,
+              LogMessageCleaner.clean(providerId),
+              LogMessageCleaner.clean(recordId));
+        }
         return Optional.of(cloudId);
       } else {
-        LOGGER.debug("CloudId not found for providerId={} and recordId={}", providerId, recordId);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("CloudId not found for providerId={} and recordId={}",
+              LogMessageCleaner.clean(providerId),
+              LogMessageCleaner.clean(recordId));
+        }
         return Optional.empty();
       }
     } catch (NoHostAvailableException e) {

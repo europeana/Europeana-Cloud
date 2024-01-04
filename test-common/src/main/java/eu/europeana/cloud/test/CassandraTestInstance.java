@@ -53,8 +53,8 @@ public final class CassandraTestInstance {
       LOGGER.info("Starting Cassandra container in docker");
       container = new CassandraContainer("cassandra:3.11.2");
       container.withStartupTimeout(Duration.ofSeconds(180));
-      container.withEnv("HEAP_NEWSIZE", "128M");
-      container.withEnv("MAX_HEAP_SIZE", "1G");
+      container.withEnv("HEAP_NEWSIZE", "32M");
+      container.withEnv("MAX_HEAP_SIZE", "256M");
       container.setStartupAttempts(1);
       container.start();
       cluster = container.getCluster();
@@ -62,8 +62,7 @@ public final class CassandraTestInstance {
       LOGGER.info("Cassandra container initialized.");
     } catch (Exception e) {
       containerStartException = e;
-      LOGGER.error("Cannot start Cassandra container!", e);
-      throw new RuntimeException(e);
+      throw new RuntimeException("Cannot start Cassandra container!", e);
     } catch (Error e) {
       containerStartException = e;
       throw e;

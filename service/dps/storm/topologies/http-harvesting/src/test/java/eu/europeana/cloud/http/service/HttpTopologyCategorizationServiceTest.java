@@ -45,7 +45,7 @@ public class HttpTopologyCategorizationServiceTest {
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
     //then
-    verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+    verify(harvestedRecordsDAO, times(1)).findRecord("exampleDatasetId", "exampleRecordId");
     verify(harvestedRecordsDAO, times(1)).insertHarvestedRecord(
         argThat(samePropertyValuesAs(
             HarvestedRecord.builder()
@@ -87,7 +87,7 @@ public class HttpTopologyCategorizationServiceTest {
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
     //then
-    verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+    verify(harvestedRecordsDAO, times(1)).findRecord("exampleDatasetId", "exampleRecordId");
     verify(harvestedRecordsDAO, times(1))
         .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
     assertTrue(categorizationResult.shouldBeProcessed());
@@ -122,7 +122,7 @@ public class HttpTopologyCategorizationServiceTest {
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
     //then
-    verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+    verify(harvestedRecordsDAO, times(1)).findRecord("exampleDatasetId", "exampleRecordId");
     verify(harvestedRecordsDAO, times(1))
         .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
     assertTrue(categorizationResult.shouldBeProcessed());
@@ -157,7 +157,7 @@ public class HttpTopologyCategorizationServiceTest {
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
     //then
-    verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+    verify(harvestedRecordsDAO, times(1)).findRecord("exampleDatasetId", "exampleRecordId");
     verify(harvestedRecordsDAO, times(1))
         .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
     assertTrue(categorizationResult.shouldBeProcessed());
@@ -190,7 +190,7 @@ public class HttpTopologyCategorizationServiceTest {
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
     //then
-    verify(harvestedRecordsDAO, times(1)).findRecord(eq("exampleDatasetId"), eq("exampleRecordId"));
+    verify(harvestedRecordsDAO, times(1)).findRecord("exampleDatasetId", "exampleRecordId");
     verify(harvestedRecordsDAO, times(1))
         .updateLatestHarvestDateAndMd5(eq("exampleDatasetId"), eq("exampleRecordId"), any(), any());
     assertTrue(categorizationResult.shouldBeDropped());

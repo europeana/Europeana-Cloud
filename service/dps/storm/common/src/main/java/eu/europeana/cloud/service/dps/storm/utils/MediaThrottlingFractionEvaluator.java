@@ -13,7 +13,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
  * need to have at least one thread. So in this case the throttling is achieved by additionally limiting spout max pending to 1.
  * Also, numbers lower than 4 are evaluated in changed way due integer mathematics.
  */
-public class MediaThrottlingFractionEvaluator {
+public final class MediaThrottlingFractionEvaluator {
 
   private MediaThrottlingFractionEvaluator() {
   }

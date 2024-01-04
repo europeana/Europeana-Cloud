@@ -37,7 +37,7 @@ public class DatasetFilesCounter extends FilesCounter {
       LOGGER.error("The provided previous task id {} is not long  ", providedTaskId);
       return UNKNOWN_EXPECTED_RECORDS_NUMBER;
     } catch (TaskInfoDoesNotExistException e) {
-      LOGGER.error("Task with taskId {} doesn't exist ", providedTaskId);
+      LOGGER.error("Task with taskId {} doesn't exist ", providedTaskId, e);
       return UNKNOWN_EXPECTED_RECORDS_NUMBER;
     } catch (Exception e) {
       LOGGER.error("he task was dropped because of {} ", e.getMessage());

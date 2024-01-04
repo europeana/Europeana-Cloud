@@ -2,7 +2,7 @@ package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonRootName(CloudVersionRevisionResponse.XSI_TYPE)
+@EqualsAndHashCode
 public class CloudVersionRevisionResponse implements Comparable {
 
   static final String XSI_TYPE = "cloudVersionRevisionResponse";
@@ -88,41 +89,6 @@ public class CloudVersionRevisionResponse implements Comparable {
 
   public void setVersion(String version) {
     this.version = version;
-  }
-
-
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 37 * hash + Objects.hashCode(this.cloudId);
-    hash = 37 * hash + Objects.hashCode(this.version);
-    hash = 37 * hash + Objects.hashCode(this.revisionId);
-    hash = 37 * hash + Objects.hashCode(this.deleted);
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final CloudVersionRevisionResponse other = (CloudVersionRevisionResponse) obj;
-    if (!Objects.equals(this.cloudId, other.cloudId)) {
-      return false;
-    }
-    if (!Objects.equals(this.version, other.version)) {
-      return false;
-    }
-    if (!Objects.equals(this.revisionId, other.revisionId)) {
-      return false;
-    }
-    if (!Objects.equals(this.deleted, other.deleted)) {
-      return false;
-    }
-    return true;
   }
 
   @Override

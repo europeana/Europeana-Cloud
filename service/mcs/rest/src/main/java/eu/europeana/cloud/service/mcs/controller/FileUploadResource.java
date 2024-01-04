@@ -4,6 +4,7 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +84,21 @@ public class FileUploadResource {
       @RequestParam MultipartFile data) throws RepresentationNotExistsException,
       CannotModifyPersistentRepresentationException, RecordNotExistsException,
       ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
-    LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
-        cloudId, representationName, version, fileName, providerId, mimeType);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Uploading file cloudId={}, representationName={}, version={}, fileName={}, providerId={}, mime={}",
+          LogMessageCleaner.clean(cloudId),
+          LogMessageCleaner.clean(representationName),
+          version,
+          LogMessageCleaner.clean(fileName),
+          LogMessageCleaner.clean(providerId),
+          LogMessageCleaner.clean(mimeType));
+    }
     PreBufferedInputStream prebufferedInputStream = new PreBufferedInputStream(data.getInputStream(), objectStoreSizeThreshold);
     Storage storage = new StorageSelector(prebufferedInputStream, mimeType).selectStorage();
-    LOGGER.trace("File {} buffered", fileName);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("File {} buffered",
+          LogMessageCleaner.clean(fileName));
+    }
     Representation representation = recordService.createRepresentation(cloudId, representationName, providerId, version,
         dataSetId);
 
@@ -125,6 +137,9 @@ public class FileUploadResource {
       RepresentationNotExistsException {
     recordService.persistRepresentation(representation.getCloudId(), representation.getRepresentationName(),
         representation.getVersion());
-    LOGGER.debug("Representation persisted: {}", representation);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Representation persisted: {}",
+          LogMessageCleaner.clean(representation));
+    }
   }
 }

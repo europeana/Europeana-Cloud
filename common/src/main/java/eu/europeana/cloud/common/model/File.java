@@ -3,6 +3,8 @@ package eu.europeana.cloud.common.model;
 import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 
 import eu.europeana.cloud.service.mcs.Storage;
+import lombok.EqualsAndHashCode;
+
 import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -10,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * Metadata of a file (content) in a certain representation version of a record.
  */
 @XmlRootElement
+@EqualsAndHashCode
 public class File {
 
   /**
@@ -50,11 +53,25 @@ public class File {
   private Storage fileStorage;
 
 
+  /**
+   * Creates new empty instance of {@link File}
+   */
   public File() {
     this.fileStorage = OBJECT_STORAGE;
   }
 
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param fileName file name
+   * @param mimeType mime type
+   * @param md5 md5
+   * @param date lat modification date
+   * @param contentLength content length
+   * @param contentUri content URI
+   * @param fileStorage file location (see {@link Storage})
+   */
   public File(String fileName, String mimeType, String md5, String date,
       long contentLength, URI contentUri, Storage fileStorage) {
     super();
@@ -67,12 +84,27 @@ public class File {
     this.fileStorage = fileStorage;
   }
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param fileName file name
+   * @param mimeType mime type
+   * @param md5 md5
+   * @param date last modification date
+   * @param contentLength content length
+   * @param contentUri content URI
+   */
   public File(String fileName, String mimeType, String md5, String date,
       long contentLength, URI contentUri) {
     this(fileName, mimeType, md5, date, contentLength, contentUri, OBJECT_STORAGE);
   }
 
 
+  /**
+   * Creates new instance of {@link File} class based on the provided parameters
+   *
+   * @param file instance of the {@link File} class that will be used to construct new object
+   */
   public File(final File file) {
     this(file.getFileName(), file.getMimeType(), file.getMd5(), file.getDate(), file.getContentLength(), file.
         getContentUri(), file.fileStorage);
@@ -145,51 +177,6 @@ public class File {
 
   public void setFileStorage(Storage fileStorage) {
     this.fileStorage = fileStorage;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || this.getClass() != o.getClass()) {
-      return false;
-    }
-
-    File file = (File) o;
-
-    if (contentLength != file.contentLength) {
-      return false;
-    }
-    if (fileStorage != file.fileStorage) {
-      return false;
-    }
-    if (fileName != null ? !fileName.equals(file.fileName) : file.fileName != null) {
-      return false;
-    }
-    if (mimeType != null ? !mimeType.equals(file.mimeType) : file.mimeType != null) {
-      return false;
-    }
-    if (md5 != null ? !md5.equals(file.md5) : file.md5 != null) {
-      return false;
-    }
-    if (date != null ? !date.equals(file.date) : file.date != null) {
-      return false;
-    }
-    return contentUri != null ? contentUri.equals(file.contentUri) : file.contentUri == null;
-
-  }
-
-  @Override
-  public int hashCode() {
-    int result = fileName != null ? fileName.hashCode() : 0;
-    result = 31 * result + (mimeType != null ? mimeType.hashCode() : 0);
-    result = 31 * result + (md5 != null ? md5.hashCode() : 0);
-    result = 31 * result + (date != null ? date.hashCode() : 0);
-    result = 31 * result + (int) (contentLength ^ (contentLength >>> 32));
-    result = 31 * result + (contentUri != null ? contentUri.hashCode() : 0);
-    result = 31 * result + (fileStorage != null ? fileStorage.hashCode() : 0);
-    return result;
   }
 
   @Override

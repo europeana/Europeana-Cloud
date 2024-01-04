@@ -2,7 +2,7 @@ package eu.europeana.cloud.common.utils;
 
 import java.time.Instant;
 
-public class Clock {
+public final class Clock {
 
   private Clock() {
   }

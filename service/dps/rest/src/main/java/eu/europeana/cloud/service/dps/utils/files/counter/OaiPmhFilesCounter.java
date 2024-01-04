@@ -38,7 +38,6 @@ public class OaiPmhFilesCounter extends FilesCounter {
     } catch (HarvesterException e) {
       String logMessage = "Cannot complete the request for the following repository URL "
           + harvestToByExecuted.getRepositoryUrl();
-      LOGGER.info(logMessage, e);
       throw new TaskSubmissionException(logMessage + " Because: " + e.getMessage(), e);
     }
     LOGGER.info("Records counting finished for taskId={}. There are {} records", task.getTaskId(), total);

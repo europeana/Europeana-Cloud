@@ -2,6 +2,8 @@ package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.EqualsAndHashCode;
+
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -10,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonRootName(CloudTagsResponse.XSI_TYPE)
+@EqualsAndHashCode
 public class CloudTagsResponse implements Comparable {
 
   static final String XSI_TYPE = "cloudTagsResponse";
@@ -63,31 +66,6 @@ public class CloudTagsResponse implements Comparable {
 
   public void setDeleted(boolean deleted) {
     this.deleted = deleted;
-  }
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 37 * hash + Objects.hashCode(this.cloudId);
-    hash = 37 * hash + Objects.hashCode(this.deleted);
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final CloudTagsResponse other = (CloudTagsResponse) obj;
-    if (!Objects.equals(this.cloudId, other.cloudId)) {
-      return false;
-    }
-    if (!Objects.equals(this.deleted, other.deleted)) {
-      return false;
-    }
-    return true;
   }
 
   @Override

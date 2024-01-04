@@ -128,7 +128,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     try {
       linkChecker.performLinkChecking(resourceInfo.linkUrl);
     } catch (Exception e) {
-      LOGGER.info("There was exception while checking the link: {}", resourceInfo.edmUrl);
+      LOGGER.info("There was exception while checking the link: {}", resourceInfo.edmUrl, e);
       String error = e.getMessage() + " . Because of: " + e.getCause();
       if (fileInfo.errors == null || fileInfo.errors.isEmpty()) {
         fileInfo.errors = error;

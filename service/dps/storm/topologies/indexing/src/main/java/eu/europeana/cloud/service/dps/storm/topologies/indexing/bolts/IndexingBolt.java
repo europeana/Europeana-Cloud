@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * Created by pwozniak on 4/6/18
@@ -84,7 +83,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     final var datasetIdsToRedirectFrom = stormTaskTuple
             .getParameter(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM);
     final var datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
-            : Arrays.stream(datasetIdsToRedirectFrom.split(",")).map(String::trim).collect(Collectors.toList());
+            : Arrays.stream(datasetIdsToRedirectFrom.split(",")).map(String::trim).toList();
     final var performRedirects = Boolean
             .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
     final Date recordDate;

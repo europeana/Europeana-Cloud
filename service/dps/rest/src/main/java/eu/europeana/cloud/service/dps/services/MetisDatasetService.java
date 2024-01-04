@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services;
 
 import eu.europeana.cloud.common.model.dps.MetisDataset;
+import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.metis.indexing.MetisDataSetParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
@@ -9,7 +10,6 @@ import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,14 +47,17 @@ public class MetisDatasetService {
    * @return list of found records
    */
   public List<HarvestedRecord> findPublishedRecordsInSet(MetisDataset metisDataset, List<String> recordIdentifiers) {
-    LOGGER.debug("Searching for published record identifiers in {} dataset and the following subset {}", metisDataset.getId(),
-        recordIdentifiers);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Searching for published record identifiers in {} dataset and the following subset {}",
+          LogMessageCleaner.clean(metisDataset.getId()),
+          LogMessageCleaner.clean(recordIdentifiers));
+    }
     List<HarvestedRecord> foundHarvestedRecords = recordIdentifiers
         .stream()
         .map(recordIdentifier -> harvestedRecordsDAO.findRecord(metisDataset.getId(), recordIdentifier))
         .flatMap(Optional::stream)
         .filter(aRecord -> aRecord.getPublishedHarvestDate() != null)
-        .collect(Collectors.toList());
+        .toList();
     LOGGER.debug("Found the following record identifiers in {} dataset: {}", metisDataset.getId(), foundHarvestedRecords);
     return foundHarvestedRecords;
   }

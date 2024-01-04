@@ -5,7 +5,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 
 import java.util.Properties;
 
-public class TopologyPropertiesValidator {
+public final class TopologyPropertiesValidator {
 
   private static final String ERROR_MESSAGE = "Missing topology property: ";
 

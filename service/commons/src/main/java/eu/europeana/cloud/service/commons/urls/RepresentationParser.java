@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.Representation;
 import java.net.MalformedURLException;
 import java.net.URI;
 
-public class RepresentationParser {
+public final class RepresentationParser {
 
   private RepresentationParser() {
   }

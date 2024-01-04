@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-public class DiagnosticContextWrapper {
+public final class DiagnosticContextWrapper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DiagnosticContextWrapper.class);
 

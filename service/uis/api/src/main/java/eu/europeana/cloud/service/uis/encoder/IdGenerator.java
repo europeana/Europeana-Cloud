@@ -9,7 +9,10 @@ import org.apache.commons.codec.binary.Base32;
  * IdGenerator generate unique id. The characters consists of Base32 dictionary. The implementation ensures that the same input
  * will generate the same result and that the output will always be 52 characters.
  */
-public class IdGenerator {
+public final class IdGenerator {
+
+  private IdGenerator() {
+  }
 
   /**
    * Encode a given string and timestamp.

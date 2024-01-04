@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Indexing topology main file
  */
-public class IndexingTopology {
+public final class IndexingTopology {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndexingTopology.class);
 

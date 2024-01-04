@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 
-public class NotificationHandlerConfigBuilder {
+public final class NotificationHandlerConfigBuilder {
 
   private NotificationHandlerConfigBuilder() {
   }

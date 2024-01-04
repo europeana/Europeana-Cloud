@@ -2,8 +2,9 @@ package eu.europeana.cloud.common.model;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.EqualsAndHashCode;
+
 import java.net.URI;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -11,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 @JsonRootName(DataProvider.XSI_TYPE)
+@EqualsAndHashCode
 public class DataProvider {
 
   static final String XSI_TYPE = "dataProvider";
@@ -44,6 +46,11 @@ public class DataProvider {
   public DataProvider() {
   }
 
+  /**
+   * Creates instance of {@link DataProvider} class with the specified identifier
+   *
+   * @param id identifier that will be used for created data-provider
+   */
   public DataProvider(final String id) {
     this.id = id;
   }
@@ -97,37 +104,6 @@ public class DataProvider {
    */
   public boolean isActive() {
     return active;
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 5;
-    hash = 37 * hash + Objects.hashCode(this.id);
-    hash = 37 * hash + Objects.hashCode(this.partitionKey);
-    hash = 37 * hash + Objects.hashCode(this.properties);
-    return hash;
-  }
-
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final DataProvider other = (DataProvider) obj;
-    if (!Objects.equals(this.id, other.id)) {
-      return false;
-    }
-    if (!Objects.equals(this.partitionKey, other.partitionKey)) {
-      return false;
-    }
-    if (!Objects.equals(this.properties, other.properties)) {
-      return false;
-    }
-    return true;
   }
 
   @Override

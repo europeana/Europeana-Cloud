@@ -88,7 +88,6 @@ public class MCSTaskSubmitter {
     } catch (SubmitingTaskWasKilled e) {
       LOGGER.warn(e.getMessage(), e);
     } catch (InterruptedException e) {
-      LOGGER.error("MCSTaskSubmitter encountered interruption for taskId={}", task.getTaskId(), e);
       Thread.currentThread().interrupt();
       throw new InterruptedException(
           String.format("MCS service encountered interruption exception for taskId=%s with message: %s and stack trace: %s",

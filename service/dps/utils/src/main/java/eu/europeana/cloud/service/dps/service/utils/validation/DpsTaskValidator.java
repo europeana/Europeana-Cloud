@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.validator.routines.UrlValidator;
 
-public class DpsTaskValidator {
+public final class DpsTaskValidator {
 
 
   public static final String WRONG_INPUT_DATA_MESSAGE = "Wrong input data: ";

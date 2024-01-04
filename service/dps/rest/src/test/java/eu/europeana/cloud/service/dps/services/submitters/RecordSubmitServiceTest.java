@@ -61,7 +61,7 @@ public class RecordSubmitServiceTest {
   public void shouldSubmitRecordThatNotAlreadyExists() {
     service.submitRecord(record, parameters);
 
-    verify(kafkaSubmitService).submitRecord(eq(record), eq(TOPIC));
+    verify(kafkaSubmitService).submitRecord(record, TOPIC);
   }
 
 

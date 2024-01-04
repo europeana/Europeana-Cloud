@@ -70,8 +70,7 @@ public class AuthorizationConfiguration {
     return new CassandraAclRepository(aasCassandraProvider, false);
   }
 
-  @Bean
-  @Qualifier("aasProperties")
+  @Bean("aasProperties")
   @ConfigurationProperties(prefix = "cassandra.aas")
   CassandraProperties cassandraAASProperties() {
     return new CassandraProperties();

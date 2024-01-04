@@ -40,7 +40,6 @@ public class DatasetCleaner {
       removeDataSet(cleanerParameters.getDataSetId());
     } catch (IndexingException e) {
       String message = "Dataset was not removed correctly";
-      LOGGER.error(message, e);
       throw new DatasetCleaningException(message, e);
     }
   }

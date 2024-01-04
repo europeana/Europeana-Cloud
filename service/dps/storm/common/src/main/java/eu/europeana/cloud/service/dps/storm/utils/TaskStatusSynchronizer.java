@@ -40,7 +40,7 @@ public class TaskStatusSynchronizer {
                                                                                                        Function.identity()));
 
     List<TaskInfo> tasksFromBasicInfoTable = findByIds(tasksFromTaskByTaskStateTableMap.keySet());
-    List<TaskInfo> tasksToCorrect = tasksFromBasicInfoTable.stream().filter(this::isFinished).collect(Collectors.toList());
+    List<TaskInfo> tasksToCorrect = tasksFromBasicInfoTable.stream().filter(this::isFinished).toList();
     for (TaskInfo task : tasksToCorrect) {
       taskStatusUpdater.updateTask(topologyName, task.getId(), tasksFromTaskByTaskStateTableMap.get(task.getId()).getState(),
           task.getState());
@@ -48,7 +48,7 @@ public class TaskStatusSynchronizer {
   }
 
   private List<TaskInfo> findByIds(Collection<Long> taskIds) {
-    return taskIds.stream().map(taskInfoDAO::findById).flatMap(Optional::stream).collect(Collectors.toList());
+    return taskIds.stream().map(taskInfoDAO::findById).flatMap(Optional::stream).toList();
   }
 
   private boolean isFinished(TaskInfo info) {
