@@ -150,7 +150,6 @@
         <version.uuid>3.5</version.uuid>
         <version.jaxb-runtime>2.3.9</version.jaxb-runtime>
         <version.jclouds>2.2.1</version.jclouds>
-        <version.commons-codec>1.16.0</version.commons-codec>
         <version.xmlunit-matchers>2.9.1</version.xmlunit-matchers>
         <version.gson>2.10.1</version.gson>
         <version.base64>2.3.9</version.base64>
