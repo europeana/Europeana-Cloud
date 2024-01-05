@@ -133,7 +133,7 @@
         <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
         <version.jersey>2.35</version.jersey>
         <version.slf4j>1.7.36</version.slf4j>
-        <version.spring-framework>5.2.22.RELEASE</version.spring-framework>
+        <version.spring-framework>5.2.25.RELEASE</version.spring-framework>
         <version.spring-security>5.2.15.RELEASE</version.spring-security>
         <version.spring-boot>2.7.18</version.spring-boot>
         <version.spring-doc>1.7.0</version.spring-doc>
