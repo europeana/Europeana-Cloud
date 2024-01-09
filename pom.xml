@@ -339,6 +339,7 @@
                         --add-opens java.base/java.time=ALL-UNNAMED
                         --add-opens java.base/java.net=ALL-UNNAMED
                         --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+                        --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
                     </argLine>
                 </configuration>
             </plugin>
