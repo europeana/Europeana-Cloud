@@ -92,7 +92,7 @@
         <dependency>
             <groupId>uk.com.robust-it</groupId>
             <artifactId>cloning</artifactId>
-            <version>1.9.1</version>
+            <version>${version.cloning}</version>
         </dependency>
 
         <dependency>
