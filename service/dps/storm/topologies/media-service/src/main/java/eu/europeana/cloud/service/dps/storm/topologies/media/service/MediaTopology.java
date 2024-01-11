@@ -35,6 +35,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RESOURCE
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RECORD_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -77,11 +78,13 @@ public class MediaTopology {
     List<String> spoutNames = TopologyHelper.addMediaSpouts(builder, TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
 
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
@@ -95,6 +98,7 @@ public class MediaTopology {
 
     TopologyHelper.addSpoutFieldGrouping(spoutNames,
         builder.setBolt(EDM_OBJECT_PROCESSOR_BOLT, new EDMObjectProcessorBolt(
+                       createCassandraProperties(topologyProperties),
                        topologyProperties.getProperty(MCS_URL),
                        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
@@ -104,6 +108,7 @@ public class MediaTopology {
         , StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE);
 
     builder.setBolt(PARSE_FILE_BOLT, new ParseFileForMediaBolt(
+                   createCassandraProperties(topologyProperties),
                    topologyProperties.getProperty(MCS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
@@ -111,12 +116,13 @@ public class MediaTopology {
            .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)))
            .customGrouping(EDM_OBJECT_PROCESSOR_BOLT, new ShuffleGrouping());
 
-    builder.setBolt(RESOURCE_PROCESSING_BOLT, new ResourceProcessingBolt(amazonClient),
+    builder.setBolt(RESOURCE_PROCESSING_BOLT,
+               new ResourceProcessingBolt(createCassandraProperties(topologyProperties), amazonClient),
                (getAnInt(RESOURCE_PROCESSING_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS)))
            .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE));
 
-    builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(
+    builder.setBolt(EDM_ENRICHMENT_BOLT, new EDMEnrichmentBolt(createCassandraProperties(topologyProperties),
                    topologyProperties.getProperty(MCS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),

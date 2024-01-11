@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -49,7 +50,7 @@ public class ValidationBoltTest {
 
   @Before
   public void init() {
-    validationBolt = new ValidationBolt(readProperties());
+    validationBolt = new ValidationBolt(new CassandraProperties(), readProperties());
     MockitoAnnotations.initMocks(this);
 
     wireMockRule.resetAll();

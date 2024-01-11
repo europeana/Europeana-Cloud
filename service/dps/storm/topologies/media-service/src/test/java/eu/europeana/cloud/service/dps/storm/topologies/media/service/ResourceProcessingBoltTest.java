@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -79,7 +80,7 @@ public class ResourceProcessingBoltTest {
   ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
   @InjectMocks
-  ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(amazonClient);
+  ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(new CassandraProperties(), amazonClient);
 
 
   @Before

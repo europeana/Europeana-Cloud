@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -25,12 +26,12 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   private final String topologyUserPassword;
   private transient UISClient uisClient;
 
-  public HarvestingWriteRecordBolt(
+  public HarvestingWriteRecordBolt(CassandraProperties cassandraProperties,
       String ecloudMcsAddress,
       String ecloudUisAddress,
       String topologyUserName,
       String topologyUserPassword) {
-    super(ecloudMcsAddress, topologyUserName, topologyUserPassword);
+    super(cassandraProperties, ecloudMcsAddress, topologyUserName, topologyUserPassword);
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
     this.ecloudUisAddress = ecloudUisAddress;

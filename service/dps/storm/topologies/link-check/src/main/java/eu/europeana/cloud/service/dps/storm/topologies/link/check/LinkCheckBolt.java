@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
@@ -27,6 +28,10 @@ public class LinkCheckBolt extends AbstractDpsBolt {
   transient Map<String, FileInfo> cache;
 
   private transient LinkChecker linkChecker;
+
+  public LinkCheckBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
   @Override
   protected boolean ignoreDeleted() {

@@ -5,6 +5,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatistics
 
 import com.google.gson.Gson;
 import com.rits.cloning.Cloner;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -46,11 +47,12 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
   private transient RdfDeserializer rdfDeserializer;
   private transient ThumbnailUploader thumbnailUploader;
 
-  public EDMObjectProcessorBolt(String ecloudMcsAddress,
+  public EDMObjectProcessorBolt(CassandraProperties cassandraProperties,
+      String ecloudMcsAddress,
       String ecloudMcsUser,
       String ecloudMcsUserPassword,
       AmazonClient amazonClient) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
     this.amazonClient = amazonClient;
   }
 

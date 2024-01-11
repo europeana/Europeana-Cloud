@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -35,8 +36,9 @@ public class StatisticsBolt extends AbstractDpsBolt {
   private transient ValidationStatisticsServiceImpl statisticsService;
   private transient ProcessedRecordsDAO processedRecordsDAO;
 
-  public StatisticsBolt(String hosts, int port, String keyspaceName,
-      String userName, String password) {
+  public StatisticsBolt(CassandraProperties cassandraProperties, String hosts, int port,
+      String keyspaceName, String userName, String password) {
+    super(cassandraProperties);
     this.hosts = hosts;
     this.port = port;
     this.keyspaceName = keyspaceName;

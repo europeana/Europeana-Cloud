@@ -15,7 +15,7 @@ import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.properties.S3Properties;
-import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import java.util.EnumMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;

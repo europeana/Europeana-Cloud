@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -45,10 +46,11 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
   private transient RdfDeserializer deserializer;
   private transient RdfSerializer rdfSerializer;
 
-  public EDMEnrichmentBolt(String mcsURL,
+  public EDMEnrichmentBolt(CassandraProperties cassandraProperties,
+      String mcsURL,
       String ecloudMcsUser,
       String ecloudMcsUserPassword) {
-    super(mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
+    super(cassandraProperties, mcsURL, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   @Override

@@ -8,6 +8,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -43,7 +44,8 @@ public class StatisticsBoltTest extends CassandraTestBase {
   private OutputCollector collector;
 
   @InjectMocks
-  private StatisticsBolt statisticsBolt = new StatisticsBolt(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+  private StatisticsBolt statisticsBolt = new StatisticsBolt(new CassandraProperties(),
+      HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
 
   @Before
   public void setUp() {

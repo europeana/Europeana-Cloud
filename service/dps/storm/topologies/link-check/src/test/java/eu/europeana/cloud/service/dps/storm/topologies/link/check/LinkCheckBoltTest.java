@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -41,7 +42,7 @@ public class LinkCheckBoltTest {
   private LinkChecker linkChecker;
 
   @InjectMocks
-  private LinkCheckBolt linkCheckBolt = new LinkCheckBolt();
+  private LinkCheckBolt linkCheckBolt = new LinkCheckBolt(new CassandraProperties());
 
   @Captor
   ArgumentCaptor<Values> captor;

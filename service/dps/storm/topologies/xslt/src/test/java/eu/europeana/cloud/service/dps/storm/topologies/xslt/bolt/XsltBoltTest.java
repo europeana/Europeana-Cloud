@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import java.io.ByteArrayInputStream;
@@ -56,7 +57,7 @@ public class XsltBoltTest {
 
 
   @InjectMocks
-  private XsltBolt xsltBolt = new XsltBolt();
+  private XsltBolt xsltBolt = new XsltBolt(new CassandraProperties());
 
   @Before
   public void init() {

@@ -26,6 +26,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RETRIEVE
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RECORD_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
@@ -65,20 +66,23 @@ public class NormalizationTopology {
     List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties);
 
     ReadFileBolt readFileBolt = new ReadFileBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
-    NormalizationBolt normalizationBolt = new NormalizationBolt();
+    NormalizationBolt normalizationBolt = new NormalizationBolt(createCassandraProperties(topologyProperties));
 
     // TOPOLOGY STRUCTURE!
 

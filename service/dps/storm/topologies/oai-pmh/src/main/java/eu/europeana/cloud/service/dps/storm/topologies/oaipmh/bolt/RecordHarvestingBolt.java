@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
@@ -32,6 +33,10 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
 
   private transient OaiHarvester harvester;
   private transient IdentifierSupplier identifierSupplier;
+
+  public RecordHarvestingBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
   /**
    * For given: <br/>

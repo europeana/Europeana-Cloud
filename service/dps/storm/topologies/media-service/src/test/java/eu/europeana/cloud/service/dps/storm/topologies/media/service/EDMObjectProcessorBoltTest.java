@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -69,8 +70,8 @@ public class EDMObjectProcessorBoltTest {
   private final AmazonClient amazonClient = Mockito.mock(AmazonClient.class);
 
   @InjectMocks
-  private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt("MCS_URL", "user", "password",
-      amazonClient);
+  private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt(
+      new CassandraProperties(), "MCS_URL", "user", "password", amazonClient);
 
   @Before
   public void init() throws MediaProcessorException {

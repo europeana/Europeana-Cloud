@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -43,8 +44,8 @@ public class IndexingRevisionWriterTest {
   private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
 
   @InjectMocks
-  private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter("https://sample.ecloud.com/", "userName",
-      "userPassword", "sampleMessage");
+  private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter(new CassandraProperties(),
+      "https://sample.ecloud.com/", "userName", "userPassword", "sampleMessage");
 
   @Before
   public void init() {

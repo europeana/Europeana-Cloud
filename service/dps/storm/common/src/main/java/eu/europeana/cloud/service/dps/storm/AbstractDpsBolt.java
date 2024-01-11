@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -45,6 +46,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   public static final int DEFAULT_RETRIES = 3;
 
   public static final int SLEEP_TIME = 5000;
+  protected final CassandraProperties cassandraProperties;
 
   protected transient TaskStatusChecker taskStatusChecker;
 
@@ -59,6 +61,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   protected boolean ignoreDeleted() {
     return true;
+  }
+
+  public AbstractDpsBolt(CassandraProperties cassandraProperties) {
+    this.cassandraProperties = cassandraProperties;
   }
 
   @Override
@@ -146,11 +152,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   }
 
   private void initTaskStatusChecker() {
-    String hosts = (String) stormConfig.get(CASSANDRA_HOSTS);
-    int port = parseInt((String) stormConfig.get(CASSANDRA_PORT));
-    String keyspaceName = (String) stormConfig.get(CASSANDRA_KEYSPACE_NAME);
-    String userName = (String) stormConfig.get(CASSANDRA_USERNAME);
-    String password = (String) stormConfig.get(CASSANDRA_SECRET_TOKEN);
+    String hosts = cassandraProperties.getHosts();
+    int port = cassandraProperties.getPort();
+    String keyspaceName = cassandraProperties.getKeyspace();
+    String userName = cassandraProperties.getUser();
+    String password = cassandraProperties.getPassword();
     CassandraConnectionProvider cassandraConnectionProvider =
         CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
             hosts, port, keyspaceName, userName, password);

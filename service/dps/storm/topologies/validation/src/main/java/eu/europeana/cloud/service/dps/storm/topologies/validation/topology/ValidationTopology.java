@@ -25,6 +25,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.STATISTICS_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.VALIDATION_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -73,6 +74,7 @@ public class ValidationTopology {
     List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
 
     ReadFileBolt readFileBolt = new ReadFileBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
@@ -81,12 +83,13 @@ public class ValidationTopology {
         builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                .setNumTasks((getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))));
 
-    builder.setBolt(VALIDATION_BOLT, new ValidationBolt(validationProperties),
+    builder.setBolt(VALIDATION_BOLT, new ValidationBolt(createCassandraProperties(topologyProperties), validationProperties),
                (getAnInt(VALIDATION_BOLT_PARALLEL)))
            .setNumTasks((getAnInt(VALIDATION_BOLT_NUMBER_OF_TASKS)))
            .customGrouping(RETRIEVE_FILE_BOLT, new ShuffleGrouping());
 
-    builder.setBolt(STATISTICS_BOLT, new StatisticsBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
+    builder.setBolt(STATISTICS_BOLT, new StatisticsBolt(createCassandraProperties(topologyProperties),
+                   topologyProperties.getProperty(CASSANDRA_HOSTS),
                    Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
                    topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                    topologyProperties.getProperty(CASSANDRA_USERNAME),
@@ -96,6 +99,7 @@ public class ValidationTopology {
            .customGrouping(VALIDATION_BOLT, new ShuffleGrouping());
 
     builder.setBolt(REVISION_WRITER_BOLT, new RevisionWriterBolt(
+                   createCassandraProperties(topologyProperties),
                    topologyProperties.getProperty(MCS_URL),
                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)

@@ -21,7 +21,7 @@ import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingProp
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.ZOOKEEPER_PORT_NUMBER;
 
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper.IndexingType;
-import eu.europeana.cloud.service.web.common.properties.IndexingProperties;
+import eu.europeana.cloud.common.properties.IndexingProperties;
 import java.util.Properties;
 
 public final class IndexingPropertiesTransformer {

@@ -6,6 +6,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -39,7 +40,8 @@ public class RevisionWriterBoltTest {
   private RevisionServiceClient revisionServiceClient;
 
   @InjectMocks
-  private RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt("http://sample.ecloud.com/", "", "");
+  private RevisionWriterBolt revisionWriterBolt =
+      new RevisionWriterBolt(new CassandraProperties(), "http://sample.ecloud.com/", "", "");
 
   @Captor
   private ArgumentCaptor<Revision> captor;

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
@@ -34,7 +35,9 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   private final String ecloudMcsUser;
   private final String ecloudMcsUserPassword;
 
-  public RevisionWriterBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
+  public RevisionWriterBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.ecloudMcsUser = ecloudMcsUser;
     this.ecloudMcsUserPassword = ecloudMcsUserPassword;
