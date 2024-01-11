@@ -88,42 +88,36 @@ public final class TopologyHelper {
   }
 
   public static Config buildConfig(Properties topologyProperties) {
-    return buildConfig(topologyProperties, false);
-  }
-
-  public static Config buildConfig(Properties topologyProperties, boolean staticMode) {
     SpoutConfigParameters configParameters = transformProperties(topologyProperties);
     Config config = new Config();
 
-    if (!staticMode) {
-      config.setNumWorkers(configParameters.getWorkerCount());
-      config.setMaxTaskParallelism(
-          configParameters.getMaxTaskParallelism());
-      config.put(Config.NIMBUS_THRIFT_PORT,
-          configParameters.getNimbusThriftPort());
-      config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-          configParameters.getInputZookeeperPort());
-      config.put(Config.NIMBUS_SEEDS, configParameters.getNimbusSeeds());
-      config.put(Config.STORM_ZOOKEEPER_SERVERS,
-          configParameters.getStormZookeeperAddress());
+    config.setNumWorkers(configParameters.getWorkerCount());
+    config.setMaxTaskParallelism(
+        configParameters.getMaxTaskParallelism());
+    config.put(Config.NIMBUS_THRIFT_PORT,
+        configParameters.getNimbusThriftPort());
+    config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
+        configParameters.getInputZookeeperPort());
+    config.put(Config.NIMBUS_SEEDS, configParameters.getNimbusSeeds());
+    config.put(Config.STORM_ZOOKEEPER_SERVERS,
+        configParameters.getStormZookeeperAddress());
 
-      config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
-    }
+    config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
 
-    config.setDebug(staticMode);
+
+    config.setDebug(false);
     config.setMessageTimeoutSecs(getValue(configParameters.getMessageTimeoutInSeconds(), DEFAULT_TUPLE_PROCESSING_TIME));
 
     config.put(CASSANDRA_HOSTS,
-        getValue(configParameters.getCassandraHosts(), staticMode ? DEFAULT_CASSANDRA_HOSTS : null));
+        configParameters.getCassandraHosts());
     config.put(CASSANDRA_PORT,
-            getValue((configParameters.getCassandraPort() == null ? null : configParameters.getCassandraPort().toString()),
-                staticMode ? DEFAULT_CASSANDRA_PORT : null));
+            (configParameters.getCassandraPort() == null ? null : configParameters.getCassandraPort().toString()));
     config.put(CASSANDRA_KEYSPACE_NAME,
-            getValue(configParameters.getCassandraKeyspace(), staticMode ? DEFAULT_CASSANDRA_KEYSPACE_NAME : null));
+            configParameters.getCassandraKeyspace());
     config.put(CASSANDRA_USERNAME,
-            getValue(configParameters.getCassandraUsername(), staticMode ? DEFAULT_CASSANDRA_USERNAME : null));
+            configParameters.getCassandraUsername());
     config.put(CASSANDRA_SECRET_TOKEN,
-            getValue(configParameters.getCassandraSecretToken(), staticMode ? DEFAULT_CASSANDRA_SECRET_TOKEN : null));
+            configParameters.getCassandraSecretToken());
 
     config.setMaxSpoutPending(getValue(configParameters.getMaxSpoutPending(), DEFAULT_MAX_SPOUT_PENDING));
     List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
@@ -145,8 +139,7 @@ public final class TopologyHelper {
     return value != null ? value : defaultValue;
   }
 
-  public static ECloudSpout createECloudSpout(String topologyName, Properties topologyProperties, String topic) {
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+  public static ECloudSpout createECloudSpout(String topologyName, SpoutConfigParameters configParameters, String topic) {
     return new ECloudSpout(
         topologyName, topic,
         createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
@@ -177,10 +170,11 @@ public final class TopologyHelper {
 
   public static List<String> addSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
     String[] topics = getTopics(topologyProperties);
+    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
     List<String> result = new ArrayList<>();
     for (int i = 0; i < topics.length; i++) {
       String spoutName = SPOUT_NAME_PREFIX + (i + 1);
-      ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topology, topologyProperties, topics[i]);
+      ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topology, configParameters, topics[i]);
       builder.setSpout(spoutName, eCloudSpout, 1).setNumTasks(1);
       result.add(spoutName);
     }
@@ -189,18 +183,18 @@ public final class TopologyHelper {
 
   public static List<String> addMediaSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
     String[] topics = getTopics(topologyProperties);
+    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
     List<String> result = new ArrayList<>();
     for (int i = 0; i < topics.length; i++) {
       String spoutName = SPOUT_NAME_PREFIX + (i + 1);
-      ECloudSpout eCloudSpout = TopologyHelper.createMediaSpout(topology, topologyProperties, topics[i]);
+      ECloudSpout eCloudSpout = TopologyHelper.createMediaSpout(topology, configParameters, topics[i]);
       builder.setSpout(spoutName, eCloudSpout, 1).setNumTasks(1);
       result.add(spoutName);
     }
     return result;
   }
 
-  public static ECloudSpout createMediaSpout(String topologyName, Properties topologyProperties, String topic) {
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+  public static ECloudSpout createMediaSpout(String topologyName, SpoutConfigParameters configParameters, String topic) {
     return new MediaSpout(
         topologyName, topic,
         createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),

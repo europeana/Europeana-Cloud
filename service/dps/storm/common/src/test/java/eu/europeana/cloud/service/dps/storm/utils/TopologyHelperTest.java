@@ -104,7 +104,7 @@ public class TopologyHelperTest {
   public void shouldProperlyLoadSpoutConfigParameters() {
     stubSpoutSettingsProperties();
     stubCassandraProperties();
-    stubForNonStaticModeProperties();
+    stubGeneral();
     stubMisc();
 
     SpoutConfigParameters configParameters = TopologyHelper.transformProperties(mockTopologyEssentialProperties);
@@ -155,21 +155,11 @@ public class TopologyHelperTest {
 
   }
 
-  @Test
-  public void shouldProperlyLoadCassandraDefaultValuesWhenParametersAreNotProvidedForStaticConfig() {
-    Config staticConfig = TopologyHelper.buildConfig(mockTopologyEssentialProperties, true);
-
-    assertEquals(TopologyDefaultsConstants.DEFAULT_CASSANDRA_USERNAME, staticConfig.get(CASSANDRA_USERNAME));
-    assertEquals(TopologyDefaultsConstants.DEFAULT_CASSANDRA_PORT, staticConfig.get(CASSANDRA_PORT));
-    assertEquals(TopologyDefaultsConstants.DEFAULT_CASSANDRA_SECRET_TOKEN, staticConfig.get(CASSANDRA_SECRET_TOKEN));
-    assertEquals(TopologyDefaultsConstants.DEFAULT_CASSANDRA_HOSTS, staticConfig.get(CASSANDRA_HOSTS));
-    assertEquals(TopologyDefaultsConstants.DEFAULT_CASSANDRA_KEYSPACE_NAME, staticConfig.get(CASSANDRA_KEYSPACE_NAME));
-  }
 
   @Test
-  public void shouldProperlyLoadCassandraDefaultValuesWhenParametersAreNotProvidedForNonStaticConfig() {
-    stubForNonStaticModeProperties();
-    Config nonStaticConfig = TopologyHelper.buildConfig(mockTopologyEssentialProperties, false);
+  public void shouldProperlyLoadCassandraDefaultValuesWhenParametersAreNotProvided() {
+    stubGeneral();
+    Config nonStaticConfig = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
 
     assertNull(nonStaticConfig.get(CASSANDRA_KEYSPACE_NAME));
     assertNull(nonStaticConfig.get(CASSANDRA_USERNAME));
@@ -181,14 +171,15 @@ public class TopologyHelperTest {
   @Test
   public void shouldProperlyLoadMiscParametersWhenPropertyPresent() {
     stubMisc();
-    Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties, true);
+    stubGeneral();
+    Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
 
     assertEquals(Integer.valueOf(SPOUT_SLEEP_MS_VALUE), config.get(SPOUT_SLEEP_MS));
     assertEquals(Integer.valueOf(SPOUT_SLEEP_EVERY_VALUE), config.get(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
     assertEquals(config.get(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY), FastCancelingSpoutWaitStrategy.class.getName());
     assertEquals(Integer.valueOf(MAX_SPOUT_PENDING_VALUE), config.get("topology.max.spout.pending"));
     assertEquals(Integer.valueOf(MESSAGE_TIMEOUT_IN_SECONDS_VALUE), config.get("topology.message.timeout.secs"));
-    assertTrue((Boolean) config.get("topology.debug"));
+    assertFalse((Boolean) config.get("topology.debug"));
 
     assertNotNull(config.get(TOPOLOGY_KRYO_REGISTER));
   }
@@ -196,8 +187,8 @@ public class TopologyHelperTest {
 
   @Test
   public void shouldProperlyLoadDefaultMiscParametersWhenPropertyNotPresent() {
-    stubForNonStaticModeProperties();
-    Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties, false);
+    stubGeneral();
+    Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
 
     assertEquals(TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_MS, config.get(SPOUT_SLEEP_MS));
     assertEquals(TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS,
@@ -280,7 +271,7 @@ public class TopologyHelperTest {
     when(mockTopologyEssentialProperties.getProperty(CASSANDRA_KEYSPACE_NAME)).thenReturn(CASSANDRA_KEYSPACE_NAME_VALUE);
   }
 
-  private void stubForNonStaticModeProperties() {
+  private void stubGeneral() {
     when(mockTopologyEssentialProperties.getProperty(WORKER_COUNT)).thenReturn(WORKER_COUNT_VALUE);
     when(mockTopologyEssentialProperties.getProperty(MAX_TASK_PARALLELISM)).thenReturn(MAX_TASK_PARALLELISM_VALUE);
     when(mockTopologyEssentialProperties.getProperty(THRIFT_PORT)).thenReturn(THRIFT_PORT_VALUE);
