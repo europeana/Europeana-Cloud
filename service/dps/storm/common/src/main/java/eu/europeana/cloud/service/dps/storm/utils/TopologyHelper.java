@@ -57,30 +57,35 @@ public final class TopologyHelper {
   private TopologyHelper() {
   }
 
-  public static SpoutConfigParameters transformProperties(Properties topologyProperties){
-    return SpoutConfigParameters
-          .builder()
-          .workerCount(getIntegerProperty(topologyProperties, WORKER_COUNT))
-          .maxTaskParallelism(getIntegerProperty(topologyProperties, MAX_TASK_PARALLELISM))
-          .nimbusThriftPort(getIntegerProperty(topologyProperties, THRIFT_PORT))
-          .inputZookeeperAddress(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS))
-          .inputZookeeperPort(topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT))
-          .nimbusSeeds(Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)))
-          .stormZookeeperAddress(Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)))
-          .messageTimeoutInSeconds(getIntegerProperty(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS))
-          .cassandraHosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
-          .cassandraUsername(topologyProperties.getProperty(CASSANDRA_USERNAME))
-          .cassandraPort(getIntegerProperty(topologyProperties, CASSANDRA_PORT))
-          .cassandraKeyspace(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
-          .cassandraSecretToken(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
-          .maxSpoutPending(getIntegerProperty(topologyProperties, MAX_SPOUT_PENDING))
-          .spoutSleepMilliseconds(getIntegerProperty(topologyProperties, SPOUT_SLEEP_MS))
-          .spoutSleepEveryNIterations(getIntegerProperty(topologyProperties, SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS))
-          .maxPollRecords(getIntegerProperty(topologyProperties, MAX_POLL_RECORDS))
-          .fetchMaxBytes(getIntegerProperty(topologyProperties, FETCH_MAX_BYTES))
-          .topics(topologyProperties.getProperty(TOPICS))
-          .bootstrapServers(topologyProperties.getProperty(BOOTSTRAP_SERVERS))
-          .build();
+  public static SpoutProperties createSpoutProperties(Properties topologyProperties){
+    return SpoutProperties.builder()
+                          .workerCount(getIntegerProperty(topologyProperties, WORKER_COUNT))
+                          .maxTaskParallelism(getIntegerProperty(topologyProperties, MAX_TASK_PARALLELISM))
+                          .nimbusThriftPort(getIntegerProperty(topologyProperties, THRIFT_PORT))
+                          .inputZookeeperAddress(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS))
+                          .inputZookeeperPort(topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT))
+                          .nimbusSeeds(Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)))
+                          .stormZookeeperAddress(Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)))
+                          .messageTimeoutInSeconds(getIntegerProperty(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS))
+                          .maxSpoutPending(getIntegerProperty(topologyProperties, MAX_SPOUT_PENDING))
+                          .spoutSleepMilliseconds(getIntegerProperty(topologyProperties, SPOUT_SLEEP_MS))
+                          .spoutSleepEveryNIterations(getIntegerProperty(topologyProperties, SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS))
+                          .maxPollRecords(getIntegerProperty(topologyProperties, MAX_POLL_RECORDS))
+                          .fetchMaxBytes(getIntegerProperty(topologyProperties, FETCH_MAX_BYTES))
+                          .topics(topologyProperties.getProperty(TOPICS))
+                          .bootstrapServers(topologyProperties.getProperty(BOOTSTRAP_SERVERS))
+                          .build();
+  }
+
+  public static CassandraProperties createCassandraProperties(Properties topologyProperties) {
+    return CassandraProperties.builder()
+                              .hosts(topologyProperties.getProperty(CASSANDRA_HOSTS))
+                              .keyspace(topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME))
+                              .password(topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN))
+                              .user(topologyProperties.getProperty(CASSANDRA_USERNAME))
+                              .port(getValue(getIntegerProperty(topologyProperties, CASSANDRA_PORT), DEFAULT_CASSANDRA_PORT))
+                              .build();
+
   }
 
   private static Integer getIntegerProperty(Properties topologyProperties, String propertyKey) {
@@ -89,25 +94,25 @@ public final class TopologyHelper {
   }
 
   public static Config buildConfig(Properties topologyProperties) {
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+    SpoutProperties spoutProperties = createSpoutProperties(topologyProperties);
     Config config = new Config();
 
-    config.setNumWorkers(configParameters.getWorkerCount());
+    config.setNumWorkers(spoutProperties.getWorkerCount());
     config.setMaxTaskParallelism(
-        configParameters.getMaxTaskParallelism());
+        spoutProperties.getMaxTaskParallelism());
     config.put(Config.NIMBUS_THRIFT_PORT,
-        configParameters.getNimbusThriftPort());
+        spoutProperties.getNimbusThriftPort());
     config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-        configParameters.getInputZookeeperPort());
-    config.put(Config.NIMBUS_SEEDS, configParameters.getNimbusSeeds());
+        spoutProperties.getInputZookeeperPort());
+    config.put(Config.NIMBUS_SEEDS, spoutProperties.getNimbusSeeds());
     config.put(Config.STORM_ZOOKEEPER_SERVERS,
-        configParameters.getStormZookeeperAddress());
+        spoutProperties.getStormZookeeperAddress());
 
     config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
 
     config.setDebug(false);
-    config.setMessageTimeoutSecs(getValue(configParameters.getMessageTimeoutInSeconds(), DEFAULT_TUPLE_PROCESSING_TIME));
-    config.setMaxSpoutPending(getValue(configParameters.getMaxSpoutPending(), DEFAULT_MAX_SPOUT_PENDING));
+    config.setMessageTimeoutSecs(getValue(spoutProperties.getMessageTimeoutInSeconds(), DEFAULT_TUPLE_PROCESSING_TIME));
+    config.setMaxSpoutPending(getValue(spoutProperties.getMaxSpoutPending(), DEFAULT_MAX_SPOUT_PENDING));
 
     List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
             .filter(field -> Arrays.asList("messageType", "mode", "status").contains(field.getName()))
@@ -119,8 +124,8 @@ public final class TopologyHelper {
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
-    config.put(SPOUT_SLEEP_MS, getValue(configParameters.getSpoutSleepMilliseconds(), DEFAULT_SPOUT_SLEEP_MS));
-    config.put(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, getValue(configParameters.getSpoutSleepEveryNIterations(), DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
+    config.put(SPOUT_SLEEP_MS, getValue(spoutProperties.getSpoutSleepMilliseconds(), DEFAULT_SPOUT_SLEEP_MS));
+    config.put(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, getValue(spoutProperties.getSpoutSleepEveryNIterations(), DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
     return config;
   }
 
@@ -128,53 +133,40 @@ public final class TopologyHelper {
     return value != null ? value : defaultValue;
   }
 
-  public static ECloudSpout createECloudSpout(String topologyName, SpoutConfigParameters configParameters, String topic) {
+  public static ECloudSpout createECloudSpout(String topologyName, SpoutProperties spoutProperties, CassandraProperties cassandraProperties, String topic) {
     return new ECloudSpout(
         topologyName, topic,
-        createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
-        configParameters);
+        createKafkaSpoutConfig(topologyName, spoutProperties, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
+        cassandraProperties);
   }
 
-  private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, SpoutConfigParameters configParameters,
+  private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, SpoutProperties spoutProperties,
       String topic, ProcessingGuarantee processingGuarantee) {
     KafkaSpoutConfig.Builder<String, DpsRecord> configBuilder =
         new KafkaSpoutConfig.Builder<String, DpsRecord>(
-            configParameters.getBootstrapServers(), topic)
+            spoutProperties.getBootstrapServers(), topic)
             .setProcessingGuarantee(processingGuarantee)
             .setProp(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
             .setProp(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DpsRecordDeserializer.class)
             .setProp(ConsumerConfig.GROUP_ID_CONFIG, topologyName)
             .setProp(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,
-                getValue(configParameters.getMaxPollRecords(), DEFAULT_MAX_POLL_RECORDS))
+                getValue(spoutProperties.getMaxPollRecords(), DEFAULT_MAX_POLL_RECORDS))
             .setProp(ConsumerConfig.FETCH_MAX_BYTES_CONFIG,
-                getValue(configParameters.getFetchMaxBytes(), DEFAULT_FETCH_MAX_BYTES))
+                getValue(spoutProperties.getFetchMaxBytes(), DEFAULT_FETCH_MAX_BYTES))
             .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
     return configBuilder.build();
   }
 
-  public static CassandraProperties createCassandraProperties(Properties topologyProperties) {
-    CassandraProperties properties = new CassandraProperties();
-    properties.setHosts(
-        getValue(topologyProperties, CASSANDRA_HOSTS, null));
-    properties.setPort(
-        getValue(topologyProperties, CASSANDRA_PORT, 9042));
-    properties.setKeyspace(
-        getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, null));
-    properties.setUser(
-        getValue(topologyProperties, CASSANDRA_USERNAME, null));
-    properties.setPassword(
-        getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, null));
-    return properties;
-  }
 
   public static List<String> addSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
     String[] topics = getTopics(topologyProperties);
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+    SpoutProperties spoutProperties = createSpoutProperties(topologyProperties);
+    CassandraProperties cassandraProperties = createCassandraProperties(topologyProperties);
     List<String> result = new ArrayList<>();
     for (int i = 0; i < topics.length; i++) {
       String spoutName = SPOUT_NAME_PREFIX + (i + 1);
-      ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topology, configParameters, topics[i]);
+      ECloudSpout eCloudSpout = TopologyHelper.createECloudSpout(topology, spoutProperties, cassandraProperties, topics[i]);
       builder.setSpout(spoutName, eCloudSpout, 1).setNumTasks(1);
       result.add(spoutName);
     }
@@ -183,22 +175,23 @@ public final class TopologyHelper {
 
   public static List<String> addMediaSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {
     String[] topics = getTopics(topologyProperties);
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+    SpoutProperties spoutProperties = createSpoutProperties(topologyProperties);
+    CassandraProperties cassandraProperties = createCassandraProperties(topologyProperties);
     List<String> result = new ArrayList<>();
     for (int i = 0; i < topics.length; i++) {
       String spoutName = SPOUT_NAME_PREFIX + (i + 1);
-      ECloudSpout eCloudSpout = TopologyHelper.createMediaSpout(topology, configParameters, topics[i]);
+      ECloudSpout eCloudSpout = TopologyHelper.createMediaSpout(topology, spoutProperties, cassandraProperties, topics[i]);
       builder.setSpout(spoutName, eCloudSpout, 1).setNumTasks(1);
       result.add(spoutName);
     }
     return result;
   }
 
-  public static ECloudSpout createMediaSpout(String topologyName, SpoutConfigParameters configParameters, String topic) {
+  public static ECloudSpout createMediaSpout(String topologyName,SpoutProperties spoutProperties, CassandraProperties cassandraProperties, String topic) {
     return new MediaSpout(
         topologyName, topic,
-        createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
-        configParameters);
+        createKafkaSpoutConfig(topologyName, spoutProperties, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
+        spoutProperties, cassandraProperties);
   }
 
 
@@ -227,7 +220,7 @@ public final class TopologyHelper {
   }
 
   private static String[] getTopics(Properties topologyProperties) {
-    SpoutConfigParameters configParameters = transformProperties(topologyProperties);
+    SpoutProperties configParameters = createSpoutProperties(topologyProperties);
     return configParameters.getTopics().split(",");
   }
 }

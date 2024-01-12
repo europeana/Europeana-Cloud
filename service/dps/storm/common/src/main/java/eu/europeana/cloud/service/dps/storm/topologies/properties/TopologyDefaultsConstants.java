@@ -7,6 +7,8 @@ public final class TopologyDefaultsConstants {
   public static final int DEFAULT_MAX_POLL_RECORDS = 100;
   public static final int DEFAULT_FETCH_MAX_BYTES = 20000;
 
+  public static final int DEFAULT_CASSANDRA_PORT = 9042;
+
   public static final int DPS_DEFAULT_MAX_ATTEMPTS = 7;
   public static final int DEFAULT_SPOUT_SLEEP_MS = 1;
   public static final int DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS = 32;

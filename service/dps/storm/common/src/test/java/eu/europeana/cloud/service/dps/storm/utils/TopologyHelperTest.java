@@ -39,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
@@ -101,19 +102,13 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyLoadSpoutConfigParameters() {
+  public void shouldProperlyLoadSpoutProperties() {
     stubSpoutSettingsProperties();
     stubCassandraProperties();
     stubGeneral();
     stubMisc();
 
-    SpoutConfigParameters configParameters = TopologyHelper.transformProperties(mockTopologyEssentialProperties);
-
-    assertEquals(CASSANDRA_KEYSPACE_NAME_VALUE, configParameters.getCassandraKeyspace());
-    assertEquals(CASSANDRA_HOSTS_VALUE, configParameters.getCassandraHosts());
-    assertEquals(Integer.valueOf(CASSANDRA_PORT_VALUE), configParameters.getCassandraPort());
-    assertEquals(CASSANDRA_SECRET_TOKEN_VALUE, configParameters.getCassandraSecretToken());
-    assertEquals(CASSANDRA_USERNAME_VALUE, configParameters.getCassandraUsername());
+    SpoutProperties configParameters = TopologyHelper.createSpoutProperties(mockTopologyEssentialProperties);
 
     assertEquals(Integer.valueOf(MAX_POLL_RECORDS_VALUE), configParameters.getMaxPollRecords());
     assertEquals(Integer.valueOf(MAX_TASK_PARALLELISM_VALUE), configParameters.getMaxTaskParallelism());
@@ -131,14 +126,8 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyHandleLoadingNullSpoutConfigParameters() {
-    SpoutConfigParameters configParameters = TopologyHelper.transformProperties(mockTopologyEssentialProperties);
-
-    assertNull(configParameters.getCassandraKeyspace());
-    assertNull(configParameters.getCassandraHosts());
-    assertNull(configParameters.getCassandraPort());
-    assertNull(configParameters.getCassandraSecretToken());
-    assertNull(configParameters.getCassandraUsername());
+  public void shouldProperlyHandleLoadingNullSpoutProperties() {
+    SpoutProperties configParameters = TopologyHelper.createSpoutProperties(mockTopologyEssentialProperties);
 
     assertNull(configParameters.getMaxPollRecords());
     assertNull(configParameters.getMaxTaskParallelism());
@@ -157,15 +146,17 @@ public class TopologyHelperTest {
 
 
   @Test
-  public void shouldProperlyLoadCassandraDefaultValuesWhenParametersAreNotProvided() {
-    stubGeneral();
-    Config nonStaticConfig = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
+  public void shouldProperlyLoadCassandraProperties(){
+    stubCassandraProperties();
 
-    assertNull(nonStaticConfig.get(CASSANDRA_KEYSPACE_NAME));
-    assertNull(nonStaticConfig.get(CASSANDRA_USERNAME));
-    assertNull(nonStaticConfig.get(CASSANDRA_PORT));
-    assertNull(nonStaticConfig.get(CASSANDRA_SECRET_TOKEN));
-    assertNull(nonStaticConfig.get(CASSANDRA_HOSTS));
+    CassandraProperties cassandraProperties = TopologyHelper.createCassandraProperties(mockTopologyEssentialProperties);
+
+    assertEquals(CASSANDRA_KEYSPACE_NAME_VALUE, cassandraProperties.getKeyspace());
+    assertEquals(CASSANDRA_HOSTS_VALUE, cassandraProperties.getHosts());
+    assertEquals(Integer.valueOf(CASSANDRA_PORT_VALUE).intValue(), cassandraProperties.getPort());
+    assertEquals(CASSANDRA_SECRET_TOKEN_VALUE, cassandraProperties.getPassword());
+    assertEquals(CASSANDRA_USERNAME_VALUE, cassandraProperties.getUser());
+
   }
 
   @Test

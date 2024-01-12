@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class SpoutConfigParameters {
+public class SpoutProperties {
   private Integer workerCount;
   private Integer maxTaskParallelism;
   private Integer nimbusThriftPort;
@@ -19,11 +19,6 @@ public class SpoutConfigParameters {
   private List<String> nimbusSeeds;
   private List<String> stormZookeeperAddress;
   private Integer messageTimeoutInSeconds;
-  private String cassandraHosts;
-  private Integer cassandraPort;
-  private String cassandraKeyspace;
-  private String cassandraUsername;
-  private String cassandraSecretToken;
   private Integer maxSpoutPending;
   private Integer spoutSleepMilliseconds;
   private Integer spoutSleepEveryNIterations;
