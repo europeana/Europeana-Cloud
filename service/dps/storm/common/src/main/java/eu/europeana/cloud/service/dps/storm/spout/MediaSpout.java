@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
+import eu.europeana.cloud.service.dps.storm.utils.SpoutProperties;
 import java.util.Map;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -14,12 +16,10 @@ public class MediaSpout extends ECloudSpout {
   private transient ThrottlingTupleGroupSelector generator;
   private final String defaultMaximumParallelization;
 
-  @SuppressWarnings("java:S107")
   public MediaSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig,
-      String hosts, int port, String keyspaceName, String userName, String password,
-      String defaultMaximumParallelization) {
-    super(topologyName, topic, kafkaSpoutConfig, hosts, port, keyspaceName, userName, password);
-    this.defaultMaximumParallelization = defaultMaximumParallelization;
+       SpoutProperties spoutProperties, CassandraProperties cassandraProperties) {
+    super(topologyName, topic, kafkaSpoutConfig, cassandraProperties);
+    this.defaultMaximumParallelization = spoutProperties.getMaxTaskParallelism() != null ? String.valueOf(spoutProperties.getMaxTaskParallelism()) : null;
   }
 
   @Override

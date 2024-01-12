@@ -13,6 +13,7 @@ import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -25,6 +26,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
+import eu.europeana.cloud.service.dps.storm.utils.SpoutProperties;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import java.io.IOException;
@@ -70,18 +72,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
   private transient ECloudOutputCollector eCloudOutputCollector;
   protected long maxTaskPending = Long.MAX_VALUE;
 
-  public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts,
-      int port, String keyspaceName,
-      String userName, String password) {
+  public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, CassandraProperties cassandraProperties) {
     super(kafkaSpoutConfig);
-
     this.topologyName = topologyName;
     this.topic = topic;
-    this.hosts = hosts;
-    this.port = port;
-    this.keyspaceName = keyspaceName;
-    this.userName = userName;
-    this.password = password;
+    this.hosts = cassandraProperties.getHosts();
+    this.port = cassandraProperties.getPort();
+    this.keyspaceName = cassandraProperties.getKeyspace();
+    this.userName = cassandraProperties.getUser();
+    this.password = cassandraProperties.getPassword();
   }
 
 
