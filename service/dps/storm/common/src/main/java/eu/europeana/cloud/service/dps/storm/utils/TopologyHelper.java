@@ -143,11 +143,7 @@ public final class TopologyHelper {
     return new ECloudSpout(
         topologyName, topic,
         createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
-        configParameters.getCassandraHosts(),
-        configParameters.getCassandraPort(),
-        configParameters.getCassandraKeyspace(),
-        configParameters.getCassandraUsername(),
-        configParameters.getCassandraSecretToken());
+        configParameters);
   }
 
   private static KafkaSpoutConfig<String, DpsRecord> createKafkaSpoutConfig(String topologyName, SpoutConfigParameters configParameters,
@@ -198,12 +194,7 @@ public final class TopologyHelper {
     return new MediaSpout(
         topologyName, topic,
         createKafkaSpoutConfig(topologyName, configParameters, topic, KafkaSpoutConfig.ProcessingGuarantee.AT_LEAST_ONCE),
-        configParameters.getCassandraHosts(),
-        configParameters.getCassandraPort(),
-        configParameters.getCassandraKeyspace(),
-        configParameters.getCassandraUsername(),
-        configParameters.getCassandraSecretToken(),
-        configParameters.getMaxTaskParallelism() != null ? String.valueOf(configParameters.getMaxTaskParallelism()) : null);
+        configParameters);
   }
 
 

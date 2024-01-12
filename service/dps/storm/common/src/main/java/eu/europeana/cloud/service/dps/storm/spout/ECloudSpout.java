@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
+import eu.europeana.cloud.service.dps.storm.utils.SpoutConfigParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import java.io.IOException;
@@ -70,18 +71,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
   private transient ECloudOutputCollector eCloudOutputCollector;
   protected long maxTaskPending = Long.MAX_VALUE;
 
-  public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, String hosts,
-      int port, String keyspaceName,
-      String userName, String password) {
+  public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, SpoutConfigParameters configParameters) {
     super(kafkaSpoutConfig);
-
     this.topologyName = topologyName;
     this.topic = topic;
-    this.hosts = hosts;
-    this.port = port;
-    this.keyspaceName = keyspaceName;
-    this.userName = userName;
-    this.password = password;
+    this.hosts = configParameters.getCassandraHosts();
+    this.port = configParameters.getCassandraPort();
+    this.keyspaceName = configParameters.getCassandraKeyspace();
+    this.userName = configParameters.getCassandraUsername();
+    this.password = configParameters.getCassandraSecretToken();
   }
 
 
