@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -26,7 +27,8 @@ public class ValidationBolt extends AbstractDpsBolt {
   private transient ValidationExecutionService validationService;
   private transient XsltTransformer transformer;
 
-  public ValidationBolt(Properties properties) {
+  public ValidationBolt(CassandraProperties cassandraProperties, Properties properties) {
+    super(cassandraProperties);
     this.properties = properties;
   }
 

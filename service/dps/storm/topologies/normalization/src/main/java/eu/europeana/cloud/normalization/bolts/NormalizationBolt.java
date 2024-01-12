@@ -1,5 +1,6 @@
 package eu.europeana.cloud.normalization.bolts;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.normalization.Normalizer;
@@ -27,6 +28,10 @@ public class NormalizationBolt extends AbstractDpsBolt {
   private static final String NORMALIZATION_EX_MESSAGE = "Unable to normalize file";
 
   private transient NormalizerFactory normalizerFactory;
+
+  public NormalizationBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
   /**
    * Prepare the bolt for execution. Initializes NormalizerFactory.

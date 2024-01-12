@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -21,6 +22,10 @@ public class XsltBolt extends AbstractDpsBolt {
 
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(XsltBolt.class);
+
+  public XsltBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
 
   @Override

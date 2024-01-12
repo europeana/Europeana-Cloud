@@ -113,7 +113,7 @@
     <dependency>
       <artifactId>therapi-runtime-javadoc-scribe</artifactId>
       <groupId>com.github.therapi</groupId>
-      <version>0.13.0</version>
+      <version>0.15.0</version>
     </dependency>
 
     <dependency>
@@ -160,14 +160,14 @@
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>2.3.2</version>
+            <version>2.3.3</version>
         </dependency>
 
         <!-- Runtime, com.sun.xml.bind module -->
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.2</version>
+            <version>${version.jaxb-runtime}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>

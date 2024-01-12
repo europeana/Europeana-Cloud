@@ -1,5 +1,6 @@
 package eu.europeana.cloud.enrichment.bolts;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
@@ -38,8 +39,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   private final String enrichmentEntityApiKey;
   private transient EnrichmentWorker enrichmentWorker;
 
-  public EnrichmentBolt(String dereferenceURL, String enrichmentEntityManagementUrl, String enrichmentEntityApiUrl,
-      String enrichmentEntityApiKey) {
+  public EnrichmentBolt(CassandraProperties cassandraProperties, String dereferenceURL, String enrichmentEntityManagementUrl,
+      String enrichmentEntityApiUrl, String enrichmentEntityApiKey) {
+    super(cassandraProperties);
     this.dereferenceURL = dereferenceURL;
     this.enrichmentEntityManagementUrl = enrichmentEntityManagementUrl;
     this.enrichmentEntityApiUrl = enrichmentEntityApiUrl;

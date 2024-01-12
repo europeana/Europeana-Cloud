@@ -2,6 +2,7 @@ package eu.europeana.cloud.http.bolts;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -51,7 +52,7 @@ public class HttpHarvestingBoltTest {
   private StormTaskTuple tuple;
 
   @InjectMocks
-  private HttpHarvestingBolt bolt;
+  private HttpHarvestingBolt bolt = new HttpHarvestingBolt(new CassandraProperties());
 
   @Mock
   private Tuple anchorTuple;

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -46,7 +47,8 @@ public class EDMEnrichmentBoltTest {
   private FileServiceClient fileClient;
 
   @InjectMocks
-  private static EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt("MCS_URL", "user", "password");
+  private static EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt(
+      new CassandraProperties(), "MCS_URL", "user", "password");
 
   @BeforeClass
   public static void init() {

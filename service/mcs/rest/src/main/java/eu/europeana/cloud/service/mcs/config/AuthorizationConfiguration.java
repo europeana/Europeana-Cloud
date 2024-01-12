@@ -9,7 +9,7 @@ import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -104,29 +105,17 @@ public final class TopologyHelper {
 
     config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
 
-
     config.setDebug(false);
     config.setMessageTimeoutSecs(getValue(configParameters.getMessageTimeoutInSeconds(), DEFAULT_TUPLE_PROCESSING_TIME));
-
-    config.put(CASSANDRA_HOSTS,
-        configParameters.getCassandraHosts());
-    config.put(CASSANDRA_PORT,
-            (configParameters.getCassandraPort() == null ? null : configParameters.getCassandraPort().toString()));
-    config.put(CASSANDRA_KEYSPACE_NAME,
-            configParameters.getCassandraKeyspace());
-    config.put(CASSANDRA_USERNAME,
-            configParameters.getCassandraUsername());
-    config.put(CASSANDRA_SECRET_TOKEN,
-            configParameters.getCassandraSecretToken());
-
     config.setMaxSpoutPending(getValue(configParameters.getMaxSpoutPending(), DEFAULT_MAX_SPOUT_PENDING));
+
     List<String> kryoClassesToBeSerialized = Stream.of(Report.class.getDeclaredFields())
             .filter(field -> Arrays.asList("messageType", "mode", "status").contains(field.getName()))
             .map(field -> field.getType().getName())
             .collect(Collectors.toList());
     kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
             OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-            DataSetCleanerParameters.class.getName(), Report.class.getName()));
+        DataSetCleanerParameters.class.getName(), Report.class.getName(), CassandraProperties.class.getName()));
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());
@@ -162,6 +151,21 @@ public final class TopologyHelper {
             .setFirstPollOffsetStrategy(FirstPollOffsetStrategy.UNCOMMITTED_LATEST);
 
     return configBuilder.build();
+  }
+
+  public static CassandraProperties createCassandraProperties(Properties topologyProperties) {
+    CassandraProperties properties = new CassandraProperties();
+    properties.setHosts(
+        getValue(topologyProperties, CASSANDRA_HOSTS, null));
+    properties.setPort(
+        getValue(topologyProperties, CASSANDRA_PORT, 9042));
+    properties.setKeyspace(
+        getValue(topologyProperties, CASSANDRA_KEYSPACE_NAME, null));
+    properties.setUser(
+        getValue(topologyProperties, CASSANDRA_USERNAME, null));
+    properties.setPassword(
+        getValue(topologyProperties, CASSANDRA_SECRET_TOKEN, null));
+    return properties;
   }
 
   public static List<String> addSpouts(TopologyBuilder builder, String topology, Properties topologyProperties) {

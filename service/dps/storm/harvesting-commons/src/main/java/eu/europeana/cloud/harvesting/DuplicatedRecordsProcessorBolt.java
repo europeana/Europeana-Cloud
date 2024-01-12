@@ -2,6 +2,7 @@ package eu.europeana.cloud.harvesting;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -36,11 +37,15 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   /**
    * Constructs instance of the {@link DuplicatedRecordsProcessorBolt}
-   * @param ecloudMcsAddress      location of the MCS
-   * @param ecloudMcsUser         username required for communication with MCS
+   *
+   * @param cassandraProperties Cassandra cluster addresses and credentials.
+   * @param ecloudMcsAddress location of the MCS
+   * @param ecloudMcsUser username required for communication with MCS
    * @param ecloudMcsUserPassword user password required for communication with MCS
    */
-  public DuplicatedRecordsProcessorBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
+  public DuplicatedRecordsProcessorBolt(CassandraProperties cassandraProperties,
+      String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.ecloudMcsUser = ecloudMcsUser;
     this.ecloudMcsUserPassword = ecloudMcsUserPassword;

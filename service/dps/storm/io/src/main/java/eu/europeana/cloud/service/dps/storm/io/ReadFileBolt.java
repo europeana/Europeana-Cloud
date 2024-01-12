@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -38,7 +39,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
   private final String ecloudMcsUserPassword;
   protected transient FileServiceClient fileClient;
 
-  public ReadFileBolt(String ecloudMcsAddress, String ecloudMcsUser, String ecloudMcsUserPassword) {
+  public ReadFileBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.ecloudMcsUser = ecloudMcsUser;
     this.ecloudMcsUserPassword = ecloudMcsUserPassword;

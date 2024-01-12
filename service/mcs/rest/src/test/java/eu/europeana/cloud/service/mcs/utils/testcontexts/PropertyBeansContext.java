@@ -5,7 +5,7 @@ import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
 
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.mcs.properties.S3Properties;
-import eu.europeana.cloud.service.web.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;

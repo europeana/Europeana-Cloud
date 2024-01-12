@@ -4,6 +4,7 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
@@ -34,7 +35,7 @@ public class NormalizationBoltTest {
   ArgumentCaptor<Values> captor;
 
   @InjectMocks
-  private NormalizationBolt normalizationBolt = new NormalizationBolt();
+  private NormalizationBolt normalizationBolt = new NormalizationBolt(new CassandraProperties());
 
   @Before
   public void init() {

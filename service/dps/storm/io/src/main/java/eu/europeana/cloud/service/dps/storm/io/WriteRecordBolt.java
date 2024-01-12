@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
@@ -45,7 +46,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String topologyUserPassword;
   protected transient RecordServiceClient recordServiceClient;
 
-  public WriteRecordBolt(String ecloudMcsAddress, String topologyUserName, String topologyUserPassword) {
+  public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String topologyUserName, String topologyUserPassword) {
+    super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;

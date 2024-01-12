@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import org.apache.storm.tuple.Tuple;
 
@@ -10,10 +11,9 @@ public class RevisionWriterBoltForHarvesting extends RevisionWriterBolt {
 
   private static final long serialVersionUID = 1L;
 
-  public RevisionWriterBoltForHarvesting(String ecloudMcsAddress,
-                                         String ecloudMcsUser,
-                                         String ecloudMcsUserPassword) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  public RevisionWriterBoltForHarvesting(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   @Override

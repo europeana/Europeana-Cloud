@@ -4,6 +4,7 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatistics
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 import com.google.gson.Gson;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -38,7 +39,8 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
   private transient MediaExtractor mediaExtractor;
   private transient ThumbnailUploader thumbnailUploader;
 
-  public ResourceProcessingBolt(AmazonClient amazonClient) {
+  public ResourceProcessingBolt(CassandraProperties cassandraProperties, AmazonClient amazonClient) {
+    super(cassandraProperties);
     this.amazonClient = amazonClient;
   }
 

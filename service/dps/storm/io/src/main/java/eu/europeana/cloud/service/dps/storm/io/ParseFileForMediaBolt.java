@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
@@ -11,10 +12,9 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
 
   private ThrottlingTupleGroupSelector generator;
 
-  public ParseFileForMediaBolt(String ecloudMcsAddress,
-      String ecloudMcsUser,
-      String ecloudMcsUserPassword) {
-    super(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+  public ParseFileForMediaBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
+      String ecloudMcsUser, String ecloudMcsUserPassword) {
+    super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   protected List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException {

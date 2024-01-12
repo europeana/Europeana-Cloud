@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm;
 
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.md5.FileMd5GenerationService;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -15,6 +16,10 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
   private static final Logger LOGGER = LoggerFactory.getLogger(HarvestedRecordCategorizationBolt.class);
 
   protected transient HarvestedRecordCategorizationService harvestedRecordCategorizationService;
+
+  public HarvestedRecordCategorizationBolt(CassandraProperties cassandraProperties) {
+    super(cassandraProperties);
+  }
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple t) {

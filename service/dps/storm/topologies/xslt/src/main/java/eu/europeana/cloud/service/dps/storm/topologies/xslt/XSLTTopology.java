@@ -25,6 +25,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.WRITE_RECORD_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.XSLT_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 import static java.lang.Integer.parseInt;
 
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -74,16 +75,19 @@ public class XSLTTopology {
     List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.XSLT_TOPOLOGY, topologyProperties);
 
     ReadFileBolt readFileBolt = new ReadFileBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+        createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
@@ -95,7 +99,7 @@ public class XSLTTopology {
         builder.setBolt(RETRIEVE_FILE_BOLT, readFileBolt, (getAnInt(RETRIEVE_FILE_BOLT_PARALLEL)))
                .setNumTasks((getAnInt(RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS))));
 
-    builder.setBolt(XSLT_BOLT, new XsltBolt(),
+    builder.setBolt(XSLT_BOLT, new XsltBolt(createCassandraProperties(topologyProperties)),
                (getAnInt(XSLT_BOLT_PARALLEL)))
            .setNumTasks(
                (getAnInt(XSLT_BOLT_NUMBER_OF_TASKS)))
