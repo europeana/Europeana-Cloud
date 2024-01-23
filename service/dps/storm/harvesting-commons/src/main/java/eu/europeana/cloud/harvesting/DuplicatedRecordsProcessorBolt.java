@@ -89,13 +89,13 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       throws MCSException {
     LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
     removeRevision(tuple, representation);
-      removeRepresentation(representation);
-      emitErrorNotification(
-              anchorTuple,
-              tuple,
-              "Duplicate detected",
-              "Duplicate detected for " + tuple.getFileUrl());
-      outputCollector.ack(anchorTuple);
+    removeRepresentation(representation);
+    emitErrorNotification(
+        anchorTuple,
+        tuple,
+        "Duplicate detected",
+        "Duplicate detected for " + tuple.getFileUrl());
+    outputCollector.ack(anchorTuple);
   }
 
   private void removeRepresentation(Representation representation) throws MCSException {
