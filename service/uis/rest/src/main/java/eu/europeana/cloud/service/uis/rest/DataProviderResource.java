@@ -52,7 +52,7 @@ public class DataProviderResource {
    */
   @GetMapping(value = RestInterfaceConstants.DATA_PROVIDER, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public DataProvider getProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+  public DataProvider getProvider(@PathVariable("providerId") String providerId) throws ProviderDoesNotExistException {
     return providerService.getProvider(providerId);
   }
 
@@ -77,7 +77,7 @@ public class DataProviderResource {
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<Void> updateProvider(
       @RequestBody DataProviderProperties dataProviderProperties,
-      @PathVariable String providerId) throws ProviderDoesNotExistException {
+      @PathVariable("providerId") String providerId) throws ProviderDoesNotExistException {
 
     providerService.updateProvider(providerId, dataProviderProperties);
     return ResponseEntity.noContent().build();
@@ -108,9 +108,9 @@ public class DataProviderResource {
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CloudId> createIdMapping(
-      @PathVariable String providerId,
-      @PathVariable String cloudId,
-      @RequestParam(required = false) String recordId)
+      @PathVariable("providerId") String providerId,
+      @PathVariable("cloudId") String cloudId,
+      @RequestParam(value = "recordId", required = false) String recordId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException,
       ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
 

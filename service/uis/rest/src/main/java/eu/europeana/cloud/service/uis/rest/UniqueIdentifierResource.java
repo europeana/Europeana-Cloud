@@ -70,8 +70,8 @@ public class UniqueIdentifierResource {
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CloudId> createCloudId(
-      @RequestParam String providerId,
-      @RequestParam(required = false) String recordId)
+      @RequestParam("providerId") String providerId,
+      @RequestParam(value = "recordId", required = false) String recordId)
       throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
       RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
@@ -94,8 +94,8 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<CloudId> getCloudId(@RequestParam String providerId,
-      @RequestParam String recordId)
+  public ResponseEntity<CloudId> getCloudId(@RequestParam("providerId") String providerId,
+      @RequestParam("recordId") String recordId)
       throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
     return ResponseEntity.ok(uniqueIdentifierService.getCloudId(providerId, recordId));
@@ -115,7 +115,7 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable String cloudId)
+  public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable("cloudId") String cloudId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
     ResultSlice<CloudId> pList = new ResultSlice<>();

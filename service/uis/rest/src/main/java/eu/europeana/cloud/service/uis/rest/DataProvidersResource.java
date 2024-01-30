@@ -40,7 +40,7 @@ public class DataProvidersResource {
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public ResultSlice<DataProvider> getProviders(
-      @RequestParam(required = false) String from) {
+      @RequestParam(value = "from", required = false) String from) {
     return providerService.getProviders(from, NUMBER_OF_ELEMENTS_ON_PAGE);
   }
 

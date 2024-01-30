@@ -74,7 +74,8 @@ public class DataProviderActivationResource {
    */
   @DeleteMapping
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<Void> deactivateDataProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+  public ResponseEntity<Void> deactivateDataProvider(@PathVariable("providerId") String providerId)
+      throws ProviderDoesNotExistException {
     LOGGER.info("Deactivating data provider: {}", providerId);
 
     DataProvider dataProvider = providerService.getProvider(providerId);
