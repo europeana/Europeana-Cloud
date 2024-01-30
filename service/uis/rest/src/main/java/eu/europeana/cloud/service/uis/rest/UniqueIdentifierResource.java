@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis.rest;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
@@ -30,19 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UniqueIdentifierResource {
 
-  private static final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
   private final UniqueIdentifierService uniqueIdentifierService;
-  private final DataProviderResource dataProviderResource;
-  private final ACLServiceWrapper aclWrapper;
-
 
   public UniqueIdentifierResource(
-      UniqueIdentifierService uniqueIdentifierService,
-      DataProviderResource dataProviderResource,
-      ACLServiceWrapper aclWrapper) {
+      UniqueIdentifierService uniqueIdentifierService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
-    this.dataProviderResource = dataProviderResource;
-    this.aclWrapper = aclWrapper;
   }
 
   /**

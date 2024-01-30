@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
@@ -29,17 +28,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataProviderResource {
 
-  protected static final String LOCAL_ID_CLASS_NAME = "LocalId";
   private final UniqueIdentifierService uniqueIdentifierService;
   private final DataProviderService providerService;
-  private final ACLServiceWrapper aclWrapper;
 
+  /**
+   * Constructor used for injection
+   *
+   * @param uniqueIdentifierService service for unique identifiers
+   * @param providerService service for providers
+   */
   public DataProviderResource(UniqueIdentifierService uniqueIdentifierService,
-      DataProviderService providerService,
-      ACLServiceWrapper aclWrapper) {
+      DataProviderService providerService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
     this.providerService = providerService;
-    this.aclWrapper = aclWrapper;
   }
 
 

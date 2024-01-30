@@ -27,6 +27,11 @@ public class DataProvidersResource {
   private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
   private final DataProviderService providerService;
 
+  /**
+   * Constructor used for injection
+   *
+   * @param providerService service for providers
+   */
   public DataProvidersResource(DataProviderService providerService) {
     this.providerService = providerService;
   }
