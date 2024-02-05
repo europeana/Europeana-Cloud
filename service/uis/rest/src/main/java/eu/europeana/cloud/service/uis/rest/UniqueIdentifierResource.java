@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis.rest;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
@@ -30,19 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UniqueIdentifierResource {
 
-  private static final String CLOUD_ID_CLASS_NAME = CloudId.class.getName();
   private final UniqueIdentifierService uniqueIdentifierService;
-  private final DataProviderResource dataProviderResource;
-  private final ACLServiceWrapper aclWrapper;
-
 
   public UniqueIdentifierResource(
-      UniqueIdentifierService uniqueIdentifierService,
-      DataProviderResource dataProviderResource,
-      ACLServiceWrapper aclWrapper) {
+      UniqueIdentifierService uniqueIdentifierService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
-    this.dataProviderResource = dataProviderResource;
-    this.aclWrapper = aclWrapper;
   }
 
   /**
@@ -70,8 +61,8 @@ public class UniqueIdentifierResource {
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CloudId> createCloudId(
-      @RequestParam String providerId,
-      @RequestParam(required = false) String recordId)
+      @RequestParam("providerId") String providerId,
+      @RequestParam(value = "recordId", required = false) String recordId)
       throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
       RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
@@ -94,8 +85,8 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<CloudId> getCloudId(@RequestParam String providerId,
-      @RequestParam String recordId)
+  public ResponseEntity<CloudId> getCloudId(@RequestParam("providerId") String providerId,
+      @RequestParam("recordId") String recordId)
       throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
     return ResponseEntity.ok(uniqueIdentifierService.getCloudId(providerId, recordId));
@@ -115,7 +106,7 @@ public class UniqueIdentifierResource {
    */
   @GetMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable String cloudId)
+  public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable("cloudId") String cloudId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
     ResultSlice<CloudId> pList = new ResultSlice<>();

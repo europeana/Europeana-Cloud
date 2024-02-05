@@ -24,21 +24,17 @@ public class TestConfiguration {
 
   @Bean
   public DataProviderResource dataProviderResource(UniqueIdentifierService uniqueIdentifierService,
-      DataProviderService providerService,
-      ACLServiceWrapper aclWrapper) {
+      DataProviderService providerService) {
     return new DataProviderResource(
         uniqueIdentifierService,
-        providerService,
-        aclWrapper);
+        providerService);
   }
 
   @Bean
   public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService,
       DataProviderResource dataProviderResource,
       ACLServiceWrapper aclWrapper) {
-    return new UniqueIdentifierResource(uniqueIdentifierService,
-        dataProviderResource,
-        aclWrapper);
+    return new UniqueIdentifierResource(uniqueIdentifierService);
   }
 
   @Bean

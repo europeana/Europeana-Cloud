@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
@@ -29,17 +28,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataProviderResource {
 
-  protected static final String LOCAL_ID_CLASS_NAME = "LocalId";
   private final UniqueIdentifierService uniqueIdentifierService;
   private final DataProviderService providerService;
-  private final ACLServiceWrapper aclWrapper;
 
+  /**
+   * Constructor used for injection
+   *
+   * @param uniqueIdentifierService service for unique identifiers
+   * @param providerService service for providers
+   */
   public DataProviderResource(UniqueIdentifierService uniqueIdentifierService,
-      DataProviderService providerService,
-      ACLServiceWrapper aclWrapper) {
+      DataProviderService providerService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
     this.providerService = providerService;
-    this.aclWrapper = aclWrapper;
   }
 
 
@@ -52,7 +53,7 @@ public class DataProviderResource {
    */
   @GetMapping(value = RestInterfaceConstants.DATA_PROVIDER, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
-  public DataProvider getProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+  public DataProvider getProvider(@PathVariable("providerId") String providerId) throws ProviderDoesNotExistException {
     return providerService.getProvider(providerId);
   }
 
@@ -77,7 +78,7 @@ public class DataProviderResource {
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<Void> updateProvider(
       @RequestBody DataProviderProperties dataProviderProperties,
-      @PathVariable String providerId) throws ProviderDoesNotExistException {
+      @PathVariable("providerId") String providerId) throws ProviderDoesNotExistException {
 
     providerService.updateProvider(providerId, dataProviderProperties);
     return ResponseEntity.noContent().build();
@@ -108,9 +109,9 @@ public class DataProviderResource {
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CloudId> createIdMapping(
-      @PathVariable String providerId,
-      @PathVariable String cloudId,
-      @RequestParam(required = false) String recordId)
+      @PathVariable("providerId") String providerId,
+      @PathVariable("cloudId") String cloudId,
+      @RequestParam(value = "recordId", required = false) String recordId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException,
       ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
 

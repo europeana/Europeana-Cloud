@@ -27,6 +27,11 @@ public class DataProvidersResource {
   private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
   private final DataProviderService providerService;
 
+  /**
+   * Constructor used for injection
+   *
+   * @param providerService service for providers
+   */
   public DataProvidersResource(DataProviderService providerService) {
     this.providerService = providerService;
   }
@@ -40,7 +45,7 @@ public class DataProvidersResource {
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public ResultSlice<DataProvider> getProviders(
-      @RequestParam(required = false) String from) {
+      @RequestParam(value = "from", required = false) String from) {
     return providerService.getProviders(from, NUMBER_OF_ELEMENTS_ON_PAGE);
   }
 

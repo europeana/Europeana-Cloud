@@ -24,7 +24,7 @@
                 <artifactId>spring-boot-dependencies</artifactId>
                 <scope>import</scope>
                 <type>pom</type>
-                <version>2.7.8</version>
+                <version>${version.spring-boot}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

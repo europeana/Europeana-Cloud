@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Rest controller responsible for activating adn deactivating data providers
+ */
 @RestController
 @RequestMapping(RestInterfaceConstants.DATA_PROVIDER_ACTIVATION)
 public class DataProviderActivationResource {
@@ -22,6 +25,11 @@ public class DataProviderActivationResource {
 
   private final DataProviderService providerService;
 
+  /**
+   * Constructor used for injection
+   *
+   * @param providerService service for data providers
+   */
   public DataProviderActivationResource(DataProviderService providerService) {
     this.providerService = providerService;
   }
@@ -41,7 +49,6 @@ public class DataProviderActivationResource {
    * @return Empty response with http status code indicating whether the operation was successful or not
    * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
    * @summary Data-provider activation
-   * @author
    */
   @PutMapping
   @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -70,11 +77,11 @@ public class DataProviderActivationResource {
    * @return Empty response with http status code indicating whether the operation was successful or not
    * @throws ProviderDoesNotExistException Supplied Data-provider does not exist
    * @summary Data-provider deactivation
-   * @author
    */
   @DeleteMapping
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<Void> deactivateDataProvider(@PathVariable String providerId) throws ProviderDoesNotExistException {
+  public ResponseEntity<Void> deactivateDataProvider(@PathVariable("providerId") String providerId)
+      throws ProviderDoesNotExistException {
     LOGGER.info("Deactivating data provider: {}", providerId);
 
     DataProvider dataProvider = providerService.getProvider(providerId);
