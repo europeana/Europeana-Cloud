@@ -25,7 +25,7 @@ public class AmazonClient implements Serializable {
   @PostConstruct
   @SuppressWarnings("java:S6263")
   // Credentials are loaded from configuration files that require SSH-key and VPN to access or inner company gitlab account with proper permissions.
-  synchronized void init() {
+  public synchronized void init() {
     if (amazonS3 == null) {
       amazonS3 = new AmazonS3Client(new BasicAWSCredentials(
           awsAccessKey,
@@ -43,7 +43,7 @@ public class AmazonClient implements Serializable {
    * @param objectMetadata object metadata
    * @return result from AmazonS3
    */
-  PutObjectResult putObject(String bucket, String name, InputStream inputStream, ObjectMetadata objectMetadata) {
+  public PutObjectResult putObject(String bucket, String name, InputStream inputStream, ObjectMetadata objectMetadata) {
     checkInitialized();
     return amazonS3.putObject(bucket, name, inputStream, objectMetadata);
   }
@@ -56,7 +56,7 @@ public class AmazonClient implements Serializable {
    * @param objectMetadata object metadata
    * @return result from AmazonS3
    */
-  PutObjectResult putObject(String name, InputStream inputStream, ObjectMetadata objectMetadata) {
+  public PutObjectResult putObject(String name, InputStream inputStream, ObjectMetadata objectMetadata) {
     checkInitialized();
     return amazonS3.putObject(awsBucket, name, inputStream, objectMetadata);
   }
