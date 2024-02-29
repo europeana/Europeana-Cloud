@@ -83,7 +83,7 @@ public class IndexWrapper {
   }
 
   @PreDestroy
-  private void close() {
+  public void close() {
     indexers.values().forEach(indexer -> {
       try {
         indexer.close();
