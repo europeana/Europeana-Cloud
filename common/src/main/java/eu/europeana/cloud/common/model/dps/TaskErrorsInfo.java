@@ -1,10 +1,11 @@
 package eu.europeana.cloud.common.model.dps;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
+
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement()
+@XmlRootElement
 public class TaskErrorsInfo {
 
   private long id;

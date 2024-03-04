@@ -1,11 +1,12 @@
 package eu.europeana.cloud.common.model.dps;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+
 
 /**
  * Statistics of a node's attribute
  */
-@XmlRootElement()
+@XmlRootElement
 public class AttributeStatistics {
 
   /**

@@ -17,9 +17,8 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 
-import eu.europeana.metis.utils.CommonStringValues;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,8 +89,8 @@ public class DataSetResource {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', delete)")
   public void deleteDataSet(
-      @PathVariable String providerId,
-      @PathVariable String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
+      @PathVariable("providerId") String providerId,
+      @PathVariable("dataSetId") String dataSetId) throws DataSetDeletionException, DataSetNotExistsException {
 
     dataSetService.deleteDataSet(providerId, dataSetId);
 
@@ -117,9 +116,9 @@ public class DataSetResource {
   @GetMapping(value = DATA_SET_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public ResultSlice<Representation> getDataSetContents(
       HttpServletRequest httpServletRequest,
-      @PathVariable String providerId,
-      @PathVariable String dataSetId,
-      @RequestParam(required = false) String startFrom) throws DataSetNotExistsException {
+      @PathVariable("providerId") String providerId,
+      @PathVariable("dataSetId") String dataSetId,
+      @RequestParam(value = "startFrom", required = false) String startFrom) throws DataSetNotExistsException {
 
     ResultSlice<Representation> representations =
         dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);

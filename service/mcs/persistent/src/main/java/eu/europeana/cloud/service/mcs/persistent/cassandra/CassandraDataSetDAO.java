@@ -19,13 +19,13 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
 
 /**
  * Data set repository that uses Cassandra nosql database.

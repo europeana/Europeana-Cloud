@@ -2,8 +2,8 @@ package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Association between cloud identifier, version identifier and revision identifier.

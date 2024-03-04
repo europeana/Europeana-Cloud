@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.mcs.controller.aatests;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -27,8 +28,8 @@ import eu.europeana.cloud.service.mcs.controller.RepresentationResource;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -57,8 +57,8 @@ public class DataSetsResource {
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public ResultSlice<DataSet> getDataSets(
-      @PathVariable String providerId,
-      @RequestParam(required = false) String startFrom) {
+      @PathVariable("providerId") String providerId,
+      @RequestParam(value = "startFrom", required = false) String startFrom) {
 
     return dataSetService.getDataSets(providerId, startFrom, numberOfElementsOnPage);
   }
@@ -79,10 +79,10 @@ public class DataSetsResource {
   @PreAuthorize("isAuthenticated()")
   @PostMapping
   public ResponseEntity<Void> createDataSet(
-      HttpServletRequest httpServletRequest,
-      @PathVariable String providerId,
-      @RequestParam String dataSetId,
-      @RequestParam(required = false) String description) throws ProviderNotExistsException, DataSetAlreadyExistsException {
+          HttpServletRequest httpServletRequest,
+          @PathVariable("providerId") String providerId,
+          @RequestParam("dataSetId") String dataSetId,
+          @RequestParam(value = "description", required = false) String description) throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
     DataSet dataSet = dataSetService.createDataSet(providerId, dataSetId, description);
     EnrichUriUtil.enrich(httpServletRequest, dataSet);

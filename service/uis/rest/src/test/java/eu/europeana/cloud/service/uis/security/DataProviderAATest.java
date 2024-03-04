@@ -21,10 +21,11 @@ import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -59,15 +59,15 @@ public class DataSetRevisionsResource {
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<ResultSlice<CloudTagsResponse>> getDataSetContents(
-      @PathVariable String providerId,
-      @PathVariable String dataSetId,
-      @PathVariable String representationName,
-      @PathVariable String revisionName,
-      @PathVariable String revisionProviderId,
-      @RequestParam String revisionTimestamp,
-      @RequestParam(defaultValue = "false") boolean existingOnly,
-      @RequestParam(required = false) String startFrom,
-      @RequestParam int limit) throws DataSetNotExistsException, ProviderNotExistsException {
+      @PathVariable("providerId") String providerId,
+      @PathVariable("dataSetId") String dataSetId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("revisionName") String revisionName,
+      @PathVariable("revisionProviderId") String revisionProviderId,
+      @RequestParam("revisionTimestamp") String revisionTimestamp,
+      @RequestParam(value = "existingOnly", defaultValue = "false") boolean existingOnly,
+      @RequestParam(value = "startFrom", required = false) String startFrom,
+      @RequestParam("limit") int limit) throws DataSetNotExistsException, ProviderNotExistsException {
 
     if (existingOnly && startFrom != null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

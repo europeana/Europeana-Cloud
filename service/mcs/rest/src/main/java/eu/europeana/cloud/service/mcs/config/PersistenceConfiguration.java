@@ -54,7 +54,9 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  DynamicContentProxy dynamicContentProxy(ContentDAO s3ContentDAO, ContentDAO cassandraContentDAO) {
+  DynamicContentProxy dynamicContentProxy(
+          @Qualifier("s3ContentDAO") ContentDAO s3ContentDAO,
+          @Qualifier("cassandraContentDAO") ContentDAO cassandraContentDAO) {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
     params.put(Storage.OBJECT_STORAGE, s3ContentDAO);

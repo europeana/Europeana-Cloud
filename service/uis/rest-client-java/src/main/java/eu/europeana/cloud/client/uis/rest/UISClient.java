@@ -11,11 +11,12 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
 import java.util.function.Supplier;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -45,6 +46,7 @@ public class UISClient implements AutoCloseable {
   protected final Client client =
       ClientBuilder
           .newBuilder()
+          .register(ErrorInfoMessageBodyReader.class)
           .register(JacksonFeature.class)
           .build();
 

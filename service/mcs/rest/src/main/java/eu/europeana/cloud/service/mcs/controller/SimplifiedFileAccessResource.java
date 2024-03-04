@@ -19,7 +19,8 @@ import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +70,10 @@ public class SimplifiedFileAccessResource {
   @GetMapping
   public ResponseEntity<StreamingResponseBody> getFile(
       HttpServletRequest httpServletRequest,
-      @PathVariable final String providerId,
-      @PathVariable final String localId,
-      @PathVariable final String representationName,
-      @PathVariable final String fileName) throws RepresentationNotExistsException,
+      @PathVariable("providerId") final String providerId,
+      @PathVariable("localId") final String localId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("fileName") final String fileName) throws RepresentationNotExistsException,
       FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, WrongContentRangeException {
 
     LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
@@ -127,10 +128,10 @@ public class SimplifiedFileAccessResource {
   @RequestMapping(method = RequestMethod.HEAD)
   public ResponseEntity<?> getFileHeaders(
       HttpServletRequest httpServletRequest,
-      @PathVariable final String providerId,
-      @PathVariable final String localId,
-      @PathVariable final String representationName,
-      @PathVariable final String fileName) throws RepresentationNotExistsException,
+      @PathVariable("providerId") final String providerId,
+      @PathVariable("localId") final String localId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("fileName") final String fileName) throws RepresentationNotExistsException,
       FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
 
     LOGGER.info("Reading file headers in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",

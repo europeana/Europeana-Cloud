@@ -2,11 +2,12 @@ package eu.europeana.cloud.common.model.dps;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
-@XmlRootElement()
+@XmlRootElement
 @Builder
 @EqualsAndHashCode
 public class TaskErrorInfo {

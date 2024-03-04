@@ -15,9 +15,9 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @Import({eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint.class,
@@ -26,7 +26,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
     org.springframework.security.authentication.event.LoggerListener.class})
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
+public class AuthentificationTestContext {
 
   /*
    * We disable CSRF because our application is consumed only via direct calls to rest api.
@@ -34,11 +34,13 @@ public class AuthentificationTestContext extends WebSecurityConfigurerAdapter {
    * because we don't support remembering password via cookies etc.
    */
   @SuppressWarnings("java:S4502")
-  protected void configure(HttpSecurity http) throws Exception {
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
     http.
         httpBasic().and().
         sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
         csrf().disable();
+
+    return http.build();
   }
 
   @Autowired

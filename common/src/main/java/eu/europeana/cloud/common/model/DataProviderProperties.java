@@ -1,9 +1,7 @@
 package eu.europeana.cloud.common.model;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
-
-import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Represents administrative informations about data provider.

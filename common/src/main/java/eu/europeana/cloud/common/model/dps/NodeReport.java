@@ -1,13 +1,14 @@
 package eu.europeana.cloud.common.model.dps;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
+
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Created by Tarek on 2/4/2019.
  */
 
-@XmlRootElement()
+@XmlRootElement
 public class NodeReport {
 
   private String nodeValue;

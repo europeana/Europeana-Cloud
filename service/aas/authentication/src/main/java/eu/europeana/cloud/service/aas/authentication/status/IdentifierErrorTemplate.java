@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.aas.authentication.exception.InvalidPasswordEx
 import eu.europeana.cloud.service.aas.authentication.exception.InvalidUsernameException;
 import eu.europeana.cloud.service.aas.authentication.exception.UserDoesNotExistException;
 import eu.europeana.cloud.service.aas.authentication.exception.UserExistsException;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Status Messages returned by all methods
@@ -29,8 +29,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.INTERNAL_SERVER_ERROR;
+    public Response.Status getHttpCode() {
+      return Response.Status.INTERNAL_SERVER_ERROR;
     }
 
     @Override
@@ -52,8 +52,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.INTERNAL_SERVER_ERROR;
+    public Response.Status getHttpCode() {
+      return Response.Status.INTERNAL_SERVER_ERROR;
     }
 
     @Override
@@ -75,8 +75,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.CONFLICT;
+    public Response.Status getHttpCode() {
+      return Response.Status.CONFLICT;
     }
 
     @Override
@@ -98,8 +98,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.NOT_FOUND;
+    public Response.Status getHttpCode() {
+      return Response.Status.NOT_FOUND;
     }
 
     @Override
@@ -121,8 +121,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.CONFLICT;
+    public Response.Status getHttpCode() {
+      return Response.Status.CONFLICT;
     }
 
     @Override
@@ -145,8 +145,8 @@ public enum IdentifierErrorTemplate {
     }
 
     @Override
-    public Status getHttpCode() {
-      return Status.CONFLICT;
+    public Response.Status getHttpCode() {
+      return Response.Status.CONFLICT;
     }
 
     @Override
@@ -169,7 +169,7 @@ public enum IdentifierErrorTemplate {
    *
    * @return The relevant HTTP Code
    */
-  public abstract Status getHttpCode();
+  public abstract Response.Status getHttpCode();
 
   /**
    * Generate an exception according to the type of ErrorCode

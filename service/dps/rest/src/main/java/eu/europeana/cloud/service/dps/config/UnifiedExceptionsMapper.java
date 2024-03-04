@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
+
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -116,7 +117,7 @@ public class UnifiedExceptionsMapper {
   @ExceptionHandler(ResponseStatusException.class)
   @ResponseBody
   public ErrorInfo handleResponseStatusException(HttpServletResponse response, ResponseStatusException exception) {
-    response.setStatus(exception.getStatus().value());
+    response.setStatus(exception.getStatusCode().value());
     return buildResponse(DpsErrorCode.OTHER, exception.getReason());
   }
 

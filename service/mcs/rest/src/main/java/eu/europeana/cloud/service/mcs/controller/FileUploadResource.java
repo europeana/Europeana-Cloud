@@ -20,8 +20,8 @@ import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,14 +74,14 @@ public class FileUploadResource {
   @PreAuthorize("hasRole('ROLE_EXECUTOR') OR  hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
   public ResponseEntity<?> sendFile(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @RequestParam(required = false) UUID version,
-      @RequestParam String fileName,
-      @RequestParam String providerId,
-      @RequestParam String mimeType,
-      @RequestParam String dataSetId,
-      @RequestParam MultipartFile data) throws RepresentationNotExistsException,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @RequestParam(value = "version", required = false) UUID version,
+      @RequestParam("fileName") String fileName,
+      @RequestParam("providerId") String providerId,
+      @RequestParam("mimeType") String mimeType,
+      @RequestParam("dataSetId") String dataSetId,
+      @RequestParam("data") MultipartFile data) throws RepresentationNotExistsException,
       CannotModifyPersistentRepresentationException, RecordNotExistsException,
       ProviderNotExistsException, CannotPersistEmptyRepresentationException, IOException, DataSetAssignmentException, DataSetNotExistsException {
     if (LOGGER.isDebugEnabled()) {

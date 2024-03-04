@@ -20,7 +20,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Properties;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
@@ -70,7 +71,11 @@ public final class EnrichUriUtil {
     enrich(httpServletRequest, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);
   }
 
-  public static void enrich(HttpServletRequest httpServletRequest, String cloudId, String representationName, String version,
+  public static void enrich(
+      HttpServletRequest httpServletRequest,
+      String cloudId,
+      String representationName,
+      String version,
       File file) {
     Properties properties = new Properties();
     properties.setProperty(CLOUD_ID, cloudId);

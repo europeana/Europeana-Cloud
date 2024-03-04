@@ -31,7 +31,8 @@ public class MetisDatasetResource {
   }
 
   @GetMapping(path = METIS_DATASETS, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public MetisDataset getMetisDatasetStats(@PathVariable String datasetId,
+  public MetisDataset getMetisDatasetStats(
+      @PathVariable("datasetId") String datasetId,
       @RequestParam(value = "database") TargetIndexingDatabase targetIndexingDatabase) throws IndexingException {
     LOGGER.info("Reading dataset stats for datasetId: {}", datasetId);
     MetisDataset metisDataset = MetisDataset.builder()
@@ -50,7 +51,9 @@ public class MetisDatasetResource {
    * @return list of record identifiers that are on the recordIdentifiers list from the given dataset.
    */
   @PostMapping(path = METIS_DATASET_PUBLISHED_RECORDS_SEARCH, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<String> searchPublishedDatasetRecords(@PathVariable String datasetId, @RequestBody List<String> recordIdentifiers) {
+  public List<String> searchPublishedDatasetRecords(
+      @PathVariable("datasetId") String datasetId,
+      @RequestBody List<String> recordIdentifiers) {
     LOGGER.info("Searching for the published records in {} dataset", datasetId);
 
     return metisDatasetService.findPublishedRecordsInSet(

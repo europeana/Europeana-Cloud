@@ -21,7 +21,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -77,12 +78,12 @@ public class RevisionResource {
   @PostMapping(value = REVISION_ADD_WITH_PROVIDER_TAG)
   public ResponseEntity<String> addRevision(
       HttpServletRequest httpServletRequest,
-      @PathVariable final String cloudId,
-      @PathVariable final String representationName,
-      @PathVariable final String version,
-      @PathVariable String revisionName,
-      @PathVariable String revisionProviderId,
-      @PathVariable String tag)
+      @PathVariable("cloudId") final String cloudId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("version") final String version,
+      @PathVariable("revisionName") String revisionName,
+      @PathVariable("revisionProviderId") String revisionProviderId,
+      @PathVariable("tag") String tag)
       throws RepresentationNotExistsException, RevisionIsNotValidException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
@@ -112,9 +113,9 @@ public class RevisionResource {
   @PostMapping(value = REVISION_ADD, consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<?> addRevision(
       HttpServletRequest httpServletRequest,
-      @PathVariable final String cloudId,
-      @PathVariable final String representationName,
-      @PathVariable final String version,
+      @PathVariable("cloudId") final String cloudId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("version") final String version,
       @RequestBody Revision revision)
       throws RevisionIsNotValidException, RepresentationNotExistsException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
@@ -148,12 +149,12 @@ public class RevisionResource {
   @PostMapping(value = REVISION_ADD_WITH_PROVIDER)
   public ResponseEntity<Revision> addRevision(
       HttpServletRequest httpServletRequest,
-      @PathVariable final String cloudId,
-      @PathVariable final String representationName,
-      @PathVariable final String version,
-      @PathVariable String revisionName,
-      @PathVariable String revisionProviderId,
-      @RequestParam(defaultValue = "") Set<String> tags)
+      @PathVariable("cloudId") final String cloudId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("version") final String version,
+      @PathVariable("revisionName") String revisionName,
+      @PathVariable("revisionProviderId") String revisionProviderId,
+      @RequestParam(value = "tags", defaultValue = "") Set<String> tags)
       throws RepresentationNotExistsException, RevisionIsNotValidException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
@@ -186,12 +187,12 @@ public class RevisionResource {
   @DeleteMapping(value = REVISION_DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteRevision(
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version,
-      @PathVariable String revisionName,
-      @PathVariable String revisionProviderId,
-      @RequestParam String revisionTimestamp)
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version,
+      @PathVariable("revisionName") String revisionName,
+      @PathVariable("revisionProviderId") String revisionProviderId,
+      @RequestParam("revisionTimestamp") String revisionTimestamp)
       throws RepresentationNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
     //

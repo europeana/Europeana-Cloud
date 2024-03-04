@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
+import jakarta.annotation.PreDestroy;
 import java.util.NoSuchElementException;
-import javax.annotation.PreDestroy;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;

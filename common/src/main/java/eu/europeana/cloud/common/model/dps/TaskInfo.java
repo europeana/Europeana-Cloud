@@ -2,14 +2,15 @@ package eu.europeana.cloud.common.model.dps;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@XmlRootElement()
+@XmlRootElement
 @Builder
 @Data
 @AllArgsConstructor

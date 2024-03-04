@@ -34,11 +34,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -95,6 +96,15 @@ public class RecordServiceClient extends MCSClient {
     this.client.property(ClientProperties.READ_TIMEOUT, readTimeoutInMillis);
   }
 
+  public static void main(String[] args) {
+    RecordServiceClient c = new RecordServiceClient("http://127.0.0.1:8080/mcs");
+      try {
+          c.getRecord("sample");
+      } catch (MCSException e) {
+          throw new RuntimeException(e);
+      }
+
+  }
   /**
    * Returns record with all its latest persistent representations.
    *

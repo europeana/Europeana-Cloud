@@ -8,7 +8,8 @@ import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.BasicResourceTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import java.util.Collections;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mockito;

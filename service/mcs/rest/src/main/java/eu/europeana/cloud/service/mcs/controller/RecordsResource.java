@@ -8,7 +8,8 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,8 +42,8 @@ public class RecordsResource {
    */
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public Record getRecord(
-      HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId) throws RecordNotExistsException {
+          HttpServletRequest httpServletRequest,
+          @PathVariable("cloudId") String cloudId) throws RecordNotExistsException {
 
     Record record = recordService.getRecord(cloudId);
     prepare(httpServletRequest, record);
@@ -64,7 +65,7 @@ public class RecordsResource {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public void deleteRecord(
-      @PathVariable String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
+      @PathVariable("cloudId") String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
 
     recordService.deleteRecord(cloudId);
   }

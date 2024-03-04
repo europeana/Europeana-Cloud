@@ -1,11 +1,12 @@
 package eu.europeana.cloud.common.response;
 
 import eu.europeana.cloud.common.model.File;
+import jakarta.xml.bind.annotation.XmlRootElement;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Representation of a record in specific version.

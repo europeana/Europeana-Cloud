@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.controller.DataSetResource;
 import eu.europeana.cloud.service.mcs.controller.DataSetsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

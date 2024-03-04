@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.web.common;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -16,7 +16,7 @@ public class LoggingFilter implements HandlerInterceptor {
   @SuppressWarnings("java:S2245") //Random is used here only for mark logs that are part of one request.
   //The usage is secure, because it is only for log readability.
   public boolean preHandle(HttpServletRequest servletRequest,
-      HttpServletResponse hsr1, Object handler) {
+                           HttpServletResponse hsr1, Object handler) {
     MDC.put(REQUEST_ID_ATTRIBUTE_NAME, RandomStringUtils.randomAlphanumeric(6));
     publishRequestStartTimeTo(servletRequest);
     return true;

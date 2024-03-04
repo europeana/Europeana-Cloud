@@ -11,7 +11,8 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +54,8 @@ public class RepresentationResource {
   @PreAuthorize("isAuthenticated()")
   public Representation getRepresentation(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName) throws RepresentationNotExistsException {
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName) throws RepresentationNotExistsException {
 
     Representation info = recordService.getRepresentation(cloudId, representationName);
     prepare(httpServletRequest, info);
@@ -74,8 +75,8 @@ public class RepresentationResource {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public void deleteRepresentation(
-      @PathVariable String cloudId,
-      @PathVariable String representationName) throws RepresentationNotExistsException {
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName) throws RepresentationNotExistsException {
 
     recordService.deleteRepresentation(cloudId, representationName);
   }
@@ -99,11 +100,11 @@ public class RepresentationResource {
   @PreAuthorize("hasRole('ROLE_EXECUTOR') OR hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
   public ResponseEntity<Void> createRepresentation(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @RequestParam String providerId,
-      @RequestParam String dataSetId,
-      @RequestParam(required = false) UUID version
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @RequestParam("providerId") String providerId,
+      @RequestParam("dataSetId") String dataSetId,
+      @RequestParam(value = "version", required = false) UUID version
   )
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
