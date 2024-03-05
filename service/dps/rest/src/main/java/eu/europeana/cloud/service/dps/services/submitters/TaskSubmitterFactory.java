@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +16,7 @@ public class TaskSubmitterFactory {
   public TaskSubmitterFactory(OaiTopologyTaskSubmitter oaiTopologyTaskSubmitter,
       HttpTopologyTaskSubmitter httpTopologyTaskSubmitter,
       OtherTopologiesTaskSubmitter otherTopologiesTaskSubmitter,
-      TaskSubmitter depublicationTaskSubmitter) {
+      @Qualifier("depublicationTaskSubmitter") TaskSubmitter depublicationTaskSubmitter) {
     this.oaiTopologyTaskSubmitter = oaiTopologyTaskSubmitter;
     this.httpTopologyTaskSubmitter = httpTopologyTaskSubmitter;
     this.otherTopologiesTaskSubmitter = otherTopologiesTaskSubmitter;

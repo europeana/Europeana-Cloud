@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationServ
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.LoggerListener;
@@ -48,7 +49,8 @@ public class AuthenticationConfiguration {
   /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
   @Bean
-  public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
+  public CassandraUserDAO userDAO(
+      @Qualifier("aasCassandraProvider") CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraUserDAO(aasCassandraProvider);
   }
 

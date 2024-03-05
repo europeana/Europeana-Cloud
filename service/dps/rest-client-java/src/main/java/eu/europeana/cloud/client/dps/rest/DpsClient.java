@@ -16,6 +16,7 @@ import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_ID;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_PROGRESS_URL;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TOPOLOGY_NAME;
 
+import com.fasterxml.jackson.core.util.JacksonFeature;
 import eu.europeana.cloud.common.model.dps.MetisDataset;
 import eu.europeana.cloud.common.model.dps.NodeReport;
 import eu.europeana.cloud.common.model.dps.StatisticsReport;
@@ -50,7 +51,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

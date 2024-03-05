@@ -4,6 +4,7 @@ import eu.europeana.aas.authorization.CassandraMutableAclService;
 import eu.europeana.aas.authorization.repository.AclRepository;
 import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -32,7 +33,8 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
-  public CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
+  public CassandraAclRepository aclRepository(
+      @Qualifier("aasCassandraProvider") CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraAclRepository(aasCassandraProvider, false);
   }
 

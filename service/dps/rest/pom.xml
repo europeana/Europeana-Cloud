@@ -349,7 +349,7 @@
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>2.3.3</version>
+          <version>${version.jakarta.xml.bind}</version>
         </dependency>
 
         <!-- Runtime, com.sun.xml.bind module -->
