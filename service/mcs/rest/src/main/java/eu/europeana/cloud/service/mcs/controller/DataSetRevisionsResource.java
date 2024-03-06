@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-/**
- * @author akrystian
+/*
+  @author akrystian
  */
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;

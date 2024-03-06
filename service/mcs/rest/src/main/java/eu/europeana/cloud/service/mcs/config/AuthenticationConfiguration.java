@@ -9,17 +9,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.LoggerListener;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configures Spring authentication in MCS Application
+ */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
+@EnableMethodSecurity(securedEnabled = true, proxyTargetClass = true)
 public class AuthenticationConfiguration {
 
   /*
@@ -30,18 +34,17 @@ public class AuthenticationConfiguration {
   @SuppressWarnings("java:S4502")
   @Bean
   protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-    http.httpBasic()
-        .authenticationEntryPoint(cloudAuthenticationEntryPoint())
-        .and()
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
-        .csrf().disable();
+    http.httpBasic(configurer ->
+            configurer.authenticationEntryPoint(cloudAuthenticationEntryPoint()))
+        .sessionManagement(configurer ->
+            configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder(){
+  PasswordEncoder passwordEncoder(){
     return PasswordEncoderFactory.getPasswordEncoder();
   }
 
