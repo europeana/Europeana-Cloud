@@ -182,7 +182,7 @@
         <version.storm>2.6.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.cglib>3.3.0</version.cglib>
-        <version.wiremock>3.0.1</version.wiremock>
+        <version.wiremock>3.4.2</version.wiremock>
         <version.zt-zip>1.16</version.zt-zip>
 
         <version.jakarta.annotation>2.1.1</version.jakarta.annotation>

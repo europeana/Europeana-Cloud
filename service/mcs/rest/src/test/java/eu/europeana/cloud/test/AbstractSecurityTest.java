@@ -16,6 +16,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,10 +41,16 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(CassandraTestRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
-    TestAuthentificationConfiguration.class, PropertyBeansContext.class,
-    ServiceConfiguration.class, AuthorizationConfiguration.class,
-    UnifiedExceptionsMapper.class, SecurityTestContext.class})
+    TestAuthentificationConfiguration.class,
+    PropertyBeansContext.class,
+    ServiceConfiguration.class,
+    AuthorizationConfiguration.class,
+    UnifiedExceptionsMapper.class,
+    SecurityTestContext.class,
+        })
 @TestPropertySource("classpath:mcs-test.properties")
+@EnableWebSecurity
+@EnableMethodSecurity
 public abstract class AbstractSecurityTest {
 
   @Rule

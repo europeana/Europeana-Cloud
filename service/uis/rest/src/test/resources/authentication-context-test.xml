@@ -17,6 +17,7 @@
                 class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler" />
 
     <http entry-point-ref="cloudAuthenticationEntryPoint" create-session="stateless">
+        <intercept-url pattern="/**" access="permitAll" />
         <http-basic />
         <headers />
         <form-login 

@@ -46,7 +46,6 @@ public class UISClient implements AutoCloseable {
   protected final Client client =
       ClientBuilder
           .newBuilder()
-          .register(ErrorInfoMessageBodyReader.class)
           .register(JacksonFeature.class)
           .build();
 
