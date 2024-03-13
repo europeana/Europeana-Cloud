@@ -92,7 +92,7 @@ public class TopologyTasksResource {
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskInfo getTaskProgress(
       @PathVariable("topologyName") final String topologyName,
-      @PathVariable("taskId") @P("taskId") final Long taskId) throws
+      @PathVariable("taskId") final Long taskId) throws
       AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
     LOGGER.info("Checking task progress for: {}", taskId);
     taskSubmissionValidator.assertContainTopology(topologyName);
@@ -119,7 +119,7 @@ public class TopologyTasksResource {
   public ResponseEntity<Void> submitTask(
       final HttpServletRequest request,
       @RequestBody final DpsTask task,
-      @PathVariable("topologyName") @P("topologyName") final String topologyName
+      @PathVariable("topologyName") final String topologyName
   ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     return doSubmitTask(request, task, topologyName, false);
   }
@@ -140,7 +140,7 @@ public class TopologyTasksResource {
   public ResponseEntity<Void> restartTask(
       final HttpServletRequest request,
       @PathVariable("taskId") final Long taskId,
-      @PathVariable("topologyName") @P("topologyName") final String topologyName
+      @PathVariable("topologyName") final String topologyName
   ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
     var task = DpsTask.fromTaskInfo(taskInfo);
@@ -206,7 +206,7 @@ public class TopologyTasksResource {
   @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', write)")
   public ResponseEntity<String> killTask(
       @PathVariable("topologyName") String topologyName,
-      @PathVariable("taskId") @P("taskId") Long taskId,
+      @PathVariable("taskId") Long taskId,
       @RequestParam(value = "info", defaultValue = "Dropped by the user") String info)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     taskSubmissionValidator.assertContainTopology(topologyName);
