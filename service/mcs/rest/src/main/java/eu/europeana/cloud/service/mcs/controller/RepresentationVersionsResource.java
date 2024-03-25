@@ -8,7 +8,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -42,8 +43,8 @@ public class RepresentationVersionsResource {
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public RepresentationsListWrapper listVersions(
       final HttpServletRequest request,
-      @PathVariable String cloudId,
-      @PathVariable String representationName)
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName)
       throws RepresentationNotExistsException {
 
     List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representationName);

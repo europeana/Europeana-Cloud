@@ -6,7 +6,8 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.controller.RecordsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
-import javax.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

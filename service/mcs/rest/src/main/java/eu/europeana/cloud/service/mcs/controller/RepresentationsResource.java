@@ -7,9 +7,10 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MediaType;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +40,7 @@ public class RepresentationsResource {
   @GetMapping(produces = {MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
   public RepresentationsListWrapper getRepresentations(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId) throws RecordNotExistsException {
+      @PathVariable("cloudId") String cloudId) throws RecordNotExistsException {
 
     List<Representation> representationInfos = recordService.getRecord(cloudId).getRepresentations();
     prepare(httpServletRequest, representationInfos);

@@ -32,11 +32,11 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
@@ -173,7 +173,7 @@ public class DataSetServiceClient extends MCSClient {
     form.param(ParamConstants.F_DATASET, dataSetId);
     form.param(ParamConstants.F_DESCRIPTION, description);
 
-    return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+    return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SETS_RESOURCE)
@@ -218,7 +218,7 @@ public class DataSetServiceClient extends MCSClient {
 
   public boolean datasetExists(String providerId, String dataSetId) throws MCSException {
     return manageResponse(
-        new ResponseParams<>(Response.Status.class, new Response.Status[]{Status.OK, Status.NOT_FOUND}),
+        new ResponseParams<>(Response.Status.class, new Response.Status[]{Response.Status.OK, Response.Status.NOT_FOUND}),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
@@ -226,7 +226,7 @@ public class DataSetServiceClient extends MCSClient {
             .resolveTemplate(DATA_SET_ID, dataSetId)
             .request()
             .head()
-    ) == Status.OK;
+    ) == Response.Status.OK;
   }
 
   public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
@@ -291,7 +291,7 @@ public class DataSetServiceClient extends MCSClient {
     Form form = new Form();
     form.param(ParamConstants.F_DESCRIPTION, description);
 
-    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
@@ -311,7 +311,7 @@ public class DataSetServiceClient extends MCSClient {
    * @throws MCSException on unexpected situations
    */
   public void deleteDataSet(String providerId, String dataSetId) throws MCSException {
-    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
@@ -427,7 +427,7 @@ public class DataSetServiceClient extends MCSClient {
 
   public void updateDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
       String username) throws MCSException {
-    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SET_PERMISSIONS_RESOURCE)
@@ -442,7 +442,7 @@ public class DataSetServiceClient extends MCSClient {
 
   public void removeDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
       String username) throws MCSException {
-    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> client
             .target(this.baseUrl)
             .path(DATA_SET_PERMISSIONS_RESOURCE)

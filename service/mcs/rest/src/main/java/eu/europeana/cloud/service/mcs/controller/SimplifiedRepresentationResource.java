@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,9 +53,9 @@ public class SimplifiedRepresentationResource {
   @PreAuthorize("isAuthenticated()")
   public Representation getRepresentation(
       HttpServletRequest httpServletRequest,
-      @PathVariable String providerId,
-      @PathVariable String localId,
-      @PathVariable String representationName) throws RepresentationNotExistsException,
+      @PathVariable("providerId") String providerId,
+      @PathVariable("localId") String localId,
+      @PathVariable("representationName") String representationName) throws RepresentationNotExistsException,
       ProviderNotExistsException, RecordNotExistsException {
 
     LOGGER.info("Reading representation '{}' using 'friendly' approach for providerId: {} and localId: {}", representationName,

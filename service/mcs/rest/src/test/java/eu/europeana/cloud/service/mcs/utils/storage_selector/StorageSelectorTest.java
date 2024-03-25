@@ -6,10 +6,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.io.Resources;
 import eu.europeana.cloud.service.mcs.Storage;
+import jakarta.ws.rs.BadRequestException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import javax.ws.rs.BadRequestException;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;

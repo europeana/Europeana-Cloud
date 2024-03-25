@@ -12,22 +12,6 @@
     <name>Europeana Cloud: DPS Storm Topology for Normalization and Cleaning</name>
     <dependencies>
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${version.log4j}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${version.slf4j}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>${version.slf4j}</version>
-        </dependency>
-        <dependency>
             <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
                 to avoid data corruption in Cassandra.
                 Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->

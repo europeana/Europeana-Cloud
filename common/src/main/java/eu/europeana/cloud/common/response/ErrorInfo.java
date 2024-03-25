@@ -2,7 +2,8 @@ package eu.europeana.cloud.common.response;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import java.io.Serializable;
-import javax.xml.bind.annotation.XmlRootElement;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

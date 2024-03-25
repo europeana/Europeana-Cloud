@@ -6,6 +6,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.ByteStreams;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -15,6 +16,7 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.test.WiremockHelper;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +24,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.xml.bind.DatatypeConverter;
 import org.junit.Rule;
 import org.junit.Test;
 

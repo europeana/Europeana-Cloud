@@ -14,7 +14,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -24,9 +23,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @PropertySource(value = "classpath:mcs.properties", ignoreResourceNotFound = true)
 @ComponentScan("eu.europeana.cloud.service.mcs.controller")
 public class ServiceConfiguration implements WebMvcConfigurer {
-
-
-  private static final long MAX_UPLOAD_SIZE = (long) 128 * 1024 * 1024; //128MB
 
   @Bean
   @ConfigurationProperties(prefix = "general")
@@ -58,15 +54,6 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   UISClient uisClient() {
     return new UISClient(generalProperties().getUisLocation());
-  }
-
-
-  @SuppressWarnings("S5693") // Limit size is part of system requirements
-  @Bean
-  CommonsMultipartResolver multipartResolver() {
-    CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
-    multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
-    return multipartResolver;
   }
 
   @Bean

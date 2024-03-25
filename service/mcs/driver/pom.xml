@@ -15,17 +15,11 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
+            <groupId>org.wiremock</groupId>
             <artifactId>wiremock</artifactId>
             <version>${version.wiremock}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <artifactId>jaxb-api</artifactId>
-            <groupId>javax.xml.bind</groupId>
-            <version>2.3.1</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>

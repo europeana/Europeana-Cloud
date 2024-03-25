@@ -12,11 +12,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.function.Supplier;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.jackson.JacksonFeature;

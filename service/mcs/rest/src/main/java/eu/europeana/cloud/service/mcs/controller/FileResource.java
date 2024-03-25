@@ -23,7 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -95,9 +96,9 @@ public class FileResource {
   @PutMapping
   public ResponseEntity<Void> sendFile(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version,
       HttpServletRequest request,
       @RequestHeader(HttpHeaders.CONTENT_TYPE) String mimeType,
       InputStream data) throws RepresentationNotExistsException,
@@ -157,9 +158,9 @@ public class FileResource {
   @GetMapping
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<StreamingResponseBody> getFile(
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version,
       HttpServletRequest request,
       @RequestHeader(value = HEADER_RANGE, required = false) String range)
       throws RepresentationNotExistsException, FileNotExistsException, WrongContentRangeException {
@@ -217,9 +218,9 @@ public class FileResource {
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> getFileHeaders(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable final String representationName,
-      @PathVariable final String version) throws RepresentationNotExistsException, FileNotExistsException {
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") final String representationName,
+      @PathVariable("version") final String version) throws RepresentationNotExistsException, FileNotExistsException {
 
     String fileName = extractFileNameFromURL(httpServletRequest);
     final File requestedFile = recordService.getFile(cloudId, representationName, version, fileName);
@@ -264,9 +265,9 @@ public class FileResource {
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteFile(
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version,
       HttpServletRequest httpServletRequest) throws RepresentationNotExistsException, FileNotExistsException,
       CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 

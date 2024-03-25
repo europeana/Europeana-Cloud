@@ -11,7 +11,8 @@ import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.http.MediaType;
@@ -52,11 +53,11 @@ public class RepresentationRevisionsResource {
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public RepresentationsListWrapper getRepresentationRevisions(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String revisionName,
-      @RequestParam String revisionProviderId,
-      @RequestParam(required = false) String revisionTimestamp) throws RepresentationNotExistsException {
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("revisionName") String revisionName,
+      @RequestParam("revisionProviderId") String revisionProviderId,
+      @RequestParam(value="revisionTimestamp", required = false) String revisionTimestamp) throws RepresentationNotExistsException {
 
     Date revisionDate = null;
     if (revisionTimestamp != null) {

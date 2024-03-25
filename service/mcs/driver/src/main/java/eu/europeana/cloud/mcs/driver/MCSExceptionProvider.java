@@ -17,8 +17,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationAlreadyInSet;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Class with static method for generating Exceptions from ErrorInfo objects.

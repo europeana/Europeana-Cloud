@@ -9,9 +9,9 @@ import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,10 +73,10 @@ public class ReportResource {
   @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public List<SubTaskInfo> getTaskDetailedReport(
-      @PathVariable Long taskId,
-      @PathVariable final String topologyName,
-      @RequestParam(defaultValue = "1") @Min(1) int from,
-      @RequestParam(defaultValue = "100") @Min(1) int to)
+      @PathVariable("taskId") Long taskId,
+      @PathVariable("topologyName") final String topologyName,
+      @RequestParam(value = "from", defaultValue = "1") @Min(1) int from,
+      @RequestParam(value = "to", defaultValue = "100") @Min(1) int to)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
@@ -108,10 +109,10 @@ public class ReportResource {
   @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskErrorsInfo getTaskErrorReport(
-      @PathVariable Long taskId,
-      @PathVariable final String topologyName,
-      @RequestParam(required = false) String error,
-      @RequestParam(defaultValue = "0") int idsCount)
+      @PathVariable("taskId") Long taskId,
+      @PathVariable("topologyName") final String topologyName,
+      @RequestParam(value = "error", required = false) String error,
+      @RequestParam(value = "idsCount", defaultValue = "0") int idsCount)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
@@ -146,8 +147,8 @@ public class ReportResource {
   @RequestMapping(method = {RequestMethod.HEAD}, path = "{taskId}/reports/errors")
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public ResponseEntity checkIfErrorReportExists(
-      @PathVariable Long taskId,
-      @PathVariable final String topologyName)
+      @PathVariable("taskId") Long taskId,
+      @PathVariable("topologyName") final String topologyName)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
 
     assertContainTopology(topologyName);
@@ -178,8 +179,8 @@ public class ReportResource {
   @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public StatisticsReport getTaskStatisticsReport(
-      @PathVariable String topologyName,
-      @PathVariable Long taskId)
+      @PathVariable("topologyName") String topologyName,
+      @PathVariable("taskId") Long taskId)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
@@ -208,8 +209,8 @@ public class ReportResource {
   @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public List<NodeReport> getElementsValues(
-      @PathVariable String topologyName,
-      @PathVariable Long taskId,
+      @PathVariable("topologyName") String topologyName,
+      @PathVariable("taskId") Long taskId,
       @NotNull @RequestParam("path") String elementPath)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     assertContainTopology(topologyName);

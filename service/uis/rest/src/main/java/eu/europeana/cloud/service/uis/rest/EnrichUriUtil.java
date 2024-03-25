@@ -2,7 +2,8 @@ package eu.europeana.cloud.service.uis.rest;
 
 import eu.europeana.cloud.common.model.DataProvider;
 import java.net.URI;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponentsBuilder;

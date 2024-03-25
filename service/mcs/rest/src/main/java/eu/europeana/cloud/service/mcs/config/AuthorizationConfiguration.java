@@ -66,7 +66,7 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
-  CassandraAclRepository aclRepository(CassandraConnectionProvider aasCassandraProvider) {
+  CassandraAclRepository aclRepository(@Qualifier("aasCassandraProvider") CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraAclRepository(aasCassandraProvider, false);
   }
 

@@ -5,36 +5,39 @@ import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationServ
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
 import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.LoggerListener;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity(securedEnabled = true, proxyTargetClass = true)
+public class AuthenticationConfiguration {
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.
-        httpBasic()
-        .authenticationEntryPoint(cloudAuthenticationEntryPoint())
-        .and().
-        sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-        csrf().disable();
+  @Bean
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    http
+        .httpBasic(configurer -> configurer.authenticationEntryPoint(cloudAuthenticationEntryPoint()))
+        .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(AbstractHttpConfigurer::disable);
+
+    return http.build();
   }
 
-  @Override
-  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.userDetailsService(authenticationService())
-        .passwordEncoder(PasswordEncoderFactory.getPasswordEncoder());
+  @Bean
+  PasswordEncoder passwordEncoder(){
+    return PasswordEncoderFactory.getPasswordEncoder();
   }
+
 
   /* Automatically receives AuthenticationEvent messages */
 
@@ -46,12 +49,13 @@ public class AuthenticationConfiguration extends WebSecurityConfigurerAdapter {
   /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */
 
   @Bean
-  public CassandraUserDAO userDAO(CassandraConnectionProvider aasCassandraProvider) {
+  public CassandraUserDAO userDAO(
+      @Qualifier("aasCassandraProvider") CassandraConnectionProvider aasCassandraProvider) {
     return new CassandraUserDAO(aasCassandraProvider);
   }
 
   @Bean
-  public CassandraAuthenticationService authenticationService() {
+  public UserDetailsService authenticationService() {
     return new CassandraAuthenticationService();
   }
 

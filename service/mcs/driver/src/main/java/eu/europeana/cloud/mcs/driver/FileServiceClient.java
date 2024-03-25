@@ -18,11 +18,11 @@ import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -175,7 +175,7 @@ public class FileServiceClient extends MCSClient {
           .field(ParamConstants.F_FILE_MIME, mediaType)
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-      return manageResponse(new ResponseParams<>(URI.class, Status.CREATED, expectedMd5),
+      return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED, expectedMd5),
           () -> client
               .target(baseUrl)
               .path(FILES_RESOURCE)
@@ -214,7 +214,7 @@ public class FileServiceClient extends MCSClient {
           .field(ParamConstants.F_FILE_MIME, mediaType)
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-      return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+      return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
           () -> client
               .target(baseUrl)
               .path(FILES_RESOURCE)
@@ -254,7 +254,7 @@ public class FileServiceClient extends MCSClient {
           .field(ParamConstants.F_FILE_NAME, fileName)
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
-      return manageResponse(new ResponseParams<>(URI.class, Status.CREATED),
+      return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
           () -> client
               .target(baseUrl)
               .path(FILES_RESOURCE)
@@ -290,7 +290,7 @@ public class FileServiceClient extends MCSClient {
       InputStream data, String mediaType, String fileName, String expectedMd5) throws MCSException {
 
     try (data) {
-      return manageResponse(new ResponseParams<>(URI.class, Status.NO_CONTENT, expectedMd5),
+      return manageResponse(new ResponseParams<>(URI.class, Response.Status.NO_CONTENT, expectedMd5),
           () -> client
               .target(baseUrl)
               .path(CLIENT_FILE_RESOURCE)
@@ -308,7 +308,7 @@ public class FileServiceClient extends MCSClient {
 
   public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws MCSException {
     try (data) {
-      return manageResponse(new ResponseParams<>(URI.class, Status.NO_CONTENT),
+      return manageResponse(new ResponseParams<>(URI.class, Response.Status.NO_CONTENT),
           () -> client
               .target(fileUrl)
               .request()
@@ -334,7 +334,7 @@ public class FileServiceClient extends MCSClient {
    * @throws MCSException on unexpected situations.
    */
   public void deleteFile(String cloudId, String representationName, String version, String fileName) throws MCSException {
-    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> client
             .target(baseUrl)
             .path(CLIENT_FILE_RESOURCE)

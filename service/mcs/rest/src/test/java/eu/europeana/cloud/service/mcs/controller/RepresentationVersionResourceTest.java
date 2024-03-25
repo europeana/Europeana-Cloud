@@ -32,10 +32,10 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import javax.ws.rs.core.HttpHeaders;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;

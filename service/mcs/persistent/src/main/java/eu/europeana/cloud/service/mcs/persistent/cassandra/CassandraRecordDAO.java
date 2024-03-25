@@ -20,12 +20,12 @@ import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.

@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Representation of a record in specific version.

@@ -18,7 +18,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.core.MediaType;
+
+import jakarta.ws.rs.core.MediaType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

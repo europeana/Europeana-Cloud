@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,8 +78,10 @@ public class DiagnosticResource {
 
   @GetMapping("/harvestedRecords/{metisDatasetId}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public List<HarvestedRecord> harvestedRecords(@PathVariable String metisDatasetId
-      , @RequestParam(defaultValue = "10") int count, @RequestParam(required = false) String oaiId) {
+  public List<HarvestedRecord> harvestedRecords(
+      @PathVariable("metisDatasetId") String metisDatasetId,
+      @RequestParam(value = "count", defaultValue = "10") int count,
+      @RequestParam(value = "oaiId", required = false) String oaiId) {
     if (oaiId != null) {
       return Collections.singletonList(harvestedRecordsDAO.findRecord(metisDatasetId, oaiId).orElse(null));
     } else {
@@ -97,7 +98,7 @@ public class DiagnosticResource {
 
   @PostMapping("/postProcess/{taskId}")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public void postProcess(@PathVariable long taskId) {
+  public void postProcess(@PathVariable("taskId") long taskId) {
     taskInfoDAO.findById(taskId).ifPresent(this::callPostProcess);
   }
 
@@ -119,7 +120,7 @@ public class DiagnosticResource {
 
   @GetMapping(value = "/task/{taskId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public String task(@PathVariable long taskId) throws JsonProcessingException {
+  public String task(@PathVariable("taskId") long taskId) throws JsonProcessingException {
     TaskInfo taskInfo = taskInfoDAO.findById(taskId).orElseThrow(() ->
         new ResponseStatusException(HttpStatus.NOT_FOUND, "Cant find task of id: " + taskId));
     return mapper().writeValueAsString(loadExtraInfo(taskInfo));

@@ -18,7 +18,8 @@ import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,13 +84,13 @@ public class FilesResource {
    */
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<URI> sendFile(
-      HttpServletRequest httpServletRequest,
-      @PathVariable final String cloudId,
-      @PathVariable final String representationName,
-      @PathVariable final String version,
-      @RequestParam String mimeType,
-      @RequestParam MultipartFile data,
-      @RequestParam(required = false) String fileName) throws RepresentationNotExistsException,
+          HttpServletRequest httpServletRequest,
+          @PathVariable("cloudId") final String cloudId,
+          @PathVariable("representationName") final String representationName,
+          @PathVariable("version") final String version,
+          @RequestParam("mimeType") String mimeType,
+          @RequestParam("data") MultipartFile data,
+          @RequestParam(value = "fileName", required = false) String fileName) throws RepresentationNotExistsException,
       CannotModifyPersistentRepresentationException, FileAlreadyExistsException, IOException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 

@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -59,9 +59,9 @@ public class RepresentationVersionResource {
   @PreAuthorize("isAuthenticated()")
   public Representation getRepresentationVersion(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version) throws RepresentationNotExistsException {
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version) throws RepresentationNotExistsException {
 
     Representation representation = recordService.getRepresentation(cloudId, representationName, version);
     EnrichUriUtil.enrich(httpServletRequest, representation);
@@ -82,9 +82,9 @@ public class RepresentationVersionResource {
   @DeleteMapping(value = REPRESENTATION_VERSION)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteRepresentation(
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version)
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version)
       throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 
@@ -115,9 +115,9 @@ public class RepresentationVersionResource {
   @PostMapping(value = REPRESENTATION_VERSION_PERSIST)
   public ResponseEntity<Void> persistRepresentation(
       HttpServletRequest httpServletRequest,
-      @PathVariable String cloudId,
-      @PathVariable String representationName,
-      @PathVariable String version) throws RepresentationNotExistsException,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("version") String version) throws RepresentationNotExistsException,
       CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException,
       AccessDeniedOrObjectDoesNotExistException, DataSetAssignmentException {
 

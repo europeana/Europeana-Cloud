@@ -17,7 +17,8 @@ import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -89,8 +91,8 @@ public class TopologyTasksResource {
   @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskInfo getTaskProgress(
-      @PathVariable final String topologyName,
-      @PathVariable final Long taskId) throws
+      @PathVariable("topologyName") final String topologyName,
+      @PathVariable("taskId") final Long taskId) throws
       AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException {
     LOGGER.info("Checking task progress for: {}", taskId);
     taskSubmissionValidator.assertContainTopology(topologyName);
@@ -117,7 +119,7 @@ public class TopologyTasksResource {
   public ResponseEntity<Void> submitTask(
       final HttpServletRequest request,
       @RequestBody final DpsTask task,
-      @PathVariable final String topologyName
+      @PathVariable("topologyName") final String topologyName
   ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     return doSubmitTask(request, task, topologyName, false);
   }
@@ -137,8 +139,8 @@ public class TopologyTasksResource {
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<Void> restartTask(
       final HttpServletRequest request,
-      @PathVariable final Long taskId,
-      @PathVariable final String topologyName
+      @PathVariable("taskId") final Long taskId,
+      @PathVariable("topologyName") final String topologyName
   ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
     var task = DpsTask.fromTaskInfo(taskInfo);
@@ -167,9 +169,9 @@ public class TopologyTasksResource {
   @PostMapping(path = "{taskId}/permit")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<Void> grantPermissions(
-      @PathVariable String topologyName,
-      @PathVariable Long taskId,
-      @RequestParam String username) throws AccessDeniedOrTopologyDoesNotExistException {
+      @PathVariable("topologyName") String topologyName,
+      @PathVariable("taskId") Long taskId,
+      @RequestParam("username") String username) throws AccessDeniedOrTopologyDoesNotExistException {
 
     taskSubmissionValidator.assertContainTopology(topologyName);
 
@@ -203,9 +205,9 @@ public class TopologyTasksResource {
   @PostMapping(path = "{taskId}/kill")
   @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', write)")
   public ResponseEntity<String> killTask(
-      @PathVariable String topologyName,
-      @PathVariable Long taskId,
-      @RequestParam(defaultValue = "Dropped by the user") String info)
+      @PathVariable("topologyName") String topologyName,
+      @PathVariable("taskId") Long taskId,
+      @RequestParam(value = "info", defaultValue = "Dropped by the user") String info)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     taskSubmissionValidator.assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
