@@ -75,8 +75,8 @@ public class ReportResource {
   public List<SubTaskInfo> getTaskDetailedReport(
       @PathVariable("taskId") Long taskId,
       @PathVariable("topologyName") final String topologyName,
-      @RequestParam(value = "from", defaultValue = "1") @Min(1) int from,
-      @RequestParam(value = "to", defaultValue = "100") @Min(1) int to)
+      @RequestParam(value = "from", defaultValue = "1") @Min(0) int from,
+      @RequestParam(value = "to", defaultValue = "100") @Min(0) int to)
       throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException {
     assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
