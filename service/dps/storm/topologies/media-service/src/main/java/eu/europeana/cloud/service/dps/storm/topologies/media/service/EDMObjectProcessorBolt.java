@@ -4,7 +4,6 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatistics
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 import com.google.gson.Gson;
-import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -27,6 +26,7 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -102,7 +102,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
           Set<String> thumbnailTargetNames = null;
           String metadataJson = null;
           if (resourceExtractionResult.getMetadata() != null) {
-            tuple = new Cloner().deepClone(stormTaskTuple);
+            tuple = SerializationUtils.clone(stormTaskTuple);
             metadataJson = gson.toJson(resourceExtractionResult.getMetadata());
             tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, metadataJson);
             thumbnailTargetNames = resourceExtractionResult.getMetadata().getThumbnailTargetNames();
@@ -134,7 +134,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     } catch (Exception e) {
       LOGGER.error("Exception while reading and parsing file for processing the edm:object resource." +
           " The full error is:{} ", ExceptionUtils.getStackTrace(e));
-      StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+      StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
       tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
       buildErrorMessage(exception, "Exception while processing the edm:object resource." +
           " The full error is: " + e.getMessage() + " because of: " + e.getCause());
