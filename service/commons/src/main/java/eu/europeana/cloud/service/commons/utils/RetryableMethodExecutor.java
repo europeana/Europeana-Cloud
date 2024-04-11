@@ -1,12 +1,14 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.implementation.InvocationHandlerAdapter;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,14 +82,18 @@ public class RetryableMethodExecutor {
 
   @SuppressWarnings("unchecked") //For "(T) enhancer.create()" - We know that method always returns valid type.
   public static <T> T createRetryProxy(T target) {
-    Enhancer enhancer = new Enhancer();
-    enhancer.setClassLoader(target.getClass().getClassLoader());
-    enhancer.setSuperclass(target.getClass());
-    enhancer.setCallback(
-        (MethodInterceptor) (obj, method, args, methodProxy) -> retryFromAnnotation(target, method, args)
-    );
-
-    return (T) enhancer.create();
+    try {
+      Class<? extends T> proxyClass = (Class<? extends T>) new ByteBuddy()
+          .subclass(target.getClass())
+          .method(ElementMatchers.isPublic())
+          .intercept(InvocationHandlerAdapter.of((proxy, method, args) -> retryFromAnnotation(target, method, args)))
+          .make()
+          .load(target.getClass().getClassLoader())
+          .getLoaded();
+      return proxyClass.getDeclaredConstructor().newInstance();
+    } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException("Could not create retry proxy!", e);
+    }
   }
 
   @SuppressWarnings("java:S3011") //for execution: method.setAccessible(true)

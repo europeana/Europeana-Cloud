@@ -17,6 +17,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <artifactId>byte-buddy</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy-agent</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${version.slf4j}</version>

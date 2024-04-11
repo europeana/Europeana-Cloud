@@ -13,6 +13,16 @@
 
     <dependencies>
         <dependency>
+            <artifactId>byte-buddy</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy-agent</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
             <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
                 to avoid data corruption in Cassandra.
                 Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
