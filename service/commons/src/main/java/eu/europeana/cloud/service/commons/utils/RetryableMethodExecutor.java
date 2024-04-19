@@ -3,10 +3,10 @@ package eu.europeana.cloud.service.commons.utils;
 import eu.europeana.cloud.common.annotation.Retryable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.slf4j.Logger;
@@ -82,17 +82,20 @@ public class RetryableMethodExecutor {
 
   @SuppressWarnings("unchecked") //For "(T) enhancer.create()" - We know that method always returns valid type.
   public static <T> T createRetryProxy(T target) {
-    try {
-      Class<? extends T> proxyClass = (Class<? extends T>) new ByteBuddy()
-          .subclass(target.getClass())
-          .method(ElementMatchers.isPublic())
-          .intercept(InvocationHandlerAdapter.of((proxy, method, args) -> retryFromAnnotation(target, method, args)))
-          .make()
+    try (
+        Unloaded<? extends T> proxyType = (Unloaded<? extends T>) new ByteBuddy()
+            .subclass(target.getClass())
+            .method(ElementMatchers.isPublic())
+            .intercept(InvocationHandlerAdapter.of((proxy, method, args) -> retryFromAnnotation(target, method, args)))
+            .make()
+    ) {
+      return proxyType
           .load(target.getClass().getClassLoader())
-          .getLoaded();
-      return proxyClass.getDeclaredConstructor().newInstance();
+          .getLoaded()
+          .getDeclaredConstructor()
+          .newInstance();
     } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      throw new RuntimeException("Could not create retry proxy!", e);
+      throw new RetryableProxyCreateException(e);
     }
   }
 
@@ -114,11 +117,6 @@ public class RetryableMethodExecutor {
   }
 
   private static <T> Object executeWithoutRetry(T target, Method method, Object[] args) throws Throwable {
-    if (!Modifier.isPublic(method.getModifiers())) {
-      //We need to set accessibility for wrapped package scope methods, which are accessible from proxy class,
-      // and could be wrapped with retry mechanism, but are not accessible here.
-      method.setAccessible(true);
-    }
     return invokeWithThrowingOriginalException(target, method, args);
   }
 
