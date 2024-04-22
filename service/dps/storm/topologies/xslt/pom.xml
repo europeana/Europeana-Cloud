@@ -19,6 +19,12 @@
 
     <dependencies>
         <dependency>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <scope>provided</scope>
+            <version>${version.log4j}</version>
+        </dependency>
+        <dependency>
             <artifactId>byte-buddy</artifactId>
             <groupId>net.bytebuddy</groupId>
             <version>${version.bytebuddy}</version>
