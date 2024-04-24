@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services;
 
+import static eu.europeana.cloud.common.log.AttributePassing.runWithTaskIdLogAttr;
 import static eu.europeana.cloud.common.model.dps.TaskState.PROCESSED;
 import static eu.europeana.cloud.common.model.dps.TaskState.QUEUED;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
@@ -50,7 +51,8 @@ public class TaskFinishService {
 
   @Scheduled(fixedRate = 15_000, initialDelay = 50_000)
   public void execute() {
-    findTasksInQueueState().forEach(this::handleQueuedTask);
+    findTasksInQueueState().forEach(
+        task -> runWithTaskIdLogAttr(task.getId(), () -> handleQueuedTask(task)));
   }
 
   private void handleQueuedTask(TaskByTaskState taskByTaskState) {

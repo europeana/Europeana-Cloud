@@ -8,6 +8,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
+import eu.europeana.cloud.service.dps.controller.LoggingAttributeAspect;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.properties.GeneralProperties;
@@ -342,6 +343,16 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
+  public LoggingAttributeAspect loggingAttributeAspect() {
+    return new LoggingAttributeAspect();
+  }
+
+  @Bean
+  public LoggingContextCopingTaskDecorator loggingContextCopingTaskDecorator() {
+    return new LoggingContextCopingTaskDecorator();
+  }
+
+  @Bean
   public PostProcessingService postProcessingService() {
     return new PostProcessingService(
         postProcessorFactory(),
@@ -394,16 +405,18 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     executor.setMaxPoolSize(40);
     executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("DPSThreadPool-");
+    executor.setTaskDecorator(loggingContextCopingTaskDecorator());
     return executor;
   }
 
   @Bean("postProcessingExecutor")
-  public AsyncTaskExecutor postProcessingExecutor() {
+  public AsyncTaskExecutor postProcessingExecutor(LoggingContextCopingTaskDecorator taskDecorator) {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(16);
     executor.setMaxPoolSize(16);
     executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("post-proprocessing-");
+    executor.setTaskDecorator(taskDecorator);
     return executor;
   }
 

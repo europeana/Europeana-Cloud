@@ -1,5 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
@@ -115,11 +116,11 @@ public class RecordServiceClient extends MCSClient {
    */
   public Record getRecord(String cloudId) throws MCSException {
     return manageResponse(new ResponseParams<>(Record.class),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(RECORDS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
-            .request()
+            .request())
             .get()
     );
   }
@@ -136,11 +137,11 @@ public class RecordServiceClient extends MCSClient {
    */
   public void deleteRecord(String cloudId) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(RECORDS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
-            .request()
+            .request())
             .delete()
     );
   }
@@ -156,11 +157,11 @@ public class RecordServiceClient extends MCSClient {
   public List<Representation> getRepresentations(String cloudId) throws MCSException {
     return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
         }),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATIONS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
-            .request()
+            .request())
             .get()
     );
   }
@@ -178,12 +179,12 @@ public class RecordServiceClient extends MCSClient {
   public Representation getRepresentation(String cloudId, String representationName) throws MCSException {
     return manageResponse(
         new ResponseParams<>(Representation.class, new Response.Status[]{Response.Status.OK, Response.Status.TEMPORARY_REDIRECT}),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .request()
+            .request())
             .get()
     );
   }
@@ -209,11 +210,11 @@ public class RecordServiceClient extends MCSClient {
       form.param(VERSION, version.toString());
     }
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client.target(baseUrl)
+        () -> passLogContext(client.target(baseUrl)
                     .path(REPRESENTATION_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .request()
+                    .request())
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
@@ -240,12 +241,12 @@ public class RecordServiceClient extends MCSClient {
     var multiPart = prepareRequestBody(providerId, datasetId, data, fileName, mediaType);
     try {
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(FILE_UPLOAD_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
-              .request()
+              .request())
               .header("Content-Type", "multipart/form-data")
               .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA)));
     } finally {
@@ -274,12 +275,12 @@ public class RecordServiceClient extends MCSClient {
 
     try {
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(FILE_UPLOAD_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
-              .request()
+              .request())
               .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA))
       );
     } finally {
@@ -316,12 +317,12 @@ public class RecordServiceClient extends MCSClient {
   public void deleteRepresentation(String cloudId, String representationName) throws MCSException {
 
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .request()
+            .request())
             .delete()
     );
   }
@@ -339,12 +340,12 @@ public class RecordServiceClient extends MCSClient {
 
     return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
         }),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_VERSIONS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .request()
+            .request())
             .get()
     );
   }
@@ -364,13 +365,13 @@ public class RecordServiceClient extends MCSClient {
    */
   public Representation getRepresentation(String cloudId, String representationName, String version) throws MCSException {
     return manageResponse(new ResponseParams<>(Representation.class),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_VERSION)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
-            .request()
+            .request())
             .get()
     );
   }
@@ -393,13 +394,13 @@ public class RecordServiceClient extends MCSClient {
   public Representation getRepresentation(String cloudId, String representationName, String version, String key, String value)
       throws MCSException {
     return manageResponse(new ResponseParams<>(Representation.class),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_VERSION)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
-            .request()
+            .request())
             .header(key, value)
             .get()
     );
@@ -417,13 +418,13 @@ public class RecordServiceClient extends MCSClient {
    */
   public void deleteRepresentation(String cloudId, String representationName, String version) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_VERSION)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
-            .request()
+            .request())
             .delete()
     );
   }
@@ -443,13 +444,13 @@ public class RecordServiceClient extends MCSClient {
    */
   public URI persistRepresentation(String cloudId, String representationName, String version) throws MCSException {
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_VERSION_PERSIST)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
-            .request()
+            .request())
             .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
@@ -501,7 +502,7 @@ public class RecordServiceClient extends MCSClient {
 
     return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
         }),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_REVISIONS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
@@ -509,7 +510,7 @@ public class RecordServiceClient extends MCSClient {
             .resolveTemplate(REVISION_NAME, revision.getRevisionName())
             .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
             .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-            .request()
+            .request())
             .get()
     );
   }

@@ -19,6 +19,12 @@
 
     <dependencies>
         <dependency>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <scope>test</scope>
+            <version>${version.log4j}</version>
+        </dependency>
+        <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock</artifactId>
             <version>${version.wiremock}</version>

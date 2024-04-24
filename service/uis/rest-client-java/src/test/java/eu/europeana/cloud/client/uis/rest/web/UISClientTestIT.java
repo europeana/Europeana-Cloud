@@ -1,5 +1,7 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
+import static eu.europeana.cloud.common.log.AttributePassing.RECORD_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -11,6 +13,7 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.MDC;
 
 @Ignore
 public class UISClientTestIT {
@@ -58,7 +61,16 @@ public class UISClientTestIT {
   @Test
   public void shouldGetDataProviders()
       throws CloudException {
-    UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
+    UISClient c = new UISClient(UIS_LOCATION);
+    ResultSlice<DataProvider> providers = c.getDataProviders("");
+  }
+
+  @Test
+  public void shouldPassLogContextAttributes()
+      throws CloudException {
+    MDC.put(TASK_ID_CONTEXT_ATTR,"1800");
+    MDC.put(RECORD_ID_CONTEXT_ATTR,"http://localhost/AB1/versions/1-2/files/3-4");
+    UISClient c = new UISClient(UIS_LOCATION);
     ResultSlice<DataProvider> providers = c.getDataProviders("");
   }
 

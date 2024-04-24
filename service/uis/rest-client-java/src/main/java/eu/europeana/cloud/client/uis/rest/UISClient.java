@@ -1,5 +1,7 @@
 package eu.europeana.cloud.client.uis.rest;
 
+import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
+
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;
 import eu.europeana.cloud.common.model.CloudId;
@@ -101,11 +103,11 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException The generic cloud exception wrapper
    */
   public CloudId createCloudId(String providerId, String recordId) throws CloudException {
-    return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+    return manageResponse(new ResponseParams<>(CloudId.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(CLOUD_IDS_PATH)
         .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-        .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+        .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request())
         .post(null)
     );
   }
@@ -118,11 +120,11 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException The generic cloud exception wrapper
    */
   public CloudId createCloudId(String providerId) throws CloudException {
-    return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+    return manageResponse(new ResponseParams<>(CloudId.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(CLOUD_IDS_PATH)
         .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
-        .request()
+        .request())
         .post(null)
     );
   }
@@ -137,12 +139,12 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException The generic cloud exception wrapper
    */
   public CloudId getCloudId(String providerId, String recordId) throws CloudException {
-    return manageResponse(new ResponseParams<>(CloudId.class), () -> client
+    return manageResponse(new ResponseParams<>(CloudId.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(CLOUD_IDS_PATH)
         .queryParam(UISParamConstants.Q_PROVIDER_ID, providerId)
         .queryParam(UISParamConstants.Q_RECORD_ID, recordId)
-        .request()
+        .request())
         .get()
     );
   }
@@ -156,11 +158,11 @@ public class UISClient implements AutoCloseable {
    */
   @SuppressWarnings("unchecked")
   public ResultSlice<CloudId> getRecordId(String cloudId) throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(CLOUD_IDS_PATH_WITH_CLOUD_ID)
         .resolveTemplate(P_CLOUD_ID, cloudId)
-        .request()
+        .request())
         .get()
     );
   }
@@ -175,15 +177,14 @@ public class UISClient implements AutoCloseable {
    */
   @SuppressWarnings("unchecked")
   public ResultSlice<LocalId> getRecordIdsByProvider(String providerId) throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
-        .target(urlProvider.getBaseUrl())
-        .path("/data-providers/{PROVIDER_ID}/localIds")
-        .resolveTemplate(P_PROVIDER_ID, providerId)
-        .request()
-        .get()
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(
+            client.target(urlProvider.getBaseUrl())
+                  .path("/data-providers/{PROVIDER_ID}/localIds")
+                  .resolveTemplate(P_PROVIDER_ID, providerId)
+                  .request()
+        ).get()
     );
   }
-
 
   /**
    * Retrieve the Cloud ids associated with a provider.
@@ -194,11 +195,11 @@ public class UISClient implements AutoCloseable {
    */
   @SuppressWarnings("unchecked")
   public ResultSlice<CloudId> getCloudIdsByProvider(String providerId) throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path("/data-providers/{PROVIDER_ID}/cloudIds")
         .resolveTemplate(P_PROVIDER_ID, providerId)
-        .request()
+        .request())
         .get()
     );
   }
@@ -216,13 +217,13 @@ public class UISClient implements AutoCloseable {
   @SuppressWarnings("unchecked")
   public ResultSlice<LocalId> getRecordIdsByProviderWithPagination(String providerId, String startRecordId, int limit)
       throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path("/data-providers/{PROVIDER_ID}/localIds")
         .resolveTemplate(P_PROVIDER_ID, providerId)
         .queryParam(UISParamConstants.Q_FROM, startRecordId)
         .queryParam(UISParamConstants.Q_LIMIT, limit)
-        .request()
+        .request())
         .get()
     );
   }
@@ -241,11 +242,11 @@ public class UISClient implements AutoCloseable {
   public ResultSlice<CloudId> getCloudIdsByProviderWithPagination(
       String providerId, String startRecordId, int limit)
       throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds")
         .resolveTemplate(P_PROVIDER_ID, providerId)
         .queryParam(UISParamConstants.Q_FROM, startRecordId)
-        .queryParam(UISParamConstants.Q_LIMIT, limit).request().get()
+        .queryParam(UISParamConstants.Q_LIMIT, limit).request()).get()
     );
   }
 
@@ -260,11 +261,11 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException The generic cloud exception wrapper
    */
   public boolean createMapping(String cloudId, String providerId, String recordId) throws CloudException {
-    return manageResponse(new ResponseParams<>(Boolean.class), () -> client
+    return manageResponse(new ResponseParams<>(Boolean.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl()).path("/data-providers/{PROVIDER_ID}/cloudIds/{CLOUD_ID}")
         .resolveTemplate(P_PROVIDER_ID, providerId)
         .resolveTemplate(P_CLOUD_ID, cloudId)
-        .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request()
+        .queryParam(UISParamConstants.Q_RECORD_ID, recordId).request())
         .post(null)
     );
   }
@@ -278,10 +279,10 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException throws common {@link CloudException} if something went wrong
    */
   public String createProvider(String providerId, DataProviderProperties dp) throws CloudException {
-    return manageResponse(new ResponseParams<>(String.class, Response.Status.CREATED), () -> client
+    return manageResponse(new ResponseParams<>(String.class, Response.Status.CREATED), () -> passLogContext(client
         .target(urlProvider.getBaseUrl()).path(DATA_PROVIDERS_PATH)
         .queryParam(UISParamConstants.Q_PROVIDER, providerId)
-        .request()
+        .request())
         .post(Entity.json(dp))
     );
   }
@@ -296,11 +297,11 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException throws common {@link CloudException} if something went wrong
    */
   public boolean updateProvider(String providerId, DataProviderProperties dp) throws CloudException {
-    return manageResponse(new ResponseParams<>(Boolean.class, Response.Status.NO_CONTENT), () -> client
+    return manageResponse(new ResponseParams<>(Boolean.class, Response.Status.NO_CONTENT), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
         .resolveTemplate(P_PROVIDER_ID, providerId)
-        .request()
+        .request())
         .put(Entity.json(dp))
     );
   }
@@ -315,11 +316,11 @@ public class UISClient implements AutoCloseable {
    */
   @SuppressWarnings("unchecked")
   public ResultSlice<DataProvider> getDataProviders(String from) throws CloudException {
-    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> client
+    return manageResponse(new ResponseParams<>(ResultSlice.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(DATA_PROVIDERS_PATH)
         .queryParam(UISParamConstants.Q_FROM, from)
-        .request()
+        .request())
         .get()
     );
   }
@@ -332,11 +333,11 @@ public class UISClient implements AutoCloseable {
    * @throws CloudException throws common {@link CloudException} if something went wrong
    */
   public DataProvider getDataProvider(String providerId) throws CloudException {
-    return manageResponse(new ResponseParams<>(DataProvider.class), () -> client
+    return manageResponse(new ResponseParams<>(DataProvider.class), () -> passLogContext(client
         .target(urlProvider.getBaseUrl())
         .path(DATA_PROVIDERS_PATH_WITH_PROVIDER_ID)
         .resolveTemplate(P_PROVIDER_ID, providerId)
-        .request()
+        .request())
         .get()
     );
   }

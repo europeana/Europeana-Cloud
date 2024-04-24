@@ -5,7 +5,7 @@
     <Property name="logsDir">${sys:uisLogsLocation}/</Property>
     <Property name="fileName">${logsDir}uis.log</Property>
     <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}-%i.log.gz</Property>
-    <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} uis [requestId=%X{requestId}] [%C] - %p : %m%n</Property>
+    <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} uis [requestId=%X{requestId}] [%C] - %p : %m [task_id=%X{task_id}] [record_id=%X{record_id}]%n</Property>
   </Properties>
   <Appenders>
     <Appender name="STDOUT" type="Console">

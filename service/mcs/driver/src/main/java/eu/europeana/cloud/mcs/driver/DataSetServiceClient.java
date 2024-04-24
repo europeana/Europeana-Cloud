@@ -1,5 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_EXISTING_ONLY;
 import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
@@ -102,12 +103,12 @@ public class DataSetServiceClient extends MCSClient {
   @SuppressWarnings("unchecked")
   public ResultSlice<DataSet> getDataSetsForProviderChunk(String providerId, String startFrom) throws MCSException {
     return manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SETS_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .queryParam(ParamConstants.F_START_FROM, startFrom)
-            .request()
+            .request())
             .get()
     );
   }
@@ -174,11 +175,11 @@ public class DataSetServiceClient extends MCSClient {
     form.param(ParamConstants.F_DESCRIPTION, description);
 
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SETS_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
-            .request()
+            .request())
             .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
@@ -205,13 +206,13 @@ public class DataSetServiceClient extends MCSClient {
   public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
       throws MCSException {
     return manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
             .queryParam(ParamConstants.F_START_FROM, startFrom)
-            .request()
+            .request())
             .get()
     );
   }
@@ -219,12 +220,12 @@ public class DataSetServiceClient extends MCSClient {
   public boolean datasetExists(String providerId, String dataSetId) throws MCSException {
     return manageResponse(
         new ResponseParams<>(Response.Status.class, new Response.Status[]{Response.Status.OK, Response.Status.NOT_FOUND}),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
-            .request()
+            .request())
             .head()
     ) == Response.Status.OK;
   }
@@ -292,12 +293,12 @@ public class DataSetServiceClient extends MCSClient {
     form.param(ParamConstants.F_DESCRIPTION, description);
 
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
-            .request()
+            .request())
             .put(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
@@ -312,12 +313,12 @@ public class DataSetServiceClient extends MCSClient {
    */
   public void deleteDataSet(String providerId, String dataSetId) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
-            .request()
+            .request())
             .delete()
     );
   }
@@ -342,7 +343,7 @@ public class DataSetServiceClient extends MCSClient {
       String revisionTimestamp, int limit) throws MCSException {
 
     ResultSlice<CloudTagsResponse> rs = manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> client.target(baseUrl)
+        () -> passLogContext(client.target(baseUrl)
                     .path(DATA_SET_REVISIONS_RESOURCE)
                     .resolveTemplate(PROVIDER_ID, providerId)
                     .resolveTemplate(DATA_SET_ID, dataSetId)
@@ -352,7 +353,7 @@ public class DataSetServiceClient extends MCSClient {
                     .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
                     .queryParam(F_EXISTING_ONLY, true)
                     .queryParam(F_LIMIT, limit)
-                    .request().get()
+                    .request()).get()
     );
     return rs.getResults();
   }
@@ -375,7 +376,7 @@ public class DataSetServiceClient extends MCSClient {
       String startFrom, Integer limit) throws MCSException {
 
     return manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> client.target(baseUrl)
+        () -> passLogContext(client.target(baseUrl)
                     .path(DATA_SET_REVISIONS_RESOURCE)
                     .resolveTemplate(PROVIDER_ID, providerId)
                     .resolveTemplate(DATA_SET_ID, dataSetId)
@@ -385,7 +386,7 @@ public class DataSetServiceClient extends MCSClient {
                     .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
                     .queryParam(F_START_FROM, startFrom)
                     .queryParam(F_LIMIT, limit != null ? limit : 0)
-                    .request().get()
+                    .request()).get()
     );
   }
 
@@ -428,14 +429,14 @@ public class DataSetServiceClient extends MCSClient {
   public void updateDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
       String username) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_PERMISSIONS_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
             .queryParam(F_PERMISSION, permission.toString().toLowerCase())
             .queryParam(F_USERNAME, username)
-            .request()
+            .request())
             .put(Entity.entity("", MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
@@ -443,14 +444,14 @@ public class DataSetServiceClient extends MCSClient {
   public void removeDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,
       String username) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(this.baseUrl)
             .path(DATA_SET_PERMISSIONS_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
             .queryParam(F_PERMISSION, permission.toString().toLowerCase())
             .queryParam(F_USERNAME, username)
-            .request()
+            .request())
             .delete()
     );
   }

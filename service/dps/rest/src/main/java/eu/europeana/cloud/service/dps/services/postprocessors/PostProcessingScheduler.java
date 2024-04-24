@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import static eu.europeana.cloud.common.log.AttributePassing.runWithTaskIdLogAttr;
 import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
 
@@ -50,7 +51,8 @@ public class PostProcessingScheduler {
 
   @Scheduled(fixedRate = 30_000, initialDelay = 60_000)
   public void execute() {
-    findTasksIn(List.of(READY_FOR_POST_PROCESSING)).forEach(this::executePostProcessingAsync);
+    findTasksIn(List.of(READY_FOR_POST_PROCESSING)).forEach(
+        task -> runWithTaskIdLogAttr(task.getId(), () -> executePostProcessingAsync(task)));
   }
 
   private void executePostProcessingAsync(TaskByTaskState taskByTaskState) {

@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.web.common;
 
+import static eu.europeana.cloud.common.log.AttributePassing.RECORD_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -17,9 +20,23 @@ public class LoggingFilter implements HandlerInterceptor {
   //The usage is secure, because it is only for log readability.
   public boolean preHandle(HttpServletRequest servletRequest,
                            HttpServletResponse hsr1, Object handler) {
+
     MDC.put(REQUEST_ID_ATTRIBUTE_NAME, RandomStringUtils.randomAlphanumeric(6));
+    readContextAttributes(servletRequest);
     publishRequestStartTimeTo(servletRequest);
     return true;
+  }
+
+  private void readContextAttributes(HttpServletRequest servletRequest) {
+    String taskId = servletRequest.getHeader(TASK_ID_CONTEXT_ATTR);
+    if(taskId != null) {
+       MDC.put(TASK_ID_CONTEXT_ATTR,taskId);
+    }
+
+    String recordId = servletRequest.getHeader(RECORD_ID_CONTEXT_ATTR);
+    if(recordId != null) {
+      MDC.put(RECORD_ID_CONTEXT_ATTR,recordId);
+    }
   }
 
   @Override
@@ -36,6 +53,8 @@ public class LoggingFilter implements HandlerInterceptor {
         break;
     }
     MDC.remove(REQUEST_ID_ATTRIBUTE_NAME);
+    MDC.remove(TASK_ID_CONTEXT_ATTR);
+    MDC.remove(RECORD_ID_CONTEXT_ATTR);
   }
 
   private void publishRequestStartTimeTo(HttpServletRequest servletRequest) {
