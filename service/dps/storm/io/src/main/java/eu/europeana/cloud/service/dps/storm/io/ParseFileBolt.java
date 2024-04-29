@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import com.google.gson.Gson;
-import com.rits.cloning.Cloner;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -15,6 +14,7 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
   protected abstract List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException;
 
   protected StormTaskTuple createStormTuple(StormTaskTuple stormTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
-    StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+    StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
     LOGGER.debug("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
     tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
     tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(linksCount));
@@ -62,7 +62,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
       List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
       int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
       if (linksCount == 0) {
-        StormTaskTuple tuple = new Cloner().deepClone(stormTaskTuple);
+        StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
         LOGGER.warn("The EDM file has no resource Links ");
         outputCollector.emit(anchorTuple, tuple.toStormTuple());
       } else {
