@@ -43,7 +43,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-enrichment-client</artifactId>
-            <version>${version.metis}</version>
+            <version>12.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.maven.surefire</groupId>
