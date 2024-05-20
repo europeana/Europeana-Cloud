@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
@@ -23,6 +24,7 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,19 +44,22 @@ public class UnfinishedTasksExecutor {
   private final TaskSubmitterFactory taskSubmitterFactory;
   private final String applicationIdentifier;
   private final TaskStatusUpdater taskStatusUpdater;
+  private final SubmitTaskService submitTaskService;
 
   UnfinishedTasksExecutor(TasksByStateDAO tasksDAO,
       CassandraTaskInfoDAO taskInfoDAO,
       TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
       TaskSubmitterFactory taskSubmitterFactory,
       String applicationIdentifier,
-      TaskStatusUpdater taskStatusUpdater) {
+      TaskStatusUpdater taskStatusUpdater,
+      SubmitTaskService submitTaskService) {
     this.tasksDAO = tasksDAO;
     this.taskSubmitterFactory = taskSubmitterFactory;
     this.taskInfoDAO = taskInfoDAO;
     this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
     this.applicationIdentifier = applicationIdentifier;
     this.taskStatusUpdater = taskStatusUpdater;
+    this.submitTaskService = submitTaskService;
   }
 
   @PostConstruct
@@ -104,10 +109,8 @@ public class UnfinishedTasksExecutor {
     try {
       LOGGER.info("Resuming execution for: {}", taskInfo);
       var submitTaskParameters = prepareSubmitTaskParameters(taskInfo);
-      var taskSubmitter = taskSubmitterFactory.provideTaskSubmitter(submitTaskParameters);
-      taskSubmitter.submitTask(submitTaskParameters);
-      taskDiagnosticInfoDAO.updateQueuedTime(taskInfo.getId(), Instant.now());
-    } catch (IOException | TaskSubmissionException e) {
+      submitTaskService.submitTask(submitTaskParameters);
+    } catch (IOException e) {
       LOGGER.error("Unable to resume the task", e);
       taskStatusUpdater.setTaskDropped(taskInfo.getId(), ExceptionUtils.getStackTrace(e));
     }
