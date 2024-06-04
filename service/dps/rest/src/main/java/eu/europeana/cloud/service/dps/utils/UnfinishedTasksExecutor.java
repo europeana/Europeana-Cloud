@@ -6,17 +6,13 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
-import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,7 +20,6 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,23 +35,17 @@ public class UnfinishedTasksExecutor {
 
   private final TasksByStateDAO tasksDAO;
   private final CassandraTaskInfoDAO taskInfoDAO;
-  private final TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
-  private final TaskSubmitterFactory taskSubmitterFactory;
   private final String applicationIdentifier;
   private final TaskStatusUpdater taskStatusUpdater;
   private final SubmitTaskService submitTaskService;
 
   UnfinishedTasksExecutor(TasksByStateDAO tasksDAO,
       CassandraTaskInfoDAO taskInfoDAO,
-      TaskDiagnosticInfoDAO taskDiagnosticInfoDAO,
-      TaskSubmitterFactory taskSubmitterFactory,
       String applicationIdentifier,
       TaskStatusUpdater taskStatusUpdater,
       SubmitTaskService submitTaskService) {
     this.tasksDAO = tasksDAO;
-    this.taskSubmitterFactory = taskSubmitterFactory;
     this.taskInfoDAO = taskInfoDAO;
-    this.taskDiagnosticInfoDAO = taskDiagnosticInfoDAO;
     this.applicationIdentifier = applicationIdentifier;
     this.taskStatusUpdater = taskStatusUpdater;
     this.submitTaskService = submitTaskService;
