@@ -35,5 +35,8 @@
         <logger name="S3Modifications" additivity="false" level="info">
             <AppenderRef ref="S3Modifications"/>
         </logger>
+        <Logger name="ConsoleLogger" level="warn" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
     </Loggers>
 </Configuration>

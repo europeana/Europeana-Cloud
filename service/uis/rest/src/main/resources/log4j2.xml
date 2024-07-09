@@ -25,5 +25,8 @@
     <Root level="info">
       <AppenderRef ref="FILE"/>
     </Root>
+    <Logger name="ConsoleLogger" level="warn" additivity="false">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
   </Loggers>
 </Configuration>
