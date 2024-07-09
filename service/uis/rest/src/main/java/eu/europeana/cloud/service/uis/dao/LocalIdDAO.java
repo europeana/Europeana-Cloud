@@ -47,8 +47,8 @@ public class LocalIdDAO {
 
   @Retryable
   public Optional<CloudId> searchById(String providerId, String recordId) throws DatabaseConnectionException {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Searching cloudId for providerId={} and recordId={}",
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Searching cloudId for providerId={} and recordId={}",
           LogMessageCleaner.clean(providerId),
           LogMessageCleaner.clean(recordId));
     }
@@ -56,16 +56,16 @@ public class LocalIdDAO {
       Row row = dbService.getSession().execute(searchByRecordIdStatement.bind(providerId, recordId)).one();
       if (row != null) {
         CloudId cloudId = createCloudIdFromProviderRecordRow(row);
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("Found cloudId={} for providerId={} and recordId={}",
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("Found cloudId={} for providerId={} and recordId={}",
               cloudId,
               LogMessageCleaner.clean(providerId),
               LogMessageCleaner.clean(recordId));
         }
         return Optional.of(cloudId);
       } else {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("CloudId not found for providerId={} and recordId={}",
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("CloudId not found for providerId={} and recordId={}",
               LogMessageCleaner.clean(providerId),
               LogMessageCleaner.clean(recordId));
         }
