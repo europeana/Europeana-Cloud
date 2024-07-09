@@ -103,7 +103,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> filteredReports) throws Exception {
     LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
     emitEnrichedContent(anchorTuple, stormTaskTuple, result, filteredReports);
-    LOGGER.info("Emitted enrichment on {}", result.getProcessedRecord());
+    LOGGER.info("Emitted enrichment on {} .....", stormTaskTuple.getFileUrl());
   }
 
   private boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {
