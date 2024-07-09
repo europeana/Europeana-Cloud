@@ -63,7 +63,6 @@ public class UnifiedExceptionsMapper {
   private static final String OTHER_ERROR_CODE_MESSAGE = "OTHER";
 
   @ExceptionHandler({
-      DatabaseConnectionException.class,
       IdHasBeenMappedException.class,
       ProviderDoesNotExistException.class,
       RecordDatasetEmptyException.class,
@@ -75,13 +74,21 @@ public class UnifiedExceptionsMapper {
       CloudIdDoesNotExistException.class
   })
   public ResponseEntity<ErrorInfo> handleException(GenericException e) {
+    LOGGER.info("Exception handling fired for", e);
+    return buildResponse(e);
+  }
+
+  @ExceptionHandler({
+          DatabaseConnectionException.class
+  })
+  public ResponseEntity<ErrorInfo> handleErrorLevelException(GenericException e) {
     LOGGER.error("Exception handling fired for", e);
     return buildResponse(e);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<ErrorInfo> handleAccessDeniedException(AccessDeniedException e) {
-    LOGGER.error("Exception handling fired for ", e);
+    LOGGER.info("Exception handling fired for ", e);
     return ResponseEntity
         .status(HttpStatus.METHOD_NOT_ALLOWED.value())
         .body(new ErrorInfo(OTHER_ERROR_CODE_MESSAGE, e.getMessage()));
