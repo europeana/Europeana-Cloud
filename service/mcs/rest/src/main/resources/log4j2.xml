@@ -10,6 +10,9 @@
     <Appenders>
         <Appender type="Console" name="STDOUT">
             <Layout type="PatternLayout" pattern="${pattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
         </Appender>
         <Appender type="RollingFile" name="FILE" append="true" fileName="${fileName}" filePattern="${filePattern}">
             <DefaultRolloverStrategy max="20"/>
@@ -30,13 +33,11 @@
         <Root level="info">
             <!-- Log only to file <AppenderRef ref="STDOUT"/> -->
             <AppenderRef ref="FILE"/>
+            <AppenderRef ref="STDOUT"/>
         </Root>
         <Logger name="eu.europeana.cloud.service.mcs" level="debug"/>
         <logger name="S3Modifications" additivity="false" level="info">
             <AppenderRef ref="S3Modifications"/>
         </logger>
-        <Logger name="ConsoleLogger" level="warn" additivity="false">
-            <AppenderRef ref="STDOUT"/>
-        </Logger>
     </Loggers>
 </Configuration>
