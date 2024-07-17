@@ -110,7 +110,7 @@ public class UnifiedExceptionsMapper {
   @ExceptionHandler(RuntimeException.class)
   @ResponseBody
   public ErrorInfo handleRuntimeException(Exception exception) {
-    LOGGER.error("Unexpected error occured.", exception);
+    LOGGER.error("Unexpected error occurred.", exception);
     return buildResponse(DpsErrorCode.OTHER, exception);
   }
 
