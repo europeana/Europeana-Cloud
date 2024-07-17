@@ -20,17 +20,17 @@ public class CustomLoggerListener implements ApplicationListener<AbstractAuthent
     @Override
     public void onApplicationEvent(AbstractAuthenticationEvent event) {
         if (event instanceof AuthenticationSuccessEvent) {
-            logger.info(LogMessage.of(() ->
-                this.getInfoLogMessage(event)
+            logger.trace(LogMessage.of(() ->
+                this.getSuccessfulAuthenticationMessage(event)
             ));
         } else {
-            logger.warn(LogMessage.of(() ->
-                 this.getWarnLogMessage(event)
+            logger.debug(LogMessage.of(() ->
+                 this.getUnsuccessfulAuthenticationMessage(event)
             ));
         }
     }
 
-    private String getInfoLogMessage(AbstractAuthenticationEvent event) {
+    private String getSuccessfulAuthenticationMessage(AbstractAuthenticationEvent event) {
         StringBuilder builder = new StringBuilder();
         builder.append("Authentication event ");
         builder.append(ClassUtils.getShortName(event.getClass()));
@@ -39,7 +39,7 @@ public class CustomLoggerListener implements ApplicationListener<AbstractAuthent
         return builder.toString();
     }
 
-    private String getWarnLogMessage(AbstractAuthenticationEvent event) {
+    private String getUnsuccessfulAuthenticationMessage(AbstractAuthenticationEvent event) {
         StringBuilder builder = new StringBuilder();
         builder.append("Authentication event ");
         builder.append(ClassUtils.getShortName(event.getClass()));
