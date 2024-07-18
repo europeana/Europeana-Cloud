@@ -24,7 +24,7 @@ public class CustomLoggerListener implements ApplicationListener<AbstractAuthent
                 this.getSuccessfulAuthenticationMessage(event)
             ));
         } else {
-            logger.debug(LogMessage.of(() ->
+            logger.warn(LogMessage.of(() ->
                  this.getUnsuccessfulAuthenticationMessage(event)
             ));
         }

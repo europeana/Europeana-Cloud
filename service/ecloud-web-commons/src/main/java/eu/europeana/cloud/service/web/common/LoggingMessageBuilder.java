@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.web.common;
 
-import java.util.Optional;
-
 public class LoggingMessageBuilder {
 
   private static final String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %CLIENT_USERNAME %REQUEST_METHOD %RESOURCE_PATH Request received";
