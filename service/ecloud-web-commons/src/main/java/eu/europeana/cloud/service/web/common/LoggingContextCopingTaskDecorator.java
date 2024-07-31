@@ -1,7 +1,7 @@
-package eu.europeana.cloud.service.dps.config;
+package eu.europeana.cloud.service.web.common;
 
-import static eu.europeana.cloud.common.log.AttributePassing.RECORD_ID_CONTEXT_ATTR;
-import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.RECORD_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 
 import org.slf4j.MDC;
 import org.springframework.core.task.TaskDecorator;

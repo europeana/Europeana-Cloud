@@ -1,6 +1,6 @@
-package eu.europeana.cloud.service.dps.controller;
+package eu.europeana.cloud.service.dps.logging;
 
-import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import java.lang.annotation.Annotation;
@@ -14,19 +14,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+/**
+ * Aspectual implementation of log context attribute passing based on custom annotation. It fills log
+ * context attributes for the method execution, if one of the method parameters is marked with
+ * the custom annotation, the attribute value is gathered from this parameter.
+ * Now it is used for eu.europeana.cloud.common.log.AttributePassingUtils#TASK_ID_CONTEXT_ATTR
+ * which is set if method parameter containing task_id or whole DpsTask is marked with
+ * the annotation: AddTaskIdToLoggingContext.
+ */
 @Aspect
 public class LoggingAttributeAspect {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LoggingAttributeAspect.class);
 
-  @Before("execution(* *(..,@eu.europeana.cloud.service.dps.controller.AddTaskIdToLoggingContext (*),..))")
+  /**
+   * Adds eu.europeana.cloud.common.log.AttributePassingUtils#TASK_ID_CONTEXT_ATTR to the logging context
+   * before execution of methods annotated with: AddTaskIdToLoggingContext.
+   *
+   * @param joint
+   */
+  @Before("execution(* *(..,@eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext (*),..))")
   public void beforeTaskId(JoinPoint joint) {
     String taskId = getTaskId(joint);
     MDC.put(TASK_ID_CONTEXT_ATTR, taskId);
     LOGGER.error("Aspect taskid: {}", taskId);
   }
 
-  @After("execution(* *(..,@eu.europeana.cloud.service.dps.controller.AddTaskIdToLoggingContext (*),..))")
+  /**
+   * Removes eu.europeana.cloud.common.log.AttributePassingUtils#TASK_ID_CONTEXT_ATTR from the logging
+   * context after execution of method with parameter annotated with: AddTaskIdToLoggingContext.
+   */
+  @After("execution(* *(..,@eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext (*),..))")
   public void afterTaskId() {
     MDC.remove(TASK_ID_CONTEXT_ATTR);
     LOGGER.error("After aspect taskid");
@@ -34,10 +52,10 @@ public class LoggingAttributeAspect {
 
   private String getTaskId(JoinPoint joint) {
     int argumentIndex = findArgumentIndex(joint);
-    return extractIdFromArgument(joint.getArgs()[argumentIndex]);
+    return extractTaskIdFromArgument(joint.getArgs()[argumentIndex]);
   }
 
-  private String extractIdFromArgument(Object arg) {
+  private String extractTaskIdFromArgument(Object arg) {
     if (arg instanceof DpsTask dpsTask) {
       return String.valueOf(dpsTask.getTaskId());
     } else {

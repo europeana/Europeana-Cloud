@@ -1,6 +1,6 @@
 package eu.europeana.cloud.client.uis.rest;
 
-import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 
 import eu.europeana.cloud.client.uis.rest.web.StaticUrlProvider;
 import eu.europeana.cloud.client.uis.rest.web.UrlProvider;

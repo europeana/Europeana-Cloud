@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.web.common;
 
-import static eu.europeana.cloud.common.log.AttributePassing.RECORD_ID_CONTEXT_ATTR;
-import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.RECORD_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,8 +18,7 @@ public class LoggingFilter implements HandlerInterceptor {
   @Override
   @SuppressWarnings("java:S2245") //Random is used here only for mark logs that are part of one request.
   //The usage is secure, because it is only for log readability.
-  public boolean preHandle(HttpServletRequest servletRequest,
-                           HttpServletResponse hsr1, Object handler) {
+  public boolean preHandle(HttpServletRequest servletRequest, HttpServletResponse hsr1, Object handler) {
 
     MDC.put(REQUEST_ID_ATTRIBUTE_NAME, RandomStringUtils.randomAlphanumeric(6));
     readContextAttributes(servletRequest);
@@ -29,13 +28,13 @@ public class LoggingFilter implements HandlerInterceptor {
 
   private void readContextAttributes(HttpServletRequest servletRequest) {
     String taskId = servletRequest.getHeader(TASK_ID_CONTEXT_ATTR);
-    if(taskId != null) {
-       MDC.put(TASK_ID_CONTEXT_ATTR,taskId);
+    if (taskId != null) {
+      MDC.put(TASK_ID_CONTEXT_ATTR, taskId);
     }
 
     String recordId = servletRequest.getHeader(RECORD_ID_CONTEXT_ATTR);
-    if(recordId != null) {
-      MDC.put(RECORD_ID_CONTEXT_ATTR,recordId);
+    if (recordId != null) {
+      MDC.put(RECORD_ID_CONTEXT_ATTR, recordId);
     }
   }
 

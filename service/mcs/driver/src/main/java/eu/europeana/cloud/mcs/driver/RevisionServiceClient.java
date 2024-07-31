@@ -1,6 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;

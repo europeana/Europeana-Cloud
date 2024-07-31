@@ -1,6 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static eu.europeana.cloud.common.log.AttributePassing.passLogContext;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_EXISTING_ONLY;
 import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;

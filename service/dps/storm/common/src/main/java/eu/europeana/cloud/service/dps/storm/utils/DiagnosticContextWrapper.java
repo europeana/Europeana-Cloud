@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.common.log.AttributePassing.*;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.*;
 
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;

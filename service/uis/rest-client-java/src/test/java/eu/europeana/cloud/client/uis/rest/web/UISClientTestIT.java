@@ -1,9 +1,10 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import static eu.europeana.cloud.common.log.AttributePassing.RECORD_ID_CONTEXT_ATTR;
-import static eu.europeana.cloud.common.log.AttributePassing.TASK_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.RECORD_ID_CONTEXT_ATTR;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
@@ -18,7 +19,7 @@ import org.slf4j.MDC;
 @Ignore
 public class UISClientTestIT {
 
-  private static final String UIS_LOCATION = "http://127.0.0.1:8080/uis";
+  private static final String UIS_LOCATION = "http://127.0.0.1:8092/uis";
   private static final String USER = "testUser1";
   private static final String PASSWORD = "testUserPassword2";
 
@@ -72,6 +73,9 @@ public class UISClientTestIT {
     MDC.put(RECORD_ID_CONTEXT_ATTR,"http://localhost/AB1/versions/1-2/files/3-4");
     UISClient c = new UISClient(UIS_LOCATION);
     ResultSlice<DataProvider> providers = c.getDataProviders("");
+    assertNotNull(providers);
+    //Logs with passed attributes: task_id and record_id should be present in UIS logs. Example:
+    //2024-07-31T11:00:59.123Z uis [requestId=aJkU64] [eu.europeana.cloud.service.uis.service.CassandraDataProviderService] - INFO : getProviders() returning providers=5 and nextProvider=null for thresholdProviderId='', limit='100' [task_id=1800] [record_id=http://localhost/AB1/versions/1-2/files/3-4]
   }
 
   @Test

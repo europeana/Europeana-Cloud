@@ -14,6 +14,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
+import eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;

@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services;
 
-import static eu.europeana.cloud.common.log.AttributePassing.runWithTaskIdLogAttr;
+import static eu.europeana.cloud.common.log.AttributePassingUtils.runWithTaskIdLogAttr;
 import static eu.europeana.cloud.common.model.dps.TaskState.PROCESSED;
 import static eu.europeana.cloud.common.model.dps.TaskState.QUEUED;
 import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
