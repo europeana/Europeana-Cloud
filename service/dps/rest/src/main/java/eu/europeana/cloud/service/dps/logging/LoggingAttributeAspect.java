@@ -37,7 +37,6 @@ public class LoggingAttributeAspect {
   public void beforeTaskId(JoinPoint joint) {
     String taskId = getTaskId(joint);
     MDC.put(TASK_ID_CONTEXT_ATTR, taskId);
-    LOGGER.error("Aspect taskid: {}", taskId);
   }
 
   /**
@@ -47,7 +46,6 @@ public class LoggingAttributeAspect {
   @After("execution(* *(..,@eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext (*),..))")
   public void afterTaskId() {
     MDC.remove(TASK_ID_CONTEXT_ATTR);
-    LOGGER.error("After aspect taskid");
   }
 
   private String getTaskId(JoinPoint joint) {
