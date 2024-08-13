@@ -19,8 +19,8 @@ public class AttributePassingUtils {
    * Passes on task_id and record_id attributes from the log context of the current thread,
    * to the request builder, so they will be passed further in header to the remote web server
    * during request execution.
-   * @param requestBuilder
-   * @return
+   * @param requestBuilder - http request builder
+   * @return - the updated builder
    */
   public static Builder passLogContext(Builder requestBuilder) {
     String taskId = MDC.get(TASK_ID_CONTEXT_ATTR);
@@ -31,8 +31,8 @@ public class AttributePassingUtils {
   /**
    * Executes given runnable with the task_id added in the log context.
    *
-   * @param taskId
-   * @param runnable
+   * @param taskId - the task_id which is added to the log context
+   * @param runnable - the runnable run with task_id in log context
    */
   public static void runWithTaskIdLogAttr(long taskId, Runnable runnable) {
     try {

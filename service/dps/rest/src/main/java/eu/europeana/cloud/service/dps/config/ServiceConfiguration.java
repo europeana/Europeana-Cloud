@@ -55,7 +55,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -69,10 +68,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableAsync
 @EnableScheduling
-@PropertySources({
-    @PropertySource(value = "classpath:dps.properties", ignoreResourceNotFound = true),
-    @PropertySource(value = "classpath:indexing.properties", ignoreResourceNotFound = true)
-})
+@PropertySource(value = {"classpath:dps.properties", "classpath:indexing.properties"}, ignoreResourceNotFound = true)
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Value("${AppId}")
@@ -173,7 +169,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public String applicationIdentifier() {
-      return applicationIdentifier;
+    return applicationIdentifier;
   }
 
   @Bean
@@ -416,7 +412,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     executor.setCorePoolSize(16);
     executor.setMaxPoolSize(16);
     executor.setQueueCapacity(10);
-    executor.setThreadNamePrefix("post-proprocessing-");
+    executor.setThreadNamePrefix("post-processing-");
     executor.setTaskDecorator(taskDecorator);
     return executor;
   }

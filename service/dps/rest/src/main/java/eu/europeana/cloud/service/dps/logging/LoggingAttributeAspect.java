@@ -10,8 +10,6 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 /**
@@ -25,13 +23,11 @@ import org.slf4j.MDC;
 @Aspect
 public class LoggingAttributeAspect {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LoggingAttributeAspect.class);
-
   /**
    * Adds eu.europeana.cloud.common.log.AttributePassingUtils#TASK_ID_CONTEXT_ATTR to the logging context
    * before execution of methods annotated with: AddTaskIdToLoggingContext.
    *
-   * @param joint
+   * @param joint - aspect joint point object
    */
   @Before("execution(* *(..,@eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext (*),..))")
   public void beforeTaskId(JoinPoint joint) {
@@ -69,7 +65,8 @@ public class LoggingAttributeAspect {
         return i;
       }
     }
-    throw new RuntimeException("Could not found argument with the annotation!");
+    throw new IllegalArgumentException("The method in the joint does not contain argument annotated with: "
+        + AddTaskIdToLoggingContext.class);
   }
 
   private boolean argumentHasTheAnnotation(Annotation[] argumentAnnotations) {
