@@ -17,14 +17,6 @@ import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +24,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @Scope("request")
@@ -109,7 +99,7 @@ public class DiagnosticResource {
 
 
   @GetMapping(value = "/activeTasks", produces = MediaType.APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') OR hasRole('ROLE_MONITORING')")
   public String acticeTasks() throws JsonProcessingException {
     List<JoinedTaskInfo> taskInfoList = tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES).stream()
                                                        .map(TaskByTaskState::getId).map(taskInfoDAO::findById)
