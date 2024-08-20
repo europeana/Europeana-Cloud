@@ -10,6 +10,9 @@
   <Appenders>
     <Appender name="STDOUT" type="Console">
       <Layout pattern="${pattern}" type="PatternLayout"/>
+      <Filters>
+        <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+      </Filters>
     </Appender>
     <Appender append="true" fileName="${fileName}" filePattern="${filePattern}" name="FILE" type="RollingFile">
       <DefaultRolloverStrategy max="20"/>
@@ -24,6 +27,7 @@
     <Logger level="debug" name="eu.europeana.cloud.service"/>
     <Root level="info">
       <AppenderRef ref="FILE"/>
+      <AppenderRef ref="STDOUT"/>
     </Root>
   </Loggers>
 </Configuration>
