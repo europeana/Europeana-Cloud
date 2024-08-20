@@ -2,12 +2,13 @@ package eu.europeana.cloud.service.web.common;
 
 public class LoggingMessageBuilder {
 
-  private static String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %REQUEST_METHOD %RESOURCE_PATH Request received";
+  private static final String LOG_MESSAGE_PATTERN = "%STATUS_CODE %REQUEST_TIME %CLIENT_IP %CLIENT_USERNAME %REQUEST_METHOD %RESOURCE_PATH Request received";
   private int statusCode;
   private long requestTime;
   private String remoteAddr;
   private String resourcePath;
   private String requestMethod;
+  private String clientUsername;
 
 
   public LoggingMessageBuilder() {
@@ -20,6 +21,7 @@ public class LoggingMessageBuilder {
     message = message.replace("%CLIENT_IP", remoteAddr);
     message = message.replace("%RESOURCE_PATH", resourcePath);
     message = message.replace("%REQUEST_METHOD", requestMethod);
+    message = message.replace("%CLIENT_USERNAME", clientUsername == null ? "" : clientUsername);
 
     LoggingMessage m = new LoggingMessage();
     m.setMessage(message);
@@ -34,6 +36,11 @@ public class LoggingMessageBuilder {
 
   public LoggingMessageBuilder withRequestTime(long requestTime) {
     this.requestTime = requestTime;
+    return this;
+  }
+
+  public LoggingMessageBuilder withClientUsername(String clientUsername) {
+    this.clientUsername = clientUsername;
     return this;
   }
 

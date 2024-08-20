@@ -110,7 +110,7 @@ public class UnifiedExceptionsMapper {
   @ExceptionHandler(RuntimeException.class)
   @ResponseBody
   public ErrorInfo handleRuntimeException(Exception exception) {
-    LOGGER.error("Unexpected error occured.", exception);
+    LOGGER.error("Unexpected error occurred.", exception);
     return buildResponse(DpsErrorCode.OTHER, exception);
   }
 
@@ -151,7 +151,7 @@ public class UnifiedExceptionsMapper {
   }
 
   private static ErrorInfo buildResponse(DpsErrorCode errorCode, Exception e) {
-    LOGGER.error("Operation failed because of: {}", e.getMessage(), e);
+    LOGGER.error("Operation failed because of: {}", e.getMessage());
     return buildResponse(errorCode, e.getMessage());
   }
 

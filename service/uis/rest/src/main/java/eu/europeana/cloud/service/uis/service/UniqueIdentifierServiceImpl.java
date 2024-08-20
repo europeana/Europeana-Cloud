@@ -130,7 +130,7 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
   @Override
   public List<CloudId> getLocalIdsByCloudId(String cloudId)
       throws DatabaseConnectionException, CloudIdDoesNotExistException {
-    LOGGER.debug("getLocalIdsByCloudId() cloudId='{}'", cloudId);
+    LOGGER.trace("getLocalIdsByCloudId() cloudId='{}'", cloudId);
     List<CloudId> cloudIds = cloudIdDao.searchById(cloudId);
     if (cloudIds.isEmpty()) {
       LOGGER.warn("CloudIdDoesNotExistException for cloudId={}", cloudId);
@@ -138,7 +138,7 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
           IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
           IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo(cloudId)));
     }
-    LOGGER.debug("Prepared id list for cloudId={}, size={}", cloudId, cloudIds.size());
+    LOGGER.trace("Prepared id list for cloudId={}, size={}", cloudId, cloudIds.size());
     return cloudIds;
   }
 
@@ -180,8 +180,8 @@ public class UniqueIdentifierServiceImpl implements UniqueIdentifierService {
 
     var cloudIdOpt = localIdDao.searchById(providerId, recordId);
     if (cloudIdOpt.isPresent()) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Record already exists cloudId='{}', providerId='{}', recordId='{}'",
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Record already exists cloudId='{}', providerId='{}', recordId='{}'",
             LogMessageCleaner.clean(cloudId),
             LogMessageCleaner.clean(providerId),
             LogMessageCleaner.clean(recordId));

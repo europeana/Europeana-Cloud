@@ -71,6 +71,7 @@ public class LoggingFilter implements HandlerInterceptor {
         .withRequestTime(calculateRequestTime(servletRequest))
         .withResourcePath(readRequestPath(servletRequest))
         .withRequestMethod(readRequestMethod(servletRequest))
+        .withClientUsername(servletRequest.getRemoteUser())
         .build();
   }
 

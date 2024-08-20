@@ -33,7 +33,7 @@ public class RetryAspect {
 
   @Around("pointcut()")
   public Object retry(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-    LOGGER.debug("Retry aspect called for '{}'", getMethod(proceedingJoinPoint));
+    LOGGER.trace("Retry aspect called for '{}'", getMethod(proceedingJoinPoint));
 
     Retryable retryAnnotation = getAnnotationForMethodOrClass(proceedingJoinPoint);
 
