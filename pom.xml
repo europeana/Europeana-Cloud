@@ -175,7 +175,7 @@
         <version.jacoco>0.8.11</version.jacoco>
         <!-- Metis related dependencies-->
         <version.metis>12</version.metis>
-        <version.metis.normalization>13</version.metis.normalization>
+        <version.metis.normalization>14-SNAPSHOT</version.metis.normalization>
         <!-- -->
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>32.1.2-jre</version.guava>
