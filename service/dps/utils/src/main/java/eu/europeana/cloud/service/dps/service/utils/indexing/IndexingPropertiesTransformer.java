@@ -51,6 +51,7 @@ public final class IndexingPropertiesTransformer {
     indexingProperties.setMongoAuthDb(properties.getProperty(prefix + MONGO_AUTH_DB));
     indexingProperties.setMongoUseSSL(properties.getProperty(prefix + MONGO_USE_SSL));
     indexingProperties.setMongoReadPreference(properties.getProperty(prefix + MONGO_READ_PREFERENCE));
+    indexingProperties.setMongoTombstoneDbName(properties.getProperty(prefix + "mongoTombstoneDbName"));
 
     indexingProperties.setSolrInstances(properties.getProperty(prefix + SOLR_INSTANCES));
 

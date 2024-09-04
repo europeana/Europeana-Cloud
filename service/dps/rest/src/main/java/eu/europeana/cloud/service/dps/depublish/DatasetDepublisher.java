@@ -26,8 +26,18 @@ public class DatasetDepublisher {
     return CompletableFuture.completedFuture(removedCount);
   }
 
+  /**
+   * Creates tombstone for the record and removes it from the index
+   * @param recordId record identifier to be uses for removal
+   * @return if removal was successful
+   * @throws IndexingException in case of some issues with the removal
+   */
   public boolean removeRecord(String recordId) throws IndexingException {
-    return indexer.remove(recordId);
+    boolean recordWasTombstoned = indexer.indexTombstone(recordId);
+    if (recordWasTombstoned) {
+      return indexer.remove(recordId);
+    }
+    return false;
   }
 
   public long getRecordsCount(SubmitTaskParameters parameters) throws IndexingException {
