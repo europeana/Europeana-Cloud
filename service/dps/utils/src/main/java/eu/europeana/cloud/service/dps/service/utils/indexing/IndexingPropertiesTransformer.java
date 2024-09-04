@@ -10,6 +10,7 @@ import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingProp
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_READ_PREFERENCE;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_REDIRECTS_DB_NAME;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_SECRET;
+import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_TOMBSTONE_DB_NAME;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_USERNAME;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.MONGO_USE_SSL;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.PREVIEW_PREFIX;
@@ -51,7 +52,7 @@ public final class IndexingPropertiesTransformer {
     indexingProperties.setMongoAuthDb(properties.getProperty(prefix + MONGO_AUTH_DB));
     indexingProperties.setMongoUseSSL(properties.getProperty(prefix + MONGO_USE_SSL));
     indexingProperties.setMongoReadPreference(properties.getProperty(prefix + MONGO_READ_PREFERENCE));
-    indexingProperties.setMongoTombstoneDbName(properties.getProperty(prefix + "mongoTombstoneDbName"));
+    indexingProperties.setMongoTombstoneDbName(properties.getProperty(prefix + MONGO_TOMBSTONE_DB_NAME));
 
     indexingProperties.setSolrInstances(properties.getProperty(prefix + SOLR_INSTANCES));
 

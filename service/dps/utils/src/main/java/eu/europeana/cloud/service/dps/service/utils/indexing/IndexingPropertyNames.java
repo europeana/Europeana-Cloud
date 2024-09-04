@@ -15,6 +15,7 @@ public final class IndexingPropertyNames {
   public static final String MONGO_APPLICATION_NAME = "mongoApplicationName";
   public static final String MONGO_POOL_SIZE = "mongoPoolSize";
   public static final String MONGO_AUTH_DB = "mongoAuthDB";
+  public static final String MONGO_TOMBSTONE_DB_NAME = "mongoTombstoneDbName";
   //
   public static final String SOLR_INSTANCES = "solrInstances";
   //
