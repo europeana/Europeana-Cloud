@@ -95,6 +95,7 @@ public class DepublicationServiceTest {
     when(indexer.countRecords(anyString())).thenReturn((long) EXPECTED_SET_SIZE, 0L);
     when(indexer.removeAll(anyString(), nullable(Date.class))).thenReturn(EXPECTED_SET_SIZE);
     when(indexer.remove(anyString())).thenReturn(true);
+    when(indexer.indexTombstone(anyString())).thenReturn(true);
   }
 
   @Test
@@ -222,6 +223,22 @@ public class DepublicationServiceTest {
     verify(recordStatusUpdater).addSuccessfullyProcessedRecord(2, TASK_ID, TopologiesNames.DEPUBLICATION_TOPOLOGY, RECORD2);
     assertTaskSucceed();
   }
+
+  @Test
+  public void shouldHaltTheDepublicationProcessInCaseOfTombstoneCreationIssues() throws IndexingException {
+    when(indexer.indexTombstone(anyString())).thenReturn(false);
+    service.depublishIndividualRecords(parameters);
+
+    verify(updater).setUpdateProcessedFiles(TASK_ID, 1, 0, 0, 1, 0);
+    verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY),
+        any(), any(), any());
+    verify(recordStatusUpdater).addWronglyProcessedRecord(eq(1), eq(TASK_ID), eq(TopologiesNames.DEPUBLICATION_TOPOLOGY),
+        any(), any(), any());
+    assertTaskSucceed();
+    when(indexer.indexTombstone(anyString())).thenReturn(true);
+  }
+
+
 
   @Test
   public void shouldRecordBeFailedInResultsWhenExceptionIsThrownWhileRemoving() throws IndexingException {

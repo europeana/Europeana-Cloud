@@ -96,6 +96,7 @@ public class IndexingSettingsGenerator {
         .setMongoReadPreference(indexingProperties.getMongoReadPreference());
     indexingSettings.setMongoApplicationName(indexingProperties.getMongoApplicationName());
 
+    indexingSettings.setMongoTombstoneDatabaseName(indexingProperties.getMongoTombstoneDbName());
   }
 
   private boolean mongoCredentialsProvidedFor(IndexingProperties indexingProperties) {
