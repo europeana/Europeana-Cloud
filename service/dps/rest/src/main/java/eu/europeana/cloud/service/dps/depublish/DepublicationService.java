@@ -101,7 +101,7 @@ public class DepublicationService {
         //Any other exception is caught to perform independently as many records as it could be possible.
         //Anyway the method is executed asynchronously and the exception would be eventually only logged.
         //Instead of that the results are stored in Cassandra, and by this way they are accessible to the user.
-        LOGGER.warn("Error while depublishing record {}", records[i], e);
+        LOGGER.warn("Depublishing record {} ended with exception {}", records[i], e);
         recordStatusUpdater.addWronglyProcessedRecord(
             resourceNum,
             parameters.getTask().getTaskId(),
