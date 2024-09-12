@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
+
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
@@ -13,15 +16,11 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
+import java.io.IOException;
+import java.time.Instant;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.time.Instant;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.
@@ -61,7 +60,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
       LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
       try {
         var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
-        stormTaskTuple.setFileData(oaiRecord.getRecord());
+        stormTaskTuple.setFileData(oaiRecord.getContent());
 
         generateIdentifiers(stormTaskTuple);
         addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
