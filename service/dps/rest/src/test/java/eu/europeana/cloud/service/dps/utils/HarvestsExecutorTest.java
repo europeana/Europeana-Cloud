@@ -26,11 +26,11 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +75,7 @@ public class HarvestsExecutorTest {
   private SubmitTaskParameters parameters;
 
   @Mock
-  private OaiRecordHeaderIterator oaiIterator;
+  private HarvestingIterator<OaiRecordHeader, OaiRecordHeader> oaiIterator;
 
   @Autowired
   private HarvestsExecutor executor;
