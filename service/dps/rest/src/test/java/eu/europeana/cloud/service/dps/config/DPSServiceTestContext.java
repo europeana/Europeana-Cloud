@@ -5,7 +5,6 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
-import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
@@ -20,7 +19,6 @@ import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceIm
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
@@ -158,14 +156,8 @@ public class DPSServiceTestContext {
   }
 
   @Bean
-  public DepublicationTaskSubmitter depublicationTaskSubmitter(FilesCounterFactory filesCounterFactory,
-      DepublicationService depublicationService, TaskStatusUpdater taskStatusUpdater) {
-    return new DepublicationTaskSubmitter(filesCounterFactory, depublicationService, taskStatusUpdater);
-  }
-
-  @Bean
-  public DepublicationService depublicationService() {
-    return Mockito.mock(DepublicationService.class);
+  public DepublicationTaskSubmitter depublicationTaskSubmitter() {
+    return Mockito.mock(DepublicationTaskSubmitter.class);
   }
 
   @Bean
