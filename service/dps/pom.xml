@@ -35,6 +35,7 @@
         <module>storm/topologies/normalization</module>
         <module>storm/topologies/media-service</module>
         <module>storm/topologies/link-check</module>
+        <module>storm/topologies/depublication</module>
         <module>storm/harvesting-commons</module>
     </modules>
 

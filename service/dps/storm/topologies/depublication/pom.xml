@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>ecloud-service-dps-storm-topologies-depublication</artifactId>
+  <build>
+    <plugins>
+      <!-- Bind the maven-assembly-plugin to the package phase this will create
+      a jar file without the storm dependencies suitable for deployment to a cluster. -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>
+                eu.europeana.cloud.service.dps.storm.topologies.depublication.DepublicationTopology
+              </mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <id>make-assembly</id>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <artifactId>byte-buddy</artifactId>
+      <groupId>net.bytebuddy</groupId>
+      <version>${version.bytebuddy}</version>
+    </dependency>
+    <dependency>
+      <artifactId>byte-buddy-agent</artifactId>
+      <groupId>net.bytebuddy</groupId>
+      <version>${version.bytebuddy}</version>
+    </dependency>
+    <dependency>
+      <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
+          to avoid data corruption in Cassandra.
+          Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
+      <artifactId>commons-codec</artifactId>
+      <groupId>commons-codec</groupId>
+      <version>${version.commonscodec}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>netty-handler</artifactId>
+      <groupId>io.netty</groupId>
+      <version>4.1.94.Final</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>jackson-databind</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <version>${version.jackson}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <version>${version.jersey}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>ecloud-service-dps-utils</artifactId>
+      <groupId>eu.europeana.cloud</groupId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>ecloud-service-dps-storm-io</artifactId>
+      <groupId>eu.europeana.cloud</groupId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>commons-io</artifactId>
+      <groupId>commons-io</groupId>
+      <version>${version.commonio}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>commons-lang3</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <version>${version.commons-lang3}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>ecloud-service-dps-storm-common</artifactId>
+      <groupId>eu.europeana.cloud</groupId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <artifactId>storm-core</artifactId>
+      <groupId>org.apache.storm</groupId>
+      <scope>provided</scope>
+      <!-- keep storm out of the jar-with-dependencies -->
+      <version>${version.storm}</version>
+    </dependency>
+
+    <!--test dependencies-->
+    <dependency>
+      <artifactId>mockito-core</artifactId>
+      <groupId>org.mockito</groupId>
+      <scope>test</scope>
+      <version>3.3.3</version>
+    </dependency>
+
+
+  </dependencies>
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>ecloud-service-dps-storm-topologies-depublication</name>
+
+  <parent>
+    <artifactId>ecloud-service-dps</artifactId>
+    <groupId>eu.europeana.cloud</groupId>
+    <relativePath>../../../pom.xml</relativePath>
+    <version>13-SNAPSHOT</version>
+  </parent>
+</project>
