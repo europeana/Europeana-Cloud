@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.indexing.Indexer;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,48 +58,60 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
   @Override
   public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
     int expectedSize = evaluateTaskSize(parameters);
-    LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedSize);
+    long taskId = parameters.getTask().getTaskId();
+    LOGGER.info("The task {} is in a pending mode.Expected size: {}", taskId, expectedSize);
 
     if (expectedSize == 0) {
-      taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
+      taskStatusUpdater.setTaskDropped(taskId, "The task doesn't include any records");
       return;
     }
 
     selectKafkaQueue(parameters);
+    taskStatusUpdater.updateSubmitParameters(parameters);
 
     LOGGER.debug("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
-        parameters.getTask().getTaskId(), parameters.getTaskInfo().getTopologyName(), parameters.getTopicName(), parameters);
+        taskId, parameters.getTaskInfo().getTopologyName(), parameters.getTopicName(), parameters);
 
     Stream<String> recordsForDepublication = fetchRecordIdentifiers(parameters);
-    submitRecords(recordsForDepublication, parameters);
+    int sentRecordCount = submitRecords(recordsForDepublication, parameters);
+
+    if (sentRecordCount > 0) {
+      taskStatusUpdater.updateStatusExpectedSize(taskId, TaskState.QUEUED, sentRecordCount);
+      LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", sentRecordCount, taskId);
+    } else {
+      taskStatusUpdater.setTaskDropped(taskId, "The task was dropped because it is empty");
+      LOGGER.warn("The task id={} was dropped because it is empty.", taskId);
+    }
   }
 
-  private void submitRecords(Stream<String> recordsForDepublication, SubmitTaskParameters parameters) {
+  private int submitRecords(Stream<String> recordsForDepublication, SubmitTaskParameters parameters) {
+    long taskId = parameters.getTask().getTaskId();
+    AtomicInteger recordCounter = new AtomicInteger(0);
     recordsForDepublication.forEach(recordId -> {
       DpsRecord aRecord = DpsRecord.builder()
-                                   .taskId(parameters.getTask().getTaskId())
+                                   .taskId(taskId)
                                    .recordId(recordId)
                                    .build();
-      recordSubmitService.submitRecord(aRecord, parameters);
+      if (recordSubmitService.submitRecord(aRecord, parameters)) {
+        recordCounter.incrementAndGet();
+      }
     });
+    return recordCounter.get();
   }
 
   private void selectKafkaQueue(SubmitTaskParameters parameters) {
     String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
     parameters.setTopicName(preferredTopicName);
-    taskStatusUpdater.updateSubmitParameters(parameters);
   }
 
-  private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) throws TaskSubmissionException {
+  private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) {
     if (isRecordsDepublication(parameters)) {
       return Arrays.stream(
           parameters.getTask().getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(","));
-    } else if (isDatasetDepublication(parameters)) {
-      Indexer indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PREVIEW);
+    } else {
+      Indexer indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
       return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID),
           new Date());
-    } else {
-      throw new TaskSubmissionException("Unknown depublication task type");
     }
   }
 
@@ -107,16 +120,11 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
     DpsTask task = parameters.getTask();
     int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
     parameters.getTaskInfo().setExpectedRecordsNumber(expectedSize);
-    LOGGER.info("Evaluated size: {} for task id {}", expectedSize, task.getTaskId());
-    taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), TaskState.DEPUBLISHING, expectedSize);
+    LOGGER.info("Evaluated size: {} for task id: {}", expectedSize, task.getTaskId());
     return expectedSize;
   }
 
   private boolean isRecordsDepublication(SubmitTaskParameters parameters) {
     return parameters.getTask().getParameters().containsKey(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH);
-  }
-
-  private boolean isDatasetDepublication(SubmitTaskParameters parameters) {
-    return parameters.getTask().getParameters().containsKey(PluginParameterKeys.METIS_DATASET_ID);
   }
 }

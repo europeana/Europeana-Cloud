@@ -75,6 +75,7 @@ public class DpsTaskValidationForDepublicationTopologyTest {
 
     DpsTask dpsTask = new DpsTask();
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
+    dpsTask.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, "records");
 
     DpsTaskValidator validator =
         DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);

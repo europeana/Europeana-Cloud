@@ -4,7 +4,6 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
@@ -158,11 +157,6 @@ public class DPSServiceTestContext {
   @Bean
   public DepublicationTaskSubmitter depublicationTaskSubmitter() {
     return Mockito.mock(DepublicationTaskSubmitter.class);
-  }
-
-  @Bean
-  public DatasetDepublisher datasetDepublisher() {
-    return Mockito.mock(DatasetDepublisher.class);
   }
 
   @Bean

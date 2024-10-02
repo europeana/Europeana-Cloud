@@ -31,6 +31,7 @@ public enum TaskState {
   DROPPED("Task was dropped"),
   PROCESSED("Completely processed"),
   REMOVING_FROM_SOLR_AND_MONGO("Records are being removed from Solr and Mongo"),
+  @Deprecated //Since depublication is implemented as a topology the state is no longer used
   DEPUBLISHING("Depublishing"),
   READY_FOR_POST_PROCESSING("Ready for post-processing after topology stage is finished"),
   IN_POST_PROCESSING("Task in post-processing");
