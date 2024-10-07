@@ -2,17 +2,18 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 
 public class DepublicationFilesCounter extends FilesCounter {
 
-  private final DatasetDepublisher depublisher;
+  private final Indexer indexer;
 
-  public DepublicationFilesCounter(DatasetDepublisher depublisher) {
-    this.depublisher = depublisher;
+  public DepublicationFilesCounter(IndexWrapper indexWrapper) {
+    this.indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
   }
 
   @Override
@@ -29,7 +30,7 @@ public class DepublicationFilesCounter extends FilesCounter {
 
   private int calculateDatasetSize(DpsTask task) throws TaskSubmissionException {
     try {
-      long expectedSize = depublisher.getRecordsCount(SubmitTaskParameters.builder().task(task).build());
+      long expectedSize = indexer.countRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
 
       if (expectedSize > Integer.MAX_VALUE) {
         throw new TaskSubmissionException(

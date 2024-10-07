@@ -46,7 +46,7 @@ public class SubmitTaskParameters {
   private String topicName;
 
   /**
-   * Flag if task is submitted <code>false<code/> or restarted <code>true<code/>
+   * Flag if task is submitted <code>false</code> or restarted <code>true</code>
    */
   private boolean restarted;
 

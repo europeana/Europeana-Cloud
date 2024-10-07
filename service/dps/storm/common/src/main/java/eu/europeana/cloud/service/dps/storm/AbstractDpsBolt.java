@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -172,12 +173,20 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
+  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, Throwable e) {
+    emitErrorNotification(anchorTuple, stormTaskTuple, message,
+        e.getMessage() + ":\n" + ExceptionUtils.getStackTrace(e));
+  }
+
+  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message) {
+    emitErrorNotification(anchorTuple, stormTaskTuple, message, (String) null);
+  }
+
   protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
     NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.ERROR,
             message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
-
 
   protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
                                          String message, String additionalInformation,
@@ -189,6 +198,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
     NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
+  }
+
+  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+    emitSuccessNotification(anchorTuple, stormTaskTuple, "", "");
   }
 
   protected void emitIgnoredNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,

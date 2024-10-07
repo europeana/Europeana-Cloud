@@ -53,6 +53,7 @@ public final class TopologyHelper {
   public static final String EDM_OBJECT_PROCESSOR_BOLT = "EDMObjectProcessorBolt";
   public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
   public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
+  public static final String DEPUBLICATION_BOLT = "DepublicationBolt";
 
   private TopologyHelper() {
   }

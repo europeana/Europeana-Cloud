@@ -30,8 +30,7 @@ import org.springframework.stereotype.Service;
 public class UnfinishedTasksExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
-  protected static final List<TaskState> RESUMABLE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION,
-      TaskState.DEPUBLISHING);
+  protected static final List<TaskState> RESUMABLE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION);
 
   private final TasksByStateDAO tasksDAO;
   private final CassandraTaskInfoDAO taskInfoDAO;

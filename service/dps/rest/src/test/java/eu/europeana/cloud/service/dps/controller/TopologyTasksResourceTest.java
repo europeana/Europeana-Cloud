@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.controller;
 import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DEPUBLICATION_REASON;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.HARVEST_DATE;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_DATASET_ID;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.MIME_TYPE;
@@ -60,12 +61,12 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
-import eu.europeana.cloud.service.dps.depublish.DepublicationService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
+import eu.europeana.cloud.service.dps.services.submitters.DepublicationTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
@@ -115,23 +116,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class TopologyTasksResourceTest extends AbstractResourceTest {
 
   /* Endpoints */
-  private final static String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
-  private final static String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
-  private final static String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
+  private static final String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
+  private static final String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
+  private static final String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
 
   /* Constants */
-  private final static String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
-  private final static String DATASET_ID = "s1";
-  private final static String IMAGE_TIFF = "image/tiff";
-  private final static String IMAGE_JP2 = "image/jp2";
-  private final static String IC_TOPOLOGY = "ic_topology";
-  private final static String TASK_NAME = "TASK_NAME";
+  private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
+  private static final String DATASET_ID = "s1";
+  private static final String IMAGE_TIFF = "image/tiff";
+  private static final String IMAGE_JP2 = "image/jp2";
+  private static final String IC_TOPOLOGY = "ic_topology";
+  private static final String TASK_NAME = "TASK_NAME";
 
-  private final static String OAI_PMH_REPOSITORY_END_POINT = "https://example.com/oai-pmh-repository.xml";
-  private final static String HTTP_COMPRESSED_FILE_URL = "https://example.com/zipFile.zip";
-  private final static String WRONG_DATA_SET_URL = "https://wrongDataSet.com";
+  private static final String OAI_PMH_REPOSITORY_END_POINT = "https://example.com/oai-pmh-repository.xml";
+  private static final String HTTP_COMPRESSED_FILE_URL = "https://example.com/zipFile.zip";
+  private static final String WRONG_DATA_SET_URL = "https://wrongDataSet.com";
 
-  private final static String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
+  private static final String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
   public static final String SAMPLE_DATASET_METIS_ID = "sampleDS";
   public static final String SAMPLE_RECORD_LIST = "/1/item1,/1/item2";
 
@@ -147,14 +148,15 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
   private RecordServiceClient recordServiceClient;
   private TaskExecutionReportService reportService;
 
-  @Autowired
-  private DepublicationService depublicationService;
-
   public TopologyTasksResourceTest() {
     super();
   }
 
+  @Autowired
+  DepublicationTaskSubmitter depublicationTaskSubmitter;
+
   @Before
+  @Override
   public void init() throws MCSException {
     super.init();
 
@@ -175,7 +177,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
         dataSetServiceClient,
         recordKafkaSubmitService,
         reportService,
-        depublicationService
+        depublicationTaskSubmitter
     );
     when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
     when(dataSetServiceClient.datasetExists(PROVIDER_ID, DATASET_ID)).thenReturn(true);
@@ -807,7 +809,6 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
   @Test
   public void shouldKillTheTaskWhenPassingTheCauseOfKilling() throws Exception {
     String info = "The aggregator decided to do so";
-    //String info = "Dropped by the user";
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     ResultActions response = mockMvc.perform(
@@ -907,6 +908,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     prepareMocks(DEPUBLICATION_TOPOLOGY);
     DpsTask task = new DpsTask(TASK_NAME);
     task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
+    task.addParameter(DEPUBLICATION_REASON, "reason");
 
     sendTask(task, DEPUBLICATION_TOPOLOGY)
         .andExpect(status().isCreated());
@@ -954,12 +956,13 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     DpsTask task = new DpsTask(TASK_NAME);
     task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
     task.addParameter(RECORD_IDS_TO_DEPUBLISH, SAMPLE_RECORD_LIST);
+    task.addParameter(DEPUBLICATION_REASON, "reason");
 
     sendTask(task, DEPUBLICATION_TOPOLOGY)
         .andExpect(status().isCreated());
 
     ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
-    verify(depublicationService).depublishIndividualRecords(captor.capture());
+    verify(depublicationTaskSubmitter).submitTask(captor.capture());
     assertEquals(SAMPLE_DATASET_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
     assertEquals(SAMPLE_RECORD_LIST, captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
   }
@@ -969,12 +972,13 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     prepareMocks(DEPUBLICATION_TOPOLOGY);
     DpsTask task = new DpsTask(TASK_NAME);
     task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
+    task.addParameter(DEPUBLICATION_REASON, "reason");
 
     sendTask(task, DEPUBLICATION_TOPOLOGY)
         .andExpect(status().isCreated());
 
     ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
-    verify(depublicationService).depublishDataset(captor.capture());
+    verify(depublicationTaskSubmitter).submitTask(captor.capture());
     assertEquals(SAMPLE_DATASET_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
     assertNull(captor.getValue().getTask().getParameter(RECORD_IDS_TO_DEPUBLISH));
   }
