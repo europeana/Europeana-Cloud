@@ -184,6 +184,7 @@
         <version.bytebuddy>1.14.13</version.bytebuddy>
         <version.wiremock>3.4.2</version.wiremock>
         <version.zt-zip>1.16</version.zt-zip>
+        <version.netty>4.1.94.Final</version.netty>
 
         <version.jakarta.annotation>2.1.1</version.jakarta.annotation>
         <version.jakarta.xml.bind>4.0.1</version.jakarta.xml.bind>
