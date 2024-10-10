@@ -1,12 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS;
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS;
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT;
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT;
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
-import static java.util.function.Predicate.not;
-
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
@@ -20,22 +13,16 @@ import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.DatasetAssignment;
-import eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
+import java.util.*;
+
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.*;
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
+import static java.util.function.Predicate.not;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -80,34 +67,30 @@ public class CassandraDataSetService implements DataSetService {
     Representation rep = getRepresentation(recordId, schema, version)
         .orElseThrow(RepresentationNotExistsException::new);
 
-    if (!isAssignmentExists(providerId, dataSetId, recordId, schema, rep.getVersion())) {
+    if (!isAssignmentExists(dataSetId, recordId, schema, rep.getVersion())) {
       // now - when everything is validated - add assignment
       addAssignmentToMainTables(providerId, dataSetId, recordId, schema,
           rep.getVersion());
 
       for (Revision revision : rep.getRevisions()) {
-        addDataSetsRevision(providerId, dataSetId, revision,
+        addDataSetRevision(providerId, dataSetId, revision,
             schema, recordId, version);
       }
     }
   }
 
   @Override
-  public void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
+  public void updateAllRevisionDatasetsEntries(String cloudId, String schema, String version, Revision revision)
       throws RepresentationNotExistsException {
 
-    Representation rep = recordDAO.getRepresentation(globalId, schema, version);
+    Representation rep = recordDAO.getRepresentation(cloudId, schema, version);
     if (rep == null) {
       throw new RepresentationNotExistsException(schema);
     }
 
     // collect data sets the version is assigned to
-    Collection<CompoundDataSetId> dataSets = dataSetDAO.getDataSetAssignments(globalId, schema, version);
-
-    // now we have to insert rows for each data set
-    for (CompoundDataSetId dsID : dataSets) {
-      addDataSetsRevision(dsID.getDataSetProviderId(), dsID.getDataSetId(), revision, schema, globalId, version);
-    }
+    recordDAO.getRepresentationDatasetId(cloudId, schema)
+            .ifPresent(dataSetId -> addDataSetRevision(dataSetId.getDataSetProviderId(), dataSetId.getDataSetId(), revision, schema, cloudId, version));
   }
 
   /**
@@ -138,12 +121,10 @@ public class CassandraDataSetService implements DataSetService {
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
 
     dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId);
-
-    dataSetDAO.addAssignmentByRepresentationVersion(providerDataSetId, schema, recordId, versionId, now);
   }
 
-  public void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName,
-      String cloudId, String version_id) {
+  public void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName,
+                                 String cloudId, String versionId) {
     //
     String providerDataSetId = createProviderDataSetId(providerId, datasetId);
     Bucket bucket = bucketsHandler.getCurrentBucket(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, providerDataSetId);
@@ -153,7 +134,7 @@ public class CassandraDataSetService implements DataSetService {
     }
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
     //
-    dataSetDAO.addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, version_id);
+    dataSetDAO.addDataSetsRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, versionId);
   }
 
 
@@ -274,38 +255,17 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   @Override
-  public List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation)
+  public CompoundDataSetId getDatasetForRepresentationVersion(Representation representation)
       throws RepresentationNotExistsException {
-    return new ArrayList<>(
-        getDataSetAssignmentsByRepresentationVersion(
-            representation.getCloudId(),
-            representation.getRepresentationName(),
-            representation.getVersion())
-    );
+    return recordDAO.getRepresentationDatasetId(representation.getCloudId(), representation.getRepresentationName())
+            .orElseThrow(RepresentationNotExistsException::new);
   }
 
-  /**
-   * Returns data sets to which representation in specific version is assigned to.
-   *
-   * @param cloudId record id
-   * @param schemaId representation schema
-   * @param version representation version
-   * @return list of data set ids
-   */
-  public Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId,
-      String version)
-      throws NoHostAvailableException, QueryExecutionException, RepresentationNotExistsException {
-
-    if (version == null) {
-      throw new RepresentationNotExistsException();
-    }
-    return dataSetDAO.getDataSetAssignments(cloudId, schemaId, version);
-  }
 
 
   @Override
   public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) {
-    return dataSetDAO.getOneDataSetFor(cloudId, representationName);
+    return recordDAO.getRepresentationDatasetId(cloudId, representationName);
   }
 
   @Override
@@ -330,14 +290,11 @@ public class CassandraDataSetService implements DataSetService {
     Revision revision = new Revision(revisionName, revisionProviderId);
     revision.setCreationTimeStamp(revisionTimestamp);
 
-    Collection<CompoundDataSetId> compoundDataSetIds = getDataSetAssignmentsByRepresentationVersion(cloudId, representationName,
-        version);
-    for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+    recordDAO.getRepresentationDatasetId(cloudId, representationName)
+            .ifPresent(dataSetId ->
+                    removeDataSetsRevision(dataSetId.getDataSetProviderId(), dataSetId.getDataSetId(), revision, representationName, cloudId, version)
+            );
 
-      //data_set_assignments_by_revision_id_v2
-      removeDataSetsRevision(compoundDataSetId.getDataSetProviderId(), compoundDataSetId.getDataSetId(), revision,
-          representationName, cloudId, version);
-    }
 
     //representation revisions
     recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName,
@@ -350,13 +307,13 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName,
-      String cloudId, String version_id) {
+      String cloudId, String versionId) {
 
     List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(
         DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, createProviderDataSetId(providerId, datasetId));
 
     for (Bucket bucket : availableBuckets) {
-      if (dataSetDAO.removeDataSetRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, version_id)) {
+      if (dataSetDAO.removeDataSetRevision(providerId, datasetId, bucket.getBucketId(), revision, representationName, cloudId, versionId)) {
         bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, bucket);
         return;
       }
@@ -394,10 +351,8 @@ public class CassandraDataSetService implements DataSetService {
             dataSetDAO.getDataSetAssignments(id, bucket.getBucketId(), pagingState, localLimit));
   }
 
-  private boolean isAssignmentExists(String providerId, String dataSetId, String recordId, String schema, String version) {
-    String seekedIdString = PersistenceUtils.createProviderDataSetId(providerId, dataSetId);
-    CompoundDataSetId seekedId = PersistenceUtils.createCompoundDataSetId(seekedIdString);
-    return dataSetDAO.getDataSetAssignments(recordId, schema, version).contains(seekedId);
+  private boolean isAssignmentExists(String dataSetId, String recordId, String schema, String version) {
+    return recordDAO.getRepresentation(recordId, schema, version).getDatasetId().equals(dataSetId);
   }
 
   private Optional<Representation> getRepresentation(String recordId, String schema, String version) {
@@ -431,7 +386,6 @@ public class CassandraDataSetService implements DataSetService {
       if (dataSetDAO.removeDatasetAssignment(recordId, schema, versionId, providerDataSetId, bucket)) {
         // remove bucket count
         bucketsHandler.decreaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
-        dataSetDAO.removeAssignmentByRepresentation(providerDataSetId, recordId, schema, versionId);
         return;
       }
       bucket = bucketsHandler.getNextBucket(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, providerDataSetId, bucket);

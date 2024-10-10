@@ -6,12 +6,8 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.util.Collection;
+import eu.europeana.cloud.service.mcs.exception.*;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +50,7 @@ public interface DataSetService {
   void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
       throws DataSetNotExistsException, RepresentationNotExistsException;
 
-  void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
+  void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
 
@@ -187,10 +183,7 @@ public interface DataSetService {
   /**
    * @return
    */
-  List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation)
-      throws RepresentationNotExistsException;
-
-  Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
+  CompoundDataSetId getDatasetForRepresentationVersion(Representation representation)
       throws RepresentationNotExistsException;
 
   /**
