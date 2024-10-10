@@ -1,10 +1,12 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -18,6 +20,7 @@ import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.DepublicationFilesCounter;
@@ -57,6 +60,9 @@ public class DepublicationTaskSubmitterTest {
   private KafkaTopicSelector kafkaTopicSelector;
   @Mock
   private RecordSubmitService recordSubmitService;
+  @Mock
+  @SuppressWarnings("unused") //It is needed for @InjectMocks
+  private TaskStatusChecker taskStatusChecker;
 
   @InjectMocks
   private DepublicationTaskSubmitter submitter;
@@ -64,7 +70,6 @@ public class DepublicationTaskSubmitterTest {
   @Captor
   private ArgumentCaptor<SubmitTaskParameters> captore;
 
-  private final TaskInfo taskInfo = new TaskInfo();
   private DpsTask dpsTask;
   private SubmitTaskParameters parameters;
 
@@ -76,6 +81,9 @@ public class DepublicationTaskSubmitterTest {
     when(filesCounterFactory.createFilesCounter(any(), any())).thenReturn(filesCounter);
 
     when(kafkaTopicSelector.findPreferredTopicNameFor(any())).thenReturn(TOPIC_NAME);
+
+    TaskInfo taskInfo = new TaskInfo();
+    taskInfo.setExpectedRecordsNumber(UNKNOWN_EXPECTED_RECORDS_NUMBER);
 
     dpsTask = new DpsTask("taskName5");
     dpsTask.setTaskId(TASK_ID);
@@ -99,7 +107,7 @@ public class DepublicationTaskSubmitterTest {
     assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecordsNumber());
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_1)), eq(parameters));
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_2)), eq(parameters));
-    verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, 2);
+    verify(taskStatusUpdater).updateState(TASK_ID, TaskState.QUEUED);
   }
 
   @Test
@@ -117,27 +125,29 @@ public class DepublicationTaskSubmitterTest {
     assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecordsNumber());
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_1)), eq(parameters));
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_2)), eq(parameters));
-    verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, 2);
+    verify(taskStatusUpdater).updateState(TASK_ID, TaskState.QUEUED);
   }
 
-  @Test(expected = TaskSubmissionException.class)
-  public void shouldThrowExceptionWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException {
+  @Test
+  public void shouldDropTaskWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException {
     when(indexer.countRecords(DATASET_ID)).thenReturn(0L);
     dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
 
     submitter.submitTask(parameters);
+
+    verify(taskStatusUpdater).setTaskDropped(eq(TASK_ID), anyString());
+    verify(recordSubmitService, never()).submitRecord(any(), any());
   }
 
   @Test
-  public void shouldDropTaskWhenNoRecordSentToKafka() throws TaskSubmissionException, IndexingException {
-    when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
-    when(indexer.getRecordIds(eq(DATASET_ID), any())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+  public void shouldNotSentRecordsWhenTaskIsCanceled() {
     dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
-    when(recordSubmitService.submitRecord(any(), any())).thenReturn(false);
+    dpsTask.getParameters().put(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD_ID_1 + "," + RECORD_ID_2);
+    when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(true);
 
-    submitter.submitTask(parameters);
+    assertThrows(SubmitingTaskWasKilled.class, () -> submitter.submitTask(parameters));
 
-    verify(taskStatusUpdater).setTaskDropped(eq(TASK_ID), anyString());
+    verify(recordSubmitService, never()).submitRecord(any(), any());
   }
 
 }

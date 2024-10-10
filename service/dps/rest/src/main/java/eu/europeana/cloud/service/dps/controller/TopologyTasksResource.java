@@ -251,13 +251,15 @@ public class TopologyTasksResource {
                                                                         .sentTimestamp(sentTime)
                                                                         .startTimestamp(new Date())
                                                                         .finishTimestamp(null)
-                                                                        .expectedRecordsNumber(0)
+                                                                        .expectedRecordsNumber(
+                                                                            TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
                                                                         .processedRecordsCount(0)
                                                                         .ignoredRecordsCount(0)
                                                                         .deletedRecordsCount(0)
                                                                         .processedErrorsCount(0)
                                                                         .deletedErrorsCount(0)
-                                                                        .expectedPostProcessedRecordsNumber(-1)
+                                                                        .expectedPostProcessedRecordsNumber(
+                                                                            TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
                                                                         .postProcessedRecordsCount(0)
                                                                         .definition(taskJSON)
                                                                         .build()
