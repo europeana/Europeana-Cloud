@@ -6,10 +6,10 @@ import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.Role;
-import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
-import eu.europeana.cloud.service.mcs.DataSetService;
-import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationSuccessHandler;
+import eu.europeana.cloud.service.mcs.RecordService;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -131,8 +131,8 @@ public class AuthorizationConfiguration {
   }
 
   @Bean
-  DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
-      PermissionEvaluator permissionEvaluator) {
-    return new DataSetPermissionsVerifier(dataSetService, permissionEvaluator);
+  DataSetPermissionsVerifier dataSetPermissionsVerifier(RecordService recordService,
+                                                        PermissionEvaluator permissionEvaluator) {
+    return new DataSetPermissionsVerifier(permissionEvaluator, recordService);
   }
 }

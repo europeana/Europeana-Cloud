@@ -1,18 +1,10 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createCompoundDataSetId;
-import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
-
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PagingState;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
@@ -20,12 +12,10 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
+import java.util.*;
+
+import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
 
 /**
  * Data set repository that uses Cassandra nosql database.
@@ -44,19 +34,14 @@ public class CassandraDataSetDAO {
 
   public static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
-  private static final String PROVIDER_DATASET_ID = "provider_dataset_id";
   private final CassandraConnectionProvider connectionProvider;
   private PreparedStatement createDataSetStatement;
   private PreparedStatement deleteDataSetStatement;
   private PreparedStatement addAssignmentStatement;
-  private PreparedStatement addAssignmentByRepresentationStatement;
-  private PreparedStatement removeAssignmentByRepresentationsStatement;
   private PreparedStatement removeAssignmentStatement;
   private PreparedStatement listDataSetRepresentationsStatement;
   private PreparedStatement listDataSetsStatement;
   private PreparedStatement getDataSetStatement;
-  private PreparedStatement getDataSetsForRepresentationVersionStatement;
-  private PreparedStatement getOneDataSetForRepresentationStatement;
   private PreparedStatement addDataSetsRevisionStatement;
   private PreparedStatement getDataSetsRevisionStatement;
   private PreparedStatement removeDataSetsRevisionStatement;
@@ -115,22 +100,6 @@ public class CassandraDataSetDAO {
 
   }
 
-  /**
-   * Inserts new row to the <b><i>data_set_assignments_by_representations</i></b> table.
-   *
-   * @param providerDataSetId concatenated provider and datasetId
-   * @param schema  representation version
-   * @param recordId  cloud identifier
-   * @param versionId representation version
-   * @param timestamp time of assignment
-   */
-  public void addAssignmentByRepresentationVersion(String providerDataSetId, String schema, String recordId, UUID versionId,
-      Date timestamp) {
-    BoundStatement boundStatement = addAssignmentByRepresentationStatement.bind(recordId, schema, versionId, providerDataSetId,
-        timestamp);
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
 
   /**
    * Inserts new row to the <b><i>data_set_assignments_by_data_set</i></b> table.
@@ -152,58 +121,7 @@ public class CassandraDataSetDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-  /**
-   * Returns data sets to which representation is assigned to.
-   *
-   * @param cloudId record id
-   * @param schemaId representation schema
-   * @param version representation version (might be null)
-   * @return list of data set ids
-   *
-   * @throws NoHostAvailableException in case of Cassandra issues
-   * @throws QueryExecutionException in case of Cassandra issues
-   */
-  public Collection<CompoundDataSetId> getDataSetAssignments(String cloudId, String schemaId, String version)
-      throws NoHostAvailableException, QueryExecutionException {
 
-    BoundStatement boundStatement = getDataSetsForRepresentationVersionStatement.bind(
-        cloudId, schemaId, UUID.fromString(version));
-
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-    List<CompoundDataSetId> ids = new ArrayList<>();
-    for (Row r : rs) {
-      String providerDataSetId = r.getString(PROVIDER_DATASET_ID);
-      ids.add(createCompoundDataSetId(providerDataSetId));
-    }
-    return ids;
-  }
-
-  /**
-   * Returns one (first) data set to which representation (regardless version) is assigned to.
-   *
-   * @param cloudId record id
-   * @param schemaId representation schema
-   * @return one dataset
-   *
-   * @throws NoHostAvailableException in case of Cassandra issues
-   * @throws QueryExecutionException in case of Cassandra issues
-   */
-  public Optional<CompoundDataSetId> getOneDataSetFor(String cloudId, String schemaId)
-      throws NoHostAvailableException, QueryExecutionException {
-
-    BoundStatement boundStatement = getOneDataSetForRepresentationStatement.bind(cloudId, schemaId);
-
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-    Row row = rs.one();
-    if (row != null) {
-      String providerDataSetId = row.getString(PROVIDER_DATASET_ID);
-      return Optional.of(createCompoundDataSetId(providerDataSetId));
-    } else {
-      return Optional.empty();
-    }
-  }
 
   /**
    * Returns data set from specified provider with specified id. Throws exception when provider does not exist. Returns null if
@@ -252,20 +170,6 @@ public class CassandraDataSetDAO {
     return rs.wasApplied();
   }
 
-  /**
-   * Deletes row from <b><i>data_set_assignments_by_representations</i></b> table
-   * @param providerDataSetId concatenated providerId and datasetId
-   * @param cloudId cloud identifier
-   * @param schema  representation name
-   * @param versionId representation version
-   */
-  public void removeAssignmentByRepresentation(String providerDataSetId, String cloudId, String schema, String versionId) {
-    BoundStatement boundStatement = removeAssignmentByRepresentationsStatement.bind(
-        cloudId, schema, UUID.fromString(versionId), providerDataSetId);
-
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
 
   /**
    * Creates or updates data set for a provider.
@@ -443,12 +347,6 @@ public class CassandraDataSetDAO {
             "VALUES (?,?,?,?,?,?);"
     );
 
-    addAssignmentByRepresentationStatement = connectionProvider.getSession().prepare(
-        "INSERT " +
-            "INTO data_set_assignments_by_representations (cloud_id, schema_id, version_id, provider_dataset_id, creation_date) "
-            +
-            "VALUES (?,?,?,?,?);"
-    );
 
     removeAssignmentStatement = connectionProvider.getSession().prepare(
         "DELETE " +
@@ -456,11 +354,6 @@ public class CassandraDataSetDAO {
             "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;"
     );
 
-    removeAssignmentByRepresentationsStatement = connectionProvider.getSession().prepare(
-        "DELETE " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id = ? AND provider_dataset_id = ? IF EXISTS;"
-    );
 
     listDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
         "SELECT cloud_id, schema_id, version_id " +
@@ -482,17 +375,6 @@ public class CassandraDataSetDAO {
             "WHERE provider_id = ? AND dataset_id = ?;"
     );
 
-    getDataSetsForRepresentationVersionStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_dataset_id " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? AND version_id= ?;"
-    );
-
-    getOneDataSetForRepresentationStatement = connectionProvider.getSession().prepare(
-        "SELECT provider_dataset_id " +
-            "FROM data_set_assignments_by_representations " +
-            "WHERE cloud_id = ? AND schema_id = ? LIMIT 1;"
-    );
 
     addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
             "INSERT " +

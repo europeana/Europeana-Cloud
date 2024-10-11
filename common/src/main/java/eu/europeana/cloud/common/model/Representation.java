@@ -44,10 +44,23 @@ public class Representation {
    */
   private String version;
 
+  /*
+   * Identifier of the dataset this representation belongs to.
+   */
+  private String datasetId;
+
   /**
    * Uri to the history of all versions of this representation.
    */
   private URI allVersionsUri;
+
+  public String getDatasetId() {
+    return datasetId;
+  }
+
+  public void setDatasetId(String datasetId) {
+    this.datasetId = datasetId;
+  }
 
   /**
    * Self uri.
@@ -104,9 +117,10 @@ public class Representation {
    * @param revisions list of revisions assigned to the representation
    * @param persistent  boolean value indicating if representation is persistent
    * @param creationDate representation creation date
+   * @param datasetId dataset identifier
    */
   public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-      String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
+      String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId) {
     super();
     this.cloudId = cloudId;
     this.representationName = representationName;
@@ -118,8 +132,14 @@ public class Representation {
     this.revisions = revisions;
     this.persistent = persistent;
     this.creationDate = creationDate;
+    this.datasetId = datasetId;
   }
 
+
+  public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
+                        String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
+    this(cloudId, representationName, version, allVersionsUri, uri, dataProvider, files, revisions, persistent, creationDate, null);
+  }
 
   /**
    * Creates a new instance of this class.
@@ -130,7 +150,7 @@ public class Representation {
     this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
         representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
         cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(),
-        representation.getCreationDate());
+        representation.getCreationDate(), representation.getDatasetId());
   }
 
 

@@ -1,29 +1,13 @@
 package eu.europeana.cloud.service.mcs.controller;
 
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsCloudTagResultSlice;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +15,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsCloudTagResultSlice;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
@@ -77,7 +73,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
 
     // when
     ResultActions response = mockMvc.perform(
@@ -108,7 +104,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
 
     // when
     ResultActions response = mockMvc.perform(
@@ -162,9 +158,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     Mockito.when(uisHandler.getProvider(providerId)).thenReturn(new DataProvider());
     Mockito.when(uisHandler.existsProvider(providerId)).thenReturn(true);
     dataSetService.createDataSet(providerId, datasetId, "");
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
     // when
     ResultActions response = mockMvc.perform(
                                         get(dataSetWebTarget, providerId, datasetId, representationName, revisionName, revisionProviderId).
@@ -195,9 +191,9 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
     String cloudId = "cloudId";
     String cloudId2 = "cloudId2";
     String cloudId3 = "cloudId3";
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
-    dataSetService.addDataSetsRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId2, VERSION_ID);
+    dataSetService.addDataSetRevision(providerId, datasetId, revision, representationName, cloudId3, VERSION_ID);
 
     // when get first page (set page size to 1)
     ResultActions response = mockMvc.perform(
