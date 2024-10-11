@@ -27,7 +27,7 @@ CREATE TABLE data_set_assignments_by_data_set_buckets (
 
 
 
-CREATE TABLE representation_versions_v2 (
+CREATE TABLE representation_versions (
        cloud_id varchar,
        schema_id varchar,
        version_id timeuuid,

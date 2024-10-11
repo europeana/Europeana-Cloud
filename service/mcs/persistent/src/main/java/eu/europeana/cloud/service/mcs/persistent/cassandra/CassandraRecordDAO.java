@@ -566,62 +566,62 @@ public class CassandraRecordDAO {
 
     insertRepresentationStatement = session.prepare(
         "INSERT INTO " +
-            "representation_versions_v2 (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id) " +
+            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id) " +
             "VALUES (?,?,?,?,?,?, ?);"
     );
 
     getRepresentationVersionStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getRepresentationVersionDatasetProviderIdStatement = session.prepare(
             "SELECT dataset_id, provider_id" +
-                    " FROM representation_versions_v2 " +
+                    " FROM representation_versions " +
                     "WHERE cloud_id = ? AND schema_id = ? ;"
     );
 
     listRepresentationVersionsStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     listRepresentationVersionsAllSchemasStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions, dataset_id " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ?;"
     );
 
     persistRepresentationStatement = session.prepare(
-        "UPDATE representation_versions_v2 " +
+        "UPDATE representation_versions " +
             "SET persistent = TRUE, creation_date = ? " +
             "WHERE cloud_id = ? AND schema_id=? AND version_id = ?;"
     );
 
     insertFileStatement = session.prepare(
-        "UPDATE representation_versions_v2 " +
+        "UPDATE representation_versions " +
             "SET files[?] = ? " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     insertRevisionStatement = session.prepare(
-        "UPDATE representation_versions_v2 " +
+        "UPDATE representation_versions " +
             "SET revisions[?] = ? " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     removeFileStatement = session.prepare(
         "DELETE files[?] " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     removeRevisionFromRepresentationVersion = session.prepare(
         "DELETE revisions[?] " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
@@ -638,26 +638,26 @@ public class CassandraRecordDAO {
 
     getFilesStatement = session.prepare(
         "SELECT files " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getAllRepresentationsForRecordStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     deleteRepresentationStatement = session.prepare(
         "DELETE " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ?;"
     );
 
     deleteRepresentationVersionStatement = session.prepare(
         "DELETE " +
-            "FROM representation_versions_v2 " +
+            "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
