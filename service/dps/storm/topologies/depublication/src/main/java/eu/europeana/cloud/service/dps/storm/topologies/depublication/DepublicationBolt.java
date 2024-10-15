@@ -43,7 +43,7 @@ public class DepublicationBolt extends AbstractDpsBolt {
       if (removedSuccessfully) {
         cleanRecordInHarvestedRecordsTable(metisDatasetId, recordEuropeanaId);
         emitSuccessNotification(anchorTuple, stormTaskTuple);
-        LOGGER.info("The the record: {} successfully depublished.", recordEuropeanaId);
+        LOGGER.info("The the record: {} successfully depublished, because of: {}.", recordEuropeanaId, depublicationReason);
       } else {
         emitErrorNotification(anchorTuple, stormTaskTuple, "Record could not be depublished!",
             "Could not find the record: " + recordEuropeanaId);
