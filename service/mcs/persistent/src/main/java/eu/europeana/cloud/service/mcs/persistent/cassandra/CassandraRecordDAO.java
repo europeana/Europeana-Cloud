@@ -39,7 +39,7 @@ public class CassandraRecordDAO {
   private PreparedStatement deleteRepresentationVersionStatement;
   private PreparedStatement deleteRepresentationStatement;
   private PreparedStatement getRepresentationVersionStatement;
-  private PreparedStatement getRepresentationVersionDatasetProviderIdStatement;
+  private PreparedStatement getRepresentationDatasetIdAndProviderIdStatement;
   private PreparedStatement listRepresentationVersionsStatement;
   private PreparedStatement listRepresentationVersionsAllSchemasStatement;
   private PreparedStatement persistRepresentationStatement;
@@ -214,7 +214,7 @@ public class CassandraRecordDAO {
     if (cloudId == null || schema == null) {
       throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
     }
-    BoundStatement boundStatement = getRepresentationVersionDatasetProviderIdStatement.bind(cloudId, schema);
+    BoundStatement boundStatement = getRepresentationDatasetIdAndProviderIdStatement.bind(cloudId, schema);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 
     QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -576,10 +576,11 @@ public class CassandraRecordDAO {
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
-    getRepresentationVersionDatasetProviderIdStatement = session.prepare(
+    getRepresentationDatasetIdAndProviderIdStatement = session.prepare(
             "SELECT dataset_id, provider_id" +
                     " FROM representation_versions " +
-                    "WHERE cloud_id = ? AND schema_id = ? ;"
+                    "WHERE cloud_id = ? AND schema_id = ? " +
+                    "LIMIT 1;"
     );
 
     listRepresentationVersionsStatement = session.prepare(

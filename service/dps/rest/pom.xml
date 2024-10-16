@@ -279,9 +279,9 @@
             <version>${version.jackson}</version>
         </dependency>
       <dependency>
-        <groupId>javax.xml.bind</groupId>
-        <artifactId>jaxb-api</artifactId>
-        <version>${version.jaxb-api}</version>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+          <version>${version.jakarta.xml.bind}</version>
       </dependency>
       <dependency>
             <groupId>eu.europeana.metis</groupId>
@@ -346,7 +346,7 @@
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-          <version>${version.jakarta.xml.bind}</version>
+            <version>${version.jakarta.xml.bind}</version>
         </dependency>
 
         <!-- Runtime, com.sun.xml.bind module -->

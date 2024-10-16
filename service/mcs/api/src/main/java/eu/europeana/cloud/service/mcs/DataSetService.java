@@ -33,23 +33,6 @@ public interface DataSetService {
       throws DataSetNotExistsException;
 
 
-  /**
-   * Assigns a representation in predefined or latest version to a data set. Temporary representation may be added to a data set
-   * only if version is provided. If the same representation was already assigned to a data set, version of representation will be
-   * overwritten by provided in this method.
-   *
-   * @param providerId owner of data set
-   * @param dataSetId data set id
-   * @param recordId id of record
-   * @param schema schema name of representation
-   * @param version version of representatnion (if null, the latest persistent version is assigned to a data set)
-   * @throws DataSetNotExistsException if such data set not exists
-   * @throws RepresentationNotExistsException if such representation does not exist. May be also thrown if version is not provided
-   * and no persistent representation version exist for specified schema and record.
-   */
-  void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-      throws DataSetNotExistsException, RepresentationNotExistsException;
-
   void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
@@ -180,11 +163,6 @@ public interface DataSetService {
   void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
       throws RepresentationNotExistsException;
 
-  /**
-   * @return
-   */
-  CompoundDataSetId getDatasetForRepresentationVersion(Representation representation)
-      throws RepresentationNotExistsException;
 
   /**
    * Returns one (usually the first one from DB) for the given representation
