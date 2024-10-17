@@ -63,10 +63,7 @@ public final class TopologyHelper {
                           .workerCount(getIntegerProperty(topologyProperties, WORKER_COUNT))
                           .maxTaskParallelism(getIntegerProperty(topologyProperties, MAX_TASK_PARALLELISM))
                           .nimbusThriftPort(getIntegerProperty(topologyProperties, THRIFT_PORT))
-                          .inputZookeeperAddress(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS))
-                          .inputZookeeperPort(topologyProperties.getProperty(INPUT_ZOOKEEPER_PORT))
                           .nimbusSeeds(Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)))
-                          .stormZookeeperAddress(Collections.singletonList(topologyProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)))
                           .messageTimeoutInSeconds(getIntegerProperty(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS))
                           .maxSpoutPending(getIntegerProperty(topologyProperties, MAX_SPOUT_PENDING))
                           .spoutSleepMilliseconds(getIntegerProperty(topologyProperties, SPOUT_SLEEP_MS))
@@ -103,13 +100,7 @@ public final class TopologyHelper {
         spoutProperties.getMaxTaskParallelism());
     config.put(Config.NIMBUS_THRIFT_PORT,
         spoutProperties.getNimbusThriftPort());
-    config.put(topologyProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS),
-        spoutProperties.getInputZookeeperPort());
     config.put(Config.NIMBUS_SEEDS, spoutProperties.getNimbusSeeds());
-    config.put(Config.STORM_ZOOKEEPER_SERVERS,
-        spoutProperties.getStormZookeeperAddress());
-
-    config.put(Config.TOPOLOGY_BACKPRESSURE_ENABLE, true);
 
     config.setDebug(false);
     config.setMessageTimeoutSecs(getValue(spoutProperties.getMessageTimeoutInSeconds(), DEFAULT_TUPLE_PROCESSING_TIME));

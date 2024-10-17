@@ -14,10 +14,7 @@ public class SpoutProperties {
   private Integer workerCount;
   private Integer maxTaskParallelism;
   private Integer nimbusThriftPort;
-  private String inputZookeeperAddress;
-  private String inputZookeeperPort;
   private List<String> nimbusSeeds;
-  private List<String> stormZookeeperAddress;
   private Integer messageTimeoutInSeconds;
   private Integer maxSpoutPending;
   private Integer spoutSleepMilliseconds;
