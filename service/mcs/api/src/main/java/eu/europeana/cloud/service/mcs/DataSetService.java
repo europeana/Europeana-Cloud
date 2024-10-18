@@ -168,11 +168,10 @@ public interface DataSetService {
    * Returns one (usually the first one from DB) for the given representation
    *
    * @param cloudId cloud identifier to be used
-   * @param representationName representation name to be used
    * @return found data set
    * @throws RepresentationNotExistsException in case of non-existing representation version
    */
-  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
+  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId) throws RepresentationNotExistsException;
 
   public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }
