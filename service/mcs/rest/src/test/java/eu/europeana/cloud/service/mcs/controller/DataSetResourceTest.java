@@ -8,7 +8,10 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.S3TestHelper;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,6 +46,11 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
   private UISClientHandler uisHandler;
 
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.setUpTest();
+  }
+
   @Before
   public void mockUp() {
     dataProvider.setId("testprov");
@@ -56,7 +64,13 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
            .existsProvider(Mockito.anyString());
     dataSetService = applicationContext.getBean(DataSetService.class);
     recordService = applicationContext.getBean(RecordService.class);
+    S3TestHelper.cleanupAfterTest();
   }
+  @AfterClass
+  public static void cleanUp() {
+    S3TestHelper.cleanupAfterTests();
+  }
+
 
   @Test
   public void shouldUpdateDataset()

@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.utils.testcontexts;
 
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
-
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
@@ -20,8 +17,6 @@ import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import java.util.EnumMap;
-import java.util.Map;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,6 +24,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
+
+import java.util.EnumMap;
+import java.util.Map;
+
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static eu.europeana.cloud.test.S3TestHelper.S3TestConstants.*;
 
 @TestConfiguration
 public class CassandraBasedTestContext {
@@ -48,7 +50,11 @@ public class CassandraBasedTestContext {
   @Bean()
   @Order(100)
     public SimpleS3ConnectionProvider s3ConnectionProvider() {
-        return new SimpleS3ConnectionProvider("transient", "test_container", "", "test_user", "test_pwd");
+        return new SimpleS3ConnectionProvider(
+                S3_TEST_CONTAINER,
+                S3_TEST_ENDPOINT,
+                S3_TEST_USER,
+                S3_TEST_PASSWORD);
   }
 
   //mock

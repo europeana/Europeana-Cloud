@@ -9,10 +9,9 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
+import eu.europeana.cloud.test.S3TestHelper;
 import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +63,6 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   private static final String SAMPLE_PROVIDER_NAME = PROVIDER_ID;
   private static final String SAMPLE_DATASET_ID = DATA_SET_NAME;
   private static final String SAMPLE_REPRESENTATION_NAME_1 = "Sample_rep_1";
-  private static final String SAMPLE_REPRESENTATION_NAME_2 = "Sample_rep_2";
-  private static final String SAMPLE_REPRESENTATION_NAME_3 = "Sample_rep_3";
   private static final String SAMPLE_REVISION_NAME = "Revision_1";
   private static final String SAMPLE_REVISION_NAME2 = "Revision_2";
   private static final String SAMPLE_REVISION_PROVIDER = "Revision_Provider_1";
@@ -76,10 +73,20 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
   private static final int ASSIGNMENTS_COUNT = 1000;
 
-  @After
-  public void cleanUp() {
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.setUpTest();
+  }
+
+  @Before
+  public void cleanUpBeforeTest() {
+    S3TestHelper.cleanupAfterTest();
     Mockito.reset(uisHandler);
     Mockito.reset(dataSetDAO);
+  }
+  @AfterClass
+  public static void cleanUp() {
+    S3TestHelper.cleanupAfterTests();
   }
 
   @Test
