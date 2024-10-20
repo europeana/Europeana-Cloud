@@ -194,7 +194,7 @@
       <dependency>
         <groupId>jakarta.annotation</groupId>
         <artifactId>jakarta.annotation-api</artifactId>
-        <version>${version.jakarta.annotation}</version>
+        <version>${version.jakarta.annotation-api}</version>
       </dependency>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
