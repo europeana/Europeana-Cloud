@@ -62,6 +62,7 @@ public final class TopologyHelper {
     return SpoutProperties.builder()
                           .workerCount(getIntegerProperty(topologyProperties, WORKER_COUNT))
                           .maxTaskParallelism(getIntegerProperty(topologyProperties, MAX_TASK_PARALLELISM))
+                          .defaultMaximumParallelization(getIntegerProperty(topologyProperties, DEFAULT_MAXIMUM_PARALLELIZATION))
                           .nimbusThriftPort(getIntegerProperty(topologyProperties, THRIFT_PORT))
                           .nimbusSeeds(Collections.singletonList(topologyProperties.getProperty(NIMBUS_SEEDS)))
                           .messageTimeoutInSeconds(getIntegerProperty(topologyProperties, MESSAGE_TIMEOUT_IN_SECONDS))
@@ -96,8 +97,11 @@ public final class TopologyHelper {
     Config config = new Config();
 
     config.setNumWorkers(spoutProperties.getWorkerCount());
-    config.setMaxTaskParallelism(
-        spoutProperties.getMaxTaskParallelism());
+    if (spoutProperties.getMaxTaskParallelism() != null) {
+      config.setMaxTaskParallelism(
+          spoutProperties.getMaxTaskParallelism());
+    }
+
     config.put(Config.NIMBUS_THRIFT_PORT,
         spoutProperties.getNimbusThriftPort());
     config.put(Config.NIMBUS_SEEDS, spoutProperties.getNimbusSeeds());

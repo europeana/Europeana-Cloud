@@ -13,6 +13,7 @@ import lombok.Getter;
 public class SpoutProperties {
   private Integer workerCount;
   private Integer maxTaskParallelism;
+  private Integer defaultMaximumParallelization;
   private Integer nimbusThriftPort;
   private List<String> nimbusSeeds;
   private Integer messageTimeoutInSeconds;

@@ -19,7 +19,8 @@ public class MediaSpout extends ECloudSpout {
   public MediaSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig,
        SpoutProperties spoutProperties, CassandraProperties cassandraProperties) {
     super(topologyName, topic, kafkaSpoutConfig, cassandraProperties);
-    this.defaultMaximumParallelization = spoutProperties.getMaxTaskParallelism() != null ? String.valueOf(spoutProperties.getMaxTaskParallelism()) : null;
+    this.defaultMaximumParallelization = spoutProperties.getDefaultMaximumParallelization() != null ? String.valueOf(
+        spoutProperties.getDefaultMaximumParallelization()) : null;
   }
 
   @Override
