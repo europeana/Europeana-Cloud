@@ -20,6 +20,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import java.util.Properties;
 import org.apache.storm.Config;
@@ -43,6 +44,7 @@ public class ValidationTopology {
       String defaultValidationPropertiesFile, String providedValidationPropertiesFile) {
     PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
     PropertyFileLoader.loadPropertyFile(defaultValidationPropertiesFile, providedValidationPropertiesFile, validationProperties);
+    TopologyPropertiesValidator.validateFor(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties);
   }
 
 

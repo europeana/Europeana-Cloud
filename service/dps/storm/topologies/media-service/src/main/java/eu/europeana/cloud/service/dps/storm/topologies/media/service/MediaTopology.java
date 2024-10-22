@@ -29,6 +29,7 @@ import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
 import java.util.Properties;
 import org.apache.storm.Config;
@@ -47,6 +48,7 @@ public class MediaTopology {
 
   public MediaTopology(String defaultPropertyFile, String providedPropertyFile) {
     PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
+    TopologyPropertiesValidator.validateFor(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties);
   }
 
   public final StormTopology buildTopology() {
