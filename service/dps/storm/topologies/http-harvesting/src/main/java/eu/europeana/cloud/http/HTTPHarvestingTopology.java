@@ -48,8 +48,8 @@ public class HTTPHarvestingTopology {
             RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
         .addBolt(RECORD_CATEGORIZATION_BOLT,
             new HttpHarvestedRecordCategorizationBolt(createCassandraProperties(topologyProperties)),
-            RECORD_HARVESTING_BOLT_PARALLEL,
-            RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
+            CATEGORIZATION_BOLT_PARALLEL,
+            CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
         .addHarvestingWriteRecordBolt()
         .addRevisionWriterBoltForHarvesting()
         .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(

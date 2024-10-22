@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CATEGORIZATION_BOLT_NUMBER_OF_TASKS;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CATEGORIZATION_BOLT_PARALLEL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_NUMBER_OF_TASKS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_PARALLEL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
@@ -55,8 +57,8 @@ public class OAIPMHHarvestingTopology {
         .addBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(createCassandraProperties(topologyProperties)),
             RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
         .addBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(
-                createCassandraProperties(topologyProperties)), RECORD_HARVESTING_BOLT_PARALLEL,
-            RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
+                createCassandraProperties(topologyProperties)), CATEGORIZATION_BOLT_PARALLEL,
+            CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
         .addHarvestingWriteRecordBolt()
         .addRevisionWriterBoltForHarvesting()
         .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
