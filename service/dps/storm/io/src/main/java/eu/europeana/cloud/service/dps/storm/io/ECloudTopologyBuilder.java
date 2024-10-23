@@ -62,6 +62,7 @@ public class ECloudTopologyBuilder {
     rawBuilder = new TopologyBuilder();
     spoutNames = prepareSpouts(topologyProperties, topologyName);
     notificationBolt = prepareNotificationBolt(topologyProperties);
+    TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames, notificationBolt);
   }
 
   public ECloudTopologyBuilder addReadFileBolt() {
