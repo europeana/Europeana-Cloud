@@ -66,7 +66,7 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
     DataSetPermissionsVerifier dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
     Mockito.reset(recordService);
 
-    when(cassandraRecordDAO.getRepresentationDatasetId(any()))
+    when(cassandraRecordDAO.getRepresentationDatasetId(any(), any()))
         .thenReturn(Optional.of(new CompoundDataSetId("dsProvId", "datasetId")));
 
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(any());

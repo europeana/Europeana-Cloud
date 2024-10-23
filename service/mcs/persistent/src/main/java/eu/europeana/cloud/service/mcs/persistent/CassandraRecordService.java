@@ -155,7 +155,7 @@ public class CassandraRecordService implements RecordService {
     }
 
     //
-    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId);
+    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
     if (oneDatasetFor.isPresent()) {
       if (!oneDatasetFor.get().equals(new CompoundDataSetId(providerId, dataSetId))) {
         LOGGER.error("DataSetId provided and recordId doesn't match. It should never happen");
