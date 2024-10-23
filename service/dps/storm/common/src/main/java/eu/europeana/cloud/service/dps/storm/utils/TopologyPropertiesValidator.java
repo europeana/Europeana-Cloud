@@ -168,12 +168,10 @@ public final class TopologyPropertiesValidator {
     validateRequired(properties, MCS_URL);
     validateRequired(properties, UIS_URL);
 
-    validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, INDEXING_BOLT_PARALLEL);
     validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
-    validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, INDEXING_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
