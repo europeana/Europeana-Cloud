@@ -4,6 +4,9 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 
 import java.util.Properties;
 
+/**
+ * Validates topologies configurations
+ */
 public final class TopologyPropertiesValidator {
 
   private static final String ERROR_MESSAGE = "Missing topology property: ";
@@ -12,16 +15,18 @@ public final class TopologyPropertiesValidator {
   private TopologyPropertiesValidator() {
   }
 
+  /**
+   * Validates configuration properties for the given topology name.
+   * @param topologyName - topology name
+   * @param properties - configuration properties
+   */
   public static void validateFor(String topologyName, Properties properties) {
     switch (topologyName) {
-      case TopologiesNames.HTTP_TOPOLOGY:
+      case TopologiesNames.HTTP_TOPOLOGY, TopologiesNames.OAI_TOPOLOGY:
         validateHarvestingTopology(properties);
         break;
       case TopologiesNames.XSLT_TOPOLOGY:
         validateForXsltTopology(properties);
-        break;
-      case TopologiesNames.OAI_TOPOLOGY:
-        validateHarvestingTopology(properties);
         break;
       case TopologiesNames.VALIDATION_TOPOLOGY:
         validateValidationTopology(properties);
