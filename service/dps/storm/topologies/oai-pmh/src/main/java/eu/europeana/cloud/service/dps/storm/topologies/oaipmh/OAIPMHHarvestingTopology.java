@@ -18,7 +18,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCa
 
 import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
@@ -55,7 +55,7 @@ public class OAIPMHHarvestingTopology {
    * @return created topology definition
    */
   public final StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.OAI_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.OAI_TOPOLOGY, topologyProperties)
         .addBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(createCassandraProperties(topologyProperties)),
             RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
         .addBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(
@@ -69,7 +69,7 @@ public class OAIPMHHarvestingTopology {
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
             DUPLICATES_BOLT_NUMBER_OF_TASKS, NotificationTuple.TASK_ID_FIELD_NAME)
-        .build();
+        .buildTopology();
   }
 
   /**

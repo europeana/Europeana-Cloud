@@ -14,7 +14,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
@@ -46,7 +46,7 @@ public final class IndexingTopology {
   }
 
   private StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
         .addReadFileBolt()
         .addBolt(INDEXING_BOLT, new IndexingBolt(
             createCassandraProperties(topologyProperties),
@@ -61,7 +61,7 @@ public final class IndexingTopology {
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
                 SUCCESS_MESSAGE),
             REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS)
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {

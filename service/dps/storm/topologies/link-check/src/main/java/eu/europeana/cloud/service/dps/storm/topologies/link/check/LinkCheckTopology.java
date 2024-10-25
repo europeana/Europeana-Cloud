@@ -14,7 +14,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildCon
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -41,14 +41,14 @@ public class LinkCheckTopology {
   }
 
   public final StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties)
         .addBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(createCassandraProperties(topologyProperties),
                 topologyProperties.getProperty(MCS_URL), topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), PARSE_FILE_BOLT_PARALLEL,
             PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
         .addBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),
             LINK_CHECK_BOLT_PARALLEL, LINK_CHECK_BOLT_NUMBER_OF_TASKS, StormTupleKeys.INPUT_FILES_TUPLE_KEY)
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {

@@ -8,7 +8,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildCon
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
@@ -32,13 +32,13 @@ public class NormalizationTopology {
   }
 
   public StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
         .addReadFileBolt()
         .addBolt(NORMALIZATION_BOLT, new NormalizationBolt(createCassandraProperties(topologyProperties)),
             NORMALIZATION_BOLT_PARALLEL, NORMALIZATION_BOLT_NUMBER_OF_TASKS)
         .addWriteRecordBolt()
         .addRevisionWriterBolt()
-        .build();
+        .buildTopology();
   }
 
   public static void main(String... args) {

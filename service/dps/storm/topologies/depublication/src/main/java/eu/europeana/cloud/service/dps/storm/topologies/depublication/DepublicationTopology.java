@@ -7,7 +7,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.DEPUBLIC
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
@@ -56,9 +56,9 @@ public class DepublicationTopology {
   }
 
   public final StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
         .addBolt(DEPUBLICATION_BOLT, new DepublicationBolt(createCassandraProperties(topologyProperties), indexingProperties),
             DEPUBLICATION_BOLT_PARALLEL, DEPUBLICATION_BOLT_NUMBER_OF_TASKS)
-        .build();
+        .buildTopology();
   }
 }

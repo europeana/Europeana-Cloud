@@ -7,7 +7,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.XSLT_BOL
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt.XsltBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -39,13 +39,13 @@ public class XSLTTopology {
   }
 
   public StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.XSLT_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.XSLT_TOPOLOGY, topologyProperties)
         .addReadFileBolt()
         .addBolt(XSLT_BOLT, new XsltBolt(createCassandraProperties(topologyProperties)),
             XSLT_BOLT_PARALLEL, XSLT_BOLT_NUMBER_OF_TASKS)
         .addWriteRecordBolt()
         .addRevisionWriterBolt()
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {

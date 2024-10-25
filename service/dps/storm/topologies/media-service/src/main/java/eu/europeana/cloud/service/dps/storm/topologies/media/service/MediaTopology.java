@@ -25,7 +25,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RESOURCE
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -80,7 +80,7 @@ public class MediaTopology {
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
-    return new ECloudTopologyBuilder(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties)
         .addBolt(EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt, EDM_OBJECT_PROCESSOR_BOLT_PARALLEL,
             EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
         .addBolt(PARSE_FILE_BOLT, parseFileBolt, PARSE_FILE_BOLT_PARALLEL, PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
@@ -92,7 +92,7 @@ public class MediaTopology {
             INPUT_FILES_TUPLE_KEY)
         .addWriteRecordBolt()
         .addRevisionWriterBolt()
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {

@@ -38,7 +38,7 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 
 /**
- * Builder for ECloud topologies. The builder always add ECloudSpouts - based on configuration and NotificationBolt. Rest of bolts
+ * Class for assembling ECloud topologies. It always adds ECloudSpouts - based on configuration and NotificationBolt. Rest of bolts
  * could add using add* methods, important is to execute these methods in the same order, as the bolts should be in the topology
  * graph. Automatically is created grouping between spout and first bolt, between subsequent bolts, and between all the nodes
  * (spouts and bolts) and the NotificationBolt. The class internally use TopologyBuilder from Storm library, which is more general
@@ -46,26 +46,36 @@ import org.apache.storm.tuple.Fields;
  * of configuring them using the mentioned Storm general builder. Because all the eCloud topologies have similar structure,
  * most of the code could be unified.
  */
-public class ECloudTopologyBuilder {
+public class ECloudTopologyPipeline {
 
   private final Properties topologyProperties;
-  private final TopologyBuilder rawBuilder;
+  private final TopologyBuilder topologyBuilder;
 
   private final BoltDeclarer notificationBolt;
   private final List<String> spoutNames;
   private String lastBoltName;
   private BoltDeclarer lastBolt;
 
-  public ECloudTopologyBuilder(String topologyName, Properties topologyProperties) {
-    this.topologyProperties = topologyProperties;
+  /**
+   * Constructor
+   *
+   * @param topologyName - name of the topology used as key, and seen in UI.
+   * @param topologyProperties - properties with the configuration
+   */
+  public ECloudTopologyPipeline(String topologyName, Properties topologyProperties) {
+    this.topologyProperties = (Properties) topologyProperties.clone();
     createCassandraProperties(topologyProperties);
-    rawBuilder = new TopologyBuilder();
+    topologyBuilder = new TopologyBuilder();
     spoutNames = prepareSpouts(topologyProperties, topologyName);
     notificationBolt = prepareNotificationBolt(topologyProperties);
     TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames, notificationBolt);
   }
 
-  public ECloudTopologyBuilder addReadFileBolt() {
+  /**
+   * Adds ReadFileBolt to the pipeline
+   * @return this
+   */
+  public ECloudTopologyPipeline addReadFileBolt() {
     ReadFileBolt readFileBolt = new ReadFileBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
@@ -77,7 +87,11 @@ public class ECloudTopologyBuilder {
     return this;
   }
 
-  public ECloudTopologyBuilder addWriteRecordBolt() {
+  /**
+   * Adds WriteRecordBolt to the pipeline
+   * @return this
+   */
+  public ECloudTopologyPipeline addWriteRecordBolt() {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
@@ -88,7 +102,11 @@ public class ECloudTopologyBuilder {
     return this;
   }
 
-  public ECloudTopologyBuilder addHarvestingWriteRecordBolt() {
+  /**
+   * Adds HarvestingWriteRecordBolt to the pipeline
+   * @return this
+   */
+  public ECloudTopologyPipeline addHarvestingWriteRecordBolt() {
     WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
@@ -100,7 +118,11 @@ public class ECloudTopologyBuilder {
     return this;
   }
 
-  public ECloudTopologyBuilder addRevisionWriterBolt() {
+  /**
+   * Adds RevisionWriterBolt to the pipeline
+   * @return this
+   */
+  public ECloudTopologyPipeline addRevisionWriterBolt() {
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
@@ -111,7 +133,11 @@ public class ECloudTopologyBuilder {
     return this;
   }
 
-  public ECloudTopologyBuilder addRevisionWriterBoltForHarvesting() {
+  /**
+   * Adds RevisionWriterBoltForHarvesting to the pipeline
+   * @return this
+   */
+  public ECloudTopologyPipeline addRevisionWriterBoltForHarvesting() {
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
@@ -132,9 +158,9 @@ public class ECloudTopologyBuilder {
    * @param taskCountParamName - name of the parameter defining number of bolt tasks, from the topology properties
    * @return this builder
    */
-  public ECloudTopologyBuilder addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName) {
-    BoltDeclarer declarer = rawBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
-                                      .setNumTasks(getIntProperty(taskCountParamName));
+  public ECloudTopologyPipeline addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName) {
+    BoltDeclarer declarer = topologyBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
+                                           .setNumTasks(getIntProperty(taskCountParamName));
     if (lastBoltName != null) {
       declarer.customGrouping(lastBoltName, new ShuffleGrouping());
     } else {
@@ -157,10 +183,10 @@ public class ECloudTopologyBuilder {
    * @param groupingFieldName - name of the field used by FieldGrouping
    * @return - this builder
    */
-  public ECloudTopologyBuilder addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName,
+  public ECloudTopologyPipeline addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName,
       String groupingFieldName) {
-    BoltDeclarer declarer = rawBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
-                                      .setNumTasks(getIntProperty(taskCountParamName));
+    BoltDeclarer declarer = topologyBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
+                                           .setNumTasks(getIntProperty(taskCountParamName));
     if (lastBoltName != null) {
       declarer.fieldsGrouping(lastBoltName, new Fields(groupingFieldName));
     } else {
@@ -173,8 +199,12 @@ public class ECloudTopologyBuilder {
     return this;
   }
 
-  public StormTopology build() {
-    return rawBuilder.createTopology();
+  /**
+   * Builds the topology. Note that bolts are in the same order in the topology as they were added to this pipeline!
+   * @return built topology
+   */
+  public StormTopology buildTopology() {
+    return topologyBuilder.createTopology();
   }
 
   /**
@@ -185,25 +215,25 @@ public class ECloudTopologyBuilder {
    * @param groupingFieldName - name of the field used by FieldGrouping
    * @return - this builder
    */
-  public ECloudTopologyBuilder withAdditionalFieldGrouping(String sourceBoltName, String streamName, String groupingFieldName) {
+  public ECloudTopologyPipeline withAdditionalFieldGrouping(String sourceBoltName, String streamName, String groupingFieldName) {
     lastBolt.fieldsGrouping(sourceBoltName, streamName, new Fields(groupingFieldName));
     return this;
   }
 
   private BoltDeclarer prepareNotificationBolt(Properties topologyProperties) {
-    return rawBuilder.setBolt(NOTIFICATION_BOLT,
+    return topologyBuilder.setBolt(NOTIFICATION_BOLT,
                          new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
                              getIntProperty(CASSANDRA_PORT),
                              topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
                              topologyProperties.getProperty(CASSANDRA_USERNAME),
                              topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                          getIntProperty(NOTIFICATION_BOLT_PARALLEL))
-                     .setNumTasks(
+                          .setNumTasks(
                          getIntProperty(NOTIFICATION_BOLT_NUMBER_OF_TASKS));
   }
 
   private List<String> prepareSpouts(Properties topologyProperties, String topologyName) {
-    return TopologyHelper.addSpouts(rawBuilder, topologyName, topologyProperties);
+    return TopologyHelper.addSpouts(topologyBuilder, topologyName, topologyProperties);
   }
 
   private int getIntProperty(String propertyName) {

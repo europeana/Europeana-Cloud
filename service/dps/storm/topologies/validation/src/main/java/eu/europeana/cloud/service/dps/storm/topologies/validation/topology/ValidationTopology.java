@@ -15,7 +15,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.VALIDATI
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
@@ -49,7 +49,7 @@ public class ValidationTopology {
 
 
   public final StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties)
         .addReadFileBolt()
         .addBolt(VALIDATION_BOLT, new ValidationBolt(createCassandraProperties(topologyProperties), validationProperties),
             VALIDATION_BOLT_PARALLEL, VALIDATION_BOLT_NUMBER_OF_TASKS)
@@ -59,7 +59,7 @@ public class ValidationTopology {
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
             STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
         .addRevisionWriterBolt()
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {

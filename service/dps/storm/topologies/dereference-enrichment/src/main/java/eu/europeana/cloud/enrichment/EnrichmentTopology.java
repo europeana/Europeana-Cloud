@@ -12,7 +12,7 @@ import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildCon
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
 
 import eu.europeana.cloud.enrichment.bolts.EnrichmentBolt;
-import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyBuilder;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
@@ -38,7 +38,7 @@ public class EnrichmentTopology {
   }
 
   public StormTopology buildTopology() {
-    return new ECloudTopologyBuilder(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
         .addReadFileBolt()
         .addBolt(ENRICHMENT_BOLT, new EnrichmentBolt(createCassandraProperties(topologyProperties),
                 topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
@@ -49,7 +49,7 @@ public class EnrichmentTopology {
         )
         .addWriteRecordBolt()
         .addRevisionWriterBolt()
-        .build();
+        .buildTopology();
   }
 
   public static void main(String[] args) {
