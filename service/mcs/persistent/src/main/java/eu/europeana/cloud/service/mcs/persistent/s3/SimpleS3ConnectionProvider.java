@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.net.URI;
@@ -38,7 +39,10 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
     try {
       this.s3Client = S3Client.builder()
               .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-              .endpointOverride(URI.create(endpoint)) // Optional for custom endpoints
+              .endpointOverride(URI.create(endpoint))
+              .serviceConfiguration(S3Configuration.builder()
+                      .pathStyleAccessEnabled(true)
+                      .build())
               .build();
       LOGGER.info("Connected to S3 bucket: {}", container);
   } catch (S3Exception e) {
