@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import com.google.common.io.ByteSource;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -28,10 +27,14 @@ public class S3ContentDAO implements ContentDAO {
   private static final String S3_OBJECT_OPERATION_LOG_ATTRIBUTE = "s3ObjectOperation";
   private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
 
-  private static final Logger S3_MODIFICATIONS_LOGGER = LoggerFactory.getLogger("S3Modifications");
+  private static final Logger LOGGER_S3_MODIFICATIONS = LoggerFactory.getLogger("S3Modifications");
 
   private final S3ConnectionProvider connectionProvider;
 
+  /**
+   * Constructor for S3ContentDAO
+   * @param connectionProvider S3ConnectionProvider to be used
+   */
   public S3ContentDAO(S3ConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }
@@ -41,8 +44,8 @@ public class S3ContentDAO implements ContentDAO {
     S3Client s3Client = connectionProvider.getS3Client();
     logOperation(fileName, "PUT");
     String container = connectionProvider.getContainer();
-    ByteSource byteSource = ByteSource.wrap(IOUtils.toByteArray(data));
-    String md5 = DigestUtils.md5Hex(IOUtils.toByteArray(byteSource.openStream()));
+    byte[] content = IOUtils.toByteArray(data);
+    String md5 = DigestUtils.md5Hex(content);
 
     PutObjectRequest putRequest = PutObjectRequest.builder()
             .bucket(container)
@@ -50,8 +53,8 @@ public class S3ContentDAO implements ContentDAO {
             .contentMD5(md5)
             .build();
 
-    s3Client.putObject(putRequest, RequestBody.fromBytes(byteSource.read()));
-    return new PutResult(md5, byteSource.size());
+    s3Client.putObject(putRequest, RequestBody.fromBytes(content));
+    return new PutResult(md5, (long) content.length);
   }
 
   @Override
@@ -151,8 +154,8 @@ public class S3ContentDAO implements ContentDAO {
     try {
       MDC.put(S3_OBJECT_OPERATION_LOG_ATTRIBUTE, operation);
       MDC.put(S3_OBJECT_NAME_LOG_ATTRIBUTE, fileName);
-      if (S3_MODIFICATIONS_LOGGER.isInfoEnabled()) {
-        S3_MODIFICATIONS_LOGGER.info("Executed: {} on S3 for file: {}",
+      if (LOGGER_S3_MODIFICATIONS.isInfoEnabled()) {
+        LOGGER_S3_MODIFICATIONS.info("Executed: {} on S3 for file: {}",
                 LogMessageCleaner.clean(operation),
                 LogMessageCleaner.clean(fileName));
       }
