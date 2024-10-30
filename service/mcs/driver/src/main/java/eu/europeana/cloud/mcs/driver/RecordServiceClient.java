@@ -13,6 +13,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
@@ -22,6 +23,7 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
@@ -505,6 +507,40 @@ public class RecordServiceClient extends MCSClient {
         () -> passLogContext(client
             .target(baseUrl)
             .path(REPRESENTATION_REVISIONS_RESOURCE)
+            .resolveTemplate(CLOUD_ID, cloudId)
+            .resolveTemplate(REPRESENTATION_NAME, representationName)
+            .resolveTemplate(REVISION_NAME, revision.getRevisionName())
+            .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
+            .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
+            .request())
+            .get()
+    );
+  }
+
+  /**
+   * Returns raw revisions for the specified representation
+   * <p/>
+   * If Version = LATEST, will redirect to actual latest persistent version at the moment of invoking this method.
+   *
+   * @param cloudId id of the record to get representation from (required)
+   * @param representationName name of the representation (required)
+   * @param revision the revision (required) (revisionProviderId is required)
+   * @return requested representation raw revisions
+   * @throws RepresentationNotExistsException if specified representation does not exist
+   * @throws MCSException on unexpected situations
+   */
+  public List<RepresentationRevisionResponse> getRepresentationRawRevisions(String cloudId, String representationName, Revision revision)
+      throws MCSException {
+
+    if (revision.getRevisionProviderId() == null) {
+      throw new MCSException("RevisionProviderId is required");
+    }
+
+    return manageResponse(new ResponseParams<>(new GenericType<>() {
+        }),
+        () -> passLogContext(client
+            .target(baseUrl)
+            .path(REPRESENTATION_RAW_REVISIONS_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(REVISION_NAME, revision.getRevisionName())
