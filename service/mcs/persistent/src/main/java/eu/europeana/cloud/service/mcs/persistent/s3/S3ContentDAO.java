@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Base64;
 
 /**
  * Provides DAO operations for S3.
@@ -45,7 +46,7 @@ public class S3ContentDAO implements ContentDAO {
     logOperation(fileName, "PUT");
     String container = connectionProvider.getContainer();
     byte[] content = IOUtils.toByteArray(data);
-    String md5 = DigestUtils.md5Hex(content);
+    String md5 = Base64.getEncoder().encodeToString(DigestUtils.md5(content));
 
     PutObjectRequest putRequest = PutObjectRequest.builder()
             .bucket(container)
