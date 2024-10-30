@@ -3,6 +3,7 @@ package eu.europeana.cloud.harvesting;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -67,8 +68,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     try {
       Representation representation = extractRepresentationInfoFromTuple(tuple);
-      List<Representation> representations = findRepresentationsWithSameRevision(tuple, representation);
-      if (representationsWithSameRevisionExists(representations)) {
+      List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(tuple, representation);
+      if (representationsWithSameRevisionExists(representationRevisions)) {
         handleDuplicatedRepresentation(anchorTuple, tuple, representation);
         return;
       }
@@ -113,9 +114,9 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         tuple.getRevisionToBeApplied());
   }
 
-  private List<Representation> findRepresentationsWithSameRevision(StormTaskTuple tuple, Representation representation)
+  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(StormTaskTuple tuple, Representation representation)
       throws MCSException {
-    return recordServiceClient.getRepresentationsByRevision(
+    return recordServiceClient.getRepresentationRawRevisions(
         representation.getCloudId(), representation.getRepresentationName(),
         new Revision(
             tuple.getRevisionToBeApplied().getRevisionName(),
@@ -125,8 +126,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     );
   }
 
-  private boolean representationsWithSameRevisionExists(List<Representation> representations) {
-    return representations.size() > 1;
+  private boolean representationsWithSameRevisionExists(List<RepresentationRevisionResponse> representationRevisions) {
+    return representationRevisions.size() > 1;
   }
 
   private Representation extractRepresentationInfoFromTuple(StormTaskTuple tuple) throws MalformedURLException, MCSException {

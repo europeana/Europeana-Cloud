@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
 
 import eu.europeana.cloud.common.model.Representation;
@@ -18,7 +19,6 @@ import org.joda.time.DateTimeZone;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Resource to manage representations.
  */
 @RestController
-@RequestMapping(REPRESENTATION_REVISIONS_RESOURCE)
 public class RepresentationRevisionsResource {
 
 
@@ -50,7 +49,7 @@ public class RepresentationRevisionsResource {
    * @throws RepresentationNotExistsException when representation doesn't exist
    * @summary get a representation response object
    */
-  @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @GetMapping(path = REPRESENTATION_REVISIONS_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public RepresentationsListWrapper getRepresentationRevisions(
       HttpServletRequest httpServletRequest,
       @PathVariable("cloudId") String cloudId,
@@ -59,28 +58,48 @@ public class RepresentationRevisionsResource {
       @RequestParam("revisionProviderId") String revisionProviderId,
       @RequestParam(value="revisionTimestamp", required = false) String revisionTimestamp) throws RepresentationNotExistsException {
 
+    Date revisionDate = parseRevisionTimestamp(revisionTimestamp);
+    List<RepresentationRevisionResponse> info =
+        recordService.getRepresentationRevisions(cloudId, representationName, revisionProviderId, revisionName, revisionDate);
+
+    List<Representation> representations = new ArrayList<>();
+    for (RepresentationRevisionResponse representationRevisionsResource : info) {
+      Representation representation;
+      representation = recordService.getRepresentation(
+          representationRevisionsResource.getCloudId(),
+          representationRevisionsResource.getRepresentationName(),
+          representationRevisionsResource.getVersion());
+      EnrichUriUtil.enrich(httpServletRequest, representation);
+      representations.add(representation);
+    }
+
+    return new RepresentationsListWrapper(representations);
+  }
+
+  @GetMapping(path = REPRESENTATION_RAW_REVISIONS_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  public List<RepresentationRevisionResponse> getRepresentationRawRevisions(
+      HttpServletRequest httpServletRequest,
+      @PathVariable("cloudId") String cloudId,
+      @PathVariable("representationName") String representationName,
+      @PathVariable("revisionName") String revisionName,
+      @RequestParam("revisionProviderId") String revisionProviderId,
+      @RequestParam(value = "revisionTimestamp", required = false) String revisionTimestamp) {
+
+    List<RepresentationRevisionResponse> result = recordService.getRepresentationRevisions(cloudId,
+        representationName, revisionProviderId, revisionName, parseRevisionTimestamp(revisionTimestamp));
+
+    for (RepresentationRevisionResponse response : result) {
+      EnrichUriUtil.enrich(httpServletRequest, response);
+    }
+    return result;
+  }
+
+  private static Date parseRevisionTimestamp(String revisionTimestamp) {
     Date revisionDate = null;
     if (revisionTimestamp != null) {
       DateTime utc = new DateTime(revisionTimestamp, DateTimeZone.UTC);
       revisionDate = utc.toDate();
     }
-    List<RepresentationRevisionResponse> info =
-        recordService.getRepresentationRevisions(cloudId, representationName, revisionProviderId, revisionName, revisionDate);
-    List<Representation> representations = new ArrayList<>();
-    if (info != null) {
-      for (RepresentationRevisionResponse representationRevisionsResource : info) {
-        Representation representation;
-        representation = recordService.getRepresentation(
-            representationRevisionsResource.getCloudId(),
-            representationRevisionsResource.getRepresentationName(),
-            representationRevisionsResource.getVersion());
-        EnrichUriUtil.enrich(httpServletRequest, representation);
-        representations.add(representation);
-      }
-    } else {
-      throw new RepresentationNotExistsException("No representation was found");
-    }
-
-    return new RepresentationsListWrapper(representations);
+    return revisionDate;
   }
 }
