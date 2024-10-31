@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationRevisionResponseListWrapper;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,7 +78,7 @@ public class RepresentationRevisionsResource {
   }
 
   @GetMapping(path = REPRESENTATION_RAW_REVISIONS_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-  public List<RepresentationRevisionResponse> getRepresentationRawRevisions(
+  public RepresentationRevisionResponseListWrapper getRepresentationRawRevisions(
       HttpServletRequest httpServletRequest,
       @PathVariable("cloudId") String cloudId,
       @PathVariable("representationName") String representationName,
@@ -91,7 +92,7 @@ public class RepresentationRevisionsResource {
     for (RepresentationRevisionResponse response : result) {
       EnrichUriUtil.enrich(httpServletRequest, response);
     }
-    return result;
+    return new RepresentationRevisionResponseListWrapper(result);
   }
 
   private static Date parseRevisionTimestamp(String revisionTimestamp) {
