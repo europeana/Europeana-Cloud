@@ -144,7 +144,11 @@ public class CassandraRecordDAO {
    * @param schema schema of representation
    * @param providerId representation version provider
    * @param creationTime creation date
-   * @return
+   * @param version representation version
+   * @param datasetId dataset id
+   * @return newly created representation
+   * @throws QueryExecutionException if error occured while executing a query.
+   * @throws NoHostAvailableException if no Cassandra host are available.
    */
   public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version, String datasetId)
       throws NoHostAvailableException, QueryExecutionException {

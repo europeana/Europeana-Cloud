@@ -29,16 +29,16 @@ public abstract class ContentDAOTest {
 
   @BeforeClass
   public static void setUp(){
-    S3TestHelper.setUpTest();
+    S3TestHelper.startS3MockServer();
   }
 
   @Before
   public void cleanUpBeforeTest() {
-    S3TestHelper.cleanupAfterTest();
+    S3TestHelper.cleanUpBetweenTests();
   }
   @AfterClass
   public static void cleanUp() {
-    S3TestHelper.cleanupAfterTests();
+    S3TestHelper.stopS3MockServer();
   }
   @Test
   public void shouldPutAndGetContent()

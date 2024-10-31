@@ -75,18 +75,18 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
   @BeforeClass
   public static void setUp(){
-    S3TestHelper.setUpTest();
+    S3TestHelper.startS3MockServer();
   }
 
   @Before
   public void cleanUpBeforeTest() {
-    S3TestHelper.cleanupAfterTest();
+    S3TestHelper.cleanUpBetweenTests();
     Mockito.reset(uisHandler);
     Mockito.reset(dataSetDAO);
   }
   @AfterClass
   public static void cleanUp() {
-    S3TestHelper.cleanupAfterTests();
+    S3TestHelper.stopS3MockServer();
   }
 
   @Test
@@ -132,7 +132,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName, "description of this set");
     Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, ds.getId());
-    Representation r2 = insertDummyPersistentRepresentation("cloud-id-2", "schema", PROVIDER_ID, ds.getId());
+    insertDummyPersistentRepresentation("cloud-id-2", "schema", PROVIDER_ID, ds.getId());
 
 
     Bucket bucket = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
@@ -207,9 +207,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
         "description of this set");
-    Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+    insertDummyPersistentRepresentation("cloud-id",
         "schema", PROVIDER_ID, ds.getId());
-    Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
+    insertDummyPersistentRepresentation("cloud-id_1",
         "schema", PROVIDER_ID, ds.getId());
 
     // when this particular data set is removed
@@ -229,10 +229,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
         "description of this set");
-    Representation r1 = insertDummyPersistentRepresentation("cloud-id",
+    insertDummyPersistentRepresentation("cloud-id",
         "schema", PROVIDER_ID, ds.getId());
     insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, ds.getId());
-    Representation r3 = insertDummyPersistentRepresentation("cloud-id",
+    insertDummyPersistentRepresentation("cloud-id",
         "schema", PROVIDER_ID, ds.getId());
 
     // then the most recent version should be returned
@@ -321,10 +321,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     File f = new File("content.xml", "application/xml", null, null, 0, null);
     cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
         new ByteArrayInputStream(dummyContent));
-    Representation persistRepresentation = cassandraRecordService
+    return cassandraRecordService
         .persistRepresentation(r.getCloudId(),
             r.getRepresentationName(), r.getVersion());
-    return persistRepresentation;
   }
 
   private void makeUISProviderSuccess() {
@@ -664,7 +663,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     createDataset();
     Bucket bucket = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
-    List<String> savedCloudIds = IntStream.range(0, 15000).mapToObj(i -> "cloud_id_" + i).sorted().collect(Collectors.toList());
+    List<String> savedCloudIds = IntStream.range(0, 15000).mapToObj(i -> "cloud_id_" + i).sorted().toList();
 
     for (String cloudId : savedCloudIds) {
       dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,

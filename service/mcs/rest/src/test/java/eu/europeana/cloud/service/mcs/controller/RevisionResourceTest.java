@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.mcs.controller;
 
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
@@ -188,7 +187,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   @Test
   public void shouldProperlyAddRevisionToDataSets() throws Exception {
     //given
-    DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
+    dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
 
     //when
     mockMvc.perform(post(revisionWebTarget)
@@ -199,37 +198,20 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         rep.getVersion(), revisionForDataProvider);
   }
 
-  @Test
-  public void shouldProperlyUpdateAllRevisionDatasetsEntries() throws Exception {
-    //given
-    DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-
-    //when
-    mockMvc.perform(post(revisionWebTarget)
-               .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
-           .andExpect(status().isCreated());
-
-    //then
-    verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(
-        rep.getCloudId(),
-        rep.getRepresentationName(),
-        rep.getVersion(),
-        revisionForDataProvider);
-  }
 
 
   @Test
   public void shouldRemoveRevisionSuccessfully() throws Exception {
     // given
     String datasetId = "dataset";
-    String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
+    String format = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    FastDateFormat formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("UTC"));
     Date date = new Date();
-    String revisionTimeStamp = FORMATTER.format(date);
+    String revisionTimeStamp = formatter.format(date);
 
-    Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, false);
+    Revision revisionToBeRemoved = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, false);
     dataSetService.createDataSet(PROVIDER_ID, datasetId, "");
-    recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revision);
+    recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revisionToBeRemoved);
 
     mockMvc.perform(delete(removeRevisionWebTarget)
         .queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp)).andExpect(status().isNoContent());

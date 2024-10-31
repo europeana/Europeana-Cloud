@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.TaskState;
@@ -18,6 +16,9 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
@@ -28,9 +29,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 public class MCSTaskSubmitter {
 
@@ -243,7 +243,8 @@ public class MCSTaskSubmitter {
     return count;
   }
 
-  private int submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+  private int submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
+                                                     SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
     if (markedAsDeleted) {
       return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
     } else {

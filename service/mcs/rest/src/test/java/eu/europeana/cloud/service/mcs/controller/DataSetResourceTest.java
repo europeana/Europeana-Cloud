@@ -48,7 +48,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
   @BeforeClass
   public static void setUp(){
-    S3TestHelper.setUpTest();
+    S3TestHelper.startS3MockServer();
   }
 
   @Before
@@ -64,11 +64,11 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
            .existsProvider(Mockito.anyString());
     dataSetService = applicationContext.getBean(DataSetService.class);
     recordService = applicationContext.getBean(RecordService.class);
-    S3TestHelper.cleanupAfterTest();
+    S3TestHelper.cleanUpBetweenTests();
   }
   @AfterClass
   public static void cleanUp() {
-    S3TestHelper.cleanupAfterTests();
+    S3TestHelper.stopS3MockServer();
   }
 
 

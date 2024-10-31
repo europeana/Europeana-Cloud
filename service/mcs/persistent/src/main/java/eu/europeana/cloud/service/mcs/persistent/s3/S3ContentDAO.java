@@ -30,6 +30,7 @@ public class S3ContentDAO implements ContentDAO {
   private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
 
   private static final Logger LOGGER_S3_MODIFICATIONS = LoggerFactory.getLogger("S3Modifications");
+  private static final Logger LOGGER = LoggerFactory.getLogger(S3ContentDAO.class);
 
   private final S3ConnectionProvider connectionProvider;
 
@@ -88,6 +89,7 @@ public class S3ContentDAO implements ContentDAO {
       IOUtils.copy(object, os);
 
     } catch (NoSuchKeyException e) {
+      LOGGER.debug("File {} not exists, Exception: {}", fileName, e);
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
     }
   }
@@ -95,7 +97,6 @@ public class S3ContentDAO implements ContentDAO {
   @Override
   public void copyContent(String sourceObjectId, String trgObjectId)
           throws FileNotExistsException, FileAlreadyExistsException {
-    S3Client s3Client = connectionProvider.getS3Client();
     logOperation(trgObjectId, "COPY");
 
     String container = connectionProvider.getContainer();
@@ -117,12 +118,12 @@ public class S3ContentDAO implements ContentDAO {
             .destinationKey(trgObjectId)
             .build();
 
+    S3Client s3Client = connectionProvider.getS3Client();
     s3Client.copyObject(copyRequest);
   }
 
   @Override
   public void deleteContent(String fileName) throws FileNotExistsException {
-    S3Client s3Client = connectionProvider.getS3Client();
     logOperation(fileName, "DELETE");
 
     String container = connectionProvider.getContainer();
@@ -137,20 +138,22 @@ public class S3ContentDAO implements ContentDAO {
             .key(fileName)
             .build();
 
+    S3Client s3Client = connectionProvider.getS3Client();
     s3Client.deleteObject(deleteRequest);
   }
 
   private boolean objectExists(String bucket, String key) {
-    S3Client s3Client = connectionProvider.getS3Client();
     try {
       HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
               .bucket(bucket)
               .key(key)
               .build();
 
+      S3Client s3Client = connectionProvider.getS3Client();
       s3Client.headObject(headObjectRequest);
       return true;
     } catch (NoSuchKeyException e) {
+      LOGGER.debug("File {} not exists, Exception: {}", key, e);
       return false;
     }
   }

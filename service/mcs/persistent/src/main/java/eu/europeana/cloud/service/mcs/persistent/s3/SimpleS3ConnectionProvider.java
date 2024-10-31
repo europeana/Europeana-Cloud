@@ -12,6 +12,10 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.net.URI;
 
+
+/**
+ * Simple S3 connection provider.
+ */
 public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SimpleS3ConnectionProvider.class);
@@ -28,6 +32,7 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
    * @param endpoint S3 endpoint URL (optional for AWS S3, but can be used for custom S3-compatible services)
    * @param user access key
    * @param password secret key
+   * @param region s3 region
    */
   public SimpleS3ConnectionProvider(String container, String endpoint, String user, String password, String region) {
 
@@ -50,12 +55,16 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
               .build();
       LOGGER.info("Connected to S3 bucket: {}", container);
   } catch (S3Exception e) {
-      LOGGER.error("Error connecting to S3: {}", e.awsErrorDetails().errorMessage());
+      LOGGER.error("Error connecting to S3, Exception: {}, Error message: {}", e, e.awsErrorDetails().errorMessage());
       throw e;
-
     }
   }
 
+  /**
+   * Closes the S3 client connection. This method is annotated with @PreDestroy to ensure
+   * that it is called when the container is destroyed, allowing for proper resource cleanup.
+   * Logs the shutdown process for the S3 client connection.
+   */
   @Override
   @PreDestroy
   public void closeConnections() {

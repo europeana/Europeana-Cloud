@@ -60,18 +60,18 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
 
   @BeforeClass
   public static void setUp(){
-    S3TestHelper.setUpTest();
+    S3TestHelper.startS3MockServer();
   }
 
 
   @Before
   public void cleanUpBeforeTest() {
-    S3TestHelper.cleanupAfterTest();
+    S3TestHelper.cleanUpBetweenTests();
     Mockito.reset(uisHandler);
   }
   @AfterClass
   public static void cleanUp() {
-    S3TestHelper.cleanupAfterTests();
+    S3TestHelper.stopS3MockServer();
   }
 
   @Test
@@ -493,8 +493,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         DATA_SET_DESCRIPTION);
     Representation r = insertDummyPersistentRepresentation("globalId", "dc", PROVIDER_1_ID);
     cassandraRecordService.deleteRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
-
-    assertTrue(true);
+    assertThrows(RepresentationNotExistsException.class,
+            () -> cassandraRecordService.getRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion()));
   }
 
   @Test(expected = CannotModifyPersistentRepresentationException.class)
@@ -822,13 +822,13 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
            .getProvider(Mockito.anyString());
   }
 
-  private void makeUISSuccess() throws RecordNotExistsException {
+  private void makeUISSuccess() {
     Mockito.doReturn(true).when(uisHandler)
            .existsCloudId(Mockito.anyString());
     Mockito.when(uisHandler.existsProvider(Mockito.anyString())).thenReturn(true);
   }
 
-  private void makeUISFailure() throws RecordNotExistsException {
+  private void makeUISFailure() {
     Mockito.doReturn(false).when(uisHandler)
            .existsCloudId(Mockito.anyString());
   }

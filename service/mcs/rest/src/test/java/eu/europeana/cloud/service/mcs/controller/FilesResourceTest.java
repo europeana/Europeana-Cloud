@@ -60,7 +60,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
   @BeforeClass
   public static void setUp(){
-    S3TestHelper.setUpTest();
+    S3TestHelper.startS3MockServer();
   }
   @Before
   public void mockUp()
@@ -98,7 +98,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   public void cleanUp() {
     try {
       recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
-      S3TestHelper.cleanupAfterTest();
+      S3TestHelper.cleanUpBetweenTests();
     } catch (Exception e) {
       // do nothing it's cleaning step
     }
@@ -106,7 +106,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
   @AfterClass
   public static void cleanUpAfterTests() {
-    S3TestHelper.cleanupAfterTests();
+    S3TestHelper.stopS3MockServer();
   }
 
   @Test
