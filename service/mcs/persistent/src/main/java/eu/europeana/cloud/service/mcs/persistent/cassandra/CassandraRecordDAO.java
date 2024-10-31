@@ -18,17 +18,14 @@ import jakarta.annotation.PostConstruct;
 
 import java.util.*;
 
+import static eu.europeana.cloud.service.mcs.key.RepresentationVersionsKeys.*;
+
 
 /**
  * Repository for records, their representations and versions. Uses Cassandra as storage.
  */
 @Retryable
 public class CassandraRecordDAO {
-
-  private static final String KEY_FILES = "files";
-  private static final String KEY_REVISIONS = "revisions";
-  private static final String KEY_DATASET_ID = "dataset_id";
-  private static final String KEY_PROVIDER_ID = "provider_id";
   private static final String MSG_PARAMETERS_CANNOT_BE_NULL = "Parameters cannot be null";
 
   // json serializer/deserializer
@@ -77,7 +74,7 @@ public class CassandraRecordDAO {
     String prevSchema = null;
     for (Row row : rs) {
       Representation rep = mapToRepresentation(row);
-      rep.setFiles(deserializeFiles(row.getMap(KEY_FILES, String.class, String.class)));
+      rep.setFiles(deserializeFiles(row.getMap(REPRESENTATION_KEY_FILES, String.class, String.class)));
       if (rep.isPersistent() && !rep.getRepresentationName().equals(prevSchema)) {
         representations.add(rep);
         prevSchema = rep.getRepresentationName();
@@ -191,9 +188,9 @@ public class CassandraRecordDAO {
       return null;
     } else {
       Representation rep = mapToRepresentation(row);
-      rep.setFiles(deserializeFiles(row.getMap(KEY_FILES, String.class,
+      rep.setFiles(deserializeFiles(row.getMap(REPRESENTATION_KEY_FILES, String.class,
           String.class)));
-      rep.setRevisions(deserializeRevisions(row.getMap(KEY_REVISIONS, String.class,
+      rep.setRevisions(deserializeRevisions(row.getMap(REPRESENTATION_KEY_REVISIONS, String.class,
           String.class)));
       return rep;
     }
@@ -221,8 +218,8 @@ public class CassandraRecordDAO {
 
     if (!rs.isExhausted()) {
       Row row = rs.one();
-      String datasetId = row.getString(KEY_DATASET_ID);
-      String providerId = row.getString(KEY_PROVIDER_ID);
+      String datasetId = row.getString(REPRESENTATION_KEY_DATASET_ID);
+      String providerId = row.getString(REPRESENTATION_KEY_PROVIDER_ID);
       return Optional.of(new CompoundDataSetId(providerId, datasetId));
     } else {
       return Optional.empty();
@@ -248,7 +245,7 @@ public class CassandraRecordDAO {
     if (row == null) {
       return null;
     } else {
-      Map<String, String> fileNameToFile = row.getMap(KEY_FILES, String.class, String.class);
+      Map<String, String> fileNameToFile = row.getMap(REPRESENTATION_KEY_FILES, String.class, String.class);
       return deserializeFiles(fileNameToFile);
     }
   }
@@ -422,7 +419,7 @@ public class CassandraRecordDAO {
           revisionName, singleRow.getTimestamp("revision_timestamp"));
 
       // retrieve files information from the map
-      representationRevision.setFiles(deserializeFiles(singleRow.getMap(KEY_FILES, String.class,
+      representationRevision.setFiles(deserializeFiles(singleRow.getMap(REPRESENTATION_KEY_FILES, String.class,
           String.class)));
 
       representationRevisions.add(representationRevision);
@@ -723,21 +720,21 @@ public class CassandraRecordDAO {
   private void mapResultSetToRepresentationList(ResultSet rs, List<Representation> result) {
     for (Row row : rs) {
       Representation representation = mapToRepresentation(row);
-      representation.setFiles(deserializeFiles(row.getMap(KEY_FILES, String.class, String.class)));
-      representation.setRevisions(deserializeRevisions(row.getMap(KEY_REVISIONS, String.class, String.class)));
+      representation.setFiles(deserializeFiles(row.getMap(REPRESENTATION_KEY_FILES, String.class, String.class)));
+      representation.setRevisions(deserializeRevisions(row.getMap(REPRESENTATION_KEY_REVISIONS, String.class, String.class)));
       result.add(representation);
     }
   }
 
   private Representation mapToRepresentation(Row row) {
     Representation representation = new Representation();
-    representation.setDataProvider(row.getString("provider_id"));
-    representation.setCloudId(row.getString("cloud_id"));
-    representation.setRepresentationName(row.getString("schema_id"));
-    representation.setVersion(row.getUUID("version_id").toString());
-    representation.setPersistent(row.getBool("persistent"));
-    representation.setCreationDate(row.getTimestamp("creation_date"));
-    representation.setDatasetId(row.getString("dataset_id"));
+    representation.setDataProvider(row.getString(REPRESENTATION_KEY_PROVIDER_ID));
+    representation.setCloudId(row.getString(REPRESENTATION_KEY_CLOUD_ID));
+    representation.setRepresentationName(row.getString(REPRESENTATION_KEY_SCHEMA_ID));
+    representation.setVersion(row.getUUID(REPRESENTATION_KEY_VERSION_ID).toString());
+    representation.setPersistent(row.getBool(REPRESENTATION_KEY_PERSISTENT));
+    representation.setCreationDate(row.getTimestamp(REPRESENTATION_KEY_CREATION_DATE));
+    representation.setDatasetId(row.getString(REPRESENTATION_KEY_DATASET_ID));
     return representation;
   }
 
