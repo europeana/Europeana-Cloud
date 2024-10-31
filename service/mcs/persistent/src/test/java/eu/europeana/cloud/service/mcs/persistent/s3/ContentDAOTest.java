@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 
 import static org.junit.Assert.*;
 
@@ -57,13 +56,13 @@ public abstract class ContentDAOTest {
     assertArrayEquals(content, os.toByteArray());
 
     assertEquals(file.getContentLength(), content.length);
-    String md5 = Base64.getEncoder().encodeToString(DigestUtils.md5(content));
+    String md5Hex = DigestUtils.md5Hex(content);
     //check if file md5 got updated
     assertNotNull(file.getMd5());
     //check if md5 in file is correct
-    assertEquals(file.getMd5(), md5);
+    assertEquals(file.getMd5(), md5Hex);
     //check if md5 in file is correct
-    assertEquals(md5, Base64.getEncoder().encodeToString(DigestUtils.md5(os.toByteArray())));
+    assertEquals(md5Hex, DigestUtils.md5Hex(os.toByteArray()));
   }
 
   @Test

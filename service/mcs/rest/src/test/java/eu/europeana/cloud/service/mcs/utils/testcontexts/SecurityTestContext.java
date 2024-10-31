@@ -42,7 +42,8 @@ public class SecurityTestContext {
                 S3_TEST_CONTAINER,
                 S3_TEST_ENDPOINT,
                 S3_TEST_USER,
-                S3_TEST_PASSWORD);
+                S3_TEST_PASSWORD,
+                S3_TEST_REGION);
   }
 
   @Bean

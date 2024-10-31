@@ -11,4 +11,5 @@ public class S3Properties {
   private String endpoint;
   private String user;
   private String password;
+  private String region;
 }

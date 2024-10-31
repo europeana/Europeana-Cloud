@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.persistent.s3;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -46,16 +47,19 @@ public class S3ContentDAO implements ContentDAO {
     logOperation(fileName, "PUT");
     String container = connectionProvider.getContainer();
     byte[] content = IOUtils.toByteArray(data);
-    String md5 = Base64.getEncoder().encodeToString(DigestUtils.md5(content));
+    byte[] md5 = DigestUtils.md5(content);
+    String hexMd5 = Hex.encodeHexString(md5);
+    String base64Md5 = Base64.getEncoder().encodeToString(md5);
 
     PutObjectRequest putRequest = PutObjectRequest.builder()
             .bucket(container)
             .key(fileName)
-            .contentMD5(md5)
+            .contentMD5(base64Md5)
+            .contentLength((long) content.length)
             .build();
 
     s3Client.putObject(putRequest, RequestBody.fromBytes(content));
-    return new PutResult(md5, (long) content.length);
+    return new PutResult(hexMd5, (long) content.length);
   }
 
   @Override

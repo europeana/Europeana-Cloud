@@ -36,6 +36,7 @@ public class S3TestHelper {
                 public static final String S3_TEST_CONTAINER = "test-container";
                 public static final String S3_TEST_USER = "test_user";
                 public static final String S3_TEST_PASSWORD = "test_pwd";
+                public static final String S3_TEST_REGION = "test_region";
                 private S3TestConstants() {
                 }
         }

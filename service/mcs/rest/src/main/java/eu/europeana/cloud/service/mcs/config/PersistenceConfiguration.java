@@ -33,7 +33,9 @@ public class PersistenceConfiguration {
         s3Properties.getContainer(),
         s3Properties.getEndpoint(),
         s3Properties.getUser(),
-        s3Properties.getPassword()) {
+        s3Properties.getPassword(),
+        s3Properties().getRegion()) {
+
     };
   }
 
