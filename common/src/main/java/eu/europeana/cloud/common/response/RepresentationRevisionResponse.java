@@ -1,5 +1,7 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import eu.europeana.cloud.common.model.File;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
@@ -16,6 +18,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @XmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RepresentationRevisionResponse {
 
   /**
@@ -42,6 +45,7 @@ public class RepresentationRevisionResponse {
   /**
    * A list of files which constitute this representation.
    */
+  @JacksonXmlElementWrapper(useWrapping = false)
   private List<File> files = new ArrayList<>(0);
 
 
