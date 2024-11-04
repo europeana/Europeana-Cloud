@@ -33,7 +33,7 @@ public interface DataSetService {
       throws DataSetNotExistsException;
 
 
-  void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
+  void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
 
@@ -44,6 +44,7 @@ public interface DataSetService {
    * @param dataSetId data set id
    * @param recordId id of record
    * @param schema schema name of representation
+   * @param versionId version id of representation
    * @throws DataSetNotExistsException if such data set not exists
    */
   void removeAssignment(String providerId, String dataSetId, String recordId, String schema, String versionId)
@@ -71,7 +72,7 @@ public interface DataSetService {
    * @param dataSetId identifier of newly created data set
    * @param description new description of data set (may be any text)
    * @return updated data set
-   * @throws DataSetNotExistsException
+   * @throws DataSetNotExistsException no such data set exists
    */
   DataSet updateDataSet(String providerId, String dataSetId, String description)
       throws DataSetNotExistsException;

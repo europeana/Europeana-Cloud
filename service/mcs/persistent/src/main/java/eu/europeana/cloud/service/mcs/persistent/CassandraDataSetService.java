@@ -62,9 +62,9 @@ public class CassandraDataSetService implements DataSetService {
     Representation rep = recordDAO.getRepresentation(cloudId, schema, version);
     if (rep == null) {
       throw new RepresentationNotExistsException(schema);
-    } else {
-      addDataSetRevision(rep.getDataProvider(), rep.getDatasetId(), revision, schema, cloudId, version);
     }
+    addDataSetRevision(rep.getDataProvider(), rep.getDatasetId(), revision, schema, cloudId, version);
+
   }
 
   /**
@@ -254,20 +254,21 @@ public class CassandraDataSetService implements DataSetService {
     Representation rep = recordDAO.getRepresentation(cloudId, representationName, version);
     if (rep == null) {
       throw new RepresentationNotExistsException();
-    } else {
-      Revision revision = new Revision(revisionName, revisionProviderId);
-      revision.setCreationTimeStamp(revisionTimestamp);
-
-      removeDataSetsRevision(rep.getDataProvider(), rep.getDatasetId(), revision, representationName, cloudId, version);
-
-      //representation revisions
-      recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName,
-              revisionTimestamp);
-
-      //representation version
-      recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version, revision);
-
     }
+
+    Revision revision = new Revision(revisionName, revisionProviderId);
+    revision.setCreationTimeStamp(revisionTimestamp);
+
+    removeDataSetsRevision(rep.getDataProvider(), rep.getDatasetId(), revision, representationName, cloudId, version);
+
+    //representation revisions
+    recordDAO.deleteRepresentationRevision(cloudId, representationName, version, revisionProviderId, revisionName,
+            revisionTimestamp);
+
+    //representation version
+    recordDAO.removeRevisionFromRepresentationVersion(cloudId, representationName, version, revision);
+
+
   }
 
   public void removeDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName,

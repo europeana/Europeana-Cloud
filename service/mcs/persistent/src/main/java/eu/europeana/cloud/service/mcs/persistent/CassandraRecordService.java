@@ -206,9 +206,8 @@ public class CassandraRecordService implements RecordService {
     Representation rep = recordDAO.getLatestPersistentRepresentation(globalId, schema);
     if (rep == null) {
       throw new RepresentationNotExistsException();
-    } else {
-      return rep;
     }
+    return rep;
   }
 
   /**
@@ -220,10 +219,10 @@ public class CassandraRecordService implements RecordService {
     Representation rep = recordDAO.getRepresentation(globalId, schema, version);
     if (rep == null) {
       throw new RepresentationNotExistsException();
-    } else {
-      LOGGER.debug("Loaded representation {}", rep);
-      return rep;
     }
+
+    LOGGER.debug("Loaded representation {}", rep);
+    return rep;
   }
 
   /**
