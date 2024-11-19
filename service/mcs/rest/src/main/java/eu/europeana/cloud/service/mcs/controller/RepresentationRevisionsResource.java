@@ -77,6 +77,20 @@ public class RepresentationRevisionsResource {
     return new RepresentationsListWrapper(representations);
   }
 
+  /**
+   * Returns the raw representation version which associates cloud identifier, representation name with revision identifier, provider
+   * and timestamp.
+   *
+   * @param httpServletRequest the http request
+   * @param cloudId cloud id of the record which contains the representation .
+   * @param representationName name of the representation .
+   * @param revisionName name of the revision associated with this representation version
+   * @param revisionProviderId identifier of institution that provided the revision
+   * @param revisionTimestamp timestamp of the specific revision, if not given the latest revision with revisionName created by
+   * revisionProviderId will be considered (timestamp should be given in UTC format)
+   * @return requested specific representation object.
+   * @summary get a representation versions response object
+   */
   @GetMapping(path = REPRESENTATION_RAW_REVISIONS_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public RepresentationRevisionResponseListWrapper getRepresentationRawRevisions(
       HttpServletRequest httpServletRequest,

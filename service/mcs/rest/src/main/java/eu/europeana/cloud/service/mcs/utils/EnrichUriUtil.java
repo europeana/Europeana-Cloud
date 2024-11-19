@@ -96,6 +96,12 @@ public final class EnrichUriUtil {
     dataSet.setUri(createURI(httpServletRequest, DATA_SET_RESOURCE, properties));
   }
 
+  /**
+   * Enriches the response with valid URIs (the URI is dependent on servlet request headers).
+   *
+   * @param httpServletRequest - request object
+   * @param response - enriched response
+   */
   public static void enrich(HttpServletRequest httpServletRequest, RepresentationRevisionResponse response) {
     Properties properties = new Properties();
     properties.setProperty(CLOUD_ID, response.getCloudId());
