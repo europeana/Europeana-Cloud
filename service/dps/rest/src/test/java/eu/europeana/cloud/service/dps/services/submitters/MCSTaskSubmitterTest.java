@@ -21,6 +21,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -99,24 +100,18 @@ public class MCSTaskSubmitterTest {
       false,
       FILE_CREATION_DATE_1);
 
-
-  //File2
-  private static final Revision DELETED_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER_1,
-      parseISODate(FILE_CREATION_DATE_STRING_1), true);
-  private static final Representation DELETED_REPRESENTATION = new Representation(
+  private static final RepresentationRevisionResponse REPRESENTATION_REVISION_1 = new RepresentationRevisionResponse(
       CLOUD_ID1,
       REPRESENTATION_NAME,
       VERSION_1,
-      REPRESENTATION_ALL_VERSION_URI_1,
       REPRESENTATON_URI_1,
-      DATASET_PROVIDER_1,
       Collections.singletonList(FILE_1),
-      Collections.singletonList(DELETED_REVISION),
-      false,
+      REVISION_NAME,
+      REVISION_PROVIDER_1,
       FILE_CREATION_DATE_1);
+
   private static final String FILE_URL_2 = "http://localhost:8080/mcs/records/YI3S73BZBO2ZPINWZ62RBLAJSATKUG3O2YF4UWYC23BM6CDVBTMA/representations/mcsReaderRepresentation/versions/ec64af50-7354-11ea-b16e-04922659f621/files/0b936b8f-1e43-47ca-986b-7d2cce366c33";
   private static final String CLOUD_ID2 = "Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA";
-
 
   private static final String FILE_URL_3 = "http://localhost:8080/mcs/records/YGF5ZH7GCHRSMJPVQKXOYULUCVJATJ3FOZE2KWV7MXYNZEITSJ5Q/representations/mcsReaderRepresentation/versions/ebe93dc0-7354-11ea-b16e-04922659f621/files/8a9db572-5217-486f-9a96-6dd3c4f149dd";
 
@@ -292,11 +287,11 @@ public class MCSTaskSubmitterTest {
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
 
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(REPRESENTATION_1));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
 
     submitter.execute(submitParameters);
 
@@ -362,11 +357,11 @@ public class MCSTaskSubmitterTest {
     )).thenReturn(dataChunk);
     when(dataChunk.getResults()).thenReturn(dataList);
     dataList.add(new CloudTagsResponse(CLOUD_ID1, false));
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(REPRESENTATION_1));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
 
     submitter.execute(submitParameters);
 
@@ -390,11 +385,11 @@ public class MCSTaskSubmitterTest {
     )).thenReturn(dataChunk);
     when(dataChunk.getResults()).thenReturn(dataList);
     dataList.add(new CloudTagsResponse(CLOUD_ID1, true));
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(DELETED_REPRESENTATION));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
 
     submitter.execute(submitParameters);
 
@@ -421,17 +416,17 @@ public class MCSTaskSubmitterTest {
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID2, false));
 
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(REPRESENTATION_1));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
 
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID2),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(REPRESENTATION_1));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
   }
 
   private void prepareInvocationForLastRevisionForThreeObjectsInThreeChunks() throws MCSException {
@@ -451,11 +446,11 @@ public class MCSTaskSubmitterTest {
     when(cloudTagsResponseResultSlice.getNextSlice()).thenReturn(EXAMPLE_DATE, EXAMPLE_DATE, null);
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
 
-    when(recordServiceClient.getRepresentationsByRevision(
+    when(recordServiceClient.getRepresentationRawRevisions(
         eq(CLOUD_ID1),
         eq(REPRESENTATION_NAME),
         eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
-    )).thenReturn(Collections.singletonList(REPRESENTATION_1));
+    )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
   }
 
   private void verifyValidTaskSent(String... fileUrls) {

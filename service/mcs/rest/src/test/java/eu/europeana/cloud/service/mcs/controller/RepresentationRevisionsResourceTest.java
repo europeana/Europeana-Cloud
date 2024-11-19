@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import java.util.Collections;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.MEDIA_TYPE_APPLICATION_SVG_XML;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationList;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationRevisionResponseList;
 import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -109,6 +111,31 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  @Parameters(method = "mimeTypes")
+  public void getgetRepresentationRawRevisionsResponse(MediaType mediaType)
+      throws Exception {
+    RepresentationRevisionResponse representationRevisionResponse = new RepresentationRevisionResponse(representationResponse);
+    representationRevisionResponse.setFiles(Collections.singletonList(
+        new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
+            "2013-01-01", 12345L, URI.create("http://localhost:80/records/" + GLOBAL_ID
+            + "/representations/" + SCHEMA + "/versions/" + VERSION + "/files/1.xml"))));
+    doReturn(Collections.singletonList(representationRevisionResponse)).when(recordService).getRepresentationRevisions(GLOBAL_ID,
+        SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
+
+    ResultActions response = mockMvc.perform(get(URITools.getRepresentationRawRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
+                                        .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID).accept(mediaType))
+                                    .andExpect(status().isOk())
+                                    .andExpect(content().contentType(mediaType));
+
+    List<RepresentationRevisionResponse> entity = responseContentAsRepresentationRevisionResponseList(response, mediaType);
+    assertThat(entity.size(), is(1));
+    assertThat(entity.getFirst(), is(representationRevisionResponse));
+    verify(recordService, times(1)).getRepresentationRevisions(GLOBAL_ID, SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
+    verifyNoMoreInteractions(recordService);
+  }
+
+
+  @Test
   public void getRepresentationReturns406ForUnsupportedFormat() throws Exception {
     mockMvc.perform(get(URITools.getRepresentationRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
         .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID)
@@ -138,16 +165,5 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
     verify(recordService, times(1)).getRepresentation(anyString(), anyString(), anyString());
   }
 
-  @Test
-  public void getRepresentationByRevisionsThrowExceptionWhenReturnsRepresentationRevisionResponseIsNull()
-      throws Exception {
-    when(recordService.getRepresentationRevisions(GLOBAL_ID, SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null)).thenReturn(null);
-    mockMvc.perform(get(URITools.getRepresentationRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
-               .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID)
-               .accept(MediaType.APPLICATION_XML))
-           .andExpect(status().isNotFound());
-
-    verify(recordService, times(1)).getRepresentationRevisions(GLOBAL_ID, SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
-  }
 }
 

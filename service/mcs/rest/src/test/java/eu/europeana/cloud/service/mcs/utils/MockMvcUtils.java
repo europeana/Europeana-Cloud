@@ -11,6 +11,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -102,6 +103,12 @@ public class MockMvcUtils {
       throws UnsupportedEncodingException, JsonProcessingException {
     return responseContent(response, new TypeReference<RepresentationsListWrapper>() {
     }, mediaType).getRepresentations();
+  }
+
+  public static List<RepresentationRevisionResponse> responseContentAsRepresentationRevisionResponseList(ResultActions response, MediaType mediaType)
+      throws UnsupportedEncodingException, JsonProcessingException {
+    return responseContent(response, new TypeReference<RepresentationRevisionResponseListWrapper>() {
+    }, mediaType).getRepresentationRevisions();
   }
 
   private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)
