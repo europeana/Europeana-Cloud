@@ -120,11 +120,6 @@ public class Representation {
         this.datasetId = datasetId;
     }
 
-    public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate) {
-        this(cloudId, representationName, version, allVersionsUri, uri, dataProvider, files, revisions, persistent, creationDate, null);
-    }
-
 
     /**
      * Creates a new instance of this class.

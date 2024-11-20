@@ -103,7 +103,7 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
 
   private void setupRecordService() throws RecordNotExistsException {
     Record record = new Record(CLOUD_ID, List.of(
-        new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, null, false, null)));
+        new Representation(CLOUD_ID, "sampleRepName", "sampleVersion", null, null, PROVIDER_ID, null, null, false, null, null)));
     //
     Mockito.doThrow(RecordNotExistsException.class).when(recordService).getRecord(CLOUD_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
     Mockito.doReturn(record).when(recordService).getRecord(CLOUD_ID);

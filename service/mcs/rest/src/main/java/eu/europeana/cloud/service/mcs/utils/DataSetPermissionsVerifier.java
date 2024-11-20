@@ -20,6 +20,12 @@ public class DataSetPermissionsVerifier {
   private final PermissionEvaluator permissionEvaluator;
   private final RecordService recordService;
 
+  /**
+   * Constructs DataSetPermissionsVerifier with given permission evaluator and record service.
+   *
+   * @param permissionEvaluator permission evaluator that verifies if user has given permission
+   * @param recordService record service to retrieve representation
+   */
   public DataSetPermissionsVerifier(PermissionEvaluator permissionEvaluator, RecordService recordService) {
     this.permissionEvaluator = permissionEvaluator;
     this.recordService = recordService;

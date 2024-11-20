@@ -33,6 +33,16 @@ public interface DataSetService {
       throws DataSetNotExistsException;
 
 
+  /**
+   * Creates a new data set revision for specified provider and dataset.
+   *
+   * @param providerId owner of data set
+   * @param datasetId identifier of newly created data set
+   * @param revision revision to be added
+   * @param representationName name of representation
+   * @param cloudId cloud identifier
+   * @param versionId version identifier
+   */
   void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);

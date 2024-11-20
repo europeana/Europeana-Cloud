@@ -28,7 +28,7 @@ public class S3ContentDAO implements ContentDAO {
   private static final String MSG_TARGET_FILE_ALREADY_EXISTS = "Target file %s already exists";
   private static final String S3_OBJECT_OPERATION_LOG_ATTRIBUTE = "s3ObjectOperation";
   private static final String S3_OBJECT_NAME_LOG_ATTRIBUTE = "s3ObjectName";
-
+  @SuppressWarnings("java:S1312")
   private static final Logger LOGGER_S3_MODIFICATIONS = LoggerFactory.getLogger("S3Modifications");
   private static final Logger LOGGER = LoggerFactory.getLogger(S3ContentDAO.class);
 

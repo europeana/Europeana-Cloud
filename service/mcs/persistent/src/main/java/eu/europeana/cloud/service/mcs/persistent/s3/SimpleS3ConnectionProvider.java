@@ -56,7 +56,6 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
       LOGGER.info("Connected to S3 bucket: {}", container);
   } catch (S3Exception e) {
       LOGGER.error("Error connecting to S3, Exception: {}, Error message: {}", e, e.awsErrorDetails().errorMessage());
-      throw e;
     }
   }
 

@@ -100,8 +100,6 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     String dataSetId = "dataset";
     String anotherProvider = "anotherProvider";
     dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
-    DataProvider another = new DataProvider();
-    another.setId(anotherProvider);
 
    dataSetService.createDataSet(anotherProvider, dataSetId, "");
 

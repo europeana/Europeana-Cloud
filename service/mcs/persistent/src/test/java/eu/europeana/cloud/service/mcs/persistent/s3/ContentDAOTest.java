@@ -62,7 +62,7 @@ public abstract class ContentDAOTest {
     //check if md5 in file is correct
     assertEquals(file.getMd5(), md5Hex);
     //check if md5 in file is correct
-    assertEquals(md5Hex, DigestUtils.md5Hex(os.toByteArray()));
+    assertEquals(DigestUtils.md5Hex(os.toByteArray()), md5Hex);
   }
 
   @Test

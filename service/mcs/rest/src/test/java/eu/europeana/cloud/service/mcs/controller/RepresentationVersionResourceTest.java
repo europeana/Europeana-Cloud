@@ -52,7 +52,7 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   private static final Representation REPRESENTATION = new Representation(GLOBAL_ID, SCHEMA, VERSION, null, null,
       "DLF", List.of(new File(FILE_NAME, "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01",
-          12345, null)), null, true, new Date());
+          12345, null)), null, true, new Date(), null);
 
 
   @Before
