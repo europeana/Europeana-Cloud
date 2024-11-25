@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>13</version>
+        <version>14-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <artifactId>ecloud-service-dps-storm-topologies-normalization-cleaning</artifactId>
