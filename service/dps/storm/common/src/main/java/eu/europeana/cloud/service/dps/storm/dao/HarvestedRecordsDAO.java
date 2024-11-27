@@ -155,7 +155,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
              .execute(updatePublishedHarvestDateStatement.bind(indexingDate, metisDatasetId, bucketNoFor(recordId), recordId));
   }
 
-  BoundStatement prepareCleanIndexedColumns(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
+  public BoundStatement prepareCleanIndexedColumns(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
     switch (targetDb) {
       case PREVIEW:
         return prepareCleanPreviewColumns(metisDatasetId, recordId);
@@ -208,7 +208,7 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     );
   }
 
-  int bucketNoFor(String recordId) {
+  public int bucketNoFor(String recordId) {
     return BucketUtils.bucketNumber(recordId, MAX_NUMBER_OF_BUCKETS);
   }
 

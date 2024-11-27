@@ -20,6 +20,7 @@ public class IndexingProperties {
   private String mongoReadPreference;
   private String mongoApplicationName;
   private int mongoPoolSize;
+  private String mongoTombstoneDbName;
 
   private String solrInstances;
 

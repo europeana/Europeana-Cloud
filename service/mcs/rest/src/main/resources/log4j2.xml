@@ -5,11 +5,14 @@
         <Property name="logsDir">${sys:mcsLogsLocation}/</Property>
         <Property name="fileName">${logsDir}mcs.log</Property>
         <Property name="filePattern">${fileName}.%d{yyyy-MM-dd}-%i.log.gz</Property>
-        <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} mcs [requestId=%X{requestId}] [%C] - %p : %m%n</Property>
+        <Property name="pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}{GMT} mcs [requestId=%X{requestId}] [%C] - %p : %m [task_id=%X{task_id}] [record_id=%X{record_id}]%n</Property>
     </Properties>
     <Appenders>
         <Appender type="Console" name="STDOUT">
             <Layout type="PatternLayout" pattern="${pattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
         </Appender>
         <Appender type="RollingFile" name="FILE" append="true" fileName="${fileName}" filePattern="${filePattern}">
             <DefaultRolloverStrategy max="20"/>
@@ -30,6 +33,7 @@
         <Root level="info">
             <!-- Log only to file <AppenderRef ref="STDOUT"/> -->
             <AppenderRef ref="FILE"/>
+            <AppenderRef ref="STDOUT"/>
         </Root>
         <Logger name="eu.europeana.cloud.service.mcs" level="debug"/>
         <logger name="S3Modifications" additivity="false" level="info">

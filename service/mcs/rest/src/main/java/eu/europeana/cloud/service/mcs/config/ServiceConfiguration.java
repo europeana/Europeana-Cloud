@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
+import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -62,12 +63,18 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
+  public LoggingContextCopingTaskDecorator loggingContextCopingTaskDecorator() {
+    return new LoggingContextCopingTaskDecorator();
+  }
+
+  @Bean
   AsyncTaskExecutor asyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(10);
     executor.setMaxPoolSize(40);
     executor.setQueueCapacity(20);
     executor.setThreadNamePrefix("MCSThreadPool-");
+    executor.setTaskDecorator(loggingContextCopingTaskDecorator());
     return executor;
   }
 

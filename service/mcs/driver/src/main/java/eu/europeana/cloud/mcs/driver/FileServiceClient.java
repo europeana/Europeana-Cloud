@@ -1,5 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.FILE_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.H_RANGE;
@@ -94,14 +95,14 @@ public class FileServiceClient extends MCSClient {
       String version, String fileName) throws MCSException {
 
     return manageResponse(new ResponseParams<>(InputStream.class),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(CLIENT_FILE_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
             .resolveTemplate(FILE_NAME, fileName)
-            .request()
+            .request())
             .get()
     );
   }
@@ -126,14 +127,14 @@ public class FileServiceClient extends MCSClient {
       String fileName, String range) throws MCSException {
 
     return manageResponse(new ResponseParams<>(InputStream.class, Response.Status.PARTIAL_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(CLIENT_FILE_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
             .resolveTemplate(FILE_NAME, fileName)
-            .request()
+            .request())
             .header(H_RANGE, range)
             .get()
     );
@@ -144,9 +145,9 @@ public class FileServiceClient extends MCSClient {
    */
   public InputStream getFile(String fileUrl) throws MCSException {
     return manageResponse(new ResponseParams<>(InputStream.class),
-        () -> client
+        () -> passLogContext(client
             .target(fileUrl)
-            .request()
+            .request())
             .get()
     );
   }
@@ -176,13 +177,13 @@ public class FileServiceClient extends MCSClient {
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED, expectedMd5),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(FILES_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
               .resolveTemplate(VERSION, version)
-              .request()
+              .request())
               .post(Entity.entity(multiPart, multiPart.getMediaType()))
       );
     } catch (IOException ioException) {
@@ -215,13 +216,13 @@ public class FileServiceClient extends MCSClient {
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(FILES_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
               .resolveTemplate(VERSION, version)
-              .request()
+              .request())
               .post(Entity.entity(multiPart, multiPart.getMediaType()))
       );
     } catch (IOException ioException) {
@@ -255,13 +256,13 @@ public class FileServiceClient extends MCSClient {
           .bodyPart(new StreamDataBodyPart(ParamConstants.F_FILE_DATA, data, MediaType.APPLICATION_OCTET_STREAM));
 
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(FILES_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
               .resolveTemplate(VERSION, version)
-              .request()
+              .request())
               .post(Entity.entity(multiPart, multiPart.getMediaType()))
       );
     } catch (IOException ioException) {
@@ -291,14 +292,14 @@ public class FileServiceClient extends MCSClient {
 
     try (data) {
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.NO_CONTENT, expectedMd5),
-          () -> client
+          () -> passLogContext(client
               .target(baseUrl)
               .path(CLIENT_FILE_RESOURCE)
               .resolveTemplate(CLOUD_ID, cloudId)
               .resolveTemplate(REPRESENTATION_NAME, representationName)
               .resolveTemplate(VERSION, version)
               .resolveTemplate(FILE_NAME, fileName)
-              .request()
+              .request())
               .put(Entity.entity(data, mediaType))
       );
     } catch (IOException ioException) {
@@ -309,9 +310,9 @@ public class FileServiceClient extends MCSClient {
   public URI modifyFile(String fileUrl, InputStream data, String mediaType) throws MCSException {
     try (data) {
       return manageResponse(new ResponseParams<>(URI.class, Response.Status.NO_CONTENT),
-          () -> client
+          () -> passLogContext(client
               .target(fileUrl)
-              .request()
+              .request())
               .put(Entity.entity(data, mediaType))
       );
     } catch (IOException ioException) {
@@ -335,14 +336,14 @@ public class FileServiceClient extends MCSClient {
    */
   public void deleteFile(String cloudId, String representationName, String version, String fileName) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(CLIENT_FILE_RESOURCE)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
             .resolveTemplate(FILE_NAME, fileName)
-            .request()
+            .request())
             .delete()
     );
   }

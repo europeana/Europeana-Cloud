@@ -49,7 +49,12 @@ public class SubmitTaskService {
   }
 
   private String prepareExceptionMessage(TaskSubmissionException exception) {
-    return String.format("%s (Source issue: %s)", exception.getMessage(), exception.getCause().getMessage());
+    String message = exception.getMessage();
+    Throwable cause = exception.getCause();
+    if (cause != null) {
+      message += String.format(" (Source issue: %s)", cause.getMessage());
+    }
+    return message;
   }
 }
 

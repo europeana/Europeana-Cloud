@@ -1,5 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
@@ -83,7 +84,7 @@ public class RevisionServiceClient extends MCSClient {
   public URI addRevision(String cloudId, String representationName, String version, String revisionName,
       String revisionProviderId, String tag) throws MCSException {
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REVISION_ADD_WITH_PROVIDER_TAG)
             .resolveTemplate(CLOUD_ID, cloudId)
@@ -92,7 +93,7 @@ public class RevisionServiceClient extends MCSClient {
             .resolveTemplate(REVISION_NAME, revisionName)
             .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
             .resolveTemplate(TAG, tag)
-            .request()
+            .request())
             .post(null)
     );
   }
@@ -111,13 +112,13 @@ public class RevisionServiceClient extends MCSClient {
    */
   public URI addRevision(String cloudId, String representationName, String version, Revision revision) throws MCSException {
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REVISION_ADD)
             .resolveTemplate(CLOUD_ID, cloudId)
             .resolveTemplate(REPRESENTATION_NAME, representationName)
             .resolveTemplate(VERSION, version)
-            .request()
+            .request())
             .accept(MediaType.APPLICATION_JSON).post(Entity.json(revision))
     );
   }
@@ -133,7 +134,7 @@ public class RevisionServiceClient extends MCSClient {
    */
   public void deleteRevision(String cloudId, String representationName, String version, Revision revision) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
-        () -> client
+        () -> passLogContext(client
             .target(baseUrl)
             .path(REVISION_DELETE)
             .resolveTemplate(CLOUD_ID, cloudId)
@@ -142,7 +143,7 @@ public class RevisionServiceClient extends MCSClient {
             .resolveTemplate(REVISION_NAME, revision.getRevisionName())
             .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
             .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-            .request()
+            .request())
             .delete()
     );
   }

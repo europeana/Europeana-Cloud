@@ -6,7 +6,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.depublish.DatasetDepublisher;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.springframework.stereotype.Component;
@@ -19,11 +19,11 @@ public class FilesCounterFactory {
 
   private CassandraTaskInfoDAO taskInfoDAO;
 
-  private DatasetDepublisher datasetDepublisher;
+  private IndexWrapper indexWrapper;
 
-  public FilesCounterFactory(CassandraTaskInfoDAO taskInfoDAO, DatasetDepublisher datasetDepublisher) {
+  public FilesCounterFactory(CassandraTaskInfoDAO taskInfoDAO, IndexWrapper indexWrapper) {
     this.taskInfoDAO = taskInfoDAO;
-    this.datasetDepublisher = datasetDepublisher;
+    this.indexWrapper = indexWrapper;
   }
 
   public FilesCounter createFilesCounter(DpsTask task, String topologyName) {
@@ -32,7 +32,7 @@ public class FilesCounterFactory {
     }
 
     if (TopologiesNames.DEPUBLICATION_TOPOLOGY.equals(topologyName)) {
-      return new DepublicationFilesCounter(datasetDepublisher);
+      return new DepublicationFilesCounter(indexWrapper);
     }
 
     String taskType = getTaskType(task);

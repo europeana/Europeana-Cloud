@@ -8,6 +8,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
+import eu.europeana.cloud.service.dps.logging.LoggingAttributeAspect;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.properties.GeneralProperties;
@@ -42,6 +43,7 @@ import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.properties.IndexingProperties;
@@ -53,7 +55,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -67,10 +68,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableAsync
 @EnableScheduling
-@PropertySources({
-    @PropertySource(value = "classpath:dps.properties", ignoreResourceNotFound = true),
-    @PropertySource(value = "classpath:indexing.properties", ignoreResourceNotFound = true)
-})
+@PropertySource(value = {"classpath:dps.properties", "classpath:indexing.properties"}, ignoreResourceNotFound = true)
 public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Value("${AppId}")
@@ -171,7 +169,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public String applicationIdentifier() {
-      return applicationIdentifier;
+    return applicationIdentifier;
   }
 
   @Bean
@@ -342,6 +340,16 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
+  public LoggingAttributeAspect loggingAttributeAspect() {
+    return new LoggingAttributeAspect();
+  }
+
+  @Bean
+  public LoggingContextCopingTaskDecorator loggingContextCopingTaskDecorator() {
+    return new LoggingContextCopingTaskDecorator();
+  }
+
+  @Bean
   public PostProcessingService postProcessingService() {
     return new PostProcessingService(
         postProcessorFactory(),
@@ -394,16 +402,18 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     executor.setMaxPoolSize(40);
     executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("DPSThreadPool-");
+    executor.setTaskDecorator(loggingContextCopingTaskDecorator());
     return executor;
   }
 
   @Bean("postProcessingExecutor")
-  public AsyncTaskExecutor postProcessingExecutor() {
+  public AsyncTaskExecutor postProcessingExecutor(LoggingContextCopingTaskDecorator taskDecorator) {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(16);
     executor.setMaxPoolSize(16);
     executor.setQueueCapacity(10);
-    executor.setThreadNamePrefix("post-proprocessing-");
+    executor.setThreadNamePrefix("post-processing-");
+    executor.setTaskDecorator(taskDecorator);
     return executor;
   }
 

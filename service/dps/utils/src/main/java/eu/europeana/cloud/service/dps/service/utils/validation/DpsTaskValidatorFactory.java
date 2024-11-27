@@ -164,12 +164,15 @@ public final class DpsTaskValidatorFactory {
     taskValidatorMap.put(DEPUBLICATION_TASK_FOR_DATASET,
         new DpsTaskValidator("Task validator for Depublication Topology with dataset id")
             .withDataEntry(null, NO_DATA)
-            .withParameter(PluginParameterKeys.METIS_DATASET_ID));
+            .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+            .withParameter(PluginParameterKeys.DEPUBLICATION_REASON));
 
     taskValidatorMap.put(DEPUBLICATION_TASK_FOR_RECORDS,
         new DpsTaskValidator("Task validator for Depublication Topology with records list")
             .withDataEntry(null, NO_DATA)
-            .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH));
+            .withParameter(PluginParameterKeys.METIS_DATASET_ID)
+            .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH)
+            .withParameter(PluginParameterKeys.DEPUBLICATION_REASON));
 
     taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Media Topology")
         .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)

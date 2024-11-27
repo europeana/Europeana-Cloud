@@ -79,6 +79,11 @@ public class TaskStatusUpdater {
         processedErrorsCount, deletedErrorsCount);
   }
 
+  public void updateState(long taskId, TaskState state)
+      throws NoHostAvailableException, QueryExecutionException {
+    updateState(taskId, state, state.getDefaultMessage());
+  }
+
   public void updateState(long taskId, TaskState state, String info)
       throws NoHostAvailableException, QueryExecutionException {
     updateTasksByTaskStateTable(taskId, state);

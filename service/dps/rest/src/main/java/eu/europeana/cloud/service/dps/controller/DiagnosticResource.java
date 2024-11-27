@@ -109,7 +109,7 @@ public class DiagnosticResource {
 
 
   @GetMapping(value = "/activeTasks", produces = MediaType.APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') OR hasRole('ROLE_MONITORING')")
   public String acticeTasks() throws JsonProcessingException {
     List<JoinedTaskInfo> taskInfoList = tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES).stream()
                                                        .map(TaskByTaskState::getId).map(taskInfoDAO::findById)

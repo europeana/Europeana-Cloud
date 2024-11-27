@@ -16,12 +16,13 @@ RUN apk add --no-cache \
     bind-tools \
     vim
 
-ARG JVM_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED -Dcom.sun.management.jmxremote.ssl=false \
+ARG JVM_ARGS="-Dcom.sun.management.jmxremote.ssl=false \
                       -Dcom.sun.management.jmxremote.authenticate=false \
                       -Dcom.sun.management.jmxremote.port=8012 \
                       -Dcom.sun.management.jmxremote.rmi.port=8012 \
                       -Dcom.sun.management.jmxremote.host=127.0.0.1 \
-                      -Djava.rmi.server.hostname=127.0.0.1"
+                      -Djava.rmi.server.hostname=127.0.0.1 \
+                      -XX:-OmitStackTraceInFastThrow"
 ARG SPRING_ARGS="--spring.jmx.enabled=true \
                         --spring.config.additional-location=file:/etc/ecloud/mcs.properties"
 

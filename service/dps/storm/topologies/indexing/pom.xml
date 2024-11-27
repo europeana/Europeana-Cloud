@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>12</version>
+        <version>13</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -12,6 +12,16 @@
     <name>ecloud-service-dps-storm-topologies-indexing</name>
 
     <dependencies>
+        <dependency>
+            <artifactId>byte-buddy</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy-agent</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
         <dependency>
             <!--Consistency of MurmurHash3 function should be checked while changing commons-codec library version,
                 to avoid data corruption in Cassandra.
@@ -24,7 +34,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
-            <version>4.1.94.Final</version>
+            <version>${version.netty}</version>
         </dependency>
 
         <dependency>

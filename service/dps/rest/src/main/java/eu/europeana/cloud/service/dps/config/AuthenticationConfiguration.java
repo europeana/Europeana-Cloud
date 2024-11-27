@@ -4,6 +4,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.aas.authentication.CassandraAuthenticationService;
 import eu.europeana.cloud.service.aas.authentication.handlers.CloudAuthenticationEntryPoint;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
+import eu.europeana.cloud.service.commons.listeners.CustomLoggerListener;
 import eu.europeana.cloud.service.commons.utils.PasswordEncoderFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -42,8 +43,8 @@ public class AuthenticationConfiguration {
   /* Automatically receives AuthenticationEvent messages */
 
   @Bean
-  public LoggerListener loggerListener() {
-    return new LoggerListener();
+  public CustomLoggerListener loggerListener() {
+    return new CustomLoggerListener();
   }
 
   /* ========= AUTHENTICATION STORAGE (USERNAME + PASSWORD TABLES IN CASSANDRA) ========= */

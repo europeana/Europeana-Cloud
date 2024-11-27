@@ -23,6 +23,9 @@ public final class TopologyPropertiesValidator {
       case TopologiesNames.INDEXING_TOPOLOGY:
         validateIndexingTopology(properties);
         break;
+      case TopologiesNames.DEPUBLICATION_TOPOLOGY:
+        validateDepublicationTopology(properties);
+        break;
       default:
         throw new TopologyPropertiesException("Validator not found for given topology name: " + topologyName);
     }
@@ -37,6 +40,10 @@ public final class TopologyPropertiesValidator {
   }
 
   private static void validateIndexingTopology(Properties properties) {
+    validateCommonProps(properties);
+  }
+
+  private static void validateDepublicationTopology(Properties properties) {
     validateCommonProps(properties);
   }
 

@@ -71,7 +71,6 @@ public class UnfinishedTasksExecutorTest {
     unfinishedTasksExecutor.restartUnfinishedTasks();
     //then
     Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
-    Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
   }
 
 
@@ -94,7 +93,6 @@ public class UnfinishedTasksExecutorTest {
     unfinishedTasksExecutor.restartUnfinishedTasks();
     //then
     Mockito.verify(tasksByStateDAO, Mockito.times(1)).findTasksByState(UnfinishedTasksExecutor.RESUMABLE_TASK_STATES);
-    Mockito.verify(taskSubmitterFactory, Mockito.times(1)).provideTaskSubmitter(Mockito.any(SubmitTaskParameters.class));
   }
 
   private TaskInfo prepareTestTask() {

@@ -2,7 +2,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>12</version>
+        <version>13</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -11,10 +11,20 @@
     <name>Europeana Cloud: DPS Storm Topology for HTTP Harvesting</name>
     <dependencies>
         <dependency>
+            <artifactId>log4j-slf4j2-impl</artifactId>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${version.log4j}</version>
             <scope>provided</scope>
+            <version>${version.log4j}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy-agent</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

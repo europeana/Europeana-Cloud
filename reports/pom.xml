@@ -7,7 +7,7 @@
   <parent>
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
-    <version>12</version>
+    <version>13</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -157,7 +157,7 @@
     <dependency>
       <groupId>eu.europeana.cloud</groupId>
       <artifactId>ecloud-service-mcs-persistent</artifactId>
-      <version>12</version>
+      <version>13</version>
     </dependency>
     <dependency>
       <groupId>eu.europeana.cloud</groupId>

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.config;
 
+import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
@@ -40,5 +41,10 @@ public class UnfinishedTasksContext {
   @Bean
   public TaskSubmitterFactory taskSubmitter() {
     return Mockito.mock(TaskSubmitterFactory.class);
+  }
+
+  @Bean
+  public SubmitTaskService submitTaskService() {
+    return Mockito.mock(SubmitTaskService.class);
   }
 }

@@ -3,7 +3,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>12</version>
+        <version>13</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -74,9 +74,14 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
-            <version>${version.cglib}</version>
+            <artifactId>byte-buddy</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
+        </dependency>
+        <dependency>
+            <artifactId>byte-buddy-agent</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <version>${version.bytebuddy}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
