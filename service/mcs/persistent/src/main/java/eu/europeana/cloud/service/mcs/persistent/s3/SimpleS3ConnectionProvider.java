@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
+import eu.europeana.cloud.service.mcs.persistent.exception.CustomAwsClientException;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
               .build();
       LOGGER.info("Connected to S3 bucket: {}", container);
   } catch (S3Exception e) {
-      LOGGER.error("Error connecting to S3, Exception: {}, Error message: {}", e, e.awsErrorDetails().errorMessage());
+      throw new CustomAwsClientException(e);
     }
   }
 
