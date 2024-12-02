@@ -33,16 +33,18 @@ public class S3ContentDAO implements ContentDAO {
   @SuppressWarnings("java:S1312")
   private static final Logger LOGGER_S3_MODIFICATIONS = LoggerFactory.getLogger("S3Modifications");
   private static final Logger LOGGER = LoggerFactory.getLogger(S3ContentDAO.class);
-  private static final Integer MAX_PART_SIZE = 5 * 1024 * 1024;
+  private Integer maxPartSize;
 
   private final S3ConnectionProvider connectionProvider;
 
   /**
    * Constructor for S3ContentDAO
    * @param connectionProvider S3ConnectionProvider to be used
+   * @param maxPartSize maximum part size for multipart upload
    */
-  public S3ContentDAO(S3ConnectionProvider connectionProvider) {
+  public S3ContentDAO(S3ConnectionProvider connectionProvider, int maxPartSize) {
     this.connectionProvider = connectionProvider;
+    this.maxPartSize = maxPartSize;
   }
 
   @Override
@@ -65,8 +67,8 @@ public class S3ContentDAO implements ContentDAO {
     List<byte[]> chunks = new ArrayList<>();
     int totalLength = content.length;
 
-    for (int i = 0; i < totalLength; i += MAX_PART_SIZE) {
-      int chunkSize = Math.min(MAX_PART_SIZE, totalLength - i);
+    for (int i = 0; i < totalLength; i += maxPartSize) {
+      int chunkSize = Math.min(maxPartSize, totalLength - i);
       byte[] chunk = new byte[chunkSize];
       System.arraycopy(content, i, chunk, 0, chunkSize);
       chunks.add(chunk);

@@ -75,7 +75,7 @@ public class SpiedServicesTestContext {
 
   @Bean
   public S3ContentDAO s3ContentDAO() {
-    return spy(new S3ContentDAO(simpleS3ConnectionProvider()));
+    return spy(new S3ContentDAO(simpleS3ConnectionProvider(), S3_TEST_MAX_PART_SIZE));
   }
 
   @Bean

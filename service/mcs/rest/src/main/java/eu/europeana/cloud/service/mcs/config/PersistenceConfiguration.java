@@ -128,7 +128,7 @@ public class PersistenceConfiguration {
   }
 
   @Bean
-  ContentDAO s3ContentDAO(S3ConnectionProvider s3ConnectionProvider) {
-    return new S3ContentDAO(s3ConnectionProvider);
+  ContentDAO s3ContentDAO(S3ConnectionProvider s3ConnectionProvider, S3Properties s3Properties) {
+    return new S3ContentDAO(s3ConnectionProvider, s3Properties.getMaxPartSize());
   }
 }

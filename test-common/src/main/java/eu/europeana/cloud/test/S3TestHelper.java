@@ -62,6 +62,7 @@ public final class S3TestHelper {
                 public static final String S3_TEST_USER = "test_user";
                 public static final String S3_TEST_PASSWORD = "test_pwd";
                 public static final String S3_TEST_REGION = "test_region";
+                public static final int S3_TEST_MAX_PART_SIZE = 5;
                 private S3TestConstants() {
                 }
         }

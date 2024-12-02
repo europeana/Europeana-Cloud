@@ -23,6 +23,6 @@ public class S3TestContext {
 
   @Bean
   public S3ContentDAO s3ContentDAO() {
-    return new S3ContentDAO(connectionProvider());
+    return new S3ContentDAO(connectionProvider(), S3_TEST_MAX_PART_SIZE);
   }
 }

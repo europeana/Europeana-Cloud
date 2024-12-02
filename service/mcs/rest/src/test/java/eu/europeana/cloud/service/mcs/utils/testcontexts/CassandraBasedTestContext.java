@@ -103,7 +103,7 @@ public class CassandraBasedTestContext {
 
   @Bean
   public S3ContentDAO s3ContentDAO() {
-    return new S3ContentDAO(s3ConnectionProvider());
+    return new S3ContentDAO(s3ConnectionProvider(), S3_TEST_MAX_PART_SIZE);
   }
 
   @Bean
