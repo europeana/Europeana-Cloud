@@ -17,7 +17,9 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Provides DAO operations for S3.
@@ -31,6 +33,7 @@ public class S3ContentDAO implements ContentDAO {
   @SuppressWarnings("java:S1312")
   private static final Logger LOGGER_S3_MODIFICATIONS = LoggerFactory.getLogger("S3Modifications");
   private static final Logger LOGGER = LoggerFactory.getLogger(S3ContentDAO.class);
+  private static final Integer MAX_PART_SIZE = 5 * 1024 * 1024;
 
   private final S3ConnectionProvider connectionProvider;
 
@@ -50,16 +53,58 @@ public class S3ContentDAO implements ContentDAO {
     byte[] content = IOUtils.toByteArray(data);
     byte[] md5 = DigestUtils.md5(content);
     String hexMd5 = Hex.encodeHexString(md5);
-    String base64Md5 = Base64.getEncoder().encodeToString(md5);
-
-    PutObjectRequest putRequest = PutObjectRequest.builder()
+    Base64.getEncoder().encodeToString(md5);
+    CreateMultipartUploadRequest createRequest = CreateMultipartUploadRequest.builder()
             .bucket(container)
             .key(fileName)
-            .contentMD5(base64Md5)
-            .contentLength((long) content.length)
+            .build();
+    CreateMultipartUploadResponse createResponse = s3Client.createMultipartUpload(createRequest);
+
+    String uploadId = createResponse.uploadId();
+
+    List<byte[]> chunks = new ArrayList<>();
+    int totalLength = content.length;
+
+    for (int i = 0; i < totalLength; i += MAX_PART_SIZE) {
+      int chunkSize = Math.min(MAX_PART_SIZE, totalLength - i);
+      byte[] chunk = new byte[chunkSize];
+      System.arraycopy(content, i, chunk, 0, chunkSize);
+      chunks.add(chunk);
+    }
+
+    List<CompletedPart> completedParts = new ArrayList<>();
+    int partNumber = 1;
+    for (byte[] chunk : chunks) {
+      long bytesRead = chunk.length;
+      String chunkMd5 = Base64.getEncoder().encodeToString(DigestUtils.md5(chunk));
+      UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
+              .bucket(container)
+              .key(fileName)
+              .uploadId(uploadId)
+              .partNumber(partNumber)
+              .contentMD5(chunkMd5)
+              .contentLength(bytesRead)
+              .build();
+
+      UploadPartResponse response = s3Client.uploadPart(uploadPartRequest, RequestBody.fromBytes(chunk));
+
+      completedParts.add(CompletedPart.builder()
+              .partNumber(partNumber)
+              .eTag(response.eTag())
+              .build());
+
+      partNumber++;
+
+    }
+
+    CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
+            .bucket(container)
+            .key(fileName)
+            .uploadId(uploadId)
+            .multipartUpload(builder -> builder.parts(completedParts))
             .build();
 
-    s3Client.putObject(putRequest, RequestBody.fromBytes(content));
+    s3Client.completeMultipartUpload(completeRequest);
     return new PutResult(hexMd5, (long) content.length);
   }
 
