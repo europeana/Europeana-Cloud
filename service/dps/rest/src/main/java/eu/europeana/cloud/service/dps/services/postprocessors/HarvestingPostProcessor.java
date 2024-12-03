@@ -17,6 +17,9 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.storm.dao.ExistingInMetisHarvestedRecordsBatchCompleter;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -60,6 +63,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private final RevisionServiceClient revisionServiceClient;
 
   private final UISClient uisClient;
+  private final IndexWrapper indexWrapper;
 
   public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
       ProcessedRecordsDAO processedRecordsDAO,
@@ -67,44 +71,28 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       RevisionServiceClient revisionServiceClient,
       UISClient uisClient,
       TaskStatusUpdater taskStatusUpdater,
-      TaskStatusChecker taskStatusChecker) {
+      TaskStatusChecker taskStatusChecker,
+      IndexWrapper indexWrapper) {
     super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
     this.processedRecordsDAO = processedRecordsDAO;
     this.recordServiceClient = recordServiceClient;
     this.revisionServiceClient = revisionServiceClient;
     this.uisClient = uisClient;
+    this.indexWrapper = indexWrapper;
   }
 
   @Override
   public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
     try {
       taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-          "Postprocessing - adding removed records to result revision.");
+          "Postprocessing - synchronizing existing records from Metis.");
+      updateHarvestedRecordsTableWithRecordsExistingInMetis(dpsTask);
       taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
-      Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
-      int postProcessedRecordsCount = 0;
-      while (it.hasNext()) {
-        if (taskIsDropped(dpsTask)) {
-          LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
-          return;
-        }
-        var harvestedRecord = it.next();
-        if (!isIndexedInSomeEnvironment(harvestedRecord)) {
-          harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
-          LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
-              , harvestedRecord, dpsTask.getTaskId());
-        } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-          createPostProcessedRecord(dpsTask, harvestedRecord);
-          markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
-          postProcessedRecordsCount++;
-          taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
-          LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-        } else {
-          LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
-              dpsTask.getTaskId());
-        }
-
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+          "Postprocessing - adding removed records to result revision.");
+      if (addDeletedRecordsToTaskResultRevision(dpsTask)) {
+        return;
       }
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
     } catch (RetryInterruptedException e) {
@@ -113,6 +101,41 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       throw new PostProcessingException(
           String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
               dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
+    }
+  }
+
+  private boolean addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
+    Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+    int postProcessedRecordsCount = 0;
+    while (it.hasNext()) {
+      taskStatusChecker.checkNotDropped(dpsTask);
+      var harvestedRecord = it.next();
+      if (!isIndexedInSomeEnvironment(harvestedRecord)) {
+        harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
+        LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
+            , harvestedRecord, dpsTask.getTaskId());
+      } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+        createPostProcessedRecord(dpsTask, harvestedRecord);
+        markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
+        postProcessedRecordsCount++;
+        taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
+        LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+      } else {
+        LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
+            dpsTask.getTaskId());
+      }
+
+    }
+    return false;
+  }
+
+  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) {
+    String metisDatasetId = task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+    for(TargetIndexingDatabase db:TargetIndexingDatabase.values()) {
+      try (ExistingInMetisHarvestedRecordsBatchCompleter completer
+          = new ExistingInMetisHarvestedRecordsBatchCompleter(harvestedRecordsDAO, metisDatasetId, db)) {
+        indexWrapper.getIndexer(db).getRecordIds(metisDatasetId, new Date()).forEach(completer::executeRecord);
+      }
     }
   }
 
@@ -177,10 +200,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   }
 
   public boolean needsPostProcessing(DpsTask task) {
-    return isIncrementalHarvesting(task);
+    return true;
   }
 
-  private boolean isIncrementalHarvesting(DpsTask task) {
-    return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
-  }
 }

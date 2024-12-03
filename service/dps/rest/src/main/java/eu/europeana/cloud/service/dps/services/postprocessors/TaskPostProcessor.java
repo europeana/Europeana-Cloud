@@ -29,13 +29,10 @@ public abstract class TaskPostProcessor {
   }
 
   /**
-   * Executes post processing activity for the provided task
+   * Executes post-processing activity for the provided task
    */
   public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
-    if (taskIsDropped(dpsTask)) {
-      LOGGER.info("The task {} will not be postprocessed because it was dropped", dpsTask.getTaskId());
-      return;
-    }
+    taskStatusChecker.checkNotDropped(dpsTask);
     executePostprocessing(taskInfo, dpsTask);
   }
 

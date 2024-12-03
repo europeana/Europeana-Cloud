@@ -84,7 +84,7 @@ public class IndexingPostProcessorTest {
     //when
     service.execute(taskInfo, prepareTaskForPreviewEnv());
     //then
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
     verify(harvestedRecordsBatchCleaner).close();
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
@@ -100,8 +100,8 @@ public class IndexingPostProcessorTest {
     //when
     service.execute(taskInfo, prepareTaskForPreviewEnv());
     //then
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
     verify(harvestedRecordsBatchCleaner).close();
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
@@ -117,7 +117,7 @@ public class IndexingPostProcessorTest {
     //when
     service.execute(taskInfo, prepareTaskForPublishEnv());
     //then
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
     verify(harvestedRecordsBatchCleaner).close();
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
@@ -133,8 +133,8 @@ public class IndexingPostProcessorTest {
     //when
     service.execute(taskInfo, prepareTaskForPublishEnv());
     //then
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).cleanRecord(RECORD_ID_2);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
     verify(harvestedRecordsBatchCleaner).close();
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
