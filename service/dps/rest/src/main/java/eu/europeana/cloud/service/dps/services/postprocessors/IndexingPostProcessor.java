@@ -91,7 +91,7 @@ public class IndexingPostProcessor extends TaskPostProcessor {
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(harvestedRecordsDAO, metisDatasetId,
         indexingDatabase);
     try (cleaner) {
-      recordIds.takeWhile(harvestedRecord -> !taskIsDropped(dpsTask)).forEach(cleaner::cleanRecord);
+      recordIds.takeWhile(harvestedRecord -> !taskIsDropped(dpsTask)).forEach(cleaner::executeRecord);
     }
     LOGGER.info("Cleaned indexing columns in Harvested records table for {} records.", cleaner.getCleanedCount());
     return cleaner.getCleanedCount();

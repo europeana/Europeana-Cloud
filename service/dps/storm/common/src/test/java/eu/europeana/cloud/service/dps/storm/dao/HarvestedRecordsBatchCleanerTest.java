@@ -44,7 +44,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
         TargetIndexingDatabase.PREVIEW);
 
-    cleaner.cleanRecord(generateRandomRecordId());
+    cleaner.executeRecord(generateRandomRecordId());
     cleaner.close();
 
     assertFalse(dao.findDatasetRecords(METIS_DATASET_ID).hasNext());
@@ -60,7 +60,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
         TargetIndexingDatabase.PREVIEW);
 
-    cleaner.cleanRecord(recordId);
+    cleaner.executeRecord(recordId);
     cleaner.close();
 
     HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
@@ -79,7 +79,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
         TargetIndexingDatabase.PUBLISH);
 
-    cleaner.cleanRecord(recordId);
+    cleaner.executeRecord(recordId);
     cleaner.close();
 
     HarvestedRecord record = dao.findRecord(METIS_DATASET_ID, recordId).orElseThrow();
@@ -89,7 +89,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
   @Test
   public void shouldNotSaveBeforeBatchSizeIsAchieved() {
-    int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE - 1;
+    int recordCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE - 1;
     List<String> recordIds = generateRandomRecordIds(7, recordCount);
     for (String recordId : recordIds) {
       dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
@@ -101,7 +101,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
         TargetIndexingDatabase.PREVIEW);
 
     for (String recordId : recordIds) {
-      cleaner.cleanRecord(recordId);
+      cleaner.executeRecord(recordId);
     }
 
     List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
@@ -114,7 +114,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
   @Test
   public void shouldSaveRecordsWhenBatchSizeIsAchieved() {
-    int recordCount = HarvestedRecordsBatchCleaner.BATCH_SIZE;
+    int recordCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE;
     List<String> recordIds = generateRandomRecordIds(7, recordCount);
     for (String recordId : recordIds) {
       dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
@@ -126,7 +126,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
         TargetIndexingDatabase.PREVIEW);
 
     for (String recordId : recordIds) {
-      cleaner.cleanRecord(recordId);
+      cleaner.executeRecord(recordId);
     }
 
     List<HarvestedRecord> result = ImmutableList.copyOf(dao.findDatasetRecords(METIS_DATASET_ID));
@@ -140,7 +140,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   @Test
   public void shouldProperlySaveRecordsInManyBatchesForManyBuckets() {
     List<String> recordIds = new ArrayList<>();
-    int recordInBucketCount = HarvestedRecordsBatchCleaner.BATCH_SIZE * 5 / 2;
+    int recordInBucketCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE * 5 / 2;
     recordIds.addAll(generateRandomRecordIds(7, recordInBucketCount));
     recordIds.addAll(generateRandomRecordIds(25, recordInBucketCount));
     recordIds.addAll(generateRandomRecordIds(63, recordInBucketCount));
@@ -155,7 +155,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
         TargetIndexingDatabase.PREVIEW);
 
     for (String recordId : recordIds) {
-      cleaner.cleanRecord(recordId);
+      cleaner.executeRecord(recordId);
     }
     cleaner.close();
 

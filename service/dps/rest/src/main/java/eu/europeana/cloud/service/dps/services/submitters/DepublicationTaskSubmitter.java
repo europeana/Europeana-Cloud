@@ -7,6 +7,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -136,7 +137,7 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
 
   private void checkIfTaskIsKilled(DpsTask task) {
     if (taskStatusChecker.hasDroppedStatus(task.getTaskId())) {
-      throw new SubmitingTaskWasKilled(task);
+      throw new TaskDroppedException(task);
     }
   }
 }

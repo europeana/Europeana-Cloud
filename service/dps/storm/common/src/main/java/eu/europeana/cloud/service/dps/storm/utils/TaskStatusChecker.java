@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +54,12 @@ public class TaskStatusChecker {
       instance = new TaskStatusChecker(cassandraConnectionProvider);
     }
     return instance;
+  }
+
+  public void checkNotDropped(DpsTask task) throws TaskDroppedException {
+    if (hasDroppedStatus(task.getTaskId())) {
+      throw new TaskDroppedException(task);
+    }
   }
 
 
