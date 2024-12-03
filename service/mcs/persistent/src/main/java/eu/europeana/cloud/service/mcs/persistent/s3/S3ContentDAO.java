@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -49,73 +50,71 @@ public class S3ContentDAO implements ContentDAO {
 
   @Override
   public PutResult putContent(String fileName, InputStream data) throws IOException {
-    S3Client s3Client = connectionProvider.getS3Client();
     logOperation(fileName, "PUT");
+
+    S3Client s3Client = connectionProvider.getS3Client();
     String container = connectionProvider.getContainer();
     byte[] content = IOUtils.toByteArray(data);
     byte[] md5 = DigestUtils.md5(content);
     String hexMd5 = Hex.encodeHexString(md5);
-    Base64.getEncoder().encodeToString(md5);
-    CreateMultipartUploadRequest createRequest = CreateMultipartUploadRequest.builder()
+
+    CreateMultipartUploadRequest createUploadRequest = CreateMultipartUploadRequest.builder()
             .bucket(container)
             .key(fileName)
             .build();
-    CreateMultipartUploadResponse createResponse = s3Client.createMultipartUpload(createRequest);
+    CreateMultipartUploadResponse createUploadResponse = s3Client.createMultipartUpload(createUploadRequest);
 
-    String uploadId = createResponse.uploadId();
+    String uploadId = createUploadResponse.uploadId();
 
-    List<byte[]> chunks = new ArrayList<>();
-    int totalLength = content.length;
-
-    for (int i = 0; i < totalLength; i += maxPartSize) {
-      int chunkSize = Math.min(maxPartSize, totalLength - i);
-      byte[] chunk = new byte[chunkSize];
-      System.arraycopy(content, i, chunk, 0, chunkSize);
-      chunks.add(chunk);
-    }
-
+    int totalContentLength = content.length;
     List<CompletedPart> completedParts = new ArrayList<>();
-    int partNumber = 1;
-    for (byte[] chunk : chunks) {
-      long bytesRead = chunk.length;
-      String chunkMd5 = Base64.getEncoder().encodeToString(DigestUtils.md5(chunk));
-      UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
-              .bucket(container)
-              .key(fileName)
-              .uploadId(uploadId)
-              .partNumber(partNumber)
-              .contentMD5(chunkMd5)
-              .contentLength(bytesRead)
-              .build();
 
-      UploadPartResponse response = s3Client.uploadPart(uploadPartRequest, RequestBody.fromBytes(chunk));
-
-      completedParts.add(CompletedPart.builder()
-              .partNumber(partNumber)
-              .eTag(response.eTag())
-              .build());
-
-      partNumber++;
-
+    for (int i = 0; i < totalContentLength; i += maxPartSize) {
+      byte[] chunk = ArrayUtils.subarray(content, i,i + maxPartSize);
+      completedParts.add(uploadPart(fileName, uploadId, i+1, chunk));
     }
 
-    CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
+
+    CompleteMultipartUploadRequest completeUploadRequest = CompleteMultipartUploadRequest.builder()
             .bucket(container)
             .key(fileName)
             .uploadId(uploadId)
             .multipartUpload(builder -> builder.parts(completedParts))
             .build();
 
-    s3Client.completeMultipartUpload(completeRequest);
-    return new PutResult(hexMd5, (long) content.length);
+    s3Client.completeMultipartUpload(completeUploadRequest);
+    return new PutResult(hexMd5, (long) totalContentLength);
+  }
+
+  private CompletedPart uploadPart(String fileName, String uploadId, int partNumber, byte[] chunk) {
+    long chunkLength = chunk.length;
+    S3Client s3Client = connectionProvider.getS3Client();
+    String container = connectionProvider.getContainer();
+    String chunkMd5 = Base64.getEncoder().encodeToString(DigestUtils.md5(chunk));
+
+    UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
+            .bucket(container)
+            .key(fileName)
+            .uploadId(uploadId)
+            .partNumber(partNumber)
+            .contentMD5(chunkMd5)
+            .contentLength(chunkLength)
+            .build();
+
+    UploadPartResponse uploadPartResponse = s3Client.uploadPart(uploadPartRequest, RequestBody.fromBytes(chunk));
+
+    return CompletedPart.builder()
+            .partNumber(partNumber)
+            .eTag(uploadPartResponse.eTag())
+            .build();
   }
 
   @Override
   public void getContent(String fileName, long start, long end, OutputStream os)
           throws IOException, FileNotExistsException {
-    S3Client s3Client = connectionProvider.getS3Client();
     logOperation(fileName, "GET");
 
+    S3Client s3Client = connectionProvider.getS3Client();
     String container = connectionProvider.getContainer();
 
     try {
@@ -136,7 +135,7 @@ public class S3ContentDAO implements ContentDAO {
       IOUtils.copy(object, os);
 
     } catch (NoSuchKeyException e) {
-      LOGGER.debug("File {} not exists, Exception: {}", fileName, e);
+      LOGGER.debug("File {} not exists", fileName, e);
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
     }
   }
