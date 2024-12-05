@@ -4,12 +4,12 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
 import java.util.Properties;
@@ -62,7 +62,8 @@ public class DepublicationBolt extends AbstractDpsBolt {
   @Override
   public void prepare() {
     prepareDao();
-    recordRemover = new IndexedRecordRemover(indexingProperties);
+    IndexWrapper indexWrapper = IndexWrapper.getInstance(indexingProperties);
+    recordRemover = new IndexedRecordRemover(indexWrapper);
   }
 
   private void prepareDao() {

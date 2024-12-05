@@ -109,16 +109,16 @@ public class HarvestedRecordsDAO extends CassandraDAO {
         + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
         + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
-        + " IF published_harvest_date = NULL");
+        + " IF " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + " = NULL");
 
-    completePublishedColumnsIfEmptyStatement =dbService.getSession().prepare("UPDATE "
-            + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
-            + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
-            + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 + " = ? "
-            + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
-            + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
-            + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
-            + " IF published_harvest_date = NULL");
+    completePublishedColumnsIfEmptyStatement = dbService.getSession().prepare("UPDATE "
+        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+        + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
+        + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 + " = ? "
+        + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+        + " IF " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = NULL");
 
     updatePublishedHarvestDateStatement = dbService.getSession().prepare("UPDATE "
         + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE

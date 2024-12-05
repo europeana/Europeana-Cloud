@@ -3,10 +3,12 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,6 +21,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsBatchCleaner;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import java.time.Instant;
@@ -152,9 +155,13 @@ public class IndexingPostProcessorTest {
   @Test
   public void shouldNotStartPostprocessingForDroppedTask() {
     //given
+    DpsTask task = prepareTaskForPreviewEnv();
     when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+    doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(task);
+
     //when
-    service.execute(taskInfo, prepareTaskForPreviewEnv());
+    assertThrows(TaskDroppedException.class,()-> service.execute(taskInfo, task));
+
     //then
     verifyNoInteractions(taskStatusUpdater);
     verifyNoInteractions(harvestedRecordsDAO);

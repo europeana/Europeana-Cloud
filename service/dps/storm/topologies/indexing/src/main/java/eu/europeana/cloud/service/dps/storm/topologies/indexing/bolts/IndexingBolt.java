@@ -73,7 +73,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     prepareDao();
     prepareEuropeanaIdFinder();
     prepareIndexer();
-    recordRemover = new IndexedRecordRemover(indexingProperties);
+    recordRemover = new IndexedRecordRemover(indexWrapper);
   }
 
   @Override
