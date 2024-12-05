@@ -18,7 +18,9 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -29,6 +31,7 @@ import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
+import eu.europeana.metis.utils.DepublicationReason;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -74,6 +77,9 @@ public class IndexingBoltTest {
 
   @Mock
   private Properties indexingProperties;
+
+  @Mock
+  private IndexedRecordRemover indexedRecordRemover;
 
   @Mock
   private EuropeanaIdFinder europeanaIdFinder;
@@ -228,7 +234,7 @@ public class IndexingBoltTest {
     indexingBolt.execute(anchorTuple, tuple);
     //then
     verify(indexer).index(anyString(), any(), any());
-    verify(indexer).remove(LOCAL_ID);
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, LOCAL_ID, DepublicationReason.REMOVED_DATA_AT_SOURCE);
     Mockito.verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
@@ -248,10 +254,50 @@ public class IndexingBoltTest {
     Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Record not suitable for publication"));
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void shouldRemoveDeletedRecordFromPreview() throws Exception {
+    mockEuropeanaIdFinder();
+    when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
+        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                       .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
+                       .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
+                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+
+    Tuple anchorTuple = mock(TupleImpl.class);
+    String targetIndexingEnv = "PREVIEW";
+    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    tuple.setMarkedAsDeleted(true);
+    mockIndexer();
+
+    indexingBolt.execute(anchorTuple, tuple);
+
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PREVIEW, LOCAL_ID, DepublicationReason.REMOVED_DATA_AT_SOURCE);
+    Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
+    verify(indexer, never()).index(Mockito.anyString(), Mockito.any(), any());
+    verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
+    Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
+                                                                             .metisDatasetId(METIS_DATASET_ID)
+                                                                             .recordLocalId(LOCAL_ID)
+                                                                             .latestHarvestDate(EARLIER_HARVEST_DATE)
+                                                                             .latestHarvestMd5(EARLIER_HARVEST_MD5)
+                                                                             .previewHarvestDate(null)
+                                                                             .previewHarvestMd5(null)
+                                                                             .publishedHarvestDate(EARLIER_HARVEST_DATE)
+                                                                             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
+                                                                             .build());
+    Values capturedValues = captor.getValue();
+    assertEquals(10, capturedValues.size());
+    assertEquals(
+        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+        capturedValues.get(2));
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+    assertEquals(8, parameters.size());
+  }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldRemoveDeletedRecordFromIndex() throws Exception {
+  public void shouldRemoveDeletedRecordFromPublish() throws Exception {
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
         HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
@@ -267,7 +313,7 @@ public class IndexingBoltTest {
 
     indexingBolt.execute(anchorTuple, tuple);
 
-    verify(indexer).remove(LOCAL_ID);
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, LOCAL_ID, DepublicationReason.REMOVED_DATA_AT_SOURCE);
     Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
     verify(indexer, never()).index(Mockito.anyString(), Mockito.any(), any());
     verify(harvestedRecordsDAO).findRecord(anyString(), anyString());

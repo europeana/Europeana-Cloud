@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
-import java.util.Properties;
 
 /**
  * Remove indexed record from Metis,
@@ -16,10 +15,10 @@ public class IndexedRecordRemover {
   /**
    * Creates IndexedRecordRemover
    *
-   * @param indexingProperties - properties with configuration of Metis Indexer
+   * @param indexWrapper - Index wrapper
    */
-  public IndexedRecordRemover(Properties indexingProperties) {
-    indexWrapper = IndexWrapper.getInstance(indexingProperties);
+  public IndexedRecordRemover(IndexWrapper indexWrapper) {
+    this.indexWrapper = indexWrapper;
   }
 
   /**
