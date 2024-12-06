@@ -105,6 +105,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
       if (recordShouldBeDeleted) {
         removeIndexedRecord(stormTaskTuple, database, europeanaId);
+      } else{
+        indexWrapper.getIndexer(database).removeTombstone(europeanaId);
       }
       updateHarvestedRecord(stormTaskTuple, europeanaId, recordShouldBeDeleted);
       if (recordNotSuitableForPublication) {
