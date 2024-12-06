@@ -56,6 +56,11 @@ public class TaskStatusChecker {
     return instance;
   }
 
+  /**
+   * Checks in the DB if the task is dropped and if it is true, throws TaskDroppedException
+   * @param task - checked task
+   * @throws TaskDroppedException - is thrown if task is dropped.
+   */
   public void checkNotDropped(DpsTask task) throws TaskDroppedException {
     if (hasDroppedStatus(task.getTaskId())) {
       throw new TaskDroppedException(task);

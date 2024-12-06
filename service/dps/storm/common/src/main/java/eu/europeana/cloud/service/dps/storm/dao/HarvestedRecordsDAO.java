@@ -175,6 +175,14 @@ public class HarvestedRecordsDAO extends CassandraDAO {
              .execute(updatePublishedHarvestDateStatement.bind(indexingDate, metisDatasetId, bucketNoFor(recordId), recordId));
   }
 
+  /**
+   * Cleans indexed date and md5 columns for the selected environment.
+   *
+   * @param metisDatasetId - metis dataset id
+   * @param recordId -record id
+   * @param targetDb -target id
+   * @return statement
+   */
   public BoundStatement createCleanIndexedColumnsStatement(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
     return switch (targetDb) {
       case PREVIEW -> createCleanPreviewColumnsStatement(metisDatasetId, recordId);
@@ -190,6 +198,17 @@ public class HarvestedRecordsDAO extends CassandraDAO {
     return updatePublishedColumnsForExistingStatement.bind(null, null, metisDatasetId, bucketNoFor(recordId), recordId);
   }
 
+  /**
+   * Completes record indexed columns for the record if it has empty indexed date column for selected environment.
+   * If the row does not exist it is created.
+   *
+   * @param metisDatasetId - metis dataset id
+   * @param recordId -record id
+   * @param targetDb -target id
+   * @param date - indexed date
+   * @param md5 - indexed md5
+   * @return statement
+   */
   public BoundStatement createCompleteIndexedColumnsIfEmptyStatement(
       String metisDatasetId, String recordId, TargetIndexingDatabase targetDb, Date date, UUID md5) {
     return switch (targetDb) {

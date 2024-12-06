@@ -51,7 +51,7 @@ public class PostProcessingService {
       postProcessor.execute(taskInfo, task);
       LOGGER.info(MESSAGE_SUCCESSFULLY_POST_PROCESSED, taskByTaskState.getId());
     } catch (TaskDroppedException exception) {
-      LOGGER.info("The task: {} could not be post-processed because it was dropped", exception.getTaskId());
+      LOGGER.info("The task: {} could not be post-processed because it was dropped", exception.getTaskId(), exception);
     } catch (IOException | TaskInfoDoesNotExistException | PostProcessingException exception) {
       LOGGER.error(MESSAGE_FAILED_POST_PROCESSED, taskByTaskState.getId(), exception);
       taskStatusUpdater.setTaskDropped(taskByTaskState.getId(), exception.getMessage());

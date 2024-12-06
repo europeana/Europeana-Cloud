@@ -21,8 +21,8 @@ public class DepublicationBolt extends AbstractDpsBolt {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DepublicationBolt.class);
   private final Properties indexingProperties;
-  private HarvestedRecordsDAO harvestedRecordsDAO;
-  private IndexedRecordRemover recordRemover;
+  private transient HarvestedRecordsDAO harvestedRecordsDAO;
+  private transient IndexedRecordRemover recordRemover;
 
   public DepublicationBolt(CassandraProperties cassandraProperties, Properties indexingProperties) {
     super(cassandraProperties);

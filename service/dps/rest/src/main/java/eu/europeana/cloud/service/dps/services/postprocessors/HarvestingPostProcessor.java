@@ -65,6 +65,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private final UISClient uisClient;
   private final IndexWrapper indexWrapper;
 
+  @SuppressWarnings("java:S107") //We want to use constructor injection so we need 8 parameters here
   public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
       ProcessedRecordsDAO processedRecordsDAO,
       RecordServiceClient recordServiceClient,
@@ -91,9 +92,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
           Iterators.size(fetchDeletedRecords(dpsTask)));
       taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
           "Postprocessing - adding removed records to result revision.");
-      if (addDeletedRecordsToTaskResultRevision(dpsTask)) {
-        return;
-      }
+      addDeletedRecordsToTaskResultRevision(dpsTask);
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
     } catch (RetryInterruptedException e) {
       throw e;
@@ -104,7 +103,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     }
   }
 
-  private boolean addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
+  private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
     while (it.hasNext()) {
@@ -126,7 +125,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       }
 
     }
-    return false;
   }
 
   private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) {

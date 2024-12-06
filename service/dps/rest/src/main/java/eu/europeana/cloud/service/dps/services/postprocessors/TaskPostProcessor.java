@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class TaskPostProcessor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskPostProcessor.class);
-
   protected final TaskStatusChecker taskStatusChecker;
   protected final TaskStatusUpdater taskStatusUpdater;
   protected final HarvestedRecordsDAO harvestedRecordsDAO;
