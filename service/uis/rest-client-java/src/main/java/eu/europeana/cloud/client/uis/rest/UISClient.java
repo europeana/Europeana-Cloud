@@ -99,7 +99,7 @@ public class UISClient implements AutoCloseable {
    *
    * @param providerId The provider Id
    * @param recordId The record Id
-   * @return The newly generated CloudId
+   * @return The cloudId already assigned to the Europeana id for provider if exists, or newly generated CloudId
    * @throws CloudException The generic cloud exception wrapper
    */
   public CloudId createCloudId(String providerId, String recordId) throws CloudException {

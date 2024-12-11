@@ -148,7 +148,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
     try {
       LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-      String cloudId = findCloudId(dpsTask, harvestedRecord);
+      String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
       addRevisionToRepresentation(dpsTask, representation);
     } catch (CloudException | MCSException | MalformedURLException e) {
@@ -161,12 +161,18 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     var harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
     Iterator<HarvestedRecord> allRecords =
         harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
-    return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
+    return Iterators.filter(allRecords, theRecord ->
+        latestHarvestDateNotFromCurrentHarvest(theRecord, harvestDate));
   }
 
-  private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
+  private boolean latestHarvestDateNotFromCurrentHarvest(HarvestedRecord theRecord, Date harvestDate) {
+    return (theRecord.getLatestHarvestDate() == null) || theRecord.getLatestHarvestDate().before(harvestDate);
+  }
+
+  private String findOrCreateCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
     String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-    return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
+    //We support the situation when the records are not in the eCloud at all, so we need to create cloudId if it does not exist.
+    return uisClient.createCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
   }
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
