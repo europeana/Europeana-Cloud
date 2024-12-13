@@ -27,14 +27,6 @@ CREATE TABLE data_set_assignments_by_data_set_buckets (
   PRIMARY KEY (object_id, bucket_id)
 ) WITH comment='Keep track of number of rows in a bucket for provider and dataset id assignments.';
 
-CREATE TABLE data_set_assignments_by_representations (
-  cloud_id varchar,
-  schema_id varchar,
-  version_id timeuuid,
-  provider_dataset_id varchar, /* concatenation: provider_id | dataset_id */
-  creation_date timestamp,
-PRIMARY KEY ((cloud_id, schema_id), version_id, provider_dataset_id)
-);
 
 CREATE TABLE representation_versions (
 	cloud_id varchar,
@@ -45,6 +37,7 @@ CREATE TABLE representation_versions (
 	files map<varchar, text>,  /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
 	revisions map<varchar, text>,
 	creation_date timestamp,
+    dataset_id varchar,
 	PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 

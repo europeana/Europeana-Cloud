@@ -57,9 +57,9 @@
             <version>${version.uuid}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.jclouds.api</groupId>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>${version.jclouds}</version>
+            <version>${version.amazon-s3}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -111,9 +111,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${version.jakarta.xml.bind}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>${version.jaxb-impl}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

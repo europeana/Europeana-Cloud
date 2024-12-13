@@ -1,21 +1,23 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
+import eu.europeana.cloud.test.S3TestHelper;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.*;
 
 /**
  * @author krystian.
@@ -25,6 +27,19 @@ public abstract class ContentDAOTest {
   @Autowired
   protected ContentDAO instance;
 
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.startS3MockServer();
+  }
+
+  @Before
+  public void cleanUpBeforeTest() {
+    S3TestHelper.cleanUpBetweenTests();
+  }
+  @AfterClass
+  public static void cleanUp() {
+    S3TestHelper.stopS3MockServer();
+  }
   @Test
   public void shouldPutAndGetContent()
       throws Exception {
@@ -47,7 +62,7 @@ public abstract class ContentDAOTest {
     //check if md5 in file is correct
     assertEquals(file.getMd5(), md5Hex);
     //check if md5 in file is correct
-    assertEquals(md5Hex, DigestUtils.md5Hex(os.toByteArray()));
+    assertEquals(DigestUtils.md5Hex(os.toByteArray()), md5Hex);
   }
 
   @Test

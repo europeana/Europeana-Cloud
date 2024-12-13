@@ -1,11 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
@@ -13,38 +9,22 @@ import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
 import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Implementation of record service using Cassandra as storage.
@@ -177,11 +157,12 @@ public class CassandraRecordService implements RecordService {
     //
     Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
     if (oneDatasetFor.isPresent()) {
-      if (!oneDatasetFor.get().equals(new CompoundDataSetId(providerId, dataSetId))) {
-        LOGGER.error("DataSetId provided and recordId doesn't match. It should never happen");
-        throw new DataSetAssignmentException(
-            "providerId and/or datasetId doesn't match. It is not allowed to assign representations of same record" +
-                " to more than one dataset.");
+      CompoundDataSetId currentDataset = oneDatasetFor.get();
+      CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, dataSetId);
+      if (!currentDataset.equals(newVersionDataset)) {
+        throw new DataSetAssignmentException("ProviderId and/or datasetId: " + newVersionDataset
+            + " doesn't match the current assignments of the representation: " + currentDataset
+            + ". It is not allowed to assign representations of same record to more than one dataset.");
       }
     }
 
@@ -193,7 +174,7 @@ public class CassandraRecordService implements RecordService {
       }
       Date now = Calendar.getInstance().getTime();
       Representation representation =
-          recordDAO.createRepresentation(cloudId, representationName, providerId, now, version);
+          recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId);
       dataSetService.addAssignmentToMainTables(
           providerId,
           dataSetId,
@@ -222,9 +203,8 @@ public class CassandraRecordService implements RecordService {
     Representation rep = recordDAO.getLatestPersistentRepresentation(globalId, schema);
     if (rep == null) {
       throw new RepresentationNotExistsException();
-    } else {
-      return rep;
     }
+    return rep;
   }
 
   /**
@@ -236,10 +216,10 @@ public class CassandraRecordService implements RecordService {
     Representation rep = recordDAO.getRepresentation(globalId, schema, version);
     if (rep == null) {
       throw new RepresentationNotExistsException();
-    } else {
-      LOGGER.debug("Loaded representation {}", rep);
-      return rep;
     }
+
+    LOGGER.debug("Loaded representation {}", rep);
+    return rep;
   }
 
   /**
@@ -497,18 +477,12 @@ public class CassandraRecordService implements RecordService {
     }
   }
 
-  private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation)
-      throws RepresentationNotExistsException {
-    Collection<CompoundDataSetId> compoundDataSetIds =
-        dataSetService.getDataSetAssignmentsByRepresentationVersion(
-            globalId, representation.getRepresentationName(), representation.getVersion()
-        );
-    if (!compoundDataSetIds.isEmpty()) {
-      for (CompoundDataSetId compoundDataSetId : compoundDataSetIds) {
+  private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation) {
+    if (representation.getDatasetId() != null) {
         try {
           dataSetService.removeAssignment(
-              compoundDataSetId.getDataSetProviderId(),
-              compoundDataSetId.getDataSetId(),
+              representation.getDataProvider(),
+                  representation.getDatasetId(),
               globalId,
               representation.getRepresentationName(),
               representation.getVersion()
@@ -516,7 +490,6 @@ public class CassandraRecordService implements RecordService {
         } catch (DataSetNotExistsException e) {
           //Nothing to do, skip exception
         }
-      }
     }
   }
 

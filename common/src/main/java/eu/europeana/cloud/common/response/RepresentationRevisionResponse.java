@@ -1,17 +1,24 @@
 package eu.europeana.cloud.common.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import eu.europeana.cloud.common.model.File;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * Representation of a record in specific version.
  */
+@Data
+@AllArgsConstructor
 @XmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RepresentationRevisionResponse {
 
   /**
@@ -29,10 +36,16 @@ public class RepresentationRevisionResponse {
    */
   private String version;
 
+  /**
+   * Uri of the representation version
+   */
+  private URI representationVersionUri;
+
 
   /**
    * A list of files which constitute this representation.
    */
+  @JacksonXmlElementWrapper(useWrapping = false)
   private List<File> files = new ArrayList<>(0);
 
 
@@ -105,7 +118,7 @@ public class RepresentationRevisionResponse {
    * @param response
    */
   public RepresentationRevisionResponse(final RepresentationRevisionResponse response) {
-    this(response.getCloudId(), response.getRepresentationName(), response.getVersion(),
+    this(response.getCloudId(), response.getRepresentationName(), response.getVersion(), response.getRepresentationVersionUri(),
         cloneFiles(response), response.getRevisionProviderId(), response.getRevisionName(), response.getRevisionTimestamp());
   }
 
@@ -116,74 +129,6 @@ public class RepresentationRevisionResponse {
       files.add(new File(file));
     }
     return files;
-  }
-
-
-  public String getCloudId() {
-    return cloudId;
-  }
-
-
-  public void setCloudId(String cloudId) {
-    this.cloudId = cloudId;
-  }
-
-
-  public String getRepresentationName() {
-    return representationName;
-  }
-
-
-  public void setRepresentationName(String representationName) {
-    this.representationName = representationName;
-  }
-
-
-  public String getVersion() {
-    return version;
-  }
-
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-
-  public List<File> getFiles() {
-    return files;
-  }
-
-
-  public void setFiles(List<File> files) {
-    this.files = files;
-  }
-
-
-  public String getRevisionProviderId() {
-    return revisionProviderId;
-  }
-
-
-  public void setRevisionProviderId(String revisionProviderId) {
-    this.revisionProviderId = revisionProviderId;
-  }
-
-
-  public String getRevisionName() {
-    return revisionName;
-  }
-
-
-  public void setRevisionName(String revisionName) {
-    this.revisionName = revisionName;
-  }
-
-  public Date getRevisionTimestamp() {
-    return revisionTimestamp;
-  }
-
-  public void setRevisionTimestamp(Date revisionTimestamp) {
-    this.revisionTimestamp = revisionTimestamp;
   }
 
   /**
@@ -197,57 +142,4 @@ public class RepresentationRevisionResponse {
     return this.getCloudId() + "/" + this.getRepresentationName() + "/" + this.getVersion();
   }
 
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 37 * hash + Objects.hashCode(this.cloudId);
-    hash = 37 * hash + Objects.hashCode(this.representationName);
-    hash = 37 * hash + Objects.hashCode(this.version);
-    hash = 37 * hash + Objects.hashCode(this.files);
-    hash = 37 * hash + Objects.hashCode(this.revisionProviderId);
-    hash = 37 * hash + Objects.hashCode(this.revisionName);
-    hash = 37 * hash + Objects.hashCode(this.revisionTimestamp);
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final RepresentationRevisionResponse other = (RepresentationRevisionResponse) obj;
-    if (!Objects.equals(this.cloudId, other.cloudId)) {
-      return false;
-    }
-    if (!Objects.equals(this.representationName, other.representationName)) {
-      return false;
-    }
-    if (!Objects.equals(this.version, other.version)) {
-      return false;
-    }
-    if (!Objects.equals(this.files, other.files)) {
-      return false;
-    }
-    if (!Objects.equals(this.revisionProviderId, other.revisionProviderId)) {
-      return false;
-    }
-    if (!Objects.equals(this.revisionName, other.revisionName)) {
-      return false;
-    }
-    if (!Objects.equals(this.revisionTimestamp, other.revisionTimestamp)) {
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "RepresentationRevisionResponse{" + "cloudId=" + cloudId
-        + ", representationName=" + representationName + ", version=" + version
-        + ", files=" + files + ", revisionProviderId=" + revisionProviderId
-        + ", revisionName=" + revisionName + ", revisionTimestamp=" + revisionTimestamp + '}';
-  }
 }

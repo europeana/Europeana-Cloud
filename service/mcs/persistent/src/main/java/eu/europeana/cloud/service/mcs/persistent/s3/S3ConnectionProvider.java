@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
-import org.jclouds.blobstore.BlobStore;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Manage connection for S3 endpoints using jClouds library.
@@ -8,9 +8,9 @@ import org.jclouds.blobstore.BlobStore;
 public interface S3ConnectionProvider {
 
   /**
-   * @return {@link BlobStore}
+   * @return {@link S3Client}
    */
-  BlobStore getBlobStore();
+  S3Client getS3Client();
 
 
   /**

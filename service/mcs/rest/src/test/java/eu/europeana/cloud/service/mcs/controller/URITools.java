@@ -5,6 +5,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.FILE_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
 import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
@@ -49,7 +51,12 @@ class URITools {
   }
 
   static URI getRepresentationRevisionsPath(String cloudId, String representationName, String revisionId) {
-    return fromResource(RepresentationRevisionsResource.class).build(
+    return fromUriString(REPRESENTATION_REVISIONS_RESOURCE).build(
+        getRepresentationRevisionsMap(cloudId, representationName, revisionId));
+  }
+
+  static URI getRepresentationRawRevisionsPath(String cloudId, String representationName, String revisionId) {
+    return fromUriString(REPRESENTATION_RAW_REVISIONS_RESOURCE).build(
         getRepresentationRevisionsMap(cloudId, representationName, revisionId));
   }
 

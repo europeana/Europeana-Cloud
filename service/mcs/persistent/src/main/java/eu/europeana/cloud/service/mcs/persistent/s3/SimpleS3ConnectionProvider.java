@@ -1,66 +1,75 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
+import eu.europeana.cloud.service.mcs.persistent.exception.CustomAwsClientException;
 import jakarta.annotation.PreDestroy;
-import java.util.NoSuchElementException;
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
+import java.net.URI;
+
 
 /**
- * Manage connection for S3 using jClouds library.
+ * Simple S3 connection provider.
  */
 public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleS3ConnectionProvider.class);
-  private BlobStoreContext context;
+  private static final Logger LOGGER = LoggerFactory.getLogger(SimpleS3ConnectionProvider.class);
+  private S3Client s3Client;
   private final String container;
-  private BlobStore blobStore;
-
-  private final String provider;
+  private final String region;
+  private final AwsBasicCredentials awsCreds;
   private final String endpoint;
-  private final String user;
-  private final String password;
 
   /**
-     * Class constructor. Establish connection to S3 endpoint using provided configuration.
+   * Class constructor. Establish connection to S3 endpoint using provided configuration.
    *
-     * @param provider provider name. Pass "transient" if you want to use in-memory implementation for tests,
-     *                and "s3" for accessing live S3 container.
-     * @param container name of the S3 container (namespace)
-     * @param endpoint s3 endpoint URL
-   * @param user user identity
-   * @param password user password
+   * @param container name of the S3 bucket (namespace)
+   * @param endpoint S3 endpoint URL (optional for AWS S3, but can be used for custom S3-compatible services)
+   * @param user access key
+   * @param password secret key
+   * @param region s3 region
    */
-    public SimpleS3ConnectionProvider(String provider, String container, String endpoint, String user, String password) {
-    this.container = container;
-    this.provider = provider;
+  public SimpleS3ConnectionProvider(String container, String endpoint, String user, String password, String region) {
+
+    this.awsCreds = AwsBasicCredentials.create(user, password);
     this.endpoint = endpoint;
-    this.user = user;
-    this.password = password;
+    this.container = container;
+    this.region = region;
     openConnections();
   }
 
-  private void openConnections() throws NoSuchElementException {
-    context = ContextBuilder
-        .newBuilder(provider)
-        .endpoint(endpoint)
-        .credentials(user, password)
-        .buildView(BlobStoreContext.class);
-
-    blobStore = context.getBlobStore();
-    if (!blobStore.containerExists(container)) {
-      blobStore.createContainerInLocation(null, container);
+  private void openConnections() {
+    try {
+      this.s3Client = S3Client.builder()
+              .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
+              .endpointOverride(URI.create(endpoint))
+              .serviceConfiguration(S3Configuration.builder()
+                      .pathStyleAccessEnabled(true)
+                      .build())
+              .region(Region.of(region))
+              .build();
+      LOGGER.info("Connected to S3 bucket: {}", container);
+  } catch (S3Exception e) {
+      throw new CustomAwsClientException(e);
     }
-        LOGGER.info("Connected to S3.");
   }
 
+  /**
+   * Closes the S3 client connection. This method is annotated with @PreDestroy to ensure
+   * that it is called when the container is destroyed, allowing for proper resource cleanup.
+   * Logs the shutdown process for the S3 client connection.
+   */
   @Override
   @PreDestroy
   public void closeConnections() {
-        LOGGER.info("Shutting down S3 connection");
-    context.close();
+    LOGGER.info("Shutting down S3 client connection");
+    s3Client.close();
   }
 
   @Override
@@ -68,10 +77,7 @@ public class SimpleS3ConnectionProvider implements S3ConnectionProvider {
     return container;
   }
 
-
-  @Override
-  public BlobStore getBlobStore() {
-    return blobStore;
+  public S3Client getS3Client() {
+    return s3Client;
   }
-
 }

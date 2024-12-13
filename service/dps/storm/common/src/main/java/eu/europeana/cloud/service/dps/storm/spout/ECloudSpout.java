@@ -1,13 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SCHEMA_NAME;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
@@ -26,22 +18,8 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
-import eu.europeana.cloud.service.dps.storm.utils.SpoutProperties;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.ISpoutOutputCollector;
@@ -50,6 +28,16 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.management.*;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.time.Instant;
+import java.util.*;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 

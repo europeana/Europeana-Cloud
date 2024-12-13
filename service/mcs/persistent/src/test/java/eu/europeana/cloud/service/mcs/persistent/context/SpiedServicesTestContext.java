@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent.context;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.Storage;
@@ -17,10 +14,15 @@ import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import java.util.EnumMap;
-import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.EnumMap;
+import java.util.Map;
+
+import static eu.europeana.cloud.test.S3TestHelper.S3TestConstants.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 @Configuration
 public class SpiedServicesTestContext {
@@ -59,10 +61,11 @@ public class SpiedServicesTestContext {
   @Bean
   public SimpleS3ConnectionProvider simpleS3ConnectionProvider() {
     return spy(new SimpleS3ConnectionProvider(
-        "transient",
-        "test_container",
-        "", "test_user",
-        "test_pwd"));
+            S3_TEST_CONTAINER,
+            S3_TEST_ENDPOINT,
+            S3_TEST_USER,
+            S3_TEST_PASSWORD,
+            S3_TEST_REGION));
   }
 
   @Bean
@@ -72,7 +75,7 @@ public class SpiedServicesTestContext {
 
   @Bean
   public S3ContentDAO s3ContentDAO() {
-    return spy(new S3ContentDAO(simpleS3ConnectionProvider()));
+    return spy(new S3ContentDAO(simpleS3ConnectionProvider(), S3_TEST_MAX_PART_SIZE));
   }
 
   @Bean

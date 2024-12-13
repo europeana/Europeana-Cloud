@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -51,11 +51,11 @@ public class MCSReader implements AutoCloseable {
     });
   }
 
-  public List<Representation> getRepresentationsByRevision(String representationName, String revisionName,
+  public List<RepresentationRevisionResponse> getRevisionsForTheRepresentation(String representationName, String revisionName,
       String revisionProvider, Date revisionTimestamp,
       String responseCloudId) throws MCSException {
     return RetryableMethodExecutor.executeOnRest("Error while getting representation revision.", () ->
-        recordServiceClient.getRepresentationsByRevision(responseCloudId, representationName,
+        recordServiceClient.getRepresentationRawRevisions(responseCloudId, representationName,
             new Revision(revisionName, revisionProvider, revisionTimestamp)));
   }
 

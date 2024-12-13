@@ -1,17 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.mockito.Matchers.any;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -22,19 +10,29 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.S3TestHelper;
 import jakarta.ws.rs.core.HttpHeaders;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.http.MediaType;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.http.MediaType;
+
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * FileResourceTest
@@ -59,6 +57,11 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   private static final byte[] XML_CONTENT = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?><sample></sample>".getBytes();
   private static final byte[] RDF_CONTENT = "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:si=\"https://www.w3schools.com/rdf/\"></rdf:RDF>".getBytes();
 
+
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.startS3MockServer();
+  }
   @Before
   public void mockUp()
       throws Exception {
@@ -77,7 +80,6 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
     rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
-    dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
 
     file = new File();
     file.setFileName("fileName");
@@ -96,9 +98,15 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   public void cleanUp() {
     try {
       recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
+      S3TestHelper.cleanUpBetweenTests();
     } catch (Exception e) {
       // do nothing it's cleaning step
     }
+  }
+
+  @AfterClass
+  public static void cleanUpAfterTests() {
+    S3TestHelper.stopS3MockServer();
   }
 
   @Test
