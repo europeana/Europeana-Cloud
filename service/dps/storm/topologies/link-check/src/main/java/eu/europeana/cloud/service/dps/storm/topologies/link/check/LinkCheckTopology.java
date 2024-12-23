@@ -1,42 +1,28 @@
 package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.LINK_CHECK_BOLT_NUMBER_OF_TASKS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.LINK_CHECK_BOLT_PARALLEL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NOTIFICATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NOTIFICATION_BOLT_PARALLEL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_PARALLEL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.LINK_CHECK_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.NOTIFICATION_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.PARSE_FILE_BOLT;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-import static java.lang.Integer.parseInt;
 
-import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
+import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.List;
 import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
-import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,46 +37,18 @@ public class LinkCheckTopology {
 
   public LinkCheckTopology(String defaultPropertyFile, String providedPropertyFile) {
     PropertyFileLoader.loadPropertyFile(defaultPropertyFile, providedPropertyFile, topologyProperties);
+    TopologyPropertiesValidator.validateFor(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
   }
 
   public final StormTopology buildTopology() {
-    TopologyBuilder builder = new TopologyBuilder();
-
-    List<String> spoutNames = TopologyHelper.addSpouts(builder, TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties);
-
-    TopologyHelper.addSpoutShuffleGrouping(spoutNames,
-        builder.setBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(
-                       createCassandraProperties(topologyProperties),
-                       topologyProperties.getProperty(MCS_URL),
-                       topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                       topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
-                   (getAnInt(PARSE_FILE_BOLT_PARALLEL)))
-               .setNumTasks((getAnInt(PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS))));
-
-    builder.setBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),
-               (getAnInt(LINK_CHECK_BOLT_PARALLEL)))
-           .setNumTasks((getAnInt(LINK_CHECK_BOLT_NUMBER_OF_TASKS)))
-           .fieldsGrouping(PARSE_FILE_BOLT, new Fields(StormTupleKeys.INPUT_FILES_TUPLE_KEY));
-
-    TopologyHelper.addSpoutsGroupingToNotificationBolt(spoutNames,
-        builder.setBolt(NOTIFICATION_BOLT, new NotificationBolt(topologyProperties.getProperty(CASSANDRA_HOSTS),
-                       Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                       topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME),
-                       topologyProperties.getProperty(CASSANDRA_USERNAME),
-                       topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-                   getAnInt(NOTIFICATION_BOLT_PARALLEL))
-               .setNumTasks(
-                   (getAnInt(NOTIFICATION_BOLT_NUMBER_OF_TASKS)))
-               .fieldsGrouping(PARSE_FILE_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME))
-               .fieldsGrouping(LINK_CHECK_BOLT, AbstractDpsBolt.NOTIFICATION_STREAM_NAME,
-                   new Fields(NotificationTuple.TASK_ID_FIELD_NAME)));
-
-    return builder.createTopology();
-  }
-
-  private static int getAnInt(String propertyName) {
-    return parseInt(topologyProperties.getProperty(propertyName));
+    return new ECloudTopologyPipeline(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties)
+        .addBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(createCassandraProperties(topologyProperties),
+                topologyProperties.getProperty(MCS_URL), topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), PARSE_FILE_BOLT_PARALLEL,
+            PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
+        .addBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),
+            LINK_CHECK_BOLT_PARALLEL, LINK_CHECK_BOLT_NUMBER_OF_TASKS, StormTupleKeys.INPUT_FILES_TUPLE_KEY)
+        .buildTopology();
   }
 
   public static void main(String[] args) {
@@ -103,8 +61,9 @@ public class LinkCheckTopology {
 
         StormTopology stormTopology = linkCheckTopology.buildTopology();
         Config config = buildConfig(topologyProperties);
-        LOGGER.info("Submitting '{}'...", topologyProperties.getProperty(TOPOLOGY_NAME));
-        TopologySubmitter.submitTopology(topologyProperties.getProperty(TOPOLOGY_NAME), config, stormTopology);
+        String topologyName = topologyProperties.getProperty(TOPOLOGY_NAME);
+        LOGGER.info("Submitting '{}'...", topologyName);
+        TopologySubmitter.submitTopology(topologyName, config, stormTopology);
       } else {
         LOGGER.error("Invalid number of parameters");
       }

@@ -7,8 +7,6 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.FETCH_MAX_BYTES;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INPUT_ZOOKEEPER_ADDRESS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INPUT_ZOOKEEPER_PORT;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_POLL_RECORDS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_SPOUT_PENDING;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_TASK_PARALLELISM;
@@ -16,7 +14,6 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NIMBUS_SEEDS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STORM_ZOOKEEPER_ADDRESS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.THRIFT_PORT;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPICS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.WORKER_COUNT;
@@ -68,20 +65,16 @@ public class TopologyHelperTest {
   public static final String SPOUT_SLEEP_MS_VALUE = "4";
   public static final String SPOUT_SLEEP_EVERY_VALUE = "5";
   public static final String MESSAGE_TIMEOUT_IN_SECONDS_VALUE = "6";
-  private static final String INPUT_ZOOKEEPER_PORT_VALUE = "7";
   public static final String FETCH_MAX_BYTES_VALUE = "8";
   public static final String THRIFT_PORT_VALUE = "11";
-  public static final String INPUT_ZOOKEEPER_ADDRESS_VALUE = "12";
   public static final String CASSANDRA_PORT_VALUE = "13";
   public static final String NIMBUS_SEED_VALUE = "test_seed";
-  public static final String STORM_ZOOKEEPER_ADDRESS_VALUE = "0.0.0.0";
   public static final String CASSANDRA_HOSTS_VALUE = "1.1.1.1,2.2.2.2,3.3.3.3";
   public static final String BOOTSTRAP_SERVERS_VALUE = "4.4.4.4";
   public static final String CASSANDRA_USERNAME_VALUE = "cassandra_username";
   public static final String CASSANDRA_SECRET_TOKEN_VALUE = "cassandra_token";
   public static final String CASSANDRA_KEYSPACE_NAME_VALUE = "cassandra_keyspace_name";
   public static final String TOPICS_VALUE = "test_topic_1,test_topic_2,test_topic_3";
-  public static final String STREAM_NAME = "test_stream_name";
   public static final String FIELD_NAME = "test_field_name";
 
   @Mock
@@ -118,8 +111,6 @@ public class TopologyHelperTest {
     assertEquals(Integer.valueOf(MESSAGE_TIMEOUT_IN_SECONDS_VALUE), configParameters.getMessageTimeoutInSeconds());
     assertEquals(Integer.valueOf(FETCH_MAX_BYTES_VALUE), configParameters.getFetchMaxBytes());
     assertEquals(Integer.valueOf(THRIFT_PORT_VALUE), configParameters.getNimbusThriftPort());
-    assertEquals(INPUT_ZOOKEEPER_PORT_VALUE, configParameters.getInputZookeeperPort());
-    assertEquals(INPUT_ZOOKEEPER_ADDRESS_VALUE, configParameters.getInputZookeeperAddress());
     assertEquals(Collections.singletonList(NIMBUS_SEED_VALUE), configParameters.getNimbusSeeds());
     assertEquals(TOPICS_VALUE, configParameters.getTopics());
 
@@ -137,8 +128,6 @@ public class TopologyHelperTest {
     assertNull(configParameters.getMessageTimeoutInSeconds());
     assertNull(configParameters.getFetchMaxBytes());
     assertNull(configParameters.getNimbusThriftPort());
-    assertNull(configParameters.getInputZookeeperPort());
-    assertNull(configParameters.getInputZookeeperAddress());
     assertNull(configParameters.getTopics());
     assertEquals(Collections.singletonList(null), configParameters.getNimbusSeeds());
 
@@ -266,10 +255,7 @@ public class TopologyHelperTest {
     when(mockTopologyEssentialProperties.getProperty(WORKER_COUNT)).thenReturn(WORKER_COUNT_VALUE);
     when(mockTopologyEssentialProperties.getProperty(MAX_TASK_PARALLELISM)).thenReturn(MAX_TASK_PARALLELISM_VALUE);
     when(mockTopologyEssentialProperties.getProperty(THRIFT_PORT)).thenReturn(THRIFT_PORT_VALUE);
-    when(mockTopologyEssentialProperties.getProperty(INPUT_ZOOKEEPER_ADDRESS)).thenReturn(INPUT_ZOOKEEPER_ADDRESS_VALUE);
-    when(mockTopologyEssentialProperties.getProperty(INPUT_ZOOKEEPER_PORT)).thenReturn(INPUT_ZOOKEEPER_PORT_VALUE);
     when(mockTopologyEssentialProperties.getProperty(NIMBUS_SEEDS)).thenReturn(NIMBUS_SEED_VALUE);
-    when(mockTopologyEssentialProperties.getProperty(STORM_ZOOKEEPER_ADDRESS)).thenReturn(STORM_ZOOKEEPER_ADDRESS_VALUE);
   }
 
   private void stubMisc() {
