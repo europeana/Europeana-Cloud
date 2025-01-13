@@ -103,7 +103,7 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
                                        .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
                                        .publishedHarvestDate(INDEXING_DATE).publishedHarvestMd5(MD5).build());
 
-    db.getSession().execute(dao.createCompleteIndexedColumnsIfEmptyStatement(
+    db.getSession().execute(dao.createUpdateIndexedColumnsIfEmptyHarvestDateStatement(
         METIS_DATASET_ID, OAI_ID_1, PREVIEW, COMPLETED_DATE, COMPLETED_MD5));
 
     HarvestedRecord result = dao.findRecord(METIS_DATASET_ID, OAI_ID_1).orElseThrow();
@@ -119,7 +119,7 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
   @Test
   public void shouldCreateRowIfDoesNotExistWhenCompletingPreviewColumns() {
-    db.getSession().execute(dao.createCompleteIndexedColumnsIfEmptyStatement(
+    db.getSession().execute(dao.createUpdateIndexedColumnsIfEmptyHarvestDateStatement(
         METIS_DATASET_ID, OAI_ID_1, PREVIEW, COMPLETED_DATE, COMPLETED_MD5));
 
     HarvestedRecord result = dao.findRecord(METIS_DATASET_ID, OAI_ID_1).orElseThrow();
@@ -139,7 +139,7 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
                                        .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
                                        .previewHarvestDate(INDEXING_DATE).previewHarvestMd5(MD5).build());
 
-    db.getSession().execute(dao.createCompleteIndexedColumnsIfEmptyStatement(
+    db.getSession().execute(dao.createUpdateIndexedColumnsIfEmptyHarvestDateStatement(
         METIS_DATASET_ID, OAI_ID_1, PUBLISH, COMPLETED_DATE, COMPLETED_MD5));
 
     HarvestedRecord result = dao.findRecord(METIS_DATASET_ID, OAI_ID_1).orElseThrow();
@@ -155,7 +155,7 @@ public class HarvestedRecordsDAOTest extends CassandraTestBase {
 
   @Test
   public void shouldCreateRowIfDoesNotExistWhenCompletingPublishColumns() {
-    db.getSession().execute(dao.createCompleteIndexedColumnsIfEmptyStatement(
+    db.getSession().execute(dao.createUpdateIndexedColumnsIfEmptyHarvestDateStatement(
         METIS_DATASET_ID, OAI_ID_1, PUBLISH, COMPLETED_DATE, COMPLETED_MD5));
 
     HarvestedRecord result = dao.findRecord(METIS_DATASET_ID, OAI_ID_1).orElseThrow();

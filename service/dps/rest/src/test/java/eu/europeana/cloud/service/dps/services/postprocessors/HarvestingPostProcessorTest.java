@@ -313,9 +313,9 @@ public class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(harvestedRecordsDAO).createCompleteIndexedColumnsIfEmptyStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
         eq(TargetIndexingDatabase.PREVIEW), any(Date.class), any(UUID.class));
-    verify(harvestedRecordsDAO).createCompleteIndexedColumnsIfEmptyStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
         eq(TargetIndexingDatabase.PREVIEW), any(Date.class), any(UUID.class));
     verify(harvestedRecordsDAO).executeBatch(notNull());
     verify(taskStatusUpdater,times(2))
@@ -329,9 +329,9 @@ public class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(harvestedRecordsDAO).createCompleteIndexedColumnsIfEmptyStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
         eq(TargetIndexingDatabase.PUBLISH), any(Date.class), any(UUID.class));
-    verify(harvestedRecordsDAO).createCompleteIndexedColumnsIfEmptyStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
         eq(TargetIndexingDatabase.PUBLISH), any(Date.class), any(UUID.class));
     verify(harvestedRecordsDAO).executeBatch(notNull());
     verify(taskStatusUpdater,times(2))

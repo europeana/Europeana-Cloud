@@ -38,6 +38,19 @@ import org.slf4j.LoggerFactory;
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
  *
  * <ol>
+ *  <li>Synchronize the table <b>harvested_records</b> with information from Metis databases both the PREVIEW and PUBLISH.
+ *  Fill columns:
+ *     <ul>
+ *         <li>preview_harvest_date</li>
+ *         <li>preview_harvest_md5</li>
+ *         <li>published_harvest_date</li>
+ *         <li>published_harvest_md5</li>
+ *    </ul>
+ *  for records that are in Metis, but have these columns empty or have no row in <b>harvested_records</b> table at all.
+ *  <br>This is a fuse for cases previous indexing executions were not properly finished, or the <b>harvested_records</b>
+ *  table, is not up to date with the state of the Metis database for any reason. This makes the full workflow processing
+ *  (and partially also incremental processing) self-healing.<br>More info in:
+ *  {@link eu.europeana.cloud.service.dps.storm.dao.ExistingInMetisHarvestedRecordsBatchCompleter}.
  *  <li>Iterate over oll records from table <b>harvested_records</b> where <b>latest_harvest_date</b> < <b>task_execution_date</b></li>
  *  <li>For each europeana_id:</li>
  *      <ul>
