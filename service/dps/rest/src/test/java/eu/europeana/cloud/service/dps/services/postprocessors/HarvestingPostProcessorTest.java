@@ -147,8 +147,8 @@ public class HarvestingPostProcessorTest {
   private void mockUis() throws CloudException {
     CloudId cloudIdObject1 = createCloudId(CLOUD_ID1, RECORD_ID1);
     CloudId cloudIdObject2 = createCloudId(CLOUD_ID2, RECORD_ID2);
-    when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID1)).thenReturn(cloudIdObject1);
-    when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID2)).thenReturn(cloudIdObject2);
+    when(uisClient.createCloudId(PROVIDER_ID, RECORD_ID1)).thenReturn(cloudIdObject1);
+    when(uisClient.createCloudId(PROVIDER_ID, RECORD_ID2)).thenReturn(cloudIdObject2);
   }
 
   private void mockIndexer() {
