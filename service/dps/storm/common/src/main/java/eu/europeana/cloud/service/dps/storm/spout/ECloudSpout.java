@@ -69,7 +69,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     this.keyspaceName = cassandraProperties.getKeyspace();
     this.userName = cassandraProperties.getUser();
     this.password = cassandraProperties.getPassword();
-    LOGGER.warn("Testing deployment scripts 2025 - {} topology code", topologyName);
+    LOGGER.warn("Testing deployment scripts 2025 no 2 - {} topology code", topologyName);
   }
 
 
@@ -89,6 +89,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
   @Override
   public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+    LOGGER.warn("Testing deployment scripts 2025 no 2 - opening {} spout for topic: {} ", topologyName,topic);
     eCloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();
     eCloudOutputCollector = new ECloudOutputCollector(collector);
     super.open(conf, context, eCloudOutputCollector);

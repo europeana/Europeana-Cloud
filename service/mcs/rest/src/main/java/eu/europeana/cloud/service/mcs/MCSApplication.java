@@ -11,7 +11,7 @@ public class MCSApplication {
 
   public static void main(String[] args) {
     LOGGER.info("MCS Rest Application starting...");
-    LOGGER.warn("Testing deployment scripts 2025 MCS");
+    LOGGER.warn("Testing deployment scripts 2025 no 2 MCS");
     SpringApplication.run(MCSApplication.class, args);
   }
 }
