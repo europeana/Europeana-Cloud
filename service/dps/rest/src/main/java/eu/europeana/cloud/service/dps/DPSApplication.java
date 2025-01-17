@@ -12,6 +12,7 @@ public class DPSApplication {
 
   public static void main(String[] args) {
     LOGGER.info("DPS Rest Application starting...");
+    LOGGER.warn("Testing deployment scripts 2025 DPS");
     SpringApplication.run(DPSApplication.class, args);
   }
 }

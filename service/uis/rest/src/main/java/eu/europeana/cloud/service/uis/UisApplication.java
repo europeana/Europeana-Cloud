@@ -20,6 +20,7 @@ public class UisApplication {
      */
     public static void main(String[] args) {
         LOGGER.info("UIS Rest Application starting...");
+        LOGGER.warn("Testing deployment scripts 2025 UIS");
         SpringApplication.run(UisApplication.class, args);
     }
 }

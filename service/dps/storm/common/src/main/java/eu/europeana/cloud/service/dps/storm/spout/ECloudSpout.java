@@ -69,6 +69,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     this.keyspaceName = cassandraProperties.getKeyspace();
     this.userName = cassandraProperties.getUser();
     this.password = cassandraProperties.getPassword();
+    LOGGER.warn("Testing deployment scripts 2025 - {} topology code", topologyName);
   }
 
 
