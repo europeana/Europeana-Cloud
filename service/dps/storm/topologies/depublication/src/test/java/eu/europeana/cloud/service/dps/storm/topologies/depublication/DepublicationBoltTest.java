@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -14,23 +13,20 @@ import static org.mockito.Mockito.when;
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.Before;
@@ -39,7 +35,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public class DepublicationBoltTest {
@@ -62,10 +57,7 @@ public class DepublicationBoltTest {
   private OutputCollector outputCollector;
 
   @Mock
-  private IndexWrapper indexWrapper;
-
-  @Mock
-  private Indexer indexer;
+  private IndexedRecordRemover indexedRecordRemover;
 
   @Mock
   private Properties indexingProperties;
@@ -76,17 +68,12 @@ public class DepublicationBoltTest {
   @Mock
   private TupleImpl anchorTuple;
 
-  @Mock
-  private FullBeanImpl tombstone;
-
   @Captor
   private ArgumentCaptor<Values> captor;
 
   @Before
   public void init() {
     MockitoAnnotations.initMocks(this);
-    when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
-
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
         HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(RECORD_ID)
                        .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
@@ -95,16 +82,15 @@ public class DepublicationBoltTest {
   }
 
   @Test
-  public void shouldCreateTombstoneAndRemoveRecord() throws Exception {
-    when(indexer.indexTombstone(any(), any())).thenReturn(true);
-    when(indexer.remove(any())).thenReturn(true);
+  public void shouldRemoveRecordWithTombstoneCreating() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenReturn(true);
+
 
     //when
     depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
 
     //then
-    verify(indexer).indexTombstone(eq(RECORD_ID), eq(REASON));
-    verify(indexer).remove(eq(RECORD_ID));
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedSuccessTuple();
     verify(outputCollector).ack(eq(anchorTuple));
     verifyNoMoreInteractions(outputCollector);
@@ -112,37 +98,13 @@ public class DepublicationBoltTest {
   }
 
   @Test
-  public void shouldRemoveRecordWhenCouldNotCreateNewTombstoneButTombstoneAlreadyExists() throws Exception {
-    when(indexer.indexTombstone(any(), any())).thenReturn(false);
-    when(indexer.getTombstone(any())).thenReturn(tombstone);
-    when(indexer.remove(any())).thenReturn(false);
-
+  public void shouldEmitErrorWhenRemoveRecordReturnedFalse() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenReturn(false);
     //when
     depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
 
     //then
-    verify(indexer).indexTombstone(eq(RECORD_ID), eq(REASON));
-    verify(indexer).getTombstone(eq(RECORD_ID));
-    verify(indexer).remove(eq(RECORD_ID));
-    verifyEmittedSuccessTuple();
-    verify(outputCollector).ack(eq(anchorTuple));
-    verifyNoMoreInteractions(outputCollector);
-    verifyClearedPublishedDateAndMd5InHarvestedRecordsTable();
-  }
-
-
-  @Test
-  public void shouldNotRemoveRecordWhenCouldNotCreateNewTombstoneAndTombstoneNotExists() throws Exception {
-    when(indexer.indexTombstone(any(), any())).thenReturn(false);
-    when(indexer.getTombstone(any())).thenReturn(null);
-    //when
-    depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
-
-    //then
-    verify(indexer).indexTombstone(eq(RECORD_ID), eq(REASON));
-    verify(indexer).getTombstone(eq(RECORD_ID));
-    verify(indexer, never()).remove(eq(RECORD_ID));
-
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedErrorTuple();
     verify(outputCollector).ack(eq(anchorTuple));
     verifyNoMoreInteractions(outputCollector);
@@ -150,32 +112,15 @@ public class DepublicationBoltTest {
   }
 
   @Test
-  public void shouldNotRemoveRecordWhenIndexTombstoneThrowsException() throws Exception {
-    when(indexer.indexTombstone(any(), any())).thenThrow(new IndexingException("") {
+  public void shouldEmitErrorWhenRemoveRecordThrowsException() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenThrow(new IndexingException("") {
     });
 
     //when
     depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
 
     //then
-    verify(indexer, never()).remove(eq(RECORD_ID));
-
-    verifyEmittedErrorTuple();
-    verify(outputCollector).ack(eq(anchorTuple));
-    verifyNoMoreInteractions(outputCollector);
-    verifyNoInteractions(harvestedRecordsDAO);
-  }
-
-  @Test
-  public void shouldFailWhenRemoveThrowsException() throws Exception {
-    when(indexer.indexTombstone(any(), any())).thenReturn(true);
-    when(indexer.remove(any())).thenThrow(new IndexingException("") {
-    });
-
-    //when
-    depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
-
-    //then
+    verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedErrorTuple();
     verify(outputCollector).ack(eq(anchorTuple));
     verifyNoMoreInteractions(outputCollector);

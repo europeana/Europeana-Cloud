@@ -35,7 +35,8 @@ public class PostProcessorFactoryTest {
         Mockito.mock(RevisionServiceClient.class),
         Mockito.mock(UISClient.class),
         Mockito.mock(TaskStatusUpdater.class),
-        Mockito.mock(TaskStatusChecker.class)
+        Mockito.mock(TaskStatusChecker.class),
+        Mockito.mock(IndexWrapper.class)
     );
     indexingPostProcessor = new IndexingPostProcessor(
         Mockito.mock(TaskStatusUpdater.class),

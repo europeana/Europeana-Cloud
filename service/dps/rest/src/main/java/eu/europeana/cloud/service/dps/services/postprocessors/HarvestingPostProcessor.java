@@ -17,6 +17,9 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.storm.dao.ExistingInMetisHarvestedRecordsBatchCompleter;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -35,6 +38,19 @@ import org.slf4j.LoggerFactory;
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
  *
  * <ol>
+ *  <li>Synchronize the table <b>harvested_records</b> with information from Metis databases both the PREVIEW and PUBLISH.
+ *  Fill columns:
+ *     <ul>
+ *         <li>preview_harvest_date</li>
+ *         <li>preview_harvest_md5</li>
+ *         <li>published_harvest_date</li>
+ *         <li>published_harvest_md5</li>
+ *    </ul>
+ *  for records that are in Metis, but have these columns empty or have no row in <b>harvested_records</b> table at all.
+ *  <br>This is a fuse for cases previous indexing executions were not properly finished, or the <b>harvested_records</b>
+ *  table, is not up to date with the state of the Metis database for any reason. This makes the full workflow processing
+ *  (and partially also incremental processing) self-healing.<br>More info in:
+ *  {@link eu.europeana.cloud.service.dps.storm.dao.ExistingInMetisHarvestedRecordsBatchCompleter}.
  *  <li>Iterate over oll records from table <b>harvested_records</b> where <b>latest_harvest_date</b> < <b>task_execution_date</b></li>
  *  <li>For each europeana_id:</li>
  *      <ul>
@@ -60,52 +76,36 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private final RevisionServiceClient revisionServiceClient;
 
   private final UISClient uisClient;
+  private final IndexWrapper indexWrapper;
 
+  @SuppressWarnings("java:S107") //We want to use constructor injection so we need 8 parameters here
   public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
       ProcessedRecordsDAO processedRecordsDAO,
       RecordServiceClient recordServiceClient,
       RevisionServiceClient revisionServiceClient,
       UISClient uisClient,
       TaskStatusUpdater taskStatusUpdater,
-      TaskStatusChecker taskStatusChecker) {
+      TaskStatusChecker taskStatusChecker,
+      IndexWrapper indexWrapper) {
     super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
     this.processedRecordsDAO = processedRecordsDAO;
     this.recordServiceClient = recordServiceClient;
     this.revisionServiceClient = revisionServiceClient;
     this.uisClient = uisClient;
+    this.indexWrapper = indexWrapper;
   }
 
   @Override
   public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
     try {
       taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-          "Postprocessing - adding removed records to result revision.");
+          "Postprocessing - synchronizing existing records from Metis.");
+      updateHarvestedRecordsTableWithRecordsExistingInMetis(dpsTask);
       taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
-      Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
-      int postProcessedRecordsCount = 0;
-      while (it.hasNext()) {
-        if (taskIsDropped(dpsTask)) {
-          LOGGER.debug("Stopping postprocessing because task {} was dropped", dpsTask.getTaskId());
-          return;
-        }
-        var harvestedRecord = it.next();
-        if (!isIndexedInSomeEnvironment(harvestedRecord)) {
-          harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
-          LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
-              , harvestedRecord, dpsTask.getTaskId());
-        } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-          createPostProcessedRecord(dpsTask, harvestedRecord);
-          markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
-          postProcessedRecordsCount++;
-          taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
-          LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
-        } else {
-          LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
-              dpsTask.getTaskId());
-        }
-
-      }
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+          "Postprocessing - adding removed records to result revision.");
+      addDeletedRecordsToTaskResultRevision(dpsTask);
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
     } catch (RetryInterruptedException e) {
       throw e;
@@ -113,6 +113,40 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       throw new PostProcessingException(
           String.format("Error while %s post-process given task: taskId=%d. Cause: %s", getClass().getSimpleName(),
               dpsTask.getTaskId(), exception.getMessage() != null ? exception.getMessage() : exception.toString()), exception);
+    }
+  }
+
+  private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
+    Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
+    int postProcessedRecordsCount = 0;
+    while (it.hasNext()) {
+      taskStatusChecker.checkNotDropped(dpsTask);
+      var harvestedRecord = it.next();
+      if (!isIndexedInSomeEnvironment(harvestedRecord)) {
+        harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
+        LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
+            , harvestedRecord, dpsTask.getTaskId());
+      } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
+        createPostProcessedRecord(dpsTask, harvestedRecord);
+        markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
+        postProcessedRecordsCount++;
+        taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
+        LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+      } else {
+        LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
+            dpsTask.getTaskId());
+      }
+
+    }
+  }
+
+  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) {
+    String metisDatasetId = task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+    for(TargetIndexingDatabase db:TargetIndexingDatabase.values()) {
+      try (ExistingInMetisHarvestedRecordsBatchCompleter completer
+          = new ExistingInMetisHarvestedRecordsBatchCompleter(harvestedRecordsDAO, metisDatasetId, db)) {
+        indexWrapper.getIndexer(db).getRecordIds(metisDatasetId, new Date()).forEach(completer::executeRecord);
+      }
     }
   }
 
@@ -127,7 +161,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
     try {
       LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-      String cloudId = findCloudId(dpsTask, harvestedRecord);
+      String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
       addRevisionToRepresentation(dpsTask, representation);
     } catch (CloudException | MCSException | MalformedURLException e) {
@@ -140,12 +174,18 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     var harvestDate = DateHelper.parseISODate(task.getParameter(PluginParameterKeys.HARVEST_DATE));
     Iterator<HarvestedRecord> allRecords =
         harvestedRecordsDAO.findDatasetRecords(task.getParameter(PluginParameterKeys.METIS_DATASET_ID));
-    return Iterators.filter(allRecords, theRecord -> theRecord.getLatestHarvestDate().before(harvestDate));
+    return Iterators.filter(allRecords, theRecord ->
+        latestHarvestDateNotFromCurrentHarvest(theRecord, harvestDate));
   }
 
-  private String findCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
+  private boolean latestHarvestDateNotFromCurrentHarvest(HarvestedRecord theRecord, Date harvestDate) {
+    return (theRecord.getLatestHarvestDate() == null) || theRecord.getLatestHarvestDate().before(harvestDate);
+  }
+
+  private String findOrCreateCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
     String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-    return uisClient.getCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
+    //We support the situation when the records are not in the eCloud at all, so we need to create cloudId if it does not exist.
+    return uisClient.createCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
   }
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
@@ -177,10 +217,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   }
 
   public boolean needsPostProcessing(DpsTask task) {
-    return isIncrementalHarvesting(task);
+    return true;
   }
 
-  private boolean isIncrementalHarvesting(DpsTask task) {
-    return "true".equals(task.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
-  }
 }

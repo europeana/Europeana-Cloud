@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -86,8 +87,8 @@ public class MCSTaskSubmitter {
         LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
       }
 
-    } catch (SubmitingTaskWasKilled e) {
-      LOGGER.warn(e.getMessage(), e);
+    } catch (TaskDroppedException e) {
+      LOGGER.warn("Task was dropped while it was submitting to the topology! Task id: {}", e.getTaskId(), e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new InterruptedException(
@@ -164,7 +165,7 @@ public class MCSTaskSubmitter {
       var maxRecordsCount = submitParameters.getMaxRecordsCount();
       var count = 0;
       String startFrom = null;
-      Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
+      Set<Future<Integer>> futures = HashSet.newHashSet(INTERNAL_THREADS_NUMBER);
       var total = 0;
       do {
         checkIfTaskIsKilled(task);
@@ -195,9 +196,9 @@ public class MCSTaskSubmitter {
 
       return count;
     } catch (ExecutionException e) {
-      if (e.getCause() instanceof SubmitingTaskWasKilled) {
+      if (e.getCause() instanceof TaskDroppedException) {
         LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
-        throw new SubmitingTaskWasKilled(submitParameters.getTask());
+        throw new TaskDroppedException(submitParameters.getTask());
       } else {
         throw e;
       }
@@ -322,8 +323,6 @@ public class MCSTaskSubmitter {
   }
 
   private void checkIfTaskIsKilled(DpsTask task) {
-    if (taskStatusChecker.hasDroppedStatus(task.getTaskId())) {
-      throw new SubmitingTaskWasKilled(task);
-    }
+    taskStatusChecker.checkNotDropped(task);
   }
 }

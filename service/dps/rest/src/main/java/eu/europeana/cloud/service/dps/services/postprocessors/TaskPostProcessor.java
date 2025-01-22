@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class TaskPostProcessor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskPostProcessor.class);
-
   protected final TaskStatusChecker taskStatusChecker;
   protected final TaskStatusUpdater taskStatusUpdater;
   protected final HarvestedRecordsDAO harvestedRecordsDAO;
@@ -29,13 +27,10 @@ public abstract class TaskPostProcessor {
   }
 
   /**
-   * Executes post processing activity for the provided task
+   * Executes post-processing activity for the provided task
    */
   public void execute(TaskInfo taskInfo, DpsTask dpsTask) {
-    if (taskIsDropped(dpsTask)) {
-      LOGGER.info("The task {} will not be postprocessed because it was dropped", dpsTask.getTaskId());
-      return;
-    }
+    taskStatusChecker.checkNotDropped(dpsTask);
     executePostprocessing(taskInfo, dpsTask);
   }
 

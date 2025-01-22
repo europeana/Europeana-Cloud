@@ -35,6 +35,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -184,7 +185,7 @@ public class MCSTaskSubmitterTest {
   @Test
   public void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() throws InterruptedException {
     task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
-    when(taskStatusChecker.hasDroppedStatus(eq(TASK_ID))).thenReturn(true);
+    doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
     submitter.execute(submitParameters);
 
