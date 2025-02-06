@@ -113,8 +113,9 @@ public class SimplifiedFileAccessResource {
   }
 
   private static String extractFileNameFromURL(HttpServletRequest httpServletRequest, String representationName) {
+    String representationPart = "/representations/"+representationName;
     return UriUtils.decode(httpServletRequest.getRequestURI()
-            .substring(httpServletRequest.getRequestURI().indexOf(representationName) + representationName.length() + 1), StandardCharsets.UTF_8);
+            .substring(httpServletRequest.getRequestURI().indexOf(representationPart) + representationPart.length() + 1), StandardCharsets.UTF_8);
   }
 
   /**
