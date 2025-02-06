@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.web.util.UriUtils;
 
 /**
  * Gives (read) access to files stored in ecloud in simplified (friendly) way. <br/> The latest persistent version of
@@ -58,8 +60,9 @@ public class SimplifiedFileAccessResource {
    * @param providerId providerId
    * @param localId localId
    * @param representationName representationName
-   * @param fileName fileName
    * @return Requested file context
+   * FileName is not treated as param since it can contain "/" that are not detectable by spring,
+   * so it's value is taken directly from request url
    * @throws RepresentationNotExistsException
    * @throws FileNotExistsException
    * @throws CloudException
@@ -72,9 +75,9 @@ public class SimplifiedFileAccessResource {
       HttpServletRequest httpServletRequest,
       @PathVariable("providerId") final String providerId,
       @PathVariable("localId") final String localId,
-      @PathVariable("representationName") final String representationName,
-      @PathVariable("fileName") final String fileName) throws RepresentationNotExistsException,
+      @PathVariable("representationName") final String representationName) throws RepresentationNotExistsException,
       FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, WrongContentRangeException {
+    String fileName = extractFileNameFromURL(httpServletRequest, representationName);
 
     LOGGER.info("Reading file in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
         providerId, localId, representationName, fileName);
@@ -109,6 +112,11 @@ public class SimplifiedFileAccessResource {
     return response.body(output -> downloadingMethod.accept(output));
   }
 
+  private static String extractFileNameFromURL(HttpServletRequest httpServletRequest, String representationName) {
+    return UriUtils.decode(httpServletRequest.getRequestURI()
+            .substring(httpServletRequest.getRequestURI().indexOf(representationName) + representationName.length() + 1), StandardCharsets.UTF_8);
+  }
+
   /**
    * Returns file headers from <b>latest persistent version</b> of specified representation.
    *
@@ -116,7 +124,8 @@ public class SimplifiedFileAccessResource {
    * @param providerId providerId
    * @param localId localId
    * @param representationName representationName
-   * @param fileName fileNAme
+   * FileName is not treated as param since it can contain "/" that are not detectable by spring,
+   * so it's value is taken directly from request url
    * @return Requested file headers (together with full file path in 'Location' header)
    * @throws RepresentationNotExistsException
    * @throws FileNotExistsException
@@ -130,9 +139,9 @@ public class SimplifiedFileAccessResource {
       HttpServletRequest httpServletRequest,
       @PathVariable("providerId") final String providerId,
       @PathVariable("localId") final String localId,
-      @PathVariable("representationName") final String representationName,
-      @PathVariable("fileName") final String fileName) throws RepresentationNotExistsException,
+      @PathVariable("representationName") final String representationName) throws RepresentationNotExistsException,
       FileNotExistsException, RecordNotExistsException, ProviderNotExistsException {
+    String fileName = extractFileNameFromURL(httpServletRequest, representationName);
 
     LOGGER.info("Reading file headers in friendly way for: provider: {}, localId: {}, represenatation: {}, fileName: {}",
         providerId, localId, representationName, fileName);

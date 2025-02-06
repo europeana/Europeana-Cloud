@@ -47,6 +47,7 @@ public abstract class AbstractResourceTest {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     when(request.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getRequestURI()).thenReturn("http://127.0.0.1:8080/mcs/data-providers/xxx/records/xxx/representations/xxxx/filename");
     return request;
   }
 
