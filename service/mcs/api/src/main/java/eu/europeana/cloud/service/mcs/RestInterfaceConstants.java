@@ -94,7 +94,7 @@ public final class RestInterfaceConstants {
 
   //SimplifiedFileAccessResource
   public static final String SIMPLIFIED_FILE_ACCESS_RESOURCE =
-      SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/{fileName:.+}";
+      SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/**";
 
   //SimplifiedRepresentationResource
   public static final String SIMPLIFIED_REPRESENTATION_RESOURCE =
