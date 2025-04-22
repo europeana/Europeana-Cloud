@@ -87,3 +87,12 @@ CREATE TABLE files_content (
     data blob,
     PRIMARY KEY (fileName)
 );
+
+
+CREATE TABLE files_content_v2 (
+                               md5 varchar,
+                               fileName varchar,
+                               data blob STATIC,
+                               updated TIMESTAMP STATIC,
+                               PRIMARY KEY (md5, fileName)
+);

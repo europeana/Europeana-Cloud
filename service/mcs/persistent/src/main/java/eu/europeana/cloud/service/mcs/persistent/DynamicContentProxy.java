@@ -29,14 +29,14 @@ public class DynamicContentProxy {
     this.contentDAOs.putAll(contentDAOs);
   }
 
-  public void deleteContent(String fileName, Storage stored) throws FileNotExistsException {
-    getContentDAO(stored).deleteContent(fileName);
+  public void deleteContent(String md5, String fileName, Storage stored) throws FileNotExistsException {
+    getContentDAO(stored).deleteContent(md5, fileName);
   }
 
-  public void getContent(String fileName, long start, long end, OutputStream os, Storage stored)
+  public void getContent(String fileName, String md5, long start, long end, OutputStream os, Storage stored)
       throws IOException, FileNotExistsException {
 
-    getContentDAO(stored).getContent(fileName, start, end, os);
+    getContentDAO(stored).getContent(fileName, md5, start, end, os);
   }
 
   public PutResult putContent(String fileName, InputStream data, Storage stored) throws IOException {

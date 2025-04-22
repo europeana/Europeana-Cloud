@@ -1,22 +1,20 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.Bytes;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.CountingInputStream;
 import com.google.common.primitives.Ints;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.PutResult;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,30 +24,30 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Provides content DAO operations for Cassandra.
  *
  * @author krystian.
  */
-public class CassandraContentDAO implements ContentDAO {
+public class CassandraStaticContentDAO implements ContentDAO {
 
-  private static final String MSG_FILE_NOT_EXISTS = "File %s not exists";
-  private static final String MSG_FILE_ALREADY_EXISTS = "File %s already exists";
+  private static final String MSG_FILE_NOT_EXISTS = "File with md5 %s not exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
 
   private final CassandraConnectionProvider connectionProvider;
   private final StreamCompressor streamCompressor = new StreamCompressor();
   private PreparedStatement insertStatement;
   private PreparedStatement selectStatement;
+  private PreparedStatement selectFileNamesAndUpdatedStatement;
   private PreparedStatement deleteStatement;
+  private PreparedStatement deleteStaticColumnStatement;
 
-  public CassandraContentDAO(CassandraConnectionProvider connectionProvider) {
+  public CassandraStaticContentDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
   }
-
 
   /**
    * @inheritDoc
@@ -57,25 +55,32 @@ public class CassandraContentDAO implements ContentDAO {
   @Override
   @Retryable
   public void deleteContent(String md5, String fileName) throws FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(deleteStatement.bind(fileName));
+    ResultSet rs = executeQueryWithLogger(deleteStatement.bind(md5, fileName));
     if (!rs.wasApplied()) {
-      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
+      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, md5));
+    }
+
+    rs = executeQueryWithLogger(selectFileNamesAndUpdatedStatement.bind(md5));
+    List<Row> rows = rs.all();
+    if (rows.size() == 1) {
+      Row row = rows.getFirst();
+      if (row.getString("filename") == null) {
+        executeQueryWithLogger(deleteStaticColumnStatement.bind(md5, row.getTimestamp("updated")));
+      }
     }
   }
+
 
   /**
    * @inheritDoc
    */
   @Override
-  @Retryable
-  public void getContent(String fileName, String md5, long start, long end, OutputStream result)
-          throws IOException, FileNotExistsException {
-
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(fileName));
+  public void getContent(String fileName, String md5, long start, long end, OutputStream result) throws IOException, FileNotExistsException {
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(md5));
 
     Row row = rs.one();
     if (row == null) {
-      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
+      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, md5));
     }
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     try {
@@ -85,7 +90,6 @@ public class CassandraContentDAO implements ContentDAO {
     } finally {
       IOUtils.closeQuietly(os);
     }
-
   }
 
   /**
@@ -97,8 +101,8 @@ public class CassandraContentDAO implements ContentDAO {
     CountingInputStream countingInputStream = new CountingInputStream(data);
     DigestInputStream md5DigestInputStream = prepareMd5DigestStream(countingInputStream);
     ByteBuffer wrappedBytes = ByteBuffer.wrap(streamCompressor.compress(md5DigestInputStream));
-    executeQueryWithLogger(insertStatement.bind(fileName, wrappedBytes));
     String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
+    executeQueryWithLogger(insertStatement.bind(md5, fileName, wrappedBytes, new Date()));
     Long contentLength = countingInputStream.getCount();
     return new PutResult(md5, contentLength);
   }
@@ -106,12 +110,17 @@ public class CassandraContentDAO implements ContentDAO {
   @PostConstruct
   private void prepareStatements() {
     Session s = connectionProvider.getSession();
-    insertStatement = s.prepare("INSERT INTO files_content (fileName, data) VALUES (?,?) IF NOT EXISTS");
+    insertStatement = s.prepare("INSERT INTO files_content_v2 (md5, fileName, data, updated) VALUES (?,?,?,?) IF NOT EXISTS");
 
-    selectStatement = s.prepare("SELECT data FROM files_content WHERE fileName = ?;");
+    selectStatement = s.prepare("SELECT data FROM files_content_v2 WHERE md5 = ?;");
 
-    deleteStatement = s.prepare("DELETE FROM files_content WHERE fileName = ? IF EXISTS;");
+    selectFileNamesAndUpdatedStatement = s.prepare("SELECT filename, updated FROM files_content_v2 WHERE md5 = ?;");
+
+    deleteStatement = s.prepare("DELETE FROM files_content_v2 WHERE md5 =? AND fileName = ? IF EXISTS;");
+
+    deleteStaticColumnStatement = s.prepare("DELETE data, updated FROM files_content_v2 WHERE md5 = ? IF updated <= ?;");
   }
+
 
   private ResultSet executeQueryWithLogger(BoundStatement boundStatement) {
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
