@@ -36,16 +36,18 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   private final String dereferenceURL;
   private final String enrichmentEntityManagementUrl;
   private final String enrichmentEntityApiUrl;
-  private final String enrichmentEntityApiKey;
+  private final String enrichmentEntityApiTokenEndpoint;
+  private final String enrichmentEntityApiGrantParams;
   private transient EnrichmentWorker enrichmentWorker;
 
   public EnrichmentBolt(CassandraProperties cassandraProperties, String dereferenceURL, String enrichmentEntityManagementUrl,
-      String enrichmentEntityApiUrl, String enrichmentEntityApiKey) {
+      String enrichmentEntityApiUrl, String enrichmentEntityApiTokenEndpoint, String enrichmentEntityApiGrantParams) {
     super(cassandraProperties);
     this.dereferenceURL = dereferenceURL;
     this.enrichmentEntityManagementUrl = enrichmentEntityManagementUrl;
     this.enrichmentEntityApiUrl = enrichmentEntityApiUrl;
-    this.enrichmentEntityApiKey = enrichmentEntityApiKey;
+    this.enrichmentEntityApiTokenEndpoint = enrichmentEntityApiTokenEndpoint;
+    this.enrichmentEntityApiGrantParams = enrichmentEntityApiGrantParams;
   }
 
   @Override
@@ -113,11 +115,12 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   @Override
   public void prepare() {
     final EnricherProvider enricherProvider = new EnricherProvider();
-    enricherProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl, enrichmentEntityApiKey);
+    enricherProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
+            enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
     final DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceURL);
     dereferencerProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
-        enrichmentEntityApiKey);
+            enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
     try {
       enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
           enricherProvider.create());
