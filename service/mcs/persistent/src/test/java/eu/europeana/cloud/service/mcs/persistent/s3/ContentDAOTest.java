@@ -49,10 +49,11 @@ public abstract class ContentDAOTest {
 
     File file = new File();
     PutResult result = instance.putContent(fileName, is);
-    file.setMd5(result.getMd5());
+    String md5 = result.getMd5();
+    file.setMd5(md5);
     file.setContentLength(result.getContentLength());
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    instance.getContent(fileName, -1, -1, os);
+    instance.getContent(fileName, md5,-1, -1, os);
     assertArrayEquals(content, os.toByteArray());
 
     assertEquals(file.getContentLength(), content.length);
@@ -74,34 +75,35 @@ public abstract class ContentDAOTest {
 
     File file = new File();
     PutResult result = instance.putContent(fileName, is);
-    file.setMd5(result.getMd5());
+    String md5 = result.getMd5();
+    file.setMd5(md5);
     file.setContentLength(result.getContentLength());
 
     int from = -1;
     int to = -1;
-    checkRange(from, to, content.getBytes(), fileName);
+    checkRange(from, to, content.getBytes(), fileName, md5);
 
     from = -1;
     to = 3;
-    checkRange(from, to, content.getBytes(), fileName);
+    checkRange(from, to, content.getBytes(), fileName, md5);
 
     from = 3;
     to = -1;
-    checkRange(from, to, content.getBytes(), fileName);
+    checkRange(from, to, content.getBytes(), fileName, md5);
 
     from = 2;
     to = 2;
-    checkRange(from, to, content.getBytes(), fileName);
+    checkRange(from, to, content.getBytes(), fileName, md5);
 
     from = 3;
     to = 6;
-    checkRange(from, to, content.getBytes(), fileName);
+    checkRange(from, to, content.getBytes(), fileName, md5);
   }
 
-  private void checkRange(int from, int to, byte[] expected, String fileName)
+  private void checkRange(int from, int to, byte[] expected, String fileName, String md5)
       throws Exception {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    instance.getContent(fileName, from, to, os);
+    instance.getContent(fileName, md5, from, to, os);
 
     int rangeStart = from;
     int rangeEnd = to + 1;
@@ -123,68 +125,27 @@ public abstract class ContentDAOTest {
     String content = "This is a test content";
     InputStream is = new ByteArrayInputStream(content.getBytes());
     PutResult result = instance.putContent(objectId, is);
-    file.setMd5(result.getMd5());
+    String md5 = result.getMd5();
+    file.setMd5(md5);
     file.setContentLength(result.getContentLength());
 
-    instance.deleteContent(objectId);
-    instance.getContent(objectId, -1, -1, null);
+    instance.deleteContent(md5, objectId);
+    instance.getContent(objectId, md5, -1, -1, null);
   }
 
   @Test(expected = FileNotExistsException.class)
   public void shouldThrowNotFoundExpWhenGettingNotExistingFile()
       throws Exception {
     String objectId = "not_exist";
-    instance.getContent(objectId, -1, -1, null);
+    String md5 = "not_exist";
+    instance.getContent(objectId, md5,-1, -1, null);
   }
 
   @Test(expected = FileNotExistsException.class)
   public void shouldThrowNotFoundExpWhenDeletingNotExistingFile()
       throws Exception {
     String objectId = "not_exist";
-    instance.deleteContent(objectId);
-  }
-
-  @Test(expected = FileNotExistsException.class)
-  public void shouldThrowNotFoundExpWhenCopingNotExistingFile()
-      throws Exception {
-    String objectId = "not_exist";
-    String trg = "trg_name";
-    instance.copyContent(objectId, trg);
-  }
-
-  @Test(expected = FileAlreadyExistsException.class)
-  public void shouldThrowAlreadyExpWhenCopingToExistingFile()
-      throws Exception {
-    String sourceObjectId = "srcObjId";
-    String trgObjectId = "trgObjId";
-    String content = "This is a test content";
-    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-    instance.putContent(sourceObjectId, is);
-    is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-    instance.putContent(trgObjectId, is);
-
-    instance.copyContent(sourceObjectId, trgObjectId);
-  }
-
-  @Test
-  public void shouldCopyContent()
-      throws Exception {
-    String sourceObjectId = "sourceObjectId";
-    String trgObjectId = "trgObjectId";
-    String content = "This is a test content";
-    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-
-    File file = new File();
-    //input source object
-    PutResult putResult = instance.putContent(sourceObjectId, is);
-    file.setMd5(putResult.getMd5());
-    file.setContentLength(putResult.getContentLength());
-    //copy object
-    instance.copyContent(sourceObjectId, trgObjectId);
-
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    instance.getContent(trgObjectId, -1, -1, os);
-    String result = os.toString(StandardCharsets.UTF_8);
-    assertEquals(content, result);
+    String md5 = "not_exist";
+    instance.deleteContent(md5, objectId);
   }
 }
