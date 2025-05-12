@@ -68,7 +68,7 @@ public class CassandraContentDAO implements ContentDAO {
    */
   @Override
   @Retryable
-  public void getContent(String fileName, String md5, long start, long end, OutputStream result)
+  public void getContent(String md5, String fileName, long start, long end, OutputStream result)
           throws IOException, FileNotExistsException {
 
     ResultSet rs = executeQueryWithLogger(selectStatement.bind(fileName));
@@ -88,6 +88,21 @@ public class CassandraContentDAO implements ContentDAO {
 
   }
 
+  /**
+   * @inheritDoc
+   */
+  @Override
+  public void copyContent(String md5, String sourceFileName, String targetFileName)
+          throws FileNotExistsException, FileAlreadyExistsException, IOException {
+
+    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+      getContent(md5, sourceFileName, -1, -1, os);
+      checkIfObjectNotExists(targetFileName);
+      putContent(targetFileName, new ByteArrayInputStream(os.toByteArray()));
+    } catch (FileNotExistsException e) {
+      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceFileName));
+    }
+  }
   /**
    * @inheritDoc
    */
@@ -117,6 +132,14 @@ public class CassandraContentDAO implements ContentDAO {
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
     return rs;
+  }
+
+  private void checkIfObjectNotExists(String trgObjectId) throws FileAlreadyExistsException {
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(trgObjectId));
+    Row row = rs.one();
+    if (row != null) {
+      throw new FileAlreadyExistsException(String.format(MSG_FILE_ALREADY_EXISTS, trgObjectId));
+    }
   }
 
   private void copySelectBytes(ByteArrayOutputStream input, long start, long end, OutputStream result) throws IOException {

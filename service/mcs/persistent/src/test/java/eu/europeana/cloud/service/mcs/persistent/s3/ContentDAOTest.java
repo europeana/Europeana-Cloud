@@ -53,7 +53,7 @@ public abstract class ContentDAOTest {
     file.setMd5(md5);
     file.setContentLength(result.getContentLength());
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    instance.getContent(fileName, md5,-1, -1, os);
+    instance.getContent(md5, fileName, -1, -1, os);
     assertArrayEquals(content, os.toByteArray());
 
     assertEquals(file.getContentLength(), content.length);
@@ -103,7 +103,7 @@ public abstract class ContentDAOTest {
   private void checkRange(int from, int to, byte[] expected, String fileName, String md5)
       throws Exception {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    instance.getContent(fileName, md5, from, to, os);
+    instance.getContent(md5, fileName, from, to, os);
 
     int rangeStart = from;
     int rangeEnd = to + 1;
@@ -130,7 +130,7 @@ public abstract class ContentDAOTest {
     file.setContentLength(result.getContentLength());
 
     instance.deleteContent(md5, objectId);
-    instance.getContent(objectId, md5, -1, -1, null);
+    instance.getContent(md5, objectId, -1, -1, null);
   }
 
   @Test(expected = FileNotExistsException.class)
@@ -138,7 +138,7 @@ public abstract class ContentDAOTest {
       throws Exception {
     String objectId = "not_exist";
     String md5 = "not_exist";
-    instance.getContent(objectId, md5,-1, -1, null);
+    instance.getContent(md5, objectId, -1, -1, null);
   }
 
   @Test(expected = FileNotExistsException.class)
@@ -147,5 +147,51 @@ public abstract class ContentDAOTest {
     String objectId = "not_exist";
     String md5 = "not_exist";
     instance.deleteContent(md5, objectId);
+  }
+
+  @Test(expected = FileNotExistsException.class)
+  public void shouldThrowNotFoundExpWhenCopingNotExistingFile()
+          throws Exception {
+    String objectId = "not_exist";
+    String trg = "trg_name";
+    String md5 = "not_exists";
+    instance.copyContent(md5, objectId, trg);
+  }
+
+  @Test(expected = FileAlreadyExistsException.class)
+  public void shouldThrowAlreadyExpWhenCopingToExistingFile()
+          throws Exception {
+    String sourceObjectId = "srcObjId";
+    String trgObjectId = "trgObjId";
+    String content = "This is a test content";
+    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    PutResult result = instance.putContent(sourceObjectId, is);
+    is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    instance.putContent(trgObjectId, is);
+
+    instance.copyContent(result.getMd5(), sourceObjectId, trgObjectId);
+  }
+
+  @Test
+  public void shouldCopyContent()
+          throws Exception {
+    String sourceObjectId = "sourceObjectId";
+    String trgObjectId = "trgObjectId";
+    String content = "This is a test content";
+    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+
+    File file = new File();
+    //input source object
+    PutResult putResult = instance.putContent(sourceObjectId, is);
+    String md5 = putResult.getMd5();
+    file.setMd5(md5);
+    file.setContentLength(putResult.getContentLength());
+    //copy object
+    instance.copyContent(md5, sourceObjectId, trgObjectId);
+
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    instance.getContent(md5, trgObjectId, -1, -1, os);
+    String result = os.toString(StandardCharsets.UTF_8);
+    assertEquals(content, result);
   }
 }

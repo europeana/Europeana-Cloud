@@ -138,9 +138,36 @@ public class S3ContentDAO implements ContentDAO {
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
     }
   }
+  @Override
+  public void copyContent(String md5, String sourceFileName, String targetFileName)
+          throws FileNotExistsException, FileAlreadyExistsException {
+    logOperation(targetFileName, "COPY");
+
+    String container = connectionProvider.getContainer();
+
+    // Check if source exists
+    if (!objectExists(container, sourceFileName)) {
+      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceFileName));
+    }
+
+    // Check if target already exists
+    if (objectExists(container, targetFileName)) {
+      throw new FileAlreadyExistsException(String.format(MSG_TARGET_FILE_ALREADY_EXISTS, targetFileName));
+    }
+
+    CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+            .sourceBucket(container)
+            .sourceKey(sourceFileName)
+            .destinationBucket(container)
+            .destinationKey(targetFileName)
+            .build();
+
+    S3Client s3Client = connectionProvider.getS3Client();
+    s3Client.copyObject(copyRequest);
+  }
 
   @Override
-  public void getContent(String fileName, String md5, long start, long end, OutputStream os) throws IOException, FileNotExistsException {
+  public void getContent(String md5, String fileName, long start, long end, OutputStream os) throws IOException, FileNotExistsException {
     getContent(fileName, start, end, os);
   }
 

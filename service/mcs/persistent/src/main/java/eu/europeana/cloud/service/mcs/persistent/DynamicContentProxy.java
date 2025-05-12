@@ -36,7 +36,7 @@ public class DynamicContentProxy {
   public void getContent(String fileName, String md5, long start, long end, OutputStream os, Storage stored)
       throws IOException, FileNotExistsException {
 
-    getContentDAO(stored).getContent(fileName, md5, start, end, os);
+    getContentDAO(stored).getContent(md5, fileName, start, end, os);
   }
 
   public PutResult putContent(String fileName, InputStream data, Storage stored) throws IOException {
