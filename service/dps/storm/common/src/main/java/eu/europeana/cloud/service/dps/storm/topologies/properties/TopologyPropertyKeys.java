@@ -72,7 +72,8 @@ public final class TopologyPropertyKeys {
   public static final String DEREFERENCE_SERVICE_URL = "DEREFERENCE_SERVICE_URL";
   public static final String ENRICHMENT_ENTITY_MANAGEMENT_URL = "ENTITY_MANAGEMENT_URL";
   public static final String ENRICHMENT_ENTITY_API_URL = "ENTITY_API_URL";
-  public static final String ENRICHMENT_ENTITY_API_KEY = "ENTITY_API_KEY";
+  public static final String ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT = "ENTITY_API_TOKEN_ENDPOINT";
+  public static final String ENRICHMENT_ENTITY_API_GRANT_PARAMS= "ENTITY_API_GRANT_PARAMS";
 
   //Normalization parameters
   public static final String NORMALIZATION_BOLT_NUMBER_OF_TASKS = "NORMALIZATION_BOLT_NUMBER_OF_TASKS";

@@ -138,7 +138,8 @@ public final class TopologyPropertiesValidator {
     validateRequired(properties, DEREFERENCE_SERVICE_URL);
     validateRequired(properties, ENRICHMENT_ENTITY_MANAGEMENT_URL);
     validateRequired(properties, ENRICHMENT_ENTITY_API_URL);
-    validateRequired(properties, ENRICHMENT_ENTITY_API_KEY);
+    validateRequired(properties, ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT);
+    validateRequired(properties, ENRICHMENT_ENTITY_API_GRANT_PARAMS);
 
   }
 

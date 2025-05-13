@@ -3,7 +3,8 @@ package eu.europeana.cloud.enrichment;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DEREFERENCE_SERVICE_URL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_BOLT_NUMBER_OF_TASKS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_KEY;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_GRANT_PARAMS;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_URL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_MANAGEMENT_URL;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
@@ -44,7 +45,8 @@ public class EnrichmentTopology {
                 topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
                 topologyProperties.getProperty(ENRICHMENT_ENTITY_MANAGEMENT_URL),
                 topologyProperties.getProperty(ENRICHMENT_ENTITY_API_URL),
-                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_KEY)),
+                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT),
+                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_GRANT_PARAMS)),
             ENRICHMENT_BOLT_PARALLEL, ENRICHMENT_BOLT_NUMBER_OF_TASKS
         )
         .addWriteRecordBolt()

@@ -32,8 +32,8 @@ public class EnrichmentBoltTest {
   public static final String DEREFERENCE_URL = "https:/dereference.org";
   public static final String ENRICHMENT_ENTITY_MANAGEMENT_URL_URL = "https://entity-management-url.org";
   public static final String ENRICHMENT_ENTITY_API_URL = "https://entity-api-url.org";
-  public static final String ENRICHMENT_ENTITY_API_KEY = "some-key";
-
+  public static final String ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT = "https://entity-api-url.org/token";
+  public static final String ENRICHMENT_ENTITY_API_GRANT_PARAMS = "some-params";
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
 
@@ -54,7 +54,7 @@ public class EnrichmentBoltTest {
 
   @InjectMocks
   private EnrichmentBolt enrichmentBolt = new EnrichmentBolt(new CassandraProperties(), DEREFERENCE_URL,
-      ENRICHMENT_ENTITY_MANAGEMENT_URL_URL, ENRICHMENT_ENTITY_API_URL, ENRICHMENT_ENTITY_API_KEY);
+      ENRICHMENT_ENTITY_MANAGEMENT_URL_URL, ENRICHMENT_ENTITY_API_URL, ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT, ENRICHMENT_ENTITY_API_GRANT_PARAMS);
 
   @Test
   @SuppressWarnings("unchecked")
