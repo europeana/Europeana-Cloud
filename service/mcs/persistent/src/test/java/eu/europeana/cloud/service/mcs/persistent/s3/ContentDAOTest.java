@@ -23,12 +23,15 @@ import static org.junit.Assert.*;
  * @author krystian.
  */
 public abstract class ContentDAOTest {
+  private final static String EXAMPLE_FILE_CONTENT = "This is a test content";
+  // md5 generated via usage of messageDigest with md5 algorithm
+  private final static String EXAMPLE_MD5 = "75e6f8645a9f5059e0970f95a3a0c0be";
 
   @Autowired
   protected ContentDAO instance;
 
   @BeforeClass
-  public static void setUp(){
+  public static void setUp() {
     S3TestHelper.startS3MockServer();
   }
 
@@ -44,7 +47,7 @@ public abstract class ContentDAOTest {
   public void shouldPutAndGetContent()
       throws Exception {
     String fileName = "someFileName";
-    byte[] content = ("This is a test content").getBytes(StandardCharsets.UTF_8);
+    byte[] content = EXAMPLE_FILE_CONTENT.getBytes(StandardCharsets.UTF_8);
     InputStream is = new ByteArrayInputStream(content);
 
     File file = new File();
@@ -55,7 +58,7 @@ public abstract class ContentDAOTest {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     instance.getContent(md5, fileName, -1, -1, os);
     assertArrayEquals(content, os.toByteArray());
-
+    assertEquals(file.getMd5(), EXAMPLE_MD5);
     assertEquals(file.getContentLength(), content.length);
     String md5Hex = DigestUtils.md5Hex(content);
     //check if file md5 got updated
@@ -70,8 +73,7 @@ public abstract class ContentDAOTest {
   public void shouldRetrieveRangeOfBytes()
       throws Exception {
     String fileName = "rangeFile";
-    String content = "This is a test content";
-    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    InputStream is = new ByteArrayInputStream(EXAMPLE_FILE_CONTENT.getBytes(StandardCharsets.UTF_8));
 
     File file = new File();
     PutResult result = instance.putContent(fileName, is);
@@ -79,25 +81,29 @@ public abstract class ContentDAOTest {
     file.setMd5(md5);
     file.setContentLength(result.getContentLength());
 
+    byte[] contentBytes = EXAMPLE_FILE_CONTENT.getBytes();
+
     int from = -1;
     int to = -1;
-    checkRange(from, to, content.getBytes(), fileName, md5);
+    checkRange(from, to, contentBytes, fileName, md5);
 
     from = -1;
     to = 3;
-    checkRange(from, to, content.getBytes(), fileName, md5);
+    checkRange(from, to, contentBytes, fileName, md5);
 
     from = 3;
     to = -1;
-    checkRange(from, to, content.getBytes(), fileName, md5);
+    checkRange(from, to, contentBytes, fileName, md5);
 
     from = 2;
     to = 2;
-    checkRange(from, to, content.getBytes(), fileName, md5);
+    checkRange(from, to, contentBytes, fileName, md5);
 
     from = 3;
     to = 6;
-    checkRange(from, to, content.getBytes(), fileName, md5);
+    checkRange(from, to, contentBytes, fileName, md5);
+
+    assertEquals(file.getMd5(), EXAMPLE_MD5);
   }
 
   private void checkRange(int from, int to, byte[] expected, String fileName, String md5)
@@ -122,13 +128,13 @@ public abstract class ContentDAOTest {
       throws Exception {
     String objectId = "to_delete";
     File file = new File();
-    String content = "This is a test content";
-    InputStream is = new ByteArrayInputStream(content.getBytes());
+    InputStream is = new ByteArrayInputStream(EXAMPLE_FILE_CONTENT.getBytes());
     PutResult result = instance.putContent(objectId, is);
     String md5 = result.getMd5();
     file.setMd5(md5);
     file.setContentLength(result.getContentLength());
 
+    assertEquals(file.getMd5(), EXAMPLE_MD5);
     instance.deleteContent(md5, objectId);
     instance.getContent(md5, objectId, -1, -1, null);
   }
@@ -137,16 +143,14 @@ public abstract class ContentDAOTest {
   public void shouldThrowNotFoundExpWhenGettingNotExistingFile()
       throws Exception {
     String objectId = "not_exist";
-    String md5 = "not_exist";
-    instance.getContent(md5, objectId, -1, -1, null);
+    instance.getContent(EXAMPLE_MD5, objectId, -1, -1, null);
   }
 
   @Test(expected = FileNotExistsException.class)
   public void shouldThrowNotFoundExpWhenDeletingNotExistingFile()
       throws Exception {
     String objectId = "not_exist";
-    String md5 = "not_exist";
-    instance.deleteContent(md5, objectId);
+    instance.deleteContent(EXAMPLE_MD5, objectId);
   }
 
   @Test(expected = FileNotExistsException.class)
@@ -154,8 +158,7 @@ public abstract class ContentDAOTest {
           throws Exception {
     String objectId = "not_exist";
     String trg = "trg_name";
-    String md5 = "not_exists";
-    instance.copyContent(md5, objectId, trg);
+    instance.copyContent(EXAMPLE_MD5, objectId, trg);
   }
 
   @Test(expected = FileAlreadyExistsException.class)
@@ -192,6 +195,7 @@ public abstract class ContentDAOTest {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     instance.getContent(md5, trgObjectId, -1, -1, os);
     String result = os.toString(StandardCharsets.UTF_8);
+    assertEquals(file.getMd5(), EXAMPLE_MD5);
     assertEquals(content, result);
   }
 }

@@ -7,6 +7,7 @@ import com.google.common.io.CountingInputStream;
 import com.google.common.primitives.Ints;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.service.commons.md5.FileMd5GenerationService;
 import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
@@ -185,7 +186,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
   }
 
   private UUID getMd5Uuid(String md5) {
-    return UUID.nameUUIDFromBytes(md5.getBytes(StandardCharsets.UTF_8));
+    return FileMd5GenerationService.md5ToUUID(md5);
   }
 
   private DigestInputStream prepareMd5DigestStream(InputStream is) {
