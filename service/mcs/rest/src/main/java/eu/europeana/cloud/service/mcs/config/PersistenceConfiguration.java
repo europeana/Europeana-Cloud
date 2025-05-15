@@ -65,7 +65,7 @@ public class PersistenceConfiguration {
 
     params.put(Storage.OBJECT_STORAGE, s3ContentDAO);
     params.put(Storage.DATA_BASE, cassandraContentDAO);
-    params.put(Storage.DATA_BASE_STATIC, cassandraStaticContentDAO);
+    params.put(Storage.DB_STORAGE, cassandraStaticContentDAO);
 
     return new DynamicContentProxy(params);
   }

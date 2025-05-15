@@ -51,7 +51,7 @@ public class StorageSelector {
    */
   protected Storage decide(MediaType detected, int available) {
     if (!STORE_ONLY_IN_OBJECT_STORAGE.contains(detected) && objectStoreSizeThreshold > available) {
-      return Storage.DATA_BASE_STATIC;
+      return Storage.DB_STORAGE;
     } else {
       return Storage.OBJECT_STORAGE;
     }

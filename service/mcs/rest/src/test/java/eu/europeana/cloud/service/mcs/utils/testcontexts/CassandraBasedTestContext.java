@@ -120,7 +120,7 @@ public class CassandraBasedTestContext {
   @Bean
   public DynamicContentProxy dynamicContentProxy() {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
-    params.put(Storage.DATA_BASE_STATIC, cassandraStaticContentDAO());
+    params.put(Storage.DB_STORAGE, cassandraStaticContentDAO());
     params.put(Storage.OBJECT_STORAGE, s3ContentDAO());
     params.put(Storage.DATA_BASE, cassandraContentDAO());
 

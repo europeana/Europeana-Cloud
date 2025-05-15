@@ -68,7 +68,7 @@ public class DynamicContentProxyTest {
     final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
     //when
-    instance.deleteContent("exampleFileName","exampleMd5", Storage.DATA_BASE_STATIC);
+    instance.deleteContent("exampleFileName","exampleMd5", Storage.DB_STORAGE);
 
     //then
     verify(daoMock).deleteContent(anyString(), anyString());
@@ -86,7 +86,7 @@ public class DynamicContentProxyTest {
       );
     } else if (dao instanceof CassandraStaticContentDAO) {
       return ImmutableMap.of(
-          Storage.DATA_BASE_STATIC, dao
+          Storage.DB_STORAGE, dao
       );
     }
     return null;

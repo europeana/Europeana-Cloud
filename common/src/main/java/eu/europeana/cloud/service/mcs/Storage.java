@@ -6,5 +6,5 @@ package eu.europeana.cloud.service.mcs;
  * @author krystian.
  */
 public enum Storage {
-  OBJECT_STORAGE, DATA_BASE, DATA_BASE_STATIC
+  OBJECT_STORAGE, DATA_BASE, DB_STORAGE
 }
