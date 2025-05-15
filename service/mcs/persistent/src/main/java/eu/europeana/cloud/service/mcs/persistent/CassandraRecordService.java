@@ -354,7 +354,7 @@ public class CassandraRecordService implements RecordService {
     }
     return os -> {
       try {
-        contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getMd5(), rangeStart,
+        contentDAO.getContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
             rangeEnd, os, file.getFileStorage());
       } catch (FileNotExistsException | IOException ex) {
         throw new SystemException(ex);
@@ -372,7 +372,7 @@ public class CassandraRecordService implements RecordService {
     Representation rep = getRepresentation(globalId, schema, version);
     File file = findFileInRepresentation(rep, fileName);
     try {
-      contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getMd5(), -1, -1, os,
+      contentDAO.getContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
           file.getFileStorage());
     } catch (IOException ex) {
       throw new SystemException(ex);

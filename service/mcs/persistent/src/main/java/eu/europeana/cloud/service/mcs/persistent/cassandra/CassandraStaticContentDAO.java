@@ -21,12 +21,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Provides content DAO operations for Cassandra.
@@ -58,17 +60,17 @@ public class CassandraStaticContentDAO implements ContentDAO {
   @Override
   @Retryable
   public void deleteContent(String md5, String fileName) throws FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(deleteStatement.bind(md5, fileName));
+    ResultSet rs = executeQueryWithLogger(deleteStatement.bind(getMd5Uuid(md5), fileName));
     if (!rs.wasApplied()) {
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, md5));
     }
 
-    rs = executeQueryWithLogger(selectFileNamesAndUpdatedStatement.bind(md5));
+    rs = executeQueryWithLogger(selectFileNamesAndUpdatedStatement.bind(getMd5Uuid(md5)));
     List<Row> rows = rs.all();
     if (rows.size() == 1) {
       Row row = rows.getFirst();
       if (row.getString("filename") == null) {
-        executeQueryWithLogger(deleteStaticColumnStatement.bind(md5, row.getTimestamp("updated")));
+        executeQueryWithLogger(deleteStaticColumnStatement.bind(getMd5Uuid(md5), row.getTimestamp("updated")));
       }
     }
   }
@@ -79,7 +81,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
    */
   @Override
   public void getContent(String md5, String fileName, long start, long end, OutputStream result) throws IOException, FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(md5, fileName));
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
 
     Row row = rs.one();
     if (row == null) {
@@ -102,11 +104,11 @@ public class CassandraStaticContentDAO implements ContentDAO {
     checkIfObjectNotExists(md5, targetFileName);
 
 
-    executeQueryWithLogger(insertCopyStatement.bind(md5, targetFileName, new Date()));
+    executeQueryWithLogger(insertCopyStatement.bind(getMd5Uuid(md5), targetFileName, new Date()));
   }
 
   private void checkIfObjectExists(String md5, String fileName) throws FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(md5, fileName));
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
     Row row = rs.one();
     if (row == null) {
       throw new FileNotExistsException(String.format(MSG_FILE_ALREADY_EXISTS, fileName));
@@ -114,7 +116,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
   }
 
   private void checkIfObjectNotExists(String md5, String fileName) throws FileAlreadyExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(md5, fileName));
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
     Row row = rs.one();
     if (row != null) {
       throw new FileAlreadyExistsException(String.format(MSG_FILE_ALREADY_EXISTS, fileName));
@@ -132,7 +134,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
     DigestInputStream md5DigestInputStream = prepareMd5DigestStream(countingInputStream);
     ByteBuffer wrappedBytes = ByteBuffer.wrap(streamCompressor.compress(md5DigestInputStream));
     String md5 = BaseEncoding.base16().lowerCase().encode(md5DigestInputStream.getMessageDigest().digest());
-    executeQueryWithLogger(insertStatement.bind(md5, fileName, wrappedBytes, new Date()));
+    executeQueryWithLogger(insertStatement.bind(getMd5Uuid(md5), fileName, wrappedBytes, new Date()));
     Long contentLength = countingInputStream.getCount();
     return new PutResult(md5, contentLength);
   }
@@ -180,6 +182,10 @@ public class CassandraStaticContentDAO implements ContentDAO {
     final int to = end > -1 ? (Ints.checkedCast(end) + 1) : bytes.length;
     outputBytes = Arrays.copyOfRange(bytes, from, to);
     return outputBytes;
+  }
+
+  private UUID getMd5Uuid(String md5) {
+    return UUID.nameUUIDFromBytes(md5.getBytes(StandardCharsets.UTF_8));
   }
 
   private DigestInputStream prepareMd5DigestStream(InputStream is) {

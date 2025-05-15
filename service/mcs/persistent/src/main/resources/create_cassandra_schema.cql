@@ -90,7 +90,7 @@ CREATE TABLE files_content (
 
 
 CREATE TABLE files_content_v2 (
-                               md5 varchar,
+                               md5 uuid,
                                fileName varchar,
                                data blob STATIC,
                                updated TIMESTAMP STATIC,
