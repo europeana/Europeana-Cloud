@@ -37,6 +37,7 @@ public interface ContentDAO {
   /**
    * Copies content of one storage object to another.
    *
+   * @param md5      md5 checksum
    * @param sourceFileName name of the source storage object
    * @param targetFileName name of the target storage object
    * @throws FileNotExistsException if source object does not exist in the storage

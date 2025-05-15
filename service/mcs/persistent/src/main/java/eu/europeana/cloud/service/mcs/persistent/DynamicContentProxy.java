@@ -33,7 +33,7 @@ public class DynamicContentProxy {
     getContentDAO(stored).deleteContent(md5, fileName);
   }
 
-  public void getContent(String fileName, String md5, long start, long end, OutputStream os, Storage stored)
+  public void getContent(String md5, String fileName, long start, long end, OutputStream os, Storage stored)
       throws IOException, FileNotExistsException {
 
     getContentDAO(stored).getContent(md5, fileName, start, end, os);
