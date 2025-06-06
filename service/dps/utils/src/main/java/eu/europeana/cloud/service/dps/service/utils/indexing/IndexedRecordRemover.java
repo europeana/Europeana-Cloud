@@ -33,6 +33,24 @@ public class IndexedRecordRemover {
    */
   public boolean removeRecord(TargetIndexingDatabase targetIndexingDatabase, String recordId,
       DepublicationReason reason) throws IndexingException {
+    // with these reasons, there is no tombstone created the record has to be
+    // only removed
+    switch (reason) {
+      case SENSITIVE_CONTENT, GDPR, PERMISSION_ISSUES:
+        return removeRecordWithoutCreatingTombstone(targetIndexingDatabase, recordId);
+      default:
+        return createTombstoneAndRemoveRecord(targetIndexingDatabase, recordId, reason);
+    }
+  }
+
+  private boolean removeRecordWithoutCreatingTombstone(TargetIndexingDatabase targetIndexingDatabase, String recordId)
+      throws IndexingException {
+    Indexer indexer = indexWrapper.getIndexer(targetIndexingDatabase);
+    return indexer.remove(recordId);
+  }
+
+  private boolean createTombstoneAndRemoveRecord(TargetIndexingDatabase targetIndexingDatabase, String recordId,
+      DepublicationReason reason) throws IndexingException {
     Indexer indexer = indexWrapper.getIndexer(targetIndexingDatabase);
     boolean recordWasTombstoned = indexer.indexTombstone(recordId, reason);
 
