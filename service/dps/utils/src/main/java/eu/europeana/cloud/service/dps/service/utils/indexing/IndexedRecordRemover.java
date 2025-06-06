@@ -50,7 +50,17 @@ public class IndexedRecordRemover {
         //previous try, and because we checked the tombstone exists, all is ok.
         return true;
       } else {
-        return false;
+        // with these reasons there is no tombstone created the record has to be
+        // only removed
+        switch (reason) {
+          case SENSITIVE_CONTENT, GDPR, PERMISSION_ISSUES -> {
+            indexer.remove(recordId);
+            return true;
+          }
+          default -> {
+            return false;
+          }
+        }
       }
     }
   }
