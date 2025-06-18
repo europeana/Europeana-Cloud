@@ -30,21 +30,39 @@ public class DynamicContentProxy {
   }
 
   public void deleteContent(String md5, String fileName, Storage stored) throws FileNotExistsException {
-    getContentDAO(stored).deleteContent(md5, fileName);
+    if (Storage.DATA_BASE.equals(stored)) {
+      getContentDAO(Storage.DB_STORAGE).deleteContent(md5, fileName);
+    } else {
+      getContentDAO(stored).deleteContent(md5, fileName);
+    }
   }
 
   public void getContent(String md5, String fileName, long start, long end, OutputStream os, Storage stored)
       throws IOException, FileNotExistsException {
 
-    getContentDAO(stored).getContent(md5, fileName, start, end, os);
+    if (Storage.DATA_BASE.equals(stored)) {
+      getContentDAO(Storage.DB_STORAGE).getContent(md5, fileName, start, end, os);;
+    } else {
+      getContentDAO(stored).getContent(md5, fileName, start, end, os);
+    }
   }
 
   public PutResult putContent(String fileName, InputStream data, Storage stored) throws IOException {
-    return getContentDAO(stored).putContent(fileName, data);
+
+    if (Storage.DATA_BASE.equals(stored)) {
+      return getContentDAO(Storage.DB_STORAGE).putContent(fileName, data);
+    } else {
+      return getContentDAO(stored).putContent(fileName, data);
+    }
   }
 
   private ContentDAO getContentDAO(final Storage storage) {
-    ContentDAO dao = contentDAOs.get(storage);
+    ContentDAO dao;
+    if (Storage.DATA_BASE.equals(storage)) {
+      dao = contentDAOs.get(Storage.DB_STORAGE);
+    } else {
+      dao = contentDAOs.get(storage);
+    }
     if (dao == null) {
       throw new ContentDaoNotFoundException("Specified storage \"" + storage + "\" has not been defined in " + this + "!");
     }
