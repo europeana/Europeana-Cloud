@@ -24,7 +24,7 @@ public class IndexedRecordRemoverTest {
 
   public static final long TASK_ID = 10L;
   private static final String RECORD_ID = "/100/record1";
-  private static final DepublicationReason REASON = DepublicationReason.PERMISSION_ISSUES;
+  private static final DepublicationReason REASON = DepublicationReason.LEGACY;
   private static final TargetIndexingDatabase TARGET_DB = TargetIndexingDatabase.PREVIEW;
 
   @Mock
