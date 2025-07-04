@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -39,7 +38,6 @@ import java.util.UUID;
 public class CassandraStaticContentDAO implements ContentDAO {
 
   private static final String MSG_FILE_NOT_EXISTS = "File with md5 %s not exists";
-  private static final String MSG_FILE_ALREADY_EXISTS = "File %s already exists";
   private static final String MSG_CANNOT_GET_INSTANCE_OF_MD_5 = "Cannot get instance of MD5 but such algorithm should be provided";
 
   private final CassandraConnectionProvider connectionProvider;
@@ -82,7 +80,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
    */
   @Override
   public void getContent(String md5, String fileName, long start, long end, OutputStream result) throws IOException, FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
+    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5)));
 
     Row row = rs.one();
     if (row == null) {
@@ -100,28 +98,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
 
   @Override
   public void copyContent(String md5, String sourceFileName, String targetFileName) throws FileNotExistsException, FileAlreadyExistsException, IOException {
-    checkIfObjectExists(md5, sourceFileName);
-
-    checkIfObjectNotExists(md5, targetFileName);
-
-
     executeQueryWithLogger(insertCopyStatement.bind(getMd5Uuid(md5), targetFileName, new Date()));
-  }
-
-  private void checkIfObjectExists(String md5, String fileName) throws FileNotExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
-    Row row = rs.one();
-    if (row == null) {
-      throw new FileNotExistsException(String.format(MSG_FILE_ALREADY_EXISTS, fileName));
-    }
-  }
-
-  private void checkIfObjectNotExists(String md5, String fileName) throws FileAlreadyExistsException {
-    ResultSet rs = executeQueryWithLogger(selectStatement.bind(getMd5Uuid(md5), fileName));
-    Row row = rs.one();
-    if (row != null) {
-      throw new FileAlreadyExistsException(String.format(MSG_FILE_ALREADY_EXISTS, fileName));
-    }
   }
 
 
@@ -147,7 +124,7 @@ public class CassandraStaticContentDAO implements ContentDAO {
 
     insertCopyStatement = s.prepare("INSERT INTO files_content_v2 (md5, fileName, updated) VALUES (?,?,?) IF NOT EXISTS");
 
-    selectStatement = s.prepare("SELECT fileName, data FROM files_content_v2 WHERE md5 = ? and fileName = ?;");
+    selectStatement = s.prepare("SELECT data FROM files_content_v2 WHERE md5 = ?;");
 
     selectFileNamesAndUpdatedStatement = s.prepare("SELECT fileName, updated FROM files_content_v2 WHERE md5 = ?;");
 
