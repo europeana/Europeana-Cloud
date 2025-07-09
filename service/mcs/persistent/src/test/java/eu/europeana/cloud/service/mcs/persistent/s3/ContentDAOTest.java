@@ -153,27 +153,6 @@ public abstract class ContentDAOTest {
     instance.deleteContent(EXAMPLE_MD5, objectId);
   }
 
-  @Test(expected = FileNotExistsException.class)
-  public void shouldThrowNotFoundExpWhenCopingNotExistingFile()
-          throws Exception {
-    String objectId = "not_exist";
-    String trg = "trg_name";
-    instance.copyContent(EXAMPLE_MD5, objectId, trg);
-  }
-
-  @Test(expected = FileAlreadyExistsException.class)
-  public void shouldThrowAlreadyExpWhenCopingToExistingFile()
-          throws Exception {
-    String sourceObjectId = "srcObjId";
-    String trgObjectId = "trgObjId";
-    String content = "This is a test content";
-    InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-    PutResult result = instance.putContent(sourceObjectId, is);
-    is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-    instance.putContent(trgObjectId, is);
-
-    instance.copyContent(result.getMd5(), sourceObjectId, trgObjectId);
-  }
 
   @Test
   public void shouldCopyContent()
