@@ -14,17 +14,21 @@ import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.RdfSerializer;
+import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
@@ -86,21 +90,20 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         if ((tempEnrichedFile == null) || (tempEnrichedFile.getTaskId() != stormTaskTuple.getTaskId())) {
           try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
             tempEnrichedFile = new TempEnrichedFile();
+            tempEnrichedFile.setDeserializer(deserializer);
+            tempEnrichedFile.setGson(gson);
             tempEnrichedFile.setTaskId(stormTaskTuple.getTaskId());
             byte[] bytes = IOUtils.toByteArray(stream);
             if (FileDataChecker.isFileDataNullOrBlank(bytes)) {
               LOGGER.warn("File data to be parsed is null or blank!");
             }
-            tempEnrichedFile.setEnrichedRdf(deserializer.getRdfForResourceEnriching(bytes));
+            tempEnrichedFile.setEnrichedRdf(bytes);
             LOGGER.debug("Loaded, and deserialized file, that is being enriched, bytes={}", bytes.length);
           }
         }
         tempEnrichedFile.addSourceTuple(anchorTuple);
         String metadata = stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
-        if (metadata != null) {
-          EnrichedRdf enrichedRdf = enrichRdf(tempEnrichedFile.getEnrichedRdf(), metadata);
-          tempEnrichedFile.setEnrichedRdf(enrichedRdf);
-        }
+        tempEnrichedFile.enrichRdf(metadata);
         String cachedErrorMessage = tempEnrichedFile.getExceptions();
         cachedErrorMessage = buildErrorMessage(stormTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
             cachedErrorMessage);
@@ -111,7 +114,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         handleInterruption(e, anchorTuple);
         return;
       } catch (Exception e) {
-        LOGGER.error("problem while enrichment ", e);
+        LOGGER.error("Problem while enrichment!\n{}", createContextDiagnosticMessage(tempEnrichedFile), e);
         String currentException = tempEnrichedFile.getExceptions();
         String exceptionMessage = "Exception while enriching the original edm file with resource: "
             + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + " because of: "
@@ -135,9 +138,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
           handleInterruption(e, anchorTuple);
           return;
         } catch (Exception ex) {
-            LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE, ex);
-            emitErrorNotification(anchorTuple, stormTaskTuple, ex.getMessage(),
-                    SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex));
+          LOGGER.error(SERIALIZATION_EXCEPTION_MESSAGE + "\n{}", createContextDiagnosticMessage(tempEnrichedFile), ex);
+          emitErrorNotification(anchorTuple, stormTaskTuple, ex.getMessage(),
+              SERIALIZATION_EXCEPTION_MESSAGE + ExceptionUtils.getStackTrace(ex));
         }
         ackAllSourceTuplesForFile(tempEnrichedFile);
       } else {
@@ -145,6 +148,15 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       }
     }
     LOGGER.info("EDM enrichment finished in {}ms", Clock.millisecondsSince(processingStartTime));
+  }
+
+  private static String createContextDiagnosticMessage(TempEnrichedFile tempEnrichedFile) {
+    return "Already applied enrichments:\n" +
+        Optional.ofNullable(tempEnrichedFile)
+                .map(t -> t.enrichments)
+                .stream()
+                .flatMap(List::stream)
+                .collect(Collectors.joining("\n"));
   }
 
   @Override
@@ -175,7 +187,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, errorMessage);
       stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
-    stormTaskTuple.setFileData(rdfSerializer.serialize(enrichedRdf));
+    stormTaskTuple.setFileData(serializeRdf(enrichedRdf));
     final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
     if (urlParser.isUrlToRepresentationVersionFile()) {
       stormTaskTuple
@@ -187,6 +199,16 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
+  }
+
+  private byte[] serializeRdf(EnrichedRdf enrichedRdf) throws RdfSerializationException {
+    byte[] rdfBytes = rdfSerializer.serialize(enrichedRdf);
+    String rdfString = new String(rdfBytes, StandardCharsets.UTF_8);
+    //TODO This checking is temporary for MET-6684 and could be removed after merging MET-6685
+    if (rdfString.trim().isEmpty()) {
+      throw new RuntimeException("Serialized RDF is empty for: " + enrichedRdf);
+    }
+    return rdfBytes;
   }
 
   private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
@@ -206,12 +228,6 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
 
   }
 
-  private EnrichedRdf enrichRdf(EnrichedRdf enrichedRdf, String resourceMetaData) {
-    ResourceMetadata resourceMetadata = gson.fromJson(resourceMetaData, ResourceMetadata.class);
-    enrichedRdf.enrichResource(resourceMetadata);
-    return enrichedRdf;
-  }
-
   private void ackAllSourceTuplesForFile(TempEnrichedFile enrichedFile) {
     for (Tuple tuple : enrichedFile.sourceTuples) {
       outputCollector.ack(tuple);
@@ -225,6 +241,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     private String exceptions;
     private int count;
     private final List<Tuple> sourceTuples = new ArrayList<>();
+    private RdfDeserializer deserializer;
+    private Gson gson;
+    private final List<String> enrichments = new ArrayList<>();
 
     public TempEnrichedFile() {
       count = 0;
@@ -235,8 +254,8 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       return enrichedRdf;
     }
 
-    public void setEnrichedRdf(EnrichedRdf enrichedRdf) {
-      this.enrichedRdf = enrichedRdf;
+    public void setEnrichedRdf(byte[] bytes) throws RdfDeserializationException {
+      this.enrichedRdf = deserializer.getRdfForResourceEnriching(bytes);
     }
 
     public String getExceptions() {
@@ -271,5 +290,21 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       this.taskId = taskId;
     }
 
+    public void setDeserializer(RdfDeserializer deserializer) {
+      this.deserializer = deserializer;
+    }
+
+    public void setGson(Gson gson) {
+      this.gson = gson;
+    }
+
+    private void enrichRdf(String metadataJson) {
+      if (metadataJson != null) {
+        ResourceMetadata resourceMetadata = gson.fromJson(metadataJson, ResourceMetadata.class);
+        enrichedRdf.enrichResource(resourceMetadata);
+      }
+
+      enrichments.add(metadataJson);
+    }
   }
 }
