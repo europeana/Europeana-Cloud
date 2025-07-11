@@ -20,6 +20,7 @@ import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -186,7 +187,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, errorMessage);
       stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
-    stormTaskTuple.setFileData(rdfSerializer.serialize(enrichedRdf));
+    stormTaskTuple.setFileData(serializeRdf(enrichedRdf));
     final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
     if (urlParser.isUrlToRepresentationVersionFile()) {
       stormTaskTuple
@@ -198,6 +199,15 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
     }
 
     stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_METADATA);
+  }
+
+  private byte[] serializeRdf(EnrichedRdf enrichedRdf) throws RdfSerializationException {
+    byte[] bytes = rdfSerializer.serialize(enrichedRdf);
+    //TODO This checking is temporary for MET-6684 and could be removed after merging MET-6685
+    if (new String(bytes, StandardCharsets.UTF_8).trim().isEmpty()) {
+      throw new RuntimeException("Serialized RDF is empty for: " + enrichedRdf);
+    }
+    return bytes;
   }
 
   private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
