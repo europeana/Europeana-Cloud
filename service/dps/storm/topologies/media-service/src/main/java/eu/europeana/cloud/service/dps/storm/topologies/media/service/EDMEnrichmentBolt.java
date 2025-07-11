@@ -202,12 +202,13 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
   }
 
   private byte[] serializeRdf(EnrichedRdf enrichedRdf) throws RdfSerializationException {
-    byte[] bytes = rdfSerializer.serialize(enrichedRdf);
+    byte[] rdfBytes = rdfSerializer.serialize(enrichedRdf);
+    String rdfString = new String(rdfBytes, StandardCharsets.UTF_8);
     //TODO This checking is temporary for MET-6684 and could be removed after merging MET-6685
-    if (new String(bytes, StandardCharsets.UTF_8).trim().isEmpty()) {
+    if (rdfString.trim().isEmpty()) {
       throw new RuntimeException("Serialized RDF is empty for: " + enrichedRdf);
     }
-    return bytes;
+    return rdfBytes;
   }
 
   private String buildErrorMessage(String resourceErrorMessage, String cachedErrorMessage) {
