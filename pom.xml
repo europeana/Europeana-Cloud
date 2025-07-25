@@ -176,6 +176,7 @@
         <!-- Metis related dependencies-->
         <version.metis>15-SNAPSHOT</version.metis>
         <version.metis.normalization>15-SNAPSHOT</version.metis.normalization>
+        <version.entity-api-client>2.2</version.entity-api-client>
         <!-- -->
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <version.guava>33.3.1-jre</version.guava>

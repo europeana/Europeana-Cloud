@@ -71,7 +71,16 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-jaxb-annotations</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>eu.europeana.api</groupId>
+                    <artifactId>entity-api-client</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.api</groupId>
+            <artifactId>entity-api-client</artifactId>
+            <version>${version.entity-api-client}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
