@@ -6,16 +6,14 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
-import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
-import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
@@ -27,9 +25,10 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
 /**
  * Stores a Record on the cloud.
@@ -55,24 +54,55 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   }
 
   @Override
+  protected boolean ignoreDeleted() {
+    return false;
+  }
+
+  @Override
   public void prepare() {
     LOGGER.debug("Preparing MCS client with the following params url={} user={}", ecloudMcsAddress, topologyUserName);
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
+
+  private boolean ifRecordShouldBeIgnored(StormTaskTuple tuple) throws MalformedURLException {
+    if (!tuple.isMarkedAsDeleted()) {
+      return true;
+    }
+
+    Map<String, String> recordParams = tuple.getParameters();
+
+    if (isBlank(recordParams, REVISION_NAME)) return false;
+    if (isBlank(recordParams, REVISION_PROVIDER)) return false;
+    if (isBlank(recordParams, REVISION_TIMESTAMP)) return false;
+
+    String inputDataSetId = DataSetUrlParser.parse(tuple.getFileUrl()).getId();
+    String outputDataSetId = StormTaskTupleHelper.extractDatasetId(tuple);
+
+    return inputDataSetId.equals(outputDataSetId);
+  }
+
+  private boolean isBlank(Map<String, String> map, String key) {
+    return !map.containsKey(key) || map.get(key).isBlank();
+  }
+
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
-      LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
-      var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
-      LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
-      prepareEmittedTuple(stormTaskTuple, uri.toString());
-      outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
-      outputCollector.ack(anchorTuple);
-      LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+      if (ifRecordShouldBeIgnored(stormTaskTuple)) {
+        RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
+        LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
+        var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
+        LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
+        prepareEmittedTuple(stormTaskTuple, uri.toString());
+        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        outputCollector.ack(anchorTuple);
+        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+      } else {
+        LOGGER.debug("WriteRecordBolt: File not suitable to be handled");
+      }
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {

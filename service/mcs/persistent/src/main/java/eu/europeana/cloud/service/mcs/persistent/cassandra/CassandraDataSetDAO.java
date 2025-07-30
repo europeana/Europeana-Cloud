@@ -376,6 +376,8 @@ public class CassandraDataSetDAO {
     );
 
 
+
+
     addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
             "INSERT " +
                     "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
@@ -397,6 +399,13 @@ public class CassandraDataSetDAO {
                     "AND cloud_id = ? " +
                     "AND version_id = ? " +
                     "IF EXISTS;"
+    );
+
+    getDataSetCloudIsStatement = connectionProvider.getSession().prepare(
+            "SELECT bucket_id " +
+                    "FROM data_set_assignments_by_data_set " +
+                    "WHERE provider_dataset_id = ? AND bucket_id = ? " +
+                    "LIMIT ?"
     );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//

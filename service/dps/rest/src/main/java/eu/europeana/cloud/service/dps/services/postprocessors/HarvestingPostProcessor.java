@@ -34,6 +34,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+
 /**
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
  *
@@ -127,7 +129,11 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
             , harvestedRecord, dpsTask.getTaskId());
       } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-        createPostProcessedRecord(dpsTask, harvestedRecord);
+        if (dpsTask.isParameterPresent(REVISION_NAME) &&
+            dpsTask.isParameterPresent(REVISION_PROVIDER) &&
+            dpsTask.isParameterPresent(REVISION_TIMESTAMP)) {
+          createPostProcessedRecord(dpsTask, harvestedRecord);
+        }
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
         taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);

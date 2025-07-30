@@ -152,7 +152,9 @@ public class MCSTaskSubmitter {
     RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
     while (iterator.hasNext()) {
       checkIfTaskIsKilled(submitParameters.getTask());
-      expectedSize += submitRecordsForRepresentation(iterator.next(), submitParameters);
+
+      Representation representation = iterator.next();
+      expectedSize += submitRecordsForRepresentation(representation, submitParameters, representation.getFiles().isEmpty());
     }
     return expectedSize;
   }
@@ -254,12 +256,12 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
 
-    return submitRecordsForFiles(representation.getFiles(), submitParameters);
+    return submitRecordsForFiles(representation.getFiles(), submitParameters, markedAsDeleted);
   }
 
   private int submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
@@ -272,20 +274,24 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters) {
+  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
     var count = 0;
 
     for (File file : files) {
       checkIfTaskIsKilled(submitParameters.getTask());
 
       var fileUrl = file.getContentUri().toString();
-      if (submitRecord(fileUrl, submitParameters, false)) {
+      if (submitRecord(fileUrl, submitParameters, markedAsDeleted)) {
         count++;
       }
 
     }
 
     return count;
+  }
+
+  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters) {
+    return submitRecordsForFiles(files, submitParameters, false);
   }
 
   private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
