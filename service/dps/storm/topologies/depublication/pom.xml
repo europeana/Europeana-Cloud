@@ -125,6 +125,6 @@
     <artifactId>ecloud-service-dps</artifactId>
     <groupId>eu.europeana.cloud</groupId>
     <relativePath>../../../pom.xml</relativePath>
-    <version>14-SNAPSHOT</version>
+    <version>14</version>
   </parent>
 </project>
