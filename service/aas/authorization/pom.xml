@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-aas</artifactId>
-        <version>14</version>
+        <version>15-SNAPSHOT</version>
     </parent>
 
     <artifactId>ecloud-service-aas-authorization</artifactId>
