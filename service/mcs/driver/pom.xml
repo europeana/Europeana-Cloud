@@ -4,10 +4,10 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-mcs</artifactId>
-        <version>13</version>
+        <version>14</version>
     </parent>
     <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
-    <version>13</version>
+    <version>14</version>
     <name>Europeana Cloud: Metadata and Content Service Java Client</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -47,6 +47,12 @@
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${version.jersey}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jakarta.xml.bind</groupId>
+                    <artifactId>jakarta.xml.bind-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>

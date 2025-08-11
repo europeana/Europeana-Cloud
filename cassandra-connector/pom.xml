@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-parent</artifactId>
-        <version>13</version>
+        <version>14</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ecloud-cassandra-connector</artifactId>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-            <version>${version.jakarta.annotation}</version>
+            <version>${version.jakarta.annotation-api}</version>
         </dependency>
     </dependencies>
     

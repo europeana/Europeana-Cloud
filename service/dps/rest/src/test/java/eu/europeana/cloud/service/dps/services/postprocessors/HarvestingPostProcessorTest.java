@@ -1,12 +1,14 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_HARVEST;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -30,18 +32,24 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.indexing.Indexer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,6 +109,15 @@ public class HarvestingPostProcessorTest {
   @Mock
   private TaskStatusChecker taskStatusChecker;
 
+  @Mock
+  private Indexer previewIndexer;
+
+  @Mock
+  private Indexer publishIndexer;
+
+  @Mock
+  private IndexWrapper indexWrapper;
+
   @InjectMocks
   private HarvestingPostProcessor service;
 
@@ -109,6 +126,7 @@ public class HarvestingPostProcessorTest {
     mockDAOs();
     mockUis();
     mockRecordServiceClient();
+    mockIndexer();
     prepareTask();
   }
 
@@ -129,8 +147,13 @@ public class HarvestingPostProcessorTest {
   private void mockUis() throws CloudException {
     CloudId cloudIdObject1 = createCloudId(CLOUD_ID1, RECORD_ID1);
     CloudId cloudIdObject2 = createCloudId(CLOUD_ID2, RECORD_ID2);
-    when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID1)).thenReturn(cloudIdObject1);
-    when(uisClient.getCloudId(PROVIDER_ID, RECORD_ID2)).thenReturn(cloudIdObject2);
+    when(uisClient.createCloudId(PROVIDER_ID, RECORD_ID1)).thenReturn(cloudIdObject1);
+    when(uisClient.createCloudId(PROVIDER_ID, RECORD_ID2)).thenReturn(cloudIdObject2);
+  }
+
+  private void mockIndexer() {
+    when(indexWrapper.getIndexer(TargetIndexingDatabase.PREVIEW)).thenReturn(previewIndexer);
+    when(indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH)).thenReturn(publishIndexer);
   }
 
   private void prepareTask() {
@@ -180,7 +203,8 @@ public class HarvestingPostProcessorTest {
     verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
     verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
-    verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater, times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -217,7 +241,8 @@ public class HarvestingPostProcessorTest {
     verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
     //task
     verify(processedRecordsDAO, times(2)).insert(any());
-    verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater, times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
@@ -235,7 +260,8 @@ public class HarvestingPostProcessorTest {
     verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
     verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
     verify(processedRecordsDAO).insert(any());
-    verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater, times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -246,10 +272,9 @@ public class HarvestingPostProcessorTest {
   public void shouldNotStartPostprocessingForDroppedTask() {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
+    doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
-    when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
-
-    service.execute(taskInfo, task);
+    assertThrows(TaskDroppedException.class, () -> service.execute(taskInfo, task));
 
     verifyNoInteractions(taskStatusUpdater);
     verifyNoInteractions(harvestedRecordsDAO);
@@ -257,20 +282,20 @@ public class HarvestingPostProcessorTest {
   }
 
   @Test
-  public void shouldNeedsPostProcessingReturnFalseForNoIncrementalParamSet() {
+  public void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
 
     boolean result = service.needsPostProcessing(task);
 
-    assertFalse(result);
+    assertTrue(result);
   }
 
   @Test
-  public void shouldNeedsPostProcessingReturnFalseForFullHarvesting() {
+  public void shouldNeedsPostProcessingReturnTrueForFullHarvesting() {
     task.addParameter(INCREMENTAL_HARVEST, "false");
 
     boolean result = service.needsPostProcessing(task);
 
-    assertFalse(result);
+    assertTrue(result);
   }
 
   @Test
@@ -280,6 +305,38 @@ public class HarvestingPostProcessorTest {
     boolean result = service.needsPostProcessing(task);
 
     assertTrue(result);
+  }
+
+  @Test
+  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPreview() {
+    when(previewIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
+
+    service.execute(taskInfo, task);
+
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
+        eq(TargetIndexingDatabase.PREVIEW), any(Date.class), any(UUID.class));
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
+        eq(TargetIndexingDatabase.PREVIEW), any(Date.class), any(UUID.class));
+    verify(harvestedRecordsDAO).executeBatch(notNull());
+    verify(taskStatusUpdater,times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+  }
+
+  @Test
+  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPublish() {
+    when(publishIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
+
+    service.execute(taskInfo, task);
+
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID1),
+        eq(TargetIndexingDatabase.PUBLISH), any(Date.class), any(UUID.class));
+    verify(harvestedRecordsDAO).createUpdateIndexedColumnsIfEmptyHarvestDateStatement(eq(METIS_DATASET_ID), eq(RECORD_ID2),
+        eq(TargetIndexingDatabase.PUBLISH), any(Date.class), any(UUID.class));
+    verify(harvestedRecordsDAO).executeBatch(notNull());
+    verify(taskStatusUpdater,times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
   }
 
   private HarvestedRecord createHarvestedRecord(Date date, String recordId) {

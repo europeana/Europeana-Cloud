@@ -1,48 +1,34 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import static eu.europeana.cloud.service.mcs.Storage.DATA_BASE;
-import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import com.google.common.hash.Hashing;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import org.junit.After;
+import eu.europeana.cloud.test.S3TestHelper;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.*;
+
+import static eu.europeana.cloud.service.mcs.Storage.DATA_BASE;
+import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
@@ -72,9 +58,20 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
   private DataProvider dataProvider1;
   private DataProvider dataProvider2;
 
-  @After
-  public void cleanUp() {
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.startS3MockServer();
+  }
+
+
+  @Before
+  public void cleanUpBeforeTest() {
+    S3TestHelper.cleanUpBetweenTests();
     Mockito.reset(uisHandler);
+  }
+  @AfterClass
+  public static void cleanUp() {
+    S3TestHelper.stopS3MockServer();
   }
 
   @Test
@@ -496,8 +493,8 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
         DATA_SET_DESCRIPTION);
     Representation r = insertDummyPersistentRepresentation("globalId", "dc", PROVIDER_1_ID);
     cassandraRecordService.deleteRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion());
-
-    assertTrue(true);
+    assertThrows(RepresentationNotExistsException.class,
+            () -> cassandraRecordService.getRepresentation(r.getCloudId(), r.getRepresentationName(), r.getVersion()));
   }
 
   @Test(expected = CannotModifyPersistentRepresentationException.class)
@@ -825,13 +822,13 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
            .getProvider(Mockito.anyString());
   }
 
-  private void makeUISSuccess() throws RecordNotExistsException {
+  private void makeUISSuccess() {
     Mockito.doReturn(true).when(uisHandler)
            .existsCloudId(Mockito.anyString());
     Mockito.when(uisHandler.existsProvider(Mockito.anyString())).thenReturn(true);
   }
 
-  private void makeUISFailure() throws RecordNotExistsException {
+  private void makeUISFailure() {
     Mockito.doReturn(false).when(uisHandler)
            .existsCloudId(Mockito.anyString());
   }

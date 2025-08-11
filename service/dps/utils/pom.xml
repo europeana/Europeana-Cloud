@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>13</version>
+        <version>14</version>
     </parent>
     <artifactId>ecloud-service-dps-utils</artifactId>
     <packaging>jar</packaging>
@@ -37,6 +37,11 @@
                     <artifactId>woodstox-core-asl</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>${version.jakarta.annotation-api}</version>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>

@@ -9,15 +9,16 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.DbConnectionDetails;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.model.MediaTier;
+import eu.europeana.metis.utils.DepublicationReason;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class IndexingBolt extends AbstractDpsBolt {
   private final String topologyUserName;
   private final String topologyUserPassword;
   private transient EuropeanaIdFinder europeanaIdFinder;
+  private transient IndexedRecordRemover recordRemover;
 
 
   public IndexingBolt(
@@ -71,6 +73,7 @@ public class IndexingBolt extends AbstractDpsBolt {
     prepareDao();
     prepareEuropeanaIdFinder();
     prepareIndexer();
+    recordRemover = new IndexedRecordRemover(indexWrapper);
   }
 
   @Override
@@ -102,6 +105,8 @@ public class IndexingBolt extends AbstractDpsBolt {
 
       if (recordShouldBeDeleted) {
         removeIndexedRecord(stormTaskTuple, database, europeanaId);
+      } else{
+        indexWrapper.getIndexer(database).removeTombstone(europeanaId);
       }
       updateHarvestedRecord(stormTaskTuple, europeanaId, recordShouldBeDeleted);
       if (recordNotSuitableForPublication) {
@@ -133,9 +138,10 @@ public class IndexingBolt extends AbstractDpsBolt {
 
   private void removeIndexedRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database, String europeanaId)
       throws IndexingException {
-    LOGGER.info("Removing indexed record europeanaId: {}, database: {}, taskId: {}, recordId: {}",
-        europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
-    indexWrapper.getIndexer(database).remove(europeanaId);
+    boolean tombstoneIsCreated = recordRemover.removeRecord(database, europeanaId, DepublicationReason.REMOVED_DATA_AT_SOURCE);
+    LOGGER.info("Finished removing indexed record: "
+            + "europeanaId: {}, database: {}, taskId: {}, recordId: {}, tombstone is created: {}",
+        europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), tombstoneIsCreated);
   }
 
   private void prepareDao() {

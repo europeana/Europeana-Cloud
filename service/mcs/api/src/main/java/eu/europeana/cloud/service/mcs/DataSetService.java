@@ -6,12 +6,8 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.util.Collection;
+import eu.europeana.cloud.service.mcs.exception.*;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -38,23 +34,16 @@ public interface DataSetService {
 
 
   /**
-   * Assigns a representation in predefined or latest version to a data set. Temporary representation may be added to a data set
-   * only if version is provided. If the same representation was already assigned to a data set, version of representation will be
-   * overwritten by provided in this method.
+   * Creates a new data set revision for specified provider and dataset.
    *
    * @param providerId owner of data set
-   * @param dataSetId data set id
-   * @param recordId id of record
-   * @param schema schema name of representation
-   * @param version version of representatnion (if null, the latest persistent version is assigned to a data set)
-   * @throws DataSetNotExistsException if such data set not exists
-   * @throws RepresentationNotExistsException if such representation does not exist. May be also thrown if version is not provided
-   * and no persistent representation version exist for specified schema and record.
+   * @param datasetId identifier of newly created data set
+   * @param revision revision to be added
+   * @param representationName name of representation
+   * @param cloudId cloud identifier
+   * @param versionId version identifier
    */
-  void addAssignment(String providerId, String dataSetId, String recordId, String schema, String version)
-      throws DataSetNotExistsException, RepresentationNotExistsException;
-
-  void addDataSetsRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String version_id);
+  void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
 
   void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
 
@@ -65,6 +54,7 @@ public interface DataSetService {
    * @param dataSetId data set id
    * @param recordId id of record
    * @param schema schema name of representation
+   * @param versionId version id of representation
    * @throws DataSetNotExistsException if such data set not exists
    */
   void removeAssignment(String providerId, String dataSetId, String recordId, String schema, String versionId)
@@ -92,7 +82,7 @@ public interface DataSetService {
    * @param dataSetId identifier of newly created data set
    * @param description new description of data set (may be any text)
    * @return updated data set
-   * @throws DataSetNotExistsException
+   * @throws DataSetNotExistsException no such data set exists
    */
   DataSet updateDataSet(String providerId, String dataSetId, String description)
       throws DataSetNotExistsException;
@@ -184,14 +174,6 @@ public interface DataSetService {
   void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
       throws RepresentationNotExistsException;
 
-  /**
-   * @return
-   */
-  List<CompoundDataSetId> getAllDatasetsForRepresentationVersion(Representation representation)
-      throws RepresentationNotExistsException;
-
-  Collection<CompoundDataSetId> getDataSetAssignmentsByRepresentationVersion(String cloudId, String schemaId, String version)
-      throws RepresentationNotExistsException;
 
   /**
    * Returns one (usually the first one from DB) for the given representation

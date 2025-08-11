@@ -16,6 +16,7 @@ import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -145,7 +146,7 @@ public class DepublicationTaskSubmitterTest {
     dpsTask.getParameters().put(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD_ID_1 + "," + RECORD_ID_2);
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(true);
 
-    assertThrows(SubmitingTaskWasKilled.class, () -> submitter.submitTask(parameters));
+    assertThrows(TaskDroppedException.class, () -> submitter.submitTask(parameters));
 
     verify(recordSubmitService, never()).submitRecord(any(), any());
   }

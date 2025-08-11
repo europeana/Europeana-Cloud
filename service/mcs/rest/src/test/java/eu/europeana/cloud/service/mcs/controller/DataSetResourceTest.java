@@ -1,15 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationResultSlice;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
@@ -18,16 +8,25 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.test.CassandraTestRunner;
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import eu.europeana.cloud.test.S3TestHelper;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+
+import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationResultSlice;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * DataSetResourceTest
@@ -35,7 +34,6 @@ import org.springframework.test.web.servlet.ResultActions;
 @RunWith(CassandraTestRunner.class)
 public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
-  // private DataProviderService dataProviderService;
   private DataSetService dataSetService;
 
   private RecordService recordService;
@@ -43,6 +41,11 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
   private DataProvider dataProvider = new DataProvider();
 
   private UISClientHandler uisHandler;
+
+  @BeforeClass
+  public static void setUp(){
+    S3TestHelper.startS3MockServer();
+  }
 
   @Before
   public void mockUp() {
@@ -58,6 +61,16 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     dataSetService = applicationContext.getBean(DataSetService.class);
     recordService = applicationContext.getBean(RecordService.class);
   }
+
+  @After
+  public void cleanUp() {
+    S3TestHelper.cleanUpBetweenTests();
+  }
+  @AfterClass
+  public static void cleanUpAfterTests() {
+    S3TestHelper.stopS3MockServer();
+  }
+
 
   @Test
   public void shouldUpdateDataset()
@@ -87,10 +100,8 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     String dataSetId = "dataset";
     String anotherProvider = "anotherProvider";
     dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
-    DataProvider another = new DataProvider();
-    another.setId(anotherProvider);
-    //        Mockito.doReturn(another).when(dataProviderDAO).getProvider("anotherProvider");
-    dataSetService.createDataSet(anotherProvider, dataSetId, "");
+
+   dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
     // when you delete it for one provider
     mockMvc.perform(delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
@@ -108,15 +119,10 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     // given data set with assigned record representations
     String dataSetId = "dataset";
     dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
-    Representation r1_1 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
-    Representation r1_2 = insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
-    Representation r2_1 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
-    Representation r2_2 = insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
-    dataSetService.addAssignment(dataProvider.getId(), dataSetId, r1_1.getCloudId(), r1_1.getRepresentationName(),
-        null);
-    dataSetService.addAssignment(dataProvider.getId(), dataSetId, r2_1.getCloudId(), r2_1.getRepresentationName(),
-        r2_1.getVersion());
-
+    insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
+    insertDummyPersistentRepresentation("1", "dc", dataProvider.getId());
+    insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
+    insertDummyPersistentRepresentation("2", "dc", dataProvider.getId());
     // when you list dataset contents
     ResultActions response = mockMvc.perform(
                                         get(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId))

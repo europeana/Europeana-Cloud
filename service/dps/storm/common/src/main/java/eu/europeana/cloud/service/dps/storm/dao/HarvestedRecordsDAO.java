@@ -35,6 +35,8 @@ public class HarvestedRecordsDAO extends CassandraDAO {
   private PreparedStatement deleteRecordStatement;
   private PreparedStatement updatePreviewColumnsForExistingStatement;
   private PreparedStatement updatePublishedColumnsForExistingStatement;
+  private PreparedStatement updatePreviewColumnsIfEmptyHarvestDateStatement;
+  private PreparedStatement updatePublishedColumnsIfEmptyHarvestDateStatement;
 
   public HarvestedRecordsDAO() {
     //needed for creating cglib proxy in RetryableMethodExecutor.createRetryProxy()
@@ -100,6 +102,24 @@ public class HarvestedRecordsDAO extends CassandraDAO {
 
     );
 
+    updatePreviewColumnsIfEmptyHarvestDateStatement = dbService.getSession().prepare("UPDATE "
+        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+        + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + " = ? "
+        + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_MD5 + " = ? "
+        + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+        + " IF " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PREVIEW_HARVEST_DATE + " = NULL");
+
+    updatePublishedColumnsIfEmptyHarvestDateStatement = dbService.getSession().prepare("UPDATE "
+        + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
+        + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
+        + "," + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_MD5 + " = ? "
+        + " WHERE " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_METIS_DATASET_ID + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_BUCKET_NUMBER + " = ? "
+        + " AND " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_LOCAL_ID + " = ? "
+        + " IF " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = NULL");
+
     updatePublishedHarvestDateStatement = dbService.getSession().prepare("UPDATE "
         + CassandraTablesAndColumnsNames.HARVESTED_RECORD_TABLE
         + " SET " + CassandraTablesAndColumnsNames.HARVESTED_RECORD_PUBLISHED_HARVEST_DATE + " = ? "
@@ -155,23 +175,54 @@ public class HarvestedRecordsDAO extends CassandraDAO {
              .execute(updatePublishedHarvestDateStatement.bind(indexingDate, metisDatasetId, bucketNoFor(recordId), recordId));
   }
 
-  public BoundStatement prepareCleanIndexedColumns(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
-    switch (targetDb) {
-      case PREVIEW:
-        return prepareCleanPreviewColumns(metisDatasetId, recordId);
-      case PUBLISH:
-        return prepareCleanPublishedColumns(metisDatasetId, recordId);
-      default:
-        throw new IllegalArgumentException("Unsupported TargetIndexingDatabase: " + targetDb);
-    }
+  /**
+   * Cleans indexed date and md5 columns for the selected environment.
+   *
+   * @param metisDatasetId - metis dataset id
+   * @param recordId -record id
+   * @param targetDb -target id
+   * @return statement
+   */
+  public BoundStatement createCleanIndexedColumnsStatement(String metisDatasetId, String recordId, TargetIndexingDatabase targetDb) {
+    return switch (targetDb) {
+      case PREVIEW -> createCleanPreviewColumnsStatement(metisDatasetId, recordId);
+      case PUBLISH -> createCleanPublishedColumnsStatement(metisDatasetId, recordId);
+    };
   }
 
-  private BoundStatement prepareCleanPreviewColumns(String metisDatasetId, String recordId) {
+  private BoundStatement createCleanPreviewColumnsStatement(String metisDatasetId, String recordId) {
     return updatePreviewColumnsForExistingStatement.bind(null, null, metisDatasetId, bucketNoFor(recordId), recordId);
   }
 
-  private BoundStatement prepareCleanPublishedColumns(String metisDatasetId, String recordId) {
+  private BoundStatement createCleanPublishedColumnsStatement(String metisDatasetId, String recordId) {
     return updatePublishedColumnsForExistingStatement.bind(null, null, metisDatasetId, bucketNoFor(recordId), recordId);
+  }
+
+  /**
+   * Completes record indexed columns for the record if it has empty indexed date column for selected environment.
+   * If the row does not exist it is created.
+   *
+   * @param metisDatasetId - metis dataset id
+   * @param recordId -record id
+   * @param targetDb -target id
+   * @param date - indexed date
+   * @param md5 - indexed md5
+   * @return statement
+   */
+  public BoundStatement createUpdateIndexedColumnsIfEmptyHarvestDateStatement(
+      String metisDatasetId, String recordId, TargetIndexingDatabase targetDb, Date date, UUID md5) {
+    return switch (targetDb) {
+      case PREVIEW -> createUpdatePreviewColumnsIfEmptyHarvestDateStatement(metisDatasetId, recordId, date, md5);
+      case PUBLISH -> createUpdatePublishedColumnsIfEmptyHarvestDateStatement(metisDatasetId, recordId, date, md5);
+    };
+  }
+
+  private BoundStatement createUpdatePreviewColumnsIfEmptyHarvestDateStatement(String metisDatasetId, String recordId, Date date, UUID md5) {
+    return updatePreviewColumnsIfEmptyHarvestDateStatement.bind(date, md5, metisDatasetId, bucketNoFor(recordId), recordId);
+  }
+
+  private BoundStatement createUpdatePublishedColumnsIfEmptyHarvestDateStatement(String metisDatasetId, String recordId, Date date, UUID md5) {
+    return updatePublishedColumnsIfEmptyHarvestDateStatement.bind(date, md5, metisDatasetId, bucketNoFor(recordId), recordId);
   }
 
   @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)

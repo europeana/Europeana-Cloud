@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>13</version>
+    <version>14</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -16,7 +16,7 @@
         <connection>scm:git:git://github.com/europeana/Europeana-Cloud.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/Europeana-Cloud.git</developerConnection>
         <url>https://github.com/europeana/Europeana-Cloud</url>
-        <tag>v13</tag>
+        <tag>v14</tag>
     </scm>
     <developers>
         <developer>
@@ -154,7 +154,7 @@
         <version.commons-lang3>3.14.0</version.commons-lang3>
         <version.uuid>3.5</version.uuid>
         <version.jaxb-runtime>4.0.4</version.jaxb-runtime>
-        <version.jclouds>2.6.0</version.jclouds>
+        <version.amazon-s3>2.28.24</version.amazon-s3>
         <version.xmlunit-matchers>2.9.1</version.xmlunit-matchers>
         <version.gson>2.10.1</version.gson>
         <version.base64>2.3.9</version.base64>
@@ -174,11 +174,11 @@
         <version.jackson>2.16.1</version.jackson>
         <version.jacoco>0.8.11</version.jacoco>
         <!-- Metis related dependencies-->
-        <version.metis>14</version.metis>
-        <version.metis.normalization>14</version.metis.normalization>
+        <version.metis>15</version.metis>
+        <version.metis.normalization>15</version.metis.normalization>
         <!-- -->
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
-        <version.guava>32.1.2-jre</version.guava>
+        <version.guava>33.3.1-jre</version.guava>
         <version.storm>2.6.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
         <version.bytebuddy>1.14.13</version.bytebuddy>
@@ -186,10 +186,13 @@
         <version.zt-zip>1.16</version.zt-zip>
         <version.netty>4.1.94.Final</version.netty>
 
-        <version.jakarta.annotation>2.1.1</version.jakarta.annotation>
+        <version.jakarta.annotation-api>3.0.0</version.jakarta.annotation-api>
         <version.jakarta.xml.bind>4.0.1</version.jakarta.xml.bind>
+        <version.jaxb-impl>4.0.1</version.jaxb-impl>
         <version.jakarta.ws.rs>3.1.0</version.jakarta.ws.rs>
         <version.jakarta.servlet-api>6.0.0</version.jakarta.servlet-api>
+        <version.jakarta.validation-api>3.1.0</version.jakarta.validation-api>
+        <version.jakarta.inject-api>2.0.1</version.jakarta.inject-api>
 
         <maven.compiler.source>${version.jdk}</maven.compiler.source>
         <maven.compiler.target>${version.jdk}</maven.compiler.target>
@@ -394,6 +397,12 @@
                 <groupId>com.google.guava</groupId>
                 <type>jar</type>
                 <version>${version.guava}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId> com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -411,6 +420,52 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>3.3.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.storm</groupId>
+                <artifactId>storm-core</artifactId>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>javax.servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>eu.europeana.metis</groupId>
+                <artifactId>metis-indexing</artifactId>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                        <exclusion>
+                            <groupId> com.google.code.findbugs</groupId>
+                            <artifactId>jsr305</artifactId>
+                        </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>eu.europeana.metis</groupId>
+                <artifactId>metis-enrichment-client</artifactId>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId> com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -4,7 +4,7 @@
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-uis</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>13</version>
+        <version>14</version>
     </parent>
     <artifactId>ecloud-service-uis-rest-client-java</artifactId>
     <packaging>jar</packaging>
@@ -125,7 +125,7 @@
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.4</version>
+            <version>${version.jaxb-runtime}</version>
         </dependency>
     </dependencies>
     <build>

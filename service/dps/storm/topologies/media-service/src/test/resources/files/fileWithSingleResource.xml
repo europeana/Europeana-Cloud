@@ -1,167 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" xmlns:doap="http://usefulinc.com/ns/doap#" xmlns:odrl="http://www.w3.org/ns/odrl/2/" xmlns:cc="http://creativecommons.org/ns#" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:svcs="http://rdfs.org/sioc/services#" xmlns:oa="http://www.w3.org/ns/oa#" xmlns:dqv="http://www.w3.org/ns/dqv#">
-    <edm:ProvidedCHO rdf:about="/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-    <skos:Concept rdf:about="http://vocab.getty.edu/aat/300046300">
-        <skos:altLabel xml:lang="en">photograph</skos:altLabel>
-        <skos:altLabel xml:lang="en">photos</skos:altLabel>
-        <skos:altLabel xml:lang="nl">foto</skos:altLabel>
-        <skos:altLabel xml:lang="it">foto</skos:altLabel>
-        <skos:altLabel xml:lang="fr">photographie (visual works)</skos:altLabel>
-        <skos:altLabel xml:lang="es">fotografía (obra visual)</skos:altLabel>
-        <skos:altLabel xml:lang="it">documenti fotografici</skos:altLabel>
-        <skos:broader rdf:resource="http://vocab.getty.edu/aat/300191086"/>
-        <skos:inScheme rdf:resource="http://vocab.getty.edu/aat/"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300128222"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134468"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127195"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127173"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300412092"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300128347"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127115"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300226299"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134733"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127264"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300138191"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300264341"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300128359"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134941"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300166116"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134997"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134966"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300256470"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134977"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300163100"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134995"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127169"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300138085"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300128371"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300254667"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127280"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300139724"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134989"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300435279"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127322"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300435144"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300266377"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300266280"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300417379"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134753"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134722"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300403973"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300263423"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300223022"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134745"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134972"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300246214"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300184557"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134695"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300162872"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127269"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127290"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300227495"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300417740"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300127296"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134705"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134708"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300265320"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300134789"/>
-        <skos:note xml:lang="en">Refers to still images produced from radiation-sensitive materials (sensitive to light, electron beams, or nuclear radiation), generally by means of the chemical action of light on a sensitive film, paper, glass, or metal. Photographs may be positive or negative, opaque or transparent. The concept does not include reproductive prints of documents and technical drawings, for which descriptors found under "&lt;reprographic copies>" are more appropriate. The concept may include photographs made by digital means.</skos:note>
-        <skos:note xml:lang="es">Se refiere a imágenes fijas producidas por materiales sensibles a la radiación (sensibles a la luz, rayos de electrones o radiación nuclear), generalmente por medio de la acción química de la luz sobre una película, papel, vidrio o metal sensible. No incluye impresiones de documentos reproductivos y dibujos técnicos, para los cuales los descriptores que se encuentran bajo "&amp;lt;copias reprográficas&amp;gt;" son más apropiados. Las fotografías pueden ser en positivo o negativo, opacas o transparentes.</skos:note>
-        <skos:note xml:lang="nl">Niet bewegende afbeeldingen vervaardigd met van stralingsgevoelige materialen (gevoelig voor licht, elektronenstralen of nucleaire straling), met uitzondering van reproductieve afdrukken van documenten en technische tekeningen. Gebruik daarvoor termen, die bijeengebracht zijn onder 'reprografische kopieën'. Foto's kunnen positief of negatief zijn, ondoorschijnend of transparant (in vaktermen: opzicht of doorzicht).</skos:note>
-        <skos:note xml:lang="zh-hant">意指透過光的化學作用在感光的底片、紙張、玻璃或金屬等輻射敏感材料 (對光、電子束或核輻射敏感) 上產生的靜止影像。照片之定義不適用於描述內容列於 &lt;機印副本> 類別下的文件和技術製圖複印。照片可能為正像或負像，不透明或透明。</skos:note>
-        <skos:prefLabel xml:lang="fr">photographies</skos:prefLabel>
-        <skos:prefLabel xml:lang="en">photographs</skos:prefLabel>
-        <skos:prefLabel xml:lang="zh-hant">照片</skos:prefLabel>
-        <skos:prefLabel xml:lang="nl">foto's</skos:prefLabel>
-        <skos:prefLabel xml:lang="zh-latn-pinyin-x-hanyu">zhào piàn</skos:prefLabel>
-        <skos:prefLabel xml:lang="zh-latn-pinyin-x-notone">zhao pian</skos:prefLabel>
-        <skos:prefLabel xml:lang="zh-latn-wadegile">chao p'ien</skos:prefLabel>
-        <skos:prefLabel xml:lang="de">Foto</skos:prefLabel>
-        <skos:prefLabel xml:lang="it">fotografie</skos:prefLabel>
-        <skos:prefLabel xml:lang="es">fotografías (obra visual)</skos:prefLabel>
-        <skos:related rdf:resource="http://vocab.getty.edu/aat/300054225"/>
-        <skos:related rdf:resource="http://vocab.getty.edu/aat/300266279"/>
-        <skos:related rdf:resource="http://vocab.getty.edu/aat/300054112"/>
-        <skos:related rdf:resource="http://vocab.getty.edu/aat/300054113"/>
-    </skos:Concept>
-    <skos:Concept rdf:about="http://vocab.getty.edu/aat/300128675">
-        <skos:altLabel xml:lang="en">gelatin silver transparency</skos:altLabel>
-        <skos:altLabel xml:lang="en">gelatin silver phototransparencies</skos:altLabel>
-        <skos:altLabel xml:lang="en">gelatin transparencies</skos:altLabel>
-        <skos:altLabel xml:lang="en">silver gelatin phototransparencies</skos:altLabel>
-        <skos:altLabel xml:lang="en">silver gelatin transparencies</skos:altLabel>
-        <skos:altLabel xml:lang="en">silver transparencies, gelatin</skos:altLabel>
-        <skos:altLabel xml:lang="en">transparencies, gelatin silver</skos:altLabel>
-        <skos:altLabel xml:lang="nl">gelatine-zilver transparant</skos:altLabel>
-        <skos:altLabel xml:lang="de">Gelatinefolien</skos:altLabel>
-        <skos:altLabel xml:lang="es">transparencia de plata en gelatina</skos:altLabel>
-        <skos:broader rdf:resource="http://vocab.getty.edu/aat/300244116"/>
-        <skos:inScheme rdf:resource="http://vocab.getty.edu/aat/"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300266694"/>
-        <skos:note xml:lang="en">Positive transparencies having gelatin as the binder, holding silver as the final image material.</skos:note>
-        <skos:note xml:lang="es">Úsese para transparencias positivas que tienen gelatina como aglutinante, manteniendo la plata como el material de la imagen final.</skos:note>
-        <skos:note xml:lang="nl">Transparanten met gelatine als bindmiddel, met zilver als het materiaal waaruit het beeld uiteindelijk vervaardigd is.</skos:note>
-        <skos:note xml:lang="de">Positiv-Folie mit Gelatine als Bindemittel, die Silber als finales Bildmaterial besitzt.</skos:note>
-        <skos:prefLabel xml:lang="en">gelatin silver transparencies</skos:prefLabel>
-        <skos:prefLabel xml:lang="nl">gelatine-zilver transparanten</skos:prefLabel>
-        <skos:prefLabel xml:lang="de">Gelatinefolie</skos:prefLabel>
-        <skos:prefLabel xml:lang="it">trasparenze alla gelatina d'argento</skos:prefLabel>
-        <skos:prefLabel xml:lang="es">transparencias de plata en gelatina</skos:prefLabel>
-    </skos:Concept>
-    <skos:Concept rdf:about="http://vocab.getty.edu/aat/300389795">
-        <skos:broader rdf:resource="http://vocab.getty.edu/aat/300054232"/>
-        <skos:inScheme rdf:resource="http://vocab.getty.edu/aat/"/>
-        <skos:narrower rdf:resource="http://vocab.getty.edu/aat/300435151"/>
-        <skos:note xml:lang="en">The dedicated practice of making photographs as an applied art.</skos:note>
-        <skos:prefLabel xml:lang="en">photography (discipline)</skos:prefLabel>
-        <skos:prefLabel xml:lang="nl">fotografie</skos:prefLabel>
-        <skos:prefLabel xml:lang="it">fotografia (disciplina)</skos:prefLabel>
-        <skos:related rdf:resource="http://vocab.getty.edu/aat/300022633"/>
-    </skos:Concept>
-    <ore:Aggregation rdf:about="/aggregation/provider/57/photography_ProvidedCHO_KU_Leuven_9991055180101488">
-        <edm:aggregatedCHO rdf:resource="/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-        <edm:dataProvider>KU Leuven</edm:dataProvider>
-        <edm:isShownBy rdf:resource="https://lib.is/IE2404226/stream?quality=LOW"/>
-        <edm:object rdf:resource="https://lib.is/IE2404226/stream?quality=LOW"/>
-        <edm:provider>Photoconsortium</edm:provider>
-        <edm:rights rdf:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+    <edm:ProvidedCHO rdf:about="/58/_kmo_av_sid_45017"/>
+    <edm:TimeSpan rdf:about="http://semium.org/time/2016">
+        <skos:prefLabel xml:lang="def">2016</skos:prefLabel>
+        <dcterms:isPartOf rdf:resource="http://semium.org/time/20xx_1_third"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">Fri Jan 01 01:00:00 CET 2016</edm:begin>
+        <edm:end xml:lang="def">Sat Dec 31 01:00:00 CET 2016</edm:end>
+    </edm:TimeSpan>
+    <edm:TimeSpan rdf:about="http://semium.org/time/20xx_1_third">
+        <skos:prefLabel xml:lang="ru">Начало 21-го века</skos:prefLabel>
+        <skos:prefLabel xml:lang="en">Early 21st century</skos:prefLabel>
+        <dcterms:isPartOf rdf:resource="http://data.europeana.eu/timespan/21"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">Mon Jan 01 01:00:00 CET 2001</edm:begin>
+        <edm:end xml:lang="def">Sat Dec 31 01:00:00 CET 2033</edm:end>
+    </edm:TimeSpan>
+    <edm:TimeSpan rdf:about="http://data.europeana.eu/timespan/21">
+        <skos:prefLabel xml:lang="de">21. Jahrhundert</skos:prefLabel>
+        <skos:prefLabel xml:lang="fi">2000-luku</skos:prefLabel>
+        <skos:prefLabel xml:lang="ru">XXI век</skos:prefLabel>
+        <skos:prefLabel xml:lang="pt">século XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="bg">21 век</skos:prefLabel>
+        <skos:prefLabel xml:lang="lt">XXI amžius</skos:prefLabel>
+        <skos:prefLabel xml:lang="lv">21. gadsimts</skos:prefLabel>
+        <skos:prefLabel xml:lang="hr">21. stoljeće</skos:prefLabel>
+        <skos:prefLabel xml:lang="fr">XXIe siècle</skos:prefLabel>
+        <skos:prefLabel xml:lang="hu">21. század</skos:prefLabel>
+        <skos:prefLabel xml:lang="sk">21. storočie</skos:prefLabel>
+        <skos:prefLabel xml:lang="sl">21. stoletje</skos:prefLabel>
+        <skos:prefLabel xml:lang="ga">21ú haois</skos:prefLabel>
+        <skos:prefLabel xml:lang="ca">segle XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="sv">2000-talet</skos:prefLabel>
+        <skos:prefLabel xml:lang="el">21ος αιώνας</skos:prefLabel>
+        <skos:prefLabel xml:lang="en">21st century</skos:prefLabel>
+        <skos:prefLabel xml:lang="it">XXI secolo</skos:prefLabel>
+        <skos:prefLabel xml:lang="es">siglo XXI</skos:prefLabel>
+        <skos:prefLabel xml:lang="et">21. sajand</skos:prefLabel>
+        <skos:prefLabel xml:lang="cs">21. století</skos:prefLabel>
+        <skos:prefLabel xml:lang="pl">XXI wiek</skos:prefLabel>
+        <skos:prefLabel xml:lang="ro">Secolul al XXI-lea</skos:prefLabel>
+        <skos:prefLabel xml:lang="da">21. århundrede</skos:prefLabel>
+        <skos:prefLabel xml:lang="nl">21e eeuw</skos:prefLabel>
+        <skos:altLabel xml:lang="de">22. Jhd.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Hektode</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jhrh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jahrh.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Zentennium</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Jhdt.</skos:altLabel>
+        <skos:altLabel xml:lang="de">22. Centennium</skos:altLabel>
+        <skos:altLabel xml:lang="ru">21 век</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-talet (århundrade)</skos:altLabel>
+        <skos:altLabel xml:lang="sv">21:a århundradet</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-talet (sekel)</skos:altLabel>
+        <skos:altLabel xml:lang="sv">2000-tal</skos:altLabel>
+        <skos:altLabel xml:lang="sv">21:a seklet</skos:altLabel>
+        <skos:altLabel xml:lang="en">twenty-first century</skos:altLabel>
+        <skos:altLabel xml:lang="en">21st-century</skos:altLabel>
+        <skos:altLabel xml:lang="it">21° secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Secolo XXI</skos:altLabel>
+        <skos:altLabel xml:lang="it">XXI Secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Ventunesimo secolo</skos:altLabel>
+        <skos:altLabel xml:lang="it">Duemila</skos:altLabel>
+        <skos:altLabel xml:lang="fr">21e siècle</skos:altLabel>
+        <dcterms:isPartOf rdf:resource="http://semium.org/time/AD2xxx"></dcterms:isPartOf>
+        <edm:begin xml:lang="def">2001-01-01</edm:begin>
+        <edm:end xml:lang="def">2100-12-31</edm:end>
+        <edm:isNextInSequence rdf:resource="http://data.europeana.eu/timespan/20"/>
+        <owl:sameAs rdf:resource="http://semium.org/time/20xx"/>
+        <owl:sameAs rdf:resource="http://www.wikidata.org/entity/Q6939"/>
+        <owl:sameAs rdf:resource="http://babelnet.org/rdf/s01157225n"/>
+        <owl:sameAs rdf:resource="http://id.nlm.nih.gov/mesh/D049674"/>
+        <owl:sameAs rdf:resource="http://vocab.getty.edu/aat/300404515"/>
+        <owl:sameAs rdf:resource="http://id.loc.gov/authorities/names/sh85139024"/>
+        <owl:sameAs rdf:resource="http://id.loc.gov/authorities/names/sh2002012478"/>
+        <skos:hiddenLabel xml:lang="def">21??</skos:hiddenLabel>
+        <skos:hiddenLabel xml:lang="def">21..</skos:hiddenLabel>
+        <skos:hiddenLabel xml:lang="def">21e</skos:hiddenLabel>
+    </edm:TimeSpan>
+    <ore:Aggregation rdf:about="/aggregation/provider/58/_kmo_av_sid_45017">
+        <edm:aggregatedCHO rdf:resource="/58/_kmo_av_sid_45017"/>
+        <edm:dataProvider>TIB - German National Library of Science and Technology</edm:dataProvider>
+        <edm:isShownBy rdf:resource="https://av.tib.eu/thumbnail/45017"/>
+        <edm:object rdf:resource="https://av.tib.eu/thumbnail/45017"/>
+        <edm:provider>TIB - German National Library of Science and Technology</edm:provider>
+        <edm:rights rdf:resource="http://creativecommons.org/licenses/by-nc-nd/4.0/"/>
     </ore:Aggregation>
-    <ore:Proxy rdf:about="/proxy/provider/57/photography_ProvidedCHO_KU_Leuven_9991055180101488">
-        <dc:creator xml:lang="en">Correggio</dc:creator>
-        <dc:date xml:lang="en">1518/1519</dc:date>
-        <dc:description xml:lang="nl">KU Leuven. Glasdia’s kunstgeschiedenis. Université de Louvain, tussen 1839 en 1939. Fotograaf onbekend. Toegevoegde informatie op dia. Stroming/Stijl: Renaissance, Maniërisme. Creatie/Bouw: 1518-1519. Techniek/Materiaal: Fresco. Huidige locatie: Italia, Parma, Monastero di San Paolo, Camera di San Paolo. EuroPhot. Kunstgeschiedenis. 16de eeuw. Schilderkunst. Religieuze kunst. EuroPhot. Art history. 16th century. Paintings. Religious art.</dc:description>
-        <dc:identifier>9991055180101488</dc:identifier>
-        <dc:subject xml:lang="nl">Renaissance, Maniërisme</dc:subject>
-        <dc:subject xml:lang="en">Correggio</dc:subject>
-        <dc:title xml:lang="nl">Correggio. Fresco's in de Camera di San Paolo, Monastero di San Paolo, Parma</dc:title>
-        <dc:type rdf:resource="http://vocab.getty.edu/aat/300046300"></dc:type>
-        <dc:type rdf:resource="http://vocab.getty.edu/aat/300389795"></dc:type>
-        <dc:type rdf:resource="http://vocab.getty.edu/aat/300128675"></dc:type>
-        <dc:type xml:lang="en">Photography</dc:type>
-        <dc:type xml:lang="en">glass slide</dc:type>
-        <dcterms:created xml:lang="en">1910/1939</dcterms:created>
-        <dcterms:extent xml:lang="en">100 x 85 mm</dcterms:extent>
-        <dcterms:isPartOf xml:lang="en">Europeana XX: Century of Change</dcterms:isPartOf>
-        <dcterms:spatial xml:lang="en">Italia, Parma, Monastero di San Paolo, Camera di San Paolo</dcterms:spatial>
-        <edm:europeanaProxy>false</edm:europeanaProxy>
-        <ore:proxyFor rdf:resource="/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-        <ore:proxyIn rdf:resource="/aggregation/provider/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-        <edm:type>IMAGE</edm:type>
-    </ore:Proxy>
-    <ore:Proxy rdf:about="/proxy/europeana/57/photography_ProvidedCHO_KU_Leuven_9991055180101488">
-        <dc:identifier>http://mint-projects.image.ntua.gr/photography/ProvidedCHO/KU Leuven/9991055180101488</dc:identifier>
+    <ore:Proxy rdf:about="/proxy/europeana/58/_kmo_av_sid_45017">
+        <dc:identifier>_kmo_av_sid_45017</dc:identifier>
+        <dcterms:issued rdf:resource="http://semium.org/time/2016"></dcterms:issued>
+        <dcterms:issued rdf:resource="http://semium.org/time/20xx_1_third"></dcterms:issued>
+        <dcterms:issued rdf:resource="http://data.europeana.eu/timespan/21"></dcterms:issued>
         <edm:europeanaProxy>true</edm:europeanaProxy>
-        <ore:proxyFor rdf:resource="/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-        <ore:proxyIn rdf:resource="/aggregation/europeana/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
-        <ore:lineage rdf:resource="/proxy/provider/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
+        <edm:year>2016</edm:year>
+        <ore:proxyFor rdf:resource="/58/_kmo_av_sid_45017"/>
+        <ore:proxyIn rdf:resource="/aggregation/europeana/58/_kmo_av_sid_45017"/>
+        <ore:lineage rdf:resource="/proxy/provider/58/_kmo_av_sid_45017"/>
     </ore:Proxy>
-    <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/57/photography_ProvidedCHO_KU_Leuven_9991055180101488">
-        <edm:aggregatedCHO rdf:resource="/57/photography_ProvidedCHO_KU_Leuven_9991055180101488"/>
+    <ore:Proxy rdf:about="/proxy/provider/58/_kmo_av_sid_45017">
+        <dc:creator>Wüthrich, Kurt</dc:creator>
+        <dc:format>mp4</dc:format>
+        <dc:identifier>https://doi.org/10.5446/45017</dc:identifier>
+        <dc:publisher>Lindau Nobel Laureate Meetings</dc:publisher>
+        <dc:rights>http://creativecommons.org/licenses/by-nc-nd/4.0/</dc:rights>
+        <dc:subject>Chemistry</dc:subject>
+        <dc:title xml:lang="en">NMR in Physics, Structural Biology and Medical Diagnosis</dc:title>
+        <dc:type>Audiovisual</dc:type>
+        <dcterms:extent>00:27:23:14</dcterms:extent>
+        <dcterms:isPartOf>Europeana XX: Century of Change</dcterms:isPartOf>
+        <dcterms:issued>2016</dcterms:issued>
+        <edm:europeanaProxy>false</edm:europeanaProxy>
+        <ore:proxyFor rdf:resource="/58/_kmo_av_sid_45017"/>
+        <ore:proxyIn rdf:resource="/aggregation/provider/58/_kmo_av_sid_45017"/>
+        <edm:type>VIDEO</edm:type>
+    </ore:Proxy>
+    <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/58/_kmo_av_sid_45017">
+        <edm:aggregatedCHO rdf:resource="/58/_kmo_av_sid_45017"/>
         <edm:dataProvider xml:lang="en">Europeana Foundation</edm:dataProvider>
         <edm:provider xml:lang="en">Europeana Foundation</edm:provider>
-        <edm:datasetName>57_test_media</edm:datasetName>
-        <edm:country>Estonia</edm:country>
-        <edm:language>fi</edm:language>
-        <edm:completeness>10</edm:completeness>
+        <edm:datasetName>58_test_mediaWeb</edm:datasetName>
+        <edm:country>France</edm:country>
+        <edm:language>fr</edm:language>
+        <edm:completeness>6</edm:completeness>
     </edm:EuropeanaAggregation>
 </rdf:RDF>

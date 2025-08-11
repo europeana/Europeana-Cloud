@@ -71,6 +71,9 @@ public final class RestInterfaceConstants {
   public static final String REPRESENTATION_REVISIONS_RESOURCE =
       "/records/{cloudId}/representations/{representationName}/revisions/{revisionName}";
 
+  public static final String REPRESENTATION_RAW_REVISIONS_RESOURCE =
+      "/records/{cloudId}/representations/{representationName}/revisions/{revisionName}/raw";
+
   //RevisionResource
   public static final String REVISION_ADD
       = "/records/{cloudId}/representations/{representationName}/versions/{version}/revisions";
@@ -91,7 +94,7 @@ public final class RestInterfaceConstants {
 
   //SimplifiedFileAccessResource
   public static final String SIMPLIFIED_FILE_ACCESS_RESOURCE =
-      SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/{fileName:.+}";
+      SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/**";
 
   //SimplifiedRepresentationResource
   public static final String SIMPLIFIED_REPRESENTATION_RESOURCE =

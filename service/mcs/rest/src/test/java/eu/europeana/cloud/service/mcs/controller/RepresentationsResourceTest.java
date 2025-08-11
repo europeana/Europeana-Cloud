@@ -46,7 +46,7 @@ public class RepresentationsResourceTest extends AbstractResourceTest {
   static final private String version = "1.0";
   static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
       version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-      "2013-01-01", 12345, null)), null, true, new Date())));
+      "2013-01-01", 12345, null)), null, true, new Date(), null)));
 
 
   @Before

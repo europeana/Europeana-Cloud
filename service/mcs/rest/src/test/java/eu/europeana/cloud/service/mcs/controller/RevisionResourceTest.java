@@ -1,26 +1,7 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_TAGS;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.TAG;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
@@ -31,10 +12,6 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestRunner;
 import jakarta.ws.rs.core.MediaType;
-import java.net.URI;
-import java.util.Date;
-import java.util.Map;
-import java.util.TimeZone;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +19,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+import java.util.Date;
+import java.util.Map;
+import java.util.TimeZone;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
@@ -127,8 +117,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     Mockito.doReturn(true).when(permissionEvaluator)
            .hasPermission(any(), any(), any(), any());
 
-    dataSetService.addAssignment(PROVIDER_ID, DATA_SET_ID, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
-  }
+   }
 
   @After
   public void cleanUp() throws Exception {
@@ -198,9 +187,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   @Test
   public void shouldProperlyAddRevisionToDataSets() throws Exception {
     //given
-    DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-    dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
-                                                                                                 (), rep.getVersion());
+    dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
 
     //when
     mockMvc.perform(post(revisionWebTarget)
@@ -211,40 +198,20 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
         rep.getVersion(), revisionForDataProvider);
   }
 
-  @Test
-  public void shouldProperlyUpdateAllRevisionDatasetsEntries() throws Exception {
-    //given
-    DataSet dataSet = dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
-    dataSetService.addAssignment(dataProvider.getId(), dataSet.getId(), rep.getCloudId(), rep.getRepresentationName
-                                                                                                 (), rep.getVersion());
-
-    //when
-    mockMvc.perform(post(revisionWebTarget)
-               .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
-           .andExpect(status().isCreated());
-
-    //then
-    verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(
-        rep.getCloudId(),
-        rep.getRepresentationName(),
-        rep.getVersion(),
-        revisionForDataProvider);
-  }
 
 
   @Test
   public void shouldRemoveRevisionSuccessfully() throws Exception {
     // given
     String datasetId = "dataset";
-    String FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-    FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("UTC"));
+    String format = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    FastDateFormat formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("UTC"));
     Date date = new Date();
-    String revisionTimeStamp = FORMATTER.format(date);
+    String revisionTimeStamp = formatter.format(date);
 
-    Revision revision = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, false);
+    Revision revisionToBeRemoved = new Revision(TEST_REVISION_NAME, REVISION_PROVIDER_ID, date, false);
     dataSetService.createDataSet(PROVIDER_ID, datasetId, "");
-    dataSetService.addAssignment(PROVIDER_ID, datasetId, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
-    recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revision);
+    recordService.addRevision(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), revisionToBeRemoved);
 
     mockMvc.perform(delete(removeRevisionWebTarget)
         .queryParam(F_REVISION_TIMESTAMP, revisionTimeStamp)).andExpect(status().isNoContent());

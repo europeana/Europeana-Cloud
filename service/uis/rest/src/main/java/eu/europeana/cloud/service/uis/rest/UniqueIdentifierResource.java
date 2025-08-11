@@ -49,7 +49,7 @@ public class UniqueIdentifierResource {
    * @param providerId <strong>REQUIRED</strong> identifier of data-provider for which new cloud identifier will be created.
    * @param recordId record identifier which will be binded to the newly created cloud identifier. If not provided, random value
    * will be generated.
-   * @return The newly created CloudId
+   * @return The cloudId already assigned to the Europeana id for provider if exists, or newly created CloudId.
    * @throws DatabaseConnectionException database error
    * @throws RecordExistsException Record already exists in repository
    * @throws ProviderDoesNotExistException Supplied Data-provider does not exist

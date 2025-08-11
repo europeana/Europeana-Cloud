@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
+import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
@@ -14,12 +12,16 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +31,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 public class MCSTaskSubmitter {
 
@@ -85,8 +87,8 @@ public class MCSTaskSubmitter {
         LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
       }
 
-    } catch (SubmitingTaskWasKilled e) {
-      LOGGER.warn(e.getMessage(), e);
+    } catch (TaskDroppedException e) {
+      LOGGER.warn("Task was dropped while it was submitting to the topology! Task id: {}", e.getTaskId(), e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new InterruptedException(
@@ -150,7 +152,7 @@ public class MCSTaskSubmitter {
     RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
     while (iterator.hasNext()) {
       checkIfTaskIsKilled(submitParameters.getTask());
-      expectedSize += submitRecordsForRepresentation(iterator.next(), submitParameters, false);
+      expectedSize += submitRecordsForRepresentation(iterator.next(), submitParameters);
     }
     return expectedSize;
   }
@@ -163,7 +165,7 @@ public class MCSTaskSubmitter {
       var maxRecordsCount = submitParameters.getMaxRecordsCount();
       var count = 0;
       String startFrom = null;
-      Set<Future<Integer>> futures = new HashSet<>(INTERNAL_THREADS_NUMBER);
+      Set<Future<Integer>> futures = HashSet.newHashSet(INTERNAL_THREADS_NUMBER);
       var total = 0;
       do {
         checkIfTaskIsKilled(task);
@@ -194,9 +196,9 @@ public class MCSTaskSubmitter {
 
       return count;
     } catch (ExecutionException e) {
-      if (e.getCause() instanceof SubmitingTaskWasKilled) {
+      if (e.getCause() instanceof TaskDroppedException) {
         LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
-        throw new SubmitingTaskWasKilled(submitParameters.getTask());
+        throw new TaskDroppedException(submitParameters.getTask());
       } else {
         throw e;
       }
@@ -231,53 +233,49 @@ public class MCSTaskSubmitter {
 
     var count = 0;
     checkIfTaskIsKilled(submitParameters.getTask());
-    List<Representation> representations = reader.getRepresentationsByRevision(
+    List<RepresentationRevisionResponse> representationRevisions = reader.getRevisionsForTheRepresentation(
         submitParameters.getRepresentationName(),
         submitParameters.getInputRevision().getRevisionName(),
         submitParameters.getInputRevision().getRevisionProviderId(),
         submitParameters.getInputRevision().getCreationTimeStamp(),
         response.getCloudId());
-    for (Representation representation : representations) {
-      RevisionIdentifier inputRevision = submitParameters
-          .getInputRevision()
-          .withCreationTimeStamp(submitParameters
-              .getInputRevision()
-              .getCreationTimeStamp()
-          );
-      count += submitRecordsForRepresentation(representation, submitParameters,
-          isMarkedAsDeleted(
-              representation,
-              inputRevision));
+    for (RepresentationRevisionResponse representationRevision : representationRevisions) {
+      count += submitRecordsForRepresentationRevision(representationRevision, submitParameters, response.isDeleted());
     }
     return count;
   }
 
-  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters,
-      boolean markedAsDeleted) {
+  private int submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
+                                                     SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+    if (markedAsDeleted) {
+      return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
+    } else {
+      return submitRecordsForFiles(representationRevision.getFiles(), submitParameters);
+    }
+  }
+
+  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
 
-    if (markedAsDeleted) {
-      return submitRecordForDeletedRepresentation(representation, submitParameters);
-    } else {
-      return submitRecordsForAllFilesOfRepresentation(representation, submitParameters);
-    }
+    return submitRecordsForFiles(representation.getFiles(), submitParameters);
   }
 
-  private int submitRecordForDeletedRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+  private int submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
     checkIfTaskIsKilled(submitParameters.getTask());
-    if (submitRecord(representation.getUri().toString(), submitParameters, true)) {
+
+    if (submitRecord(representationVersionUri.toString(), submitParameters, true)) {
       return 1;
     } else {
       return 0;
     }
   }
 
-  private int submitRecordsForAllFilesOfRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters) {
     var count = 0;
 
-    for (File file : representation.getFiles()) {
+    for (File file : files) {
       checkIfTaskIsKilled(submitParameters.getTask());
 
       var fileUrl = file.getContentUri().toString();
@@ -324,25 +322,7 @@ public class MCSTaskSubmitter {
     return count;
   }
 
-  private boolean isMarkedAsDeleted(Representation representation, RevisionIdentifier revision) {
-    return findRevision(representation, revision).isDeleted();
-  }
-
-  private Revision findRevision(Representation representation, RevisionIdentifier revisionToBeFound) {
-
-    for (Revision revision : representation.getRevisions()) {
-      if (revisionToBeFound.identifies(revision)) {
-        return revision;
-      }
-    }
-    throw new TaskSubmitException("Revision of name " + revisionToBeFound.getRevisionName()
-        + " and timestamp " + revisionToBeFound.getCreationTimeStamp()
-        + " not found for representation " + representation);
-  }
-
   private void checkIfTaskIsKilled(DpsTask task) {
-    if (taskStatusChecker.hasDroppedStatus(task.getTaskId())) {
-      throw new SubmitingTaskWasKilled(task);
-    }
+    taskStatusChecker.checkNotDropped(task);
   }
 }
