@@ -114,11 +114,6 @@
             </snapshots>
         </repository>
         <repository>
-            <id>synat-a09-libs-releases-public</id>
-            <name>synat-a09-libs-releases-public</name>
-            <url>https://maven.man.poznan.pl/repository/synat-a09-libs-releases-public</url>
-        </repository>
-        <repository>
             <id>clojars</id>
             <url>https://repo.clojars.org/</url>
         </repository>
