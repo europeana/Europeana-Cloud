@@ -26,6 +26,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.DepublicationFilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import java.util.stream.Stream;
@@ -56,7 +57,7 @@ public class DepublicationTaskSubmitterTest {
   @Mock
   private IndexWrapper indexWrapper;
   @Mock
-  private Indexer indexer;
+  private Indexer<FullBeanImpl> indexer;
   @Mock
   private KafkaTopicSelector kafkaTopicSelector;
   @Mock
