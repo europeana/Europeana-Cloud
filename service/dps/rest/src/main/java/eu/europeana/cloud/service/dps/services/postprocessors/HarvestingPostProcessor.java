@@ -27,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.indexing.exception.IndexingException;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
@@ -140,7 +141,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     }
   }
 
-  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) {
+  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) throws IndexingException {
     String metisDatasetId = task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
     for(TargetIndexingDatabase db:TargetIndexingDatabase.values()) {
       try (ExistingInMetisHarvestedRecordsBatchCompleter completer

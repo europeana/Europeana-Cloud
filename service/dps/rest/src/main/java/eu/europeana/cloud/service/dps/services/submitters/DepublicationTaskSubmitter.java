@@ -16,7 +16,9 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.exception.IndexingException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -111,14 +113,18 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
     parameters.setTopicName(preferredTopicName);
   }
 
-  private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) {
+  private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) throws TaskSubmissionException {
     if (isRecordsDepublication(parameters)) {
       return Arrays.stream(
           parameters.getTask().getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(","));
     } else {
-      Indexer indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
-      return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID),
-          new Date());
+      Indexer<FullBeanImpl> indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
+      try {
+        return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID),
+            new Date());
+      } catch (IndexingException e) {
+        throw new TaskSubmissionException("Fetching record identifiers failed", e);
+      }
     }
   }
 

@@ -31,15 +31,10 @@ public final class IndexingPropertiesTransformer {
   }
 
   public static IndexingProperties getIndexingPropertiesFromPropertyFile(Properties properties, IndexingType type) {
-    String prefix = "";
-    switch (type) {
-      case PUBLISH:
-        prefix = PUBLISH_PREFIX + DELIMITER;
-        break;
-      case PREVIEW:
-        prefix = PREVIEW_PREFIX + DELIMITER;
-        break;
-    }
+    String prefix = switch (type) {
+      case PUBLISH -> PUBLISH_PREFIX + DELIMITER;
+      case PREVIEW -> PREVIEW_PREFIX + DELIMITER;
+    };
     IndexingProperties indexingProperties = new IndexingProperties();
     indexingProperties.setMongoDbName(properties.getProperty(prefix + MONGO_DB_NAME));
     indexingProperties.setMongoUsername(properties.getProperty(prefix + MONGO_USERNAME));
