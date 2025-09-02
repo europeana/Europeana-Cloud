@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraStaticContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
@@ -58,11 +59,13 @@ public class PersistenceConfiguration {
   @Bean
   DynamicContentProxy dynamicContentProxy(
           @Qualifier("s3ContentDAO") ContentDAO s3ContentDAO,
-          @Qualifier("cassandraContentDAO") ContentDAO cassandraContentDAO) {
+          @Qualifier("cassandraContentDAO") ContentDAO cassandraContentDAO,
+          @Qualifier("cassandraStaticContentDAO") ContentDAO cassandraStaticContentDAO) {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
 
     params.put(Storage.OBJECT_STORAGE, s3ContentDAO);
     params.put(Storage.DATA_BASE, cassandraContentDAO);
+    params.put(Storage.DB_STORAGE, cassandraStaticContentDAO);
 
     return new DynamicContentProxy(params);
   }
@@ -119,6 +122,12 @@ public class PersistenceConfiguration {
   CassandraRecordDAO cassandraRecordDAO(
       @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
     return new CassandraRecordDAO(cassandraConnectionProvider);
+  }
+
+  @Bean
+  CassandraStaticContentDAO cassandraStaticContentDAO(
+          @Qualifier("mcsCassandraConnectionProvider") CassandraConnectionProvider cassandraConnectionProvider) {
+    return new CassandraStaticContentDAO(cassandraConnectionProvider);
   }
 
   @Bean

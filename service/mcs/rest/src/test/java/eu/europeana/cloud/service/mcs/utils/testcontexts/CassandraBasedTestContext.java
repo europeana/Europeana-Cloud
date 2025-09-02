@@ -12,6 +12,7 @@ import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraStaticContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
@@ -112,9 +113,14 @@ public class CassandraBasedTestContext {
   }
 
   @Bean
+  public CassandraStaticContentDAO cassandraStaticContentDAO() {
+    return new CassandraStaticContentDAO(dbService());
+  }
+
+  @Bean
   public DynamicContentProxy dynamicContentProxy() {
     Map<Storage, ContentDAO> params = new EnumMap<>(Storage.class);
-
+    params.put(Storage.DB_STORAGE, cassandraStaticContentDAO());
     params.put(Storage.OBJECT_STORAGE, s3ContentDAO());
     params.put(Storage.DATA_BASE, cassandraContentDAO());
 

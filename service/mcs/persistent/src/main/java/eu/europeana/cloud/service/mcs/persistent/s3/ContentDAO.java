@@ -12,38 +12,42 @@ import java.io.OutputStream;
 public interface ContentDAO {
 
   /**
-   * Copies content of one storage object to another.
-   *
-   * @param sourceObjectId name of the source storage object
-   * @param trgObjectId name of the target storage object
-   * @throws FileNotExistsException if source object does not exist in the storage
-   * @throws FileAlreadyExistsException if file already exists
-   * @throws IOException if general I/O exception occurs
-   */
-  void copyContent(String sourceObjectId, String trgObjectId)
-      throws FileNotExistsException, FileAlreadyExistsException, IOException;
-
-
-  /**
    * Deletes storage object identified by fileName.
    *
+   * @param md5 md5 checksum of file
    * @param fileName name of the object to be deleted
    * @throws FileNotExistsException if object does not exist in the storage
    */
-  void deleteContent(String fileName) throws FileNotExistsException;
+  void deleteContent(String md5, String fileName) throws FileNotExistsException;
 
 
   /**
    * Retrieves content of file from storage. Can retrieve range of bytes of the file.
    *
+   * @param md5      md5 checksum
    * @param fileName name of the file to retrieve
-   * @param start first offset included in the response. If equal to -1, ignored.
-   * @param end last offset included in the response (inclusive). If equal to -1, ignored.
-   * @param os outputstream the content is written to
-   * @throws IOException if an I/O error occurs
+   * @param start    first offset included in the response. If equal to -1, ignored.
+   * @param end      last offset included in the response (inclusive). If equal to -1, ignored.
+   * @param os       outputstream the content is written to
+   * @throws IOException            if an I/O error occurs
    * @throws FileNotExistsException if object does not exist in the storage
    */
-  void getContent(String fileName, long start, long end, OutputStream os) throws IOException, FileNotExistsException;
+  void getContent(String md5, String fileName, long start, long end, OutputStream os) throws IOException, FileNotExistsException;
+
+  /**
+   * Copies content of one storage object to another.
+   *
+   * @param md5      md5 checksum
+   * @param sourceFileName name of the source storage object
+   * @param targetFileName name of the target storage object
+   * @throws FileNotExistsException if source object does not exist in the storage
+   * @throws FileAlreadyExistsException if file already exists
+   * @throws IOException if general I/O exception occurs
+   */
+  void copyContent(String md5, String sourceFileName, String targetFileName)
+          throws FileNotExistsException, FileAlreadyExistsException, IOException;
+
+
 
 
   /**
