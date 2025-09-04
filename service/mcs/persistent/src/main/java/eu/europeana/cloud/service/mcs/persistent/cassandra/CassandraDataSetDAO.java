@@ -44,8 +44,6 @@ public class CassandraDataSetDAO {
   private PreparedStatement getDataSetStatement;
   private PreparedStatement addDataSetsRevisionStatement;
   private PreparedStatement getDataSetsRevisionStatement;
-  private PreparedStatement getDataSetsRepresentationsStatement;
-  private PreparedStatement markAssignmentAsDeletedStatement;
   private PreparedStatement removeDataSetsRevisionStatement;
 
   /**
@@ -113,13 +111,12 @@ public class CassandraDataSetDAO {
    * @param schema representation name
    * @param now time of assignment
    * @param versionId representation version
-   * @param markDeleted whether representation version contain any files
    */
   public void addAssignment(String providerId, String dataSetId, String bucketId, String recordId, String schema, Date now,
-      UUID versionId, boolean markDeleted) {
+      UUID versionId) {
     String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
     BoundStatement boundStatement = addAssignmentStatement.bind(
-        providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now, markDeleted);
+        providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
@@ -247,21 +244,6 @@ public class CassandraDataSetDAO {
   }
 
   /**
-   * Marks assignment as deleted
-   * @param providerDatesetId dataset provider Id
-   * @param bucketId  bucket identifier
-   * @param representationName representation name
-   * @param cloudId cloud identifier
-   * @param versionId representation version
-   */
-  public void markAssignmentAsDeleted(String providerDatesetId, String bucketId, String representationName, String cloudId, String versionId)
-          throws NoHostAvailableException, QueryExecutionException {
-    BoundStatement boundStatement = markAssignmentAsDeletedStatement.bind(providerDatesetId, bucketId, representationName, cloudId, UUID.fromString(versionId));
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
-
-  /**
    * Adds row to the <b><i>data_set_assignments_by_revision_id_v2</i></b> table.
    * @param providerId dataset provider
    * @param datasetId dataset name
@@ -344,39 +326,6 @@ public class CassandraDataSetDAO {
     }
   }
 
-  public ResultSlice<CloudTagsResponse> getDataSetsRepresentations(String providerDatesetId, String bucketId,
-                                                                   String representationName, PagingState state, int limit) {
-    List<CloudTagsResponse> result = new ArrayList<>();
-
-    BoundStatement boundStatement = getDataSetsRepresentationsStatement.bind(
-            providerDatesetId, UUID.fromString(bucketId), representationName, Integer.MAX_VALUE);
-
-    // limit page to "limit" number of results
-    boundStatement.setFetchSize(limit);
-    // when this is not a first page call set paging state in the statement
-    if (state != null) {
-      boundStatement.setPagingState(state);
-    }
-    // execute query
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-
-    // get available results
-    int available = rs.getAvailableWithoutFetching();
-    for (int i = 0; i < available; i++) {
-      Row row = rs.one();
-      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("mark_deleted")));
-    }
-    PagingState ps = rs.getExecutionInfo().getPagingState();
-    if ((result.size() == limit) && !rs.isExhausted()) {
-      // we reached the page limit, prepare the next slice string to be used for the next page
-      return new ResultSlice<>(Optional.ofNullable(ps)
-              .map(Object::toString).orElse(null), result);
-    } else {
-      return new ResultSlice<>(null, result);
-    }
-  }
-
   @PostConstruct
   private void prepareStatements() {
     createDataSetStatement = connectionProvider.getSession().prepare(
@@ -393,16 +342,11 @@ public class CassandraDataSetDAO {
 
     addAssignmentStatement = connectionProvider.getSession().prepare(
         "INSERT " +
-            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date, mark_deleted) "
+            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) "
             +
-            "VALUES (?,?,?,?,?,?,?);"
+            "VALUES (?,?,?,?,?,?);"
     );
 
-    markAssignmentAsDeletedStatement = connectionProvider.getSession().prepare(
-            "UPDATE " +
-                    "set mark_deleted = true " +
-                    "WHERE provider_dataset_id = ? AND bucket_id = ? AND schema_id = ? AND cloud_id = ? AND version_id = ? IF EXISTS;"
-    );
 
     removeAssignmentStatement = connectionProvider.getSession().prepare(
         "DELETE " +
@@ -457,13 +401,6 @@ public class CassandraDataSetDAO {
                     "IF EXISTS;"
     );
 
-    getDataSetsRepresentationsStatement = connectionProvider.getSession().prepare(
-            "SELECT cloud_id, mark_deleted " +
-                    "FROM data_set_assignments_by_data_set " +
-                    "WHERE provider_dataset_id = ? AND bucket_id = ? " +
-                    "AND schema_id = ? " +
-                    "LIMIT ?"
-    );
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
         "SELECT cloud_id, mark_deleted " +

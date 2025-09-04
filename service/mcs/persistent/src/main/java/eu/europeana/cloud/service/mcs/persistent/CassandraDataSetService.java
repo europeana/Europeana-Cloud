@@ -99,7 +99,7 @@ public class CassandraDataSetService implements DataSetService {
     }
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
 
-    dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId, false);
+    dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId);
   }
 
   public void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName,
@@ -213,24 +213,6 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   @Override
-  public ResultSlice<CloudTagsResponse> getDataSetsRepresentations(String providerId, String dataSetId,
-                                                                   String representationName, String startFrom, int limit)
-          throws ProviderNotExistsException, DataSetNotExistsException {
-    // check whether provider exists
-    if (!uis.existsProvider(providerId)) {
-      throw new ProviderNotExistsException("Provider doesn't exist " + providerId);
-    }
-
-    // check whether data set exists
-    if (dataSetDAO.getDataSet(providerId, dataSetId) == null) {
-      throw new DataSetNotExistsException("Data set " + dataSetId + " doesn't exist for provider " + providerId);
-    }
-
-    // run the query requesting one more element than items per page to determine the starting cloud id for the next slice
-    return getDataSetsRepresentationsPage(providerId, dataSetId, representationName, startFrom, limit);
-  }
-
-  @Override
   public List<CloudTagsResponse> getDataSetsExistingRevisions(
       String providerId, String dataSetId, String revisionProviderId, String revisionName, Date revisionTimestamp,
       String representationName, int limit) throws ProviderNotExistsException, DataSetNotExistsException {
@@ -250,27 +232,6 @@ public class CassandraDataSetService implements DataSetService {
 
     return resultList;
   }
-
-  @Override
-  public List<CloudTagsResponse> getDataSetsExistingRepresentations(
-          String providerId, String dataSetId, String representationName, int limit) throws ProviderNotExistsException, DataSetNotExistsException {
-
-    List<CloudTagsResponse> resultList = new ArrayList<>();
-    ResultSlice<CloudTagsResponse> subResults;
-    String startFrom = null;
-
-    do {
-      subResults = getDataSetsRepresentations(providerId, dataSetId,
-              representationName, startFrom, 5000);
-
-      subResults.getResults().stream().filter(not(CloudTagsResponse::isDeleted)).limit((long) limit - resultList.size())
-              .forEach(resultList::add);
-      startFrom = subResults.getNextSlice();
-    } while (startFrom != null && resultList.size() < limit);
-
-    return resultList;
-  }
-
   @Override
   public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) {
     return recordDAO.getRepresentationDatasetId(cloudId, representationName);
@@ -327,20 +288,6 @@ public class CassandraDataSetService implements DataSetService {
       }
     }
   }
-
-  @Override
-  public void markAssignmentAsDeleted(String providerId, String datasetId, String representationName,
-                                      String cloudId, String versionId) {
-
-    List<Bucket> availableBuckets = bucketsHandler.getAllBuckets(
-            DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS, createProviderDataSetId(providerId, datasetId));
-
-    String providerDataSetId = createProviderDataSetId(providerId, datasetId);
-    for (Bucket bucket : availableBuckets) {
-      dataSetDAO.markAssignmentAsDeleted(providerDataSetId, bucket.getBucketId(), representationName, cloudId, versionId);
-    }
-  }
-
   public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
     DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
     if (ds == null) {
@@ -512,15 +459,6 @@ public class CassandraDataSetService implements DataSetService {
   public interface OneBucketLoader<E> {
 
     ResultSlice<E> loadData(Bucket bucket, PagingState pagingState, int localLimit);
-  }
-
-  ResultSlice<CloudTagsResponse> getDataSetsRepresentationsPage(String providerId, String dataSetId, String representationName,
-                                                          String nextToken, int limit) {
-    String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
-    return loadPage(providerDataSetId, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS,
-            (bucket, pagingState, localLimit) ->
-                    dataSetDAO.getDataSetsRepresentations(providerDataSetId, bucket.getBucketId(), representationName,
-                            pagingState, localLimit));
   }
 
   ResultSlice<CloudTagsResponse> getDataSetsRevisionsPage(String providerId, String dataSetId, String revisionProviderId,

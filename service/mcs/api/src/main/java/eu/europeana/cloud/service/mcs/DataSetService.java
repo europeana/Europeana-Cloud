@@ -130,21 +130,6 @@ public interface DataSetService {
       throws ProviderNotExistsException, DataSetNotExistsException;
 
   /**
-   * Lists all cloudId that are included in given dataSet for given representation name.
-   *
-   * @param providerId dataSet owner
-   * @param dataSetId dataSet id
-   * @param representationName representation name
-   * @param startFrom if null - will return first result slice. Result slices contain token for next pages, which should be
-   * provided in this parameter.
-   * @param limit max number of results in one slice.
-   * @return list of cloudIds and tags in given dataSet for given revisionId and representationName.
-   */
-  ResultSlice<CloudTagsResponse> getDataSetsRepresentations(String providerId, String dataSetId,
-                                                            String representationName, String startFrom, int limit)
-          throws ProviderNotExistsException, DataSetNotExistsException;
-
-    /**
    * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
    *
    * @param providerId dataSet owner
@@ -170,6 +155,7 @@ public interface DataSetService {
    * @param revisionName revision name
    * @param revisionProviderId revision provider
    * @param revisionTimestamp revision timestamp
+   * @throws ProviderNotExistsException
    * @throws RepresentationNotExistsException
    */
   void deleteRevision(String cloudId, String representationName, String version, String revisionName,
@@ -188,17 +174,6 @@ public interface DataSetService {
   void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
       throws RepresentationNotExistsException;
 
-  /**
-   * Lists all cloudId that are included in given dataSet for given representationName.
-   *
-   * @param providerId dataSet owner
-   * @param dataSetId dataSet id
-   * @param representationName representation name
-   * @param limit max number of results in one slice.
-   * @return List of cloudIds and tags in given dataSet for given revisionId and representationName.
-   */
-  List<CloudTagsResponse> getDataSetsExistingRepresentations(
-          String providerId, String dataSetId, String representationName, int limit) throws ProviderNotExistsException, DataSetNotExistsException;
 
   /**
    * Returns one (usually the first one from DB) for the given representation
@@ -209,9 +184,6 @@ public interface DataSetService {
    * @throws RepresentationNotExistsException in case of non-existing representation version
    */
   Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
-
-  void markAssignmentAsDeleted(String providerId, String datasetId, String representationName,
-                               String cloudId, String versionId);
 
   public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }

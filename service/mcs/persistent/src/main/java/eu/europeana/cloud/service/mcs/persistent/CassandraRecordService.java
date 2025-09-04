@@ -394,10 +394,6 @@ public class CassandraRecordService implements RecordService {
     recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
     recordDAO.removeFileFromRepresentationRevisionsTable(representation, fileName);
     File file = findFileInRepresentation(representation, fileName);
-    if (representation.getFiles().size() <= 1) {
-      dataSetService
-              .markAssignmentAsDeleted(representation.getDataProvider(), representation.getDatasetId(), representation.getRepresentationName(), globalId, version);
-    }
     contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
   }
 
