@@ -42,14 +42,6 @@ public class CassandraDataSetService implements DataSetService {
     this.bucketsHandler = bucketsHandler;
   }
 
-  /**
-   * @inheritDoc
-   */
-  @Override
-  public ResultSlice<Representation> listDataSet(String providerId, String dataSetId,
-                                                 String thresholdParam,  int limit) throws DataSetNotExistsException {
-    return listDataSet(providerId, dataSetId, thresholdParam, false, limit);
-  }
 
   /**
    * @inheritDoc
@@ -61,7 +53,11 @@ public class CassandraDataSetService implements DataSetService {
     // get representation stubs from data set
     ResultSlice<DatasetAssignment> assignments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
     // replace representation stubs with real representations
-    return new ResultSlice<>(assignments.getNextSlice(), getRepresentations(assignments.getResults()));
+    if (existingOnly){
+      return new ResultSlice<>(assignments.getNextSlice(), getExistingRepresentations(assignments.getResults()));
+    } else {
+      return new ResultSlice<>(assignments.getNextSlice(), getRepresentations(assignments.getResults()));
+    }
   }
 
   @Override

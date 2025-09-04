@@ -26,12 +26,12 @@ public interface DataSetService {
    * @param thresholdParam if null - will return first result slice. Result slices contain token for next pages, which should be
    * provided in this parameter.
    * @param limit max number of results in one slice.
+   * @param existingOnly returns only representations that contain files if set to true
    * @return list of representations as a result slice.
    * @throws DataSetNotExistsException dataset not exists.
    */
-  ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
-      throws DataSetNotExistsException;
-
+  ResultSlice<Representation> listDataSet(String providerId, String dataSetId,
+                                          String thresholdParam, boolean existingOnly, int limit) throws DataSetNotExistsException;
 
   /**
    * Creates a new data set revision for specified provider and dataset.

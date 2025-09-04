@@ -184,6 +184,8 @@ public class DataSetServiceClient extends MCSClient {
     );
   }
 
+
+
   /**
    * Returns chunk of representation versions list from data set.
    * <p/>
@@ -203,7 +205,7 @@ public class DataSetServiceClient extends MCSClient {
    * @throws MCSException on unexpected situations
    */
   @SuppressWarnings("unchecked")
-  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
+  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, boolean existingOnly, String startFrom)
       throws MCSException {
     return manageResponse(new ResponseParams<>(ResultSlice.class),
         () -> passLogContext(client
@@ -211,6 +213,7 @@ public class DataSetServiceClient extends MCSClient {
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
+            .queryParam(ParamConstants.F_EXISTING_ONLY, existingOnly)
             .queryParam(ParamConstants.F_START_FROM, startFrom)
             .request())
             .get()
@@ -230,8 +233,8 @@ public class DataSetServiceClient extends MCSClient {
     ) == Response.Status.OK;
   }
 
-  public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
-    return getDataSetRepresentationsChunk(providerId, dataSetId, null);
+  public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
+    return getDataSetRepresentationsChunk(providerId, dataSetId, existingOnly, null);
   }
 
   /**
@@ -242,16 +245,17 @@ public class DataSetServiceClient extends MCSClient {
    *
    * @param providerId provider identifier (required)
    * @param dataSetId data set identifier (required)
+   * @param existingOnly return only representation versions containing files if set to true
    * @return list of representation versions from data set
    * @throws DataSetNotExistsException if data set does not exist
    * @throws MCSException on unexpected situations
    */
-  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
+  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
     List<Representation> resultList = new ArrayList<>();
     ResultSlice<Representation> resultSlice;
     String startFrom = null;
     do {
-      resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+      resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, existingOnly, startFrom);
 
       if (resultSlice == null || resultSlice.getResults() == null) {
         throw new DriverException("Getting DataSet: result chunk obtained but is empty.");

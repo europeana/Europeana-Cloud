@@ -170,7 +170,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     // then those representations should be returned when listing assignments
     List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
-        ds.getId(), null, 10000).getResults();
+        ds.getId(), null, false, 10000).getResults();
 
     assertThat(new HashSet<>(assignedRepresentations), is(new HashSet<>(Arrays.asList(r1, r2))));
   }
@@ -195,7 +195,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     // then only one representation should remain assigned in data set
     List<Representation> assignedRepresentations = cassandraDataSetService
-        .listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
+        .listDataSet(ds.getProviderId(), ds.getId(), null, false, 10000)
         .getResults();
     assertThat(assignedRepresentations, is(Arrays.asList(r2)));
   }
@@ -237,7 +237,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     // then the most recent version should be returned
     List<Representation> assignedRepresentations = cassandraDataSetService
-        .listDataSet(ds.getProviderId(), ds.getId(), null, 10000)
+        .listDataSet(ds.getProviderId(), ds.getId(), null, false, 10000)
         .getResults();
     assertThat(assignedRepresentations.size(), is(3));
   }
@@ -794,9 +794,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, null, 1);
+        SAMPLE_DATASET_ID, null, false, 1);
     ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, page1.getNextSlice(), 3);
+        SAMPLE_DATASET_ID, page1.getNextSlice(), false, 3);
 
     assertThat(page1.getResults(), hasSize(1));
     assertThat(page1.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
@@ -820,9 +820,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, null, 1);
+        SAMPLE_DATASET_ID, null, false, 1);
     ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, page1.getNextSlice(), 2);
+        SAMPLE_DATASET_ID, page1.getNextSlice(), false, 2);
 
     assertThat(page1.getResults(), hasSize(1));
     assertThat(page1.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
@@ -845,9 +845,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, null, 1);
+        SAMPLE_DATASET_ID, null, false, 1);
     ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
-        SAMPLE_DATASET_ID, page1.getNextSlice(), 1);
+        SAMPLE_DATASET_ID, page1.getNextSlice(), false, 1);
 
     assertThat(page1.getResults(), hasSize(1));
     assertThat(page1.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));

@@ -279,7 +279,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
-    doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyString());
+    doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString());
     prepareMocks(TOPOLOGY_NAME);
 
     ResultActions response = sendTask(task, TOPOLOGY_NAME);
@@ -296,7 +296,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     task.setOutputRevision(revision);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
     task.addParameter(PluginParameterKeys.PROVIDER_ID, "DIFFERENT_PROVIDER_ID");
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
         new ResultSlice<>());
     prepareMocks(TOPOLOGY_NAME);
 
@@ -313,7 +313,7 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
     Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
     task.setOutputRevision(revision);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyString())).thenReturn(
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
         new ResultSlice<>());
     prepareMocks(ENRICHMENT_TOPOLOGY);
 

@@ -109,7 +109,7 @@ public class DataSetServiceClientTestIT {
 
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-    ResultSlice<Representation> response = mcsClient.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+    ResultSlice<Representation> response = mcsClient.getDataSetRepresentationsChunk(providerId, dataSetId, false, startFrom);
 
     assertNotNull(response);
     assertNotNull(response.getResults());
@@ -124,7 +124,7 @@ public class DataSetServiceClientTestIT {
 
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-    ResultSlice<Representation> response = mcsClient.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+    ResultSlice<Representation> response = mcsClient.getDataSetRepresentationsChunk(providerId, dataSetId, false, startFrom);
 
     assertNotNull(response);
     assertNotNull(response.getResults());
@@ -186,7 +186,7 @@ public class DataSetServiceClientTestIT {
     String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
-    ResultSlice<Representation> result = mcsClient.getDataSetRepresentations(providerId, dataSetId);
+    ResultSlice<Representation> result = mcsClient.getDataSetRepresentations(providerId, dataSetId, false);
     assertNotNull(result);
   }
 

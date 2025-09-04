@@ -332,7 +332,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(PROVIDER_ID, DATASET_ID, null);
+    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(PROVIDER_ID, DATASET_ID, false, null);
     assertNotNull(result.getResults());
     assertEquals(result.getResults().size(), resultSize);
     assertEquals(result.getNextSlice(), startFrom);
@@ -357,7 +357,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(providerId, dataSetId, false, startFrom);
     assertNotNull(result.getResults());
     assertEquals(result.getResults().size(), resultSize);
     assertNull(result.getNextSlice());
@@ -381,7 +381,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    instance.getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+    instance.getDataSetRepresentationsChunk(providerId, dataSetId, false,  startFrom);
   }
 
   @Test
@@ -410,7 +410,7 @@ public class DataSetServiceClientTest {
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-    List<Representation> result = instance.getDataSetRepresentationsList(providerId, dataSetId);
+    List<Representation> result = instance.getDataSetRepresentationsList(providerId, dataSetId, false);
     assertEquals(result.size(), resultSize);
   }
 
@@ -430,7 +430,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    instance.getDataSetRepresentations(providerId, dataSetId);
+    instance.getDataSetRepresentations(providerId, dataSetId, false);
   }
 
   @Test(expected = DriverException.class)
@@ -448,7 +448,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    instance.getDataSetRepresentationsChunk(providerId, dataSetId, null);
+    instance.getDataSetRepresentationsChunk(providerId, dataSetId, false, null);
   }
 
   @Test(expected = DriverException.class)
@@ -466,7 +466,7 @@ public class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    instance.getDataSetRepresentations(providerId, dataSetId);
+    instance.getDataSetRepresentations(providerId, dataSetId, false);
   }
 
   @Test
