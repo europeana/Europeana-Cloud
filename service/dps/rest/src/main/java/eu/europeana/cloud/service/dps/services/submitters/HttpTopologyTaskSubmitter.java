@@ -60,7 +60,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
     try {
       final String urlToZipFile = parameters.getTask()
-                                            .getDataEntry(InputDataType.REPOSITORY_URLS).get(0);
+                                            .getDataEntry(InputDataType.REPOSITORY_URLS).getFirst();
       final HarvestingIterator<Path, Path> iterator = HarvesterFactory.createHttpHarvester()
                                                                       .harvestRecords(urlToZipFile,
                                                               downloadedFileLocationFor(parameters.getTask()));

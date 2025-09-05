@@ -25,6 +25,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
@@ -73,7 +74,7 @@ public class IndexingBoltTest {
   private IndexWrapper indexWrapper;
 
   @Mock
-  private Indexer indexer;
+  private Indexer<FullBeanImpl> indexer;
 
   @Mock
   private Properties indexingProperties;
