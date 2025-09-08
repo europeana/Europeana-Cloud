@@ -31,6 +31,8 @@ import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
+
+import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +142,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     }
   }
 
-  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) {
+  private void updateHarvestedRecordsTableWithRecordsExistingInMetis(DpsTask task) throws IndexingException {
     String metisDatasetId = task.getParameter(PluginParameterKeys.METIS_DATASET_ID);
     for(TargetIndexingDatabase db:TargetIndexingDatabase.values()) {
       try (ExistingInMetisHarvestedRecordsBatchCompleter completer

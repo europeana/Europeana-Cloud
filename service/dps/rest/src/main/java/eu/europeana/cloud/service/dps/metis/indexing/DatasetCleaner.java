@@ -24,12 +24,12 @@ public class DatasetCleaner {
     databaseLocation = TargetIndexingDatabase.valueOf(this.cleanerParameters.getTargetIndexingEnv());
   }
 
-  public int getRecordsCount() {
+  public int getRecordsCount() throws IndexingException {
     return (int) indexWrapper.getIndexer(databaseLocation)
                              .countRecords(cleanerParameters.getDataSetId(), cleanerParameters.getCleaningDate());
   }
 
-  public Stream<String> getRecordIds() {
+  public Stream<String> getRecordIds() throws IndexingException {
     return indexWrapper.getIndexer(databaseLocation)
                        .getRecordIds(this.cleanerParameters.getDataSetId(), this.cleanerParameters.getCleaningDate());
   }

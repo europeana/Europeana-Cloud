@@ -24,6 +24,7 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.indexing.exception.IndexingException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -79,7 +80,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
+  public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() throws IndexingException {
     //given
     when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
     when(datasetCleaner.getRecordsCount()).thenReturn(1);
@@ -95,7 +96,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
+  public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() throws IndexingException {
     //given
     when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
     when(datasetCleaner.getRecordsCount()).thenReturn(2);
@@ -112,7 +113,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
+  public void shouldCleanDateAndMd5ForPublishAndForOneRecord() throws IndexingException {
     //given
     when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
     when(datasetCleaner.getRecordsCount()).thenReturn(1);
@@ -128,7 +129,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
+  public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() throws IndexingException {
     //given
     when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
     when(datasetCleaner.getRecordsCount()).thenReturn(2);
