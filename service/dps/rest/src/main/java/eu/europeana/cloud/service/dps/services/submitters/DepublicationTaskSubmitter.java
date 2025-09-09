@@ -122,7 +122,7 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
         return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), new Date());
       }
     } catch (IndexingException e) {
-      throw new TaskSubmissionException(e.getMessage(), e);
+      throw new TaskSubmissionException("Fetching record identifiers failed", e);
     }
 }
 

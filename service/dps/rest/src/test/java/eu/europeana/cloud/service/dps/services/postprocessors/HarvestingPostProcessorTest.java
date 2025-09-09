@@ -41,6 +41,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import java.net.URI;
@@ -111,10 +112,10 @@ public class HarvestingPostProcessorTest {
   private TaskStatusChecker taskStatusChecker;
 
   @Mock
-  private Indexer previewIndexer;
+  private Indexer<FullBeanImpl> previewIndexer;
 
   @Mock
-  private Indexer publishIndexer;
+  private Indexer<FullBeanImpl> publishIndexer;
 
   @Mock
   private IndexWrapper indexWrapper;

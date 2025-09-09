@@ -27,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.indexing.exception.IndexingException;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
