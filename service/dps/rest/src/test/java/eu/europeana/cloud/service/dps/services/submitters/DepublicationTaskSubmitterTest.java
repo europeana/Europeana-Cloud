@@ -115,7 +115,7 @@ public class DepublicationTaskSubmitterTest {
   @Test
   public void shouldProperlySentTaskForDataset() throws TaskSubmissionException, IndexingException {
     when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
-    when(indexer.getRecordIds(eq(DATASET_ID), any())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+    when(indexer.getRecordIds(eq(DATASET_ID), any(), any())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
     dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
     when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
 
