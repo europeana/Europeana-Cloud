@@ -119,7 +119,7 @@ public class DepublicationTaskSubmitter implements TaskSubmitter {
         return Arrays.stream(parameters.getTask().getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(","));
       } else {
         Indexer<FullBeanImpl> indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
-        return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), new Date());
+        return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), new Date(), 5000);
       }
     } catch (IndexingException e) {
       throw new TaskSubmissionException("Fetching record identifiers failed", e);
