@@ -3,6 +3,8 @@ package eu.europeana.cloud.normalization.bolts;
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -16,7 +18,6 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -56,7 +57,7 @@ public class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
-    Assert.assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
+    assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
   }
 
 
@@ -74,8 +75,8 @@ public class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
     var val = (Map<String, String>) captor.getValue().get(1);
-    Assert.assertEquals("Error during normalization.", val.get(NotificationParameterKeys.STATE_DESCRIPTION));
-    Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).startsWith("Error parsing XML: Could not parse DOM for"));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).startsWith("Error during normalization."));
+    assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).startsWith("Issue converting record String to Document"));
   }
 
 
@@ -93,8 +94,8 @@ public class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
     var val = (Map<String, String>) captor.getValue().get(1);
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Cannot prepare output storm tuple."));
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("malformed.url"));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Cannot prepare output storm tuple."));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("malformed.url"));
   }
 
   private StormTaskTuple getCorrectStormTuple(byte[] inputData) {

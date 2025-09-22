@@ -1,57 +1,59 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:doap="http://usefulinc.com/ns/doap#" xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:odrl="http://www.w3.org/ns/odrl/2/" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:svcs="http://rdfs.org/sioc/services#" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#">
-    <edm:ProvidedCHO rdf:about="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-    <edm:WebResource rdf:about="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff">
-        <dc:creator>Pifarré</dc:creator>
-        <dc:description xml:lang="es">Caja caramelos Pifarré</dc:description>
-        <dc:type>Container</dc:type>
-        <dcterms:created>2009-06-01</dcterms:created>
-        <edm:rights rdf:resource="http://rightsstatements.org/vocab/CNE/1.0/"/>
-    </edm:WebResource>
-    <ore:Aggregation rdf:about="/aggregation/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
-        <edm:aggregatedCHO rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-        <edm:dataProvider>Europeana Foundation</edm:dataProvider>
-        <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d209a080-5b4c-0136-9258-16256f71c4b1"/>
-        <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1"/>
-        <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d21ccbe0-5b4c-0136-9258-16256f71c4b1"/>
-        <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d2003110-5b4c-0136-9258-16256f71c4b1"/>
-        <edm:isShownBy rdf:resource="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff"/>
-        <edm:object rdf:resource="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff"/>
-        <edm:provider>Europeana Foundation</edm:provider>
-        <edm:rights rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"/>
-        <edm:ugc>true</edm:ugc>
-    </ore:Aggregation>
-    <ore:Proxy rdf:about="/proxy/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
-        <dc:description xml:lang="es">Encontré esta caja por casualidad hace unos años en un aeropuerto.</dc:description>
-        <dc:contributor>-Itziar</dc:contributor>
-        <dc:identifier>242</dc:identifier>
-        <dc:language>spa</dc:language>
-        <dc:subject>Immigration to the Netherlands</dc:subject>
-        <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept434"/>
-        <dc:subject>Emigration from Spain</dc:subject>
-        <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept1812"/>
-        <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept8217"/>
-        <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept923"/>
-        <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept917"/>
-        <dc:subject rdf:resource="http://data.europeana.eu/concept/base/128"/>
-        <dc:title xml:lang="es">Caramelos Pifarré</dc:title>
-        <dcterms:isPartOf>Instituto Cervantes Open Day, Instituto Cervantes, Utrecht, 2018-06-23–2018-06-23</dcterms:isPartOf>
-        <dcterms:spatial rdf:resource="http://data.europeana.eu/place/base/83"/>
-        <dcterms:spatial rdf:resource="http://data.europeana.eu/place/base/106"/>
-        <ore:proxyFor rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-        <ore:proxyIn rdf:resource="/aggregation/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-        <edm:type>IMAGE</edm:type>
-    </ore:Proxy>
-    <ore:Proxy rdf:about="/proxy/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
-        <dc:identifier>http://contribute.europeana.eu/contributions/7a079620-5915-0136-be15-620aa6c174ff</dc:identifier><dc:language>es</dc:language>
-        <edm:europeanaProxy>true</edm:europeanaProxy>
-        <ore:proxyFor rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-        <ore:proxyIn rdf:resource="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-    </ore:Proxy>
-    <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
-        <edm:aggregatedCHO rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
-        <edm:datasetName>2084002_Ag_EU_Migration_ugc</edm:datasetName>
-        <edm:country>Europe</edm:country>
-        <edm:language>mul</edm:language>
-        <edm:completeness>10</edm:completeness>
-    </edm:EuropeanaAggregation>
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:ebucore="http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#" xmlns:doap="http://usefulinc.com/ns/doap#" xmlns:odrl="http://www.w3.org/ns/odrl/2/" xmlns:cc="http://creativecommons.org/ns#" xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:svcs="http://rdfs.org/sioc/services#" xmlns:oa="http://www.w3.org/ns/oa#" xmlns:dqv="http://www.w3.org/ns/dqv#">
+  <edm:ProvidedCHO rdf:about="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+  <edm:WebResource rdf:about="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff">
+    <dc:creator>Pifarré</dc:creator>
+    <dc:description xml:lang="es">Caja caramelos Pifarré</dc:description>
+    <dc:type>Container</dc:type>
+    <dcterms:created>2009-06-01</dcterms:created>
+    <edm:rights rdf:resource="http://rightsstatements.org/vocab/CNE/1.0/"/>
+  </edm:WebResource>
+  <ore:Aggregation rdf:about="/aggregation/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
+    <edm:aggregatedCHO rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+    <edm:dataProvider>Europeana Foundation</edm:dataProvider>
+    <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d209a080-5b4c-0136-9258-16256f71c4b1"/>
+    <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1"/>
+    <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d21ccbe0-5b4c-0136-9258-16256f71c4b1"/>
+    <edm:hasView rdf:resource="http://contribute.europeana.eu/media/d2003110-5b4c-0136-9258-16256f71c4b1"/>
+    <edm:isShownBy rdf:resource="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff"/>
+    <edm:object rdf:resource="http://contribute.europeana.eu/media/7a06dbf0-5915-0136-be15-620aa6c174ff"/>
+    <edm:provider>Europeana Foundation</edm:provider>
+    <edm:rights rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"/>
+    <edm:ugc>true</edm:ugc>
+  </ore:Aggregation>
+  <ore:Proxy rdf:about="/proxy/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
+    <dc:description xml:lang="es">Encontré esta caja por casualidad hace unos años en un aeropuerto.</dc:description>
+    <dc:contributor>-Itziar</dc:contributor>
+    <dc:identifier>242</dc:identifier>
+    <dc:language>spa</dc:language>
+    <dc:subject>Immigration to the Netherlands</dc:subject>
+    <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept434"></dc:subject>
+    <dc:subject>Emigration from Spain</dc:subject>
+    <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept1812"></dc:subject>
+    <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept8217"></dc:subject>
+    <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept923"></dc:subject>
+    <dc:subject rdf:resource="http://vocabularies.unesco.org/thesaurus/concept917"></dc:subject>
+    <dc:subject rdf:resource="http://data.europeana.eu/concept/base/128"></dc:subject>
+    <dc:title xml:lang="es">Caramelos Pifarré</dc:title>
+    <dcterms:isPartOf>Instituto Cervantes Open Day, Instituto Cervantes, Utrecht, 2018-06-23–2018-06-23</dcterms:isPartOf>
+    <dcterms:spatial rdf:resource="http://data.europeana.eu/place/base/83"></dcterms:spatial>
+    <dcterms:spatial rdf:resource="http://data.europeana.eu/place/base/106"></dcterms:spatial>
+    <ore:proxyFor rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+    <ore:proxyIn rdf:resource="/aggregation/provider/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+    <edm:type>IMAGE</edm:type>
+  </ore:Proxy>
+  <ore:Proxy rdf:about="/proxy/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
+    <dc:identifier>http://contribute.europeana.eu/contributions/7a079620-5915-0136-be15-620aa6c174ff</dc:identifier>
+    <dc:language>es</dc:language>
+    <edm:europeanaProxy>true</edm:europeanaProxy>
+    <ore:proxyFor rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+    <ore:proxyIn rdf:resource="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+  </ore:Proxy>
+  <edm:EuropeanaAggregation rdf:about="/aggregation/europeana/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff">
+    <edm:aggregatedCHO rdf:resource="/2084002/contributions_7a079620_5915_0136_be15_620aa6c174ff"/>
+    <edm:datasetName>2084002_Ag_EU_Migration_ugc</edm:datasetName>
+    <edm:country>Europe</edm:country>
+    <edm:language>mul</edm:language>
+    <edm:completeness>10</edm:completeness>
+  </edm:EuropeanaAggregation>
 </rdf:RDF>
