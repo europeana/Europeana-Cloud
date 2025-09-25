@@ -37,10 +37,6 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     this.ecloudUisAddress = ecloudUisAddress;
   }
 
-  @Override
-  protected boolean ignoreDeleted() {
-    return false;
-  }
 
   @Override
   public void prepare() {

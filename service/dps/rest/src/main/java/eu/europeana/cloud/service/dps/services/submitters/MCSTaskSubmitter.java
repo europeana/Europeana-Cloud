@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
@@ -105,14 +106,8 @@ public class MCSTaskSubmitter {
   }
 
   private int executeForFilesList(SubmitTaskParameters submitParameters) {
-    List<String> filesList = submitParameters.getTask().getDataEntry(FILE_URLS);
-    var count = 0;
-    for (String file : filesList) {
-      if (submitRecord(file, submitParameters, false)) {
-        count++;
-      }
-    }
-    return count;
+    List<String> fileUrlsList = submitParameters.getTask().getDataEntry(FILE_URLS);
+    return submitRecordsForFileUrlsList(fileUrlsList, submitParameters);
   }
 
   private int executeForDatasetList(SubmitTaskParameters submitParameters)
@@ -154,7 +149,7 @@ public class MCSTaskSubmitter {
       checkIfTaskIsKilled(submitParameters.getTask());
 
       Representation representation = iterator.next();
-      expectedSize += submitRecordsForRepresentation(representation, submitParameters, representation.getFiles().isEmpty());
+      expectedSize += submitRecordsForRepresentation(representation, submitParameters);
     }
     return expectedSize;
   }
@@ -252,16 +247,20 @@ public class MCSTaskSubmitter {
     if (markedAsDeleted) {
       return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
     } else {
-      return submitRecordsForFiles(representationRevision.getFiles(), submitParameters);
+      return this.submitRecordsForFileObjects(representationRevision.getFiles(), submitParameters);
     }
   }
 
-  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
-
-    return submitRecordsForFiles(representation.getFiles(), submitParameters, markedAsDeleted);
+    boolean markedAsDeleted = representation.getFiles().isEmpty();
+    if (markedAsDeleted){
+      return submitRecordForDeletedRepresentation(representation.getUri(), submitParameters);
+    } else {
+      return this.submitRecordsForFileObjects(representation.getFiles(), submitParameters);
+    }
   }
 
   private int submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
@@ -274,14 +273,17 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+  private int submitRecordsForFileObjects(List<File> files, SubmitTaskParameters submitParameters) {
+    return submitRecordsForFileUrlsList(files.stream().map(file -> file.getContentUri().toString()).collect(Collectors.toList()), submitParameters);
+  }
+
+  private int submitRecordsForFileUrlsList(List<String> fileUrls, SubmitTaskParameters submitParameters) {
     var count = 0;
 
-    for (File file : files) {
+    for (String fileUrl : fileUrls) {
       checkIfTaskIsKilled(submitParameters.getTask());
-
-      var fileUrl = file.getContentUri().toString();
-      if (submitRecord(fileUrl, submitParameters, markedAsDeleted)) {
+      ;
+      if (submitRecord(fileUrl, submitParameters, false)) {
         count++;
       }
 
@@ -290,9 +292,6 @@ public class MCSTaskSubmitter {
     return count;
   }
 
-  private int submitRecordsForFiles(List<File> files, SubmitTaskParameters submitParameters) {
-    return submitRecordsForFiles(files, submitParameters, false);
-  }
 
   private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
     DpsTask task = submitParameters.getTask();

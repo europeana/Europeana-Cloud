@@ -59,6 +59,7 @@ public class DepublicationTopology {
     return new ECloudTopologyPipeline(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
         .addBolt(DEPUBLICATION_BOLT, new DepublicationBolt(createCassandraProperties(topologyProperties), indexingProperties),
             DEPUBLICATION_BOLT_PARALLEL, DEPUBLICATION_BOLT_NUMBER_OF_TASKS)
+        .addWriteRecordBolt()
         .buildTopology();
   }
 }

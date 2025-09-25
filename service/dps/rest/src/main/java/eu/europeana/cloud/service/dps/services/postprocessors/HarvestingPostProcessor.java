@@ -129,11 +129,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
             , harvestedRecord, dpsTask.getTaskId());
       } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
-        if (dpsTask.isParameterPresent(REVISION_NAME) &&
-            dpsTask.isParameterPresent(REVISION_PROVIDER) &&
-            dpsTask.isParameterPresent(REVISION_TIMESTAMP)) {
-          createPostProcessedRecord(dpsTask, harvestedRecord);
-        }
+        createPostProcessedRecord(dpsTask, harvestedRecord);
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
         taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
@@ -166,10 +162,14 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
   private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
     try {
-      LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
       String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
-      addRevisionToRepresentation(dpsTask, representation);
+      if (dpsTask.isParameterPresent(REVISION_NAME) &&
+              dpsTask.isParameterPresent(REVISION_PROVIDER) &&
+              dpsTask.isParameterPresent(REVISION_TIMESTAMP)) {
+        LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
+        addRevisionToRepresentation(dpsTask, representation);
+      }
     } catch (CloudException | MCSException | MalformedURLException e) {
       throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
           + " to task result revision! taskId=" + dpsTask.getTaskId(), e);

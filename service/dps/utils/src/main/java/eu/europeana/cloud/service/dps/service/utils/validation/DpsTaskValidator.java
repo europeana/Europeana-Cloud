@@ -1,11 +1,14 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.OUTPUT_DATA_SETS;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlBuilderException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -299,7 +302,7 @@ public final class DpsTaskValidator {
     throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
   }
 
-  private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+  private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException, MalformedURLException, UrlBuilderException {
     if (NO_DATA == constraint.getExpectedValueType()) {
       validateNoInputData(task);
       return;
@@ -322,6 +325,7 @@ public final class DpsTaskValidator {
     if (constraint.getExpectedValue() == null) {   //any value
       return;
     }
+    validateInputRevisionOrCorrectDatasets(expectedInputData, task, constraint);
     if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
       return;
     }
@@ -335,6 +339,58 @@ public final class DpsTaskValidator {
     if (!task.getInputData().isEmpty()) {
       throw new DpsTaskValidationException("Input data should be empty.");
     }
+  }
+
+  public void validateInputRevisionOrCorrectDatasets(List<String> expectedInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+    if (!isRevisionFilled(task)) {
+      String outputDataset;
+      try {
+        UrlParser parser = new UrlParser(task.getParameter(OUTPUT_DATA_SETS));
+        outputDataset = parser.getDataSetsUrl();
+      } catch (MalformedURLException | UrlBuilderException e){
+        throw new DpsTaskValidationException("Revision is not filled and output dataset url is malformed " +
+                "or couldn't contruct url builder!!");
+      }
+      if (outputDataset != null){
+        for (String expectedInputDataValue : expectedInputData) {
+          validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, expectedInputDataValue);
+        }
+      } else {
+        throw new DpsTaskValidationException("Revision is not filled and input dataset is null!");
+      }
+    }
+
+  }
+
+  private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, String outputDataset,
+                                                                    String expectedInputDataValue) throws DpsTaskValidationException {
+    UrlParser parser;
+    boolean isInputAndOutputDatasetDifferent = true;
+    String inputDataset = null;
+    try {
+      if (constraint.getExpectedValue() == LINK_TO_DATASET) {
+        parser = new UrlParser(expectedInputDataValue);
+        inputDataset = parser.getDataSetsUrl();
+      } else if (constraint.getExpectedValue() == LINK_TO_FILE) {
+        inputDataset = DataSetUrlParser.parse(expectedInputDataValue).getId();
+      }
+      if (outputDataset.equals(inputDataset)) {
+        isInputAndOutputDatasetDifferent = false;
+      }
+    }  catch (MalformedURLException | UrlBuilderException e){
+    throw new DpsTaskValidationException("Revision is not filled and input dataset url is malformed " +
+            "or couldn't construct url builder!");
+    }
+    if (!isInputAndOutputDatasetDifferent) {
+      throw new DpsTaskValidationException("Revision is not filled nor are dataset different!");
+    }
+  }
+
+  private static boolean isRevisionFilled(DpsTask task) {
+    Revision outputRevision = task.getOutputRevision();
+    return outputRevision!=null && !outputRevision.getRevisionName().isBlank() &&
+            !outputRevision.getRevisionProviderId().isBlank() &&
+            outputRevision.getCreationTimeStamp() != null;
   }
 
   private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint)

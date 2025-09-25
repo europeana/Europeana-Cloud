@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.utils.UUIDs;
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -7,10 +8,12 @@ import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.test.S3TestHelper;
 import org.hamcrest.core.Is;
+import org.jetbrains.annotations.NotNull;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -19,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,6 +42,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
 public class CassandraDataSetServiceTest extends CassandraTestBase {
 
+  public static final UUID SAMPLE_VERSION = UUIDs.timeBased();
   @Autowired
   private CassandraRecordService cassandraRecordService;
 
@@ -805,6 +810,43 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     assertThat(page2.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID2));
     assertThat(page2.getResults().get(1).getCloudId(), is(SAMPLE_CLOUD_ID3));
     assertNull(page2.getNextSlice());
+  }
+
+
+  @Test
+  public void shouldListDataSetWithFilterOnExistingOnlyRepresentations()
+          throws Exception {
+    makeUISSuccess();
+    makeUISProviderSuccess();
+    makeDatasetExists();
+    createDatasetAssignmentBucket();
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION,SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    createDatasetAssignmentBucket();
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    File sampleFile = prepareSampleFile();
+    cassandraRecordService.putContent(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_VERSION.toString(), sampleFile, new ByteArrayInputStream("Example_content".getBytes(StandardCharsets.UTF_8)));
+
+    ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+            SAMPLE_DATASET_ID, null, true, 5000);
+
+    assertThat(page1.getResults(), hasSize(1));
+    assertThat(page1.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
+
+    ResultSlice<Representation> page2 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
+            SAMPLE_DATASET_ID, null, false, 5000);
+
+    assertThat(page2.getResults(), hasSize(3));
+    assertThat(page2.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
+    assertThat(page2.getResults().get(1).getCloudId(), is(SAMPLE_CLOUD_ID2));
+    assertThat(page2.getResults().get(2).getCloudId(), is(SAMPLE_CLOUD_ID3));
+  }
+
+  @NotNull
+  private static File prepareSampleFile() {
+    File sampleFile = new File();
+    sampleFile.setFileName("SAMPLE_FILE");
+    return sampleFile;
   }
 
   @Test

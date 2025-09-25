@@ -64,21 +64,30 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  private boolean ifRecordShouldBeIgnored(StormTaskTuple tuple) throws MalformedURLException {
+  private boolean ifNewRepresentationVersionShouldBeCreated(StormTaskTuple tuple) throws MalformedURLException {
     if (!tuple.isMarkedAsDeleted()) {
       return true;
     }
 
     Map<String, String> recordParams = tuple.getParameters();
 
+    if (!isRevisionProvided(recordParams)) return true;
+
+    return isResultSavedToNewDataset(tuple);
+  }
+
+  private boolean isRevisionProvided(Map<String, String> recordParams) {
     if (isBlank(recordParams, REVISION_NAME)) return false;
     if (isBlank(recordParams, REVISION_PROVIDER)) return false;
     if (isBlank(recordParams, REVISION_TIMESTAMP)) return false;
+    return true;
+  }
 
+  private static boolean isResultSavedToNewDataset(StormTaskTuple tuple) throws MalformedURLException {
     String inputDataSetId = DataSetUrlParser.parse(tuple.getFileUrl()).getId();
     String outputDataSetId = StormTaskTupleHelper.extractDatasetId(tuple);
 
-    return inputDataSetId.equals(outputDataSetId);
+    return !inputDataSetId.equals(outputDataSetId);
   }
 
   private boolean isBlank(Map<String, String> map, String key) {
@@ -91,7 +100,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      if (ifRecordShouldBeIgnored(stormTaskTuple)) {
+      if (ifNewRepresentationVersionShouldBeCreated(stormTaskTuple)) {
         RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
         LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
         var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);

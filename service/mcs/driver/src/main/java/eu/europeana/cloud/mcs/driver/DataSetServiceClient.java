@@ -219,6 +219,26 @@ public class DataSetServiceClient extends MCSClient {
             .get()
     );
   }
+  /**
+   * Returns chunk of representation versions list from data set.
+   *
+   * <p/>If specific version of representation is assigned to data set, this version is returned.
+   * If a whole representation is assigned, the latest persistent representation version is returned.
+   * <p/>See {@link #getDataSetRepresentationsChunk(String, String, boolean, String)} for details.
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @param startFrom code pointing to the requested result slice (null = first slice)
+   * @return chunk of representation versions list from data set
+   * @throws DataSetNotExistsException if data set does not exist
+   * @throws MCSException on unexpected situations
+   * @see #getDataSetRepresentationsChunk(String, String, boolean, String)
+   */
+  @SuppressWarnings("unchecked")
+  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
+          throws MCSException {
+    return getDataSetRepresentationsChunk(providerId, dataSetId, false, startFrom);
+  }
 
   public boolean datasetExists(String providerId, String dataSetId) throws MCSException {
     return manageResponse(
@@ -231,6 +251,10 @@ public class DataSetServiceClient extends MCSClient {
             .request())
             .head()
     ) == Response.Status.OK;
+  }
+
+  public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
+    return getDataSetRepresentationsChunk(providerId, dataSetId, false, null);
   }
 
   public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
@@ -268,6 +292,24 @@ public class DataSetServiceClient extends MCSClient {
     return resultList;
   }
 
+
+  /**
+   * Lists all representation versions from data set.
+   * <p/>
+   * If specific version of representation is assigned to data set, this version is returned. If a whole representation is
+   * assigned to data set, the latest persistent representation version is returned.
+   * <p/>See {@link #getDataSetRepresentationsList(String, String, boolean)} for details.
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @return list of representation versions from data set
+   * @throws DataSetNotExistsException if data set does not exist
+   * @throws MCSException on unexpected situations
+   * @see #getDataSetRepresentationsList(String, String, boolean)
+   */
+  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
+    return getDataSetRepresentationsList(providerId, dataSetId, false);
+  }
   /**
    * Returns iterator to list of representation versions of data set.
    * <p/>
