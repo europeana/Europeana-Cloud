@@ -36,6 +36,7 @@ public final class ParamConstants {
   public static final String REVISION_PROVIDER_ID = "revisionProviderId";
 
   public static final String FILE_NAME = "fileName";
+  public static final String MARK_DELETED = "markDeleted";
 
   @Deprecated
   public static final String P_LOCALID = "LOCALID";

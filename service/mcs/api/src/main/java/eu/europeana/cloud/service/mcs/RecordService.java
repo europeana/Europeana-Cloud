@@ -116,7 +116,7 @@ public interface RecordService {
       throws RepresentationNotExistsException, CannotModifyPersistentRepresentationException;
 
 
-  /**
+    /**
    * Creates a new representation version of a record. A version of newly created representation might be obtained from returned
    * representation object.
    *
@@ -124,20 +124,27 @@ public interface RecordService {
    * @param schema schema of the representation
    * @param providerId provider who created this representation version.
    * @param version version id - must conform version 1 UUID spec. Parameter is optional if null is passed new uuid based on
+   * @param markDeleted whether representation is marked as already deleted
    * current time would be created.
    * @return newly created representation.
    * @throws RecordNotExistsException provided id of a record is not registered in eCloud system.
    * @throws ProviderNotExistsException there is no such provider
    */
-  Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId)
+  Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId, boolean markDeleted)
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException;
 
+  Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDeleted)
+      throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+      RepresentationNotExistsException, DataSetNotExistsException;
 
   Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
-      throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
-      RepresentationNotExistsException, DataSetNotExistsException;
+          throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+          RepresentationNotExistsException, DataSetNotExistsException;
 
+  Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                      String dataSetId) throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+          RepresentationNotExistsException, DataSetNotExistsException;
 
   /**
    * Makes a certain temporary representation version a persistent one. A representation version must contain files in order to be

@@ -164,11 +164,11 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     try {
       String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
+      LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
       if (dpsTask.isParameterPresent(REVISION_NAME) &&
               dpsTask.isParameterPresent(REVISION_PROVIDER) &&
               dpsTask.isParameterPresent(REVISION_TIMESTAMP)) {
-        LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-        addRevisionToRepresentation(dpsTask, representation);
+         addRevisionToRepresentation(dpsTask, representation);
       }
     } catch (CloudException | MCSException | MalformedURLException e) {
       throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()

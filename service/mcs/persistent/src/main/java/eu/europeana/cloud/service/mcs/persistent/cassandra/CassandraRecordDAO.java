@@ -150,7 +150,7 @@ public class CassandraRecordDAO {
    * @throws QueryExecutionException if error occured while executing a query.
    * @throws NoHostAvailableException if no Cassandra host are available.
    */
-  public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version, String datasetId)
+  public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version, String datasetId, boolean markDeleted)
       throws NoHostAvailableException, QueryExecutionException {
     if (cloudId == null || schema == null || providerId == null) {
       throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
@@ -158,12 +158,12 @@ public class CassandraRecordDAO {
 
     // insert representation into representation table.
     BoundStatement boundStatement = insertRepresentationStatement.bind(
-        cloudId, schema, version, providerId, false, creationTime, datasetId);
+        cloudId, schema, version, providerId, false, creationTime, datasetId, markDeleted);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
     return new Representation(cloudId, schema, version.toString(), null,
         null, providerId, new ArrayList<>(0),
-        new ArrayList<>(0), false, creationTime, datasetId);
+        new ArrayList<>(0), false, creationTime, datasetId, markDeleted);
   }
 
   /**
@@ -567,12 +567,12 @@ public class CassandraRecordDAO {
 
     insertRepresentationStatement = session.prepare(
         "INSERT INTO " +
-            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id) " +
-            "VALUES (?,?,?,?,?,?, ?);"
+            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id, mark_deleted) " +
+            "VALUES (?,?,?,?,?,?,?,?);"
     );
 
     getRepresentationVersionStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
@@ -585,14 +585,14 @@ public class CassandraRecordDAO {
     );
 
     listRepresentationVersionsStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     listRepresentationVersionsAllSchemasStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions, dataset_id " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ?;"
     );
@@ -645,7 +645,7 @@ public class CassandraRecordDAO {
     );
 
     getAllRepresentationsForRecordStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
@@ -739,6 +739,7 @@ public class CassandraRecordDAO {
     representation.setPersistent(row.getBool(PERSISTENT));
     representation.setCreationDate(row.getTimestamp(CREATION_DATE));
     representation.setDatasetId(row.getString(DATASET_ID));
+    representation.setMarkDeleted(row.getBool(MARK_DELETED));
     return representation;
   }
 

@@ -126,11 +126,26 @@ public class CassandraRecordService implements RecordService {
   }
 
   @Override
-  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
+  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDeleted)
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException {
 
-    return createRepresentation(globalId, schema, providerId, null, dataSetId);
+    return createRepresentation(globalId, schema, providerId, null, dataSetId, markDeleted);
+  }
+
+  @Override
+  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
+          throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+          RepresentationNotExistsException, DataSetNotExistsException {
+
+    return createRepresentation(globalId, schema, providerId, null, dataSetId, false);
+  }
+
+  @Override
+  public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                             String dataSetId) throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
+          RepresentationNotExistsException, DataSetNotExistsException{
+    return createRepresentation(cloudId, representationName, providerId, version, dataSetId, false);
   }
 
   /**
@@ -138,7 +153,7 @@ public class CassandraRecordService implements RecordService {
    */
   @Override
   public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-      String dataSetId)
+      String dataSetId, boolean markDeleted)
       throws ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException {
 
@@ -174,13 +189,14 @@ public class CassandraRecordService implements RecordService {
       }
       Date now = Calendar.getInstance().getTime();
       Representation representation =
-          recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId);
+          recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId, markDeleted);
       dataSetService.addAssignmentToMainTables(
           providerId,
           dataSetId,
           representation.getCloudId(),
           representation.getRepresentationName(),
-          representation.getVersion());
+          representation.getVersion(),
+          markDeleted);
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}",
             LogMessageCleaner.clean(cloudId),

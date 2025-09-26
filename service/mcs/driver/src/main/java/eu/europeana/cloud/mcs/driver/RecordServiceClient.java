@@ -1,15 +1,7 @@
 package eu.europeana.cloud.mcs.driver;
 
 import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
@@ -204,7 +196,7 @@ public class RecordServiceClient extends MCSClient {
    * @throws MCSException on unexpected situations
    */
   public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-      String datasetId) throws MCSException {
+      String datasetId, boolean markDeleted) throws MCSException {
     var form = new Form();
     form.param(PROVIDER_ID, providerId);
     form.param(DATA_SET_ID, datasetId);
@@ -216,14 +208,24 @@ public class RecordServiceClient extends MCSClient {
                     .path(REPRESENTATION_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
+                    .queryParam(MARK_DELETED, markDeleted)
                     .request())
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
+  public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version, String datasetId)
+          throws MCSException {
+    return createRepresentation(cloudId, representationName, providerId, version, datasetId, false);
+  }
+
+  public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId, boolean markDeleted)
+      throws MCSException {
+    return createRepresentation(cloudId, representationName, providerId, null, datasetId, markDeleted);
+  }
 
   public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
-      throws MCSException {
-    return createRepresentation(cloudId, representationName, providerId, null, datasetId);
+          throws MCSException {
+    return createRepresentation(cloudId, representationName, providerId, null, datasetId, false);
   }
 
   /**

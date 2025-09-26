@@ -42,7 +42,6 @@ public class CassandraDataSetService implements DataSetService {
     this.bucketsHandler = bucketsHandler;
   }
 
-
   /**
    * @inheritDoc
    */
@@ -51,7 +50,7 @@ public class CassandraDataSetService implements DataSetService {
                                                  String thresholdParam, boolean existingOnly, int limit) throws DataSetNotExistsException {
     checkIfDatasetExists(dataSetId, providerId);
     // get representation stubs from data set
-    ResultSlice<DatasetAssignment> assignments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit);
+    ResultSlice<DatasetAssignment> assignments = listDataSetAssignments(providerId, dataSetId, thresholdParam, limit, existingOnly);
     // replace representation stubs with real representations
     if (existingOnly){
       return new ResultSlice<>(assignments.getNextSlice(), getExistingRepresentations(assignments.getResults()));
@@ -82,7 +81,7 @@ public class CassandraDataSetService implements DataSetService {
    * @param schema representation schema
    * @param version representation version (might be null if newest version is to be assigned)
    */
-  public void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version)
+  public void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDeleted)
       throws NoHostAvailableException, QueryExecutionException {
 
     Date now = Calendar.getInstance().getTime();
@@ -99,7 +98,7 @@ public class CassandraDataSetService implements DataSetService {
     }
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
 
-    dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId);
+    dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId, markDeleted);
   }
 
   public void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName,
@@ -316,14 +315,15 @@ public class CassandraDataSetService implements DataSetService {
    * @param dataSetId data set id
    * @param nextToken next token containing information about paging state and bucket id
    * @param limit maximum size of returned list
+   * @param existingOnly whether should return only assignments not marked as deleted
    * @return ResultSlice
    */
-  private ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit)
+  private ResultSlice<DatasetAssignment> listDataSetAssignments(String providerId, String dataSetId, String nextToken, int limit, boolean existingOnly)
       throws NoHostAvailableException, QueryExecutionException {
     String id = createProviderDataSetId(providerId, dataSetId);
     return loadPage(id, nextToken, limit, DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS,
         (bucket, pagingState, localLimit) ->
-            dataSetDAO.getDataSetAssignments(id, bucket.getBucketId(), pagingState, localLimit));
+            dataSetDAO.getDataSetAssignments(id, bucket.getBucketId(), pagingState, localLimit, existingOnly));
   }
 
   /**
@@ -449,7 +449,7 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   private boolean datasetIsEmpty(String providerId, String dataSetId) {
-    return listDataSetAssignments(providerId, dataSetId, null, 1).getResults().isEmpty();
+    return listDataSetAssignments(providerId, dataSetId, null, 1, false).getResults().isEmpty();
   }
 
   private String createBucket() {

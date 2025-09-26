@@ -15,6 +15,7 @@ CREATE TABLE data_set_assignments_by_data_set (
   schema_id varchar,
   version_id timeuuid,
   creation_date timestamp,
+  mark_deleted boolean,
 PRIMARY KEY ((provider_dataset_id, bucket_id), schema_id, cloud_id, version_id)
 );
 
@@ -37,6 +38,7 @@ CREATE TABLE representation_versions (
        revisions map<varchar, text>,
        creation_date timestamp,
        dataset_id varchar,
+       mark_deleted boolean,
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 

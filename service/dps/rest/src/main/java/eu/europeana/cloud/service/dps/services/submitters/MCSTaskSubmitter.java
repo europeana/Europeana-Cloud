@@ -255,8 +255,7 @@ public class MCSTaskSubmitter {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
-    boolean markedAsDeleted = representation.getFiles().isEmpty();
-    if (markedAsDeleted){
+    if (representation.isMarkDeleted()){
       return submitRecordForDeletedRepresentation(representation.getUri(), submitParameters);
     } else {
       return this.submitRecordsForFileObjects(representation.getFiles(), submitParameters);

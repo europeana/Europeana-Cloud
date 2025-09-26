@@ -6,6 +6,7 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlBuilderException;
@@ -302,7 +303,7 @@ public final class DpsTaskValidator {
     throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
   }
 
-  private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException, MalformedURLException, UrlBuilderException {
+  private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     if (NO_DATA == constraint.getExpectedValueType()) {
       validateNoInputData(task);
       return;
@@ -343,14 +344,7 @@ public final class DpsTaskValidator {
 
   public void validateInputRevisionOrCorrectDatasets(List<String> expectedInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     if (!isRevisionFilled(task)) {
-      String outputDataset;
-      try {
-        UrlParser parser = new UrlParser(task.getParameter(OUTPUT_DATA_SETS));
-        outputDataset = parser.getDataSetsUrl();
-      } catch (MalformedURLException | UrlBuilderException e){
-        throw new DpsTaskValidationException("Revision is not filled and output dataset url is malformed " +
-                "or couldn't contruct url builder!!");
-      }
+      DataSet outputDataset = parseDataSetUrl(task.getParameter(OUTPUT_DATA_SETS));
       if (outputDataset != null){
         for (String expectedInputDataValue : expectedInputData) {
           validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, expectedInputDataValue);
@@ -362,24 +356,28 @@ public final class DpsTaskValidator {
 
   }
 
-  private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, String outputDataset,
-                                                                    String expectedInputDataValue) throws DpsTaskValidationException {
-    UrlParser parser;
-    boolean isInputAndOutputDatasetDifferent = true;
-    String inputDataset = null;
+  private static DataSet parseDataSetUrl(String datasetUrl) throws DpsTaskValidationException {
+    DataSet dataSet;
     try {
-      if (constraint.getExpectedValue() == LINK_TO_DATASET) {
-        parser = new UrlParser(expectedInputDataValue);
-        inputDataset = parser.getDataSetsUrl();
-      } else if (constraint.getExpectedValue() == LINK_TO_FILE) {
-        inputDataset = DataSetUrlParser.parse(expectedInputDataValue).getId();
-      }
-      if (outputDataset.equals(inputDataset)) {
-        isInputAndOutputDatasetDifferent = false;
-      }
-    }  catch (MalformedURLException | UrlBuilderException e){
-    throw new DpsTaskValidationException("Revision is not filled and input dataset url is malformed " +
-            "or couldn't construct url builder!");
+      dataSet = DataSetUrlParser.parse(datasetUrl);
+    } catch (MalformedURLException e){
+      throw new DpsTaskValidationException("Revision is not filled and output dataset url is malformed!");
+    }
+    return dataSet;
+  }
+
+
+  private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, DataSet outputDataset,
+                                                                    String expectedInputDataValue) throws DpsTaskValidationException {
+    boolean isInputAndOutputDatasetDifferent = true;
+    DataSet inputDataset = null;
+    if (constraint.getExpectedValue() == LINK_TO_DATASET) {
+      inputDataset = parseDataSetUrl(expectedInputDataValue);
+    } else if (constraint.getExpectedValue() == LINK_TO_FILE) {
+      inputDataset = parseDataSetUrl(expectedInputDataValue);
+    }
+    if (outputDataset.equals(inputDataset)) {
+      isInputAndOutputDatasetDifferent = false;
     }
     if (!isInputAndOutputDatasetDifferent) {
       throw new DpsTaskValidationException("Revision is not filled nor are dataset different!");

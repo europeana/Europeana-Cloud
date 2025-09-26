@@ -104,11 +104,12 @@ public class RepresentationResource {
       @PathVariable("representationName") String representationName,
       @RequestParam("providerId") String providerId,
       @RequestParam("dataSetId") String dataSetId,
-      @RequestParam(value = "version", required = false) UUID version
+      @RequestParam(value = "version", required = false) UUID version,
+      @RequestParam(value = "markDeleted", required = false, defaultValue = "false") boolean markDeleted
   )
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
-    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
+    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId, markDeleted);
     EnrichUriUtil.enrich(httpServletRequest, representation);
     return ResponseEntity.created(representation.getUri()).build();
   }

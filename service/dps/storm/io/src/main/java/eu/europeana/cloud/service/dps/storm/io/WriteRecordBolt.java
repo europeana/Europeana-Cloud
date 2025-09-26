@@ -64,7 +64,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  private boolean ifNewRepresentationVersionShouldBeCreated(StormTaskTuple tuple) throws MalformedURLException {
+  private boolean ShouldNewRepresentationBeCreated(StormTaskTuple tuple) throws MalformedURLException {
     if (!tuple.isMarkedAsDeleted()) {
       return true;
     }
@@ -100,7 +100,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      if (ifNewRepresentationVersionShouldBeCreated(stormTaskTuple)) {
+      if (ShouldNewRepresentationBeCreated(stormTaskTuple)) {
         RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
         LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
         var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
@@ -180,7 +180,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
             writeParams.getProviderId(),
             writeParams.getNewVersion(),
-            writeParams.getDataSetId()));
+            writeParams.getDataSetId(),
+                true));
   }
 
   protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
