@@ -237,7 +237,16 @@ public class DataSetServiceClient extends MCSClient {
   @SuppressWarnings("unchecked")
   public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
           throws MCSException {
-    return getDataSetRepresentationsChunk(providerId, dataSetId, false, startFrom);
+    return manageResponse(new ResponseParams<>(ResultSlice.class),
+            () -> passLogContext(client
+                    .target(this.baseUrl)
+                    .path(DATA_SET_RESOURCE)
+                    .resolveTemplate(PROVIDER_ID, providerId)
+                    .resolveTemplate(DATA_SET_ID, dataSetId)
+                    .queryParam(ParamConstants.F_START_FROM, startFrom)
+                    .request())
+                    .get()
+    );
   }
 
   public boolean datasetExists(String providerId, String dataSetId) throws MCSException {
@@ -254,7 +263,7 @@ public class DataSetServiceClient extends MCSClient {
   }
 
   public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId) throws MCSException {
-    return getDataSetRepresentationsChunk(providerId, dataSetId, false, null);
+    return getDataSetRepresentationsChunk(providerId, dataSetId, null);
   }
 
   public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId, boolean existingOnly) throws MCSException {

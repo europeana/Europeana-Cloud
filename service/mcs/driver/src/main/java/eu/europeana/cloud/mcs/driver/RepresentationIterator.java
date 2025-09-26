@@ -115,7 +115,7 @@ public class RepresentationIterator implements Iterator<Representation> {
 
     ResultSlice<Representation> currentChunk;
     try {
-      currentChunk = client.getDataSetRepresentationsChunk(providerId, dataSetId, false, nextSlice);
+      currentChunk = client.getDataSetRepresentationsChunk(providerId, dataSetId, nextSlice);
     } catch (DataSetNotExistsException ex) {
       throw new DriverException("Data set does not exist.", ex);
     } catch (MCSException ex) {
