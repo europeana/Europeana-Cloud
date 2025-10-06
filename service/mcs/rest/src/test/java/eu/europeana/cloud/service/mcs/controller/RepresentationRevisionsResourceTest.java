@@ -87,7 +87,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
     Representation representation = new Representation(representationRevisionResponse.getCloudId(),
         representationRevisionResponse.getRepresentationName(), representationRevisionResponse.getVersion(),
         null, null, representationRevisionResponse.getRevisionProviderId(), representationRevisionResponse.getFiles(),
-        new ArrayList<Revision>(), false, representationRevisionResponse.getRevisionTimestamp(), null);
+        new ArrayList<Revision>(), false, representationRevisionResponse.getRevisionTimestamp(), null, false);
 
     List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
     expectedResponse.add(representationRevisionResponse);

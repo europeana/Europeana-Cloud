@@ -190,6 +190,8 @@ public class RecordServiceClient extends MCSClient {
    * @param representationName name of the representation to be created (required)
    * @param providerId provider of this representation version (required)
    * @param version representation's version
+   * @param datasetId id of dataset that representation belongs to
+   * @param markDeleted whether or no should set representation version deleted flag
    * @return URI to the created representation
    * @throws ProviderNotExistsException when no provider with given id exists
    * @throws RecordNotExistsException when cloud id is not known to UIS Service
@@ -213,27 +215,53 @@ public class RecordServiceClient extends MCSClient {
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
-  public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version, String datasetId)
-          throws MCSException {
-    return createRepresentation(cloudId, representationName, providerId, version, datasetId, false);
-  }
 
-  public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId, boolean markDeleted)
-      throws MCSException {
-    return createRepresentation(cloudId, representationName, providerId, null, datasetId, markDeleted);
-  }
-
-  public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
-          throws MCSException {
-    return createRepresentation(cloudId, representationName, providerId, null, datasetId, false);
-  }
 
   /**
-   * Creates new representation version, uploads a file and makes this representation persistent (in one request)
+   * Creates new representation version. By default, sets mark_deleted flag as false.
    *
    * @param cloudId id of the record in which to create the representation (required)
    * @param representationName name of the representation to be created (required)
    * @param providerId provider of this representation version (required)
+   * @param version representation's version
+   * @param datasetId id of dataset that representation belongs to
+   * @return URI to the created representation
+   * @throws ProviderNotExistsException when no provider with given id exists
+   * @throws RecordNotExistsException when cloud id is not known to UIS Service
+   * @throws MCSException on unexpected situations
+   */
+  public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                  String datasetId) throws MCSException {
+    var form = new Form();
+    form.param(PROVIDER_ID, providerId);
+    form.param(DATA_SET_ID, datasetId);
+    if (version != null) {
+      form.param(VERSION, version.toString());
+    }
+    return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+            () -> passLogContext(client.target(baseUrl)
+                    .path(REPRESENTATION_RESOURCE)
+                    .resolveTemplate(CLOUD_ID, cloudId)
+                    .resolveTemplate(REPRESENTATION_NAME, representationName)
+                    .queryParam(MARK_DELETED)
+                    .request())
+                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+    );
+  }
+
+  public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
+          throws MCSException {
+    return createRepresentation(cloudId, representationName, providerId, null, datasetId);
+  }
+
+  /**
+   * Creates new representation version, uploads a file and makes this representation persistent (in one request).
+   * By default, sets mark_deleted flag as false.
+   *
+   * @param cloudId id of the record in which to create the representation (required)
+   * @param representationName name of the representation to be created (required)
+   * @param providerId provider of this representation version (required)
+   * @param datasetId id of dataset that representation belongs to
    * @param data file that should be uploaded (required)
    * @param fileName name for created file
    * @param mediaType mimeType of uploaded file

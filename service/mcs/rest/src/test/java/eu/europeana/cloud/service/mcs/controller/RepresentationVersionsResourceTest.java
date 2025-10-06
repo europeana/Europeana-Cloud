@@ -47,7 +47,7 @@ public class RepresentationVersionsResourceTest extends AbstractResourceTest {
   private static final String LIST_VERSIONS_PATH = URITools.getListVersionsPath(GLOBAL_ID, SCHEMA).toString();
   static final private List<Representation> REPRESENTATIONS = ImmutableList.of(new Representation(GLOBAL_ID, SCHEMA,
       VERSION, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-      "2013-01-01", 12345, null)), null, true, new Date(), null));
+      "2013-01-01", 12345, null)), null, true, new Date(), null, false));
 
 
   @Before

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -42,7 +43,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
   private File file;
 
-  private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+  private static final UUID VERSION = UUIDs.timeBased();
 
   @Autowired
   private RecordService recordService;
@@ -52,7 +53,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
   @Before
   public void init()
-      throws RepresentationNotExistsException, DataSetAssignmentException, ProviderNotExistsException, DataSetAlreadyExistsException {
+      throws RepresentationNotExistsException, ProviderNotExistsException, DataSetAlreadyExistsException {
     CassandraTestInstance.truncateAllData(false);
     Mockito.reset(recordService);
     UISClientHandler uisHandler = applicationContext.getBean(UISClientHandler.class);

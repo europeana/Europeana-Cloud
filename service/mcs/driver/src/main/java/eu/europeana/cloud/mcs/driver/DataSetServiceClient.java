@@ -199,6 +199,7 @@ public class DataSetServiceClient extends MCSClient {
    *
    * @param providerId provider identifier (required)
    * @param dataSetId data set identifier (required)
+   * @param existingOnly whether or no should return only existing representation versions
    * @param startFrom code pointing to the requested result slice (if equal to null, first slice is returned)
    * @return chunk of representation versions list from data set
    * @throws DataSetNotExistsException if data set does not exist

@@ -35,7 +35,7 @@ public class RepresentationIteratorTest {
     RepresentationIterator representationIterator = new RepresentationIterator(dataSetServiceClient, PROVIDER, DATASET);
     ResultSlice<Representation> representationResultSlice = getFinalRepresentationResultSlice(2);
 
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, false, null)).thenReturn(representationResultSlice);
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, null)).thenReturn(representationResultSlice);
     int count = 0;
 
     while (representationIterator.hasNext()) {
@@ -44,7 +44,7 @@ public class RepresentationIteratorTest {
       count++;
     }
     assertEquals(count, 2);
-    verify(dataSetServiceClient, times(0)).getDataSetRepresentationsChunk(eq(PROVIDER), eq(DATASET), false, notNull(String.class));
+    verify(dataSetServiceClient, times(0)).getDataSetRepresentationsChunk(eq(PROVIDER), eq(DATASET), notNull(String.class));
     assertFalse(representationIterator.hasNext());
 
 
@@ -56,11 +56,11 @@ public class RepresentationIteratorTest {
 
     ResultSlice<Representation> representationResultSlice = getRepresentationResultSlice(100);
 
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, false, null)).thenReturn(representationResultSlice);
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, null)).thenReturn(representationResultSlice);
 
     ResultSlice<Representation> emptyResultSet = new ResultSlice<>();
     emptyResultSet.setResults(new ArrayList<Representation>());
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, false, NEXT_SLICE)).thenReturn(
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, NEXT_SLICE)).thenReturn(
             emptyResultSet);
 
     int count = 0;
@@ -70,7 +70,7 @@ public class RepresentationIteratorTest {
       count++;
     }
     assertEquals(100, count);
-    verify(dataSetServiceClient, times(1)).getDataSetRepresentationsChunk(PROVIDER, DATASET, false, NEXT_SLICE);
+    verify(dataSetServiceClient, times(1)).getDataSetRepresentationsChunk(PROVIDER, DATASET, NEXT_SLICE);
     assertFalse(representationIterator.hasNext());
 
 
@@ -82,10 +82,10 @@ public class RepresentationIteratorTest {
     RepresentationIterator representationIterator = new RepresentationIterator(dataSetServiceClient, PROVIDER, DATASET);
 
     ResultSlice<Representation> representationResultSlice = getRepresentationResultSlice(100);
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, false, null)).thenReturn(representationResultSlice);
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, null)).thenReturn(representationResultSlice);
 
     ResultSlice<Representation> nextResultSet = getFinalRepresentationResultSlice(5);
-    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, false, NEXT_SLICE)).thenReturn(
+    when(dataSetServiceClient.getDataSetRepresentationsChunk(PROVIDER, DATASET, NEXT_SLICE)).thenReturn(
             nextResultSet);
 
     int count = 0;
@@ -96,7 +96,7 @@ public class RepresentationIteratorTest {
       count++;
     }
     assertEquals(105, count);
-    verify(dataSetServiceClient, times(1)).getDataSetRepresentationsChunk(PROVIDER, DATASET, false, NEXT_SLICE);
+    verify(dataSetServiceClient, times(1)).getDataSetRepresentationsChunk(PROVIDER, DATASET, NEXT_SLICE);
     assertFalse(representationIterator.hasNext());
 
 

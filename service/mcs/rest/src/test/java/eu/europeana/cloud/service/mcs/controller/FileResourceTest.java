@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -51,7 +52,6 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
   private DataSetService dataSetService;
 
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
-
   @BeforeClass
   public static void setUp(){
     S3TestHelper.startS3MockServer();
@@ -74,7 +74,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
     dataSetService.createDataSet("1", "s", "desc");
-    rep = recordService.createRepresentation("1", "1", "1", "s");
+    rep = recordService.createRepresentation("1", "1", "1", UUIDs.timeBased(), "s");
     file = new File();
     file.setFileName("fileName");
     file.setMimeType(APPLICATION_OCTET_STREAM_TYPE.toString());

@@ -129,7 +129,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
     Mockito.doReturn(representation).when(recordService)
            .getRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     Mockito.doReturn(representation).when(recordService)
-           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString(), Mockito.anyBoolean());
     Mockito.doReturn(representation).when(recordService)
            .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), any());
     Mockito.doReturn(representation).when(recordService)
@@ -156,7 +156,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
     representationResource.getRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME);
   }
 
@@ -167,7 +167,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(RONALDO, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
     representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
@@ -198,7 +198,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
     representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
   }
 
@@ -208,7 +208,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       RecordNotExistsException, ProviderNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(RONALDO, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
   }
@@ -225,7 +225,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
 
     logoutEveryone();
     RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
@@ -237,7 +237,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       throws RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
     RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
 
     assertEquals(1, r.getRepresentations().size());
@@ -247,16 +247,16 @@ public class RepresentationAATest extends AbstractSecurityTest {
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
     Mockito.doReturn(representation).when(recordService)
-           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString());
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
 
     Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
-           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString());
 
     login(RONALD_PASSWORD, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
     RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
@@ -267,16 +267,16 @@ public class RepresentationAATest extends AbstractSecurityTest {
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
     Mockito.doReturn(representation).when(recordService)
-           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString());
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
 
     Mockito.doReturn(representationYouDontHavePermissionsFor).when(recordService)
-           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any());
+           .createRepresentation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyString());
 
     login(RONALD_PASSWORD, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     RepresentationsListWrapper r = representationsResource.getRepresentations(URI_INFO, GLOBAL_ID);
@@ -300,7 +300,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
   }
 
   // -- DELETE -- //
@@ -337,7 +337,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
     representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
   }
 
@@ -358,9 +358,9 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
     representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
   }
 
   @Test(expected = AccessDeniedException.class)
@@ -369,7 +369,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       RepresentationNotExistsException, CannotModifyPersistentRepresentationException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(RONALDO, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
   }
@@ -415,7 +415,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
 
     dataSetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_NAME, "");
 
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null, false);
     representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, VERSION);
   }
 
@@ -425,7 +425,7 @@ public class RepresentationAATest extends AbstractSecurityTest {
       CannotPersistEmptyRepresentationException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException {
 
     login(RONALDO, RONALD_PASSWORD);
-    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null, false);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     representationVersionResource.persistRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
   }

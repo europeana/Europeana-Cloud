@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
@@ -131,7 +132,7 @@ public class HarvestingWriteRecordBoltTest {
     when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
     when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
     URI uri = new URI(SOURCE_VERSION_URL);
-    when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), any())).thenReturn(uri);
+    when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), anyString(), anyBoolean())).thenReturn(uri);
 
     StormTaskTuple stormTaskTuple = getStormTaskTuple();
     stormTaskTuple.setMarkedAsDeleted(true);

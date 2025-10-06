@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.Representation;
@@ -73,7 +74,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteRevisionFor(Mockito.any());
     dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
-    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
+    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, UUIDs.timeBased(), DATA_SET_ID);
     Mockito.when(uisHandler.existsCloudId(rep.getCloudId())).thenReturn(true);
     revision = new Revision(TEST_REVISION_NAME, PROVIDER_ID);
     revisionForDataProvider = new Revision(TEST_REVISION_NAME, dataProvider.getId());

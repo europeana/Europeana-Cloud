@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
@@ -116,7 +117,7 @@ public class WriteRecordBoltTest {
         representation);
     when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
     URI uri = new URI(SOURCE_VERSION_URL);
-    when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString())).thenReturn(uri);
+    when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
 
     writeRecordBolt.execute(anchorTuple, tuple);
 
@@ -128,7 +129,7 @@ public class WriteRecordBoltTest {
     Map<String, String> parameters = (Map<String, String>) value.get(4);
     assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
     assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
-    verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString());
+    verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
   }
 
   @Test
