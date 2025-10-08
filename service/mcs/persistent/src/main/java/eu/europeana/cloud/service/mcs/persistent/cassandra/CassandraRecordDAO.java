@@ -209,13 +209,13 @@ public class CassandraRecordDAO {
    * @throws QueryExecutionException if error occurred while executing a query.
    * @throws NoHostAvailableException if no Cassandra host are available.
    */
-  public Optional<CompoundDataSetId> getRepresentationDatasetId(String cloudId, String schema)
+  public Optional<CompoundDataSetId> getRepresentationDatasetId(String cloudId, String schema, UUID version)
           throws NoHostAvailableException, QueryExecutionException {
 
     if (cloudId == null || schema == null) {
       throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
     }
-    BoundStatement boundStatement = getRepresentationDatasetIdAndProviderIdStatement.bind(cloudId, schema);
+    BoundStatement boundStatement = getRepresentationDatasetIdAndProviderIdStatement.bind(cloudId, schema, version);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
 
     QueryTracer.logConsistencyLevel(boundStatement, rs);
@@ -580,7 +580,7 @@ public class CassandraRecordDAO {
     getRepresentationDatasetIdAndProviderIdStatement = session.prepare(
             "SELECT dataset_id, provider_id" +
                     " FROM representation_versions " +
-                    "WHERE cloud_id = ? AND schema_id = ? " +
+                    "WHERE cloud_id = ? AND schema_id = ? AND version_id=?" +
                     "LIMIT 1;"
     );
 

@@ -232,8 +232,8 @@ public class CassandraDataSetService implements DataSetService {
     return resultList;
   }
   @Override
-  public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) {
-    return recordDAO.getRepresentationDatasetId(cloudId, representationName);
+  public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) {
+    return recordDAO.getRepresentationDatasetId(cloudId, representationName, version);
   }
 
   @Override

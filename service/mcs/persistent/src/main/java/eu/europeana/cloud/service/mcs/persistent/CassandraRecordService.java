@@ -169,8 +169,11 @@ public class CassandraRecordService implements RecordService {
       );
     }
 
+    if (version == null) {
+      version = generateTimeUUID();
+    }
     //
-    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName);
+    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName, version);
     if (oneDatasetFor.isPresent()) {
       CompoundDataSetId currentDataset = oneDatasetFor.get();
       CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, dataSetId);
@@ -184,9 +187,6 @@ public class CassandraRecordService implements RecordService {
     boolean cloudExists = uis.existsCloudId(cloudId);
     if (cloudExists) {
       LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
-      if (version == null) {
-        version = generateTimeUUID();
-      }
       Date now = Calendar.getInstance().getTime();
       Representation representation =
           recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId, markDeleted);

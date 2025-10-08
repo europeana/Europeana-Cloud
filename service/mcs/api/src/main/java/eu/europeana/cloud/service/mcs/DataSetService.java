@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for data sets and representation assignments to data sets.
@@ -183,7 +184,7 @@ public interface DataSetService {
    * @return found data set
    * @throws RepresentationNotExistsException in case of non-existing representation version
    */
-  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
+  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) throws RepresentationNotExistsException;
 
   public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }
