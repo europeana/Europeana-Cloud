@@ -134,14 +134,6 @@ public class CassandraRecordService implements RecordService {
   }
 
   @Override
-  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
-          throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
-          RepresentationNotExistsException, DataSetNotExistsException {
-
-    return createRepresentation(globalId, schema, providerId, null, dataSetId, false);
-  }
-
-  @Override
   public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
                                              String dataSetId) throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
           RepresentationNotExistsException, DataSetNotExistsException{

@@ -138,10 +138,6 @@ public interface RecordService {
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException;
 
-  Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId)
-          throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
-          RepresentationNotExistsException, DataSetNotExistsException;
-
   Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
                                       String dataSetId) throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
           RepresentationNotExistsException, DataSetNotExistsException;

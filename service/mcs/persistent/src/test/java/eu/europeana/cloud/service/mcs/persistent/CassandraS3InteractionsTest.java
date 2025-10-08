@@ -4,6 +4,7 @@ import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
+import com.datastax.driver.core.utils.UUIDs;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
@@ -13,6 +14,8 @@ import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContex
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.UUID;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -65,7 +68,7 @@ public class CassandraS3InteractionsTest extends CassandraTestBase {
     byte[] dummyContent = {1, 2, 3};
     File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
     Representation r = cassandraRecordService.createRepresentation("id",
-        "dc", providerId, "ds_name");
+        "dc", providerId, UUIDs.timeBased(), "ds_name");
 
     // when content is put
     try {

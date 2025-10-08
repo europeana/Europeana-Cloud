@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
@@ -79,7 +80,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     dp.setId("1");
 
     dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
-    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
+    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, UUID.randomUUID(), DATA_SET_ID);
 
     file = new File();
     file.setFileName("fileName");

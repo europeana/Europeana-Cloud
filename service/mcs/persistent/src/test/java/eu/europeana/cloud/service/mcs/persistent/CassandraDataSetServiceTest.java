@@ -8,7 +8,6 @@ import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.test.S3TestHelper;
@@ -42,7 +41,9 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
 public class CassandraDataSetServiceTest extends CassandraTestBase {
 
-  public static final UUID SAMPLE_VERSION = UUIDs.timeBased();
+  public static final UUID SAMPLE_VERSION_1 = UUIDs.timeBased();
+  public static final UUID SAMPLE_VERSION_2 = UUIDs.timeBased();
+  public static final UUID SAMPLE_VERSION_3 = UUIDs.timeBased();
   @Autowired
   private CassandraRecordService cassandraRecordService;
 
@@ -136,8 +137,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     // given particular data set and representations
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName, "description of this set");
-    Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, ds.getId());
-    insertDummyPersistentRepresentation("cloud-id-2", "schema", PROVIDER_ID, ds.getId());
+    Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
+    insertDummyPersistentRepresentation("cloud-id-2", "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
 
     Bucket bucket = getCurrentDataSetAssignmentBucket(PROVIDER_ID, dsName);
@@ -169,9 +170,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     // given particular data set and representations
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName, "description of this set");
-    Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, ds.getId());
+    Representation r1 = insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
 
-    Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", PROVIDER_ID, ds.getId());
+    Representation r2 = insertDummyPersistentRepresentation("cloud-id_1", "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
     // then those representations should be returned when listing assignments
     List<Representation> assignedRepresentations = cassandraDataSetService.listDataSet(ds.getProviderId(),
@@ -189,9 +190,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
         "description of this set");
     Representation r1 = insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, ds.getId());
+        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
-        "schema", PROVIDER_ID, ds.getId());
+        "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
 
     // when one of the representation is removed from data set
@@ -213,9 +214,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
         "description of this set");
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, ds.getId());
+        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     insertDummyPersistentRepresentation("cloud-id_1",
-        "schema", PROVIDER_ID, ds.getId());
+        "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
     // when this particular data set is removed
     cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId());
@@ -235,10 +236,11 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
         "description of this set");
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, ds.getId());
-    insertDummyPersistentRepresentation("cloud-id", "schema", PROVIDER_ID, ds.getId());
+        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
+    insertDummyPersistentRepresentation("cloud-id",
+        "schema", PROVIDER_ID, SAMPLE_VERSION_3, ds.getId());
 
     // then the most recent version should be returned
     List<Representation> assignedRepresentations = cassandraDataSetService
@@ -317,11 +319,11 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
   private Representation insertDummyPersistentRepresentation(String cloudId,
-      String schema, String providerId, String dataSetName) throws Exception {
+      String schema, String providerId, UUID version, String dataSetName) throws Exception {
     makeUISSuccess();
     makeUISProviderSuccess();
     Representation r = cassandraRecordService.createRepresentation(cloudId,
-        schema, providerId, dataSetName);
+        schema, providerId, version, dataSetName);
     byte[] dummyContent = {1, 2, 3};
     File f = new File("content.xml", "application/xml", null, null, 0, null);
     cassandraRecordService.putContent(cloudId, schema, r.getVersion(), f,
@@ -361,7 +363,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
 
     DataSet ds = createDataset();
-    Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID, ds.getId());
+    Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     Revision revision = new Revision(REVISION, PROVIDER_ID, date, false);
     cassandraRecordService.addRevision(representation.getCloudId(),
         representation.getRepresentationName(), representation.getVersion(), revision);
@@ -793,10 +795,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     makeUISProviderSuccess();
     makeDatasetExists();
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_1, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_2, SAMPLE_DATASET_ID);
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_3, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
         SAMPLE_DATASET_ID, null, false, 1);
@@ -820,12 +822,12 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     makeUISProviderSuccess();
     makeDatasetExists();
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION,SAMPLE_DATASET_ID);
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_1,SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_2, SAMPLE_DATASET_ID);
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_3, SAMPLE_DATASET_ID);
     File sampleFile = prepareSampleFile();
-    cassandraRecordService.putContent(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_VERSION.toString(), sampleFile, new ByteArrayInputStream("Example_content".getBytes(StandardCharsets.UTF_8)));
+    cassandraRecordService.putContent(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_VERSION_1.toString(), sampleFile, new ByteArrayInputStream("Example_content".getBytes(StandardCharsets.UTF_8)));
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
             SAMPLE_DATASET_ID, null, true, 5000);
@@ -856,10 +858,10 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     makeUISProviderSuccess();
     makeDatasetExists();
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_1, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_2, SAMPLE_DATASET_ID);
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID3, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_3, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
         SAMPLE_DATASET_ID, null, false, 1);
@@ -882,9 +884,9 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     makeUISProviderSuccess();
     makeDatasetExists();
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_1, SAMPLE_DATASET_ID);
     createDatasetAssignmentBucket();
-    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
+    cassandraRecordService.createRepresentation(SAMPLE_CLOUD_ID2, REPRESENTATION, SAMPLE_PROVIDER_NAME, SAMPLE_VERSION_2, SAMPLE_DATASET_ID);
 
     ResultSlice<Representation> page1 = cassandraDataSetService.listDataSet(SAMPLE_PROVIDER_NAME,
         SAMPLE_DATASET_ID, null, false, 1);
@@ -932,7 +934,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     List<Representation> assigned = new ArrayList<>();
     for (int i = 0; i < ASSIGNMENTS_COUNT; i++) {
       Representation representation = cassandraRecordService.createRepresentation("cloud_id_" + i,
-          "representation_" + i, dataSet.getProviderId(), dataSet.getId());
+          "representation_" + i, dataSet.getProviderId(), SAMPLE_VERSION_1, dataSet.getId());
       assigned.add(representation);
     }
     return assigned;
