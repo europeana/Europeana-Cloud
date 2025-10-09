@@ -90,6 +90,9 @@ public class RepresentationResource {
    * @param representationName name of the representation to be created (required).
    * @param providerId provider id of this representation version.
    * @param dataSetId dataset where newly created representation will be assigned
+   * @param version version of representation that will be used. If empty, then random version will be selected
+   * @param markDeleted flag that will decide whether representation will be treated as deleted.
+   *                   If empty, then false will be used by default.
    * @return The url of the created representation.
    * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
    * @throws ProviderNotExistsException no provider with given id exists

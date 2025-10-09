@@ -156,7 +156,6 @@ public interface DataSetService {
    * @param revisionName revision name
    * @param revisionProviderId revision provider
    * @param revisionTimestamp revision timestamp
-   * @throws ProviderNotExistsException
    * @throws RepresentationNotExistsException
    */
   void deleteRevision(String cloudId, String representationName, String version, String revisionName,
@@ -181,6 +180,7 @@ public interface DataSetService {
    *
    * @param cloudId cloud identifier to be used
    * @param representationName representation name to be used
+   * @param version version of representation that we get dataset for
    * @return found data set
    * @throws RepresentationNotExistsException in case of non-existing representation version
    */
