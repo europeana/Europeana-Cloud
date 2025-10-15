@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CleanTaskDirService {
 
-  private static final String SERVICE_CRON_SETUP = "0 0 0/6 * * *";  //daily, every 6 hour
+  private static final String SERVICE_CRON_SETUP = "0 0 0/1 * * *";  //daily, every 1 hour
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CleanTaskDirService.class);
   private static final String TASK_DIR_PREFIX = "task_";
@@ -52,6 +52,8 @@ public class CleanTaskDirService {
 
   @Scheduled(cron = SERVICE_CRON_SETUP)
   public void serviceTask() {
+    LOGGER.debug("Cleaning files for HTTP topology.");
+
     File[] dirs = tasksDir.listFiles(file -> {
       Matcher matcher = TASKDIR_PATTERN.matcher(file.getName());
       return file.isDirectory() && matcher.matches();
@@ -73,7 +75,7 @@ public class CleanTaskDirService {
         try {
           FileUtils.deleteDirectory(dir);
         } catch (IOException ioe) {
-          LOGGER.error("Cannot delete: '{}' directory", dir.getAbsolutePath());
+          LOGGER.error("Cannot delete: '{}' directory", dir.getAbsolutePath(), ioe);
         }
       }
     }
