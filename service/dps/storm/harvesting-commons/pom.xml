@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-service-dps</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>14</version>
+        <version>14.1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
