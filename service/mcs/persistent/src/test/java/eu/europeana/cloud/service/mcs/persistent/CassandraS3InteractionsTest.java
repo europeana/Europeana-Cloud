@@ -14,7 +14,6 @@ import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContex
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Assert;

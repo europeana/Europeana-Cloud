@@ -163,17 +163,8 @@ public class CassandraRecordService implements RecordService {
 
     if (version == null) {
       version = generateTimeUUID();
-    }
-    //
-    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName, version);
-    if (oneDatasetFor.isPresent()) {
-      CompoundDataSetId currentDataset = oneDatasetFor.get();
-      CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, dataSetId);
-      if (!currentDataset.equals(newVersionDataset)) {
-        throw new DataSetAssignmentException("ProviderId and/or datasetId: " + newVersionDataset
-            + " doesn't match the current assignments of the representation: " + currentDataset
-            + ". It is not allowed to assign representations of same record to more than one dataset.");
-      }
+    }else {
+      checkIfVersionIsContainedOnlyOneDataset(cloudId, representationName, providerId, version, dataSetId);
     }
 
     boolean cloudExists = uis.existsCloudId(cloudId);
@@ -199,6 +190,19 @@ public class CassandraRecordService implements RecordService {
       return representation;
     } else {
       throw new RecordNotExistsException(cloudId);
+    }
+  }
+
+  private void checkIfVersionIsContainedOnlyOneDataset(String cloudId, String representationName, String providerId, UUID version, String dataSetId) throws RepresentationNotExistsException, DataSetAssignmentException {
+    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName, version);
+    if (oneDatasetFor.isPresent()) {
+      CompoundDataSetId currentDataset = oneDatasetFor.get();
+      CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, dataSetId);
+      if (!currentDataset.equals(newVersionDataset)) {
+        throw new DataSetAssignmentException("ProviderId and/or datasetId: " + newVersionDataset
+                + " doesn't match the current assignments of the representation: " + currentDataset
+                + ". It is not allowed to assign representations of same record to more than one dataset.");
+      }
     }
   }
 

@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;

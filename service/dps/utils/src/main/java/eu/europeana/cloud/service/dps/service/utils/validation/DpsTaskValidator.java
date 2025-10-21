@@ -342,12 +342,12 @@ public final class DpsTaskValidator {
     }
   }
 
-  public void validateInputRevisionOrCorrectDatasets(List<String> expectedInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+  public void validateInputRevisionOrCorrectDatasets(List<String> taskInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     if (!isRevisionFilled(task)) {
       DataSet outputDataset = parseDataSetUrl(task.getParameter(OUTPUT_DATA_SETS));
       if (outputDataset != null){
-        for (String expectedInputDataValue : expectedInputData) {
-          validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, expectedInputDataValue);
+        for (String taskInputDataValue : taskInputData) {
+          validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, taskInputDataValue);
         }
       } else {
         throw new DpsTaskValidationException("Revision is not filled and input dataset is null!");
@@ -368,13 +368,11 @@ public final class DpsTaskValidator {
 
 
   private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, DataSet outputDataset,
-                                                                    String expectedInputDataValue) throws DpsTaskValidationException {
+                                                                    String taskInputDataValue) throws DpsTaskValidationException {
     boolean isInputAndOutputDatasetDifferent = true;
     DataSet inputDataset = null;
     if (constraint.getExpectedValue() == LINK_TO_DATASET) {
-      inputDataset = parseDataSetUrl(expectedInputDataValue);
-    } else if (constraint.getExpectedValue() == LINK_TO_FILE) {
-      inputDataset = parseDataSetUrl(expectedInputDataValue);
+      inputDataset = parseDataSetUrl(taskInputDataValue);
     }
     if (outputDataset.equals(inputDataset)) {
       isInputAndOutputDatasetDifferent = false;
@@ -391,41 +389,41 @@ public final class DpsTaskValidator {
             outputRevision.getCreationTimeStamp() != null;
   }
 
-  private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint)
+  private void validateInputDataContent(List<String> taskInputData, DpsTaskConstraint constraint)
       throws DpsTaskValidationException {
-    for (String expectedInputDataValue : expectedInputData) {
+    for (String taskInputDataValue : taskInputData) {
       try {
         if (constraint.getExpectedValueType() == LINK_TO_FILE) {
-          tryValidateFileUrl(expectedInputDataValue);
+          tryValidateFileUrl(taskInputDataValue);
         } else if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
-          tryValidateDatasetUrl(expectedInputDataValue);
+          tryValidateDatasetUrl(taskInputDataValue);
         } else if (constraint.getExpectedValueType() == LINK_TO_EXTERNAL_URL) {
-          tryValidateResourceUrl(expectedInputDataValue);
+          tryValidateResourceUrl(taskInputDataValue);
         }
       } catch (MalformedURLException e) {
-        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue, e);
+        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue, e);
       }
     }
   }
 
-  private void tryValidateResourceUrl(String expectedInputDataValue) throws DpsTaskValidationException {
+  private void tryValidateResourceUrl(String taskInputDataValue) throws DpsTaskValidationException {
     UrlValidator urlValidator = new UrlValidator();
-    if (!urlValidator.isValid(expectedInputDataValue)) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+    if (!urlValidator.isValid(taskInputDataValue)) {
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 
-  private void tryValidateFileUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(expectedInputDataValue);
+  private void tryValidateFileUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+    UrlParser parser = new UrlParser(taskInputDataValue);
     if (!parser.isUrlToRepresentationVersionFile()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 
-  private void tryValidateDatasetUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(expectedInputDataValue);
+  private void tryValidateDatasetUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+    UrlParser parser = new UrlParser(taskInputDataValue);
     if (!parser.isUrlToDataset()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 

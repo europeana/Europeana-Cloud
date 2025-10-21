@@ -206,6 +206,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       if (!isEmpty(repositoryUrlList)) {
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
       }
+      List<String> datasetUrlList = dpsTask.getDataEntry(InputDataType.DATASET_URLS);
+      if (!isEmpty(datasetUrlList)){
+        stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, datasetUrlList.get(0));
+      }
 
       //Implementation of re-try mechanism after topology broken down
       stormTaskTuple.setRecordAttemptNumber(aRecord.getAttemptNumber());

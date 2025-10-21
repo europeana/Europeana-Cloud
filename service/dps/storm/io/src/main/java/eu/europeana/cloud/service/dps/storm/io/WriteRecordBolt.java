@@ -5,8 +5,11 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -44,6 +47,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String topologyUserName;
   private final String topologyUserPassword;
   protected transient RecordServiceClient recordServiceClient;
+  protected transient DataSetServiceClient dataSetServiceClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
       String topologyUserName, String topologyUserPassword) {
@@ -64,7 +68,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  private boolean ShouldNewRepresentationBeCreated(StormTaskTuple tuple) throws MalformedURLException {
+  private boolean shouldNewRepresentationBeCreated(StormTaskTuple tuple) throws MalformedURLException {
     if (!tuple.isMarkedAsDeleted()) {
       return true;
     }
@@ -83,8 +87,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     return true;
   }
 
-  private static boolean isResultSavedToNewDataset(StormTaskTuple tuple) throws MalformedURLException {
-    String inputDataSetId = DataSetUrlParser.parse(tuple.getFileUrl()).getId();
+  private boolean isResultSavedToNewDataset(StormTaskTuple tuple) throws MalformedURLException {
+    String inputDataSetId = tuple.getParameter(DPS_TASK_INPUT_DATA);
     String outputDataSetId = StormTaskTupleHelper.extractDatasetId(tuple);
 
     return !inputDataSetId.equals(outputDataSetId);
@@ -100,7 +104,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      if (ShouldNewRepresentationBeCreated(stormTaskTuple)) {
+      if (shouldNewRepresentationBeCreated(stormTaskTuple)) {
         RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
         LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
         var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);

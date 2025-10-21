@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_HARVEST;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -164,6 +164,19 @@ public class HarvestingPostProcessorTest {
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
     task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
+  }
+
+  private void prepareTaskWithRevisionOrientedMode(){
+    task.setTaskId(TASK_ID);
+    task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    task.addParameter(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_STRING);
+    task.addParameter(PluginParameterKeys.PROVIDER_ID, PROVIDER_ID);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
+    task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
+    task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
+    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER);
+    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, REVISION_TIMESTAMP.toString());
     Revision revision = new Revision();
     revision.setRevisionName(REVISION_NAME);
     revision.setRevisionProviderId(REVISION_PROVIDER);
@@ -211,6 +224,24 @@ public class HarvestingPostProcessorTest {
   }
 
   @Test
+  public void shouldAddOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
+    prepareTaskWithRevisionOrientedMode();
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+
+    service.execute(taskInfo, task);
+
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
+    verify(taskStatusUpdater, times(2))
+            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+    verifyNoMoreInteractions(taskStatusUpdater);
+  }
+
+  @Test
   public void shouldOmitRecordThatIsAlreadyAddedAsDeleted() {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
     when(processedRecordsDAO.selectByPrimaryKey(TASK_ID, RECORD_ID1)).
@@ -240,6 +271,31 @@ public class HarvestingPostProcessorTest {
     verify(processedRecordsDAO, times(2)).insert(any());
     verify(taskStatusUpdater, times(2))
         .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 2);
+    verifyNoMoreInteractions(taskStatusUpdater);
+  }
+
+  @Test
+  public void shouldAddAllOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
+    prepareTaskWithRevisionOrientedMode();
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
+
+    service.execute(taskInfo, task);
+
+    //record1
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    //record2
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
+    verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    //task
+    verify(processedRecordsDAO, times(2)).insert(any());
+    verify(taskStatusUpdater, times(2))
+            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);

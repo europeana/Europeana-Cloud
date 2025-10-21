@@ -69,7 +69,10 @@ public class StormTaskTuple implements Serializable {
       byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied) {
     this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, null);
   }
-
+  public StormTaskTuple(long taskId, String taskName, String fileUrl,
+                        byte[] fileData, Map<String, String> parameters) {
+    this(taskId, taskName, fileUrl, fileData, parameters, null, null);
+  }
   public StormTaskTuple(long taskId, String taskName, String fileUrl,
       byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
       OAIPMHHarvestingDetails sourceDetails) {
