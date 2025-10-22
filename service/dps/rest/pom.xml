@@ -213,7 +213,11 @@
       <artifactId>ecloud-service-dps-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-common-utils</artifactId>
+      <version>16.1</version>
+    </dependency>
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-harvesting</artifactId>
