@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CleanTaskDirService {
 
-  private static final String SERVICE_CRON_SETUP = "0 0 0/1 * * *";  //daily, every 1 hour
+  public static final long JOB_DELAY = 60*60*1000L;  //daily, every 1 hour
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CleanTaskDirService.class);
   private static final String TASK_DIR_PREFIX = "task_";
@@ -50,7 +50,8 @@ public class CleanTaskDirService {
     }
   }
 
-  @Scheduled(cron = SERVICE_CRON_SETUP)
+@Scheduled(fixedDelay = JOB_DELAY, initialDelayString = "#{ T(java.util.concurrent.ThreadLocalRandom).current()" +
+        ".nextInt(T(eu.europeana.cloud.service.dps.utils.CleanTaskDirService).JOB_DELAY) }")
   public void serviceTask() {
     LOGGER.debug("Cleaning files for HTTP topology.");
 
