@@ -8,16 +8,13 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvesterRuntimeException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -42,45 +39,50 @@ public class HarvestsExecutor {
     this.taskStatusChecker = taskStatusChecker;
   }
 
-  public HarvestResult execute(OaiHarvest harvestToBeExecuted, SubmitTaskParameters parameters) throws HarvesterException {
-    final AtomicInteger resultCounter = new AtomicInteger(0);
+  public HarvestResult execute(OaiHarvest harvestToBeExecuted, SubmitTaskParameters parameters) throws HarvesterRuntimeException {
 
     LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvestToBeExecuted,
         parameters.getTask().getTaskId());
     OaiHarvester harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
     HarvestingIterator<OaiRecordHeader, OaiRecordHeader> headerIterator = harvester.harvestRecordHeaders(harvestToBeExecuted);
 
-    // *** Main harvesting loop for given task ***
-    final AtomicBoolean taskDropped = new AtomicBoolean(false);
-    headerIterator.forEach(oaiHeader -> {
+    // *** Main harvesting loop for a given task ***
+    boolean taskDropped = false;
+    int resultCounter = 0;
+    for (var oaiHeader : headerIterator) {
       if (taskStatusChecker.hasDroppedStatus(parameters.getTask().getTaskId())) {
-        LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal", harvestToBeExecuted,
-            parameters.getTask().getTaskId());
-        taskDropped.set(true);
-        return IterationResult.TERMINATE;
+        LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal",
+            harvestToBeExecuted, parameters.getTask().getTaskId());
+        taskDropped = true;
+        break;
       }
+
       if (oaiHeader.isDeleted()) {
         LOGGER.warn("Ignoring OAI record header {} for {} because it is deleted on the OAI repo",
             oaiHeader.getOaiIdentifier(),
             parameters.getTask().getTaskId());
-        return IterationResult.CONTINUE;
+        continue;
       }
+
       DpsRecord dpsRecord = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
       if (recordSubmitService.submitRecord(dpsRecord, parameters)) {
-        resultCounter.incrementAndGet();
+        resultCounter++;
       }
+
       logProgressFor(harvestToBeExecuted, parameters.incrementAndGetPerformedRecordCounter());
-      return resultCounter.get() < getMaxRecordsCount(parameters)
-          ? IterationResult.CONTINUE : IterationResult.TERMINATE;
-    });
-    if (taskDropped.get()) {
+
+      if (resultCounter >= getMaxRecordsCount(parameters)) {
+        break;
+      }
+    }
+    if (taskDropped) {
       return HarvestResult.builder()
-                          .resultCounter(resultCounter.get())
+                          .resultCounter(resultCounter)
                           .taskState(TaskState.DROPPED).build();
     }
     LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvestToBeExecuted, resultCounter);
 
-    return new HarvestResult(resultCounter.get(), TaskState.QUEUED);
+    return new HarvestResult(resultCounter, TaskState.QUEUED);
   }
 
   private int getMaxRecordsCount(SubmitTaskParameters parameters) {

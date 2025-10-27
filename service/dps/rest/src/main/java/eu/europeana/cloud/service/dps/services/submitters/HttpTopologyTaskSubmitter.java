@@ -13,11 +13,9 @@ import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +61,7 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
                                             .getDataEntry(InputDataType.REPOSITORY_URLS).getFirst();
       final HarvestingIterator<Path, Path> iterator = HarvesterFactory.createHttpHarvester()
                                                                       .harvestRecords(urlToZipFile,
-                                                              downloadedFileLocationFor(parameters.getTask()));
+                                                                          downloadedFileLocationFor(parameters.getTask()));
       selectKafkaTopicFor(parameters);
       taskStatusUpdater.updateSubmitParameters(parameters);
       expectedCount = iterateOverFiles(iterator, parameters);
@@ -87,33 +85,30 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
     parameters.setTopicName(kafkaTopicSelector.findPreferredTopicNameFor(TopologiesNames.HTTP_TOPOLOGY));
   }
 
-  private int iterateOverFiles(HarvestingIterator<Path, Path> iterator,
-      SubmitTaskParameters submitTaskParameters) throws HarvesterException {
-    final var expectedSize = new AtomicInteger(0);
-    iterator.forEach(file -> {
+  private int iterateOverFiles(HarvestingIterator<Path, Path> harvestingIterator,
+      SubmitTaskParameters submitTaskParameters) {
+    int expectedSize = 0;
+    for (Path path : harvestingIterator) {
       if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
-        return IterationResult.TERMINATE;
+        break;
       }
       DpsRecord dpsRecord;
       try {
         dpsRecord = DpsRecord.builder()
                              .taskId(submitTaskParameters.getTask().getTaskId())
-                             .recordId(fileURLCreator.generateUrlFor(file))
+                             .recordId(fileURLCreator.generateUrlFor(path))
                              .build();
       } catch (UnsupportedEncodingException e) {
         taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(),
-            "Unable to generate URL for file: " + file.toString());
-        return IterationResult.TERMINATE;
+            "Unable to generate URL for file: " + path.toString());
+        break;
+      }
+      if (recordSubmitService.submitRecord(dpsRecord, submitTaskParameters)) {
+        expectedSize++;
       }
 
-      if (recordSubmitService.submitRecord(
-          dpsRecord,
-          submitTaskParameters)) {
-        expectedSize.incrementAndGet();
-      }
-      return IterationResult.CONTINUE;
-    });
-    return expectedSize.get();
+    }
+    return expectedSize;
   }
 
   private void updateTaskStatus(DpsTask dpsTask, int expectedCount) {
