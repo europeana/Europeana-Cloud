@@ -43,7 +43,7 @@ public class XSLTTopology {
         .addReadFileBolt()
         .addBolt(XSLT_BOLT, new XsltBolt(createCassandraProperties(topologyProperties)),
             XSLT_BOLT_PARALLEL, XSLT_BOLT_NUMBER_OF_TASKS)
-        .addWriteRecordBolt()
+        .addWriteRecordBolt("xslt_topology")
         .addRevisionWriterBolt()
         .buildTopology();
   }

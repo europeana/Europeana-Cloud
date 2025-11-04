@@ -73,10 +73,13 @@ public class HarvestingPostProcessorTest {
   private static final String VERSION = "v1";
   private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
   private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
-  private static final Date REVISION_TIMESTAMP = new Date(0);
-  private static final String REVISION_PROVIDER = "revisionProvider";
-  private static final String REVISION_NAME = "revisionName";
-  private static final Revision RESULT_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP, true);
+  private static final Date INPUT_REVISION_TIMESTAMP = new Date(0);
+  private static final String INPUT_REVISION_PROVIDER = "revisionProvider";
+  private static final String INPUT_REVISION_NAME = "revisionName";
+  private static final Date OUTPUT_REVISION_TIMESTAMP = new Date(0);
+  private static final String OUTPUT_REVISION_PROVIDER = "revisionProvider";
+  private static final String OUTPUT_REVISION_NAME = "revisionName";
+  private static final Revision RESULT_REVISION = new Revision(OUTPUT_REVISION_NAME, OUTPUT_REVISION_PROVIDER, OUTPUT_REVISION_TIMESTAMP, true);
   private static final String HARVEST_DATE_STRING = "2021-05-26T08:00:00.000Z";
   private static final Date HARVEST_DATE = DateHelper.parseISODate(HARVEST_DATE_STRING);
   private static final Date OLDER_DATE = DateHelper.parseISODate("2021-05-26T07:30:00.000Z");
@@ -174,13 +177,13 @@ public class HarvestingPostProcessorTest {
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
     task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
-    task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER);
-    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, REVISION_TIMESTAMP.toString());
+    task.addParameter(PluginParameterKeys.REVISION_NAME, INPUT_REVISION_NAME);
+    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, INPUT_REVISION_PROVIDER);
+    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, INPUT_REVISION_TIMESTAMP.toString());
     Revision revision = new Revision();
-    revision.setRevisionName(REVISION_NAME);
-    revision.setRevisionProviderId(REVISION_PROVIDER);
-    revision.setCreationTimeStamp(REVISION_TIMESTAMP);
+    revision.setRevisionName(OUTPUT_REVISION_NAME);
+    revision.setRevisionProviderId(OUTPUT_REVISION_PROVIDER);
+    revision.setCreationTimeStamp(OUTPUT_REVISION_TIMESTAMP);
     task.setOutputRevision(revision);
   }
 

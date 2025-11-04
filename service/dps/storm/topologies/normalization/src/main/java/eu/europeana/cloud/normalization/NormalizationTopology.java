@@ -36,7 +36,7 @@ public class NormalizationTopology {
         .addReadFileBolt()
         .addBolt(NORMALIZATION_BOLT, new NormalizationBolt(createCassandraProperties(topologyProperties)),
             NORMALIZATION_BOLT_PARALLEL, NORMALIZATION_BOLT_NUMBER_OF_TASKS)
-        .addWriteRecordBolt()
+        .addWriteRecordBolt("normalization_topology")
         .addRevisionWriterBolt()
         .buildTopology();
   }

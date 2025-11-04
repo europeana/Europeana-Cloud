@@ -5,11 +5,7 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
-import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -19,6 +15,7 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
+import org.apache.storm.Config;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +25,7 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
@@ -47,14 +43,14 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String topologyUserName;
   private final String topologyUserPassword;
   protected transient RecordServiceClient recordServiceClient;
-  protected transient DataSetServiceClient dataSetServiceClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
-      String topologyUserName, String topologyUserPassword) {
+      String topologyUserName, String topologyUserPassword, String topologyName) {
     super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
+    this.topologyName = topologyName;
   }
 
   @Override
@@ -68,7 +64,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  private boolean shouldNewRepresentationBeCreated(StormTaskTuple tuple) throws MalformedURLException {
+  private boolean shouldNewRepresentationBeCreated(StormTaskTuple tuple) {
     if (!tuple.isMarkedAsDeleted()) {
       return true;
     }
@@ -77,7 +73,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
     if (!isRevisionProvided(recordParams)) return true;
 
-    return isResultSavedToNewDataset(tuple);
+    return ifRepresentationShouldBeCreatedBasedOnTopology();
   }
 
   private boolean isRevisionProvided(Map<String, String> recordParams) {
@@ -87,11 +83,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     return true;
   }
 
-  private boolean isResultSavedToNewDataset(StormTaskTuple tuple) throws MalformedURLException {
-    String inputDataSetId = tuple.getParameter(DPS_TASK_INPUT_DATA);
-    String outputDataSetId = StormTaskTupleHelper.extractDatasetId(tuple);
-
-    return !inputDataSetId.equals(outputDataSetId);
+  private boolean ifRepresentationShouldBeCreatedBasedOnTopology(){
+    List<String> topologiesRequiringNewRepresentation = Arrays.stream(new String[] {"xslt_topology", "enrichment_topology", "normalization_topology", "media_topology"}).toList();
+    return topologiesRequiringNewRepresentation.contains(this.topologyName);
   }
 
   private boolean isBlank(Map<String, String> map, String key) {

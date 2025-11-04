@@ -31,7 +31,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       String ecloudUisAddress,
       String topologyUserName,
       String topologyUserPassword) {
-    super(cassandraProperties, ecloudMcsAddress, topologyUserName, topologyUserPassword);
+    super(cassandraProperties, ecloudMcsAddress, topologyUserName, topologyUserPassword, "oai_topology");
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
     this.ecloudUisAddress = ecloudUisAddress;

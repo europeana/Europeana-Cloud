@@ -91,12 +91,13 @@ public class ECloudTopologyPipeline {
    * Adds WriteRecordBolt to the pipeline
    * @return this
    */
-  public ECloudTopologyPipeline addWriteRecordBolt() {
+  public ECloudTopologyPipeline addWriteRecordBolt(String topologyName) {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
+            topologyName
     );
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;

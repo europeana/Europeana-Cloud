@@ -9,7 +9,6 @@ import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataV
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlBuilderException;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -261,6 +260,18 @@ public final class DpsTaskValidator {
     }
   }
 
+  private void validateRevisionBasedProcessingParameters(DpsTask task) throws DpsTaskValidationException {
+    if (isRevisionFilled(task)){
+      long numberOfFilesAndDatasets = dpsTaskConstraints.stream().map(DpsTaskConstraint::getExpectedValueType)
+              .filter(dataValueType -> dataValueType.equals(LINK_TO_FILE) || dataValueType.equals(LINK_TO_DATASET)).count();
+      if (numberOfFilesAndDatasets != 1) {
+        throw new DpsTaskValidationException(
+                "Dps task with filled revision can contain only one input dataset or one input file"
+        );
+      }
+    }
+  }
+
 
   private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     String taskName = task.getTaskName();
@@ -326,7 +337,13 @@ public final class DpsTaskValidator {
     if (constraint.getExpectedValue() == null) {   //any value
       return;
     }
-    validateInputRevisionOrCorrectDatasets(expectedInputData, task, constraint);
+    if (constraint.getExpectedValueType() != null) {
+      if (isRevisionFilled(task)){
+        validateRevisionBasedProcessingParameters(task);
+      } else {
+        validateCorrectDatasets(expectedInputData, task, constraint);
+      }
+    }
     if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
       return;
     }
@@ -342,8 +359,7 @@ public final class DpsTaskValidator {
     }
   }
 
-  public void validateInputRevisionOrCorrectDatasets(List<String> taskInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    if (!isRevisionFilled(task)) {
+  public void validateCorrectDatasets(List<String> taskInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
       DataSet outputDataset = parseDataSetUrl(task.getParameter(OUTPUT_DATA_SETS));
       if (outputDataset != null){
         for (String taskInputDataValue : taskInputData) {
@@ -352,8 +368,6 @@ public final class DpsTaskValidator {
       } else {
         throw new DpsTaskValidationException("Revision is not filled and input dataset is null!");
       }
-    }
-
   }
 
   private static DataSet parseDataSetUrl(String datasetUrl) throws DpsTaskValidationException {
@@ -371,9 +385,14 @@ public final class DpsTaskValidator {
                                                                     String taskInputDataValue) throws DpsTaskValidationException {
     boolean isInputAndOutputDatasetDifferent = true;
     DataSet inputDataset = null;
-    if (constraint.getExpectedValue() == LINK_TO_DATASET) {
+    if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
       inputDataset = parseDataSetUrl(taskInputDataValue);
     }
+    if (constraint.getExpectedValueType() == LINK_TO_FILE){
+      return;
+    }
+    // in case of file constraint we expect user to provide it correctly since it would be a bit problematic to extract
+    // dataset from file URI
     if (outputDataset.equals(inputDataset)) {
       isInputAndOutputDatasetDifferent = false;
     }

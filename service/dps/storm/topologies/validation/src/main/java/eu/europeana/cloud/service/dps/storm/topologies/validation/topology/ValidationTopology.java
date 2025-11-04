@@ -58,7 +58,7 @@ public class ValidationTopology {
                 topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME), topologyProperties.getProperty(CASSANDRA_USERNAME),
                 topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
             STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
-        .addWriteRecordBolt()
+        .addWriteRecordBolt("validation__topology")
         .addRevisionWriterBolt()
         .buildTopology();
   }

@@ -304,8 +304,8 @@ public class DpsTaskValidatorTest {
   }
 
   @Test
-  @Parameters({"https://domain.com/paht",
-      "https://domain.com/paht/some.xml", "https://domain.com/paht/some.xml"})
+  @Parameters({"https://domain.com/data-providers/xxx1/data-sets/yyy1",
+      "https://domain.com/data-providers/xxx2/data-sets/yyy2", "https://domain.com/data-providers/xxx3/data-sets/yyy3"})
   public void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
     commonOaiPmhValidation(url);
   }
