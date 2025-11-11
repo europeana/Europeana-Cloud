@@ -11,9 +11,11 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvesterRuntimeException;
 import eu.europeana.metis.harvesting.HarvestingIterator;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
+import java.io.IOException;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,31 +51,36 @@ public class HarvestsExecutor {
     // *** Main harvesting loop for a given task ***
     boolean taskDropped = false;
     int resultCounter = 0;
-    for (var oaiHeader : headerIterator) {
-      if (taskStatusChecker.hasDroppedStatus(parameters.getTask().getTaskId())) {
-        LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal",
-            harvestToBeExecuted, parameters.getTask().getTaskId());
-        taskDropped = true;
-        break;
-      }
+    try(CloseableIterator<OaiRecordHeader> closeableIterator = headerIterator.getCloseableIterator()){
+      while (closeableIterator.hasNext()){
+        OaiRecordHeader oaiHeader = closeableIterator.next();
+        if (taskStatusChecker.hasDroppedStatus(parameters.getTask().getTaskId())) {
+          LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal",
+              harvestToBeExecuted, parameters.getTask().getTaskId());
+          taskDropped = true;
+          break;
+        }
 
-      if (oaiHeader.isDeleted()) {
-        LOGGER.warn("Ignoring OAI record header {} for {} because it is deleted on the OAI repo",
-            oaiHeader.getOaiIdentifier(),
-            parameters.getTask().getTaskId());
-        continue;
-      }
+        if (oaiHeader.isDeleted()) {
+          LOGGER.warn("Ignoring OAI record header {} for {} because it is deleted on the OAI repo",
+              oaiHeader.getOaiIdentifier(),
+              parameters.getTask().getTaskId());
+          continue;
+        }
 
-      DpsRecord dpsRecord = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
-      if (recordSubmitService.submitRecord(dpsRecord, parameters)) {
-        resultCounter++;
-      }
+        DpsRecord dpsRecord = convertToDpsRecord(oaiHeader, harvestToBeExecuted, parameters.getTask());
+        if (recordSubmitService.submitRecord(dpsRecord, parameters)) {
+          resultCounter++;
+        }
 
-      logProgressFor(harvestToBeExecuted, parameters.incrementAndGetPerformedRecordCounter());
+        logProgressFor(harvestToBeExecuted, parameters.incrementAndGetPerformedRecordCounter());
 
-      if (resultCounter >= getMaxRecordsCount(parameters)) {
-        break;
+        if (resultCounter >= getMaxRecordsCount(parameters)) {
+          break;
+        }
       }
+    } catch (IOException e) {
+      throw new HarvesterRuntimeException(e);
     }
     if (taskDropped) {
       return HarvestResult.builder()

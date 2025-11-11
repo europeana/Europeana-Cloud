@@ -13,7 +13,9 @@ import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import org.slf4j.Logger;
@@ -86,27 +88,31 @@ public class HttpTopologyTaskSubmitter implements TaskSubmitter {
   }
 
   private int iterateOverFiles(HarvestingIterator<Path, Path> harvestingIterator,
-      SubmitTaskParameters submitTaskParameters) {
+      SubmitTaskParameters submitTaskParameters) throws HarvesterException {
     int expectedSize = 0;
-    for (Path path : harvestingIterator) {
-      if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
-        break;
+    try(CloseableIterator<Path> closeableIterator = harvestingIterator.getCloseableIterator()){
+      while (closeableIterator.hasNext()){
+        Path path = closeableIterator.next();
+        if (taskStatusChecker.hasDroppedStatus(submitTaskParameters.getTask().getTaskId())) {
+          break;
+        }
+        DpsRecord dpsRecord;
+        try {
+          dpsRecord = DpsRecord.builder()
+                               .taskId(submitTaskParameters.getTask().getTaskId())
+                               .recordId(fileURLCreator.generateUrlFor(path))
+                               .build();
+        } catch (UnsupportedEncodingException e) {
+          taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(),
+              "Unable to generate URL for file: " + path.toString());
+          break;
+        }
+        if (recordSubmitService.submitRecord(dpsRecord, submitTaskParameters)) {
+          expectedSize++;
+        }
       }
-      DpsRecord dpsRecord;
-      try {
-        dpsRecord = DpsRecord.builder()
-                             .taskId(submitTaskParameters.getTask().getTaskId())
-                             .recordId(fileURLCreator.generateUrlFor(path))
-                             .build();
-      } catch (UnsupportedEncodingException e) {
-        taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(),
-            "Unable to generate URL for file: " + path.toString());
-        break;
-      }
-      if (recordSubmitService.submitRecord(dpsRecord, submitTaskParameters)) {
-        expectedSize++;
-      }
-
+    } catch (IOException e) {
+      throw new HarvesterException(e);
     }
     return expectedSize;
   }
