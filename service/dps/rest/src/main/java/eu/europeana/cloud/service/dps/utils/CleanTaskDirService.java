@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CleanTaskDirService {
 
-  private static final String SERVICE_CRON_SETUP = "0 0 0/1 * * *";  //daily, every 1 hour
+  public static final long JOB_DELAY = 60*60*1000L;  //daily, every 1 hour
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CleanTaskDirService.class);
   private static final String TASK_DIR_PREFIX = "task_";
@@ -50,9 +50,10 @@ public class CleanTaskDirService {
     }
   }
 
-  @Scheduled(cron = SERVICE_CRON_SETUP)
+@Scheduled(fixedDelay = JOB_DELAY, initialDelayString = "#{ T(java.util.concurrent.ThreadLocalRandom).current()" +
+        ".nextInt(T(eu.europeana.cloud.service.dps.utils.CleanTaskDirService).JOB_DELAY) }")
   public void serviceTask() {
-    LOGGER.debug("Cleaning files for HTTP topology.");
+    LOGGER.debug("Looking for HTTP topology directories to delete.");
 
     File[] dirs = tasksDir.listFiles(file -> {
       Matcher matcher = TASKDIR_PATTERN.matcher(file.getName());
@@ -65,6 +66,7 @@ public class CleanTaskDirService {
     }
 
     for (File dir : dirs) {
+      LOGGER.debug("Checking if http task owning directory: {} is finished", dir);
       long taskId = getTaskId(dir);
 
       TaskState taskState = taskInfoDAO.findById(taskId)
@@ -73,11 +75,16 @@ public class CleanTaskDirService {
 
       if (taskState == TaskState.PROCESSED || taskState == TaskState.DROPPED) {
         try {
+          LOGGER.debug("Deleting http task directory: {}", dir);
           FileUtils.deleteDirectory(dir);
+          LOGGER.info("Successfully deleted http task directory: {}", dir);
         } catch (IOException ioe) {
           LOGGER.error("Cannot delete: '{}' directory", dir.getAbsolutePath(), ioe);
         }
       }
+    }
+    if(dirs.length == 0){
+      LOGGER.debug("No HTTP topology directories found.");
     }
   }
 
