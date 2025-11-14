@@ -42,7 +42,7 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);
-  private static final int MAX_RETRIES = 3;
+  private static final int MAX_RETRIES = 10;
   private final String topologyName;
   private final String topic;
   private final String hosts;
