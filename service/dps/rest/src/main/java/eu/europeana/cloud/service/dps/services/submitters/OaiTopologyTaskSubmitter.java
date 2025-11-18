@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.metis.harvesting.HarvesterException;
+import eu.europeana.metis.harvesting.HarvesterRuntimeException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
       HarvestResult harvesterResult;
       harvesterResult = harvestsExecutor.execute(harvestToByExecuted, parameters);
       updateTaskStatus(parameters.getTask().getTaskId(), harvesterResult);
-    } catch (HarvesterException e) {
+    } catch (HarvesterRuntimeException e) {
       throw new TaskSubmissionException("Unable to submit task properly", e);
     }
   }
