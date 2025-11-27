@@ -7,10 +7,10 @@ import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
+import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
+import eu.europeana.enrichment.rest.client.enrichment.Enricher;
 import eu.europeana.enrichment.rest.client.enrichment.EnricherProvider;
-import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
-import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult.RecordStatus;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -116,15 +116,17 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   public void prepare() {
     final EnricherProvider enricherProvider = new EnricherProvider();
     enricherProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
-            enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
+        enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
     final DereferencerProvider dereferencerProvider = new DereferencerProvider();
     dereferencerProvider.setDereferenceUrl(dereferenceURL);
     dereferencerProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
-            enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
-    try {
-      enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(),
-          enricherProvider.create());
-    } catch (DereferenceException | EnrichmentException e) {
+        enrichmentEntityApiTokenEndpoint, enrichmentEntityApiGrantParams);
+    try (Dereferencer dereferencer = dereferencerProvider.create(); Enricher enricher = enricherProvider.create()) {
+      enrichmentWorker = new EnrichmentWorkerImpl(dereferencer, enricher);
+    } catch (Exception e) {
+      for (Throwable s : e.getSuppressed()) {
+        LOGGER.warn("EnrichmentBolt suppressed exception during close", s);
+      }
       throw new BoltInitializationException("Could not instantiate EnrichmentBolt due Exception in enrich worker creating", e);
     }
   }
