@@ -50,8 +50,7 @@ public class CleanTaskDirService {
     }
   }
 
-@Scheduled(fixedDelay = JOB_DELAY, initialDelayString = "#{ T(java.util.concurrent.ThreadLocalRandom).current()" +
-        ".nextInt(T(eu.europeana.cloud.service.dps.utils.CleanTaskDirService).JOB_DELAY) }")
+  @Scheduled(cron="#{@cleanCronExpressionEvaluator.cron}")
   public void serviceTask() {
     LOGGER.debug("Looking for HTTP topology directories to delete.");
 
