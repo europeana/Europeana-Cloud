@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
+import eu.europeana.indexing.tiers.TierCalculationMode;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.metis.utils.DepublicationReason;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -93,7 +94,7 @@ public class IndexingBolt extends AbstractDpsBolt {
       recordDate = DateHelper.parseISODate(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
       validateHarvestDate(stormTaskTuple);
       final var properties = new IndexingProperties(recordDate,
-          preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, true);
+          preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, TierCalculationMode.OVERWRITE);
       String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
       String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
 
