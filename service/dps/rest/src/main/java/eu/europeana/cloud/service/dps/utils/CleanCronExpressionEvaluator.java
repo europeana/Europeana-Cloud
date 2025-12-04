@@ -1,13 +1,10 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import jakarta.annotation.PostConstruct;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 /**
  * Evaluates cron expression for CleanTaskDirService it runs cleaning in different time on every dps application node. It is based
@@ -16,26 +13,33 @@ import org.springframework.stereotype.Service;
  * after full hour on POD 1 -40 minutes after full hour on POD 1
  *
  */
-@Service
 public class CleanCronExpressionEvaluator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CleanCronExpressionEvaluator.class);
   public static final int CLEANING_INTERVAL_ON_SINGLE_NODE_MINUTES = 60;
 
-  @Value("${maxNodeCount:3}")
-  private int maxNodeCount;
+  private final int maxNodeCount;
 
-  @Value("${AppId}")
-  private String applicationId;
+  private final String applicationId;
 
   @Getter
   private String cron;
 
   /**
+   * Creates CleanCronExpressionEvaluator
+   * @param maxNodeCount - maximum number of nodes used in this cluster
+   * @param applicationId - id of current DPS application node
+   */
+  public CleanCronExpressionEvaluator(int maxNodeCount, String applicationId) {
+    this.maxNodeCount = maxNodeCount;
+    this.applicationId = applicationId;
+    evaluateCron();
+  }
+
+  /**
    * Evaluate cron expression for current node
    */
-  @PostConstruct
-  public void evaluateCron() {
+  private void evaluateCron() {
     Matcher matcher = Pattern.compile(".*\\D(\\d+)$").matcher(applicationId);
     int minutes;
     if (matcher.matches()) {
