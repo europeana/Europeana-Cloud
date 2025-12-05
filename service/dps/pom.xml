@@ -17,6 +17,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.directory>${project.parent.basedir}</main.directory>
+        <version.apache.httpclient5>5.4.1</version.apache.httpclient5>
+        <version.apache.httpcore5>5.3.1</version.apache.httpcore5>
     </properties>
 
     <modules>
@@ -39,6 +41,17 @@
         <module>storm/harvesting-commons</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <!--  Dependency required for proper working of enrichment                      -->
+            <!--  If not specified there wiremock will override version of this artifact    -->
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>${version.apache.httpclient5}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>eu.europeana.cloud</groupId>
