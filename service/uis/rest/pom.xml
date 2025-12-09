@@ -285,6 +285,18 @@
       <version>1.2.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>${version.testcontainers}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>cassandra</artifactId>
+      <version>${version.testcontainers-cassandra}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>
