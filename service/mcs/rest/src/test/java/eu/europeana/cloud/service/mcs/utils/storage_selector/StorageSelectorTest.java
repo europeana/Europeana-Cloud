@@ -23,7 +23,7 @@ public class StorageSelectorTest {
 
   @Test
   @Parameters({
-      "example_metadata.xml, DB_STORAGE, application/xml",
+      "example_metadata.xml, DATA_BASE, application/xml",
       "example_jpg2000.jp2, OBJECT_STORAGE, image/jp2"
   })
   public void shouldDetectStorage(String fileName, String expectedDecision, String mediaType) throws
