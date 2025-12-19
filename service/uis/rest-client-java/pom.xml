@@ -4,7 +4,7 @@
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-uis</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>15</version>
+        <version>16-SNAPSHOT</version>
     </parent>
     <artifactId>ecloud-service-uis-rest-client-java</artifactId>
     <packaging>jar</packaging>
