@@ -151,6 +151,10 @@ public class StormTaskTuple implements Serializable {
     return parameters.get(parameterKey);
   }
 
+  public Boolean ifParametersContainsKey(String parameterKey){
+    return parameters.containsKey(parameterKey);
+  }
+
   public boolean hasRevisionToBeApplied() {
     return revisionToBeApplied != null;
   }

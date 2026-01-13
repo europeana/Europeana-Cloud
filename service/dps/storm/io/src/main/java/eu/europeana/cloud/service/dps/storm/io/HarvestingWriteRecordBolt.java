@@ -21,50 +21,19 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   public static final String ERROR_MSG_WHILE_CREATING_CLOUD_ID = "Error while creating CloudId";
   public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
   private static final long serialVersionUID = 1L;
-  private final String ecloudUisAddress;
-  private final String topologyUserName;
-  private final String topologyUserPassword;
-  private transient UISClient uisClient;
 
   public HarvestingWriteRecordBolt(CassandraProperties cassandraProperties,
       String ecloudMcsAddress,
       String ecloudUisAddress,
       String topologyUserName,
       String topologyUserPassword) {
-    super(cassandraProperties, ecloudMcsAddress, topologyUserName, topologyUserPassword, "oai_topology");
-    this.topologyUserName = topologyUserName;
-    this.topologyUserPassword = topologyUserPassword;
-    this.ecloudUisAddress = ecloudUisAddress;
+    super(cassandraProperties, ecloudMcsAddress, ecloudUisAddress, topologyUserName, topologyUserPassword, "oai_topology");
   }
 
 
   @Override
   public void prepare() {
-    uisClient = new UISClient(ecloudUisAddress, topologyUserName, topologyUserPassword);
     super.prepare();
-  }
-
-  private String getCloudId(String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
-    String result = createCloudId(providerId, localId);
-
-    if (additionalLocalIdentifier != null) {
-      attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId);
-    }
-
-    return result;
-
-  }
-
-  private void attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId)
-      throws CloudException {
-    RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () ->
-        uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier)
-    );
-  }
-
-  private String createCloudId(String providerId, String localId) throws CloudException {
-    return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
-        uisClient.createCloudId(providerId, localId).getId());
   }
 
   @Override

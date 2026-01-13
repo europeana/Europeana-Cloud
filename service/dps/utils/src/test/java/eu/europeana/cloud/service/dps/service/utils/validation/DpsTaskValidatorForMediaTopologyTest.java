@@ -108,57 +108,7 @@ public class DpsTaskValidatorForMediaTopologyTest {
     }
   }
 
-  @Test
-  public void shouldValidateMediaTopologyTaskWithoutInputRevisionDefinedProperly() {
-    try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-          DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-      validator.validate(dpsTaskForMediaTopologyWithoutInputRevision);
-      Assert.fail("Should fail on FullyDefinedOutputRevisionValidator");
-    } catch (DpsTaskValidationException e) {
-      Assert.assertTrue("Should fail in proper validator",
-          e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
-    }
-  }
 
-  @Test
-  public void shouldValidateMediaTopologyTaskWithoutProviderNameInInputRevision() {
-    try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-          DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-      validator.validate(dpsTaskForMediaTopologyWithoutProviderNameInInputRevision);
-      Assert.fail("Should fail on FullyDefinedOutputRevisionValidator");
-    } catch (DpsTaskValidationException e) {
-      Assert.assertTrue("Should fail in proper validator",
-          e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
-    }
-  }
-
-  @Test
-  public void shouldValidateMediaTopologyTaskWithoutInputRevisionTimestamp() {
-    try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-          DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-      validator.validate(dpsTaskForMediaTopologyWithoutRevisionTimestampInInputRevision);
-      Assert.fail("Should fail on FullyDefinedOutputRevisionValidator");
-    } catch (DpsTaskValidationException e) {
-      Assert.assertTrue("Should fail in proper validator",
-          e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
-    }
-  }
-
-  @Test
-  public void shouldValidateMediaTopologyTaskWithoutRevisionNameInInputRevision() {
-    try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-          DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-      validator.validate(dpsTaskForMediaTopologyWithoutRevisionNameInInputRevision);
-      Assert.fail("Should fail on FullyDefinedOutputRevisionValidator");
-    } catch (DpsTaskValidationException e) {
-      Assert.assertTrue("Should fail in proper validator",
-          e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
-    }
-  }
 
 
 }

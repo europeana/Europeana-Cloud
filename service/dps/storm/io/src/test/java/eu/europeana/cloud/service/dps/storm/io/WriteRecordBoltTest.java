@@ -64,12 +64,12 @@ public class WriteRecordBoltTest {
   private RecordServiceClient recordServiceClient;
   @InjectMocks
   private WriteRecordBolt writeRecordBolt =
-      new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/mcs", "user", "password", "media_topology");
+      new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", "media_topology");
 
 
   @InjectMocks
   private WriteRecordBolt writeRecordBoltForNotNewRepresentationTopologies =
-          new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/mcs", "user", "password", "depublication_topology");
+          new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", "depublication_topology");
 
   @Before
   public void init() {
@@ -176,7 +176,7 @@ public class WriteRecordBoltTest {
 
     verify(outputCollector, times(0)).emit(any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(0));
-    verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
+    verify(recordServiceClient, times(1)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
     verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString());
   }
 

@@ -88,7 +88,7 @@ public class DpsTaskValidatorForIndexingTopologyTest {
   public void shouldFailWithoutRevisionData() throws DpsTaskValidationException {
     DpsTask dpsTask = prepareDpsTaskForTests(
         Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE),
-        true,
+        false,
         false
     );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());

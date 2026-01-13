@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -116,14 +117,19 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(StormTaskTuple tuple, Representation representation)
       throws MCSException {
-    return recordServiceClient.getRepresentationRawRevisions(
-        representation.getCloudId(), representation.getRepresentationName(),
-        new Revision(
-            tuple.getRevisionToBeApplied().getRevisionName(),
-            tuple.getRevisionToBeApplied().getRevisionProviderId(),
-            //TODO there is helper class for that
-            new DateTime(tuple.getRevisionToBeApplied().getCreationTimeStamp(), DateTimeZone.UTC).toDate())
-    );
+    Revision revision = tuple.getRevisionToBeApplied();
+    if (revision != null) {
+      return recordServiceClient.getRepresentationRawRevisions(
+          representation.getCloudId(), representation.getRepresentationName(),
+          new Revision(
+                  revision.getRevisionName(),
+                  revision.getRevisionProviderId(),
+              //TODO there is helper class for that
+              new DateTime(revision.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
+      );
+    } else {
+      return Collections.emptyList();
+    }
   }
 
   private boolean representationsWithSameRevisionExists(List<RepresentationRevisionResponse> representationRevisions) {

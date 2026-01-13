@@ -95,6 +95,7 @@ public class ECloudTopologyPipeline {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(UIS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
             topologyName
