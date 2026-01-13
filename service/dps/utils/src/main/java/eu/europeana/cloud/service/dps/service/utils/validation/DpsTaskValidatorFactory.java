@@ -92,14 +92,14 @@ public final class DpsTaskValidatorFactory {
     taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS,
         new DpsTaskValidator("FileUrl validator for Validation Topology")
             .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
-            .withAnyOutputRevision()
+            .withOptionalOutputRevision()
             .withParameter(PluginParameterKeys.SCHEMA_NAME)
             .withCustomValidator(new FullyDefinedInputRevisionValidator()));
 
     taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS,
         new DpsTaskValidator("DataSet validator for Validation Topology")
             .withParameter(PluginParameterKeys.REPRESENTATION_NAME)
-            .withAnyOutputRevision()
+            .withOptionalOutputRevision()
             .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
             .withParameter(PluginParameterKeys.SCHEMA_NAME)
             .withCustomValidator(new FullyDefinedInputRevisionValidator()));
