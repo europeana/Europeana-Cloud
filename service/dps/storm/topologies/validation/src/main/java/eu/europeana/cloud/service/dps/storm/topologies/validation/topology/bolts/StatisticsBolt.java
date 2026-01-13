@@ -65,8 +65,6 @@ public class StatisticsBolt extends AbstractDpsBolt {
       } else {
         LOGGER.info("File stats will NOT be calculated for: {}", stormTaskTuple.getFileUrl());
       }
-      // we can remove the file content before emitting further
-      stormTaskTuple.setFileData((byte[]) null);
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
