@@ -72,16 +72,13 @@ public class TaskSubmissionValidator {
     for (String dataSetURL : dataSets) {
       try {
         DataSet dataSet = DataSetUrlParser.parse(dataSetURL);
-        if( !dataSetServiceClient.datasetExists(dataSet.getProviderId(), dataSet.getId())){
-          throw new DataSetNotExistsException();
-        }
         validateProviderId(task, dataSet.getProviderId());
+        if(!dataSetServiceClient.datasetExists(dataSet.getProviderId(), dataSet.getId())){
+          dataSetServiceClient.createDataSet(dataSet.getProviderId(), dataSet.getId(), dataSet.getDescription());
+        }
       } catch (MalformedURLException e) {
         throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
             + " can not be submitted because: " + e.getMessage(), e);
-      } catch (DataSetNotExistsException e) {
-        throw new DpsTaskValidationException("Validation failed. This output dataSet " + dataSetURL
-            + " Does not exist", e);
       } catch (Exception e) {
         throw new DpsTaskValidationException("Unexpected exception happened while validating the dataSet: "
             + dataSetURL + " because of: " + e.getMessage(), e);
