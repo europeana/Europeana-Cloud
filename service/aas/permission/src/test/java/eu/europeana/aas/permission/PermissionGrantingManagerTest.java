@@ -1,8 +1,8 @@
 package eu.europeana.aas.permission;
 
 import eu.europeana.aas.permission.cassandra.CassandraTestBase;
-import java.util.Arrays;
-import java.util.List;
+import eu.europeana.aas.permission.config.AuthenticationTestContext;
+import eu.europeana.aas.permission.config.DefaultTestContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,11 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.AccessControlEntry;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,10 +19,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
+import java.util.List;
+
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:/authentication-context-test.xml",
-    "classpath:default-context.xml"})
+@ContextConfiguration(classes = {
+        AuthenticationTestContext.class,
+        DefaultTestContext.class
+})
 public class PermissionGrantingManagerTest extends CassandraTestBase {
 
   @Autowired

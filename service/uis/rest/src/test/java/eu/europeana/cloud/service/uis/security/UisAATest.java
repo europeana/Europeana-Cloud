@@ -4,27 +4,24 @@ import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * UniqueIdentifierResource: Authentication - Authorization tests.
  *
  * @author manos
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public class UisAATest extends AbstractSecurityTest {
 
   @Autowired
@@ -47,7 +44,7 @@ public class UisAATest extends AbstractSecurityTest {
   /**
    * Prepare the unit tests
    */
-  @Before
+  @BeforeEach
   public void prepare() {
   }
 
@@ -91,18 +88,16 @@ public class UisAATest extends AbstractSecurityTest {
     cloudId.setLocalId(localId);
 
     Mockito.when(uniqueIdentifierService.createCloudId(Mockito.anyString(), Mockito.anyString())).thenReturn(
-        cloudId);
+            cloudId);
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
     uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
   }
 
-  @Test(expected = AuthenticationCredentialsNotFoundException.class)
-  public void shouldThrowExceptionWhenUnknowUserTriesToCreateCloudID()
-      throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
+  @Test
+  public void shouldThrowExceptionWhenUnknowUserTriesToCreateCloudID() {
 
-    uisResource.createCloudId(PROVIDER_ID, LOCAL_ID);
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> uisResource.createCloudId(PROVIDER_ID, LOCAL_ID));
   }
 
 }

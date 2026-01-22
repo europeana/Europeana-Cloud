@@ -9,10 +9,12 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExist
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,7 +62,7 @@ public class ReportResourceTest extends AbstractResourceTest {
     super();
   }
 
-  @Before
+  @BeforeEach
   public void init() throws MCSException {
     super.init();
     reportService = applicationContext.getBean(TaskExecutionReportService.class);

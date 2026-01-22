@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.commons.utils;
 
 import eu.europeana.cloud.common.annotation.Retryable;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,8 +12,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.Instant;
 import java.util.Optional;
 
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.validateMockitoUsage;
 
 /**
@@ -30,19 +31,19 @@ public class RetryAspectSpringTest {
   private AspectedTestSpringCtx aspectedTest;
 
 
-  @After
+  @AfterEach
   public void validate() {
     validateMockitoUsage();
   }
 
-  @Before
+  @BeforeEach
   public void resetData() {
     aspectedTest.resetAttempts();
   }
 
   @Test
   public void shouldCallDefault3Times() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     long startTime = Instant.now().toEpochMilli();
     String result = aspectedTest.test_default("Text to process");
     long endTime = Instant.now().toEpochMilli();
@@ -53,7 +54,7 @@ public class RetryAspectSpringTest {
 
   @Test
   public void shouldCall10Times() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     long startTime = Instant.now().toEpochMilli();
     aspectedTest.test_delay_500_10();
     long endTime = Instant.now().toEpochMilli();
@@ -63,7 +64,7 @@ public class RetryAspectSpringTest {
 
   @Test
   public void shouldCall6TimesAndFail() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     long startTime = Instant.now().toEpochMilli();
     assertThrows(TestRuntimeExpection.class, () -> aspectedTest.test_delay_2000_6());
     long endTime = Instant.now().toEpochMilli();
@@ -72,7 +73,7 @@ public class RetryAspectSpringTest {
 
   @Test
   public void shouldCall4Times() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     long startTime = Instant.now().toEpochMilli();
     aspectedTest.test_delay_3000_4();
     long endTime = Instant.now().toEpochMilli();
@@ -82,7 +83,7 @@ public class RetryAspectSpringTest {
 
   @Test
   public void shouldOverrideRetryParamsAndMethodShouldSuccessAfterFailingAllowedNumberOfTimes() {
-    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(Retryable.DEFAULT_MAX_ATTEMPTS);
     int delay = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_DELAY_BETWEEN_ATTEMPTS)
                         .orElse(Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS);
@@ -96,7 +97,7 @@ public class RetryAspectSpringTest {
 
   @Test
   public void shouldOverrideRetryParamsAndThrowExceptionAfterFailingAllRetries() {
-    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+    assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(Retryable.DEFAULT_MAX_ATTEMPTS);
     int delay = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_DELAY_BETWEEN_ATTEMPTS)
                         .orElse(Retryable.DEFAULT_DELAY_BETWEEN_ATTEMPTS);

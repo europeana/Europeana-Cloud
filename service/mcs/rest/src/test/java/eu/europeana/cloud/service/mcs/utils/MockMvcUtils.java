@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -13,16 +10,21 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.Is;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 public class MockMvcUtils {
 
@@ -42,9 +44,9 @@ public class MockMvcUtils {
 
   }
 
-  public static MockHttpServletRequestBuilder postFile(String url, String mimeType, byte[] content) {
+  public static MockMultipartHttpServletRequestBuilder postFile(String url, String mimeType, byte[] content) {
     return multipart(url).file("data", content)
-                         .param("mimeType", mimeType);
+            .param("mimeType", mimeType);
   }
 
   public static Matcher<String> isEtag(String value) {

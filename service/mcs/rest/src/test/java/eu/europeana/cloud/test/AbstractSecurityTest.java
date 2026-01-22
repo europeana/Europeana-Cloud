@@ -1,14 +1,11 @@
 package eu.europeana.cloud.test;
 
-import static eu.europeana.cloud.service.mcs.controller.AbstractResourceTest.mockHttpServletRequest;
-
 import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.SecurityTestContext;
-import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthentificationConfiguration;
-
+import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthenticationConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,6 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static eu.europeana.cloud.service.mcs.controller.AbstractResourceTest.mockHttpServletRequest;
+
 
 /**
  * Helper class thats logs-in people to perform permission tests.
@@ -41,13 +40,13 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(CassandraTestRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
-    TestAuthentificationConfiguration.class,
-    PropertyBeansContext.class,
-    ServiceConfiguration.class,
-    AuthorizationConfiguration.class,
-    UnifiedExceptionsMapper.class,
-    SecurityTestContext.class,
-        })
+        TestAuthenticationConfiguration.class,
+        PropertyBeansContext.class,
+        ServiceConfiguration.class,
+        AuthorizationConfiguration.class,
+        UnifiedExceptionsMapper.class,
+        SecurityTestContext.class,
+})
 @TestPropertySource("classpath:mcs-test.properties")
 @EnableWebSecurity
 @EnableMethodSecurity

@@ -27,14 +27,16 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.acls.model.*;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -110,8 +112,8 @@ public class TopologyTasksResourceTest extends AbstractResourceTest {
   @Autowired
   DepublicationTaskSubmitter depublicationTaskSubmitter;
 
-  @Before
-  @Override
+    @BeforeEach
+    @Override
   public void init() throws MCSException {
     super.init();
 

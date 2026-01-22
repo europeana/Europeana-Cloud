@@ -4,16 +4,17 @@ import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -49,7 +50,7 @@ public class UnfinishedTasksExecutorTest {
   }
 
   @Test
-  public void shouldStartExecutionForOneTasks() throws TaskInfoDoesNotExistException {
+  public void shouldStartExecutionForOneTasks() {
     //given
     List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
     TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();

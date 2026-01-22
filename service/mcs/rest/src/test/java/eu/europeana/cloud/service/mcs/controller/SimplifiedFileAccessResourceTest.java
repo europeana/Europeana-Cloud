@@ -8,15 +8,8 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +21,9 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 
@@ -101,7 +97,7 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
       throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
         EXISTING_REPRESENTATION_NAME);
-    Assert.assertEquals(200, response.getStatusCodeValue());
+    Assert.assertEquals(200, response.getStatusCode().value());
     //        response.toString();
   }
 
@@ -110,7 +106,7 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
       throws FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFileHeaders(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
         EXISTING_REPRESENTATION_NAME);
-    Assert.assertEquals(200, response.getStatusCodeValue());
+    Assert.assertEquals(200, response.getStatusCode().value());
     Assert.assertNotNull(response.getHeaders().get("Location"));
     //        response.toString();
   }

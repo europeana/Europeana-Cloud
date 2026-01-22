@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.uis.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataProviderProperties;
@@ -11,18 +8,21 @@ import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Persistent Unique Identifier Service Unit tests
@@ -30,7 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Yorgos.Mamakis@ kb.nl
  * @since Dec 17, 2013
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:/default-context.xml"})
 public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 
@@ -43,7 +43,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
   /**
    * Prepare the unit tests
    */
-  @Before
+  @BeforeEach
   public void prepare() {
     @SuppressWarnings("resource")
     ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -67,9 +67,9 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    *
    * @throws Exception expected RecordDoesNotExistException
    */
-  @Test(expected = RecordDoesNotExistException.class)
-  public void testRecordDoesNotExist() throws Exception {
-    service.getCloudId("test2", "test2");
+  @Test
+  public void testRecordDoesNotExist() {
+    assertThrows(RecordDoesNotExistException.class, () -> service.getCloudId("test2", "test2"));
   }
 
   /**
@@ -77,11 +77,11 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    *
    * @throws Exception expected CloudIdDoesNotExistException
    */
-  @Test(expected = CloudIdDoesNotExistException.class)
+  @Test
   public void testGetLocalIdsByCloudId() throws Exception {
     service.getLocalIdsByCloudId(IdGenerator.encodeWithSha256AndBase32("/test11/test11"));
     CloudId gId = service.createCloudId("test11", "test11");
-    service.getLocalIdsByCloudId(gId.getId());
+    assertThrows(CloudIdDoesNotExistException.class, () -> service.getLocalIdsByCloudId(gId.getId()));
   }
 
   /**
@@ -102,21 +102,22 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    *
    * @throws Exception If something goes wrong
    */
-  @Test(expected = CloudIdDoesNotExistException.class)
+  @Test
   public void testCreateIdMappingCloudIdDoesNotExist() throws Exception {
     dataProviderDao.createDataProvider("test14",
-        new DataProviderProperties());
+            new DataProviderProperties());
     dataProviderDao.createDataProvider("test16",
-        new DataProviderProperties());
+            new DataProviderProperties());
     service.createCloudId("test14", "test14");
-    service.createIdMapping("test15", "test16", "test17");
+    assertThrows(CloudIdDoesNotExistException.class, () -> service.createIdMapping("test15", "test16", "test17"));
+
   }
 
   /**
    * CreateCloudId collision test. Related to jira issue ECL-392.
    */
   @Test
-  @Ignore(value = "Old style test with interesting code. Long time test")
+  @Disabled(value = "Old style test with interesting code. Long time test")
   public void createCloudIdCollisionTest() throws DatabaseConnectionException, ProviderDoesNotExistException {
     // given
     final Map<String, String> map = new HashMap<>();

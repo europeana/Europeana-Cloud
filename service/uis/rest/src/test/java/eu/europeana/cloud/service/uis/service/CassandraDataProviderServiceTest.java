@@ -1,26 +1,24 @@
 package eu.europeana.cloud.service.uis.service;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * DataProvider Service Test
@@ -28,7 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
  * @since Jan 10, 2014
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(value = {"classpath:/default-context.xml"})
 public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
@@ -58,9 +56,10 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    *
    * @throws ProviderDoesNotExistException
    */
-  @Test(expected = ProviderDoesNotExistException.class)
+  @Test
   public void shouldFailWhenFetchingNonExistingProvider() throws ProviderDoesNotExistException {
-    cassandraDataProviderService.getProvider("provident");
+    assertThrows(ProviderDoesNotExistException.class, () -> cassandraDataProviderService.getProvider("provident"));
+
   }
 
   /**
@@ -68,7 +67,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    */
   @Test
   public void shouldReturnEmptyArrayWhenNoProviderAdded() {
-    assertTrue("Expecting no providers", cassandraDataProviderService.getProviders(null, 1).getResults().isEmpty());
+    assertTrue(cassandraDataProviderService.getProviders(null, 1).getResults().isEmpty());
   }
 
   /**

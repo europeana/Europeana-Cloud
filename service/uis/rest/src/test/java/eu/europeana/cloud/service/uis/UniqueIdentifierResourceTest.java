@@ -11,12 +11,14 @@ import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,9 +28,9 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -55,7 +57,7 @@ public class UniqueIdentifierResourceTest {
   @Autowired
   private WebApplicationContext wac;
 
-  @Before
+    @BeforeEach
   public void mockUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
   }
