@@ -20,11 +20,11 @@ import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -60,16 +60,16 @@ public class CassandraBasedTestContext {
   }
 
   //mock
-  @MockBean
+  @MockitoBean
   public UISClientHandler uisHandler;
 
-  @MockBean
+  @MockitoBean
   public MutableAclService mutableAclService;
 
-  @MockBean
+  @MockitoBean
   public PermissionsGrantingManager permissionsGrantingManager;
 
-  @MockBean
+  @MockitoBean
   public PermissionEvaluator permissionEvaluator;
 
   @Bean
