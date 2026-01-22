@@ -1,20 +1,21 @@
 package eu.europeana.cloud.service.commons.utils;
 
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.validateMockitoUsage;
-
 import eu.europeana.cloud.common.annotation.Retryable;
-import java.time.Instant;
-import java.util.Optional;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.time.Instant;
+import java.util.Optional;
+
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.validateMockitoUsage;
 
 /**
  * Several tests from this class is skipped when overridden value for retries attempt is set because it makes those tests
@@ -22,7 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * intended
  */
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public class RetryAspectSpringTest {
 
   @Autowired

@@ -1,30 +1,31 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.CleanTaskDirServiceTestContext;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
-@RunWith(SpringRunner.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {CleanTaskDirService.class, CleanTaskDirServiceTestContext.class})
 @TestPropertySource(properties = {"harvestingTasksDir=" + CleanTaskDirServiceTest.TEST_BASE_DIR})
@@ -41,7 +42,7 @@ public class CleanTaskDirServiceTest {
   @Autowired
   private CassandraTaskInfoDAO taskInfoDAO;
 
-  @Before
+  @BeforeEach
   public void setup() {
     Mockito.reset(taskInfoDAO);
   }

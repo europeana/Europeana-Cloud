@@ -1,5 +1,24 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.TaskByTaskState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -7,30 +26,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
-import eu.europeana.cloud.service.dps.properties.KafkaProperties;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {GhostTaskService.class, GhostTaskServiceTestContext.class})
 public class GhostTaskServiceTest {
 
@@ -68,7 +64,7 @@ public class GhostTaskServiceTest {
   private TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
 
 
-  @Before
+  @BeforeEach
   public void setup() {
     reset(tasksByStateDAO, taskInfoDAO);
     when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
