@@ -1,33 +1,25 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.FILE_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.CLIENT_FILE_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
-
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Properties;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Properties;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Utility class that inserts absolute uris into classes that will be used as REST responses.
@@ -125,7 +117,7 @@ public final class EnrichUriUtil {
     try {
       HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
       URL url = new URL(
-          UriComponentsBuilder.fromHttpRequest(httpRequest).build().getScheme(),
+          UriComponentsBuilder.fromUri(httpRequest.getURI()).build().getScheme(),
           httpServletRequest.getServerName(),
           (httpServletRequest.getServerPort() == 80 || httpServletRequest.getServerPort() == 443) ?
               -1 : httpServletRequest.getServerPort(),  //Do not setup 80 (http) or 443 (https) ports - pointed by scheme
