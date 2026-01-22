@@ -1,20 +1,16 @@
 package eu.europeana.cloud.service.mcs.controller;
 
 
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.BasicResourceTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
-import java.util.Collections;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -24,6 +20,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Collections;
+
+import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
 @ContextConfiguration(classes = {ServiceConfiguration.class, PropertyBeansContext.class,
