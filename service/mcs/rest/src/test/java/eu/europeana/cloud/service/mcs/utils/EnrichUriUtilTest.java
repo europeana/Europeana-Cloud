@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.mcs.utils;
 
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.FILE_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
-import org.junit.Test;
+
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 
 public class EnrichUriUtilTest {
 

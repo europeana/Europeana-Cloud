@@ -9,13 +9,13 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import eu.europeana.cloud.test.S3TestHelper;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
@@ -29,7 +29,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * FileResourceTest
  */
-@RunWith(CassandraTestRunner.class)
+@ExtendWith(CassandraTestExtension.class)
 public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
@@ -58,11 +58,12 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   private static final byte[] RDF_CONTENT = "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:si=\"https://www.w3schools.com/rdf/\"></rdf:RDF>".getBytes();
 
 
-  @BeforeClass
+    @BeforeAll
   public static void setUp(){
     S3TestHelper.startS3MockServer();
   }
-  @Before
+
+    @BeforeEach
   public void mockUp()
       throws Exception {
     recordService = applicationContext.getBean(RecordService.class);
@@ -94,7 +95,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
 
-  @After
+    @AfterEach
   public void cleanUp() {
     try {
       recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
@@ -104,7 +105,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     }
   }
 
-  @AfterClass
+    @AfterAll
   public static void cleanUpAfterTests() {
     S3TestHelper.stopS3MockServer();
   }
@@ -129,10 +130,10 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     File insertedFile = rep.getFiles().get(0);
     ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(content.length, insertedFile.getContentLength());
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(content.length, insertedFile.getContentLength());
     assertArrayEquals(content, contentBos.toByteArray());
   }
 
@@ -149,20 +150,20 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     mockMvc.perform(postFile(filesWebTarget, file.getMimeType(), content)
                .param(ParamConstants.F_FILE_NAME, file.getFileName()))
            .andExpect(status().isCreated())
-           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+            .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-    // then data should be in record service
-    rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
-    assertEquals(1, rep.getFiles().size());
+      // then data should be in record service
+      rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+      assertEquals(1, rep.getFiles().size());
 
-    File insertedFile = rep.getFiles().get(0);
-    ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(content.length, insertedFile.getContentLength());
-    assertArrayEquals(content, contentBos.toByteArray());
+      File insertedFile = rep.getFiles().get(0);
+      ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(file.getFileName(), insertedFile.getFileName());
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(content.length, insertedFile.getContentLength());
+      assertArrayEquals(content, contentBos.toByteArray());
   }
 
   @Test
@@ -270,10 +271,10 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     File insertedFile = rep.getFiles().get(0);
     ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(fileContent.length, insertedFile.getContentLength());
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(fileContent.length, insertedFile.getContentLength());
     assertArrayEquals(fileContent, contentBos.toByteArray());
   }
 }

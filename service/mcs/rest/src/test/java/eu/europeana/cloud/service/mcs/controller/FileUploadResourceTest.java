@@ -1,16 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -24,18 +13,30 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import eu.europeana.cloud.test.CassandraTestRunner;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
-@RunWith(CassandraTestRunner.class)
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(CassandraTestExtension.class)
 public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
   private String fileWebTarget;
@@ -50,7 +51,7 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
   private DataSetService dataSetService;
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @Before
+    @BeforeEach
   public void init()
       throws RepresentationNotExistsException, DataSetAssignmentException, ProviderNotExistsException, DataSetAlreadyExistsException {
     CassandraTestInstance.truncateAllData(false);

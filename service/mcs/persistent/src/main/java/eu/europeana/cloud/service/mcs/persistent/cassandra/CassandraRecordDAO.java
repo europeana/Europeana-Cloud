@@ -554,25 +554,30 @@ public class CassandraRecordDAO {
 
     validateParameters(cloudId, schema, version, revisionProviderId, revisionName, revisionTimestamp);
 
-    // delete representation revision into representation revision table.
-    BoundStatement boundStatement = deleteRepresentationRevisionStatement.bind(
-        cloudId, schema, revisionProviderId, revisionName, revisionTimestamp, UUID.fromString(version));
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
+      // delete representation revision into representation revision table.
+      BoundStatement boundStatement = deleteRepresentationRevisionStatement.bind(
+              cloudId, schema, revisionProviderId, revisionName, revisionTimestamp, UUID.fromString(version));
+      ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+      QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-  @PostConstruct
-  private void prepareStatements() {
-    Session session = connectionProvider.getSession();
+    //  Need separate function so mock in test can modify it
+    @PostConstruct
+    private void postConstruct() {
+        prepareStatements();
+    }
 
-    insertRepresentationStatement = session.prepare(
-        "INSERT INTO " +
-            "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id) " +
-            "VALUES (?,?,?,?,?,?, ?);"
-    );
+    void prepareStatements() {
+        Session session = connectionProvider.getSession();
 
-    getRepresentationVersionStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
+        insertRepresentationStatement = session.prepare(
+                "INSERT INTO " +
+                        "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id) " +
+                        "VALUES (?,?,?,?,?,?, ?);"
+        );
+
+        getRepresentationVersionStatement = session.prepare(
+                "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );

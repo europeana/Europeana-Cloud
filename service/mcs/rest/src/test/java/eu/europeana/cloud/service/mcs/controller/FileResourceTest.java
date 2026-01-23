@@ -10,11 +10,11 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import eu.europeana.cloud.test.S3TestHelper;
 import jakarta.ws.rs.core.HttpHeaders;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * FileResourceTest
  */
-@RunWith(CassandraTestRunner.class)
+@ExtendWith(CassandraTestExtension.class)
 public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
@@ -52,11 +52,12 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @BeforeClass
+    @BeforeAll
   public static void setUp(){
     S3TestHelper.startS3MockServer();
   }
-  @Before
+
+    @BeforeEach
   public void mockUp() throws Exception {
     recordService = applicationContext.getBean(RecordService.class);
     uisHandler = applicationContext.getBean(UISClientHandler.class);
@@ -84,14 +85,14 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
             + "/files/" + file.getFileName();
   }
 
-  @After
+    @AfterEach
   public void cleanUp() throws Exception {
     recordService.deleteRepresentation(rep.getCloudId(),
         rep.getRepresentationName());
     S3TestHelper.cleanUpBetweenTests();
   }
 
-  @AfterClass
+    @AfterAll
   public static void cleanUpAfterTests() {
     S3TestHelper.stopS3MockServer();
   }
@@ -116,8 +117,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
     byte[] expectedResponseContent = copyOfRange(content, 1,
         content.length - 1);
-    assertArrayEquals("Read data is different from requested range",
-        expectedResponseContent, responseContent);
+      assertArrayEquals(expectedResponseContent, responseContent);
   }
 
   int[][] parameters = new int[][]{{1, 2}, {0, 0}, {0, 1}, {3, 3},
@@ -158,8 +158,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
     byte[] responseContent = responseContentAsByteArray(response);
     byte[] expectedResponseContent = copyOfRange(content, rangeStart,
         rangeEnd);
-    assertArrayEquals("Read data is different from requested range",
-        expectedResponseContent, responseContent);
+      assertArrayEquals(expectedResponseContent, responseContent);
   }
 
   /**
@@ -206,8 +205,8 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
            .andExpect(status().isRequestedRangeNotSatisfiable());
   }
 
-  @Test
-  @Ignore(value = "TODO: implement")
+    @Test
+    @Disabled(value = "TODO: implement")
   public void shouldReturnErrorOnHashMismatch() {
   }
 
@@ -221,20 +220,18 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
     // when you override it with another content
     byte[] contentModified = {5, 6, 7};
     String contentModifiedMd5 = Hashing.md5().hashBytes(contentModified)
-                                       .toString();
+            .toString();
 
-    mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), contentModified))
-           .andExpect(status().isNoContent());
+      mockMvc.perform(putFile(fileWebTarget, file.getMimeType(), contentModified))
+              .andExpect(status().isNoContent());
 
-    // then the content in service should be also modivied
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    String retrievedFileMd5 = recordService.getContent(rep.getCloudId(),
-        rep.getRepresentationName(), rep.getVersion(),
-        file.getFileName(), baos);
-    assertArrayEquals("Read data is different from written",
-        contentModified, baos.toByteArray());
-    assertEquals("MD5 checksum is different than written",
-        contentModifiedMd5, retrievedFileMd5);
+      // then the content in service should be also modivied
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      String retrievedFileMd5 = recordService.getContent(rep.getCloudId(),
+              rep.getRepresentationName(), rep.getVersion(),
+              file.getFileName(), baos);
+      assertArrayEquals(contentModified, baos.toByteArray());
+      assertEquals(contentModifiedMd5, retrievedFileMd5);
   }
 
   @Test
@@ -311,7 +308,7 @@ public class FileResourceTest extends CassandraBasedAbstractResourceTest {
 
     // then concent should be equal to the previously put
     byte[] responseContent = responseContentAsByteArray(response);
-    assertArrayEquals("Read data is different from written", content, responseContent);
+      assertArrayEquals(content, responseContent);
   }
 
   @Test

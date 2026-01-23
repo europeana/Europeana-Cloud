@@ -146,6 +146,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
       <artifactId>ecloud-service-uis-rest-client-java</artifactId>
       <groupId>eu.europeana.cloud</groupId>
       <version>${project.version}</version>
@@ -224,27 +228,6 @@
       </exclusions>
     </dependency>
 
-    <!--For producing XML output by requests-->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${version.jackson}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${version.jackson}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${version.jackson}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-xml</artifactId>
-      <version>${version.jackson}</version>
-    </dependency>
 
     <dependency>
       <groupId>joda-time</groupId>
@@ -303,6 +286,10 @@
       <artifactId>JUnitParams</artifactId>
       <version>${version.junitparams}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
     </dependency>
     <dependency>
       <artifactId>guava</artifactId>

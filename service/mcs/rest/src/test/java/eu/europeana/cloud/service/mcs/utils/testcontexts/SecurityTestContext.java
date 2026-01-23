@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestExtension.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestExtension.JUNIT_MCS_KEYSPACE;
 import static eu.europeana.cloud.test.S3TestHelper.S3TestConstants.*;
 import static org.mockito.Mockito.mock;
 

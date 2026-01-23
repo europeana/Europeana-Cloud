@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
@@ -15,11 +12,15 @@ import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
 
@@ -39,43 +40,53 @@ public class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
   private static final String LOCAL_ID = "localId";
   private static final String LOCAL_ID_FOR_NOT_EXISTING_RECORD = "localIdForNotExistingRecord";
   private static final String EXISTING_REPRESENTATION_NAME = "existingRepresentationName";
-  private static final String RANDOM_REPRESENTATION_NAME = "randomRepresentationName";
+    private static final String RANDOM_REPRESENTATION_NAME = "randomRepresentationName";
 
-  @Before
-  public void init() throws CloudException, RepresentationNotExistsException {
-    Mockito.reset(uisClient);
-    Mockito.reset(recordService);
-    setupUisClient();
-    setupRecordService();
-  }
+    @BeforeEach
+    public void init() throws CloudException, RepresentationNotExistsException {
+        Mockito.reset(uisClient);
+        Mockito.reset(recordService);
+        setupUisClient();
+        setupRecordService();
+    }
 
-  @Test(expected = ProviderNotExistsException.class)
-  public void exceptionShouldBeThrowForNotExistingProviderId()
-      throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-    representationResource.getRepresentation(null, NOT_EXISTING_PROVIDER_ID, "localID", "repName");
-  }
+    @Test
+    void exceptionShouldBeThrowForNotExistingProviderId() {
+        assertThrows(
+                ProviderNotExistsException.class,
+                () -> representationResource.getRepresentation(
+                        null, NOT_EXISTING_PROVIDER_ID, "localID", "repName")
+        );
+    }
 
-  @Test(expected = RecordNotExistsException.class)
-  public void exceptionShouldBeThrowForNotExistingCloudId()
-      throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-    representationResource.getRepresentation(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD, "repName");
-  }
+    @Test
+    void exceptionShouldBeThrowForNotExistingCloudId() {
+        assertThrows(
+                RecordNotExistsException.class,
+                () -> representationResource.getRepresentation(
+                        null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD, "repName")
+        );
+    }
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void exceptionShouldBeThrowForRecordWithoutNamedRepresentation()
-      throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-    representationResource.getRepresentation(null, PROVIDER_ID, LOCAL_ID, RANDOM_REPRESENTATION_NAME);
-  }
+    @Test
+    void exceptionShouldBeThrowForRecordWithoutNamedRepresentation() {
+        assertThrows(
+                RepresentationNotExistsException.class,
+                () -> representationResource.getRepresentation(
+                        null, PROVIDER_ID, LOCAL_ID, RANDOM_REPRESENTATION_NAME)
+        );
+    }
 
-  @Test
-  public void properRepresentationShouldBeReturned()
-      throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
-    HttpServletRequest info = mockHttpServletRequest();
-    //
-    Representation rep = representationResource.getRepresentation(info, PROVIDER_ID, LOCAL_ID, EXISTING_REPRESENTATION_NAME);
-    //
-    Assert.assertNotNull(rep);
-    assertThat(rep.getCloudId(), is(CLOUD_ID));
+
+    @Test
+    public void properRepresentationShouldBeReturned()
+            throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
+        HttpServletRequest info = mockHttpServletRequest();
+        //
+        Representation rep = representationResource.getRepresentation(info, PROVIDER_ID, LOCAL_ID, EXISTING_REPRESENTATION_NAME);
+        //
+        assertNotNull(rep);
+        assertThat(rep.getCloudId(), is(CLOUD_ID));
     assertThat(rep.getRepresentationName(), is(EXISTING_REPRESENTATION_NAME));
   }
 

@@ -1,34 +1,35 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsErrorInfo;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import jakarta.ws.rs.core.HttpHeaders;
-import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
+import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
+import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsErrorInfo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /**
  * DataSetResourceTest
  */
-@RunWith(CassandraTestRunner.class)
+@ExtendWith(CassandraTestExtension.class)
 public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataSetService dataSetService;
@@ -39,7 +40,7 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataProvider dataProvider = new DataProvider();
 
-  @Before
+    @BeforeEach
   public void mockUp() {
     dataProvider.setId("provId");
     dataSetService = applicationContext.getBean(DataSetService.class);
@@ -47,7 +48,7 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
     dataSetsWebTarget = DataSetsResource.class.getAnnotation(RequestMapping.class).value()[0];
   }
 
-  @After
+    @AfterEach
   public void cleanUp() {
     Mockito.reset(uisHandler);
   }
@@ -72,8 +73,8 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
     // and then this set should be visible in service
     List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(
         "provId", null, 10000).getResults();
-    assertEquals("Expected single dataset in service", 1,
-        dataSetsForPrivider.size());
+      assertEquals(1,
+              dataSetsForPrivider.size());
     DataSet ds = dataSetsForPrivider.get(0);
     assertEquals(datasetId, ds.getId());
     assertEquals(description, ds.getDescription());

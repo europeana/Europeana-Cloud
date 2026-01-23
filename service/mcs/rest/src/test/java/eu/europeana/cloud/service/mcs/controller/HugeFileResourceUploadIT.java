@@ -1,31 +1,15 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
-import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import eu.europeana.cloud.test.CassandraTestExtension;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpHeaders;
@@ -34,10 +18,25 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /**
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
-@RunWith(CassandraTestRunner.class)
+@ExtendWith(CassandraTestExtension.class)
 public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
 
   private static RecordService recordService;
@@ -45,14 +44,14 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
 
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
-  @Before
+    @BeforeEach
   public void mockUp() {
     recordService = applicationContext.getBean(RecordService.class);
     dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
 
   }
 
-  @After
+    @AfterEach
   public void cleanUp() {
     reset(recordService);
   }
@@ -75,7 +74,7 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
     ResultActions response = mockMvc.perform(postFile(target, MediaType.APPLICATION_OCTET_STREAM_VALUE, content))
                                     .andExpect(status().is2xxSuccessful());
 
-    assertEquals("Wrong size of read content", HUGE_FILE_SIZE, mockPutContent.totalBytes);
+      assertEquals(HUGE_FILE_SIZE, mockPutContent.totalBytes);
     String contentMd5Hex = BaseEncoding.base16().lowerCase().encode(md.digest());
     response.andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5Hex)));
   }

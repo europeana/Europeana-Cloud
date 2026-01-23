@@ -1,11 +1,13 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import org.junit.jupiter.api.Test;
+
 import java.math.BigInteger;
-import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * ContentRangeTest
@@ -41,54 +43,62 @@ public class ContentRangeTest {
   }
 
 
-  @Test
-  public void testParsingSingleByte()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-1234");
-    assertThat(range.getStart(), is(1234L));
-    assertThat(range.getEnd(), is(1234L));
-  }
+    @Test
+    public void testParsingSingleByte()
+            throws WrongContentRangeException {
+        FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-1234");
+        assertThat(range.getStart(), is(1234L));
+        assertThat(range.getEnd(), is(1234L));
+    }
 
 
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWhenNumberTooLarge()
-      throws WrongContentRangeException {
-    BigInteger tooLargeNumber = new BigInteger("" + Long.MAX_VALUE).shiftLeft(1);
-    FileResource.ContentRange range = FileResource.ContentRange.parse(tooLargeNumber.toString() + "-");
-  }
+    @Test
+    void testErrorOnParsingWhenNumberTooLarge() {
+        BigInteger tooLargeNumber = new BigInteger("" + Long.MAX_VALUE).shiftLeft(1);
 
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse(tooLargeNumber.toString() + "-")
+        );
+    }
 
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWrongFormat()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("1234-");
-  }
+    @Test
+    void testErrorOnParsingWrongFormat() {
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse("1234-")
+        );
+    }
 
+    @Test
+    void testErrorOnParsingWrongFormat1() {
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse("bytes=-1234")
+        );
+    }
 
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWrongFormat1()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=-1234");
-  }
+    @Test
+    void testErrorOnParsingWrongFormat2() {
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse("bytes=-1234-2000")
+        );
+    }
 
+    @Test
+    void testErrorOnParsingWrongFormat3() {
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse("bytes=1234--2000")
+        );
+    }
 
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWrongFormat2()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=-1234-2000");
-  }
-
-
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWrongFormat3()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234--2000");
-  }
-
-
-  @Test(expected = WrongContentRangeException.class)
-  public void testErrorOnParsingWrongRange()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-2");
-  }
+    @Test
+    void testErrorOnParsingWrongRange() {
+        assertThrows(
+                WrongContentRangeException.class,
+                () -> FileResource.ContentRange.parse("bytes=1234-2")
+        );
+    }
 }

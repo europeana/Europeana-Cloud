@@ -3,30 +3,32 @@ package eu.europeana.cloud.service.mcs.controller.aatests;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.controller.DataSetResource;
+import eu.europeana.cloud.service.mcs.controller.DataSetsResource;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
-import eu.europeana.cloud.service.mcs.controller.DataSetResource;
-import eu.europeana.cloud.service.mcs.controller.DataSetsResource;
 import eu.europeana.cloud.test.AbstractSecurityTest;
 import jakarta.validation.constraints.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class DataSetsAATest extends AbstractSecurityTest {
 
-  @Autowired
-  private CassandraDataSetService dataSetService;
+    @Autowired
+    private CassandraDataSetService dataSetService;
 
-  @Autowired
-  @NotNull
-  private DataSetsResource datasetsResource;
+    @Autowired
+    @NotNull
+    private DataSetsResource datasetsResource;
 
   @Autowired
   @NotNull
@@ -56,7 +58,7 @@ public class DataSetsAATest extends AbstractSecurityTest {
   private final static String ADMIN_PASSWORD = "admin";
 
 
-  @Before
+    @BeforeEach
   public void mockUp() throws Exception {
 
     DataSet dataset = new DataSet();
@@ -66,72 +68,77 @@ public class DataSetsAATest extends AbstractSecurityTest {
 
     // dataProvider.setId("testprov");
     Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider(Mockito.anyString());
-    Mockito.doReturn(true).when(uisHandler)
-           .existsCloudId(Mockito.anyString());
-    Mockito.doReturn(true).when(uisHandler)
-           .existsProvider(Mockito.anyString());
+            .getProvider(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler)
+                .existsCloudId(Mockito.anyString());
+        Mockito.doReturn(true).when(uisHandler)
+                .existsProvider(Mockito.anyString());
 
-    Mockito.doReturn(dataset).when(dataSetService).createDataSet(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-  }
+        Mockito.doReturn(dataset).when(dataSetService).createDataSet(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+    }
 
 
-  @Test(expected = AuthenticationCredentialsNotFoundException.class)
-  public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCreateDataset()
-      throws ProviderNotExistsException, DataSetAlreadyExistsException {
+    @Test
+    void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCreateDataset() {
+        assertThrows(
+                AuthenticationCredentialsNotFoundException.class,
+                () -> datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION)
+        );
+    }
 
-    datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
-  }
+    @Test
+    public void shouldBeAbleToCreateDatasetWhenAuthenticated()
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
-  @Test
-  public void shouldBeAbleToCreateDatasetWhenAuthenticated()
-      throws ProviderNotExistsException, DataSetAlreadyExistsException {
+        DataSet dS = new DataSet();
+        dS.setId("");
+        dS.setProviderId("");
 
-    DataSet dS = new DataSet();
-    dS.setId("");
-    dS.setProviderId("");
+        Mockito.when(dataSetService.createDataSet(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(dS);
+        //        Mockito.when(dataProviderService.updateProvider(Mockito.anyString(), (DataProviderProperties) Mockito.any())).thenReturn(dp);
 
-    Mockito.when(dataSetService.createDataSet(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(dS);
-    //        Mockito.when(dataProviderService.updateProvider(Mockito.anyString(), (DataProviderProperties) Mockito.any())).thenReturn(dp);
+        login(RANDOM_PERSON, RANDOM_PASSWORD);
+        datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+    }
 
-    login(RANDOM_PERSON, RANDOM_PASSWORD);
-    datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
-  }
+    @Test
+    void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateDataset() {
+        assertThrows(
+                AuthenticationCredentialsNotFoundException.class,
+                () -> datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION)
+        );
+    }
 
-  @Test(expected = AuthenticationCredentialsNotFoundException.class)
-  public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToUpdateDataset()
-      throws
-      DataSetNotExistsException {
+    @Test
+    void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteDataset() {
+        assertThrows(
+                AuthenticationCredentialsNotFoundException.class,
+                () -> datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID)
+        );
+    }
 
-    datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION);
-  }
+    @Test
+    void shouldThrowExceptionWhenRandomUserTriesToUpdateDataset() {
+        login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-  @Test(expected = AuthenticationCredentialsNotFoundException.class)
-  public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToDeleteDataset()
-      throws DataSetDeletionException, DataSetNotExistsException {
+        assertThrows(
+                AccessDeniedException.class,
+                () -> datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION)
+        );
+    }
 
-    datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
-  }
+    @Test
+    void shouldThrowExceptionWhenRandomUserTriesToDeleteDataset() {
+        login(RANDOM_PERSON, RANDOM_PASSWORD);
 
-  @Test(expected = AccessDeniedException.class)
-  public void shouldThrowExceptionWhenRandomUserTriesToUpdateDataset()
-      throws
-      DataSetNotExistsException {
+        assertThrows(
+                AccessDeniedException.class,
+                () -> datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID)
+        );
+    }
 
-    login(RANDOM_PERSON, RANDOM_PASSWORD);
-    datasetResource.updateDataSet(PROVIDER_ID, DATASET_ID, DESCRIPTION);
-  }
-
-  @Test(expected = AccessDeniedException.class)
-  public void shouldThrowExceptionWhenRandomUserTriesToDeleteDataset()
-      throws DataSetDeletionException, DataSetNotExistsException {
-
-    login(RANDOM_PERSON, RANDOM_PASSWORD);
-    datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
-  }
-
-  @Test
-  public void shouldBeAbleToDeleteDatasetIfHeIsTheOwner()
+    @Test
+    public void shouldBeAbleToDeleteDatasetIfHeIsTheOwner()
       throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
@@ -139,16 +146,21 @@ public class DataSetsAATest extends AbstractSecurityTest {
     datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
   }
 
-  /**
-   * Makes sure Van Persie cannot delete datasets that belong to Cristiano Ronaldo.
-   */
-  @Test(expected = AccessDeniedException.class)
-  public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
-      throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
+    /**
+     * Makes sure Van Persie cannot delete datasets that belong to Cristiano Ronaldo.
+     */
+    @Test
+    public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
+            throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
-    login(RONALDO, RONALD_PASSWORD);
-    datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
-    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
-  }
+        login(RONALDO, RONALD_PASSWORD);
+        datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID)
+        );
+    }
 }

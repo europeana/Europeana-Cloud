@@ -10,13 +10,13 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * RevisionResourceTest
  */
-@RunWith(CassandraTestRunner.class)
+@ExtendWith(CassandraTestExtension.class)
 public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
@@ -55,7 +55,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   private Revision revisionForDataProvider;
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @Before
+    @BeforeEach
   public void mockUp() throws Exception {
     recordService = applicationContext.getBean(RecordService.class);
     dataSetService = applicationContext.getBean(DataSetService.class);
@@ -119,7 +119,7 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
    }
 
-  @After
+    @AfterEach
   public void cleanUp() throws Exception {
     recordService.deleteRepresentation(rep.getCloudId(),
         rep.getRepresentationName());
