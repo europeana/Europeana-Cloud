@@ -61,7 +61,7 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
 
 
   @BeforeEach
-  public void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException {
+  void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException {
 
     setupUisClient();
     setupRecordService();
@@ -72,33 +72,33 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  public void exceptionShouldBeThrownWhenProviderIdDoesNotExist() {
+  void exceptionShouldBeThrownWhenProviderIdDoesNotExist() {
     assertThrows(RecordNotExistsException.class,
             () -> fileAccessResource.getFile(URI_INFO, NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName"));
   }
 
   @Test
-  public void exceptionShouldBeThrownWhenLocalIdDoesNotExist() {
+  void exceptionShouldBeThrownWhenLocalIdDoesNotExist() {
     assertThrows(RecordNotExistsException.class,
             () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName"));
   }
 
   @Test
-  public void exceptionShouldBeThrownWhenRepresentationIsMissing() {
+  void exceptionShouldBeThrownWhenRepresentationIsMissing() {
     assertThrows(RepresentationNotExistsException.class,
             () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, NOT_EXISTING_REPRESENTATION_NAME));
   }
 
 
   @Test
-  public void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord() {
+  void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord() {
     assertThrows(RepresentationNotExistsException.class,
             () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION,
                     EXISTING_REPRESENTATION_NAME));
   }
 
   @Test
-  public void fileShouldBeReadSuccessfully()
+  void fileShouldBeReadSuccessfully()
           throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
             EXISTING_REPRESENTATION_NAME);
@@ -107,7 +107,7 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  public void fileHeadersShouldBeReadSuccessfully()
+  void fileHeadersShouldBeReadSuccessfully()
           throws FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFileHeaders(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
             EXISTING_REPRESENTATION_NAME);

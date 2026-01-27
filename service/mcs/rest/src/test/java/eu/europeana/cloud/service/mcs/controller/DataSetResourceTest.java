@@ -43,39 +43,39 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
   private UISClientHandler uisHandler;
 
     @BeforeAll
-  public static void setUp(){
-    S3TestHelper.startS3MockServer();
-  }
+    static void setUp() {
+      S3TestHelper.startS3MockServer();
+    }
 
-    @BeforeEach
-  public void mockUp() {
+  @BeforeEach
+  void mockUp() {
     dataProvider.setId("testprov");
     uisHandler = applicationContext.getBean(UISClientHandler.class);
     Mockito.reset(uisHandler);
     Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider(Mockito.anyString());
+            .getProvider(Mockito.anyString());
     Mockito.doReturn(true).when(uisHandler)
-           .existsCloudId(Mockito.anyString());
+            .existsCloudId(Mockito.anyString());
     Mockito.doReturn(true).when(uisHandler)
-           .existsProvider(Mockito.anyString());
+            .existsProvider(Mockito.anyString());
     dataSetService = applicationContext.getBean(DataSetService.class);
     recordService = applicationContext.getBean(RecordService.class);
   }
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     S3TestHelper.cleanUpBetweenTests();
   }
 
-    @AfterAll
-  public static void cleanUpAfterTests() {
+  @AfterAll
+  static void cleanUpAfterTests() {
     S3TestHelper.stopS3MockServer();
   }
 
 
   @Test
-  public void shouldUpdateDataset()
-      throws Exception {
+  void shouldUpdateDataset()
+          throws Exception {
     // given certain data set in service
     String dataSetId = "dataset";
     String description = "dataset description";
@@ -83,8 +83,8 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
     // when you add data set for a provider
     mockMvc.perform(put(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)
-               .contentType(MediaType.APPLICATION_FORM_URLENCODED).param(F_DESCRIPTION, description))
-           .andExpect(status().isNoContent());
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED).param(F_DESCRIPTION, description))
+            .andExpect(status().isNoContent());
 
     // ten this set should be visible in service
     List<DataSet> dataSetsForPrivider = dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults();
@@ -95,17 +95,17 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldDeleteDataset()
-      throws Exception {
+  void shouldDeleteDataset()
+          throws Exception {
     // given certain datasets with the same id for different providers
-      String dataSetId = "dataset";
-      String anotherProvider = "anotherProvider";
-      dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
+    String dataSetId = "dataset";
+    String anotherProvider = "anotherProvider";
+    dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");
 
-      dataSetService.createDataSet(anotherProvider, dataSetId, "");
+    dataSetService.createDataSet(anotherProvider, dataSetId, "");
 
-      // when you delete it for one provider
-      mockMvc.perform(delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
+    // when you delete it for one provider
+    mockMvc.perform(delete(DATA_SET_RESOURCE, dataProvider.getId(), dataSetId)).andExpect(status().isNoContent());
 
       // than deleted dataset should not be in service and non-deleted should remain
       assertTrue(dataSetService.getDataSets(dataProvider.getId(), null, 10000).getResults().isEmpty());
@@ -114,8 +114,8 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldListRepresentationsFromDataset()
-      throws Exception {
+  void shouldListRepresentationsFromDataset()
+          throws Exception {
     // given data set with assigned record representations
     String dataSetId = "dataset";
     dataSetService.createDataSet(dataProvider.getId(), dataSetId, "");

@@ -59,13 +59,13 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
 
     @BeforeAll
-  public static void setUp(){
-    S3TestHelper.startS3MockServer();
-  }
+    static void setUp() {
+      S3TestHelper.startS3MockServer();
+    }
 
-    @BeforeEach
-  public void mockUp()
-      throws Exception {
+  @BeforeEach
+  void mockUp()
+          throws Exception {
     recordService = applicationContext.getBean(RecordService.class);
     dataSetService = applicationContext.getBean(DataSetService.class);
 
@@ -95,8 +95,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     try {
       recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
       S3TestHelper.cleanUpBetweenTests();
@@ -105,14 +105,14 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     }
   }
 
-    @AfterAll
-  public static void cleanUpAfterTests() {
+  @AfterAll
+  static void cleanUpAfterTests() {
     S3TestHelper.stopS3MockServer();
   }
 
   @Test
-  public void shouldUploadDataWithPostWithoutFileName()
-      throws Exception {
+  void shouldUploadDataWithPostWithoutFileName()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = new byte[1000];
     ThreadLocalRandom.current().nextBytes(content);
@@ -121,7 +121,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     // when content is added to record representation
 
     mockMvc.perform(postFile(filesWebTarget, file.getMimeType(), content))
-           .andExpect(status().isCreated())
+            .andExpect(status().isCreated())
            .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
     // then data should be in record service
@@ -139,8 +139,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
 
   @Test
-  public void shouldUploadDataWithPostWithFileName()
-      throws Exception {
+  void shouldUploadDataWithPostWithFileName()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = new byte[1000];
     ThreadLocalRandom.current().nextBytes(content);
@@ -148,8 +148,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     // when content is added to record representation
     mockMvc.perform(postFile(filesWebTarget, file.getMimeType(), content)
-               .param(ParamConstants.F_FILE_NAME, file.getFileName()))
-           .andExpect(status().isCreated())
+                    .param(ParamConstants.F_FILE_NAME, file.getFileName()))
+            .andExpect(status().isCreated())
             .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
       // then data should be in record service
@@ -167,12 +167,12 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldBeReturn409WhenFileAlreadyExist()
-      throws Exception {
+  void shouldBeReturn409WhenFileAlreadyExist()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = {1, 2, 3, 4};
     recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
-        new ByteArrayInputStream(content));
+            new ByteArrayInputStream(content));
 
     byte[] modifiedContent = {5, 6, 7};
     ThreadLocalRandom.current().nextBytes(modifiedContent);
@@ -204,56 +204,56 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldUploadXMLFileWithApplicationXMLMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithApplicationXMLMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "application/xml");
   }
 
   @Test
-  public void shouldUploadXMLFileWithTextXMLMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithTextXMLMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadXMLFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadRdfFileWithTextXmlMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithTextXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadRdfFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadRdfFileWithApplicationXmlMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithApplicationXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "application/xml");
   }
 
   @Test
-  public void shouldUploadXsltFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadXsltFileWithTextXmlMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithTextXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadXsltFileWithApplicationXmlMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithApplicationXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "application/xml");
   }
 

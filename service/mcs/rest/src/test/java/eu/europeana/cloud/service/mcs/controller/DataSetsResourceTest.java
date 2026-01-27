@@ -41,30 +41,30 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
   private DataProvider dataProvider = new DataProvider();
 
     @BeforeEach
-  public void mockUp() {
-    dataProvider.setId("provId");
-    dataSetService = applicationContext.getBean(DataSetService.class);
-    uisHandler = applicationContext.getBean(UISClientHandler.class);
-    dataSetsWebTarget = DataSetsResource.class.getAnnotation(RequestMapping.class).value()[0];
-  }
+    void mockUp() {
+      dataProvider.setId("provId");
+      dataSetService = applicationContext.getBean(DataSetService.class);
+      uisHandler = applicationContext.getBean(UISClientHandler.class);
+      dataSetsWebTarget = DataSetsResource.class.getAnnotation(RequestMapping.class).value()[0];
+    }
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     Mockito.reset(uisHandler);
   }
 
   @Test
-  public void shouldCreateDataset() throws Exception {
+  void shouldCreateDataset() throws Exception {
     Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider("provId");
+            .getProvider("provId");
     // given
     String datasetId = "datasetId";
     String description = "dataset description";
 
     // when you add data set for a provider
     ResultActions createResponse = mockMvc.perform(post(dataSetsWebTarget,
-        "provId").contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                 .param(F_DATASET, datasetId).param(F_DESCRIPTION, description)
+            "provId").contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .param(F_DATASET, datasetId).param(F_DESCRIPTION, description)
     ).andExpect(status().isCreated());
 
     // then location of dataset should be given in response
@@ -81,16 +81,16 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldRequireDatasetIdParameterOnCreate() throws Exception {
+  void shouldRequireDatasetIdParameterOnCreate() throws Exception {
     // given
     Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider("notexisting");
+            .getProvider("notexisting");
     String description = "dataset description";
 
     // when you try to add data set without id
     ResultActions createResponse = mockMvc.perform(post(dataSetsWebTarget, "provId")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .param(F_DESCRIPTION, description)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .param(F_DESCRIPTION, description)
     ).andExpect(status().isBadRequest());
 
     // then you should get error
@@ -99,17 +99,17 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldNotCreateTwoDatasetsWithSameId() throws Exception {
+  void shouldNotCreateTwoDatasetsWithSameId() throws Exception {
     Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider("provId");
+            .getProvider("provId");
     // given that there is a dataset with certain id
     String dataSetId = "dataset";
     dataSetService.createDataSet("provId", dataSetId, "");
 
     // when you try to add a dataset for the same provider with this id
     ResultActions createResponse = mockMvc.perform(post(dataSetsWebTarget, "provId")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .param(F_DATASET, dataSetId)).andExpect(status().isConflict());
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .param(F_DATASET, dataSetId)).andExpect(status().isConflict());
 
     // then you should get information about conflict
     ErrorInfo errorInfo = responseContentAsErrorInfo(createResponse);
@@ -118,16 +118,16 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldNotCreateDatasetForNotexistingProvider()
-      throws Exception {
+  void shouldNotCreateDatasetForNotexistingProvider()
+          throws Exception {
 
     Mockito.doReturn(null).when(uisHandler)
-           .getProvider("notexisting");
+            .getProvider("notexisting");
 
     // when you try to add dataset to this not existing provider
     ResultActions createResponse = mockMvc.perform(post(dataSetsWebTarget, "notexisting")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .param(F_DATASET, "dataset")).andExpect(status().isNotFound());
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .param(F_DATASET, "dataset")).andExpect(status().isNotFound());
 
     // then you should get error
     ErrorInfo errorInfo = responseContentAsErrorInfo(createResponse);

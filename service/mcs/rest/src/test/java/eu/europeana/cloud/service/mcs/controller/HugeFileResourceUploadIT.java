@@ -45,26 +45,26 @@ public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
     @BeforeEach
-  public void mockUp() {
-    recordService = applicationContext.getBean(RecordService.class);
-    dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+    void mockUp() {
+      recordService = applicationContext.getBean(RecordService.class);
+      dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
 
-  }
+    }
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     reset(recordService);
   }
 
   @Test
-  public void testUploadingHugeFile()
-      throws Exception {
+  void testUploadingHugeFile()
+          throws Exception {
     String globalId = "globalId", schema = "schema", version = "v1";
 
     // mock answers
     MockPutContentMethod mockPutContent = new MockPutContentMethod();
     doAnswer(mockPutContent).when(recordService).putContent(anyString(), anyString(), anyString(), any(File.class),
-        any(InputStream.class));
+            any(InputStream.class));
     doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(any(Representation.class));
     MessageDigest md = MessageDigest.getInstance("MD5");
     DigestInputStream inputStream = new DigestInputStream(new DummyStream(HUGE_FILE_SIZE), md);

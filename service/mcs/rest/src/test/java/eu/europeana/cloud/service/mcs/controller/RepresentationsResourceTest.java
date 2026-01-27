@@ -45,7 +45,7 @@ public class RepresentationsResourceTest extends AbstractResourceTest {
 
 
     @BeforeEach
-    public void mockUp() {
+    void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -58,7 +58,7 @@ public class RepresentationsResourceTest extends AbstractResourceTest {
 
     @ParameterizedTest
     @MethodSource("mimeTypes")
-    public void getRepresentations(MediaType mediaType) throws Exception {
+    void getRepresentations(MediaType mediaType) throws Exception {
         Record expected = new Record(record);
         Representation expectedRepresentation = expected.getRepresentations().get(0);
         expectedRepresentation.setUri(URITools.getVersionUri(getBaseUri(), globalId, schema, version));
@@ -68,7 +68,7 @@ public class RepresentationsResourceTest extends AbstractResourceTest {
 
         ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId).toString()).accept(mediaType))
                 .andExpect(status().isOk())
-                                    .andExpect(content().contentType(mediaType));
+                .andExpect(content().contentType(mediaType));
 
     List<Representation> entity = responseContentAsRepresentationList(response, mediaType);
     assertThat(entity, is(expected.getRepresentations()));
@@ -77,28 +77,28 @@ public class RepresentationsResourceTest extends AbstractResourceTest {
   }
 
 
-  @Test
-  public void getRepresentationsReturns404IfRecordDoesNotExists()
-      throws Exception {
-    Throwable exception = new RecordNotExistsException();
-    when(recordService.getRecord(globalId)).thenThrow(exception);
+    @Test
+    void getRepresentationsReturns404IfRecordDoesNotExists()
+            throws Exception {
+        Throwable exception = new RecordNotExistsException();
+        when(recordService.getRecord(globalId)).thenThrow(exception);
 
-    ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
-                                        .accept(MediaType.APPLICATION_XML))
-                                    .andExpect(status().isNotFound());
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+                        .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotFound());
 
-    ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
-    assertThat(errorInfo.getErrorCode(), is(McsErrorCode.RECORD_NOT_EXISTS.toString()));
+        ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
+        assertThat(errorInfo.getErrorCode(), is(McsErrorCode.RECORD_NOT_EXISTS.toString()));
     verify(recordService, times(1)).getRecord(globalId);
     verifyNoMoreInteractions(recordService);
   }
 
 
-  @Test
-  public void getRepresentationsReturns406ForUnsupportedFormat() throws Exception {
-    mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
-               .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
-           .andExpect(status().isNotAcceptable());
-  }
+    @Test
+    void getRepresentationsReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(URITools.getRepresentationsPath(globalId))
+                        .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+                .andExpect(status().isNotAcceptable());
+    }
 
 }

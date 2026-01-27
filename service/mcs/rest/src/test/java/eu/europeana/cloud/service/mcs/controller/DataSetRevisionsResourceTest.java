@@ -50,20 +50,20 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
   private static final String VERSION_ID = "b75fe730-f893-11ed-9c21-0242da5f01d7";
 
     @BeforeEach
-  public void mockUp() {
-    uisHandler = applicationContext.getBean(UISClientHandler.class);
-    dataSetService = applicationContext.getBean(DataSetService.class);
-    dataSetWebTarget = DataSetRevisionsResource.class.getAnnotation(RequestMapping.class).value()[0];
-    dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-  }
+    void mockUp() {
+      uisHandler = applicationContext.getBean(UISClientHandler.class);
+      dataSetService = applicationContext.getBean(DataSetService.class);
+      dataSetWebTarget = DataSetRevisionsResource.class.getAnnotation(RequestMapping.class).value()[0];
+      dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    }
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     Mockito.reset(uisHandler);
   }
 
   @Test
-  public void shouldRetrieveCloudIdBelongToRevision() throws Exception {
+  void shouldRetrieveCloudIdBelongToRevision() throws Exception {
     // given
     String datasetId = "dataset";
     String providerId = "providerId";
@@ -92,7 +92,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
   }
 
   @Test
-  public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision() throws Exception {
+  void shouldGetEmptyResultSetOnRetrievingNonExistingRevision() throws Exception {
     // given
     String datasetId = "dataset";
     String providerId = "providerId";
@@ -120,7 +120,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
   }
 
   @Test
-  public void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception {
+  void shouldGetEmptyResultSetOnRetrievingNonExistingRevision2() throws Exception {
     // given
     String datasetId = "dataset";
     String providerId = "providerId";
@@ -146,7 +146,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
 
 
   @Test
-  public void shouldResultWithNotDefinedStart() throws Exception {
+  void shouldResultWithNotDefinedStart() throws Exception {
     // given
     String datasetId = "dataset";
     String providerId = "providerId";
@@ -177,7 +177,7 @@ public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResource
   }
 
   @Test
-  public void shouldRetrieveCloudIdsPageByPage() throws Exception {
+  void shouldRetrieveCloudIdsPageByPage() throws Exception {
     // given
     String datasetId = "dataset";
     String providerId = "providerId";

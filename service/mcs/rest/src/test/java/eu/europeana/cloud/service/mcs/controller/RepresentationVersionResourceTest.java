@@ -58,7 +58,7 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
   @BeforeEach
-  public void mockUp() throws RepresentationNotExistsException {
+  void mockUp() throws RepresentationNotExistsException {
     recordService = applicationContext.getBean(RecordService.class);
     CassandraRecordDAO cassandraRecordDAO = applicationContext.getBean(CassandraRecordDAO.class);
     DataSetPermissionsVerifier dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
@@ -79,7 +79,7 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   @ParameterizedTest
   @MethodSource("mimeTypes")
-  public void testGetRepresentationVersion(MediaType mediaType) throws Exception {
+  void testGetRepresentationVersion(MediaType mediaType) throws Exception {
     Representation expected = new Representation(REPRESENTATION);
     URITools.enrich(expected, getBaseUri());
     when(recordService.getRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenReturn(new Representation(REPRESENTATION));
@@ -108,7 +108,7 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   @ParameterizedTest
   @MethodSource("errors")
-  public void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
+  void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
           Throwable exception, String errorCode, int statusCode)
           throws Exception {
     when(recordService.getRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenThrow(exception);
@@ -125,15 +125,15 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void testGetRepresentationVersionReturns406ForUnsupportedFormat() throws Exception {
+  void testGetRepresentationVersionReturns406ForUnsupportedFormat() throws Exception {
     mockMvc.perform(get(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION))
-               .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
-           .andExpect(status().isNotAcceptable());
+                    .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+            .andExpect(status().isNotAcceptable());
   }
 
 
   @Test
-  public void testDeleteRepresentation()
+  void testDeleteRepresentation()
           throws Exception {
     mockMvc.perform(delete(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION)))
             .andExpect(status().isNoContent());
@@ -144,8 +144,8 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   @ParameterizedTest
   @MethodSource("errors")
-  public void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
-                                                                                      String errorCode, int statusCode)
+  void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
+                                                                               String errorCode, int statusCode)
           throws Exception {
     Mockito.doThrow(exception).when(recordService).deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 
@@ -160,10 +160,10 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void testPersistRepresentation()
-      throws Exception {
+  void testPersistRepresentation()
+          throws Exception {
     when(recordService.persistRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenReturn(
-        new Representation(REPRESENTATION));
+            new Representation(REPRESENTATION));
 
     mockMvc.perform(post(PERSIST_PATH).contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().isCreated())
@@ -177,8 +177,8 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   @ParameterizedTest
   @MethodSource("persistErrors")
-  public void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
-                                                                  int statusCode)
+  void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
+                                                           int statusCode)
           throws Exception {
     when(recordService.persistRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenThrow(exception);
 

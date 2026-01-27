@@ -49,7 +49,7 @@ public class RepresentationVersionsResourceTest extends AbstractResourceTest {
 
 
     @BeforeEach
-    public void mockUp() {
+    void mockUp() {
         recordService = applicationContext.getBean(RecordService.class);
         Mockito.reset(recordService);
     }
@@ -62,7 +62,7 @@ public class RepresentationVersionsResourceTest extends AbstractResourceTest {
 
     @ParameterizedTest
     @MethodSource("mimeTypes")
-    public void testListVersions(MediaType mediaType)
+    void testListVersions(MediaType mediaType)
             throws Exception {
         List<Representation> expected = copy(REPRESENTATIONS);
         Representation expectedRepresentation = expected.get(0);
@@ -100,7 +100,7 @@ public class RepresentationVersionsResourceTest extends AbstractResourceTest {
 
     @ParameterizedTest
     @MethodSource("errors")
-    public void testListVersionsReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception, String errorCode)
+    void testListVersionsReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception, String errorCode)
             throws Exception {
         when(recordService.listRepresentationVersions(GLOBAL_ID, SCHEMA)).thenThrow(exception);
 
@@ -110,14 +110,14 @@ public class RepresentationVersionsResourceTest extends AbstractResourceTest {
         ErrorInfo errorInfo = responseContentAsErrorInfo(response, org.springframework.http.MediaType.APPLICATION_XML);
         assertThat(errorInfo.getErrorCode(), is(errorCode));
         verify(recordService, times(1)).listRepresentationVersions(GLOBAL_ID, SCHEMA);
-    verifyNoMoreInteractions(recordService);
+        verifyNoMoreInteractions(recordService);
   }
 
 
-  @Test
-  public void testListVersionsReturns406ForUnsupportedFormat() throws Exception {
-    mockMvc.perform(get(LIST_VERSIONS_PATH).accept(MEDIA_TYPE_APPLICATION_SVG_XML))
-           .andExpect(status().isNotAcceptable());
-  }
+    @Test
+    void testListVersionsReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(LIST_VERSIONS_PATH).accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+                .andExpect(status().isNotAcceptable());
+    }
 
 }

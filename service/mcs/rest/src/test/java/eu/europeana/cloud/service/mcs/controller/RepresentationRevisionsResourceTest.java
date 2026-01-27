@@ -52,9 +52,9 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
 
 
     @BeforeEach
-  public void mockUp() {
-    recordService = applicationContext.getBean(RecordService.class);
-    Mockito.reset(recordService);
+    void mockUp() {
+        recordService = applicationContext.getBean(RecordService.class);
+        Mockito.reset(recordService);
         //
         AclPermissionEvaluator permissionEvaluator = applicationContext.getBean(AclPermissionEvaluator.class);
         Mockito.when(
@@ -72,7 +72,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
 
     @ParameterizedTest
     @MethodSource("mimeTypes")
-    public void getRepresentationByRevisionResponse(MediaType mediaType)
+    void getRepresentationByRevisionResponse(MediaType mediaType)
             throws Exception {
         RepresentationRevisionResponse representationRevisionResponse = new RepresentationRevisionResponse(representationResponse);
         ArrayList<File> files = new ArrayList<>(1);
@@ -82,7 +82,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         representationRevisionResponse.setFiles(files);
 
         Representation representation = new Representation(representationRevisionResponse.getCloudId(),
-        representationRevisionResponse.getRepresentationName(), representationRevisionResponse.getVersion(),
+                representationRevisionResponse.getRepresentationName(), representationRevisionResponse.getVersion(),
         null, null, representationRevisionResponse.getRevisionProviderId(), representationRevisionResponse.getFiles(),
         new ArrayList<Revision>(), false, representationRevisionResponse.getRevisionTimestamp(), null);
 
@@ -110,7 +110,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
 
     @ParameterizedTest
     @MethodSource("mimeTypes")
-    public void getgetRepresentationRawRevisionsResponse(MediaType mediaType)
+    void getRepresentationRawRevisionsResponse(MediaType mediaType)
             throws Exception {
         RepresentationRevisionResponse representationRevisionResponse = new RepresentationRevisionResponse(representationResponse);
         representationRevisionResponse.setFiles(Collections.singletonList(
@@ -120,7 +120,7 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
         doReturn(Collections.singletonList(representationRevisionResponse)).when(recordService).getRepresentationRevisions(GLOBAL_ID,
                 SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
 
-    ResultActions response = mockMvc.perform(get(URITools.getRepresentationRawRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
+        ResultActions response = mockMvc.perform(get(URITools.getRepresentationRawRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
                                         .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID).accept(mediaType))
                                     .andExpect(status().isOk())
                                     .andExpect(content().contentType(mediaType));
@@ -133,26 +133,26 @@ public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
   }
 
 
-  @Test
-  public void getRepresentationReturns406ForUnsupportedFormat() throws Exception {
-    mockMvc.perform(get(URITools.getRepresentationRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
-        .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID)
-        .accept(MEDIA_TYPE_APPLICATION_SVG_XML)).andExpect(status().isNotAcceptable());
-  }
+    @Test
+    void getRepresentationReturns406ForUnsupportedFormat() throws Exception {
+        mockMvc.perform(get(URITools.getRepresentationRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
+                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID)
+                .accept(MEDIA_TYPE_APPLICATION_SVG_XML)).andExpect(status().isNotAcceptable());
+    }
 
 
-  @Test
-  public void getRepresentationByRevisionsThrowExceptionWhenReturnsEmptyObjectIfRevisionDoesNotExists()
-      throws Exception {
-    List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
-    RepresentationRevisionResponse response = mock(RepresentationRevisionResponse.class);
-    when(response.getRepresentationName()).thenReturn(REPRESENTATION_NAME);
-    when(response.getCloudId()).thenReturn(GLOBAL_ID);
-    when(response.getVersion()).thenReturn(VERSION);
-    expectedResponse.add(response);
-    doReturn(expectedResponse).when(recordService).getRepresentationRevisions(GLOBAL_ID,
-            SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
-    doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
+    @Test
+    void getRepresentationByRevisionsThrowExceptionWhenReturnsEmptyObjectIfRevisionDoesNotExists()
+            throws Exception {
+        List<RepresentationRevisionResponse> expectedResponse = new ArrayList<>();
+        RepresentationRevisionResponse response = mock(RepresentationRevisionResponse.class);
+        when(response.getRepresentationName()).thenReturn(REPRESENTATION_NAME);
+        when(response.getCloudId()).thenReturn(GLOBAL_ID);
+        when(response.getVersion()).thenReturn(VERSION);
+        expectedResponse.add(response);
+        doReturn(expectedResponse).when(recordService).getRepresentationRevisions(GLOBAL_ID,
+                SCHEMA, REVISION_PROVIDER_ID, REVISION_NAME, null);
+        doThrow(RepresentationNotExistsException.class).when(recordService).getRepresentation(anyString(), anyString(), anyString());
 
     mockMvc.perform(get(URITools.getRepresentationRevisionsPath(GLOBAL_ID, SCHEMA, REVISION_NAME))
                .queryParam(ParamConstants.F_REVISION_PROVIDER_ID, REVISION_PROVIDER_ID)

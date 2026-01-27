@@ -43,7 +43,7 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
   @ParameterizedTest
   @MethodSource("mimeTypes")
-  public void getRecord(MediaType mediaType)
+  void getRecord(MediaType mediaType)
           throws Exception {
     String globalId = "global1";
     Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, "DC", "1", null, null,
@@ -74,7 +74,7 @@ public class RecordsResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  public void getRecordReturns406ForUnsupportedFormat() throws Exception {
+  void getRecordReturns406ForUnsupportedFormat() throws Exception {
     mockMvc.perform(get("/records/global1").accept(MEDIA_TYPE_APPLICATION_SVG_XML))
             .andExpect(status().isNotAcceptable());
   }
@@ -86,14 +86,14 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void getRecordReturns404IfRecordDoesNotExists()
+  void getRecordReturns404IfRecordDoesNotExists()
           throws Exception {
     String globalId = "global1";
     Throwable exception = new RecordNotExistsException();
     when(recordService.getRecord(globalId)).thenThrow(exception);
 
     mockMvc.perform(get("/records/" + globalId).contentType(MediaType.APPLICATION_XML))
-           .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
 
     verify(recordService, times(1)).getRecord(globalId);
     verifyNoMoreInteractions(recordService);
@@ -101,12 +101,12 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void deleteRecord()
-      throws Exception {
+  void deleteRecord()
+          throws Exception {
     String globalId = "global1";
 
     mockMvc.perform(delete("/records/" + globalId))
-           .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent());
 
     verify(recordService, times(1)).deleteRecord(globalId);
     verifyNoMoreInteractions(recordService);
@@ -114,14 +114,14 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void deleteRecordReturns404IfRecordDoesNotExists()
-      throws Exception {
+  void deleteRecordReturns404IfRecordDoesNotExists()
+          throws Exception {
     String globalId = "global1";
     Throwable exception = new RecordNotExistsException();
     Mockito.doThrow(exception).when(recordService).deleteRecord(globalId);
 
     mockMvc.perform(delete("/records/" + globalId).contentType(MediaType.APPLICATION_XML))
-           .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
 
     verify(recordService, times(1)).deleteRecord(globalId);
     verifyNoMoreInteractions(recordService);
@@ -129,13 +129,13 @@ public class RecordsResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void deleteRecordReturns404IfRecordHasNoRepresentations() throws Exception {
+  void deleteRecordReturns404IfRecordHasNoRepresentations() throws Exception {
     String globalId = "global1";
     Throwable exception = new RepresentationNotExistsException();
     Mockito.doThrow(exception).when(recordService).deleteRecord(globalId);
 
     mockMvc.perform(delete("/records/" + globalId).contentType(MediaType.APPLICATION_XML))
-           .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
 
     verify(recordService, times(1)).deleteRecord(globalId);
     verifyNoMoreInteractions(recordService);
