@@ -8,9 +8,10 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
+@ExtendWith(MockitoExtension.class)
 public class NormalizationBoltTest {
 
   @Mock(name = "outputCollector")
@@ -33,11 +35,6 @@ public class NormalizationBoltTest {
 
   @InjectMocks
   private NormalizationBolt normalizationBolt = new NormalizationBolt(new CassandraProperties());
-
-  @BeforeEach
-  void init() {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
   void shouldNormalizeRecord() throws Exception {
