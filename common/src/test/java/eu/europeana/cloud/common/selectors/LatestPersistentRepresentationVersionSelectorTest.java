@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LatestPersistentRepresentationVersionSelectorTest {
 
@@ -56,26 +55,26 @@ public class LatestPersistentRepresentationVersionSelectorTest {
     @Test
     void shouldReturnNullForEmptyList() {
         Representation selectedRepresentation = representationSelector.select(emptyRepresentationsList);
-        assertTrue(selectedRepresentation == null);
+        assertNull(selectedRepresentation);
     }
 
     @Test
     void shouldReturnNullForListWithoutPersistentRepresentations() {
         Representation selectedRepresentation = representationSelector.select(representationsListWithZeroPersistentVersions);
-        assertTrue(selectedRepresentation == null);
+        assertNull(selectedRepresentation);
     }
 
     @Test
     void shouldReturnLatestRepresentationVersion() {
         Representation selectedRepresentation = representationSelector.select(representationsListWithOnePersistentVersion);
-        assertFalse(selectedRepresentation == null);
+        assertNotNull(selectedRepresentation);
     }
 
     @Test
     void shouldReturnLatestRepresentationVersion_1() {
         Representation selectedRepresentation = representationSelector.select(representationsListWithMultiplePersistentVersions);
-        assertFalse(selectedRepresentation == null);
-        assertTrue(selectedRepresentation.getRepresentationName().equals("name2"));
+        assertNotNull(selectedRepresentation);
+        assertEquals("name2", selectedRepresentation.getRepresentationName());
     }
 
 }

@@ -96,9 +96,10 @@ public class RecordResourceAATest extends AbstractSecurityTest {
         );
     }
 
+    @Test
     public void shouldBeAbleToDeleteRecordWhenAdmin()
             throws RecordNotExistsException, RepresentationNotExistsException {
-    login(ADMIN, ADMIN_PASSWORD);
-    recordsResource.deleteRecord(GLOBAL_ID);
-  }
+        login(ADMIN, ADMIN_PASSWORD);
+        recordsResource.deleteRecord(GLOBAL_ID);
+    }
 }
