@@ -1,17 +1,16 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static eu.europeana.cloud.mcs.driver.Config.MCS_URL;
-import static eu.europeana.cloud.mcs.driver.Config.OTHER_USER;
-import static eu.europeana.cloud.mcs.driver.Config.UIS_URL;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import jakarta.ws.rs.core.MediaType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,10 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.ws.rs.core.MediaType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static eu.europeana.cloud.mcs.driver.Config.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MCSServiceClientAutomaticIT {
 
@@ -46,10 +43,10 @@ public class MCSServiceClientAutomaticIT {
   private UISClient uisClient;
   private String cloudId1;
   private final InputStream fileData = new ByteArrayInputStream("It is test uploaded file content."
-      .getBytes(StandardCharsets.UTF_8));
+          .getBytes(StandardCharsets.UTF_8));
 
-  @Before
-  public void setup() throws MCSException, CloudException {
+  @BeforeEach
+  void setup() throws MCSException, CloudException {
     uisClient = new UISClient(UIS_URL, USER_NAME, USER_PASSWORD);
     dataSetServiceClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
     recordServiceClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -71,28 +68,29 @@ public class MCSServiceClientAutomaticIT {
     }
   }
 
-  @After
-  public void close() {
+  @AfterEach
+  void close() {
     recordServiceClient.close();
     dataSetServiceClient.close();
     uisClient.close();
   }
 
   @Test
-  public void shouldCreateEmptyRepresentation() throws MCSException {
+  void shouldCreateEmptyRepresentation() throws MCSException {
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
 
     assertEquals(1, recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME).size());
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldNotCreateEmptyRepresentationIfUserHasNotRightsToDataset() throws MCSException {
-    recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
+  @Test
+  void shouldNotCreateEmptyRepresentationIfUserHasNotRightsToDataset() {
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class,
+            () -> recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID));
   }
 
   @Test
-  public void shouldCreateEmptyRepresentationForGivenVersion() throws MCSException {
+  void shouldCreateEmptyRepresentationForGivenVersion() throws MCSException {
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, VERSION, DATASET_ID);
 
     List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
@@ -102,7 +100,7 @@ public class MCSServiceClientAutomaticIT {
   }
 
   @Test
-  public void shouldCreateEmptyRepresentationWithFile() throws MCSException, IOException {
+  void shouldCreateEmptyRepresentationWithFile() throws MCSException, IOException {
     System.out.println(recordServiceClient);
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_MEDIA_TYPE);
 
@@ -112,16 +110,17 @@ public class MCSServiceClientAutomaticIT {
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldNotCreateEmptyRepresentationWithFileIfUserHasNotRightsToDataset() throws MCSException, IOException {
-    recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME,
-        FILE_MEDIA_TYPE);
+  @Test
+  void shouldNotCreateEmptyRepresentationWithFileIfUserHasNotRightsToDataset() {
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class,
+            () -> recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME,
+                    FILE_MEDIA_TYPE));
   }
 
   @Test
-  public void shouldCreateEmptyRepresentationWithNamedFile() throws MCSException, IOException {
+  void shouldCreateEmptyRepresentationWithNamedFile() throws MCSException, IOException {
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID, fileData, FILE_NAME,
-        FILE_MEDIA_TYPE);
+            FILE_MEDIA_TYPE);
 
     List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
     assertEquals(1, createdRepresentations.size());
@@ -129,9 +128,9 @@ public class MCSServiceClientAutomaticIT {
   }
 
   @Test
-  public void shouldCreateEmptyRepresentationWithNamedFileForGivenVersion() throws MCSException, IOException {
+  void shouldCreateEmptyRepresentationWithNamedFileForGivenVersion() throws MCSException, IOException {
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, VERSION, DATASET_ID,
-        fileData, FILE_NAME, FILE_MEDIA_TYPE);
+            fileData, FILE_NAME, FILE_MEDIA_TYPE);
 
     List<Representation> createdRepresentations = recordServiceClient.getRepresentations(cloudId1, REPRESENTATION_NAME);
     assertEquals(1, createdRepresentations.size());
@@ -141,7 +140,7 @@ public class MCSServiceClientAutomaticIT {
   }
 
   @Test
-  public void shouldProperlyChangeDataSetPermissionsForUser() throws MCSException {
+  void shouldProperlyChangeDataSetPermissionsForUser() throws MCSException {
     dataSetServiceClient.updateDataSetPermissionsForUser(PROVIDER, DATASET_ID, Permission.WRITE, OTHER_USER);
 
     recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);

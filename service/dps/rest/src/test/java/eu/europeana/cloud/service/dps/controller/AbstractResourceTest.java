@@ -33,16 +33,16 @@ public class AbstractResourceTest {
   public AbstractResourceTest() {
   }
 
-  public void init() throws MCSException {
-    mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
+  void init() throws MCSException {
+      mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 
-    topologyManager = applicationContext.getBean(TopologyManager.class);
-    validationStatisticsService = applicationContext.getBean(ValidationStatisticsServiceImpl.class);
+      topologyManager = applicationContext.getBean(TopologyManager.class);
+      validationStatisticsService = applicationContext.getBean(ValidationStatisticsServiceImpl.class);
 
-    reset(
-        topologyManager,
-        validationStatisticsService
-    );
+      reset(
+              topologyManager,
+              validationStatisticsService
+      );
   }
 
 }

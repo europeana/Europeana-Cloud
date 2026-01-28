@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
@@ -14,18 +10,27 @@ import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class EuropeanaIdFinderTest {
 
   private static final String METIS_DATASET_ID = "11";
@@ -51,21 +56,21 @@ public class EuropeanaIdFinderTest {
   private final List<CloudId> idsFromUIS = new ArrayList<>();
   private final ResultSlice<CloudId> resultSlice = new ResultSlice<>(null, idsFromUIS);
 
-  @Before
-  public void before() throws CloudException {
+  @BeforeEach
+  void before() throws CloudException {
     when(uisClient.getRecordId(CLOUD_ID)).thenReturn(resultSlice);
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.empty());
   }
 
-  @Test(expected = CloudException.class)
-  public void shouldThrowExceptionWhenNotEuropeanaIdCouldBeFound() throws MalformedURLException, CloudException {
+  @Test
+  void shouldThrowExceptionWhenNotEuropeanaIdCouldBeFound() throws CloudException {
     when(uisClient.getRecordId(CLOUD_ID)).thenThrow(createRecordNotExistsException());
 
-    finder.findForFileUrl(METIS_DATASET_ID, FILE_URL);
+    assertThrows(CloudException.class, () -> finder.findForFileUrl(METIS_DATASET_ID, FILE_URL));
   }
 
   @Test
-  public void shouldReturnAnyLocalIdIfItIsTheOnlyOne() throws MalformedURLException, CloudException {
+  void shouldReturnAnyLocalIdIfItIsTheOnlyOne() throws MalformedURLException, CloudException {
     idsFromUIS.add(createId(NOT_EUROPEANA_ID));
 
     String europeanaId = finder.findForFileUrl(METIS_DATASET_ID, FILE_URL);
@@ -74,7 +79,7 @@ public class EuropeanaIdFinderTest {
   }
 
   @Test
-  public void shouldReturnEuropeanaIdIfOtherIdsNotStartsWithMetisDatasetIdPrefix() throws MalformedURLException, CloudException {
+  void shouldReturnEuropeanaIdIfOtherIdsNotStartsWithMetisDatasetIdPrefix() throws MalformedURLException, CloudException {
     idsFromUIS.add(createId(LOCAL_ID_1));
     idsFromUIS.add(createId(EUROPEANA_ID_1));
 
@@ -85,8 +90,8 @@ public class EuropeanaIdFinderTest {
 
 
   @Test
-  public void shouldReturnValidEuropeanaIdIfOtherIdStartsOddlyWithMetisDatasetIdPrefixButLocalIdPartIsContainedInIt()
-      throws MalformedURLException, CloudException {
+  void shouldReturnValidEuropeanaIdIfOtherIdStartsOddlyWithMetisDatasetIdPrefixButLocalIdPartIsContainedInIt()
+          throws MalformedURLException, CloudException {
     idsFromUIS.add(createId(EUROPEANA_ID_2));
     idsFromUIS.add(createId(EUROPEANA_ID_1));
 
@@ -96,37 +101,35 @@ public class EuropeanaIdFinderTest {
   }
 
   @Test
-  public void shouldReturnIdSavedInHarvestedRecordsTableIfMoreThanOneUnambiguousEuropeanaIdsAreReturned()
-      throws MalformedURLException, CloudException {
+  void shouldReturnIdSavedInHarvestedRecordsTableIfMoreThanOneUnambiguousEuropeanaIdsAreReturned()
+          throws MalformedURLException, CloudException {
     idsFromUIS.add(createId(EUROPEANA_ID_1));
     idsFromUIS.add(createId(EUROPEANA_ID_3));
     when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, EUROPEANA_ID_3)).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_3).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_3).build()));
 
     String europeanaId = finder.findForFileUrl(METIS_DATASET_ID, FILE_URL);
 
     assertEquals(EUROPEANA_ID_3, europeanaId);
   }
 
-  @Test(expected = TopologyGeneralException.class)
-  public void shouldThrowExceptionIfMoreThanOneUnambiguousEuropeanaIdsAreReturnedAndAnyOfThemIsInHarvestedRecordsTable()
-      throws MalformedURLException, CloudException {
+  @Test
+  void shouldThrowExceptionIfMoreThanOneUnambiguousEuropeanaIdsAreReturnedAndAnyOfThemIsInHarvestedRecordsTable() {
     idsFromUIS.add(createId(EUROPEANA_ID_1));
     idsFromUIS.add(createId(EUROPEANA_ID_3));
 
-    finder.findForFileUrl(METIS_DATASET_ID, FILE_URL);
+    assertThrows(TopologyGeneralException.class, () -> finder.findForFileUrl(METIS_DATASET_ID, FILE_URL));
   }
 
-  @Test(expected = TopologyGeneralException.class)
-  public void shouldThrowExceptionIfMoreThanOneUnambiguousEuropeanaIdsAreReturnedAndBothOfThemAreInHarvestedRecordsTable()
-      throws MalformedURLException, CloudException {
+  @Test
+  void shouldThrowExceptionIfMoreThanOneUnambiguousEuropeanaIdsAreReturnedAndBothOfThemAreInHarvestedRecordsTable() {
     idsFromUIS.add(createId(EUROPEANA_ID_1));
     idsFromUIS.add(createId(EUROPEANA_ID_3));
     when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, EUROPEANA_ID_1)).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_1).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_1).build()));
     when(harvestedRecordsDAO.findRecord(METIS_DATASET_ID, EUROPEANA_ID_3)).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_3).build()));
-    finder.findForFileUrl(METIS_DATASET_ID, FILE_URL);
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(EUROPEANA_ID_3).build()));
+    assertThrows(TopologyGeneralException.class, () -> finder.findForFileUrl(METIS_DATASET_ID, FILE_URL));
   }
 
   private CloudId createId(String recordId) {

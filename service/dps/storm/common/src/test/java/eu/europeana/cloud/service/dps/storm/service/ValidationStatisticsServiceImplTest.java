@@ -1,10 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
@@ -16,14 +14,14 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
 
@@ -53,76 +51,76 @@ public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
 
   private static final String NODE_1_VALUE = "value1";
 
-  private static final String ATTRIBUTE_2_NAME = "attribute2";
+    private static final String ATTRIBUTE_2_NAME = "attribute2";
 
-  private static final long OCCURRENCE = 1;
+    private static final long OCCURRENCE = 1;
 
-  private ValidationStatisticsServiceImpl validationStatisticsService;
+    private ValidationStatisticsServiceImpl validationStatisticsService;
 
-  private StatisticsReportDAO statisticsReportDAO;
+    private StatisticsReportDAO statisticsReportDAO;
 
-  private CassandraAttributeStatisticsDAO attributeStatisticsDAO;
+    private CassandraAttributeStatisticsDAO attributeStatisticsDAO;
 
-  @Before
-  public void setUp() {
-    CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-        CassandraTestInstance.getPort(), KEYSPACE, "", "");
-    statisticsReportDAO = StatisticsReportDAO.getInstance(cassandra);
-    validationStatisticsService = ValidationStatisticsServiceImpl.getInstance(cassandra);
-    attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(cassandra);
-  }
+    @BeforeEach
+    void setUp() {
+        CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
+                CassandraTestInstance.getPort(), KEYSPACE, "", "");
+        statisticsReportDAO = StatisticsReportDAO.getInstance(cassandra);
+        validationStatisticsService = ValidationStatisticsServiceImpl.getInstance(cassandra);
+        attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(cassandra);
+    }
 
-  @Test
-  public void testShouldProperlyStoreNodeStatistics() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(null);
+    @Test
+    void testShouldProperlyStoreNodeStatistics() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
-    // when
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        // when
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
-    // then
-    List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
-    Assert.assertEquals(retrieved.size(), toStore.size());
-    for (NodeStatistics stats : toStore) {
-      Assert.assertTrue(retrieved.contains(stats));
+        // then
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
+        assertEquals(retrieved.size(), toStore.size());
+        for (NodeStatistics stats : toStore) {
+            assertTrue(retrieved.contains(stats));
     }
   }
 
-  @Test
-  public void testShouldProperlyUpdateNodeStatistics() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(null);
+    @Test
+    void testShouldProperlyUpdateNodeStatistics() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(null);
 
-    // when
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        // when
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
-    // then
-    List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
-    Assert.assertEquals(retrieved.size(), toStore.size());
+        // then
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
+        assertEquals(retrieved.size(), toStore.size());
     for (NodeStatistics stats : toStore) {
-      Assert.assertTrue(retrieved.contains(stats));
+        assertTrue(retrieved.contains(stats));
     }
     for (NodeStatistics stats : retrieved) {
-      Assert.assertEquals(OCCURRENCE * 2, stats.getOccurrence());
+        assertEquals(OCCURRENCE * 2, stats.getOccurrence());
     }
   }
 
-  @Test
-  public void testShouldProperlyUpdateNodeStatisticsWithAttributeStatistics() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+    @Test
+    void testShouldProperlyUpdateNodeStatisticsWithAttributeStatistics() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
-    // when
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        // when
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
-    // then
-    List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
-    Assert.assertEquals(retrieved.size(), toStore.size());
-    for (NodeStatistics stats : retrieved) {
-      Assert.assertTrue(toStore.contains(stats));
-      Assert.assertTrue(stats.hasAttributes());
-    }
+        // then
+        List<NodeStatistics> retrieved = validationStatisticsService.getNodeStatistics(TASK_ID);
+        assertEquals(retrieved.size(), toStore.size());
+        for (NodeStatistics stats : retrieved) {
+            assertTrue(toStore.contains(stats));
+            assertTrue(stats.hasAttributes());
+        }
   }
 
   private List<AttributeStatistics> createAttributeStatistics() {
@@ -169,70 +167,70 @@ public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
     validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
     // then
-    Assert.assertFalse(statisticsReportDAO.isReportStored(TASK_ID));
+      assertFalse(statisticsReportDAO.isReportStored(TASK_ID));
   }
 
-  @Test
-  public void testShouldStoreReportSuccessfully() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
-    StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
+    @Test
+    void testShouldStoreReportSuccessfully() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+        StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
 
-    // when
-    validationStatisticsService.storeStatisticsReport(TASK_ID, report);
+        // when
+        validationStatisticsService.storeStatisticsReport(TASK_ID, report);
 
-    // then
-    Assert.assertTrue(statisticsReportDAO.isReportStored(TASK_ID));
-  }
-
-  @Test
-  public void testShouldProperlyStoreAndRetrieveReport() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
-    StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
-
-    // when
-    validationStatisticsService.storeStatisticsReport(TASK_ID, report);
-
-    // then
-    StatisticsReport reportRetrieved = statisticsReportDAO.getStatisticsReport(TASK_ID);
-    Assert.assertEquals(report, reportRetrieved);
-  }
-
-
-  @Test
-  public void shouldProperlyReturnElementReportWithAttributes() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
-
-    // when
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
-
-    // then
-    List<NodeReport> nodeReportList = validationStatisticsService.getElementReport(TASK_ID, NODE_1_XPATH);
-    Assert.assertNotNull(nodeReportList);
-    Assert.assertEquals(2, nodeReportList.size());
-    List<String> expectedValues = Arrays.asList(NODE_VALUE_1, NODE_VALUE_2);
-    for (NodeReport nodeReport : nodeReportList) {
-      Assert.assertTrue(expectedValues.contains(nodeReport.getNodeValue()));
-      Assert.assertEquals(OCCURRENCE, nodeReportList.get(0).getOccurrence());
-      Assert.assertNotNull(nodeReport.getAttributeStatistics());
-      Assert.assertEquals(1, nodeReport.getAttributeStatistics().size());
+        // then
+        assertTrue(statisticsReportDAO.isReportStored(TASK_ID));
     }
+
+    @Test
+    void testShouldProperlyStoreAndRetrieveReport() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+        StatisticsReport report = new StatisticsReport(TASK_ID, toStore);
+
+        // when
+        validationStatisticsService.storeStatisticsReport(TASK_ID, report);
+
+        // then
+        StatisticsReport reportRetrieved = statisticsReportDAO.getStatisticsReport(TASK_ID);
+        assertEquals(report, reportRetrieved);
   }
 
-  @Test
-  public void shouldGetTaskStatisticsReport() {
-    // given
-    List<NodeStatistics> stats = prepareStats();
-    validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
-    // when
-    StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
 
-    // then
-    assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
-    assertEquals(TASK_ID, actual.getTaskId());
-    assertThat(actual.getNodeStatistics().size(), is(2));
+    @Test
+    void shouldProperlyReturnElementReportWithAttributes() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+
+        // when
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+
+        // then
+        List<NodeReport> nodeReportList = validationStatisticsService.getElementReport(TASK_ID, NODE_1_XPATH);
+        assertNotNull(nodeReportList);
+        assertEquals(2, nodeReportList.size());
+        List<String> expectedValues = Arrays.asList(NODE_VALUE_1, NODE_VALUE_2);
+        for (NodeReport nodeReport : nodeReportList) {
+            assertTrue(expectedValues.contains(nodeReport.getNodeValue()));
+            assertEquals(OCCURRENCE, nodeReportList.get(0).getOccurrence());
+            assertNotNull(nodeReport.getAttributeStatistics());
+            assertEquals(1, nodeReport.getAttributeStatistics().size());
+        }
+    }
+
+    @Test
+    void shouldGetTaskStatisticsReport() {
+        // given
+        List<NodeStatistics> stats = prepareStats();
+        validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
+        // when
+        StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
+
+        // then
+        assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
+        assertEquals(TASK_ID, actual.getTaskId());
+        assertThat(actual.getNodeStatistics().size(), is(2));
     assertEquals(stats, actual.getNodeStatistics());
   }
 
@@ -287,39 +285,39 @@ public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
     return nodeStatistics;
   }
 
-  @Test
-  public void testShouldProperlyStoreAttributeStatistics() {
-    // given
-    Set<AttributeStatistics> toStore = prepareAttributeStatistics();
+    @Test
+    void testShouldProperlyStoreAttributeStatistics() {
+        // given
+        Set<AttributeStatistics> toStore = prepareAttributeStatistics();
 
-    // when
-    validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+        // when
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
-    // then
-    Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, 2);
-    Assert.assertEquals(retrieved.size(), toStore.size());
-    for (AttributeStatistics stats : toStore) {
-      Assert.assertTrue(retrieved.contains(stats));
+        // then
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, 2);
+        assertEquals(retrieved.size(), toStore.size());
+        for (AttributeStatistics stats : toStore) {
+            assertTrue(retrieved.contains(stats));
     }
   }
 
-  @Test
-  public void testShouldProperlyUpdateAttributeStatistics() {
-    // given
-    Set<AttributeStatistics> toStore = prepareAttributeStatistics();
+    @Test
+    void testShouldProperlyUpdateAttributeStatistics() {
+        // given
+        Set<AttributeStatistics> toStore = prepareAttributeStatistics();
 
-    // when
-    validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
-    validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+        // when
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
+        validationStatisticsService.insertAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, toStore);
 
-    // then
-    Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, 2);
-    Assert.assertEquals(retrieved.size(), toStore.size());
+        // then
+        Set<AttributeStatistics> retrieved = attributeStatisticsDAO.getAttributeStatistics(TASK_ID, NODE_1_XPATH, NODE_1_VALUE, 2);
+        assertEquals(retrieved.size(), toStore.size());
     for (AttributeStatistics stats : toStore) {
-      Assert.assertTrue(retrieved.contains(stats));
+        assertTrue(retrieved.contains(stats));
     }
     for (AttributeStatistics stats : retrieved) {
-      Assert.assertEquals(2, stats.getOccurrence());
+        assertEquals(2, stats.getOccurrence());
     }
   }
 

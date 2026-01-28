@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CleanCronExpressionEvaluatorTest {
 
@@ -35,9 +37,9 @@ public class CleanCronExpressionEvaluatorTest {
   }
 
 
-  @Test(expected = Exception.class)
+  @Test
   public void shouldThrowExceptionWhenCurrentAppNumberIsGreaterThanMaxNodeCount() {
-    new CleanCronExpressionEvaluator(3, "dps-app-3");
+    assertThrows(Exception.class, () -> new CleanCronExpressionEvaluator(3, "dps-app-3"));
   }
 
   @Test

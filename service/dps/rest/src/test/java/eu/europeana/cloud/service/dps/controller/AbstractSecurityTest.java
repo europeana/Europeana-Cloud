@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.config.AuthentificationTestContext;
 import eu.europeana.cloud.service.dps.config.AuthorizationTestContext;
 import eu.europeana.cloud.service.dps.config.RecordContext;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,8 +21,8 @@ import org.springframework.test.context.TestPropertySource;
  */
 
 @ContextConfiguration(classes =
-    {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class,
-        AbstractSecurityTestContext.class, RecordContext.class})
+        {AuthentificationTestContext.class, AuthorizationTestContext.class, PermissionManager.class,
+                AbstractSecurityTestContext.class, RecordContext.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
 public abstract class AbstractSecurityTest extends CassandraAATestRunner {
 
@@ -30,8 +30,8 @@ public abstract class AbstractSecurityTest extends CassandraAATestRunner {
   @Qualifier("authenticationManager")
   private AuthenticationManager authenticationManager;
 
-  @After
-  public void clear() {
+  @AfterEach
+  void clear() {
     SecurityContextHolder.clearContext();
   }
 

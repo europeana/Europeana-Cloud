@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
-import static org.junit.Assert.assertEquals;
-
 import com.google.common.base.Stopwatch;
+import org.apache.storm.policy.IWaitStrategy;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.storm.policy.IWaitStrategy;
-import org.junit.Before;
-import org.junit.Test;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FastCancelingSpoutWaitStrategyTest {
 
@@ -17,15 +18,15 @@ public class FastCancelingSpoutWaitStrategyTest {
   public static final long SLEEP = 200L;
   private FastCancelingSpoutWaitStrategy strategy;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     strategy = new FastCancelingSpoutWaitStrategy();
     Map<String, Object> config = Map.of(SPOUT_SLEEP_MS, SLEEP, SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS, 3);
     strategy.prepare(config, IWaitStrategy.WaitSituation.SPOUT_WAIT);
   }
 
   @Test
-  public void shouldSleepAfterNIteration() throws InterruptedException {
+  void shouldSleepAfterNIteration() throws InterruptedException {
     Stopwatch watch = Stopwatch.createStarted();
 
     long elapsed = runWaitStrategyNTimes(watch, 3);
@@ -34,7 +35,7 @@ public class FastCancelingSpoutWaitStrategyTest {
   }
 
   @Test
-  public void shouldSleep2TimesAfterNx2Iteration() throws InterruptedException {
+  void shouldSleep2TimesAfterNx2Iteration() throws InterruptedException {
     Stopwatch watch = Stopwatch.createStarted();
 
     long elapsed = runWaitStrategyNTimes(watch, 6);
@@ -43,7 +44,7 @@ public class FastCancelingSpoutWaitStrategyTest {
   }
 
   @Test
-  public void shouldNotSleepBeforeNIteration() throws InterruptedException {
+  void shouldNotSleepBeforeNIteration() throws InterruptedException {
     Stopwatch watch = Stopwatch.createStarted();
 
     long elapsed = runWaitStrategyNTimes(watch, 2);

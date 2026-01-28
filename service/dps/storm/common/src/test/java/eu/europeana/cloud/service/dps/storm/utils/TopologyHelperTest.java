@@ -1,61 +1,36 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.BOOTSTRAP_SERVERS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.FETCH_MAX_BYTES;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_POLL_RECORDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_SPOUT_PENDING;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MAX_TASK_PARALLELISM;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MESSAGE_TIMEOUT_IN_SECONDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NIMBUS_SEEDS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.THRIFT_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPICS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.WORKER_COUNT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.SPOUT_NAME_PREFIX;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.addSpoutFieldGrouping;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.addSpoutShuffleGrouping;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.addSpoutsGroupingToNotificationBolt;
-import static org.apache.storm.Config.TOPOLOGY_KRYO_REGISTER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.SpoutDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(PowerMockRunner.class)
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
+import static org.apache.storm.Config.TOPOLOGY_KRYO_REGISTER;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TopologyHelperTest {
 
 
@@ -81,21 +56,21 @@ public class TopologyHelperTest {
   private Properties mockTopologyEssentialProperties;
 
   public static final String WORKER_COUNT_VALUE = "1";
-  public static final List<String> SPOUT_NAMES = List.of(new String []{
-      SPOUT_NAME_PREFIX + 1,
-      SPOUT_NAME_PREFIX + 2,
-      SPOUT_NAME_PREFIX + 3,
-      SPOUT_NAME_PREFIX + 4,
-      SPOUT_NAME_PREFIX + 5
+  public static final List<String> SPOUT_NAMES = List.of(new String[]{
+          SPOUT_NAME_PREFIX + 1,
+          SPOUT_NAME_PREFIX + 2,
+          SPOUT_NAME_PREFIX + 3,
+          SPOUT_NAME_PREFIX + 4,
+          SPOUT_NAME_PREFIX + 5
   });
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     mockTopologyEssentialProperties = mock(Properties.class);
   }
 
   @Test
-  public void shouldProperlyLoadSpoutProperties() {
+  void shouldProperlyLoadSpoutProperties() {
     stubSpoutSettingsProperties();
     stubCassandraProperties();
     stubGeneral();
@@ -117,7 +92,7 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyHandleLoadingNullSpoutProperties() {
+  void shouldProperlyHandleLoadingNullSpoutProperties() {
     SpoutProperties configParameters = TopologyHelper.createSpoutProperties(mockTopologyEssentialProperties);
 
     assertNull(configParameters.getMaxPollRecords());
@@ -135,7 +110,7 @@ public class TopologyHelperTest {
 
 
   @Test
-  public void shouldProperlyLoadCassandraProperties(){
+  void shouldProperlyLoadCassandraProperties() {
     stubCassandraProperties();
 
     CassandraProperties cassandraProperties = TopologyHelper.createCassandraProperties(mockTopologyEssentialProperties);
@@ -149,7 +124,7 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyLoadMiscParametersWhenPropertyPresent() {
+  void shouldProperlyLoadMiscParametersWhenPropertyPresent() {
     stubMisc();
     stubGeneral();
     Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
@@ -166,13 +141,13 @@ public class TopologyHelperTest {
 
 
   @Test
-  public void shouldProperlyLoadDefaultMiscParametersWhenPropertyNotPresent() {
+  void shouldProperlyLoadDefaultMiscParametersWhenPropertyNotPresent() {
     stubGeneral();
     Config config = TopologyHelper.buildConfig(mockTopologyEssentialProperties);
 
     assertEquals(TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_MS, config.get(SPOUT_SLEEP_MS));
     assertEquals(TopologyDefaultsConstants.DEFAULT_SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS,
-        config.get(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
+            config.get(SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS));
     assertEquals(config.get(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY), FastCancelingSpoutWaitStrategy.class.getName());
     assertEquals(TopologyDefaultsConstants.DEFAULT_MAX_SPOUT_PENDING, config.get("topology.max.spout.pending"));
     assertEquals(TopologyDefaultsConstants.DEFAULT_TUPLE_PROCESSING_TIME, config.get("topology.message.timeout.secs"));
@@ -182,10 +157,9 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyAddSpout(){
+  void shouldProperlyAddSpout() {
     stubMisc();
     stubCassandraProperties();
-
 
 
     SpoutDeclarer spoutDeclarer = mock(SpoutDeclarer.class);
@@ -208,7 +182,7 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyAddSpoutShuffleGrouping(){
+  void shouldProperlyAddSpoutShuffleGrouping() {
     BoltDeclarer boltDeclarer = mock(BoltDeclarer.class);
     when(boltDeclarer.shuffleGrouping(anyString())).thenReturn(boltDeclarer);
 
@@ -218,7 +192,7 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyAddSpoutFieldGrouping(){
+  void shouldProperlyAddSpoutFieldGrouping() {
     BoltDeclarer boltDeclarer = mock(BoltDeclarer.class);
     when(boltDeclarer.fieldsGrouping(anyString(), any(Fields.class))).thenReturn(boltDeclarer);
 
@@ -228,7 +202,7 @@ public class TopologyHelperTest {
   }
 
   @Test
-  public void shouldProperlyAddSpoutFieldGroupingToNotificationBolt(){
+  void shouldProperlyAddSpoutFieldGroupingToNotificationBolt() {
     BoltDeclarer boltDeclarer = mock(BoltDeclarer.class);
     when(boltDeclarer.fieldsGrouping(anyString(), anyString(), any(Fields.class))).thenReturn(boltDeclarer);
 

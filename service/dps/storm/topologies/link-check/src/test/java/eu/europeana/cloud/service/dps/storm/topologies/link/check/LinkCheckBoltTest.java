@@ -1,37 +1,26 @@
 package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_LINKS_COUNT;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_URL;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_LINKS_COUNT;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_URL;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class LinkCheckBoltTest {
 
@@ -47,14 +36,14 @@ public class LinkCheckBoltTest {
   @Captor
   ArgumentCaptor<Values> captor;
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     MockitoAnnotations.initMocks(this);
     linkCheckBolt.cache = new HashMap<>();
   }
 
   @Test
-  public void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {
+  void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
     linkCheckBolt.execute(anchorTuple, tuple);
@@ -63,7 +52,7 @@ public class LinkCheckBoltTest {
   }
 
   @Test
-  public void shouldEmitSameTupleWhenRecordIsDeleted() {
+  void shouldEmitSameTupleWhenRecordIsDeleted() {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = prepareTupleWithDeletedRecord();
 

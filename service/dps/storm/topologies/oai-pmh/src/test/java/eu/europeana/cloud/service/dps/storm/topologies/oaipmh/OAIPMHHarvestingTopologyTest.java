@@ -1,31 +1,32 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 
-import static org.junit.Assert.assertEquals;
-
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.ComponentCommon;
 import org.apache.storm.generated.StormTopology;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(MockitoExtension.class)
 public class OAIPMHHarvestingTopologyTest {
 
   private static final int DEFAULT_PROPERTIES_BOLT_PARALLELISM = 2;
   private static final int DEFAULT_PROPERTIES_SPOUT_PARALLELISM = 1;
+
   @Test
-  public void shouldProperlyBuildHarvestingTopology(){
-    OAIPMHHarvestingTopology oaipmhHarvestingTopology = new OAIPMHHarvestingTopology("defaultOAIPMHHarvestTopologyConfig.properties","");
+  void shouldProperlyBuildHarvestingTopology() {
+    OAIPMHHarvestingTopology oaipmhHarvestingTopology = new OAIPMHHarvestingTopology("defaultOAIPMHHarvestTopologyConfig.properties", "");
     StormTopology topology = oaipmhHarvestingTopology.buildTopology();
 
     assertEquals(6, topology.get_bolts_size());
     assertEquals(4, topology.get_spouts_size());
     topology.get_spouts().values().forEach(spoutSpec -> {
       String jsonConf = spoutSpec.get_common().get_json_conf();
-      Assert.assertTrue(jsonConf.contains("\"config.bootstrap.servers\":\"2.2.2.2\""));
+      assertTrue(jsonConf.contains("\"config.bootstrap.servers\":\"2.2.2.2\""));
       assertEquals(2, spoutSpec.get_common().get_streams_size());
       assertEquals(0, spoutSpec.get_common().get_inputs_size());
       assertEquals(DEFAULT_PROPERTIES_SPOUT_PARALLELISM, spoutSpec.get_common().get_parallelism_hint());

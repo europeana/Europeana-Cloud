@@ -1,17 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -20,25 +8,26 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 
 public class ParseFileBoltTest {
@@ -65,28 +54,28 @@ public class ParseFileBoltTest {
 
   @InjectMocks
   static ParseFileForMediaBolt parseFileBolt =
-      new ParseFileForMediaBolt(new CassandraProperties(), "localhost/mcs", "user", "password");
+          new ParseFileForMediaBolt(new CassandraProperties(), "localhost/mcs", "user", "password");
 
   private StormTaskTuple stormTaskTuple;
   private static List<String> expectedParametersKeysList;
 
-  @BeforeClass
-  public static void init() {
+  @BeforeAll
+  static void init() {
 
     parseFileBolt.prepare();
     expectedParametersKeysList = Arrays.asList(
-        PluginParameterKeys.RESOURCE_LINK_KEY,
-        PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER,
-        PluginParameterKeys.RESOURCE_URL,
-        PluginParameterKeys.RESOURCE_LINKS_COUNT,
-        PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
-        PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS,
-        PluginParameterKeys.RESOURCE_LINK_KEY);
+            PluginParameterKeys.RESOURCE_LINK_KEY,
+            PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER,
+            PluginParameterKeys.RESOURCE_URL,
+            PluginParameterKeys.RESOURCE_LINKS_COUNT,
+            PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
+            PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS,
+            PluginParameterKeys.RESOURCE_LINK_KEY);
 
   }
 
-  @Before
-  public void prepareTuple() {
+  @BeforeEach
+  void prepareTuple() {
     MockitoAnnotations.initMocks(this);
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setTaskId(TASK_ID);
@@ -99,7 +88,7 @@ public class ParseFileBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldParseFileAndEmitResources() throws Exception {
+  void shouldParseFileAndEmitResources() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
 
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
@@ -123,7 +112,7 @@ public class ParseFileBoltTest {
 
 
   @Test
-  public void shouldDropTaskAndStopEmitting() throws Exception {
+  void shouldDropTaskAndStopEmitting() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
 
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
@@ -131,13 +120,13 @@ public class ParseFileBoltTest {
       when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(false).thenReturn(true);
       parseFileBolt.execute(anchorTuple, stormTaskTuple);
       verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class),
-          captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
+              captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
     }
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
+  void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
 
@@ -159,7 +148,7 @@ public class ParseFileBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorWhenDownloadFileFails() throws Exception {
+  void shouldEmitErrorWhenDownloadFileFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     doThrow(MCSException.class).when(fileClient).getFile(FILE_URL);
     parseFileBolt.execute(anchorTuple, stormTaskTuple);
@@ -169,7 +158,7 @@ public class ParseFileBoltTest {
     var valueMap = (Map<String, String>) values.get(1);
     assertNotNull(valueMap);
     assertTrue(
-        valueMap.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while reading and parsing the EDM file"));
+            valueMap.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while reading and parsing the EDM file"));
     assertEquals(RecordState.ERROR.toString(), valueMap.get(NotificationParameterKeys.STATE));
     assertNull(valueMap.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     verify(outputCollector, Mockito.times(0)).emit(anyList());
@@ -178,7 +167,7 @@ public class ParseFileBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorWhenGettingResourceLinksFails() throws Exception {
+  void shouldEmitErrorWhenGettingResourceLinksFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);

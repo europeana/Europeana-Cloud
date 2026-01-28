@@ -7,9 +7,7 @@ import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_U
 import static eu.europeana.cloud.service.dps.test.TestConstants.VERSION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.mock;
@@ -32,13 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -59,18 +58,18 @@ public class XsltBoltTest {
   @InjectMocks
   private XsltBolt xsltBolt = new XsltBolt(new CassandraProperties());
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     MockitoAnnotations.initMocks(this);
     xsltBolt.prepare();
   }
 
   @Test
-  public void executeBolt() throws IOException {
+  void executeBolt() throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     String sampleXmlFileName = "/xmlForTesting.xml";
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName),
-        prepareStormTaskTupleParameters(), new Revision());
+            prepareStormTaskTupleParameters(), new Revision());
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
@@ -83,14 +82,14 @@ public class XsltBoltTest {
   ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
 
   @Test
-  public void executeBoltWithInjection() throws IOException {
+  void executeBoltWithInjection() throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     HashMap<String, String> parameters = prepareStormTaskTupleParameters();
     parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
 
     String injectXmlFileName = "/xmlForTestingParamInjection.xml";
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName),
-        parameters, new Revision());
+            parameters, new Revision());
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());

@@ -14,39 +14,31 @@
  */
 package eu.europeana.aas.authorization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
 import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.cloud.common.model.Role;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.AccessControlEntry;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.AlreadyExistsException;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.NotFoundException;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Sid;
+import org.springframework.security.acls.model.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
 public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
@@ -64,8 +56,8 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
   @Autowired
   private CassandraAclRepository repository;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
 
     if (!isInitialized) {
       repository.createAoisTable();
@@ -79,7 +71,7 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
 
   @Test
-  public void testDeleteAclWithChildrenReccursion() {
+  void testDeleteAclWithChildrenReccursion() {
     // Create parent
     ObjectIdentity parentObjectIdentity = createDefaultTestOI();
     MutableAcl parentMutableAcl = service.createAcl(parentObjectIdentity);
@@ -122,7 +114,7 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
   }
 
   @Test
-  public void testCreateFindUpdateDeleteAclWithParent() {
+  void testCreateFindUpdateDeleteAclWithParent() {
     // Test createAcl
     ObjectIdentity parentObjectIdentity = createDefaultTestOI();
     MutableAcl parentMutableAcl = service.createAcl(parentObjectIdentity);
@@ -215,20 +207,20 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
     assertNull(children);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testCreateNullAcl() {
-    service.createAcl(null);
-  }
-
-  @Test(expected = AlreadyExistsException.class)
-  public void testCreateAlreadyExisting() {
-    ObjectIdentity oi = createDefaultTestOI();
-    service.createAcl(oi);
-    service.createAcl(oi);
+  @Test
+  void testCreateNullAcl() {
+    assertThrows(IllegalArgumentException.class, () -> service.createAcl(null));
   }
 
   @Test
-  public void testCreateOrUpdateAcl() {
+  void testCreateAlreadyExisting() {
+    ObjectIdentity oi = createDefaultTestOI();
+    service.createAcl(oi);
+    assertThrows(AlreadyExistsException.class, () -> service.createAcl(oi));
+  }
+
+  @Test
+  void testCreateOrUpdateAcl() {
     ObjectIdentity objectIdentity = createDefaultTestOI();
 
     MutableAcl acl = service.createOrUpdateAcl(objectIdentity);
@@ -238,7 +230,7 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
   }
 
   @Test
-  public void testInsertOrUpdateSameAclTwoTimes() {
+  void testInsertOrUpdateSameAclTwoTimes() {
     ObjectIdentity objectIdentity = createDefaultTestOI();
 
     MutableAcl acl1 = service.createOrUpdateAcl(objectIdentity);
@@ -249,118 +241,119 @@ public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
     assertAcl(objectIdentity, service.readAclById(objectIdentity), sid1);
   }
 
-  @Test(expected = AlreadyExistsException.class)
-  public void testCreateOrUpdateAclOfOtherUser() {
+  @Test
+  void testCreateOrUpdateAclOfOtherUser() {
     ObjectIdentity objectIdentity = createDefaultTestOI();
 
     service.createOrUpdateAcl(objectIdentity);
     loginAsUser(sid2);
-    service.createOrUpdateAcl(objectIdentity);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testDeleteNullAcl() {
-    service.deleteAcl(null, false);
+    assertThrows(AlreadyExistsException.class, () -> service.createOrUpdateAcl(objectIdentity));
   }
 
   @Test
-  public void testDeleteAclNotExisting() {
+  void testDeleteNullAcl() {
+
+    assertThrows(IllegalArgumentException.class, () -> service.deleteAcl(null, false));
+  }
+
+  @Test
+  void testDeleteAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
     service.deleteAcl(oi, false);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testUpdateNullAcl() {
-    service.updateAcl(null);
+  @Test
+  void testUpdateNullAcl() {
+    assertThrows(IllegalArgumentException.class, () -> service.updateAcl(null));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testUpdateAclNotExisting() {
+  @Test
+  void testUpdateAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
     MutableAcl acl = service.createAcl(oi);
     service.deleteAcl(oi, false);
-    service.updateAcl(acl);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindChildrenNullAcl() {
-    service.findChildren(null);
+    assertThrows(NotFoundException.class, () -> service.updateAcl(acl));
   }
 
   @Test
-  public void testFindChildrenAclNotExisting() {
+  void testFindChildrenNullAcl() {
+    assertThrows(IllegalArgumentException.class, () -> service.findChildren(null));
+  }
+
+  @Test
+  void testFindChildrenAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
     List<ObjectIdentity> result = service.findChildren(oi);
     assertNull(result);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclByIdNullAcl() {
-    service.readAclById(null);
+  @Test
+  void testReadAclByIdNullAcl() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclById(null));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testReadAclByIdAclNotExisting() {
+  @Test
+  void testReadAclByIdAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    service.readAclById(oi);
+    assertThrows(NotFoundException.class, () -> service.readAclById(oi));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclByIdWithSidFilteringNullAcl() {
-    service.readAclById(null, null);
+  @Test
+  void testReadAclByIdWithSidFilteringNullAcl() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclById(null, null));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testReadAclByIdWithSidFilteringAclNotExisting() {
+  @Test
+  void testReadAclByIdWithSidFilteringAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    service.readAclById(oi);
+    assertThrows(NotFoundException.class, () -> service.readAclById(oi));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclsByIdNullAclList() {
-    service.readAclsById(null);
+  @Test
+  void testReadAclsByIdNullAclList() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(null));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclsByIdEmptyAclList() {
-    service.readAclsById(new ArrayList<ObjectIdentity>());
+  @Test
+  void testReadAclsByIdEmptyAclList() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(new ArrayList<ObjectIdentity>()));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testReadAclsByIdAclNotExisting() {
+  @Test
+  void testReadAclsByIdAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi}));
+    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi})));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testReadAclsByIdOneAclNotExisting() {
+  @Test
+  void testReadAclsByIdOneAclNotExisting() {
     ObjectIdentity oi1 = createDefaultTestOI();
     service.createAcl(oi1);
     ObjectIdentity oi2 = new ObjectIdentityImpl(aoi_class, "invalid");
-    service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi1, oi2}));
+    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi1, oi2})));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclsByIdWithSidFilteringNullAclList() {
-    service.readAclsById(null, null);
+  @Test
+  void testReadAclsByIdWithSidFilteringNullAclList() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(null, null));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadAclsByIdWithSidFilteringEmptyAclList() {
-    service.readAclsById(new ArrayList<ObjectIdentity>(), null);
+  @Test
+  void testReadAclsByIdWithSidFilteringEmptyAclList() {
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(new ArrayList<>(), null));
   }
 
-  @Test(expected = NotFoundException.class)
-  public void testReadAclsByIdWithSidFilteringAclNotExisting() {
+  @Test
+  void testReadAclsByIdWithSidFilteringAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi}), null);
+    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi}), null));
   }
 
   private void loginAsUser(String sid2) {
     SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(sid2, "password",
-            Arrays.asList(new SimpleGrantedAuthority[]{new SimpleGrantedAuthority(
-                ROLE_ADMIN)})));
+            new UsernamePasswordAuthenticationToken(sid2, "password",
+                    Arrays.asList(new SimpleGrantedAuthority[]{new SimpleGrantedAuthority(
+                            ROLE_ADMIN)})));
   }
 
   private ObjectIdentity createDefaultTestOI() {

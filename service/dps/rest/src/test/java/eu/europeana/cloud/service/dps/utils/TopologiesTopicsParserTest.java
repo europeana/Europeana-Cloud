@@ -1,9 +1,11 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class TopologiesTopicsParserTest {
@@ -14,32 +16,32 @@ public class TopologiesTopicsParserTest {
 
   @Test
   public void shouldSuccessfullyParseTopicsList() {
-    TopologiesTopicsParser t = new TopologiesTopicsParser();
-    Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT);
-    Assert.assertEquals(2, topologiesTopicsList.size());
-    Assert.assertNotNull(topologiesTopicsList.get("oai_topology"));
-    Assert.assertNotNull(topologiesTopicsList.get("another_topology"));
+      TopologiesTopicsParser t = new TopologiesTopicsParser();
+      Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT);
+      assertEquals(2, topologiesTopicsList.size());
+      assertNotNull(topologiesTopicsList.get("oai_topology"));
+      assertNotNull(topologiesTopicsList.get("another_topology"));
 
-    Assert.assertEquals(3, topologiesTopicsList.get("oai_topology").size());
-    Assert.assertEquals(2, topologiesTopicsList.get("another_topology").size());
+      assertEquals(3, topologiesTopicsList.get("oai_topology").size());
+      assertEquals(2, topologiesTopicsList.get("another_topology").size());
   }
 
   @Test
   public void shouldSuccessfullyParseTopicsList_1() {
-    TopologiesTopicsParser t = new TopologiesTopicsParser();
-    Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT_1);
-    Assert.assertEquals(2, topologiesTopicsList.size());
-    Assert.assertNotNull(topologiesTopicsList.get("oai_topology"));
-    Assert.assertNotNull(topologiesTopicsList.get("another_topology"));
+      TopologiesTopicsParser t = new TopologiesTopicsParser();
+      Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT_1);
+      assertEquals(2, topologiesTopicsList.size());
+      assertNotNull(topologiesTopicsList.get("oai_topology"));
+      assertNotNull(topologiesTopicsList.get("another_topology"));
 
-    Assert.assertEquals(3, topologiesTopicsList.get("oai_topology").size());
-    Assert.assertEquals(0, topologiesTopicsList.get("another_topology").size());
+      assertEquals(3, topologiesTopicsList.get("oai_topology").size());
+      assertEquals(0, topologiesTopicsList.get("another_topology").size());
   }
 
-  @Test(expected = RuntimeException.class)
+    @Test
   public void shouldThrowExceptionForInvalidTopicsList_1() {
     TopologiesTopicsParser t = new TopologiesTopicsParser();
-    t.parse(INVALID_INPUT_1);
+        assertThrows(RuntimeException.class, () -> t.parse(INVALID_INPUT_1));
   }
 
 }

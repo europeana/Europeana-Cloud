@@ -1,11 +1,12 @@
 package eu.europeana.cloud.service.mcs.persistent.cassandra;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author krystian.
@@ -15,7 +16,7 @@ public class StreamCompressorTest {
   StreamCompressor instance = new StreamCompressor();
 
   @Test
-  public void shouldCompressAndDecompressContent() throws Exception {
+  void shouldCompressAndDecompressContent() throws Exception {
     //given
     byte[] bytes = "Test content".getBytes();
     ByteArrayInputStream is = new ByteArrayInputStream(bytes);

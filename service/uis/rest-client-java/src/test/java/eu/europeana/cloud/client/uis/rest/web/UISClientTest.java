@@ -1,12 +1,6 @@
 package eu.europeana.cloud.client.uis.rest.web;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
@@ -15,9 +9,13 @@ import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.test.WiremockHelper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import java.util.Map;
-import org.junit.Rule;
-import org.junit.Test;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the UISClient, using Wiremock.
@@ -28,8 +26,11 @@ import org.junit.Test;
  */
 public class UISClientTest {
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().port(8080))
+                  .build();
 
   /**
    * Needed to record the tests.
@@ -60,20 +61,20 @@ public class UISClientTest {
    * Create, Retrieve provider.
    */
   @Test
-  public final void createAndRetrieveProviderTest() throws Exception {
+  final void createAndRetrieveProviderTest() throws Exception {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=createAndRetrieveProviderTest_PROVIDERID",
-        201,
-        Map.of("Location",
-            "http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveProviderTest_PROVIDERID"),
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=createAndRetrieveProviderTest_PROVIDERID",
+            201,
+            Map.of("Location",
+                    "http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveProviderTest_PROVIDERID"),
+            null);
 
-    new WiremockHelper(wireMockRule).stubGet("/uis/data-providers/createAndRetrieveProviderTest_PROVIDERID",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>createAndRetrieveProviderTest_PROVIDER_ID_12</id><partitionKey>-926013828</partitionKey><properties><contactPerson>person</contactPerson><digitalLibraryURL>url</digitalLibraryURL><digitalLibraryWebsite>url</digitalLibraryWebsite><officialAddress>Address</officialAddress><organisationName>Name</organisationName><organisationWebsite>website</organisationWebsite><organisationWebsiteURL>url</organisationWebsiteURL><remarks>remarks</remarks></properties></dataProvider>");
+    new WiremockHelper(wireMockExtension).stubGet("/uis/data-providers/createAndRetrieveProviderTest_PROVIDERID",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>createAndRetrieveProviderTest_PROVIDER_ID_12</id><partitionKey>-926013828</partitionKey><properties><contactPerson>person</contactPerson><digitalLibraryURL>url</digitalLibraryURL><digitalLibraryWebsite>url</digitalLibraryWebsite><officialAddress>Address</officialAddress><organisationName>Name</organisationName><organisationWebsite>website</organisationWebsite><organisationWebsiteURL>url</organisationWebsiteURL><remarks>remarks</remarks></properties></dataProvider>");
 
     // Create some test properties and store them in the cloud
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -96,21 +97,21 @@ public class UISClientTest {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=updateProviderTest_PROVIDERID",
-        201,
-        "http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID",
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=updateProviderTest_PROVIDERID",
+            201,
+            "http://localhost:8080/ecloud-service-uis-rest/data-providers/updateProviderTest_PROVIDERID",
+            null);
 
-    new WiremockHelper(wireMockRule).stubPut(
-        "/uis/data-providers/updateProviderTest_PROVIDERID",
-        204
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/uis/data-providers/updateProviderTest_PROVIDERID",
+            204
     );
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/uis/data-providers/updateProviderTest_PROVIDERID",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>updateProviderTest_PROVIDERID</id><partitionKey>103212895</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/uis/data-providers/updateProviderTest_PROVIDERID",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><dataProvider><id>updateProviderTest_PROVIDERID</id><partitionKey>103212895</partitionKey><properties><contactPerson>person2</contactPerson><digitalLibraryURL>url2</digitalLibraryURL><digitalLibraryWebsite>url2</digitalLibraryWebsite><officialAddress>Address2</officialAddress><organisationName>Name2</organisationName><organisationWebsite>website2</organisationWebsite><organisationWebsiteURL>url2</organisationWebsiteURL><remarks>remarks2</remarks></properties></dataProvider>");
 
     // Create some test properties and store them in the cloud
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -134,17 +135,17 @@ public class UISClientTest {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=duplicateProviderRecordTest_PROVIDERID",
-        201,
-        "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=duplicateProviderRecordTest_PROVIDERID",
+            201,
+            "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
+            null);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/cloudIds?providerId=duplicateProviderRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
-        200,
-        "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>KH5C38JBR3X</id><localId><providerId>duplicateProviderRecordTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/cloudIds?providerId=duplicateProviderRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
+            200,
+            "http://localhost:8080/ecloud-service-uis-rest/data-providers/duplicateProviderRecordTest_PROVIDER_ID_12",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>KH5C38JBR3X</id><localId><providerId>duplicateProviderRecordTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
 
     // Create a provider with some random properties
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -165,22 +166,22 @@ public class UISClientTest {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=createMappingTest_PROVIDERID",
-        201,
-        "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=createMappingTest_PROVIDERID",
+            201,
+            "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+            null);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/cloudIds?providerId=createMappingTest_PROVIDERID",
-        200,
-        "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></cloudId>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/cloudIds?providerId=createMappingTest_PROVIDERID",
+            200,
+            "http://localhost:8080/ecloud-service-uis-rest/data-providers/createMappingTest_PROVIDERID",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></cloudId>");
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/uis/cloudIds/7J9BZXFWTMG",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></results></resultSlice>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/uis/cloudIds/7J9BZXFWTMG",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>7J9BZXFWTMG</id><localId><providerId>createMappingTest_PROVIDERID</providerId><recordId>2QTW98PT1PP</recordId></localId></results></resultSlice>");
 
     // Create a provider with some random properties
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -202,21 +203,21 @@ public class UISClientTest {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=createAndRetrieveRecordTest_PROVIDERID",
-        201,
-        Map.of("Location", "http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveRecordTest_PROVIDERID"),
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=createAndRetrieveRecordTest_PROVIDERID",
+            201,
+            Map.of("Location", "http://localhost:8080/ecloud-service-uis-rest/data-providers/createAndRetrieveRecordTest_PROVIDERID"),
+            null);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/cloudIds?providerId=createAndRetrieveRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/cloudIds?providerId=createAndRetrieveRecordTest_PROVIDERID&recordId=TEST_RECORD_1",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/uis/cloudIds/255S7VQKHVM",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/uis/cloudIds/255S7VQKHVM",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>255S7VQKHVM</id><localId><providerId>createAndRetrieveRecordTest_PROVIDER_ID_12</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
 
     // Create a provider with some random properties
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",
@@ -237,22 +238,22 @@ public class UISClientTest {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/data-providers?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID",
-        201,
-        Map.of("Location",
-            "http://localhost:8080/ecloud-service-uis-rest/data-providers/createCloudIdandRetrieveCloudIdTest_PROVIDERID"),
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/data-providers?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID",
+            201,
+            Map.of("Location",
+                    "http://localhost:8080/ecloud-service-uis-rest/data-providers/createCloudIdandRetrieveCloudIdTest_PROVIDERID"),
+            null);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/uis/cloudIds?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID&recordId=TEST_RECORD_1",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/uis/cloudIds?providerId=createCloudIdandRetrieveCloudIdTest_PROVIDERID&recordId=TEST_RECORD_1",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cloudId><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></cloudId>");
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/uis/cloudIds/SP46XMN47N2",
-        200,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/uis/cloudIds/SP46XMN47N2",
+            200,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudId\"><id>SP46XMN47N2</id><localId><providerId>createCloudIdandRetrieveCloudIdTest_PROVIDERID</providerId><recordId>TEST_RECORD_1</recordId></localId></results></resultSlice>");
 
     // Create a provider with some random properties
     DataProviderProperties providerProperties = new DataProviderProperties("Name", "Address", "website",

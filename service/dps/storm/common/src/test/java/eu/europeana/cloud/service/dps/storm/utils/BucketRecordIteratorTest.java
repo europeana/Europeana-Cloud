@@ -1,29 +1,29 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.datastax.driver.core.Row;
 import com.google.common.collect.Streams;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class BucketRecordIteratorTest {
 
   private Row ROW_A = row();
@@ -41,32 +41,32 @@ public class BucketRecordIteratorTest {
 
   private BucketRecordIterator<Row> iterator;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     iterator = new BucketRecordIterator<>(4, queryMethod, convertMethod);
     when(queryMethod.apply(anyInt())).thenReturn(Collections.emptyIterator());
     when(convertMethod.apply(any(Row.class))).thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   @Test
-  public void hasNextShouldReturnFalseWhenEveryBucketIsEmpty() {
+  void hasNextShouldReturnFalseWhenEveryBucketIsEmpty() {
     assertFalse(iterator.hasNext());
   }
 
-  @Test(expected = NoSuchElementException.class)
-  public void nextShouldThrowNoSuchElementExceptionWhenEveryBucketIsEmpty() {
-    iterator.next();
+  @Test
+  void nextShouldThrowNoSuchElementExceptionWhenEveryBucketIsEmpty() {
+    assertThrows(NoSuchElementException.class, () -> iterator.next());
   }
 
   @Test
-  public void shouldQueryAllBucketsWhenTestingHasNextEvenIfEveryBucketIsEmpty() {
+  void shouldQueryAllBucketsWhenTestingHasNextEvenIfEveryBucketIsEmpty() {
     iterator.hasNext();
 
     verify(queryMethod, times(4)).apply(anyInt());
   }
 
   @Test
-  public void shouldQueryEveryBucketWhenExecuteNextEvenIfEveryBucketIsEmpty() {
+  void shouldQueryEveryBucketWhenExecuteNextEvenIfEveryBucketIsEmpty() {
     try {
       iterator.next();
     } catch (NoSuchElementException e) {
@@ -80,7 +80,7 @@ public class BucketRecordIteratorTest {
   }
 
   @Test
-  public void shouldReturnElementOfFirstBucket() {
+  void shouldReturnElementOfFirstBucket() {
     when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A).iterator());
 
     assertTrue(iterator.hasNext());
@@ -89,7 +89,7 @@ public class BucketRecordIteratorTest {
   }
 
   @Test
-  public void shouldReturnElementOfMiddleBucket() {
+  void shouldReturnElementOfMiddleBucket() {
     when(queryMethod.apply(1)).thenReturn(Arrays.asList(ROW_A).iterator());
 
     assertTrue(iterator.hasNext());
@@ -99,7 +99,7 @@ public class BucketRecordIteratorTest {
 
 
   @Test
-  public void shouldReturnElementOfLastBucket() {
+  void shouldReturnElementOfLastBucket() {
     when(queryMethod.apply(3)).thenReturn(Arrays.asList(ROW_A).iterator());
 
     assertTrue(iterator.hasNext());
@@ -109,7 +109,7 @@ public class BucketRecordIteratorTest {
 
 
   @Test
-  public void shouldReturnAllElementsOfFirstBucket() {
+  void shouldReturnAllElementsOfFirstBucket() {
     when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
 
     assertTrue(iterator.hasNext());
@@ -121,7 +121,7 @@ public class BucketRecordIteratorTest {
   }
 
   @Test
-  public void shouldReturnAllElementsOfMiddleBucket() {
+  void shouldReturnAllElementsOfMiddleBucket() {
     when(queryMethod.apply(2)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
 
     assertTrue(iterator.hasNext());
@@ -133,7 +133,7 @@ public class BucketRecordIteratorTest {
   }
 
   @Test
-  public void shouldReturnAllElementsOfLastBucket() {
+  void shouldReturnAllElementsOfLastBucket() {
     when(queryMethod.apply(3)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
 
     assertTrue(iterator.hasNext());
@@ -146,7 +146,7 @@ public class BucketRecordIteratorTest {
 
 
   @Test
-  public void shouldReturnAllElementsOfEveryBucket() {
+  void shouldReturnAllElementsOfEveryBucket() {
     when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
     when(queryMethod.apply(1)).thenReturn(Arrays.asList(ROW_C).iterator());
     when(queryMethod.apply(2)).thenReturn(Arrays.asList(ROW_D).iterator());
@@ -171,7 +171,7 @@ public class BucketRecordIteratorTest {
   }
 
   @Test
-  public void shouldQueryValidBuckets() {
+  void shouldQueryValidBuckets() {
     when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
     when(queryMethod.apply(1)).thenReturn(Arrays.asList(ROW_C).iterator());
     when(queryMethod.apply(2)).thenReturn(Arrays.asList(ROW_D).iterator());

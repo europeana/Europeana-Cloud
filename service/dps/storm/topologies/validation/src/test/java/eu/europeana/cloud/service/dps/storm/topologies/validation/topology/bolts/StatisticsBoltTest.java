@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
-import static org.mockito.Mockito.mock;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
@@ -16,21 +12,27 @@ import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceI
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class StatisticsBoltTest extends CassandraTestBase {
 
@@ -38,53 +40,53 @@ public class StatisticsBoltTest extends CassandraTestBase {
 
   private static final String TASK_NAME = "task1";
 
-  private ValidationStatisticsServiceImpl statisticsService;
+    private ValidationStatisticsServiceImpl statisticsService;
 
-  @Mock(name = "outputCollector")
-  private OutputCollector collector;
+    @Mock(name = "outputCollector")
+    private OutputCollector collector;
 
-  @InjectMocks
-  private StatisticsBolt statisticsBolt = new StatisticsBolt(new CassandraProperties(),
-      HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+    @InjectMocks
+    private StatisticsBolt statisticsBolt = new StatisticsBolt(new CassandraProperties(),
+            HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
 
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    statisticsBolt.prepare();
-    statisticsService = Mockito.spy(ValidationStatisticsServiceImpl.getInstance(
-        CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "",
-            "")));
-  }
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.initMocks(this);
+        statisticsBolt.prepare();
+        statisticsService = Mockito.spy(ValidationStatisticsServiceImpl.getInstance(
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "",
+                        "")));
+    }
 
-  @Test
-  public void testCountStatisticsSuccessfully() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-        new Revision());
-    List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
+    @Test
+    void testCountStatisticsSuccessfully() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
+                new Revision());
+        List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
-    //when
-    statisticsBolt.execute(anchorTuple, tuple);
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
 
     //then
     assertSuccess(1);
     assertDataStoring(generated);
   }
 
-  @Test
-  public void testAggregatedCountStatisticsSuccessfully() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    Tuple anchorTuple2 = mock(TupleImpl.class);
-    byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-        new Revision());
-    List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
+    @Test
+    void testAggregatedCountStatisticsSuccessfully() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        Tuple anchorTuple2 = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
+                new Revision());
+        List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
-    byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
-    StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL_CLOUD_ID2, fileData2,
+        byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
+        StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL_CLOUD_ID2, fileData2,
         prepareStormTaskTupleParameters(), new Revision());
     List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
@@ -97,67 +99,67 @@ public class StatisticsBoltTest extends CassandraTestBase {
     assertDataStoring(generated, generated2);
   }
 
-  @Test
-  public void shouldNotGenerateStatisticsBecauseOfLackOfTheParameter() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
-        prepareStormTaskTupleParametersWithoutStatsParam(), new Revision());
+    @Test
+    void shouldNotGenerateStatisticsBecauseOfLackOfTheParameter() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
+                prepareStormTaskTupleParametersWithoutStatsParam(), new Revision());
 
-    //when
-    statisticsBolt.execute(anchorTuple, tuple);
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
 
-    //then
+        //then
     assertSuccess(1);
     Mockito.verifyNoInteractions(statisticsService);
   }
 
-  @Test
-  public void shouldNotGenerateStatisticsBecauseOfWrongParameter() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
-        prepareStormTaskTupleParametersWithWrongStatsParam(), new Revision());
+    @Test
+    void shouldNotGenerateStatisticsBecauseOfWrongParameter() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
+                prepareStormTaskTupleParametersWithWrongStatsParam(), new Revision());
 
-    //when
-    statisticsBolt.execute(anchorTuple, tuple);
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
 
-    //then
+        //then
     Mockito.verifyNoInteractions(statisticsService);
   }
 
-  @Test
-  public void testCountStatisticsFailed() throws Exception {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-    fileData[0] = 'X'; // will cause SAXException
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-        new Revision());
-    //when
-    statisticsBolt.execute(anchorTuple, tuple);
-    //then
-    assertFailure();
+    @Test
+    void testCountStatisticsFailed() throws Exception {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
+        fileData[0] = 'X'; // will cause SAXException
+        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
+                new Revision());
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
+        //then
+        assertFailure();
   }
 
   private void assertDataStoring(List<NodeStatistics> generated, List<NodeStatistics> generated2) {
     List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
 
-    Assert.assertEquals(statistics.size(), generated.size());
+      assertEquals(statistics.size(), generated.size());
     for (NodeStatistics stats : statistics) {
       NodeStatistics nodeGenerated = findNode(stats, generated);
       long nodeGeneratedOccurrence = nodeGenerated != null ? nodeGenerated.getOccurrence() : 0;
       NodeStatistics nodeGenerated2 = findNode(stats, generated2);
       long nodeGeneratedOccurrence2 = nodeGenerated2 != null ? nodeGenerated2.getOccurrence() : 0;
-      Assert.assertEquals(stats.getOccurrence(), nodeGeneratedOccurrence + nodeGeneratedOccurrence2);
+        assertEquals(stats.getOccurrence(), nodeGeneratedOccurrence + nodeGeneratedOccurrence2);
       for (AttributeStatistics attrStats : stats.getAttributesStatistics()) {
         AttributeStatistics nodeAttrStats = findNodeAttributes(attrStats, nodeGenerated.getAttributesStatistics());
         long nodeAttrsOccurrence = nodeAttrStats != null ? nodeAttrStats.getOccurrence() : 0;
         AttributeStatistics nodeAttrStats2 = findNodeAttributes(attrStats, nodeGenerated2.getAttributesStatistics());
         long nodeAttrsOccurrence2 = nodeAttrStats2 != null ? nodeAttrStats2.getOccurrence() : 0;
-        Assert.assertEquals(attrStats.getOccurrence(), nodeAttrsOccurrence + nodeAttrsOccurrence2);
+          assertEquals(attrStats.getOccurrence(), nodeAttrsOccurrence + nodeAttrsOccurrence2);
       }
     }
   }
@@ -184,9 +186,9 @@ public class StatisticsBoltTest extends CassandraTestBase {
   }
 
   private void assertDataStoring(List<NodeStatistics> generated) {
-    List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
-    Assert.assertEquals(statistics.size(), generated.size());
-    Assert.assertTrue(statistics.containsAll(generated));
+      List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
+      assertEquals(statistics.size(), generated.size());
+      assertTrue(statistics.containsAll(generated));
   }
 
   private void assertSuccess(int times) {

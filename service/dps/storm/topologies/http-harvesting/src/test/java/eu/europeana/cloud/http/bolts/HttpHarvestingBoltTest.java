@@ -1,6 +1,6 @@
 package eu.europeana.cloud.http.bolts;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -9,15 +9,15 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,15 +31,15 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class HttpHarvestingBoltTest {
 
   private static final String TASK_NAME = "TASK_NAME";
@@ -63,19 +63,22 @@ public class HttpHarvestingBoltTest {
   @Captor
   private ArgumentCaptor<List<Object>> resultTupleCaptor;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().dynamicPort())
+                  .build();
 
-  @Before
-  public void setup() throws IllegalAccessException {
-    wireMockRule.resetAll();
-    fileUrl = "http://localhost:" + wireMockRule.port() + "/http_harvest/task_-5964014235733572511/record.xml";
+  @BeforeEach
+  void setup() throws IllegalAccessException {
+    wireMockExtension.resetAll();
+    fileUrl = "http://localhost:" + wireMockExtension.getPort() + "/http_harvest/task_-5964014235733572511/record.xml";
     tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
     bolt.prepare();
   }
 
   @Test
-  public void shouldHarvestEdmFile() throws IOException {
+  void shouldHarvestEdmFile() throws IOException {
     mockFileOnHttpServer("record.xml");
 
     bolt.execute(anchorTuple, tuple);
@@ -85,17 +88,17 @@ public class HttpHarvestingBoltTest {
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
     assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
-        resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+            resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
     assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
         anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
   }
 
   @Test
-  public void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {
+  void shouldRetryWhenCantDownloadFileFirstTime() throws IOException {
     assumeTrue((
-        optOverriddenRetryAttemptsCount.isPresent() && optOverriddenRetryAttemptsCount.get() > 1)
-        || optOverriddenRetryAttemptsCount.isEmpty());
+            optOverriddenRetryAttemptsCount.isPresent() && optOverriddenRetryAttemptsCount.get() > 1)
+            || optOverriddenRetryAttemptsCount.isEmpty());
     mockErrorOnHttpOnFirstTryServer("record.xml");
 
     bolt.execute(anchorTuple, tuple);
@@ -112,7 +115,7 @@ public class HttpHarvestingBoltTest {
   }
 
   @Test
-  public void shouldEmitErrorNotificationWhenCantLoadFilePermanently() {
+  void shouldEmitErrorNotificationWhenCantLoadFilePermanently() {
     mockErrorOnHttpOnServer("record.xml");
 
     bolt.execute(anchorTuple, tuple);
@@ -126,37 +129,37 @@ public class HttpHarvestingBoltTest {
   }
 
   private void mockFileOnHttpServer(String fileName) {
-    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-        .willReturn(aResponse()
-            .withStatus(200)
-            .withFixedDelay(150)
-            .withBodyFile(fileName)));
+    wireMockExtension.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withFixedDelay(150)
+                    .withBodyFile(fileName)));
   }
 
   private void mockErrorOnHttpOnServer(String fileName) {
-    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-        .willReturn(aResponse()
-            .withStatus(500)
-            .withFixedDelay(150)));
+    wireMockExtension.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+            .willReturn(aResponse()
+                    .withStatus(500)
+                    .withFixedDelay(150)));
 
   }
 
   private void mockErrorOnHttpOnFirstTryServer(String fileName) {
-    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-        .inScenario("Retry")
-        .whenScenarioStateIs(STARTED)
-        .willReturn(aResponse()
-            .withStatus(500)
-            .withFixedDelay(150))
-        .willSetStateTo("retried"));
+    wireMockExtension.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+            .inScenario("Retry")
+            .whenScenarioStateIs(STARTED)
+            .willReturn(aResponse()
+                    .withStatus(500)
+                    .withFixedDelay(150))
+            .willSetStateTo("retried"));
 
-    wireMockRule.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
-        .inScenario("Retry")
-        .whenScenarioStateIs("retried")
-        .willReturn(aResponse()
-            .withStatus(200)
-            .withFixedDelay(150)
-            .withBodyFile(fileName)));
+    wireMockExtension.stubFor(get(urlEqualTo(fileRelativeUrl(fileName)))
+            .inScenario("Retry")
+            .whenScenarioStateIs("retried")
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withFixedDelay(150)
+                    .withBodyFile(fileName)));
   }
 
   private String fileRelativeUrl(String fileName) {

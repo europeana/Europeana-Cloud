@@ -1,16 +1,17 @@
 package eu.europeana.cloud.http.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class GzUnpackingServiceTest {
@@ -23,13 +24,13 @@ public class GzUnpackingServiceTest {
   private final static String FILE_NAME3 = "gzFilesWithMixedCompressedFiles";
   private final static String XML_TYPE = "xml";
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     gzUnpackingService = new GzUnpackingService();
   }
 
   @Test
-  public void shouldUnpackTheTarGzFilesRecursively() throws CompressionExtensionNotRecognizedException, IOException {
+  void shouldUnpackTheTarGzFilesRecursively() throws CompressionExtensionNotRecognizedException, IOException {
     gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME + ".tar.gz", DESTINATION_DIR);
     Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME);
     assertNotNull(files);
@@ -37,8 +38,8 @@ public class GzUnpackingServiceTest {
   }
 
   @Test
-  public void shouldUnpackTheTarGzFilesRecursivelyWithCompressedXMLFiles()
-      throws CompressionExtensionNotRecognizedException, IOException {
+  void shouldUnpackTheTarGzFilesRecursivelyWithCompressedXMLFiles()
+          throws CompressionExtensionNotRecognizedException, IOException {
     gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ".tar.gz", DESTINATION_DIR);
     Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME2);
     assertNotNull(files);
@@ -46,8 +47,8 @@ public class GzUnpackingServiceTest {
   }
 
   @Test
-  public void shouldUnpackTheTGZFilesRecursivelyWithCompressedXMLFiles()
-      throws CompressionExtensionNotRecognizedException, IOException {
+  void shouldUnpackTheTGZFilesRecursivelyWithCompressedXMLFiles()
+          throws CompressionExtensionNotRecognizedException, IOException {
     gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME2 + ".tgz", DESTINATION_DIR);
     Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME2);
     assertNotNull(files);
@@ -55,8 +56,8 @@ public class GzUnpackingServiceTest {
   }
 
   @Test
-  public void shouldUnpackTheTarGzFilesRecursivelyWithMixedNestedCompressedFiles()
-      throws CompressionExtensionNotRecognizedException, IOException {
+  void shouldUnpackTheTarGzFilesRecursivelyWithMixedNestedCompressedFiles()
+          throws CompressionExtensionNotRecognizedException, IOException {
     gzUnpackingService.unpackFile(DESTINATION_DIR + FILE_NAME3 + ".tar.gz", DESTINATION_DIR);
     Collection files = getXMLFiles(DESTINATION_DIR + FILE_NAME3);
     assertNotNull(files);
@@ -66,14 +67,14 @@ public class GzUnpackingServiceTest {
   private Collection getXMLFiles(String folderLocation) {
     String[] types = {XML_TYPE};
     return (Collection) FileUtils.listFiles(
-        new File(folderLocation),
-        types,
-        true
+            new File(folderLocation),
+            types,
+            true
     );
   }
 
-  @AfterClass
-  public static void cleanUp() throws IOException {
+  @AfterAll
+  static void cleanUp() throws IOException {
     FileUtils.forceDelete(new File(DESTINATION_DIR + FILE_NAME));
     FileUtils.forceDelete(new File(DESTINATION_DIR + FILE_NAME2));
     FileUtils.forceDelete(new File(DESTINATION_DIR + FILE_NAME3));

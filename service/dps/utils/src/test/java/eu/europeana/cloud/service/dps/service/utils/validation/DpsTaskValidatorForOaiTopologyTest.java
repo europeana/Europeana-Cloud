@@ -1,14 +1,16 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
-
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+
+import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DpsTaskValidatorForOaiTopologyTest {
 
@@ -20,16 +22,16 @@ public class DpsTaskValidatorForOaiTopologyTest {
   private DpsTask oaiTopologyIncrementalTaskWithSampleSize;
   private DpsTask oaiTopologyIncrementalTaskWithoutSampleSize;
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     //
     oaiTopologyTask = new DpsTask();
     oaiTopologyTask.addDataEntry(REPOSITORY_URLS, Arrays.asList(
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     oaiTopologyTask.addParameter(PluginParameterKeys.PROVIDER_ID, "providerID");
     oaiTopologyTask.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
     oaiTopologyTask.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS,
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
     //
     oaiTopologyTaskWithoutOutputDataset = new DpsTask();
     oaiTopologyTaskWithoutOutputDataset.addDataEntry(REPOSITORY_URLS, Arrays.asList(
@@ -80,67 +82,67 @@ public class DpsTaskValidatorForOaiTopologyTest {
   }
 
   @Test
-  public void shouldValidateTaskForOAITopology() throws DpsTaskValidationException {
+  void shouldValidateTaskForOAITopology() throws DpsTaskValidationException {
     DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
     validator.validate(oaiTopologyTask);
   }
 
   @Test
-  public void shouldValidateTaskForOAITopologyWithMoreThanOneRepositoryUrl() throws DpsTaskValidationException {
+  void shouldValidateTaskForOAITopologyWithMoreThanOneRepositoryUrl() {
     try {
       DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
       validator.validate(oaiTopologyTaskWithTwoRepositories);
 
     } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("There is more than one repository in input parameters."));
+      assertTrue(e.getMessage().contains("There is more than one repository in input parameters."));
     }
   }
 
   @Test
-  public void shouldValidateTaskForOAITopologyWithMoreThanOneOutputDataset() {
+  void shouldValidateTaskForOAITopologyWithMoreThanOneOutputDataset() {
     try {
       DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
       validator.validate(oaiTopologyTaskWithTwoOutputDatasets);
 
     } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
+      assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
 
     }
   }
 
   @Test
-  public void shouldValidateTaskForOAITopologyWithZeroOutputDatasets() {
+  void shouldValidateTaskForOAITopologyWithZeroOutputDatasets() {
     try {
       DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
       validator.validate(oaiTopologyTaskWithoutOutputDataset);
 
     } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
+      assertTrue(e.getMessage().contains("There should be exactly one output dataset."));
 
     }
   }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void shouldValidateTasksWithoutHarvestDate() throws DpsTaskValidationException {
+  @Test
+  void shouldValidateTasksWithoutHarvestDate() {
     DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
-    validator.validate(oaiTopologyTaskWithoutHarvestDate);
+    assertThrows(DpsTaskValidationException.class, () -> validator.validate(oaiTopologyTaskWithoutHarvestDate));
   }
 
 
   @Test
-  public void shouldValidateIncrementalTaskForOAITopologyWithSampleSize() {
+  void shouldValidateIncrementalTaskForOAITopologyWithSampleSize() {
     try {
       DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
       validator.validate(oaiTopologyIncrementalTaskWithSampleSize);
 
     } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("Incremental harvesting could not set SAMPLE_SIZE"));
+      assertTrue(e.getMessage().contains("Incremental harvesting could not set SAMPLE_SIZE"));
 
     }
   }
 
   @Test
-  public void shouldValidateIncrementalTaskForOAITopologyWithoutSampleSize() throws DpsTaskValidationException {
+  void shouldValidateIncrementalTaskForOAITopologyWithoutSampleSize() throws DpsTaskValidationException {
     DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
     validator.validate(oaiTopologyIncrementalTaskWithoutSampleSize);
   }

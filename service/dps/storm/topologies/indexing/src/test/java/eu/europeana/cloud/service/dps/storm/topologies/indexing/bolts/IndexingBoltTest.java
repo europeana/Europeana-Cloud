@@ -1,18 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.RecordState;
@@ -33,27 +20,21 @@ import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.indexing.tiers.model.MetadataTier;
 import eu.europeana.indexing.tiers.model.TierResults;
 import eu.europeana.metis.utils.DepublicationReason;
-import java.net.MalformedURLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.function.Predicate;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.net.MalformedURLException;
+import java.util.*;
+import java.util.function.Predicate;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class IndexingBoltTest {
 
@@ -91,8 +72,8 @@ public class IndexingBoltTest {
   @InjectMocks
   private final IndexingBolt indexingBolt = new IndexingBolt(null, indexingProperties, "uisLocation", "user", "password");
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     MockitoAnnotations.initMocks(this);
     when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
   }
@@ -102,14 +83,14 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldIndexFileForPreviewEnv() throws Exception {
+  void shouldIndexFileForPreviewEnv() throws Exception {
     //given
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
-                       .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
+                    .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
     StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
@@ -140,14 +121,14 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldIndexTier0FileInPreviewEnvironment() throws Exception {
+  void shouldIndexTier0FileInPreviewEnvironment() throws Exception {
     //given
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
-                       .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
+                    .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
     StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
@@ -179,14 +160,14 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldIndexFilePublishEnv() throws Exception {
+  void shouldIndexFilePublishEnv() throws Exception {
     //given
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
-                       .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
+                    .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
@@ -218,14 +199,14 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldRemoveFileFromPublishEnvironmentIfNewVersionIsInTier0() throws Exception {
+  void shouldRemoveFileFromPublishEnvironmentIfNewVersionIsInTier0() throws Exception {
     //given
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
-                       .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
+                    .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
@@ -241,29 +222,29 @@ public class IndexingBoltTest {
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
                                                                              .metisDatasetId(METIS_DATASET_ID)
                                                                              .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .latestHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .previewHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .previewHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .publishedHarvestDate(null).publishedHarvestMd5(null)
-                                                                             .build());
+            .latestHarvestDate(LATEST_HARVEST_DATE)
+            .latestHarvestMd5(LATEST_HARVEST_MD5)
+            .previewHarvestDate(LATEST_HARVEST_DATE)
+            .previewHarvestMd5(LATEST_HARVEST_MD5)
+            .publishedHarvestDate(null).publishedHarvestMd5(null)
+            .build());
     var val = (Map<String, String>) captor.getValue().get(1);
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        val.get(NotificationParameterKeys.RESOURCE));
-    Assert.assertEquals(RecordState.ERROR.toString(), val.get(NotificationParameterKeys.STATE));
-    Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Record not suitable for publication"));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            val.get(NotificationParameterKeys.RESOURCE));
+    assertEquals(RecordState.ERROR.toString(), val.get(NotificationParameterKeys.STATE));
+    assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Record not suitable for publication"));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldRemoveDeletedRecordFromPreview() throws Exception {
+  void shouldRemoveDeletedRecordFromPreview() throws Exception {
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
-                       .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
+                    .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
@@ -298,13 +279,13 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldRemoveDeletedRecordFromPublish() throws Exception {
+  void shouldRemoveDeletedRecordFromPublish() throws Exception {
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
-                       .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
-                       .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
-                       .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(LOCAL_ID)
+                    .latestHarvestDate(EARLIER_HARVEST_DATE).latestHarvestMd5(EARLIER_HARVEST_MD5)
+                    .previewHarvestDate(EARLIER_HARVEST_DATE).previewHarvestMd5(EARLIER_HARVEST_MD5)
+                    .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
@@ -338,7 +319,7 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldInsertNewHarvestedRecordsIfNotExist() throws Exception {
+  void shouldInsertNewHarvestedRecordsIfNotExist() throws Exception {
     //given
     mockEuropeanaIdFinder();
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.empty());
@@ -369,7 +350,7 @@ public class IndexingBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
+  void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
@@ -383,14 +364,14 @@ public class IndexingBoltTest {
     var val = (Map<String, String>) captor.getValue().get(1);
 
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        val.get(NotificationParameterKeys.RESOURCE));
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            val.get(NotificationParameterKeys.RESOURCE));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorNotificationForIndexing() throws IndexingException {
+  void shouldEmitErrorNotificationForIndexing() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
@@ -404,15 +385,15 @@ public class IndexingBoltTest {
     var val = (Map<String, String>) captor.getValue().get(1);
 
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        val.get(NotificationParameterKeys.RESOURCE));
-    Assert.assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            val.get(NotificationParameterKeys.RESOURCE));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Error while indexing"));
 
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldThrowExceptionWhenDateIsUnparsable() {
+  void shouldThrowExceptionWhenDateIsUnparsable() {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
@@ -427,24 +408,24 @@ public class IndexingBoltTest {
     var val = (Map<String, String>) captor.getValue().get(1);
 
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        val.get(NotificationParameterKeys.RESOURCE));
-    Assert.assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Could not parse RECORD_DATE parameter"));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            val.get(NotificationParameterKeys.RESOURCE));
+    assertTrue(val.get(NotificationParameterKeys.INFO_TEXT).contains("Could not parse RECORD_DATE parameter"));
     assertEquals("ERROR", val.get(NotificationParameterKeys.STATE));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void shouldThrowExceptionForUnknownEnv() throws IndexingException {
+  @Test
+  void shouldThrowExceptionForUnknownEnv() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
     mockIndexer(RuntimeException.class);
     //when
-    indexingBolt.execute(anchorTuple, tuple);
+    assertThrows(IllegalArgumentException.class, () -> indexingBolt.execute(anchorTuple, tuple));
   }
 
   @Test
-  public void shouldThrowExceptionWhenHarvestDateIsNull() {
+  void shouldThrowExceptionWhenHarvestDateIsNull() {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.getParameters().remove(PluginParameterKeys.HARVEST_DATE);
@@ -458,7 +439,7 @@ public class IndexingBoltTest {
 
 
   @Test
-  public void shouldThrowExceptionWhenHarvestDateIsUnparsable() {
+  void shouldThrowExceptionWhenHarvestDateIsUnparsable() {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.addParameter(PluginParameterKeys.HARVEST_DATE, "UN_PARSABLE_DATE");

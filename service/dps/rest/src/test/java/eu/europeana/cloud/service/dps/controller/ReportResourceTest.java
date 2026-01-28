@@ -63,14 +63,14 @@ public class ReportResourceTest extends AbstractResourceTest {
   }
 
   @BeforeEach
-  public void init() throws MCSException {
+  void init() throws MCSException {
     super.init();
     reportService = applicationContext.getBean(TaskExecutionReportService.class);
     reset(reportService);
   }
 
   @Test
-  public void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
+  void shouldGetDetailedReportForTheFirst100Resources() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
     doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
@@ -82,42 +82,42 @@ public class ReportResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  public void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
+  void shouldThrowExceptionWhenTaskDoesNotBelongToTopology() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
     doThrow(new AccessDeniedOrObjectDoesNotExistException()).when(reportService)
-                                                            .checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
+            .checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
     when(reportService.getDetailedTaskReport(TASK_ID, 1, 100)).thenReturn(subTaskInfoList);
 
     ResultActions response = mockMvc.perform(
-        get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+            get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
     );
     response.andExpect(status().isMethodNotAllowed());
   }
 
 
   @Test
-  public void shouldGetDetailedReportForSpecifiedResources() throws Exception {
+  void shouldGetDetailedReportForSpecifiedResources() throws Exception {
     List<SubTaskInfo> subTaskInfoList = createDummySubTaskInfoList();
     when(reportService.getDetailedTaskReport(TASK_ID, 120, 150)).thenReturn(subTaskInfoList);
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
     doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     ResultActions response = mockMvc.perform(
-        get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
+            get(DETAILED_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("from", "120").queryParam("to", "150"));
     assertDetailedReportResponse(subTaskInfoList.get(0), response);
   }
 
 
   @Test
-  public void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
+  void shouldGetGeneralErrorReportWithIdentifiers() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
     when(reportService.getGeneralTaskErrorReport(TASK_ID, 10)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
-        get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            .queryParam("error", "null")
-            .queryParam("idsCount", "10")
+            get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+                    .queryParam("error", "null")
+                    .queryParam("idsCount", "10")
     );
     TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(
         response.andReturn().getResponse().getContentAsString(), TaskErrorsInfo.class);
@@ -126,7 +126,7 @@ public class ReportResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void shouldCheckIfReportExists() throws Exception {
+  void shouldCheckIfReportExists() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(reportService.checkIfReportExists(TASK_ID)).thenReturn(true);
@@ -136,41 +136,41 @@ public class ReportResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void shouldReturn405InCaseOfException() throws Exception {
+  void shouldReturn405InCaseOfException() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     doNothing().when(reportService).checkIfTaskExists(TASK_ID, TOPOLOGY_NAME);
     when(reportService.checkIfReportExists(TASK_ID)).thenReturn(false);
 
     ResultActions response = mockMvc.perform(
-        head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+            head(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
     );
     response.andExpect(status().isMethodNotAllowed());
   }
 
 
   @Test
-  public void shouldGetSpecificErrorReport() throws Exception {
+  void shouldGetSpecificErrorReport() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(true);
     when(reportService.getSpecificTaskErrorReport(TASK_ID, ERROR_TYPES[0], 100)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
-        get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("error", ERROR_TYPES[0]));
+            get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID).queryParam("error", ERROR_TYPES[0]));
     TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(response.andReturn().getResponse().getContentAsString(),
-        TaskErrorsInfo.class);
+            TaskErrorsInfo.class);
     assertThat(retrievedInfo, is(errorsInfo));
   }
 
 
   @Test
-  public void shouldGetGeneralErrorReport() throws Exception {
+  void shouldGetGeneralErrorReport() throws Exception {
     when(topologyManager.containsTopology(TOPOLOGY_NAME)).thenReturn(true);
     TaskErrorsInfo errorsInfo = createDummyErrorsInfo(false);
     when(reportService.getGeneralTaskErrorReport(TASK_ID, 0)).thenReturn(errorsInfo);
 
     ResultActions response = mockMvc.perform(
-        get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
-            .queryParam("error", "null")
+            get(ERRORS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+                    .queryParam("error", "null")
     );
 
     TaskErrorsInfo retrievedInfo = new ObjectMapper().readValue(
@@ -180,7 +180,7 @@ public class ReportResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void shouldGetStatisticReport() throws Exception {
+  void shouldGetStatisticReport() throws Exception {
     when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
     when(topologyManager.containsTopology(anyString())).thenReturn(true);
     ResultActions response = mockMvc.perform(get(VALIDATION_STATISTICS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID));
@@ -188,26 +188,26 @@ public class ReportResourceTest extends AbstractResourceTest {
     System.err.println(content().string("taskId"));
 
     response
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("taskId", org.hamcrest.Matchers.is((int) TASK_ID)));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("taskId", org.hamcrest.Matchers.is((int) TASK_ID)));
 
   }
 
 
   @Test
-  public void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws Exception {
+  void shouldReturn405WhenStatisticsRequestedButTopologyNotFound() throws Exception {
     when(validationStatisticsService.getTaskStatisticsReport(TASK_ID)).thenReturn(new StatisticsReport(TASK_ID, null));
     when(topologyManager.containsTopology(anyString())).thenReturn(false);
 
     ResultActions response = mockMvc.perform(
-        get(VALIDATION_STATISTICS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
+            get(VALIDATION_STATISTICS_REPORT_WEB_TARGET, TOPOLOGY_NAME, TASK_ID)
     );
     response.andExpect(status().isMethodNotAllowed());
   }
 
 
   @Test
-  public void shouldGetElementReport() throws Exception {
+  void shouldGetElementReport() throws Exception {
     NodeReport nodeReport = new NodeReport("VALUE", 5, Collections.singletonList(new AttributeStatistics("Attr1", "Value1", 10)));
     when(validationStatisticsService.getElementReport(TASK_ID, PATH_VALUE)).thenReturn(Collections.singletonList(nodeReport));
     when(topologyManager.containsTopology(anyString())).thenReturn(true);

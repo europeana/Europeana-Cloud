@@ -1,10 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -13,21 +8,22 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 
 public class RevisionWriterBoltTest {
 
@@ -41,19 +37,19 @@ public class RevisionWriterBoltTest {
 
   @InjectMocks
   private RevisionWriterBolt revisionWriterBolt =
-      new RevisionWriterBolt(new CassandraProperties(), "http://sample.ecloud.com/", "", "");
+          new RevisionWriterBolt(new CassandraProperties(), "http://sample.ecloud.com/", "", "");
 
   @Captor
   private ArgumentCaptor<Revision> captor;
 
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     MockitoAnnotations.initMocks(this);
   }
 
   @Test
-  public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
+  void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     StormTaskTuple stormTaskTuple = new StormTaskTuple();
@@ -61,23 +57,23 @@ public class RevisionWriterBoltTest {
     testMock.execute(anchorTuple, stormTaskTuple);
 
     Mockito.verify(revisionServiceClient, Mockito.times(0))
-           .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+            .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
   }
 
   @Test
-  public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
+  void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     testMock.execute(anchorTuple, prepareTuple());
     Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
   }
 
   @Test
-  public void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
+  void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     StormTaskTuple stormTaskTuple = prepareTuple();
@@ -93,26 +89,26 @@ public class RevisionWriterBoltTest {
   }
 
   @Test
-  public void malformedUrlExceptionShouldBeHandled() throws MCSException {
+  void malformedUrlExceptionShouldBeHandled() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
     Mockito.verify(revisionServiceClient, Mockito.times(0))
-           .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
+            .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
   }
 
   @Test
-  public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
+  void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     Mockito.when(revisionServiceClient.addRevision(any(), any(), any(), any(Revision.class))).thenThrow(MCSException.class);
     RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
     testMock.execute(anchorTuple, prepareTuple());
     Mockito.verify(revisionServiceClient, Mockito.times(retryAttemptsCount))
-           .addRevision(any(), any(), any(), any(Revision.class));
+            .addRevision(any(), any(), any(), any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
 
   }
 

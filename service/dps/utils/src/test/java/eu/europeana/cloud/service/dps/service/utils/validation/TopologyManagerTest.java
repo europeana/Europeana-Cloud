@@ -1,15 +1,14 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 public class TopologyManagerTest {
@@ -17,13 +16,13 @@ public class TopologyManagerTest {
   final String nameList = "topologyA,topologyB";
   TopologyManager instance;
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     instance = new TopologyManager(nameList);
   }
 
   @Test
-  public void shouldCreateInstanceWithSuccess() {
+  void shouldCreateInstanceWithSuccess() {
     //given
     //when
     //then
@@ -32,7 +31,7 @@ public class TopologyManagerTest {
 
 
   @Test
-  public void shouldRetrieveTopologyNamesWithSuccess() {
+  void shouldRetrieveTopologyNamesWithSuccess() {
     //given
     //when
     List<String> resultNameList = instance.getNames();
@@ -43,17 +42,17 @@ public class TopologyManagerTest {
 
 
   @Test
-  public void shouldContainTopologyA() {
+  void shouldContainTopologyA() {
     baseContainsTopologyTest("topologyA", true);
   }
 
   @Test
-  public void shouldContainTopologyB() {
+  void shouldContainTopologyB() {
     baseContainsTopologyTest("topologyB", true);
   }
 
   @Test
-  public void shouldNotContainTopologyC() {
+  void shouldNotContainTopologyC() {
     baseContainsTopologyTest("topologyC", false);
   }
 

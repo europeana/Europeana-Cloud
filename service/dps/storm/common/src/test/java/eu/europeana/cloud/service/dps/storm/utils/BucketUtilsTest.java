@@ -1,15 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import com.google.common.io.Resources;
+import org.apache.commons.io.Charsets;
+import org.junit.jupiter.api.Test;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import org.apache.commons.io.Charsets;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class BucketUtilsTest {
 
@@ -23,7 +24,7 @@ public class BucketUtilsTest {
     assertEquals(strings.size(), hashes.size());
     assertFalse(strings.isEmpty());
     for (int i = 0; i < strings.size(); i++) {
-      assertEquals("Bad hash for string in line number " + i, Integer.parseInt(hashes.get(i)), BucketUtils.hash(strings.get(i)));
+        assertEquals(Integer.parseInt(hashes.get(i)), BucketUtils.hash(strings.get(i)), "Bad hash for string in line number " + i);
     }
   }
 

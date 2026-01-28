@@ -1,12 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -16,22 +9,25 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class IndexingRevisionWriterTest {
 
@@ -45,10 +41,10 @@ public class IndexingRevisionWriterTest {
 
   @InjectMocks
   private IndexingRevisionWriter indexingRevisionWriter = new IndexingRevisionWriter(new CassandraProperties(),
-      "https://sample.ecloud.com/", "userName", "userPassword", "sampleMessage");
+          "https://sample.ecloud.com/", "userName", "userPassword", "sampleMessage");
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     MockitoAnnotations.initMocks(this);
   }
 
@@ -58,17 +54,17 @@ public class IndexingRevisionWriterTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
+  void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
     testMock.execute(anchorTuple, prepareTupleWithEmptyRevisions());
     Mockito.verify(revisionServiceClient, Mockito.times(0))
-           .addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
+            .addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     Mockito.verify(outputCollector)
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
     assertEquals(3, list.size());
@@ -78,16 +74,16 @@ public class IndexingRevisionWriterTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
+  void methodForAddingRevisionsShouldBeExecuted() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
     testMock.execute(anchorTuple, prepareTuple());
     Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(List.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     Mockito.verify(outputCollector)
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
     assertEquals(3, list.size());
@@ -97,16 +93,16 @@ public class IndexingRevisionWriterTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void malformedUrlExceptionShouldBeHandled() throws MCSException {
+  void malformedUrlExceptionShouldBeHandled() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
     testMock.execute(anchorTuple, prepareTupleWithMalformedURL());
     Mockito.verify(revisionServiceClient, Mockito.times(0))
-           .addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
+            .addRevision(anyString(), anyString(), anyString(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     Mockito.verify(outputCollector)
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     var list = captor.getValue();
     assertNotNull(list);
     assertEquals(3, list.size());
@@ -116,16 +112,16 @@ public class IndexingRevisionWriterTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
+  void mcsExceptionShouldBeHandledWithRetries() throws MCSException {
     Tuple anchorTuple = mock(TupleImpl.class);
     when(revisionServiceClient.addRevision(any(), any(), any(), Mockito.any(Revision.class)))
-           .thenThrow(MCSException.class);
+            .thenThrow(MCSException.class);
     RevisionWriterBolt testMock = Mockito.spy(indexingRevisionWriter);
     testMock.execute(anchorTuple, prepareTuple());
     Mockito.verify(revisionServiceClient, Mockito.times(retryAttemptsCount))
-           .addRevision(any(), any(), any(), Mockito.any(Revision.class));
+            .addRevision(any(), any(), any(), Mockito.any(Revision.class));
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
   }
 
   private StormTaskTuple prepareTuple() {

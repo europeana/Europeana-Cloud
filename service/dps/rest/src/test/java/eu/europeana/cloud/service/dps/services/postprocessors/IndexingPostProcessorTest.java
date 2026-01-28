@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -26,25 +12,24 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Stream;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(IndexingPostProcessor.class)
-@PowerMockIgnore({"org.apache.logging.log4j.*", "com.sun.org.apache.xerces.*", "eu.europeana.cloud.test.CassandraTestInstance"})
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_INDEXING;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class IndexingPostProcessorTest {
 
   public static final String RECORD_ID_1 = "recordId1";
@@ -74,108 +59,152 @@ public class IndexingPostProcessorTest {
   @Captor
   private ArgumentCaptor<DataSetCleanerParameters> captor;
 
-  @Before
-  public void setup() throws Exception {
-    PowerMockito.whenNew(DatasetCleaner.class).withAnyArguments().thenReturn(datasetCleaner);
-    PowerMockito.whenNew(HarvestedRecordsBatchCleaner.class).withAnyArguments().thenReturn(harvestedRecordsBatchCleaner);
+  @Test
+  void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(1);
+                      when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
+                    });
+
+            MockedConstruction<HarvestedRecordsBatchCleaner> batchCleanerMock =
+                    Mockito.mockConstruction(HarvestedRecordsBatchCleaner.class, (harvestedRecordsBatchCleaner, context) -> {
+                      when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
+                    })
+    ) {
+
+
+      // when
+      service.execute(taskInfo, prepareTaskForPreviewEnv());
+      HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner = batchCleanerMock.constructed().get(0);
+
+      // then
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+      verify(harvestedRecordsBatchCleaner).close();
+      verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
+      verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
+      verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+    }
+    //given
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPreviewAndForOneRecord() throws IndexingException {
-    //given
-    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
-    when(datasetCleaner.getRecordsCount()).thenReturn(1);
-    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
-    //when
-    service.execute(taskInfo, prepareTaskForPreviewEnv());
-    //then
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).close();
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(2);
+                      when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+                    });
+
+            MockedConstruction<HarvestedRecordsBatchCleaner> batchCleanerMock =
+                    Mockito.mockConstruction(HarvestedRecordsBatchCleaner.class, (batchCleaner, context) -> {
+                      when(batchCleaner.getCleanedCount()).thenReturn(2);
+                    })
+    ) {
+
+      //when
+      service.execute(taskInfo, prepareTaskForPreviewEnv());
+      HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner = batchCleanerMock.constructed().get(0);
+
+      //then
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
+      verify(harvestedRecordsBatchCleaner).close();
+      verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
+      verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
+      verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+    }
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() throws IndexingException {
-    //given
-    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
-    when(datasetCleaner.getRecordsCount()).thenReturn(2);
-    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
-    //when
-    service.execute(taskInfo, prepareTaskForPreviewEnv());
-    //then
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
-    verify(harvestedRecordsBatchCleaner).close();
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(1);
+                      when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
+                    });
+
+            MockedConstruction<HarvestedRecordsBatchCleaner> batchCleanerMock =
+                    Mockito.mockConstruction(HarvestedRecordsBatchCleaner.class, (batchCleaner, context) -> {
+                      when(batchCleaner.getCleanedCount()).thenReturn(1);
+                    })
+    ) {
+
+      //when
+      service.execute(taskInfo, prepareTaskForPublishEnv());
+      HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner = batchCleanerMock.constructed().get(0);
+
+      //then
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+      verify(harvestedRecordsBatchCleaner).close();
+      verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
+      verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
+      verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+    }
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPublishAndForOneRecord() throws IndexingException {
-    //given
-    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(1);
-    when(datasetCleaner.getRecordsCount()).thenReturn(1);
-    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1));
-    //when
-    service.execute(taskInfo, prepareTaskForPublishEnv());
-    //then
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).close();
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(1));
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(1));
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+  void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(2);
+                      when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+                    });
+
+            MockedConstruction<HarvestedRecordsBatchCleaner> batchCleanerMock =
+                    Mockito.mockConstruction(HarvestedRecordsBatchCleaner.class, (batchCleaner, context) -> {
+                      when(batchCleaner.getCleanedCount()).thenReturn(2);
+                    })
+    ) {
+
+      //when
+      service.execute(taskInfo, prepareTaskForPublishEnv());
+      HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner = batchCleanerMock.constructed().get(0);
+
+      //then
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
+      verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
+      verify(harvestedRecordsBatchCleaner).close();
+      verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
+      verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
+      verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
+    }
   }
 
   @Test
-  public void shouldCleanDateAndMd5ForPublishAndMultipleRecords() throws IndexingException {
-    //given
-    when(harvestedRecordsBatchCleaner.getCleanedCount()).thenReturn(2);
-    when(datasetCleaner.getRecordsCount()).thenReturn(2);
-    when(datasetCleaner.getRecordIds()).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
-    //when
-    service.execute(taskInfo, prepareTaskForPublishEnv());
-    //then
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_1);
-    verify(harvestedRecordsBatchCleaner).executeRecord(RECORD_ID_2);
-    verify(harvestedRecordsBatchCleaner).close();
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(anyLong(), eq(2));
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(anyLong(), eq(2));
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(anyLong(), anyString());
-  }
-
-  @Test(expected = PostProcessingException.class)
-  public void shouldThrowPostProcessingExceptionInCaseCountsFail() throws IndexingException {
+  void shouldThrowPostProcessingExceptionInCaseCountsFail() throws IndexingException {
     when(datasetCleaner.getRecordsCount()).thenThrow(new IndexerRelatedIndexingException("Could not get record count"));
-    service.execute(taskInfo, prepareTaskForPublishEnv());
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForPublishEnv()));
   }
 
-  @Test(expected = PostProcessingException.class)
-  public void shouldThrowPostProcessingExceptionInCaseRecordIdsFail() throws IndexingException {
+  @Test
+  void shouldThrowPostProcessingExceptionInCaseRecordIdsFail() throws IndexingException {
     when(datasetCleaner.getRecordsCount()).thenReturn(1);
     when(datasetCleaner.getRecordIds()).thenThrow(new IndexerRelatedIndexingException("Could not get record count"));
-    service.execute(taskInfo, prepareTaskForPublishEnv());
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForPublishEnv()));
   }
 
-  @Test(expected = PostProcessingException.class)
-  public void shouldThrowPostProcessingExceptionInCaseOfNotRecognizedEnvironment() {
+  @Test
+  void shouldThrowPostProcessingExceptionInCaseOfNotRecognizedEnvironment() {
     //given
     when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
     //when
-    service.execute(taskInfo, prepareTaskForNotUnknownEnv());
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForNotUnknownEnv()));
   }
 
   @Test
-  public void shouldNotStartPostprocessingForDroppedTask() {
+  void shouldNotStartPostprocessingForDroppedTask() {
     //given
     DpsTask task = prepareTaskForPreviewEnv();
     when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
     doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(task);
 
     //when
-    assertThrows(TaskDroppedException.class,()-> service.execute(taskInfo, task));
+    assertThrows(TaskDroppedException.class, () -> service.execute(taskInfo, task));
 
     //then
     verifyNoInteractions(taskStatusUpdater);
@@ -183,33 +212,43 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldParseIsoRecordDateProperly() throws Exception {
+  void shouldParseIsoRecordDateProperly() {
     DpsTask dpsTask = new DpsTask();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
     dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
 
-    service.execute(taskInfo, dpsTask);
-
-    PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
-    assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(1);
+                      assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), ((DataSetCleanerParameters) context.arguments().get(1)).getCleaningDate());
+                    });
+    ) {
+      service.execute(taskInfo, dpsTask);
+    }
   }
 
   @Test
-  public void shouldParseIsoRecordDateWithoutMillisecondsProperly() throws Exception {
+  void shouldParseIsoRecordDateWithoutMillisecondsProperly() {
     DpsTask dpsTask = new DpsTask();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
     dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00Z");
+    try (
+            MockedConstruction<DatasetCleaner> ignored =
+                    Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
+                      when(datasetCleaner.getRecordsCount()).thenReturn(1);
+                      assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), ((DataSetCleanerParameters) context.arguments().get(1)).getCleaningDate());
+                    });
+    ) {
+      service.execute(taskInfo, dpsTask);
+    }
 
-    service.execute(taskInfo, dpsTask);
-
-    PowerMockito.verifyNew(DatasetCleaner.class).withArguments(any(), captor.capture());
-    assertEquals(Date.from(Instant.parse("2020-06-14T16:46:00.000Z")), captor.getValue().getCleaningDate());
   }
 
   @Test
-  public void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
+  void shouldNeedsPostProcessingReturnTrueForNoIncrementalParamSet() {
     DpsTask task = new DpsTask();
 
     boolean result = service.needsPostProcessing(task);
@@ -218,7 +257,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldNeedsPostProcessingReturnTrueForFullIndexing() {
+  void shouldNeedsPostProcessingReturnTrueForFullIndexing() {
     DpsTask task = new DpsTask();
     task.addParameter(INCREMENTAL_INDEXING, "false");
 
@@ -228,7 +267,7 @@ public class IndexingPostProcessorTest {
   }
 
   @Test
-  public void shouldNeedsPostProcessingReturnFalseForIncrementalIndexing() {
+  void shouldNeedsPostProcessingReturnFalseForIncrementalIndexing() {
     DpsTask task = new DpsTask();
     task.addParameter(INCREMENTAL_INDEXING, "true");
 

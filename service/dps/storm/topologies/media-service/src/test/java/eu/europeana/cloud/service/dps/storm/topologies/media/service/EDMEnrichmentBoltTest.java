@@ -1,34 +1,23 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import java.io.InputStream;
-import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.io.InputStream;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class EDMEnrichmentBoltTest {
 
@@ -48,15 +37,15 @@ public class EDMEnrichmentBoltTest {
 
   @InjectMocks
   private static EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt(
-      new CassandraProperties(), "MCS_URL", "user", "password");
+          new CassandraProperties(), "MCS_URL", "user", "password");
 
-  @BeforeClass
+  @BeforeAll
   public static void init() {
     edmEnrichmentBolt.prepare();
   }
 
-  @Before
-  public void initTuple() {
+  @BeforeEach
+  void initTuple() {
     MockitoAnnotations.initMocks(this);
     edmEnrichmentBolt.cache.clear();
     stormTaskTuple = new StormTaskTuple();
@@ -68,12 +57,12 @@ public class EDMEnrichmentBoltTest {
 
 
   @Test
-  public void shouldEnrichTheFileSuccessfullyAndSendItToTheNextBolt() throws Exception {
+  void shouldEnrichTheFileSuccessfullyAndSendItToTheNextBolt() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
-          "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
+              "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
       assertEquals(4, stormTaskTuple.getParameters().size());
       edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
@@ -91,12 +80,12 @@ public class EDMEnrichmentBoltTest {
 
 
   @Test
-  public void shouldEnrichTheFileSuccessfullyOnMultipleBatchesAndSendItToTheNextBolt() throws Exception {
+  void shouldEnrichTheFileSuccessfullyOnMultipleBatchesAndSendItToTheNextBolt() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
-          "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
+              "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
 
       int resourceLinksCount = 10;
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourceLinksCount));
@@ -121,7 +110,7 @@ public class EDMEnrichmentBoltTest {
 
 
   @Test
-  public void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
+  void shouldForwardTheTupleWhenNoResourceLinkFound() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
@@ -143,7 +132,7 @@ public class EDMEnrichmentBoltTest {
 
 
   @Test
-  public void shouldLogTheExceptionAndSendItAsParameterToTheNextBolt() throws Exception {
+  void shouldLogTheExceptionAndSendItAsParameterToTheNextBolt() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);

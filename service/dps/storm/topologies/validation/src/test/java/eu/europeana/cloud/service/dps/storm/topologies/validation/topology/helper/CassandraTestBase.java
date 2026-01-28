@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.help
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CassandraTestBase {
 
@@ -19,7 +19,7 @@ public abstract class CassandraTestBase {
     return CassandraTestInstance.getSession(KEYSPACE);
   }
 
-  @Before
+  @BeforeEach
   public void truncateAll() {
     CassandraTestInstance.truncateAllData(false);
   }

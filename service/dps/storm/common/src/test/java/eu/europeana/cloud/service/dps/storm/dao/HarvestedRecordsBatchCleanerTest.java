@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import com.google.common.collect.ImmutableList;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
@@ -13,14 +9,13 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
@@ -30,19 +25,19 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   private static final UUID MD5 = UUID.randomUUID();
   private HarvestedRecordsDAO dao;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-        CassandraTestInstance.getPort(), KEYSPACE, USER,
-        PASSWORD);
+            CassandraTestInstance.getPort(), KEYSPACE, USER,
+            PASSWORD);
     HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
     dao = RetryableMethodExecutor.createRetryProxy(rawDao);
   }
 
   @Test
-  public void shouldNotInsertRecordIfItDidNotExist() {
+  void shouldNotInsertRecordIfItDidNotExist() {
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
-        TargetIndexingDatabase.PREVIEW);
+            TargetIndexingDatabase.PREVIEW);
 
     cleaner.executeRecord(generateRandomRecordId());
     cleaner.close();
@@ -51,14 +46,14 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldUpdatePreviewColumnsInTheRecord() {
+  void shouldUpdatePreviewColumnsInTheRecord() {
     String recordId = generateRandomRecordId();
     dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                                             .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
-                                             .previewHarvestDate(INDEXING_DATE)
-                                             .previewHarvestMd5(MD5).build());
+            .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+            .previewHarvestDate(INDEXING_DATE)
+            .previewHarvestMd5(MD5).build());
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
-        TargetIndexingDatabase.PREVIEW);
+            TargetIndexingDatabase.PREVIEW);
 
     cleaner.executeRecord(recordId);
     cleaner.close();
@@ -69,15 +64,15 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldUpdatePublishedColumnsInTheRecord() {
+  void shouldUpdatePublishedColumnsInTheRecord() {
     String recordId = generateRandomRecordId();
     dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                                             .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
-                                             .previewHarvestDate(INDEXING_DATE)
-                                             .previewHarvestMd5(MD5).publishedHarvestDate(INDEXING_DATE).publishedHarvestMd5(MD5)
-                                             .build());
+            .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+            .previewHarvestDate(INDEXING_DATE)
+            .previewHarvestMd5(MD5).publishedHarvestDate(INDEXING_DATE).publishedHarvestMd5(MD5)
+            .build());
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
-        TargetIndexingDatabase.PUBLISH);
+            TargetIndexingDatabase.PUBLISH);
 
     cleaner.executeRecord(recordId);
     cleaner.close();
@@ -88,17 +83,17 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldNotSaveBeforeBatchSizeIsAchieved() {
+  void shouldNotSaveBeforeBatchSizeIsAchieved() {
     int recordCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE - 1;
     List<String> recordIds = generateRandomRecordIds(7, recordCount);
     for (String recordId : recordIds) {
       dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
-                                               .previewHarvestDate(INDEXING_DATE)
-                                               .previewHarvestMd5(MD5).build());
+              .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+              .previewHarvestDate(INDEXING_DATE)
+              .previewHarvestMd5(MD5).build());
     }
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
-        TargetIndexingDatabase.PREVIEW);
+            TargetIndexingDatabase.PREVIEW);
 
     for (String recordId : recordIds) {
       cleaner.executeRecord(recordId);
@@ -113,17 +108,17 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
 
   @Test
-  public void shouldSaveRecordsWhenBatchSizeIsAchieved() {
+  void shouldSaveRecordsWhenBatchSizeIsAchieved() {
     int recordCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE;
     List<String> recordIds = generateRandomRecordIds(7, recordCount);
     for (String recordId : recordIds) {
       dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
-                                               .previewHarvestDate(INDEXING_DATE)
-                                               .previewHarvestMd5(MD5).build());
+              .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+              .previewHarvestDate(INDEXING_DATE)
+              .previewHarvestMd5(MD5).build());
     }
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,
-        TargetIndexingDatabase.PREVIEW);
+            TargetIndexingDatabase.PREVIEW);
 
     for (String recordId : recordIds) {
       cleaner.executeRecord(recordId);
@@ -138,7 +133,7 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldProperlySaveRecordsInManyBatchesForManyBuckets() {
+  void shouldProperlySaveRecordsInManyBatchesForManyBuckets() {
     List<String> recordIds = new ArrayList<>();
     int recordInBucketCount = AbstractHarvestedRecordsBatchUpdater.BATCH_SIZE * 5 / 2;
     recordIds.addAll(generateRandomRecordIds(7, recordInBucketCount));
@@ -147,8 +142,8 @@ public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
     Collections.shuffle(recordIds);
     for (String recordId : recordIds) {
       dao.insertHarvestedRecord(HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(recordId)
-                                               .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
-                                               .previewHarvestDate(INDEXING_DATE)
+              .latestHarvestDate(HARVESTED_DATE).latestHarvestMd5(MD5)
+              .previewHarvestDate(INDEXING_DATE)
                                                .previewHarvestMd5(MD5).build());
     }
     HarvestedRecordsBatchCleaner cleaner = new HarvestedRecordsBatchCleaner(dao, METIS_DATASET_ID,

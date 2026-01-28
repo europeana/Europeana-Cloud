@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.commons.cassandra;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public class CassandraTestBase {
 
@@ -33,8 +33,8 @@ public class CassandraTestBase {
   /**
    * Truncates all tables.
    */
-  @Before
-  public void truncateAll() {
+  @BeforeEach
+  void truncateAll() {
     CassandraTestInstance.truncateAllData(false);
   }
 }

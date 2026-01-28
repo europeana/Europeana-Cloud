@@ -1,21 +1,20 @@
 package eu.europeana.cloud.service.commons.utils;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.Optional;
-import org.junit.Assume;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.io.IOException;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+
+@ExtendWith(MockitoExtension.class)
 public class RetryableMethodExecutorTest {
 
   private static final int RETRY_COUNT = 3;
@@ -36,7 +35,7 @@ public class RetryableMethodExecutorTest {
   RetryableMethodExecutor.GenericCallable<String, IOException> call;
 
   @Test
-  public void shouldReturnValidResultWhenExecuteAndCallNoThrowsExceptions() throws Exception {
+  void shouldReturnValidResultWhenExecuteAndCallNoThrowsExceptions() throws Exception {
     Mockito.when(call.call()).thenReturn(RESULT);
 
     String result = RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
@@ -45,7 +44,7 @@ public class RetryableMethodExecutorTest {
   }
 
   @Test
-  public void shouldCallBeInvokedOnceWhenInvokedExecuteAndCallNoThrowsExceptions() throws Exception {
+  void shouldCallBeInvokedOnceWhenInvokedExecuteAndCallNoThrowsExceptions() throws Exception {
     Mockito.when(call.call()).thenReturn(RESULT);
 
     RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call);
@@ -55,15 +54,15 @@ public class RetryableMethodExecutorTest {
 
 
   @Test
-  public void shouldCatchExceptionWhenInvokedExecuteAndCallAlwaysThrowsExceptions() throws Exception {
+  void shouldCatchExceptionWhenInvokedExecuteAndCallAlwaysThrowsExceptions() throws Exception {
     Mockito.when(call.call()).thenThrow(IOException.class);
 
     assertThrows(IOException.class,
-        () -> RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call));
+            () -> RetryableMethodExecutor.execute(ERROR_MESSAGE, RETRY_COUNT, SLEEP_BETWEEN_RETRIES_MS, call));
   }
 
   @Test
-  public void shouldRetryWhenCallAlwaysThrowsException() throws Exception {
+  void shouldRetryWhenCallAlwaysThrowsException() throws Exception {
     Mockito.when(call.call()).thenThrow(IOException.class);
 
     try {
@@ -76,7 +75,7 @@ public class RetryableMethodExecutorTest {
 
 
   @Test
-  public void shouldRetryOnErrorMethodWithRetryAnnotationWhenExecutedByProxy() {
+  void shouldRetryOnErrorMethodWithRetryAnnotationWhenExecutedByProxy() {
     TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
     try {
       retryableDao.retryableMethod();
@@ -88,7 +87,7 @@ public class RetryableMethodExecutorTest {
 
 
   @Test
-  public void shouldNoRetryMethodWithRetryAnnotationWhenExecutedByProxyWhenNoErrors() {
+  void shouldNoRetryMethodWithRetryAnnotationWhenExecutedByProxyWhenNoErrors() {
     TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
     retryableDao.noErrorMethod();
 
@@ -96,7 +95,7 @@ public class RetryableMethodExecutorTest {
   }
 
   @Test
-  public void shouldNoRetryOnErrorMethodWithoutRetryAnnotationWhenExecutedByProxy() {
+  void shouldNoRetryOnErrorMethodWithoutRetryAnnotationWhenExecutedByProxy() {
     TestDaoWithRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao);
     try {
       retryableDao.noRetryableMethod();
@@ -108,7 +107,7 @@ public class RetryableMethodExecutorTest {
   }
 
   @Test
-  public void shouldRetryOnErrorClassWithRetryAnnotationWhenExecutedByProxy() {
+  void shouldRetryOnErrorClassWithRetryAnnotationWhenExecutedByProxy() {
     TestDaoWithClassLevelRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao2);
     try {
       retryableDao.methodWithoutRetryableAnnotation();
@@ -121,8 +120,8 @@ public class RetryableMethodExecutorTest {
   }
 
   @Test
-  public void shouldUseOverridedMethodSettingsOnErrorClassWithRetryAnnotationWhenExecutedByProxy() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldUseOverrideMethodSettingsOnErrorClassWithRetryAnnotationWhenExecutedByProxy() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     TestDaoWithClassLevelRetry retryableDao = RetryableMethodExecutor.createRetryProxy(testDao2);
     try {
       retryableDao.methodWithOverridedRetryableAnnotation();
@@ -130,7 +129,7 @@ public class RetryableMethodExecutorTest {
     } catch (TestRuntimeExpection ignore) {
     }
     Mockito.verify(testDao2, Mockito.times(1))
-           .methodWithOverridedRetryableAnnotation();
+            .methodWithOverridedRetryableAnnotation();
 
   }
 
