@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -123,10 +124,10 @@ public class DataProviderAATest extends AbstractSecurityTest {
     Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
     Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
 
-    Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
+    Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) any());
     Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
 
-    Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) Mockito.anyObject());
+    Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) any());
 
     when(
         uis.createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(cId);

@@ -17,8 +17,9 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.mockito.internal.util.reflection.FieldSetter;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class ResourceProcessingBoltTest {
 
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
@@ -65,9 +67,10 @@ public class ResourceProcessingBoltTest {
 
   @BeforeEach
   void prepareTuple() throws Exception {
-    MockitoAnnotations.initMocks(this);
-    FieldSetter.setField(resourceProcessingBolt,
-            ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader"), thumbnailUploader);
+    Field thumbnailField = ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader");
+    thumbnailField.setAccessible(true);
+    thumbnailField.set(resourceProcessingBolt, thumbnailUploader);
+
     resourceProcessingBolt.initGson();
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setFileUrl(FILE_URL);
@@ -95,12 +98,12 @@ public class ResourceProcessingBoltTest {
     List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     when(amazonClient.putObject(anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(
-        new PutObjectResult());
+            new PutObjectResult());
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
@@ -126,12 +129,12 @@ public class ResourceProcessingBoltTest {
     List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     when(amazonClient.putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(
-        new PutObjectResult());
+            new PutObjectResult());
 
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(true);
 
@@ -152,13 +155,13 @@ public class ResourceProcessingBoltTest {
     List<Thumbnail> thumbnailList = getThumbnails(thumbNailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
     String errorMessage = "The error was thrown because of something";
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     doThrow(new AmazonServiceException(errorMessage)).when(amazonClient)
-                                                     .putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
+            .putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
     verify(amazonClient, Mockito.times(3)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
@@ -170,7 +173,7 @@ public class ResourceProcessingBoltTest {
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
     assertEquals(thumbNailCount,
-        StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
+            StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
     assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
     assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
 

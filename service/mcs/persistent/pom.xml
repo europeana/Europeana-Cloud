@@ -124,7 +124,7 @@
             <groupId>org.mockito</groupId>
           <artifactId>mockito-core</artifactId>
           <scope>test</scope>
-          <version>3.3.3</version>
+          <version>${version.mockito}</version>
         </dependency>
       <dependency>
         <artifactId>lombok</artifactId>

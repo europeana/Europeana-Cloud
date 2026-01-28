@@ -20,8 +20,8 @@ import java.io.InputStream;
 
 import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 /**
  *
