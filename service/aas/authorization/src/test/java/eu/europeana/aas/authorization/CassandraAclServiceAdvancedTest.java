@@ -306,7 +306,8 @@ class CassandraAclServiceAdvancedTest extends CassandraTestBase {
   @Test
   void testReadAclByIdWithSidFilteringAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    assertThrows(NotFoundException.class, () -> service.readAclById(oi));
+    List<Sid> sids = List.of(new PrincipalSid(sid1));
+    assertThrows(NotFoundException.class, () -> service.readAclById(oi, sids));
   }
 
   @Test

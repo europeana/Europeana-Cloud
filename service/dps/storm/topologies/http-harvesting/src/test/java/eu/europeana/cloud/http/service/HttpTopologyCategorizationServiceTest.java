@@ -59,21 +59,21 @@ class HttpTopologyCategorizationServiceTest {
   }
 
   static Stream<Arguments> existingRecordCases() {
-    UUID A = UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f");
-    UUID B = UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91");
+    UUID a = UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f");
+    UUID b = UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc91");
 
     return Stream.of(
             // differs from preview & publish
-            Arguments.of(A, A, B, true),
+            Arguments.of(a, a, b, true),
 
             // differs from preview only
-            Arguments.of(B, A, A, true),
+            Arguments.of(b, a, a, true),
 
             // differs from publish only
-            Arguments.of(A, B, A, true),
+            Arguments.of(a, b, a, true),
 
             // same as preview & publish → drop
-            Arguments.of(A, A, A, false)
+            Arguments.of(a, a, a, false)
     );
   }
 

@@ -1,21 +1,13 @@
 package eu.europeana.cloud.test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.delete;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.head;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 
 import java.util.Map;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class WiremockHelper {
 
@@ -27,6 +19,10 @@ public class WiremockHelper {
 
   private final WireMockExtension wireMockExtension;
 
+  /*
+   * Creates wiremock helper instance
+   * @param wireMockExtension
+   */
   public WiremockHelper(WireMockExtension wireMockExtension) {
     this.wireMockExtension = wireMockExtension;
   }

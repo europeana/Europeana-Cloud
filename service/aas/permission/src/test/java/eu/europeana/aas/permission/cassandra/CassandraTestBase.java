@@ -4,7 +4,7 @@ import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
-public class CassandraTestBase {
+public abstract class CassandraTestBase {
 
   /**
    * CassandraTestBase KEYSPACE_SCHEMA_CQL

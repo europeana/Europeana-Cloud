@@ -12,9 +12,13 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +26,7 @@ import java.time.Instant;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class OaiHarvestedRecordCategorizationBoltTest {
 
     @Captor
@@ -34,10 +39,6 @@ class OaiHarvestedRecordCategorizationBoltTest {
     @InjectMocks
     private OaiHarvestedRecordCategorizationBolt harvestedRecordCategorizationBolt = new OaiHarvestedRecordCategorizationBolt(null);
 
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
-    }
 
     @Test
     void shouldForwardTupleToNextBoltInCaseOfNonIncrementalProcessing() throws IOException {
@@ -51,10 +52,10 @@ class OaiHarvestedRecordCategorizationBoltTest {
                         .build());
         //when
         harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
-    //then
-    verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
-    verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
-  }
+        //then
+        verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+    }
 
     @Test
     void shouldForwardTupleToNextBoltInCaseOfNonExistingIncrementalParameter() throws IOException {
@@ -68,16 +69,16 @@ class OaiHarvestedRecordCategorizationBoltTest {
                         .build());
         //when
         harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
-    //then
-    verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
-    verify(outputCollector, times(1)).emit(any(Tuple.class), anyList());
-  }
+        //then
+        verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), anyList());
+    }
 
     @Test
     void shouldCategorizeMessageAsEligibleForProcessing() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = prepareTupleWithoutIncrementalParameter();
+        StormTaskTuple tuple = prepareTupleWithIncrementalParameter();
         when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
                 CategorizationResult
                         .builder()
@@ -85,10 +86,10 @@ class OaiHarvestedRecordCategorizationBoltTest {
                         .build());
         //when
         harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
-    //then
-    verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
-    verify(outputCollector, times(1)).emit(any(Tuple.class), anyList());
-  }
+        //then
+        verify(outputCollector, never()).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
+        verify(outputCollector, times(1)).emit(any(Tuple.class), anyList());
+    }
 
     @Test
     void shouldCategorizeMessageAlreadyProcessed() throws IOException {
@@ -102,42 +103,42 @@ class OaiHarvestedRecordCategorizationBoltTest {
                         .categorizationParameters(
                                 CategorizationParameters
                                         .builder()
-                    .recordDateStamp(Instant.now())
-                    .build())
-            .build());
-    //when
-    harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
-    //then
-    verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
-    verify(outputCollector, never()).emit(any(Tuple.class), anyList());
-  }
+                                        .recordDateStamp(Instant.now())
+                                        .build())
+                        .build());
+        //when
+        harvestedRecordCategorizationBolt.execute(anchorTuple, tuple);
+        //then
+        verify(outputCollector, times(1)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), anyList());
+        verify(outputCollector, never()).emit(any(Tuple.class), anyList());
+    }
 
-  private StormTaskTuple prepareNonIncrementalTuple() throws IOException {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setTaskId(1);
-    tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
-    tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
-    tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
-    tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
-    return tuple;
-  }
+    private StormTaskTuple prepareNonIncrementalTuple() throws IOException {
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.setTaskId(1);
+        tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
+        tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
+        tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
+        return tuple;
+    }
 
-  private StormTaskTuple prepareTupleWithoutIncrementalParameter() throws IOException {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
-    tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
-    tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
-    return tuple;
-  }
+    private StormTaskTuple prepareTupleWithoutIncrementalParameter() throws IOException {
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
+        tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
+        return tuple;
+    }
 
-  private StormTaskTuple prepareTupleWithIncrementalParameter() throws IOException {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
-    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "10");
-    tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
-    tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
-    tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
+    private StormTaskTuple prepareTupleWithIncrementalParameter() throws IOException {
+        StormTaskTuple tuple = new StormTaskTuple();
+        tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
+        tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "10");
+        tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
+        tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
+        tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
 
-    return tuple;
-  }
+        return tuple;
+    }
 }
