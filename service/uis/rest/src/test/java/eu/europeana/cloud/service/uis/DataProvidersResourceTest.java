@@ -39,7 +39,7 @@ public class DataProvidersResourceTest {
    * Test return empty list when provider does not exist
    */
   @Test
-  public void shouldReturnEmptyListOfProvidersIfNoneExists() throws Exception {
+  void shouldReturnEmptyListOfProvidersIfNoneExists() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
 
     // given there is no provider
@@ -47,8 +47,8 @@ public class DataProvidersResourceTest {
 
     // when you list all providers
     MvcResult response = mockMvc.perform(get("/data-providers").accept(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andReturn();
+            .andExpect(status().isOk())
+            .andReturn();
 
     ResultSlice<DataProvider> retrievedInfo = new ObjectMapper().readValue(
         response.getResponse().getContentAsString(), new TypeReference<ResultSlice<DataProvider>>() {

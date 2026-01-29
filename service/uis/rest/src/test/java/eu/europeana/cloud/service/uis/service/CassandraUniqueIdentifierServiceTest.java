@@ -44,18 +44,17 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    * Prepare the unit tests
    */
   @BeforeEach
-  public void prepare() {
-    @SuppressWarnings("resource")
+  void prepare() {
     ApplicationContext context = new ClassPathXmlApplicationContext(
-        "default-context.xml");
+            "default-context.xml");
     service = (UniqueIdentifierServiceImpl) context.getBean("service");
     dataProviderDao = (CassandraDataProviderDAO) context.getBean("dataProviderDao");
   }
 
   @Test
-  public void testCreateOrUpdateAndRetrieve() throws Exception {
+  void testCreateOrUpdateAndRetrieve() throws Exception {
     dataProviderDao.createDataProvider("test",
-        new DataProviderProperties());
+            new DataProviderProperties());
     CloudId gId = service.createCloudId("test", "test");
     CloudId gIdRet = service.getCloudId("test", "test");
     assertEquals(gId, gIdRet);
@@ -64,31 +63,29 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 
   /**
    * Test RecordDoesNotExistException
-   *
-   * @throws Exception expected RecordDoesNotExistException
    */
   @Test
-  public void testRecordDoesNotExist() {
+  void testRecordDoesNotExist() {
     assertThrows(RecordDoesNotExistException.class, () -> service.getCloudId("test2", "test2"));
   }
 
   /**
    * Test CloudIdDoesNotExistException
-   *
-   * @throws Exception expected CloudIdDoesNotExistException
    */
   @Test
-  public void testGetLocalIdsByCloudId() throws Exception {
-    service.getLocalIdsByCloudId(IdGenerator.encodeWithSha256AndBase32("/test11/test11"));
-    CloudId gId = service.createCloudId("test11", "test11");
-    assertThrows(CloudIdDoesNotExistException.class, () -> service.getLocalIdsByCloudId(gId.getId()));
+  void testGetLocalIdsByCloudId() {
+    assertThrows(CloudIdDoesNotExistException.class, () -> {
+      service.getLocalIdsByCloudId(IdGenerator.encodeWithSha256AndBase32("/test11/test11"));
+      CloudId gId = service.createCloudId("test11", "test11");
+      service.getLocalIdsByCloudId(gId.getId());
+    });
   }
 
   /**
    * @throws Exception If something goes wrong
    */
   @Test
-  public void testCreateIdMappingImmutable() throws Exception {
+  void testCreateIdMappingImmutable() throws Exception {
     dataProviderDao.createDataProvider("test12", new DataProviderProperties());
     CloudId gid = service.createCloudId("test12", "test12");
     service.createIdMapping(gid.getId(), "test12", "test13");
@@ -103,7 +100,7 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    * @throws Exception If something goes wrong
    */
   @Test
-  public void testCreateIdMappingCloudIdDoesNotExist() throws Exception {
+  void testCreateIdMappingCloudIdDoesNotExist() throws Exception {
     dataProviderDao.createDataProvider("test14",
             new DataProviderProperties());
     dataProviderDao.createDataProvider("test16",
@@ -118,14 +115,14 @@ public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    */
   @Test
   @Disabled(value = "Old style test with interesting code. Long time test")
-  public void createCloudIdCollisionTest() throws DatabaseConnectionException, ProviderDoesNotExistException {
+  void createCloudIdCollisionTest() throws DatabaseConnectionException, ProviderDoesNotExistException {
     // given
     final Map<String, String> map = new HashMap<>();
     dataProviderDao.createDataProvider("testprovider",
-        new DataProviderProperties());
+            new DataProviderProperties());
     for (BigInteger bigCounter = BigInteger.ONE; bigCounter
-        .compareTo(new BigInteger("5000000")) < 0; bigCounter = bigCounter
-        .add(BigInteger.ONE)) {
+            .compareTo(new BigInteger("5000000")) < 0; bigCounter = bigCounter
+            .add(BigInteger.ONE)) {
       final String counterString = bigCounter.toString(32);
 
       // when

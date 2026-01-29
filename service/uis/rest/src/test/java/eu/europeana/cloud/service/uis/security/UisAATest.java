@@ -45,7 +45,7 @@ public class UisAATest extends AbstractSecurityTest {
    * Prepare the unit tests
    */
   @BeforeEach
-  public void prepare() {
+  void prepare() {
   }
 
 
@@ -53,9 +53,9 @@ public class UisAATest extends AbstractSecurityTest {
    * Makes sure these methods can run even if noone is logged in. No special permissions are required.
    */
   @Test
-  public void testMethodsThatDontNeedAnyAuthentication()
-      throws DatabaseConnectionException, ProviderDoesNotExistException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException, RecordDoesNotExistException {
+  void testMethodsThatDontNeedAnyAuthentication()
+          throws DatabaseConnectionException, ProviderDoesNotExistException,
+          RecordDatasetEmptyException, CloudIdDoesNotExistException, RecordDoesNotExistException {
 
     uisResource.getCloudId(PROVIDER_ID, RECORD_ID);
     uisResource.getLocalIds(CLOUD_ID);
@@ -66,9 +66,9 @@ public class UisAATest extends AbstractSecurityTest {
    * Makes sure any random person can just call these methods. No special permissions are required.
    */
   @Test
-  public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
-      throws DatabaseConnectionException, ProviderDoesNotExistException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException, RecordDoesNotExistException {
+  void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
+          throws DatabaseConnectionException, ProviderDoesNotExistException,
+          RecordDatasetEmptyException, CloudIdDoesNotExistException, RecordDoesNotExistException {
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
     uisResource.getCloudId(PROVIDER_ID, RECORD_ID);
@@ -77,9 +77,9 @@ public class UisAATest extends AbstractSecurityTest {
 
 
   @Test
-  public void shouldBeAbleToCallMethodsThatNeedBasicAuthenticationWithSomeRandomPersonLoggedIn()
-      throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
+  void shouldBeAbleToCallMethodsThatNeedBasicAuthenticationWithSomeRandomPersonLoggedIn()
+          throws DatabaseConnectionException, RecordExistsException, ProviderDoesNotExistException,
+          RecordDatasetEmptyException, CloudIdDoesNotExistException, CloudIdAlreadyExistException {
 
     CloudId cloudId = new CloudId();
     cloudId.setId(CLOUD_ID);
@@ -95,7 +95,7 @@ public class UisAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldThrowExceptionWhenUnknowUserTriesToCreateCloudID() {
+  void shouldThrowExceptionWhenUnknowUserTriesToCreateCloudID() {
 
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> uisResource.createCloudId(PROVIDER_ID, LOCAL_ID));
   }

@@ -47,31 +47,31 @@ public class RecordResourceAATest extends AbstractSecurityTest {
   private final static String ADMIN_PASSWORD = "admin";
 
     @BeforeEach
-  public void mockUp() throws Exception {
+    void mockUp() throws Exception {
 
-    record = new Record();
-    record.setCloudId(GLOBAL_ID);
-    Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
-  }
+        record = new Record();
+        record.setCloudId(GLOBAL_ID);
+        Mockito.doReturn(record).when(recordService).getRecord(Mockito.anyString());
+    }
 
     @BeforeEach
-  public void init() {
-    logoutEveryone();
-  }
+    void init() {
+        logoutEveryone();
+    }
 
-  /**
-   * Makes sure these methods can run even if noone is logged in. No special permissions are required.
-   */
-  @Test
-  public void testMethodsThatDontNeedAnyAuthentication() throws RecordNotExistsException {
-    recordsResource.getRecord(URI_INFO, GLOBAL_ID);
-  }
+    /**
+     * Makes sure these methods can run even if noone is logged in. No special permissions are required.
+     */
+    @Test
+    void testMethodsThatDontNeedAnyAuthentication() throws RecordNotExistsException {
+        recordsResource.getRecord(URI_INFO, GLOBAL_ID);
+    }
 
     /**
      * Makes sure any random person can just call these methods. No special permissions are required.
      */
     @Test
-    public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
+    void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
             throws RecordNotExistsException {
         login(RANDOM_PERSON, RANDOM_PASSWORD);
         recordsResource.getRecord(URI_INFO, GLOBAL_ID);
@@ -97,7 +97,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void shouldBeAbleToDeleteRecordWhenAdmin()
+    void shouldBeAbleToDeleteRecordWhenAdmin()
             throws RecordNotExistsException, RepresentationNotExistsException {
         login(ADMIN, ADMIN_PASSWORD);
         recordsResource.deleteRecord(GLOBAL_ID);

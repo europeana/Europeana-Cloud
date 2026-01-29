@@ -36,30 +36,30 @@ public class DataProviderActivationResourceTest {
   private DataProviderService dataProviderService;
 
   @BeforeEach
-  public void mockUp() {
+  void mockUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
   }
 
   @Test
-  public void shouldDeactivateDataProvider() throws Exception {
+  void shouldDeactivateDataProvider() throws Exception {
     DataProvider dp = new DataProvider();
     Mockito.doReturn(dp).when(dataProviderService).getProvider(Mockito.anyString());
     Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
     ;
 
     mockMvc.perform(delete("/data-providers/{\" + P_PROVIDER + \"}/active", "sampleProvider"))
-           .andExpect(status().isOk());
+            .andExpect(status().isOk());
   }
 
   @Test
-  public void shouldThrowExceptionWhenProviderDoesNotExists() throws Exception {
+  void shouldThrowExceptionWhenProviderDoesNotExists() throws Exception {
     DataProvider dp = new DataProvider();
     Mockito.doThrow(
-        new ProviderDoesNotExistException(new IdentifierErrorInfo(
-            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                .getHttpCode(),
-            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                .getErrorInfo("provident")))
+            new ProviderDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                            .getHttpCode(),
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                            .getErrorInfo("provident")))
     ).when(dataProviderService).getProvider(Mockito.anyString());
 
     Mockito.doReturn(dp).when(dataProviderService).updateProvider(Mockito.any(DataProvider.class));
