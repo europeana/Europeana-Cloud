@@ -6,7 +6,6 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -30,23 +29,16 @@ class UisAATest extends AbstractSecurityTest {
   @Autowired
   private UniqueIdentifierResource uisResource;
 
-  private final static String PROVIDER_ID = "Russell_Stringer_Bell";
-  private final static String LOCAL_ID = "LOCAL_ID";
-  private final static String RECORD_ID = "RECORD_ID";
-  private final static String CLOUD_ID = "CLOUD_ID";
+  private static final String PROVIDER_ID = "Russell_Stringer_Bell";
+  private static final String LOCAL_ID = "LOCAL_ID";
+  private static final String RECORD_ID = "RECORD_ID";
+  private static final String CLOUD_ID = "CLOUD_ID";
 
   /**
    * Pre-defined users
    */
-  private final static String RANDOM_PERSON = "Cristiano";
-  private final static String RANDOM_PASSWORD = "Ronaldo";
-
-  /**
-   * Prepare the unit tests
-   */
-  @BeforeEach
-  void prepare() {
-  }
+  private static final String RANDOM_PERSON = "Cristiano";
+  private static final String RANDOM_PASSWORD = "Ronaldo";
 
 
   /**

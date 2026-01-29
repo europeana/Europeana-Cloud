@@ -11,6 +11,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,6 +31,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
 import static org.mockito.Mockito.mock;
 
+@ExtendWith(WireMockExtension.class)
 class ValidationBoltTest {
 
   @Mock(name = "outputCollector")
@@ -51,6 +53,7 @@ class ValidationBoltTest {
   @BeforeEach
   void init() {
     validationBolt = new ValidationBolt(new CassandraProperties(), readProperties());
+    // For some reason test crashes without this even though we use MockitoExtension?
     MockitoAnnotations.initMocks(this);
 
     wireMockExtension.resetAll();
@@ -98,13 +101,13 @@ class ValidationBoltTest {
   private void assertSuccessfulValidation() {
     Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     Mockito.verify(outputCollector, Mockito.times(0))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
   }
 
   private void assertFailedValidation() {
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
   }
 
   private Properties readProperties() {

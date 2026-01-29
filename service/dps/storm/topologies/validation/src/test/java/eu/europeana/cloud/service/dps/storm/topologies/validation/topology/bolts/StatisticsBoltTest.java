@@ -17,10 +17,11 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+@ExtendWith(MockitoExtension.class)
 class StatisticsBoltTest extends CassandraTestBase {
 
     private static final long TASK_ID = 1;
@@ -51,7 +53,6 @@ class StatisticsBoltTest extends CassandraTestBase {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
         statisticsBolt.prepare();
         statisticsService = Mockito.spy(ValidationStatisticsServiceImpl.getInstance(
                 CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "",
@@ -70,10 +71,10 @@ class StatisticsBoltTest extends CassandraTestBase {
         //when
         statisticsBolt.execute(anchorTuple, tuple);
 
-    //then
-    assertSuccess(1);
-    assertDataStoring(generated);
-  }
+        //then
+        assertSuccess(1);
+        assertDataStoring(generated);
+    }
 
     @Test
     void testAggregatedCountStatisticsSuccessfully() throws Exception {
@@ -87,17 +88,17 @@ class StatisticsBoltTest extends CassandraTestBase {
 
         byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
         StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL_CLOUD_ID2, fileData2,
-        prepareStormTaskTupleParameters(), new Revision());
-    List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
+                prepareStormTaskTupleParameters(), new Revision());
+        List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
-    //when
-    statisticsBolt.execute(anchorTuple, tuple);
-    statisticsBolt.execute(anchorTuple2, tuple2);
+        //when
+        statisticsBolt.execute(anchorTuple, tuple);
+        statisticsBolt.execute(anchorTuple2, tuple2);
 
-    //then
-    assertSuccess(2);
-    assertDataStoring(generated, generated2);
-  }
+        //then
+        assertSuccess(2);
+        assertDataStoring(generated, generated2);
+    }
 
     @Test
     void shouldNotGenerateStatisticsBecauseOfLackOfTheParameter() throws Exception {
@@ -111,9 +112,9 @@ class StatisticsBoltTest extends CassandraTestBase {
         statisticsBolt.execute(anchorTuple, tuple);
 
         //then
-    assertSuccess(1);
-    Mockito.verifyNoInteractions(statisticsService);
-  }
+        assertSuccess(1);
+        Mockito.verifyNoInteractions(statisticsService);
+    }
 
     @Test
     void shouldNotGenerateStatisticsBecauseOfWrongParameter() throws Exception {
@@ -127,8 +128,8 @@ class StatisticsBoltTest extends CassandraTestBase {
         statisticsBolt.execute(anchorTuple, tuple);
 
         //then
-    Mockito.verifyNoInteractions(statisticsService);
-  }
+        Mockito.verifyNoInteractions(statisticsService);
+    }
 
     @Test
     void testCountStatisticsFailed() throws Exception {
@@ -142,84 +143,84 @@ class StatisticsBoltTest extends CassandraTestBase {
         statisticsBolt.execute(anchorTuple, tuple);
         //then
         assertFailure();
-  }
-
-  private void assertDataStoring(List<NodeStatistics> generated, List<NodeStatistics> generated2) {
-    List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
-
-      assertEquals(statistics.size(), generated.size());
-    for (NodeStatistics stats : statistics) {
-      NodeStatistics nodeGenerated = findNode(stats, generated);
-      long nodeGeneratedOccurrence = nodeGenerated != null ? nodeGenerated.getOccurrence() : 0;
-      NodeStatistics nodeGenerated2 = findNode(stats, generated2);
-      long nodeGeneratedOccurrence2 = nodeGenerated2 != null ? nodeGenerated2.getOccurrence() : 0;
-        assertEquals(stats.getOccurrence(), nodeGeneratedOccurrence + nodeGeneratedOccurrence2);
-      for (AttributeStatistics attrStats : stats.getAttributesStatistics()) {
-        AttributeStatistics nodeAttrStats = findNodeAttributes(attrStats, nodeGenerated.getAttributesStatistics());
-        long nodeAttrsOccurrence = nodeAttrStats != null ? nodeAttrStats.getOccurrence() : 0;
-        AttributeStatistics nodeAttrStats2 = findNodeAttributes(attrStats, nodeGenerated2.getAttributesStatistics());
-        long nodeAttrsOccurrence2 = nodeAttrStats2 != null ? nodeAttrStats2.getOccurrence() : 0;
-          assertEquals(attrStats.getOccurrence(), nodeAttrsOccurrence + nodeAttrsOccurrence2);
-      }
     }
-  }
 
-  private AttributeStatistics findNodeAttributes(AttributeStatistics attr, Set<AttributeStatistics> statistics) {
-    for (AttributeStatistics attributeStatistics : statistics) {
-      if (attributeStatistics.getName().equals(attr.getName()) &&
-          attributeStatistics.getValue().equals(attr.getValue())) {
-        return attributeStatistics;
-      }
+    private void assertDataStoring(List<NodeStatistics> generated, List<NodeStatistics> generated2) {
+        List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
+
+        assertEquals(statistics.size(), generated.size());
+        for (NodeStatistics stats : statistics) {
+            NodeStatistics nodeGenerated = findNode(stats, generated);
+            long nodeGeneratedOccurrence = nodeGenerated != null ? nodeGenerated.getOccurrence() : 0;
+            NodeStatistics nodeGenerated2 = findNode(stats, generated2);
+            long nodeGeneratedOccurrence2 = nodeGenerated2 != null ? nodeGenerated2.getOccurrence() : 0;
+            assertEquals(stats.getOccurrence(), nodeGeneratedOccurrence + nodeGeneratedOccurrence2);
+            for (AttributeStatistics attrStats : stats.getAttributesStatistics()) {
+                AttributeStatistics nodeAttrStats = findNodeAttributes(attrStats, nodeGenerated.getAttributesStatistics());
+                long nodeAttrsOccurrence = nodeAttrStats != null ? nodeAttrStats.getOccurrence() : 0;
+                AttributeStatistics nodeAttrStats2 = findNodeAttributes(attrStats, nodeGenerated2.getAttributesStatistics());
+                long nodeAttrsOccurrence2 = nodeAttrStats2 != null ? nodeAttrStats2.getOccurrence() : 0;
+                assertEquals(attrStats.getOccurrence(), nodeAttrsOccurrence + nodeAttrsOccurrence2);
+            }
+        }
     }
-    return null;
-  }
 
-  private NodeStatistics findNode(NodeStatistics node, List<NodeStatistics> statistics) {
-    for (NodeStatistics nodeStatistics : statistics) {
-      if (nodeStatistics.getParentXpath().equals(node.getParentXpath()) &&
-          nodeStatistics.getXpath().equals(node.getXpath()) &&
-          nodeStatistics.getValue().equals(node.getValue())) {
-        return nodeStatistics;
-      }
+    private AttributeStatistics findNodeAttributes(AttributeStatistics attr, Set<AttributeStatistics> statistics) {
+        for (AttributeStatistics attributeStatistics : statistics) {
+            if (attributeStatistics.getName().equals(attr.getName()) &&
+                    attributeStatistics.getValue().equals(attr.getValue())) {
+                return attributeStatistics;
+            }
+        }
+        return null;
     }
-    return null;
-  }
 
-  private void assertDataStoring(List<NodeStatistics> generated) {
-      List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
-      assertEquals(statistics.size(), generated.size());
-      assertTrue(statistics.containsAll(generated));
-  }
+    private NodeStatistics findNode(NodeStatistics node, List<NodeStatistics> statistics) {
+        for (NodeStatistics nodeStatistics : statistics) {
+            if (nodeStatistics.getParentXpath().equals(node.getParentXpath()) &&
+                    nodeStatistics.getXpath().equals(node.getXpath()) &&
+                    nodeStatistics.getValue().equals(node.getValue())) {
+                return nodeStatistics;
+            }
+        }
+        return null;
+    }
 
-  private void assertSuccess(int times) {
-    Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-    Mockito.verify(collector, Mockito.times(0))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
-  }
+    private void assertDataStoring(List<NodeStatistics> generated) {
+        List<NodeStatistics> statistics = statisticsService.getNodeStatistics(TASK_ID);
+        assertEquals(statistics.size(), generated.size());
+        assertTrue(statistics.containsAll(generated));
+    }
 
-  private void assertFailure() {
-    Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
-    Mockito.verify(collector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
-  }
+    private void assertSuccess(int times) {
+        Mockito.verify(collector, Mockito.times(times)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(0))
+                .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+    }
 
-  private HashMap<String, String> prepareStormTaskTupleParameters() {
-    HashMap<String, String> parameters = new HashMap<>();
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-    parameters.put(PluginParameterKeys.GENERATE_STATS, "true");
-    return parameters;
-  }
+    private void assertFailure() {
+        Mockito.verify(collector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.any(List.class));
+        Mockito.verify(collector, Mockito.times(1))
+                .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.any(List.class));
+    }
 
-  private HashMap<String, String> prepareStormTaskTupleParametersWithoutStatsParam() {
-    HashMap<String, String> parameters = new HashMap<>();
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-    return parameters;
-  }
+    private HashMap<String, String> prepareStormTaskTupleParameters() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        parameters.put(PluginParameterKeys.GENERATE_STATS, "true");
+        return parameters;
+    }
 
-  private HashMap<String, String> prepareStormTaskTupleParametersWithWrongStatsParam() {
-    HashMap<String, String> parameters = new HashMap<>();
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-    parameters.put(PluginParameterKeys.GENERATE_STATS, "trues");
-    return parameters;
-  }
+    private HashMap<String, String> prepareStormTaskTupleParametersWithoutStatsParam() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        return parameters;
+    }
+
+    private HashMap<String, String> prepareStormTaskTupleParametersWithWrongStatsParam() {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        parameters.put(PluginParameterKeys.GENERATE_STATS, "trues");
+        return parameters;
+    }
 }

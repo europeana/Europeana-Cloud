@@ -81,7 +81,7 @@ public class AuthenticationTestContext {
             CloudAuthenticationEntryPoint entryPoint,
             CloudAuthenticationSuccessHandler successHandler,
             SimpleUrlAuthenticationFailureHandler failureHandler
-    ) throws Exception {
+    ) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

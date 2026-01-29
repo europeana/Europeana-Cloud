@@ -15,7 +15,9 @@ import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-
+@ExtendWith(MockitoExtension.class)
 class ParseFileBoltTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBoltTest.class);
@@ -76,14 +78,12 @@ class ParseFileBoltTest {
 
   @BeforeEach
   void prepareTuple() {
-    MockitoAnnotations.initMocks(this);
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setTaskId(TASK_ID);
     stormTaskTuple.setFileUrl(FILE_URL);
     stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
     stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
-    //        setStaticField(ParseFileForMediaBolt.class.getSuperclass().getSuperclass().getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
   }
 
   @Test

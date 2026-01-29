@@ -144,9 +144,7 @@ class RepresentationAATest extends AbstractSecurityTest {
 
 
     @Test
-    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() throws ProviderNotExistsException, RecordNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
-
-
+    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() throws RepresentationNotExistsException {
         login(RONALDO, RONALD_PASSWORD);
         assertThrows(
                 AccessDeniedException.class,

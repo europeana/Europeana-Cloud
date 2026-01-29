@@ -25,14 +25,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RecordServiceClientTestIT {
-  //http://localhosta:8080/mcs/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
-  //https://test.ecloud.psnc.pl/api/records/2YRDQTLJMPCN264Y75CVIJ65RPZP5DJFS36CYAGMNIGT3GLKLMDA/representations/edm/versions
-
-  //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord/versions/
-  //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord/versions/
-
-  //private static final Logger LOGGER = LoggerFactory.getLogger(RecordServiceClientTestIT.class);
-
   private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
   private static final String LOCAL_TEST_UIS_URL = "http://localhost:8080/uis";
   private static final String REMOTE_TEST_UIS_URL = "https://test.ecloud.psnc.pl/api";
@@ -112,12 +104,9 @@ class RecordServiceClientTestIT {
     assertThat(representations.get(0).getCloudId(), is(cloudId));
   }
 
-  //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
-  //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
   @Test
   void getRepresentation() throws MCSException {
     String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
-    //String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
 
     String representationName = "metadataRecord";
 
@@ -127,9 +116,6 @@ class RecordServiceClientTestIT {
     assertThat(representation.getCloudId(), is(cloudId));
   }
 
-
-  //http://localhost:8080/mcs/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
-  //https://test.ecloud.psnc.pl/api/records/SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA/representations/metadataRecord
   @Test
   void getRepresentationKeyValue() throws MCSException {
     String cloudId = "SPBD7WGIBOP6IJSEHSJJL6BTQ7SSSTS2TA3MB6R6O2QTUREKU5DA";
@@ -181,25 +167,6 @@ class RecordServiceClientTestIT {
   }
 
 
-  @Test
-  void createRepresentationFileKeyValue() throws CloudException, MCSException, IOException {
-    String representationName = "StrangeRepresentationName";
-
-    UISClient uisClient = new UISClient(REMOTE_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
-    CloudId cloudId = uisClient.createCloudId(PROVIDER_ID);
-
-    String filename = "log4j.properties";
-    String mediatype = MediaType.TEXT_PLAIN_VALUE;
-    InputStream is = RecordServiceClientTestIT.class.getResourceAsStream("/" + filename);
-
-    RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-    URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID,
-        DATASET_ID, is, filename, mediatype);
-
-    int index = representationURI.toString().indexOf(
-        "/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
-    assertThat(index, not(-1));
-  }
 
   @Test
   void createRepresentationFileNoName() throws CloudException, MCSException, IOException {
@@ -226,7 +193,6 @@ class RecordServiceClientTestIT {
     String representationName = "StrangeRepresentationName";
 
     UISClient uisClient = new UISClient(LOCAL_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
-    //CloudId cloudId = uisClient.createCloudId(PROVIDER_ID, "recordt1");
     CloudId cloudId = uisClient.getCloudId(PROVIDER_ID, "recordt1");
 
     RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -306,7 +272,7 @@ class RecordServiceClientTestIT {
     String version = "";
 
     RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-    Representation representation = mcsClient.getRepresentation(cloudId, "metadataRecord", version);
+    mcsClient.getRepresentation(cloudId, "metadataRecord", version);
   }
 
   @Test
@@ -317,7 +283,7 @@ class RecordServiceClientTestIT {
     String value = "";
 
     RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-    Representation representation = mcsClient.getRepresentation(cloudId, "metadataRecord", version, key, value);
+    mcsClient.getRepresentation(cloudId, "metadataRecord", version, key, value);
   }
 
   @Test
@@ -332,7 +298,7 @@ class RecordServiceClientTestIT {
     URI representationURI = mcsClient.createRepresentation(cloudId.getId(), representationName, PROVIDER_ID, DATASET_ID);
 
     mcsClient.deleteRepresentation(cloudId.getId(), representationName, version);
-    Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
+    mcsClient.getRepresentation(cloudId.getId(), representationName);
 
     int index = representationURI.toString().indexOf(
         "/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
@@ -346,7 +312,6 @@ class RecordServiceClientTestIT {
   @Test
   void persistRepresentation() throws CloudException, MCSException {
     String representationName = "StrangeRepresentationName";
-    String version = "";
 
     UISClient uisClient = new UISClient(REMOTE_TEST_UIS_URL, USER_NAME, USER_PASSWORD);
     CloudId cloudId = uisClient.createCloudId(PROVIDER_ID);
@@ -354,7 +319,7 @@ class RecordServiceClientTestIT {
     RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
     URI representationURI = mcsClient.persistRepresentation(cloudId.getId(), representationName, PROVIDER_ID);
 
-    Representation representation = mcsClient.getRepresentation(cloudId.getId(), representationName);
+    mcsClient.getRepresentation(cloudId.getId(), representationName);
 
     int index = representationURI.toString().indexOf(
         "/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");

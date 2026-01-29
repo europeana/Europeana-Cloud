@@ -74,11 +74,8 @@ class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
    */
   @Test
   void testGetLocalIdsByCloudId() {
-    assertThrows(CloudIdDoesNotExistException.class, () -> {
-      service.getLocalIdsByCloudId(IdGenerator.encodeWithSha256AndBase32("/test11/test11"));
-      CloudId gId = service.createCloudId("test11", "test11");
-      service.getLocalIdsByCloudId(gId.getId());
-    });
+    assertThrows(CloudIdDoesNotExistException.class, () -> service.getLocalIdsByCloudId(IdGenerator.encodeWithSha256AndBase32("/test11/test11")));
+    assertThrows(ProviderDoesNotExistException.class, () -> service.createCloudId("test11", "test11"));
   }
 
   /**

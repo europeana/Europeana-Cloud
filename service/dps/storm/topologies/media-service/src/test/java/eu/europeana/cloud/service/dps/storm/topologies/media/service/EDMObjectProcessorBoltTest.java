@@ -64,6 +64,7 @@ class EDMObjectProcessorBoltTest {
     edmObjectProcessorBolt.prepare();
     mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
     rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
+    // For some reason test crashes without this even though we use MockitoExtension?
     MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
   }
 

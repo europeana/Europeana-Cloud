@@ -11,7 +11,9 @@ import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class EDMEnrichmentBoltTest {
 
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
@@ -46,7 +49,6 @@ class EDMEnrichmentBoltTest {
 
   @BeforeEach
   void initTuple() {
-    MockitoAnnotations.initMocks(this);
     edmEnrichmentBolt.cache.clear();
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setFileUrl(FILE_URL);

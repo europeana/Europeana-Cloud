@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.test.WiremockHelper;
 import org.glassfish.jersey.uri.UriComponent;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -51,9 +50,6 @@ class DPSClientTest {
 
   private DpsClient dpsClient;
 
-  @BeforeEach
-  void init() {
-  }
 
   @Test
   final void shouldPermitAndSubmitTask()

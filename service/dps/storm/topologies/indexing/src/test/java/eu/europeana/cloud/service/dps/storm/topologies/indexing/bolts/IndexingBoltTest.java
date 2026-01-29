@@ -26,7 +26,11 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.net.MalformedURLException;
 import java.util.*;
@@ -36,6 +40,8 @@ import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class IndexingBoltTest {
 
   public static final String FILE_URL = "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b";
@@ -74,7 +80,6 @@ class IndexingBoltTest {
 
   @BeforeEach
   void init() {
-    MockitoAnnotations.initMocks(this);
     when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
   }
 
@@ -102,19 +107,19 @@ class IndexingBoltTest {
     Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .latestHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .previewHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .previewHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .publishedHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(LATEST_HARVEST_DATE)
+            .latestHarvestMd5(LATEST_HARVEST_MD5)
+            .previewHarvestDate(LATEST_HARVEST_DATE)
+            .previewHarvestMd5(LATEST_HARVEST_MD5)
+            .publishedHarvestDate(EARLIER_HARVEST_DATE)
+            .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(7, parameters.size());
   }
@@ -140,19 +145,19 @@ class IndexingBoltTest {
     Mockito.verify(outputCollector).emit(any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .latestHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .previewHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .previewHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .publishedHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(LATEST_HARVEST_DATE)
+            .latestHarvestMd5(LATEST_HARVEST_MD5)
+            .previewHarvestDate(LATEST_HARVEST_DATE)
+            .previewHarvestMd5(LATEST_HARVEST_MD5)
+            .publishedHarvestDate(EARLIER_HARVEST_DATE)
+            .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(7, parameters.size());
   }
@@ -180,19 +185,19 @@ class IndexingBoltTest {
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .latestHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .previewHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .previewHarvestMd5(LATEST_HARVEST_MD5)
-                                                                             .publishedHarvestDate(LATEST_HARVEST_DATE)
-                                                                             .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(LATEST_HARVEST_DATE)
+            .latestHarvestMd5(LATEST_HARVEST_MD5)
+            .previewHarvestDate(LATEST_HARVEST_DATE)
+            .previewHarvestMd5(LATEST_HARVEST_MD5)
+            .publishedHarvestDate(LATEST_HARVEST_DATE)
+            .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(7, parameters.size());
   }
@@ -220,8 +225,8 @@ class IndexingBoltTest {
     Mockito.verify(outputCollector).emit(any(String.class), any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
             .latestHarvestDate(LATEST_HARVEST_DATE)
             .latestHarvestMd5(LATEST_HARVEST_MD5)
             .previewHarvestDate(LATEST_HARVEST_DATE)
@@ -259,20 +264,20 @@ class IndexingBoltTest {
     verify(indexer, never()).index(Mockito.anyString(), Mockito.any(), any());
     verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .latestHarvestMd5(EARLIER_HARVEST_MD5)
-                                                                             .previewHarvestDate(null)
-                                                                             .previewHarvestMd5(null)
-                                                                             .publishedHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
-                                                                             .build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(EARLIER_HARVEST_DATE)
+            .latestHarvestMd5(EARLIER_HARVEST_MD5)
+            .previewHarvestDate(null)
+            .previewHarvestMd5(null)
+            .publishedHarvestDate(EARLIER_HARVEST_DATE)
+            .publishedHarvestMd5(EARLIER_HARVEST_MD5)
+            .build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(8, parameters.size());
   }
@@ -300,19 +305,19 @@ class IndexingBoltTest {
     verify(indexer, never()).index(Mockito.anyString(), Mockito.any(), any());
     verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .latestHarvestMd5(EARLIER_HARVEST_MD5)
-                                                                             .previewHarvestDate(EARLIER_HARVEST_DATE)
-                                                                             .previewHarvestMd5(EARLIER_HARVEST_MD5)
-                                                                             .publishedHarvestDate(null).publishedHarvestMd5(null)
-                                                                             .build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(EARLIER_HARVEST_DATE)
+            .latestHarvestMd5(EARLIER_HARVEST_MD5)
+            .previewHarvestDate(EARLIER_HARVEST_DATE)
+            .previewHarvestMd5(EARLIER_HARVEST_MD5)
+            .publishedHarvestDate(null).publishedHarvestMd5(null)
+            .build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(8, parameters.size());
   }
@@ -335,15 +340,15 @@ class IndexingBoltTest {
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Mockito.verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     Mockito.verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                             .metisDatasetId(METIS_DATASET_ID)
-                                                                             .recordLocalId(LOCAL_ID)
-                                                                             .latestHarvestDate(HARVEST_DATE)
-                                                                             .publishedHarvestDate(HARVEST_DATE).build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(LOCAL_ID)
+            .latestHarvestDate(HARVEST_DATE)
+            .publishedHarvestDate(HARVEST_DATE).build());
     Values capturedValues = captor.getValue();
     assertEquals(10, capturedValues.size());
     assertEquals(
-        "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-        capturedValues.get(2));
+            "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
+            capturedValues.get(2));
     Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
     assertEquals(7, parameters.size());
   }
@@ -459,21 +464,21 @@ class IndexingBoltTest {
   private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
     //
     return new StormTaskTuple(
-        1,
-        "taskName",
-        FILE_URL,
-        new byte[]{'a', 'b', 'c'},
-        new HashMap<>() {
-          {
-            put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
-            put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
-            put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
-            put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-            put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-            put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
-          }
-        }, new Revision());
+            1,
+            "taskName",
+            FILE_URL,
+            new byte[]{'a', 'b', 'c'},
+            new HashMap<>() {
+              {
+                put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
+                put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
+                put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
+                put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+                put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+                put(PluginParameterKeys.OUTPUT_DATA_SETS,
+                        "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
+              }
+            }, new Revision());
   }
 
   private void mockIndexer(Class<? extends Throwable> throwingExceptionClass) throws IndexingException {

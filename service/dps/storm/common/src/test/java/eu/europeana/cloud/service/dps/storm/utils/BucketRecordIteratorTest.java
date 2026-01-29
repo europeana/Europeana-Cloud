@@ -5,6 +5,8 @@ import com.google.common.collect.Streams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -68,82 +70,41 @@ class BucketRecordIteratorTest {
     try {
       iterator.next();
     } catch (NoSuchElementException e) {
-      //this is expected situation
+        //this is expected situation
     }
 
-    verify(queryMethod).apply(0);
-    verify(queryMethod).apply(1);
-    verify(queryMethod).apply(2);
-    verify(queryMethod).apply(3);
+      verify(queryMethod).apply(0);
+      verify(queryMethod).apply(1);
+      verify(queryMethod).apply(2);
+      verify(queryMethod).apply(3);
   }
 
-  @Test
-  void shouldReturnElementOfFirstBucket() {
-    when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A).iterator());
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3})
+    void shouldReturnElementOfEachBucket(int bucket) {
+        when(queryMethod.apply(bucket)).thenReturn(Arrays.asList(ROW_A).iterator());
 
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
+        assertTrue(iterator.hasNext());
+        assertEquals(ROW_A, iterator.next());
+        assertFalse(iterator.hasNext());
+    }
 
-  @Test
-  void shouldReturnElementOfMiddleBucket() {
-    when(queryMethod.apply(1)).thenReturn(Arrays.asList(ROW_A).iterator());
-
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2, 3})
+    void shouldReturnAllElementsOfEachBucket(int bucket) {
+        when(queryMethod.apply(bucket)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
 
 
-  @Test
-  void shouldReturnElementOfLastBucket() {
-    when(queryMethod.apply(3)).thenReturn(Arrays.asList(ROW_A).iterator());
-
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
-
-
-  @Test
-  void shouldReturnAllElementsOfFirstBucket() {
-    when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
-
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertTrue(iterator.hasNext());
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_B, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
-
-  @Test
-  void shouldReturnAllElementsOfMiddleBucket() {
-    when(queryMethod.apply(2)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
-
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertTrue(iterator.hasNext());
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_B, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
-
-  @Test
-  void shouldReturnAllElementsOfLastBucket() {
-    when(queryMethod.apply(3)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
-
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_A, iterator.next());
-    assertTrue(iterator.hasNext());
-    assertTrue(iterator.hasNext());
-    assertEquals(ROW_B, iterator.next());
-    assertFalse(iterator.hasNext());
-  }
+        assertTrue(iterator.hasNext());
+        assertEquals(ROW_A, iterator.next());
+        assertTrue(iterator.hasNext());
+        assertTrue(iterator.hasNext());
+        assertEquals(ROW_B, iterator.next());
+        assertFalse(iterator.hasNext());
+    }
 
 
-  @Test
+    @Test
   void shouldReturnAllElementsOfEveryBucket() {
     when(queryMethod.apply(0)).thenReturn(Arrays.asList(ROW_A, ROW_B).iterator());
     when(queryMethod.apply(1)).thenReturn(Arrays.asList(ROW_C).iterator());

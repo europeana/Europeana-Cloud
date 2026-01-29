@@ -235,12 +235,12 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     makeUISFailure();
     makeUISProviderFailure();
     assertThrows(ProviderNotExistsException.class,
-            () -> {
-              cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-                      DATA_SET_DESCRIPTION);
-              cassandraRecordService.createRepresentation("globalId", "dc",
-                      "not-existing", DATA_SET_NAME);
-            });
+            () ->
+                    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
+                            DATA_SET_DESCRIPTION));
+    assertThrows(DataSetNotExistsException.class,
+            () -> cassandraRecordService.createRepresentation("globalId", "dc",
+                    "not-existing", DATA_SET_NAME));
   }
 
   @Test

@@ -35,7 +35,7 @@ class RecordsResourceTest extends AbstractResourceTest {
   private RecordService recordService;
 
   @BeforeEach
-  public void mockUp() {
+  void mockUp() {
     //        uisClient = applicationContext.getBean(null)
     recordService = applicationContext.getBean(RecordService.class);
     Mockito.reset(recordService);

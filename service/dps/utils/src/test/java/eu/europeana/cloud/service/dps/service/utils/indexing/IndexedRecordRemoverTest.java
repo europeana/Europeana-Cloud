@@ -7,14 +7,16 @@ import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class IndexedRecordRemoverTest {
 
   public static final long TASK_ID = 10L;
@@ -36,7 +38,6 @@ class IndexedRecordRemoverTest {
 
   @BeforeEach
   void init() {
-    MockitoAnnotations.initMocks(this);
     when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
   }
 

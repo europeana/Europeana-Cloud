@@ -4,9 +4,13 @@ import com.google.common.base.Stopwatch;
 import org.apache.storm.policy.IWaitStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
@@ -25,13 +29,23 @@ class FastCancelingSpoutWaitStrategyTest {
     strategy.prepare(config, IWaitStrategy.WaitSituation.SPOUT_WAIT);
   }
 
-  @Test
-  void shouldSleepAfterNIteration() throws InterruptedException {
+  @ParameterizedTest
+  @MethodSource("sleepTestArguments")
+  void shouldSleepAfterNIteration(int repeatCount, long expectedSleep) throws InterruptedException {
     Stopwatch watch = Stopwatch.createStarted();
 
-    long elapsed = runWaitStrategyNTimes(watch, 3);
+    long elapsed = runWaitStrategyNTimes(watch, repeatCount);
 
-    assertEquals(200L, elapsed, TOLERANCE);
+    assertEquals(expectedSleep, elapsed, TOLERANCE);
+  }
+
+
+  static Stream<Arguments> sleepTestArguments() {
+    return Stream.of(
+            Arguments.of(3, 200L),
+            Arguments.of(6, 400L),
+            Arguments.of(2, 0L)
+    );
   }
 
   @Test
@@ -52,9 +66,9 @@ class FastCancelingSpoutWaitStrategyTest {
     assertEquals(0L, elapsed, TOLERANCE);
   }
 
-  private long runWaitStrategyNTimes(Stopwatch watch, int reapeatCount) throws InterruptedException {
+  private long runWaitStrategyNTimes(Stopwatch watch, int repeatCount) throws InterruptedException {
     int idleCount = 0;
-    for (int i = 0; i < reapeatCount; i++) {
+    for (int i = 0; i < repeatCount; i++) {
       idleCount = strategy.idle(idleCount);
     }
     return watch.elapsed(TimeUnit.MILLISECONDS);

@@ -12,7 +12,11 @@ import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -31,6 +35,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class XsltBoltTest {
 
   private static final String EXAMPLE_METIS_DATASET_ID = "100";
@@ -46,7 +52,6 @@ class XsltBoltTest {
 
   @BeforeEach
   void init() {
-    MockitoAnnotations.initMocks(this);
     xsltBolt.prepare();
   }
 
@@ -123,7 +128,7 @@ class XsltBoltTest {
   private byte[] readFile(String fileName) throws IOException {
     Optional<URL> optResource = Optional.ofNullable(getClass().getResource(fileName));
     String myXml = IOUtils.toString(optResource.orElseThrow(FileNotFoundException::new),
-        Charsets.UTF_8);
+            Charsets.UTF_8);
     byte[] bytes = myXml.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(bytes);
     return IOUtils.toByteArray(contentStream);

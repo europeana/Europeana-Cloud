@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(value = {"classpath:/default-context.xml"})
-public class CassandraDataProviderServiceTest extends CassandraTestBase {
+class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
   @Autowired
@@ -36,9 +36,6 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
   /**
    * Create and get a provider
-   *
-   * @throws ProviderAlreadyExistsException
-   * @throws ProviderDoesNotExistException
    */
   @Test
   void shouldCreateAndGetProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException {

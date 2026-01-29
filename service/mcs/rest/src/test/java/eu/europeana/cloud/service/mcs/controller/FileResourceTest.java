@@ -205,10 +205,6 @@ class FileResourceTest extends CassandraBasedAbstractResourceTest {
             .andExpect(status().isRequestedRangeNotSatisfiable());
   }
 
-  @Test
-  @Disabled(value = "TODO: implement")
-  void shouldReturnErrorOnHashMismatch() {
-  }
 
   @Test
   void shouldOverrideFileOnRepeatedPut() throws Exception {

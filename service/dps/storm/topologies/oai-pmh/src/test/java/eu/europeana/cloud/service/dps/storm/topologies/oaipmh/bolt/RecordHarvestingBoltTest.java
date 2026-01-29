@@ -12,9 +12,13 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +31,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link RecordHarvestingBolt}
  */
-
+@ExtendWith(MockitoExtension.class)
 class RecordHarvestingBoltTest {
 
   @Mock
@@ -46,13 +50,9 @@ class RecordHarvestingBoltTest {
     return RecordHarvestingBoltTest.class.getResourceAsStream(name);
   }
 
-    @BeforeEach
-  public void init() {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
-  public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
+  void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -70,7 +70,7 @@ class RecordHarvestingBoltTest {
   }
 
   @Test
-  public void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
+  void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
 
