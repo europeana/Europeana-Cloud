@@ -27,8 +27,8 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOUR
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

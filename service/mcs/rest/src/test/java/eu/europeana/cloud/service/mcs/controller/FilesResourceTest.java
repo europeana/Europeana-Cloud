@@ -30,7 +30,7 @@ import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

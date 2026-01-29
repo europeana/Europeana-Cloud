@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -99,10 +100,10 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   private MockHttpServletRequest request;
 
   @BeforeEach
-  public void mockUp() throws Exception {
+  void mockUp() throws Exception {
     XSLT_TASK = new DpsTask("xsltTask");
     XSLT_TASK.addDataEntry(FILE_URLS, List.of(
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
 
@@ -145,7 +146,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
       Task Submission tests
    */
   @Test
-  public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() {
+  void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() {
 
     DpsTask t = new DpsTask("xsltTask");
     String topology = "xsltTopology";
@@ -154,8 +155,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo()
-      throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+  void shouldBeAbleToSubmitTaskToTopologyThatHasPermissionsTo()
+          throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     login(ADMIN, ADMIN_PASSWORD);
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true);
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, XSLT_TOPOLOGY_NAME);
@@ -163,7 +164,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     DpsTask task = new DpsTask();
     task.addDataEntry(FILE_URLS, List.of(
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
 
@@ -176,12 +177,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToSubmitTaskToXsltTopology()
-      throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+  void shouldBeAbleToSubmitTaskToXsltTopology()
+          throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
     task.addDataEntry(FILE_URLS, List.of(
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
@@ -198,8 +199,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingFileUrls()
-      throws AccessDeniedOrTopologyDoesNotExistException, IOException {
+  void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingFileUrls()
+          throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
@@ -219,12 +220,12 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingXsltUrl()
-      throws AccessDeniedOrTopologyDoesNotExistException, IOException {
+  void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingXsltUrl()
+          throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
     task.addDataEntry(FILE_URLS, List.of(
-        "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;
@@ -248,14 +249,14 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo()
+  void shouldNotBeAbleToSubmitTaskToTopologyThatHasNotPermissionsTo()
           throws AccessDeniedOrTopologyDoesNotExistException {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
     logoutEveryone();
     login(RONALDO, RONALD_PASSWORD);
     DpsTask sampleTask = new DpsTask();
-    Assertions.assertThrows(AuthenticationCredentialsNotFoundException.class,
+    Assertions.assertThrows(AuthorizationDeniedException.class,
             () -> topologyTasksResource.submitTask(request, sampleTask, SAMPLE_TOPOLOGY_NAME));
 
   }
@@ -263,8 +264,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   // -- progress report tests --
 
   @Test
-  public void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner()
-      throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
+  void shouldBeAbleToCheckProgressIfHeIsTheTaskOwner()
+          throws AccessDeniedOrObjectDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, TaskSubmissionException, IOException, ExecutionException, InterruptedException {
 
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true);
     login(ADMIN, ADMIN_PASSWORD);
@@ -276,7 +277,7 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() {
+  void shouldThrowExceptionWhenNonAuthenticatedUserTriesToCheckProgress() {
 
     Assertions.assertThrows(AuthenticationCredentialsNotFoundException.class,
             () -> topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, XSLT_TASK.getTaskId()));
@@ -284,34 +285,36 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 
   @Test
-  public void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws
-          AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+  void vanPersieShouldNotBeAbleCheckProgressOfRonaldosTask() throws
+          AccessDeniedOrTopologyDoesNotExistException {
 
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
 
     login(RONALDO, RONALD_PASSWORD);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
-    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    Assertions.assertThrows(AuthenticationCredentialsNotFoundException.class,
-            () -> topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, XSLT_TASK.getTaskId()));
+    Assertions.assertThrows(AuthorizationDeniedException.class,
+            () -> {
+              topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+              login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+              topologyTasksResource.getTaskProgress(SAMPLE_TOPOLOGY_NAME, XSLT_TASK.getTaskId());
+            });
   }
 
   @Test
-  public void vanPersieShouldNotBeAbleGrantPermissionsToNotDefinedTopology() {
+  void vanPersieShouldNotBeAbleGrantPermissionsToNotDefinedTopology() {
     final String FAIL_TOPOLOGY_NAME = "failTopology";
     //given
     login(ADMIN, ADMIN_PASSWORD);
 
     //when
-    Assertions.assertThrows(AuthenticationCredentialsNotFoundException.class,
+    Assertions.assertThrows(AccessDeniedOrTopologyDoesNotExistException.class,
             () -> topologiesResource.grantPermissionsToTopology(RONALDO, FAIL_TOPOLOGY_NAME));
     //then - intentionally empty
   }
 
   @Test
-  public void vanPersieShouldNotBeAbleSubmitTaskToNotDefinedTopology()
-      throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+  void vanPersieShouldNotBeAbleSubmitTaskToNotDefinedTopology()
+          throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //given
 
     reset(topologyManager);
@@ -330,9 +333,9 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws
-      AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException,
-      DpsTaskValidationException, IOException {
+  void vanPersieShouldNotBeAbleGetTaskProgressToNotDefinedTopology() throws
+          AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException,
+          DpsTaskValidationException, IOException {
     //given
 
     reset(topologyManager);
@@ -352,8 +355,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
 
 
   @Test
-  public void UserShouldNotBeAbleKillTaskToNotDefinedTopology()
-      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, IOException {
+  void UserShouldNotBeAbleKillTaskToNotDefinedTopology()
+          throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, IOException {
     //given
     reset(topologyManager);
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, false);
@@ -371,8 +374,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void UserShouldNotBeAbleKillTaskHeDidNotSend()
-      throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, IOException {
+  void UserShouldNotBeAbleKillTaskHeDidNotSend()
+          throws AccessDeniedOrTopologyDoesNotExistException, AccessDeniedOrObjectDoesNotExistException, DpsTaskValidationException, IOException {
     //given
     reset(topologyManager);
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);
@@ -391,8 +394,8 @@ public class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void UserShouldBeAbleKillTaskHeSent()
-      throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+  void UserShouldBeAbleKillTaskHeSent()
+          throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //given
     reset(topologyManager);
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);

@@ -97,7 +97,7 @@ public class DataProviderAATest extends AbstractSecurityTest {
           ProviderAlreadyExistsException,
           ProviderDoesNotExistException, URISyntaxException,
           DatabaseConnectionException, CloudIdDoesNotExistException,
-          IdHasBeenMappedException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
+          RecordDatasetEmptyException, CloudIdAlreadyExistException {
 
     DataProvider dp = new DataProvider();
     dp.setId("");

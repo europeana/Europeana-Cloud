@@ -118,15 +118,17 @@ public class RecordServiceClientTest {
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    // check that there are not representations for this record
-    // we only check one representationName, because there is no method to
-    // just get all representations
-    List<Representation> representations = instance.getRepresentations(
-            cloudId, representationName);
-    assertEquals(0, representations.size());
 
     // delete record
-    assertThrows(RepresentationNotExistsException.class, () -> instance.deleteRecord(cloudId));
+    assertThrows(RepresentationNotExistsException.class, () -> {
+      // check that there are not representations for this record
+      // we only check one representationName, because there is no method to
+      // just get all representations
+      List<Representation> representations = instance.getRepresentations(
+              cloudId, representationName);
+      assertEquals(0, representations.size());
+      instance.deleteRecord(cloudId);
+    });
   }
 
   @Test
@@ -686,18 +688,20 @@ public class RecordServiceClientTest {
             405,
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
 
-    URI persistedReprURI = instance.persistRepresentation(CLOUD_ID,
-            REPRESENTATION_NAME, VERSION);
-    Representation persistedRepr = TestUtils.obtainRepresentationFromURI(
-            instance, persistedReprURI);
-
-    assertTrue(persistedRepr.isPersistent());
-    assertNotNull(persistedRepr);
-    assertEquals(CLOUD_ID, persistedRepr.getCloudId());
-    assertEquals(REPRESENTATION_NAME, persistedRepr.getRepresentationName());
 
     assertThrows(CannotModifyPersistentRepresentationException.class,
-            () -> instance.deleteRepresentation(CLOUD_ID, REPRESENTATION_NAME, persistedRepr.getVersion()));
+            () -> {
+              URI persistedReprURI = instance.persistRepresentation(CLOUD_ID,
+                      REPRESENTATION_NAME, VERSION);
+              Representation persistedRepr = TestUtils.obtainRepresentationFromURI(
+                      instance, persistedReprURI);
+
+              assertTrue(persistedRepr.isPersistent());
+              assertNotNull(persistedRepr);
+              assertEquals(CLOUD_ID, persistedRepr.getCloudId());
+              assertEquals(REPRESENTATION_NAME, persistedRepr.getRepresentationName());
+              instance.deleteRepresentation(CLOUD_ID, REPRESENTATION_NAME, persistedRepr.getVersion());
+            });
   }
 
   @Test

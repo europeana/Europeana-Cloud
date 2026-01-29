@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.uis.security;
 
+import eu.europeana.cloud.service.uis.config.AuthenticationTestContext;
+import eu.europeana.cloud.service.uis.config.AuthorizationTestContext;
+import eu.europeana.cloud.service.uis.config.SecurityTestContext;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,10 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 
 
-@ContextConfiguration(locations = {
-        "classpath:uis-security-business-context-test.xml",
-        "classpath:authentication-context-test.xml", // authentication uses a static InMemory list of usernames, passwords
-        "classpath:authorization-context-test.xml" // authorization uses Embedded cassandra
+@ContextConfiguration(classes = {
+        AuthenticationTestContext.class,
+        AuthorizationTestContext.class,
+        SecurityTestContext.class
 })
 public abstract class AbstractSecurityTest extends CassandraTestBase {
 

@@ -21,7 +21,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 
 public class RepresentationAATest extends AbstractSecurityTest {

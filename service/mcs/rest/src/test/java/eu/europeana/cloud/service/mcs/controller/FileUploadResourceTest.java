@@ -29,8 +29,8 @@ import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -64,18 +64,18 @@ public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
       dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
 
-    Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(Mockito.any());
-    Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(Mockito.any());
+      Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasReadPermissionFor(any());
+      Mockito.doReturn(true).when(dataSetPermissionsVerifier).hasDeletePermissionFor(any());
 
-    Representation rep = new Representation();
-    rep.setCloudId("cloudId");
-    rep.setRepresentationName("representationName");
-    rep.setVersion("versionId");
-    file = new File();
-    file.setFileName("fileName");
-    file.setMimeType("application/octet-stream");
+      Representation rep = new Representation();
+      rep.setCloudId("cloudId");
+      rep.setRepresentationName("representationName");
+      rep.setVersion("versionId");
+      file = new File();
+      file.setFileName("fileName");
+      file.setMimeType("application/octet-stream");
 
-    fileWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/files";
+      fileWebTarget = "/records/" + rep.getCloudId() + "/representations/" + rep.getRepresentationName() + "/files";
   }
 
   @Test
