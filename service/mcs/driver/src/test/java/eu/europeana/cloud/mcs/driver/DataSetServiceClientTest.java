@@ -153,7 +153,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForGetDataSetsChunk() throws MCSException {
+  void shouldThrowDriverExceptionForGetDataSetsChunk() {
     String providerId = "Provider001";
 
     //
@@ -169,8 +169,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForGetDataSets()
-          throws MCSException {
+  void shouldThrowDriverExceptionForGetDataSets() {
     String providerId = "Provider001";
 
     //
@@ -210,8 +209,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDataSetAlreadyExists()
-          throws MCSException {
+  void shouldThrowDataSetAlreadyExists() {
     String providerId = "Provider001";
     String dataSetId = "dataset000002";
     String description = "description";
@@ -232,7 +230,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowProviderNotExists() throws MCSException {
+  void shouldThrowProviderNotExists() {
     String providerId = "notFoundProviderId";
     String dataSetId = "dataSetId";
     String description = "description";
@@ -253,7 +251,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForCreateDataSet() throws MCSException {
+  void shouldThrowDriverExceptionForCreateDataSet() {
     String providerId = "providerId";
     String dataSetId = "dataSetId";
     String description = "description";
@@ -368,8 +366,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDataSetNotExistsForRepresentationsChunk()
-          throws MCSException {
+  void shouldThrowDataSetNotExistsForRepresentationsChunk() {
     String providerId = "Provider001";
     String dataSetId = "dataset000042";
     String startFrom = "G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI";
@@ -422,8 +419,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDataSetNotExistsForRepresentationsAll()
-          throws MCSException {
+  void shouldThrowDataSetNotExistsForRepresentationsAll() {
     String providerId = "Provider001";
     String dataSetId = "dataset000042";
 
@@ -443,7 +439,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForGetRepresentationsChunk() throws MCSException {
+  void shouldThrowDriverExceptionForGetRepresentationsChunk() {
     String providerId = "Provider001";
     String dataSetId = "dataset000002";
 
@@ -463,7 +459,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForGetRepresentations() throws MCSException {
+  void shouldThrowDriverExceptionForGetRepresentations() {
     String providerId = "Provider001";
     String dataSetId = "dataset000002";
 
@@ -608,8 +604,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDataSetNotExistsForUpdateDescription()
-          throws MCSException {
+  void shouldThrowDataSetNotExistsForUpdateDescription() {
     String providerId = "Provider002";
     String dataSetId = "noSuchDataset";
     String description = "TEST4";
@@ -632,8 +627,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForUpdateDescription()
-          throws MCSException {
+  void shouldThrowDriverExceptionForUpdateDescription() {
     String providerId = "Provider002";
     String dataSetId = "dataset000001";
     String description = "TEST3";
@@ -693,7 +687,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDataSetNotExistsForDeleteDataSet() throws MCSException {
+  void shouldThrowDataSetNotExistsForDeleteDataSet() {
     String providerId = "Provider002";
     String dataSetId = "dataset000033";
     DataSet dataSet = new DataSet();
@@ -717,7 +711,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldThrowDriverExceptionForDeleteDataSet() throws MCSException {
+  void shouldThrowDriverExceptionForDeleteDataSet() {
     String providerId = "Provider002";
     String dataSetId = "dataset000033";
 
@@ -815,7 +809,6 @@ class DataSetServiceClientTest {
 
     DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
     assertNotNull(iterator);
-    assertThrows(NoSuchElementException.class, () -> {
       for (int i = 0; i < numberOfDataSets; i++) {
         //catch exception here, because it is not when we want it to be thrown
         try {
@@ -825,8 +818,7 @@ class DataSetServiceClientTest {
         }
       }
 
-      iterator.next();
-    });
+    assertThrows(NoSuchElementException.class, iterator::next);
   }
 
   @Test
@@ -843,10 +835,8 @@ class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    assertThrows(DriverException.class, () -> {
-      DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
-      iterator.next();
-    });
+    DataSetIterator iterator = instance.getDataSetIteratorForProvider(providerId);
+    assertThrows(DriverException.class, iterator::next);
   }
 
   //representation iterator
@@ -943,8 +933,7 @@ class DataSetServiceClientTest {
   }
 
   @Test
-  void shouldProvideRepresentationIteratorThatThrowsNoSuchElementException()
-          throws MCSException {
+  void shouldProvideRepresentationIteratorThatThrowsNoSuchElementException() {
     String providerId = "Provider001";
     String dataSetId = "dataset3";
     int numberOfRepresentations = 200;
@@ -967,7 +956,6 @@ class DataSetServiceClientTest {
     //
 
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    assertThrows(NoSuchElementException.class, () -> {
       RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
       assertNotNull(iterator);
       for (int i = 0; i < numberOfRepresentations; i++) {
@@ -978,14 +966,11 @@ class DataSetServiceClientTest {
           assert false : "NoSuchElementException thrown in unexpected place.";
         }
       }
-
-      iterator.next();
-    });
+    assertThrows(NoSuchElementException.class, iterator::next);
   }
 
   @Test
-  void shouldProvideRepresentationIteratorThatThrowsDriverException()
-          throws MCSException {
+  void shouldProvideRepresentationIteratorThatThrowsDriverException() {
     String providerId = "Provider001";
     String dataSetId = "dataset3";
 
@@ -998,12 +983,10 @@ class DataSetServiceClientTest {
                             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>All host(s) tried for query failed (tried: localhost/127.0.0.1 (com.datastax.driver.core.ConnectionException: [localhost/127.0.0.1] Write attempt on defunct connection))</details><errorCode>OTHER</errorCode></errorInfo>")));
     //
 
-    assertThrows(DriverException.class, () -> {
       DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
       RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
-      iterator.next();
-    });
+    assertThrows(DriverException.class, iterator::next);
   }
 
   @Test

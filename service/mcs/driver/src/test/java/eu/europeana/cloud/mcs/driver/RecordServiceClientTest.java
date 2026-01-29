@@ -89,7 +89,6 @@ class RecordServiceClientTest {
   void shouldDeleteRecord() throws MCSException {
 
     String cloudId = "231PJ0QGW6N";
-    String representationName = "schema77";
     RecordServiceClient instance = new RecordServiceClient(baseUrl, username, password);
 
     //
@@ -194,12 +193,8 @@ class RecordServiceClientTest {
   @Test
   void shouldRetrieveLastPersistentRepresentationForRepresentationName()
           throws MCSException {
-    // String cloudId = "J93T5R6615H";
-    // String representationName = "schema1";
-    // //the last persisent representation
-    // String version = "acf7a040-9587-11e3-8f2f-1c6f653f6012";
-    RecordServiceClient instance = new RecordServiceClient(baseUrl,
-            username, password);
+ RecordServiceClient instance = new RecordServiceClient(baseUrl,
+         username, password);
 
     //
     new WiremockHelper(wireMockExtension).stubGet(
@@ -212,10 +207,6 @@ class RecordServiceClientTest {
             REPRESENTATION_NAME);
 
     assertNotNull(representation);
-    // assertEquals(cloudId, representation.getCloudId());
-    // assertEquals(representationName,
-    // representation.getRepresentationName());
-    // assertEquals(version, representation.getVersion());
     assertTrue(representation.isPersistent());
   }
 
@@ -678,7 +669,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  void shouldNotAllowToDeletePersistentRepresentation() throws MCSException {
+  void shouldNotAllowToDeletePersistentRepresentation() {
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
             username, password);
 
@@ -824,8 +815,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  void shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName()
-          throws MCSException {
+  void shouldThrowRepresentationNotExistsExceptionForPersistRepresentationWhenNoRepresentationName() {
     String cloudId = "J93T5R6615H";
     String representationName = "noSuchSchema";
     String version = "fece3cb0-a5fb-11e3-b4a7-50e549e85271";

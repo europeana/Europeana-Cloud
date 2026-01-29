@@ -162,7 +162,7 @@ class MCSTaskSubmitterTest {
                     });
             MockedConstruction<FileServiceClient> ignored2 = Mockito.mockConstruction(FileServiceClient.class,
                     (mock, context) -> {
-                      when(mock.getFileUri(eq(CLOUD_ID1), eq(REPRESENTATION_NAME), eq(VERSION_1), eq(FILE_NAME_1)))
+                      when(mock.getFileUri(CLOUD_ID1, REPRESENTATION_NAME, VERSION_1, FILE_NAME_1))
                               .thenReturn(FILE_URI_1);
                     });
             MockedConstruction<RecordServiceClient> ignored3 = Mockito.mockConstruction(RecordServiceClient.class,
@@ -252,7 +252,7 @@ class MCSTaskSubmitterTest {
   void executeMcsBasedTask_oneDatasetWithOneFile() throws Exception {
     withClientMocks(
             dsClient -> when(dsClient.getRepresentationIterator(
-                    eq(DATASET_PROVIDER_1), eq(DATASET_ID_1)))
+                    DATASET_PROVIDER_1, DATASET_ID_1))
                     .thenReturn(representationIterator),
 
             null,
@@ -275,7 +275,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_oneDatasetWithThreeFiles() throws Exception {
     withClientMocks(
-            dsClient -> when(dsClient.getRepresentationIterator(eq(DATASET_PROVIDER_1), eq(DATASET_ID_1))).thenReturn(
+            dsClient -> when(dsClient.getRepresentationIterator(DATASET_PROVIDER_1, DATASET_ID_1)).thenReturn(
                     representationIterator),
 
             null,
@@ -306,9 +306,9 @@ class MCSTaskSubmitterTest {
             )).thenReturn(cloudTagsResponseResultSlice),
 
             rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    eq(CLOUD_ID1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                    CLOUD_ID1,
+                    REPRESENTATION_NAME,
+                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
 
             () -> {
@@ -343,14 +343,14 @@ class MCSTaskSubmitterTest {
             )).thenReturn(cloudTagsResponseResultSlice),
             rsClient -> {
               when(rsClient.getRepresentationRawRevisions(
-                      eq(CLOUD_ID1),
-                      eq(REPRESENTATION_NAME),
-                      eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                      CLOUD_ID1,
+                      REPRESENTATION_NAME,
+                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
               )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
               when(rsClient.getRepresentationRawRevisions(
-                      eq(CLOUD_ID2),
-                      eq(REPRESENTATION_NAME),
-                      eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                      CLOUD_ID2,
+                      REPRESENTATION_NAME,
+                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
               )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
             },
             () -> {
@@ -376,14 +376,14 @@ class MCSTaskSubmitterTest {
             )).thenReturn(cloudTagsResponseResultSlice),
             rsClient -> {
               when(rsClient.getRepresentationRawRevisions(
-                      eq(CLOUD_ID1),
-                      eq(REPRESENTATION_NAME),
-                      eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                      CLOUD_ID1,
+                      REPRESENTATION_NAME,
+                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
               )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
               when(rsClient.getRepresentationRawRevisions(
-                      eq(CLOUD_ID2),
-                      eq(REPRESENTATION_NAME),
-                      eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                      CLOUD_ID2,
+                      REPRESENTATION_NAME,
+                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
               )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
             },
             () -> {
@@ -409,9 +409,9 @@ class MCSTaskSubmitterTest {
                     any(),
                     eq(null))).thenReturn(cloudTagsResponseResultSlice),
             rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    eq(CLOUD_ID1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                    CLOUD_ID1,
+                    REPRESENTATION_NAME,
+                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
               prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
@@ -434,9 +434,9 @@ class MCSTaskSubmitterTest {
                     any(),
                     eq(null))).thenReturn(cloudTagsResponseResultSlice),
             rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    eq(CLOUD_ID1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                    CLOUD_ID1,
+                    REPRESENTATION_NAME,
+                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
               prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
@@ -461,9 +461,9 @@ class MCSTaskSubmitterTest {
                     isNull()
             )).thenReturn(dataChunk),
             rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    eq(CLOUD_ID1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                    CLOUD_ID1,
+                    REPRESENTATION_NAME,
+                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
               task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
@@ -492,9 +492,9 @@ class MCSTaskSubmitterTest {
                     isNull()
             )).thenReturn(dataChunk),
             rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    eq(CLOUD_ID1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1)))
+                    CLOUD_ID1,
+                    REPRESENTATION_NAME,
+                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
               task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
@@ -505,7 +505,6 @@ class MCSTaskSubmitterTest {
 
               when(dataChunk.getResults()).thenReturn(dataList);
               dataList.add(new CloudTagsResponse(CLOUD_ID1, true));
-              ;
 
               submitter.execute(submitParameters);
 

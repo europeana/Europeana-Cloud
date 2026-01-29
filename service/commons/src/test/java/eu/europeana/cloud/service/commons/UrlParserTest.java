@@ -30,8 +30,6 @@ class UrlParserTest {
     private static final String URL_TO_DATASETS_LIST = "http://127.0.0.1:8080/mcs/data-providers/sampleDP/data-sets";
     private static final String URL_TO_DATASET = "http://127.0.0.1:8080/mcs/data-providers/sampleDP/data-sets/sampleDataSet";
 
-    private static final String TEST = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/permissions/all/users/pwoz";
-
     @Test
     void shouldThrowMalformedURLException() {
         assertThrows(MalformedURLException.class, () -> {
@@ -110,7 +108,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToRepresentation());
         assertFalse(urlParser.isUrlToRepresentations());
         assertFalse(urlParser.isUrlToRepresentationVersion());
-        //        assertFalse(urlParser.isUrlToRepresentationVersionFile());
         assertFalse(urlParser.isUrlToRepresentationVersionFiles());
         assertFalse(urlParser.isUrlToRepresentationVersions());
 
@@ -128,7 +125,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToRepresentations());
         assertFalse(urlParser.isUrlToRepresentationVersion());
         assertFalse(urlParser.isUrlToRepresentationVersionFile());
-        //        assertFalse(urlParser.isUrlToRepresentationVersionFiles());
         assertFalse(urlParser.isUrlToRepresentationVersions());
     }
 
@@ -145,7 +141,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToRepresentationVersion());
         assertFalse(urlParser.isUrlToRepresentationVersionFile());
         assertFalse(urlParser.isUrlToRepresentationVersionFiles());
-        //        assertFalse(urlParser.isUrlToRepresentationVersions());
     }
 
     @Test
@@ -158,7 +153,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToDatasetsList());
         assertFalse(urlParser.isUrlToRepresentation());
         assertFalse(urlParser.isUrlToRepresentations());
-        //        assertFalse(urlParser.isUrlToRepresentationVersion());
         assertFalse(urlParser.isUrlToRepresentationVersionFile());
         assertFalse(urlParser.isUrlToRepresentationVersionFiles());
         assertFalse(urlParser.isUrlToRepresentationVersions());
@@ -172,7 +166,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToCloudId());
         assertFalse(urlParser.isUrlToDataset());
         assertFalse(urlParser.isUrlToDatasetsList());
-        //        assertFalse(urlParser.isUrlToRepresentation());
         assertFalse(urlParser.isUrlToRepresentations());
         assertFalse(urlParser.isUrlToRepresentationVersion());
         assertFalse(urlParser.isUrlToRepresentationVersionFile());
@@ -189,7 +182,6 @@ class UrlParserTest {
         assertFalse(urlParser.isUrlToDataset());
         assertFalse(urlParser.isUrlToDatasetsList());
         assertFalse(urlParser.isUrlToRepresentation());
-        //        assertFalse(urlParser.isUrlToRepresentations());
         assertFalse(urlParser.isUrlToRepresentationVersion());
         assertFalse(urlParser.isUrlToRepresentationVersionFile());
         assertFalse(urlParser.isUrlToRepresentationVersionFiles());
@@ -200,8 +192,6 @@ class UrlParserTest {
     void shouldMarkGivenUrlAsUrlToCloudId() throws MalformedURLException {
         UrlParser urlParser = new UrlParser(URL_TO_CLOUDID);
         assertTrue(urlParser.isUrlToCloudId());
-
-        //        assertFalse(urlParser.isUrlToCloudId());
         assertFalse(urlParser.isUrlToDataset());
         assertFalse(urlParser.isUrlToDatasetsList());
         assertFalse(urlParser.isUrlToRepresentation());
@@ -219,7 +209,6 @@ class UrlParserTest {
 
         assertFalse(urlParser.isUrlToCloudId());
         assertFalse(urlParser.isUrlToDataset());
-        //        assertFalse(urlParser.isUrlToDatasetsList());
         assertFalse(urlParser.isUrlToRepresentation());
         assertFalse(urlParser.isUrlToRepresentations());
         assertFalse(urlParser.isUrlToRepresentationVersion());
@@ -234,7 +223,6 @@ class UrlParserTest {
         assertTrue(urlParser.isUrlToDataset());
 
         assertFalse(urlParser.isUrlToCloudId());
-        //        assertFalse(urlParser.isUrlToDataset());
         assertFalse(urlParser.isUrlToDatasetsList());
         assertFalse(urlParser.isUrlToRepresentation());
         assertFalse(urlParser.isUrlToRepresentations());
@@ -247,8 +235,8 @@ class UrlParserTest {
     @Test
     void shouldReturnProperUrlPasts() throws MalformedURLException {
         UrlParser urlParser = new UrlParser(URL_TO_DATASET);
-        assertEquals(urlParser.getPart(UrlPart.DATA_SETS), "sampleDataSet");
-        assertEquals(urlParser.getPart(UrlPart.DATA_PROVIDERS), "sampleDP");
+        assertEquals("sampleDataSet", urlParser.getPart(UrlPart.DATA_SETS));
+        assertEquals("sampleDP", urlParser.getPart(UrlPart.DATA_PROVIDERS));
         assertNull(urlParser.getPart(UrlPart.VERSIONS));
         assertNull(urlParser.getPart(UrlPart.RECORDS));
         assertNull(urlParser.getPart(UrlPart.REPRESENTATIONS));
@@ -257,15 +245,15 @@ class UrlParserTest {
         assertNull(urlParser.getPart(UrlPart.DATA_SETS));
         assertNull(urlParser.getPart(UrlPart.DATA_PROVIDERS));
 
-        assertEquals(urlParser.getPart(UrlPart.VERSIONS), "86318b00-6377-11e5-a1c6-90e6ba2d09ef");
-        assertEquals(urlParser.getPart(UrlPart.RECORDS), "FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ");
-        assertEquals(urlParser.getPart(UrlPart.REPRESENTATIONS), "TIFF");
+        assertEquals("86318b00-6377-11e5-a1c6-90e6ba2d09ef", urlParser.getPart(UrlPart.VERSIONS));
+        assertEquals("FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ", urlParser.getPart(UrlPart.RECORDS));
+        assertEquals("TIFF", urlParser.getPart(UrlPart.REPRESENTATIONS));
     }
 
     @Test
     void shouldReturnProperVersionUrlFromFileUrl() throws MalformedURLException, UrlBuilderException {
         UrlParser urlParser = new UrlParser(URL_TO_FILE);
-        assertEquals(urlParser.getVersionUrl(), URL_TO_VERSION);
+        assertEquals(URL_TO_VERSION, urlParser.getVersionUrl());
     }
 
     @Test
@@ -279,7 +267,7 @@ class UrlParserTest {
     @Test
     void shouldReturnProperVersionsUrlFromFileUrl() throws MalformedURLException, UrlBuilderException {
         UrlParser urlParser = new UrlParser(URL_TO_FILE);
-        assertEquals(urlParser.getVersionsUrl(), URL_TO_VERSIONS_LIST);
+        assertEquals(URL_TO_VERSIONS_LIST, urlParser.getVersionsUrl());
     }
 
     @Test
@@ -293,7 +281,7 @@ class UrlParserTest {
     @Test
     void shouldReturnProperDatasetsUrlFromDataSetUrl() throws MalformedURLException, UrlBuilderException {
         UrlParser urlParser = new UrlParser(URL_TO_DATASET);
-        assertEquals(urlParser.getDataSetsUrl(), URL_TO_DATASETS_LIST);
+        assertEquals(URL_TO_DATASETS_LIST, urlParser.getDataSetsUrl());
 
     }
 }

@@ -139,16 +139,16 @@ class TaskSubmitterFactoryTest {
 
     @Test
     void shouldThrowExceptionForUnknownTopologyName() {
-        assertThrows(IllegalArgumentException.class, () -> new TaskSubmitterFactory(
+        TaskSubmitterFactory submitterFactory = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
                 Mockito.mock(OtherTopologiesTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
-        ).provideTaskSubmitter(
-                SubmitTaskParameters.builder()
-                        .taskInfo(TaskInfo.builder()
-                                .topologyName("Unknown topology name")
-                                .build())
-                        .build()));
-  }
+        );
+        SubmitTaskParameters submitTaskParameters = SubmitTaskParameters.builder()
+                .taskInfo(TaskInfo.builder()
+                        .topologyName("Unknown topology name")
+                        .build()).build();
+        assertThrows(IllegalArgumentException.class, () -> submitterFactory.provideTaskSubmitter(submitTaskParameters));
+    }
 }

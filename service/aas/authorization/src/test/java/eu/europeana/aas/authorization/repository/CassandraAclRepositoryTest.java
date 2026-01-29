@@ -19,7 +19,6 @@ import eu.europeana.aas.authorization.TestContextConfiguration;
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,14 +60,11 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
                         new UsernamePasswordAuthenticationToken(
                                 sid1,
                                 "password",
-                                Arrays.asList(new SimpleGrantedAuthority(
+                                List.of(new SimpleGrantedAuthority(
                                         ROLE_ADMIN))));
     }
 
 
-    @AfterEach
-    void tearDown() throws Exception {
-    }
 
 
     @Test
@@ -112,18 +108,18 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
 
         service.saveAcl(newAoi1);
         service.saveAcl(newAoi2);
-        service.updateAcl(newAoi1, Arrays.asList(new AclEntry[]{entry1}));
-        service.updateAcl(newAoi2, Arrays.asList(new AclEntry[]{entry1}));
-    Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
-        .asList(new AclObjectIdentity[]{newAoi1, newAoi2}));
+        service.updateAcl(newAoi1, List.of(entry1));
+        service.updateAcl(newAoi2, List.of(entry1));
+        Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
+                .asList(newAoi1, newAoi2));
 
-    assertEquals(2, result.size());
-    Iterator<AclObjectIdentity> it = result.keySet().iterator();
-    AclObjectIdentity resAoi = it.next();
-    if (resAoi.getId().equals(newAoi1.getId())) {
-      assertAclObjectIdentity(newAoi1, resAoi);
-      assertAclObjectIdentity(newAoi2, it.next());
-    } else {
+        assertEquals(2, result.size());
+        Iterator<AclObjectIdentity> it = result.keySet().iterator();
+        AclObjectIdentity resAoi = it.next();
+        if (resAoi.getId().equals(newAoi1.getId())) {
+            assertAclObjectIdentity(newAoi1, resAoi);
+            assertAclObjectIdentity(newAoi2, it.next());
+        } else {
       assertAclObjectIdentity(newAoi2, resAoi);
       assertAclObjectIdentity(newAoi1, it.next());
     }
@@ -147,7 +143,8 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     void testFindAclListEmpty() {
-        assertThrows(IllegalArgumentException.class, () -> service.findAcls(new ArrayList<>()));
+        List<AclObjectIdentity> acls = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class, () -> service.findAcls(acls));
     }
 
     @Test
@@ -259,7 +256,8 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
         newAoi.setId("invalid");
         newAoi.setObjectClass(aoi_class);
         newAoi.setOwnerId(sid1);
-        assertThrows(AclNotFoundException.class, () -> service.updateAcl(newAoi, new ArrayList<>()));
+        List<AclEntry> entries = new ArrayList<>();
+        assertThrows(AclNotFoundException.class, () -> service.updateAcl(newAoi, entries));
     }
 
     @Test
@@ -290,7 +288,8 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
 
     @Test
     void testDeleteEmptyAclList() {
-        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(new ArrayList<>()));
+        List<AclObjectIdentity> acls = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(acls));
     }
 
     @Test
@@ -302,7 +301,8 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
     @Test
     void testDeleteAclWithNullValues() {
         AclObjectIdentity newAoi = new AclObjectIdentity();
-        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(Arrays.asList(new AclObjectIdentity[]{newAoi})));
+        List<AclObjectIdentity> acls = List.of(newAoi);
+        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(acls));
     }
 
 

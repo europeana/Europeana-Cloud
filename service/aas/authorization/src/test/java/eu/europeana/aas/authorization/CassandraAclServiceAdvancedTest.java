@@ -316,13 +316,15 @@ class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
   @Test
   void testReadAclsByIdEmptyAclList() {
-    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(new ArrayList<ObjectIdentity>()));
+    List<ObjectIdentity> ids = new ArrayList<>();
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(ids));
   }
 
   @Test
   void testReadAclsByIdAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi})));
+    List<ObjectIdentity> ids = List.of(oi);
+    assertThrows(NotFoundException.class, () -> service.readAclsById(ids));
   }
 
   @Test
@@ -330,7 +332,8 @@ class CassandraAclServiceAdvancedTest extends CassandraTestBase {
     ObjectIdentity oi1 = createDefaultTestOI();
     service.createAcl(oi1);
     ObjectIdentity oi2 = new ObjectIdentityImpl(aoi_class, "invalid");
-    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi1, oi2})));
+    List<ObjectIdentity> ids = List.of(oi1, oi2);
+    assertThrows(NotFoundException.class, () -> service.readAclsById(ids));
   }
 
   @Test
@@ -340,25 +343,26 @@ class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
   @Test
   void testReadAclsByIdWithSidFilteringEmptyAclList() {
-    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(new ArrayList<>(), null));
+    List<ObjectIdentity> ids = new ArrayList<>();
+    assertThrows(IllegalArgumentException.class, () -> service.readAclsById(ids, null));
   }
 
   @Test
   void testReadAclsByIdWithSidFilteringAclNotExisting() {
     ObjectIdentity oi = createDefaultTestOI();
-    assertThrows(NotFoundException.class, () -> service.readAclsById(Arrays.asList(new ObjectIdentity[]{oi}), null));
+    List<ObjectIdentity> ids = List.of(oi);
+    assertThrows(NotFoundException.class, () -> service.readAclsById(ids, null));
   }
 
   private void loginAsUser(String sid2) {
     SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(sid2, "password",
-                    Arrays.asList(new SimpleGrantedAuthority[]{new SimpleGrantedAuthority(
-                            ROLE_ADMIN)})));
+                    List.of(new SimpleGrantedAuthority(
+                            ROLE_ADMIN))));
   }
 
   private ObjectIdentity createDefaultTestOI() {
-    ObjectIdentity oi = new ObjectIdentityImpl(aoi_class, aoi_id);
-    return oi;
+    return new ObjectIdentityImpl(aoi_class, aoi_id);
   }
 
   private void assertAcl(ObjectIdentity expected, Acl actual, String owner) {

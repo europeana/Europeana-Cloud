@@ -148,7 +148,8 @@ class FileMd5GenerationServiceTest {
 
   @Test
   void shouldDetectBadLengthOfString() {
-    assertThrows(IllegalArgumentException.class, () -> FileMd5GenerationService.md5ToUUID(new String(new byte[8])));
+    String badLengthString = new String(new byte[8]);
+    assertThrows(IllegalArgumentException.class, () -> FileMd5GenerationService.md5ToUUID(badLengthString));
   }
 
   @Test

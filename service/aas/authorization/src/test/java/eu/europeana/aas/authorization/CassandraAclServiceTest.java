@@ -61,8 +61,8 @@ class CassandraAclServiceTest extends CassandraTestBase {
 
         Acl readAcl = mutableAclService.readAclById(obj);
         assertEquals(acl.getEntries().size(), readAcl.getEntries().size());
-
-        assertThrows(NotFoundException.class, () -> mutableAclService.readAclById(new ObjectIdentityImpl(testKey,
-                creator)));
+        ObjectIdentity notExistingIdentity = new ObjectIdentityImpl(testKey,
+                creator);
+        assertThrows(NotFoundException.class, () -> mutableAclService.readAclById(notExistingIdentity));
     }
 }

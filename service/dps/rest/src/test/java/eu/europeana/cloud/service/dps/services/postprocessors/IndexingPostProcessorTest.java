@@ -14,7 +14,10 @@ import eu.europeana.indexing.exception.IndexerRelatedIndexingException;
 import eu.europeana.indexing.exception.IndexingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -40,9 +43,6 @@ class IndexingPostProcessorTest {
   private HarvestedRecordsDAO harvestedRecordsDAO;
 
   @Mock
-  private HarvestedRecordsBatchCleaner harvestedRecordsBatchCleaner;
-
-  @Mock
   private TaskStatusUpdater taskStatusUpdater;
 
   @Mock
@@ -55,9 +55,6 @@ class IndexingPostProcessorTest {
   private IndexingPostProcessor service;
 
   private final TaskInfo taskInfo = new TaskInfo();
-
-  @Captor
-  private ArgumentCaptor<DataSetCleanerParameters> captor;
 
   @Test
   void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
@@ -178,14 +175,16 @@ class IndexingPostProcessorTest {
   @Test
   void shouldThrowPostProcessingExceptionInCaseCountsFail() throws IndexingException {
     when(datasetCleaner.getRecordsCount()).thenThrow(new IndexerRelatedIndexingException("Could not get record count"));
-    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForPublishEnv()));
+    DpsTask task = prepareTaskForNotUnknownEnv();
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, task));
   }
 
   @Test
   void shouldThrowPostProcessingExceptionInCaseRecordIdsFail() throws IndexingException {
     when(datasetCleaner.getRecordsCount()).thenReturn(1);
     when(datasetCleaner.getRecordIds()).thenThrow(new IndexerRelatedIndexingException("Could not get record count"));
-    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForPublishEnv()));
+    DpsTask task = prepareTaskForNotUnknownEnv();
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, task));
   }
 
   @Test
@@ -193,7 +192,8 @@ class IndexingPostProcessorTest {
     //given
     when(harvestedRecordsDAO.findDatasetRecords(METIS_DATASET_ID)).thenReturn(Collections.emptyIterator());
     //when
-    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, prepareTaskForNotUnknownEnv()));
+    DpsTask task = prepareTaskForNotUnknownEnv();
+    assertThrows(PostProcessingException.class, () -> service.execute(taskInfo, task));
   }
 
   @Test
@@ -289,8 +289,6 @@ class IndexingPostProcessorTest {
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
     dpsTask.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "2020-06-14T16:46:00.000Z");
-
-    //        private static final Date latestHarvestDateForRecord_3 = Date.from(LocalDateTime.of(2020, 6, 14, 16, 47).toInstant(ZoneOffset.UTC));
     return dpsTask;
   }
 

@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class DataSetServiceClientTestIT {
@@ -37,7 +36,7 @@ class DataSetServiceClientTestIT {
 
     URI dataSetURI = mcsClient.createDataSet(providerId, dataSetId, description);
 
-    assertNotEquals(dataSetURI, null);
+    assertNotNull(dataSetURI);
   }
 
   @Test

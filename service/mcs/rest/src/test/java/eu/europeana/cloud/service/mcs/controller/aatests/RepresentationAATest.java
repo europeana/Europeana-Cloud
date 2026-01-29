@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -65,30 +66,23 @@ class RepresentationAATest extends AbstractSecurityTest {
   private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
   private static final String REPRESENTATION_NO_PERMISSIONS_NAME = "REPRESENTATION_NO_PERMISSIONS_NAME";
 
-  private static final String COPIED_REPRESENTATION_VERSION = "KIT_KAT_COPIED";
   private static final String REPRESENTATION_NO_PERMISSIONS_FOR_VERSION = "KIT_KAT_NO_PERMISSIONS_FOR";
 
-  private Record record;
-  private Record recordWithManyRepresentations;
+    private Record record;
+    private Record recordWithManyRepresentations;
 
-  private Representation representation;
-  private Representation copiedRepresentation;
-  private Representation representationYouDontHavePermissionsFor;
+    private Representation representation;
+    private Representation representationYouDontHavePermissionsFor;
 
-  /**
-   * Pre-defined users
-   */
-  private final static String RANDOM_PERSON = "Cristiano";
-  private final static String RANDOM_PASSWORD = "Ronaldo";
-
-  private final static String VAN_PERSIE = "Robin_Van_Persie";
-  private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
-
-  private final static String RONALDO = "Cristiano";
-  private final static String RONALD_PASSWORD = "Ronaldo";
-
-  private final static String ADMIN = "admin";
-  private final static String ADMIN_PASSWORD = "admin";
+    /**
+     * Pre-defined users
+     */
+    private static final String RANDOM_PERSON = "Cristiano";
+    private static final String RANDOM_PASSWORD = "Ronaldo";
+    private static final String VAN_PERSIE = "Robin_Van_Persie";
+    private static final String VAN_PERSIE_PASSWORD = "Feyenoord";
+    private static final String RONALDO = "Cristiano";
+    private static final String RONALD_PASSWORD = "Ronaldo";
 
     @BeforeEach
     void mockUp() throws Exception {
@@ -150,20 +144,19 @@ class RepresentationAATest extends AbstractSecurityTest {
 
 
     @Test
-    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() {
+    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentations() throws ProviderNotExistsException, RecordNotExistsException, RepresentationNotExistsException, DataSetNotExistsException, DataSetAssignmentException {
 
 
+        login(RONALDO, RONALD_PASSWORD);
         assertThrows(
                 AccessDeniedException.class,
-                () -> {
-                    login(RONALDO, RONALD_PASSWORD);
-                    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
-                    representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-
-                    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-                    representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
-                }
+                () ->
+                        representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null)
         );
+        representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
+
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        representationResource.getRepresentation(URI_INFO, GLOBAL_ID, SCHEMA);
     }
 
     @Test
@@ -197,19 +190,16 @@ class RepresentationAATest extends AbstractSecurityTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentationVersion() {
+    void shouldThrowExceptionWhenVanPersieTriesToGetRonaldosRepresentationVersion() throws RepresentationNotExistsException {
 
+        login(RONALDO, RONALD_PASSWORD);
         assertThrows(
                 AccessDeniedException.class,
-                () -> {
-                    login(RONALDO, RONALD_PASSWORD);
-                    representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
-
-                    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-
-                    representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
-                }
+                () -> representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null)
         );
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+        representationVersionResource.getRepresentationVersion(URI_INFO, GLOBAL_ID, SCHEMA, VERSION);
     }
 
     @Test
@@ -374,17 +364,17 @@ class RepresentationAATest extends AbstractSecurityTest {
     void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosRepresentations() {
 
 
+        login(RONALDO, RONALD_PASSWORD);
         assertThrows(
-                AccessDeniedException.class,
-                () -> {
-                    login(RONALDO, RONALD_PASSWORD);
-                    representationResource.createRepresentation(
-                            URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null
-                    );
-
-                    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-                    representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION);
-                }
+                AuthorizationDeniedException.class,
+                () -> representationResource.createRepresentation(
+                        URI_INFO, GLOBAL_ID, REPRESENTATION_NAME, PROVIDER_ID, DATASET_NAME, null
+                )
+        );
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        assertThrows(
+                AccessDeniedOrObjectDoesNotExistException.class,
+                () -> representationVersionResource.deleteRepresentation(GLOBAL_ID, REPRESENTATION_NAME, VERSION)
         );
     }
 
@@ -441,19 +431,19 @@ class RepresentationAATest extends AbstractSecurityTest {
     void shouldThrowExceptionWhenVanPersieTriesToPersistRonaldosRepresentations() {
 
 
+        login(RONALDO, RONALD_PASSWORD);
         assertThrows(
                 AccessDeniedException.class,
-                () -> {
-                    login(RONALDO, RONALD_PASSWORD);
-                    representationResource.createRepresentation(
-                            URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null
-                    );
-
-                    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-                    representationVersionResource.persistRepresentation(
-                            URI_INFO, GLOBAL_ID, SCHEMA, VERSION
-                    );
-                }
+                () -> representationResource.createRepresentation(
+                        URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null
+                )
+        );
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        assertThrows(
+                AccessDeniedOrObjectDoesNotExistException.class,
+                () -> representationVersionResource.persistRepresentation(
+                        URI_INFO, GLOBAL_ID, SCHEMA, VERSION
+                )
         );
     }
 

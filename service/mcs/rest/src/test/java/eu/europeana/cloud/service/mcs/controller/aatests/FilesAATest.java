@@ -75,17 +75,14 @@ class FilesAATest extends AbstractSecurityTest {
   /**
    * Pre-defined users
    */
-  private final static String RANDOM_PERSON = "Cristiano";
-  private final static String RANDOM_PASSWORD = "Ronaldo";
+  private static final String RANDOM_PERSON = "Cristiano";
+  private static final String RANDOM_PASSWORD = "Ronaldo";
 
-  private final static String VAN_PERSIE = "Robin_Van_Persie";
-  private final static String VAN_PERSIE_PASSWORD = "Feyenoord";
+  private static final String VAN_PERSIE = "Robin_Van_Persie";
+  private static final String VAN_PERSIE_PASSWORD = "Feyenoord";
 
-  private final static String RONALDO = "Cristiano";
-  private final static String RONALD_PASSWORD = "Ronaldo";
-
-  private final static String ADMIN = "admin";
-  private final static String ADMIN_PASSWORD = "admin";
+  private static final String RONALDO = "Cristiano";
+  private static final String RONALD_PASSWORD = "Ronaldo";
 
   private DataSet testDataSet;
 
@@ -124,13 +121,14 @@ class FilesAATest extends AbstractSecurityTest {
 
   @Test
   void shouldThrowExceptionWhenNonAuthenticatedUserTriesToGetFile() {
+    HttpServletRequest mockRequest = prepareRequestMock(FILE_NAME);
     assertThrows(
             AuthenticationCredentialsNotFoundException.class,
             () -> fileResource.getFile(
                     GLOBAL_ID,
                     SCHEMA,
                     VERSION,
-                    prepareRequestMock(FILE_NAME),
+                    mockRequest,
                     null
             )
     );
@@ -200,16 +198,13 @@ class FilesAATest extends AbstractSecurityTest {
             .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 
+    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     assertThrows(
             AccessDeniedException.class,
-            () -> {
-              login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-              representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null);
+            () -> representationResource.createRepresentation(URI_INFO, GLOBAL_ID, SCHEMA, PROVIDER_ID, DATASET_NAME, null));
 
               login(RONALDO, RONALD_PASSWORD);
               filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-            }
-    );
   }
 
   @Test
@@ -283,15 +278,18 @@ class FilesAATest extends AbstractSecurityTest {
             .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 
+    login(RONALDO, RONALD_PASSWORD);
     assertThrows(
             AccessDeniedOrObjectDoesNotExistException.class,
-            () -> {
-              login(RONALDO, RONALD_PASSWORD);
-              filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME);
-              login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-              fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME));
-            }
-    );
+            () -> filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME));
+    assertThrows(
+            AccessDeniedOrObjectDoesNotExistException.class,
+            () -> filesResource.sendFile(URI_INFO, GLOBAL_ID, SCHEMA, VERSION, MIME_TYPE, ANY_DATA, FILE_NAME));
+    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+
+    assertThrows(
+            AccessDeniedOrObjectDoesNotExistException.class, () ->
+                    fileResource.deleteFile(GLOBAL_ID, SCHEMA, VERSION, prepareRequestMock(FILE_NAME)));
   }
 
   @Test
