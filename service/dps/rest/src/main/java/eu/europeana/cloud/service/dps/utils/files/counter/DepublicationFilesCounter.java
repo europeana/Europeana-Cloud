@@ -5,12 +5,13 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 
 public class DepublicationFilesCounter extends FilesCounter {
 
-  private final Indexer indexer;
+  private final Indexer<FullBeanImpl> indexer;
 
   public DepublicationFilesCounter(IndexWrapper indexWrapper) {
     this.indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);

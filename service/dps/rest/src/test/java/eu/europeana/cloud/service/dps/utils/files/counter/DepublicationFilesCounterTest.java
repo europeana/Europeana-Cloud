@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.Before;
@@ -23,7 +24,7 @@ public class DepublicationFilesCounterTest {
   private static final int DATASET_EXPECTED_SIZE = 500;
 
   @Mock
-  private Indexer indexer;
+  private Indexer<FullBeanImpl> indexer;
   @Mock
   private IndexWrapper indexWrapper;
 

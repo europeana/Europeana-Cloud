@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,13 +26,15 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
-import eu.europeana.metis.harvesting.ReportingIteration;
+import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -89,14 +90,14 @@ public class HarvestsExecutorTest {
   private List<OaiRecordHeader> harvestedHeaders;
 
   @Before
-  public void setup() throws HarvesterException {
+  public void setup() {
     initMocks(this);
     mockMetisHarvestingLibrary();
     createNewTask();
   }
 
   @Test
-  public void shouldEmitAllRecordsToKafka() throws HarvesterException {
+  public void shouldEmitAllRecordsToKafka() {
     //given
     createNewTask();
     Mockito.clearInvocations(recordSubmitService);
@@ -104,6 +105,7 @@ public class HarvestsExecutorTest {
     harvestedHeaders = Arrays.asList(new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_FULL),
         new OaiRecordHeader(OAI_ID_2, false, DATE_AFTER_FULL));
     when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(false);
+    when(oaiIterator.getCloseableIterator()).thenReturn(getCloseableIterator(harvestedHeaders));
     //when
     executor.execute(harvest, parameters);
     //then
@@ -118,18 +120,40 @@ public class HarvestsExecutorTest {
   }
 
   @Test
-  public void shouldEmitNoRecordsToKafkaForDroppedTask() throws HarvesterException {
+  public void shouldEmitNoRecordsToKafkaForDroppedTask() {
     createNewTask();
     Mockito.clearInvocations(recordSubmitService);
     task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
     harvestedHeaders = Arrays.asList(new OaiRecordHeader(OAI_ID_1, false, DATE_AFTER_FULL),
         new OaiRecordHeader(OAI_ID_2, false, DATE_AFTER_FULL));
     when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
+    when(oaiIterator.getCloseableIterator()).thenReturn(getCloseableIterator(harvestedHeaders));
     //when
     HarvestResult harvestResult = executor.execute(harvest, parameters);
     //then
     Assert.assertEquals(TaskState.DROPPED, harvestResult.getTaskState());
     verify(recordSubmitService, never()).submitRecord(any(), any());
+  }
+
+  private @NotNull CloseableIterator<OaiRecordHeader> getCloseableIterator(List<OaiRecordHeader> harvestedHeaders) {
+    return new CloseableIterator<>() {
+      private final Iterator<OaiRecordHeader> it = harvestedHeaders.iterator();
+
+      @Override
+      public boolean hasNext() {
+        return it.hasNext();
+      }
+
+      @Override
+      public OaiRecordHeader next() {
+        return it.next();
+      }
+
+      @Override
+      public void close() {
+        //Nothing to do
+      }
+    };
   }
 
   private void createNewTask() {
@@ -139,16 +163,9 @@ public class HarvestsExecutorTest {
     parameters = SubmitTaskParameters.builder().task(task).topicName(TOPIC).build();
   }
 
-  private void mockMetisHarvestingLibrary() throws HarvesterException {
+  private void mockMetisHarvestingLibrary() {
     mockStatic(HarvesterFactory.class);
     PowerMockito.when(HarvesterFactory.createOaiHarvester(any(), anyInt(), anyInt())).thenReturn(harvester);
     when(harvester.harvestRecordHeaders(any(OaiHarvest.class))).thenReturn(oaiIterator);
-    doAnswer(invocation -> {
-      ReportingIteration<OaiRecordHeader> action = invocation.getArgument(0);
-      for (OaiRecordHeader header : harvestedHeaders) {
-        action.process(header);
-      }
-      return null;
-    }).when(oaiIterator).forEach(any());
   }
 }

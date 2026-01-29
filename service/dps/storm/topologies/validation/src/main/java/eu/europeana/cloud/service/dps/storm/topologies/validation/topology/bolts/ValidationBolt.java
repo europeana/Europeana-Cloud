@@ -41,7 +41,7 @@ public class ValidationBolt extends AbstractDpsBolt {
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      LOGGER.error("Validation Bolt error: {}", e.getMessage());
+      LOGGER.error("Validation Bolt error: {}", e.getMessage(), e);
       emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
           "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
       outputCollector.ack(anchorTuple);

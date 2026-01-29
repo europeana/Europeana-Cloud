@@ -4,6 +4,7 @@ import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECO
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -26,6 +27,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.DepublicationFilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import java.util.stream.Stream;
@@ -56,7 +58,7 @@ public class DepublicationTaskSubmitterTest {
   @Mock
   private IndexWrapper indexWrapper;
   @Mock
-  private Indexer indexer;
+  private Indexer<FullBeanImpl> indexer;
   @Mock
   private KafkaTopicSelector kafkaTopicSelector;
   @Mock
@@ -114,7 +116,7 @@ public class DepublicationTaskSubmitterTest {
   @Test
   public void shouldProperlySentTaskForDataset() throws TaskSubmissionException, IndexingException {
     when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
-    when(indexer.getRecordIds(eq(DATASET_ID), any())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
+    when(indexer.getRecordIds(eq(DATASET_ID), any(), anyInt())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
     dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
     when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
 

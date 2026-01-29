@@ -31,7 +31,7 @@ public class IndexedRecordRemoverTest {
   private IndexWrapper indexWrapper;
 
   @Mock
-  private Indexer indexer;
+  private Indexer<FullBeanImpl> indexer;
 
   @Mock
   private FullBeanImpl tombstone;

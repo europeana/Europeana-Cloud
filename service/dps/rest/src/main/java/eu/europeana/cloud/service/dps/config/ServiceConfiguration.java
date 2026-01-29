@@ -43,6 +43,7 @@ import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.utils.CleanCronExpressionEvaluator;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import eu.europeana.cloud.common.properties.CassandraProperties;
@@ -415,6 +416,12 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     executor.setThreadNamePrefix("post-processing-");
     executor.setTaskDecorator(taskDecorator);
     return executor;
+  }
+
+  @Bean
+  public CleanCronExpressionEvaluator cleanCronExpressionEvaluator(
+      @Value("${maxNodeCount:3}") int maxNodeCount, @Value("${AppId}") String applicationId) {
+    return new CleanCronExpressionEvaluator(maxNodeCount, applicationId);
   }
 
   private String mcsLocation() {

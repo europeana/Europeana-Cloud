@@ -366,7 +366,7 @@ public class CassandraRecordService implements RecordService {
     }
     return os -> {
       try {
-        contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
+        contentDAO.getContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), rangeStart,
             rangeEnd, os, file.getFileStorage());
       } catch (FileNotExistsException | IOException ex) {
         throw new SystemException(ex);
@@ -384,7 +384,7 @@ public class CassandraRecordService implements RecordService {
     Representation rep = getRepresentation(globalId, schema, version);
     File file = findFileInRepresentation(rep, fileName);
     try {
-      contentDAO.getContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
+      contentDAO.getContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), -1, -1, os,
           file.getFileStorage());
     } catch (IOException ex) {
       throw new SystemException(ex);
@@ -406,7 +406,7 @@ public class CassandraRecordService implements RecordService {
     recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
     recordDAO.removeFileFromRepresentationRevisionsTable(representation, fileName);
     File file = findFileInRepresentation(representation, fileName);
-    contentDAO.deleteContent(FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
+    contentDAO.deleteContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
   }
 
   /**
@@ -465,7 +465,7 @@ public class CassandraRecordService implements RecordService {
 
     for (File f : repVersion.getFiles()) {
       try {
-        contentDAO.deleteContent(FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
+        contentDAO.deleteContent(f.getMd5(), FileUtils.generateKeyForFile(cloudId, repVersion.getRepresentationName(),
             repVersion.getVersion(), f.getFileName()), f.getFileStorage());
       } catch (FileNotExistsException ex) {
         LOGGER.warn(

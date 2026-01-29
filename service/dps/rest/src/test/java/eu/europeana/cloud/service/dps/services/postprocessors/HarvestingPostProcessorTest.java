@@ -41,7 +41,9 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
+import eu.europeana.indexing.exception.IndexingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -113,10 +115,10 @@ public class HarvestingPostProcessorTest {
   private TaskStatusChecker taskStatusChecker;
 
   @Mock
-  private Indexer previewIndexer;
+  private Indexer<FullBeanImpl> previewIndexer;
 
   @Mock
-  private Indexer publishIndexer;
+  private Indexer<FullBeanImpl> publishIndexer;
 
   @Mock
   private IndexWrapper indexWrapper;
@@ -363,7 +365,7 @@ public class HarvestingPostProcessorTest {
   }
 
   @Test
-  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPreview() {
+  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPreview() throws IndexingException {
     when(previewIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
 
     service.execute(taskInfo, task);
@@ -379,7 +381,7 @@ public class HarvestingPostProcessorTest {
   }
 
   @Test
-  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPublish() {
+  public void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPublish() throws IndexingException {
     when(publishIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
 
     service.execute(taskInfo, task);

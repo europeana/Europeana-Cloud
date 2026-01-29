@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.service.utils.indexing;
 
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.common.properties.IndexingProperties;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
@@ -25,7 +26,7 @@ public class IndexWrapper {
   private static IndexWrapper instance;
   protected final IndexingProperties previewIndexingProperties;
   protected final IndexingProperties publishIndexingProperties;
-  protected final Map<TargetIndexingDatabase, Indexer> indexers = new EnumMap<>(TargetIndexingDatabase.class);
+  protected final Map<TargetIndexingDatabase, Indexer<FullBeanImpl>> indexers = new EnumMap<>(TargetIndexingDatabase.class);
 
   public IndexWrapper(IndexingProperties previewIndexingProperties,
       IndexingProperties publishIndexingProperties) {
@@ -77,9 +78,9 @@ public class IndexWrapper {
     indexingSettingsGenerator = new IndexingSettingsGenerator(previewIndexingProperties, publishIndexingProperties);
 
     indexingSettings = indexingSettingsGenerator.generateForPreview();
-    indexers.put(TargetIndexingDatabase.PREVIEW, new IndexerFactory(indexingSettings).getIndexer());
+    indexers.put(TargetIndexingDatabase.PREVIEW, IndexerFactory.create(indexingSettings).getIndexer());
     indexingSettings = indexingSettingsGenerator.generateForPublish();
-    indexers.put(TargetIndexingDatabase.PUBLISH, new IndexerFactory(indexingSettings).getIndexer());
+    indexers.put(TargetIndexingDatabase.PUBLISH, IndexerFactory.create(indexingSettings).getIndexer());
   }
 
   @PreDestroy
@@ -93,7 +94,7 @@ public class IndexWrapper {
     });
   }
 
-  public Indexer getIndexer(TargetIndexingDatabase targetIndexingDatabase) {
+  public Indexer<FullBeanImpl> getIndexer(TargetIndexingDatabase targetIndexingDatabase) {
     return indexers.get(targetIndexingDatabase);
   }
 }

@@ -109,7 +109,6 @@ public class S3ContentDAO implements ContentDAO {
             .build();
   }
 
-  @Override
   public void getContent(String fileName, long start, long end, OutputStream os)
           throws IOException, FileNotExistsException {
     logOperation(fileName, "GET");
@@ -139,29 +138,28 @@ public class S3ContentDAO implements ContentDAO {
       throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, fileName));
     }
   }
-
   @Override
-  public void copyContent(String sourceObjectId, String trgObjectId)
+  public void copyContent(String md5, String sourceFileName, String targetFileName)
           throws FileNotExistsException, FileAlreadyExistsException {
-    logOperation(trgObjectId, "COPY");
+    logOperation(targetFileName, "COPY");
 
     String container = connectionProvider.getContainer();
 
     // Check if source exists
-    if (!objectExists(container, sourceObjectId)) {
-      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceObjectId));
+    if (!objectExists(container, sourceFileName)) {
+      throw new FileNotExistsException(String.format(MSG_FILE_NOT_EXISTS, sourceFileName));
     }
 
     // Check if target already exists
-    if (objectExists(container, trgObjectId)) {
-      throw new FileAlreadyExistsException(String.format(MSG_TARGET_FILE_ALREADY_EXISTS, trgObjectId));
+    if (objectExists(container, targetFileName)) {
+      throw new FileAlreadyExistsException(String.format(MSG_TARGET_FILE_ALREADY_EXISTS, targetFileName));
     }
 
     CopyObjectRequest copyRequest = CopyObjectRequest.builder()
             .sourceBucket(container)
-            .sourceKey(sourceObjectId)
+            .sourceKey(sourceFileName)
             .destinationBucket(container)
-            .destinationKey(trgObjectId)
+            .destinationKey(targetFileName)
             .build();
 
     S3Client s3Client = connectionProvider.getS3Client();
@@ -169,7 +167,14 @@ public class S3ContentDAO implements ContentDAO {
   }
 
   @Override
-  public void deleteContent(String fileName) throws FileNotExistsException {
+  public void getContent(String md5, String fileName, long start, long end, OutputStream os) throws IOException, FileNotExistsException {
+    getContent(fileName, start, end, os);
+  }
+
+
+
+  @Override
+  public void deleteContent(String md5, String fileName) throws FileNotExistsException {
     logOperation(fileName, "DELETE");
 
     String container = connectionProvider.getContainer();
