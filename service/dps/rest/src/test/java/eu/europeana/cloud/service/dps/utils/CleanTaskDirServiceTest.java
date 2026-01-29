@@ -43,12 +43,12 @@ class CleanTaskDirServiceTest {
   private CassandraTaskInfoDAO taskInfoDAO;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     Mockito.reset(taskInfoDAO);
   }
 
   @Test
-  public void constructValidDir() {
+  void constructValidDir() {
     String dirName1 = CleanTaskDirService.getDirName(TEST_ANY_DIR, Long.MAX_VALUE);
     String dirName2 = CleanTaskDirService.getDirName(TEST_ANY_DIR + File.separatorChar, Long.MAX_VALUE);
 
@@ -60,7 +60,7 @@ class CleanTaskDirServiceTest {
   }
 
   @Test
-  public void extractTaskIdFromPath() {
+  void extractTaskIdFromPath() {
     for (int index = 0; index < TEST_COUNTER; index++) {
       long taskId = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, Long.MAX_VALUE);
 
@@ -72,7 +72,7 @@ class CleanTaskDirServiceTest {
   }
 
   @Test
-  public void removeUnnecessaryTasksDirs() throws IOException {
+  void removeUnnecessaryTasksDirs() throws IOException {
     int processedDroppedTasksCounter = 0;
 
     File baseDir = new File(TEST_BASE_DIR);

@@ -29,17 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         AuthenticationTestContext.class,
         DefaultTestContext.class
 })
-public class PermissionGrantingManagerTest extends CassandraTestBase {
+class PermissionGrantingManagerTest extends CassandraTestBase {
 
     @Autowired
     private MutableAclService mutableAclService;
 
     @Autowired
-  private PermissionsGrantingManager permissionsGrantingManager;
+    private PermissionsGrantingManager permissionsGrantingManager;
 
-  @Autowired
-  @Qualifier("authenticationManager")
-  private AuthenticationManager authenticationManager;
+    @Autowired
+    @Qualifier("authenticationManager")
+    private AuthenticationManager authenticationManager;
 
     private static final String ADMIN_NAME = "admin";
     private static final String ADMIN_PASSWORD = "admin";

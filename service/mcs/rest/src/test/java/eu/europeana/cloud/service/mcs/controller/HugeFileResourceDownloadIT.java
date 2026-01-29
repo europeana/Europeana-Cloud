@@ -34,18 +34,18 @@ class HugeFileResourceDownloadIT extends AbstractResourceTest {
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
   @BeforeEach
-  public void mockUp() {
+  void mockUp() {
     recordService = applicationContext.getBean(RecordService.class);
   }
 
-    @AfterEach
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     reset(recordService);
   }
 
   @Test
-  public void shouldHandleHugeFile()
-      throws Exception {
+  void shouldHandleHugeFile()
+          throws Exception {
     // given representation with file in service
     String globalId = "globalId", schema = "schema", version = "v1";
     MockGetContentMethod mockGetContent = new MockGetContentMethod(HUGE_FILE_SIZE);
@@ -53,7 +53,7 @@ class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
     // mock answers:
     doReturn(mockGetContent).when(recordService).getContent(anyString(), anyString(), anyString(), anyString(),
-        anyLong(), anyLong());
+            anyLong(), anyLong());
     Mockito.doReturn(file).when(recordService).getFile(globalId, schema, version, file.getFileName());
 
     // when we download mocked content of resource

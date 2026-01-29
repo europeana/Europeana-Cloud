@@ -146,19 +146,19 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
   }
 
     @Test
-  public void testFindAclListEmpty() {
+    void testFindAclListEmpty() {
         assertThrows(IllegalArgumentException.class, () -> service.findAcls(new ArrayList<>()));
-  }
+    }
 
     @Test
-  public void testFindNullAclList() {
+    void testFindNullAclList() {
         assertThrows(IllegalArgumentException.class, () -> service.findAcls(null));
-  }
+    }
 
     @Test
-  public void testFindNullAcl() {
+    void testFindNullAcl() {
         assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentity(null));
-  }
+    }
 
     @Test
     void testFindAclNotExisting() {
@@ -170,10 +170,10 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
     }
 
     @Test
-  public void testFindAclWithNullValues() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
+    void testFindAclWithNullValues() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
         assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentity(newAoi));
-  }
+    }
 
     @Test
     void testFindAclChildren() {
@@ -254,7 +254,7 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
   }
 
     @Test
-    public void testUpdateAclNotExisting() {
+    void testUpdateAclNotExisting() {
         AclObjectIdentity newAoi = new AclObjectIdentity();
         newAoi.setId("invalid");
         newAoi.setObjectClass(aoi_class);
@@ -289,7 +289,7 @@ class CassandraAclRepositoryTest extends CassandraTestBase {
     }
 
     @Test
-    public void testDeleteEmptyAclList() {
+    void testDeleteEmptyAclList() {
         assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(new ArrayList<>()));
     }
 

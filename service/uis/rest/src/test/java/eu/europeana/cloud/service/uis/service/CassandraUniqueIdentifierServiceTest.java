@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:/default-context.xml"})
-public class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
+class CassandraUniqueIdentifierServiceTest extends CassandraTestBase {
 
   @Autowired
   private UniqueIdentifierServiceImpl service;

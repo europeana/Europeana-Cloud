@@ -93,7 +93,7 @@ class UISClientTest {
    * 3) Retrieves the properties and makes sure the updated properties come back.
    */
   @Test
-  public final void updateProviderTest() throws CloudException {
+  final void updateProviderTest() throws CloudException {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
@@ -131,7 +131,7 @@ class UISClientTest {
   }
 
   @Test
-  public final void duplicateProviderRecordTest() throws Exception {
+  final void duplicateProviderRecordTest() throws Exception {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
@@ -162,7 +162,7 @@ class UISClientTest {
   }
 
   @Test
-  public final void createMappingTest() throws Exception {
+  final void createMappingTest() throws Exception {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
@@ -199,7 +199,7 @@ class UISClientTest {
   }
 
   @Test
-  public final void createAndRetrieveRecordTest() throws Exception {
+  final void createAndRetrieveRecordTest() throws Exception {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 
@@ -234,7 +234,7 @@ class UISClientTest {
   }
 
   @Test
-  public final void createCloudIdandRetrieveCloudIdTest() throws Exception {
+  final void createCloudIdAndRetrieveCloudIdTest() throws Exception {
 
     UISClient uisClient = new UISClient(BASE_URL, username, password);
 

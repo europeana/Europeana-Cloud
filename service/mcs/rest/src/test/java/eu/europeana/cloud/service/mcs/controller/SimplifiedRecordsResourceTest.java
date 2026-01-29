@@ -44,7 +44,7 @@ class SimplifiedRecordsResourceTest extends AbstractResourceTest {
 
 
     @BeforeEach
-    public void init() throws CloudException, RecordNotExistsException {
+    void init() throws CloudException, RecordNotExistsException {
         setupUisClient();
         setupRecordService();
     }
@@ -74,17 +74,17 @@ class SimplifiedRecordsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void properRecordShouldBeReturned() throws RecordNotExistsException, ProviderNotExistsException {
+    void properRecordShouldBeReturned() throws RecordNotExistsException, ProviderNotExistsException {
         HttpServletRequest info = mockHttpServletRequest();
         //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
         //
         Record record = recordsResource.getRecord(info, PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);
 
         assertNotNull(record);
-    for (Representation representation : record.getRepresentations()) {
-        assertNull(representation.getCloudId());
+        for (Representation representation : record.getRepresentations()) {
+            assertNull(representation.getCloudId());
+        }
     }
-  }
 
   /////////////
   //

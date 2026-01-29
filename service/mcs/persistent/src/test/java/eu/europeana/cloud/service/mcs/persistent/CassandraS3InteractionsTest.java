@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
-public class CassandraS3InteractionsTest extends CassandraTestBase {
+class CassandraS3InteractionsTest extends CassandraTestBase {
 
   @Autowired
   private CassandraRecordService cassandraRecordService;

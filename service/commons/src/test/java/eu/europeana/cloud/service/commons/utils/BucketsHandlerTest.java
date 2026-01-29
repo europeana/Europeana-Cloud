@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:/context.xml"})
-public class BucketsHandlerTest extends CassandraTestBase {
+class BucketsHandlerTest extends CassandraTestBase {
 
   @Autowired
   private BucketsHandler bucketsHandler;

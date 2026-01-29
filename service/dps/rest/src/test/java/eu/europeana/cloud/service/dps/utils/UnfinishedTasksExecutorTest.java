@@ -37,7 +37,7 @@ class UnfinishedTasksExecutorTest {
   private TaskSubmitterFactory taskSubmitterFactory;
 
   @Test
-  public void shouldNotStartExecutionForEmptyTasksList() {
+  void shouldNotStartExecutionForEmptyTasksList() {
     //given
     List<TaskInfo> unfinishedTasks = new ArrayList<>();
 
@@ -50,7 +50,7 @@ class UnfinishedTasksExecutorTest {
   }
 
   @Test
-  public void shouldStartExecutionForOneTasks() {
+  void shouldStartExecutionForOneTasks() {
     //given
     List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
     TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();
@@ -71,7 +71,7 @@ class UnfinishedTasksExecutorTest {
 
 
   @Test
-  public void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
+  void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
     //given
     List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
     TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();

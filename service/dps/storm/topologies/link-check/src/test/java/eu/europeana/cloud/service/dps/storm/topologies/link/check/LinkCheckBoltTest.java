@@ -63,7 +63,7 @@ class LinkCheckBoltTest {
   }
 
   @Test
-  public void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
+  void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = prepareRandomTuple();
     linkCheckBolt.execute(anchorTuple, tuple);
@@ -72,7 +72,7 @@ class LinkCheckBoltTest {
   }
 
   @Test
-  public void shouldEmitTupleAfterCheckingAllResourcesFromFile() throws Exception {
+  void shouldEmitTupleAfterCheckingAllResourcesFromFile() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = prepareRandomTuple();
     linkCheckBolt.execute(anchorTuple, tuple);
@@ -93,7 +93,7 @@ class LinkCheckBoltTest {
   }
 
   @Test
-  public void shouldEmitTupleWithErrorIncluded() throws Exception {
+  void shouldEmitTupleWithErrorIncluded() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     doThrow(new LinkCheckingException(new Throwable())).when(linkChecker).performLinkChecking(Mockito.anyString());
     StormTaskTuple tuple = prepareRandomTuple();

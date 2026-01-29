@@ -65,21 +65,21 @@ class GhostTaskServiceTest {
 
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     reset(tasksByStateDAO, taskInfoDAO);
     when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
-        .thenReturn(Collections.singletonList(TOPIC_INFO_1));
+            .thenReturn(Collections.singletonList(TOPIC_INFO_1));
   }
 
   @Test
-  public void shouldReturnEmptyListIfThereAreNotAnyActiveTasks() {
+  void shouldReturnEmptyListIfThereAreNotAnyActiveTasks() {
     when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
-        .thenReturn(Collections.emptyList());
+            .thenReturn(Collections.emptyList());
     assertThat(service.findGhostTasks(), empty());
   }
 
   @Test
-  public void shouldNotReturnTaskWhichIsRecentEvenIfWasNotPerformedByStormYet() {
+  void shouldNotReturnTaskWhichIsRecentEvenIfWasNotPerformedByStormYet() {
 
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(RECENT_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.empty());
@@ -88,9 +88,9 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldIgnoreTaskThatDidNotReserveTopicBelongingToExistingTopology() {
+  void shouldIgnoreTaskThatDidNotReserveTopicBelongingToExistingTopology() {
     when(tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES))
-        .thenReturn(Collections.singletonList(TOPIC_INFO_1_UNKNOWN_TOPIC));
+            .thenReturn(Collections.singletonList(TOPIC_INFO_1_UNKNOWN_TOPIC));
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(VERY_OLD_TASK));
 
     List<TaskInfo> ghostTasks = service.findGhostTasks();
@@ -99,7 +99,7 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldNotReturnTaskWhichIsQuiteOldButProgressedOnStormRecently() {
+  void shouldNotReturnTaskWhichIsQuiteOldButProgressedOnStormRecently() {
 
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(QUITE_OLD_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(TASK_PROGRESSED_ON_STORM_RECENTLY));
@@ -108,7 +108,7 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldReturnTaskWhichIsQuiteOldAndWasNotPerformedByStormYet() {
+  void shouldReturnTaskWhichIsQuiteOldAndWasNotPerformedByStormYet() {
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(QUITE_OLD_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.empty());
 
@@ -118,7 +118,7 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldReturnTaskWhichIsQuiteOldButProgressedOnStormLongerTimeAgo() {
+  void shouldReturnTaskWhichIsQuiteOldButProgressedOnStormLongerTimeAgo() {
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(QUITE_OLD_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(TASK_PROGRESSED_ON_STORM_LONG_AGO));
 
@@ -128,7 +128,7 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldReturnTaskWhichIsVeryOldEvenIfProgressedOnStormRecently() {
+  void shouldReturnTaskWhichIsVeryOldEvenIfProgressedOnStormRecently() {
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(VERY_OLD_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(TASK_PROGRESSED_ON_STORM_RECENTLY));
 
@@ -138,7 +138,7 @@ class GhostTaskServiceTest {
   }
 
   @Test
-  public void shouldReturnTaskWhichIsVeryOldAndWasNotPerformedByStormYet() {
+  void shouldReturnTaskWhichIsVeryOldAndWasNotPerformedByStormYet() {
     when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(VERY_OLD_TASK));
     when(taskDiagnosticInfoDAO.findById(TASK_ID)).thenReturn(Optional.empty());
 

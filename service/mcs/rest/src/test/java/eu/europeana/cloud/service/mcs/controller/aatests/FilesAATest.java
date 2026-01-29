@@ -93,7 +93,7 @@ class FilesAATest extends AbstractSecurityTest {
   private File file2;
 
   @BeforeEach
-  public void mockUp() throws Exception {
+  void mockUp() throws Exception {
 
     Mockito.reset(recordService);
 
@@ -137,7 +137,7 @@ class FilesAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToGetFileIfHeIsTheOwner()
+  void shouldBeAbleToGetFileIfHeIsTheOwner()
           throws IOException, RepresentationNotExistsException, CannotModifyPersistentRepresentationException,
           FileAlreadyExistsException, FileNotExistsException, WrongContentRangeException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
@@ -177,11 +177,11 @@ class FilesAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToAddFileWhenAuthenticated() throws IOException, RepresentationNotExistsException,
-      CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
+  void shouldBeAbleToAddFileWhenAuthenticated() throws IOException, RepresentationNotExistsException,
+          CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
     Mockito.doThrow(new FileNotExistsException()).when(recordService)
-           .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+            .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
 
@@ -239,11 +239,11 @@ class FilesAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws IOException, RepresentationNotExistsException,
-      CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
+  void shouldBeAbleToDeleteFileIfHeIsTheOwner() throws IOException, RepresentationNotExistsException,
+          CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
     Mockito.doThrow(new FileNotExistsException()).when(recordService)
-           .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+            .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 
@@ -258,11 +258,11 @@ class FilesAATest extends AbstractSecurityTest {
   }
 
   @Test
-  public void shouldBeAbleToRecreateDeletedFile() throws IOException, RepresentationNotExistsException,
-      CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
+  void shouldBeAbleToRecreateDeletedFile() throws IOException, RepresentationNotExistsException,
+          CannotModifyPersistentRepresentationException, FileAlreadyExistsException, FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, AccessDeniedOrObjectDoesNotExistException, DataSetNotExistsException, DataSetAssignmentException, DataSetAlreadyExistsException {
 
     Mockito.doThrow(new FileNotExistsException()).when(recordService)
-           .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+            .getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
 

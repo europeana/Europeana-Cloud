@@ -54,17 +54,17 @@ class DpsTaskValidatorTest {
 
 
     @BeforeEach
-  public void init() {
-    dpsTask = new DpsTask();
-    dpsTask.setTaskName(TASK_NAME);
-    dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
-    dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
-    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-    dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
-    dpsTask.setOutputRevision(correctRevision);
-    //
-    icTopologyTask = new DpsTask();
-    icTopologyTask.addDataEntry(FILE_URLS,
+    void init() {
+      dpsTask = new DpsTask();
+      dpsTask.setTaskName(TASK_NAME);
+      dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
+      dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
+      dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+      dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
+      dpsTask.setOutputRevision(correctRevision);
+      //
+      icTopologyTask = new DpsTask();
+      icTopologyTask.addDataEntry(FILE_URLS,
         Arrays.asList(
             "https://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c",
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
@@ -187,13 +187,13 @@ class DpsTaskValidatorTest {
         new DpsTaskValidator().withAnyName().validate(dpsTask);
     }
 
-    ////
-    //Parameters
-    ////
-    @Test
-    public void validatorShouldValidateThatThereIsParameterWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
-        new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME).validate(dpsTask);
-    }
+  ////
+  //Parameters
+  ////
+  @Test
+  void validatorShouldValidateThatThereIsParameterWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
+    new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME).validate(dpsTask);
+  }
 
     @Test
     void validatorShouldValidateThatThereIsNoParameterWithSelectedName() {
@@ -353,11 +353,11 @@ class DpsTaskValidatorTest {
                 () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_5));
     }
 
-    @Test
-    public void validatorShouldValidateThatOutputRevisionIsNotCorrect_6() {
-        assertThrows(DpsTaskValidationException.class,
-                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_6));
-    }
+  @Test
+  void validatorShouldValidateThatOutputRevisionIsNotCorrect_6() {
+    assertThrows(DpsTaskValidationException.class,
+            () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_6));
+  }
 
     @Test
     void validatorShouldValidateThatOutputRevisionIsNotCorrect_7() {

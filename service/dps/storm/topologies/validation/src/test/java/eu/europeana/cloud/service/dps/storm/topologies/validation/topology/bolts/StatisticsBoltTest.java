@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-public class StatisticsBoltTest extends CassandraTestBase {
+class StatisticsBoltTest extends CassandraTestBase {
 
-  private static final long TASK_ID = 1;
+    private static final long TASK_ID = 1;
 
-  private static final String TASK_NAME = "task1";
+    private static final String TASK_NAME = "task1";
 
     private ValidationStatisticsServiceImpl statisticsService;
 

@@ -13,7 +13,7 @@ class StaticUrlProviderTest {
 
     @ParameterizedTest
     @CsvSource({"uis/,uis", "uis,uis", "uis//,uis/"})
-    public void shouldGetUrlWithoutSlashAtTheEnd(String inputSuffix, String expectedSuffix) {
+    void shouldGetUrlWithoutSlashAtTheEnd(String inputSuffix, String expectedSuffix) {
         //given
         StaticUrlProvider provider = new StaticUrlProvider(URL_PREFIX + inputSuffix);
         //when

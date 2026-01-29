@@ -43,7 +43,7 @@ class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
     private static final String RANDOM_REPRESENTATION_NAME = "randomRepresentationName";
 
     @BeforeEach
-    public void init() throws CloudException, RepresentationNotExistsException {
+    void init() throws CloudException, RepresentationNotExistsException {
         Mockito.reset(uisClient);
         Mockito.reset(recordService);
         setupUisClient();
@@ -79,7 +79,7 @@ class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
 
 
     @Test
-    public void properRepresentationShouldBeReturned()
+    void properRepresentationShouldBeReturned()
             throws RepresentationNotExistsException, ProviderNotExistsException, RecordNotExistsException {
         HttpServletRequest info = mockHttpServletRequest();
         //
@@ -87,8 +87,8 @@ class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
         //
         assertNotNull(rep);
         assertThat(rep.getCloudId(), is(CLOUD_ID));
-    assertThat(rep.getRepresentationName(), is(EXISTING_REPRESENTATION_NAME));
-  }
+        assertThat(rep.getRepresentationName(), is(EXISTING_REPRESENTATION_NAME));
+    }
 
   /////////////
   //

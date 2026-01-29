@@ -40,7 +40,7 @@ class EDMEnrichmentBoltTest {
           new CassandraProperties(), "MCS_URL", "user", "password");
 
   @BeforeAll
-  public static void init() {
+  static void init() {
     edmEnrichmentBolt.prepare();
   }
 

@@ -9,7 +9,7 @@ import static eu.europeana.cloud.common.web.ParamConstants.*;
 class EnrichUriUtilTest {
 
   @Test
-  public void testMappingPlaceholdersResolver() {
+  void testMappingPlaceholdersResolver() {
     EnrichUriUtil.MappingPlaceholdersResolver r = new EnrichUriUtil.MappingPlaceholdersResolver();
 
     final String CLASS_MAPPING =

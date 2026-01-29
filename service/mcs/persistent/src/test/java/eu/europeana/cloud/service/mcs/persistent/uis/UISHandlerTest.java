@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {UisIntegrationTestContext.class})
-public class UISHandlerTest {
+class UISHandlerTest {
 
   @Autowired
   private UISClientHandlerImpl handler;

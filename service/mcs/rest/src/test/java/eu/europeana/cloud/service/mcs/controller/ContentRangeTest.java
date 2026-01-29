@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ContentRangeTest {
 
     @Test
-    public void testParsingProperRange()
+    void testParsingProperRange()
             throws WrongContentRangeException {
         FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1-2");
         assertThat(range.getStart(), is(1L));
@@ -23,28 +23,28 @@ class ContentRangeTest {
     }
 
 
-  @Test
-  public void testParsingLongNumbers()
-      throws WrongContentRangeException {
-    Long start = Integer.MAX_VALUE * 2L;
-    Long end = Integer.MAX_VALUE * 3L;
-    FileResource.ContentRange range = FileResource.ContentRange.parse(String.format("bytes=%s-%s", start, end));
-    assertThat(range.getStart(), is(start));
-    assertThat(range.getEnd(), is(end));
-  }
-
-
-  @Test
-  public void testParsingOffset()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-");
-    assertThat(range.getStart(), is(1234L));
-    assertThat(range.getEnd(), is(-1L));
-  }
+    @Test
+    void testParsingLongNumbers()
+            throws WrongContentRangeException {
+        Long start = Integer.MAX_VALUE * 2L;
+        Long end = Integer.MAX_VALUE * 3L;
+        FileResource.ContentRange range = FileResource.ContentRange.parse(String.format("bytes=%s-%s", start, end));
+        assertThat(range.getStart(), is(start));
+        assertThat(range.getEnd(), is(end));
+    }
 
 
     @Test
-    public void testParsingSingleByte()
+    void testParsingOffset()
+            throws WrongContentRangeException {
+        FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-");
+        assertThat(range.getStart(), is(1234L));
+        assertThat(range.getEnd(), is(-1L));
+    }
+
+
+    @Test
+    void testParsingSingleByte()
             throws WrongContentRangeException {
         FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1234-1234");
         assertThat(range.getStart(), is(1234L));

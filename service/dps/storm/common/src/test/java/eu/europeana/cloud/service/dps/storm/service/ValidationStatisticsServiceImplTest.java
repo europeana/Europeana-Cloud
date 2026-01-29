@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.service;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.*;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
@@ -17,23 +13,23 @@ import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.*;
 
-  private static final long TASK_ID = 1;
+class ValidationStatisticsServiceImplTest extends CassandraTestBase {
 
-  private static final String ROOT_XPATH = "/root";
+    private static final long TASK_ID = 1;
 
-  private static final String NODE_1_XPATH = "/root/node1";
+    private static final String ROOT_XPATH = "/root";
 
-  private static final String NODE_2_XPATH = "/root/node2";
+    private static final String NODE_1_XPATH = "/root/node1";
 
-  private static final String NODE_3_XPATH = "/root/node3";
+    private static final String NODE_2_XPATH = "/root/node2";
+
+    private static final String NODE_3_XPATH = "/root/node3";
 
   private static final String NODE_4_XPATH = "/root/node3/node4";
 
@@ -158,17 +154,17 @@ public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
     return statistics;
   }
 
-  @Test
-  public void testShouldReturnFalseWhenReportNotPresent() {
-    // given
-    List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
+    @Test
+    void testShouldReturnFalseWhenReportNotPresent() {
+        // given
+        List<NodeStatistics> toStore = prepareNodeStatistics(createAttributeStatistics());
 
-    // when
-    validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
+        // when
+        validationStatisticsService.insertNodeStatistics(TASK_ID, toStore);
 
-    // then
-      assertFalse(statisticsReportDAO.isReportStored(TASK_ID));
-  }
+        // then
+        assertFalse(statisticsReportDAO.isReportStored(TASK_ID));
+    }
 
     @Test
     void testShouldStoreReportSuccessfully() {
@@ -234,44 +230,44 @@ public class ValidationStatisticsServiceImplTest extends CassandraTestBase {
     assertEquals(stats, actual.getNodeStatistics());
   }
 
-  @Test
-  public void shouldGetTaskStatisticsReportManyTimes() {
-    // given
-    List<NodeStatistics> stats = prepareStats();
-    validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
-    // when
-    StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
-    assertNotNull(actual);
-    actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
+    @Test
+    void shouldGetTaskStatisticsReportManyTimes() {
+        // given
+        List<NodeStatistics> stats = prepareStats();
+        validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
+        // when
+        StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
+        assertNotNull(actual);
+        actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
 
-    // then
-    assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
+        // then
+        assertNotNull(statisticsReportDAO.getStatisticsReport(TASK_ID));
     assertEquals(TASK_ID, actual.getTaskId());
     assertThat(actual.getNodeStatistics().size(), is(2));
     assertEquals(stats, actual.getNodeStatistics());
   }
 
 
-  @Test
-  public void shouldNotThrowExceptionWhenReportNotExists() {
-    // given
-    // when
-    StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
+    @Test
+    void shouldNotThrowExceptionWhenReportNotExists() {
+        // given
+        // when
+        StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
 
-    // then
-    assertNull(actual);
-  }
+        // then
+        assertNull(actual);
+    }
 
-  @Test
-  public void shouldProperlyRemoveStatistics() {
-    // given
-    validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
-    StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
-    assertNotNull(actual);
-    // when
-    validationStatisticsService.removeStatistics(TASK_ID);
-    // tnen
-    assertNull(validationStatisticsService.getTaskStatisticsReport(TASK_ID));
+    @Test
+    void shouldProperlyRemoveStatistics() {
+        // given
+        validationStatisticsService.insertNodeStatistics(TASK_ID, prepareStats());
+        StatisticsReport actual = validationStatisticsService.getTaskStatisticsReport(TASK_ID);
+        assertNotNull(actual);
+        // when
+        validationStatisticsService.removeStatistics(TASK_ID);
+        // tnen
+        assertNull(validationStatisticsService.getTaskStatisticsReport(TASK_ID));
 
 
   }

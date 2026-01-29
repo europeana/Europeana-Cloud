@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
-public class CassandraRecordDAOTest extends CassandraTestBase {
+class CassandraRecordDAOTest extends CassandraTestBase {
 
   @Autowired
   private CassandraRecordDAO recordDAO;
@@ -48,7 +48,7 @@ public class CassandraRecordDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldReturnAllVersionsForGivenRevisionNameAndRevisionProvider() {
+  void shouldReturnAllVersionsForGivenRevisionNameAndRevisionProvider() {
     Revision revision = new Revision("revName", "revProvider", new Date(), false);
 
     String version_0 = new com.eaio.uuid.UUID().toString();
@@ -73,7 +73,7 @@ public class CassandraRecordDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemoveAllRelevantEntriesFromRepresentationRevisionsTable() {
+  void shouldRemoveAllRelevantEntriesFromRepresentationRevisionsTable() {
     String version_0 = new com.eaio.uuid.UUID().toString();
     //
     Representation rep = new Representation();

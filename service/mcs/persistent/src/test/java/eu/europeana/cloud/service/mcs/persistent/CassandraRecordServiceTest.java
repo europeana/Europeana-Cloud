@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
-public class CassandraRecordServiceTest extends CassandraTestBase {
+class CassandraRecordServiceTest extends CassandraTestBase {
 
   private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
   private static final String DATA_SET_NAME = "dataset1";

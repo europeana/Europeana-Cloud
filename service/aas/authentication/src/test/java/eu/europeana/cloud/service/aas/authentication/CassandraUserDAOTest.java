@@ -49,7 +49,7 @@ class CassandraUserDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void testUserWithRoles() throws Exception {
+  void testUserWithRoles() throws Exception {
 
     SpringUser robinVanPersie = dao.getUser("Robin_Van_Persie");
     assertFalse(isAdmin(robinVanPersie));
@@ -59,7 +59,7 @@ class CassandraUserDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void createUserTest() throws Exception {
+  void createUserTest() throws Exception {
     //given
     final String password = "PassFrank";
     final String username = "Frank";

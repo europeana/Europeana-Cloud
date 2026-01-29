@@ -150,10 +150,10 @@ class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
+  void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
     revision.setCreationTimeStamp(null);
     mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
-           .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isMethodNotAllowed());
 
   }
 
@@ -164,9 +164,9 @@ class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
+  void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithTag, "UNDEFINED"))
-           .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -204,6 +204,7 @@ class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
     // given
     String datasetId = "dataset";
     String format = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
     FastDateFormat formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("UTC"));
     Date date = new Date();
     String revisionTimeStamp = formatter.format(date);

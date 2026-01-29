@@ -168,7 +168,7 @@ class MCSTaskSubmitterTest {
             MockedConstruction<RecordServiceClient> ignored3 = Mockito.mockConstruction(RecordServiceClient.class,
                     (mock, context) -> {
                       if (recordClientSetup != null) recordClientSetup.accept(mock);
-                    });
+                    })
     ) {
       testCode.run();
     }

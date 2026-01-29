@@ -51,19 +51,19 @@ class WriteRecordBoltTest {
       new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/mcs", "user", "password");
 
   @BeforeEach
-  public void init() {
+  void init() {
     MockitoAnnotations.initMocks(this);
   }
 
   @Test
-  public void successfullyExecuteWriteBolt() throws Exception {
+  void successfullyExecuteWriteBolt() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters(), new Revision());
+            prepareStormTaskTupleParameters(), new Revision());
     when(outputCollector.emit(anyList())).thenReturn(null);
     Representation representation = mock(Representation.class);
     when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-        representation);
+            representation);
     when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
     URI uri = new URI(SOURCE_VERSION_URL);
     when(recordServiceClient.createRepresentation(any(), any(), any(), any(), any(), any(InputStream.class), any(),
@@ -86,15 +86,15 @@ class WriteRecordBoltTest {
   }
 
   @Test
-  public void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
+  void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters(), new Revision());
+            prepareStormTaskTupleParameters(), new Revision());
     tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
     when(outputCollector.emit(anyList())).thenReturn(null);
     Representation representation = mock(Representation.class);
     when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-        representation);
+            representation);
     when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
     URI uri = new URI(SOURCE_VERSION_URL);
     when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString())).thenReturn(uri);
@@ -113,14 +113,14 @@ class WriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
+  void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters(), new Revision());
+            prepareStormTaskTupleParameters(), new Revision());
 
     Representation representation = mock(Representation.class);
     when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-        representation);
+            representation);
     when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
     doThrow(MCSException.class).when(recordServiceClient)
@@ -132,14 +132,14 @@ class WriteRecordBoltTest {
   }
 
   @Test
-  public void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
+  void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters(), new Revision());
+            prepareStormTaskTupleParameters(), new Revision());
 
     Representation representation = mock(Representation.class);
     when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-        representation);
+            representation);
     when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
 
     doThrow(DriverException.class).when(recordServiceClient)

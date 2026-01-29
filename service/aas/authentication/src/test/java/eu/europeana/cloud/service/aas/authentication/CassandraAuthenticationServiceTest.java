@@ -34,23 +34,22 @@ class CassandraAuthenticationServiceTest extends CassandraTestBase {
 
     /**
      * Test creation and retrieving of user.
-   *
-   */
-  @Test
-  public void testCreateAndRetrieve() throws Exception {
-    User gU = new User("test", "test");
-    service.createUser(gU);
-    User gURet = service.getUser("test");
-    assertEquals(gU.getUsername(), gURet.getUsername());
-      assertEquals(gU.getPassword(), gURet.getPassword());
-      assertThrows(UserExistsException.class, () -> service.createUser(gU));
-  }
+     */
+    @Test
+    void testCreateAndRetrieve() throws Exception {
+        User gU = new User("test", "test");
+        service.createUser(gU);
+        User gURet = service.getUser("test");
+        assertEquals(gU.getUsername(), gURet.getUsername());
+        assertEquals(gU.getPassword(), gURet.getPassword());
+        assertThrows(UserExistsException.class, () -> service.createUser(gU));
+    }
 
     /**
      * Test UserDoesNotExistException
      */
     @Test
-    public void testUserDoesNotExist() {
+    void testUserDoesNotExist() {
         assertThrows(UserDoesNotExistException.class, () -> service.getUser("test2"));
     }
 

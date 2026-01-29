@@ -100,10 +100,10 @@ class DPSClientTestIT {
   }
 
   @Test
-  public void shouldReadDetailedTaskReportBetweenChunks() throws DpsException {
+  void shouldReadDetailedTaskReportBetweenChunks() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
     List<SubTaskInfo> detailedTaskReport = client.getDetailedTaskReportBetweenChunks("enrichment_topology", -6984909380771953612L,
-        0, 10);
+            0, 10);
     assertThat(detailedTaskReport, is(notNullValue()));
   }
 
@@ -115,13 +115,13 @@ class DPSClientTestIT {
   }
 
   @Test
-  public void shouldReadTaskErrorReport() throws DpsException {
+  void shouldReadTaskErrorReport() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
     TaskErrorsInfo taskErrorsReport =
-        client.getTaskErrorsReport(
-            "validation_topology",
-            1083958946756839468L,
-            "6716d620-176f-11ea-a1c9-fa163efcf5a8", 100);
+            client.getTaskErrorsReport(
+                    "validation_topology",
+                    1083958946756839468L,
+                    "6716d620-176f-11ea-a1c9-fa163efcf5a8", 100);
     assertThat(taskErrorsReport, is(notNullValue()));
   }
 

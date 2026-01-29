@@ -52,7 +52,7 @@ class KafkaTopicSelectorTest {
     }
 
     @Test
-    public void shouldUseAllTopicsWithTheSameFrequencyIfAllOfThemAreFree() {
+    void shouldUseAllTopicsWithTheSameFrequencyIfAllOfThemAreFree() {
         when(tasksByStateDAO.findTasksByStateAndTopology(anyList(), anyString())).thenReturn(new ArrayList<>());
 
         selectTopics();

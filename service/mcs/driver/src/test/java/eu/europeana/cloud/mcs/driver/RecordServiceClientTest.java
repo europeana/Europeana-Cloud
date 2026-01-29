@@ -53,7 +53,7 @@ class RecordServiceClientTest {
 
   // getRecord
   @Test
-  public void shouldRetrieveRecord() throws MCSException {
+  void shouldRetrieveRecord() throws MCSException {
 
     //
     new WiremockHelper(wireMockExtension).stubGet(
@@ -86,7 +86,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldDeleteRecord() throws MCSException {
+  void shouldDeleteRecord() throws MCSException {
 
     String cloudId = "231PJ0QGW6N";
     String representationName = "schema77";
@@ -254,7 +254,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldThrowRecordNotExistsForCreateRepresentation() {
+  void shouldThrowRecordNotExistsForCreateRepresentation() {
 
     String cloudId = "noSuchRecord";
     String representationName = "schema_000001";
@@ -310,7 +310,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldThrowProviderNotExistsForCreateRepresentation() {
+  void shouldThrowProviderNotExistsForCreateRepresentation() {
     String cloudId = "7MZWQJF8P84";
     String representationName = "schema_000001";
     String providerId = "noSuchProvider";
@@ -358,7 +358,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldRetrieveSchemaVersions()
+  void shouldRetrieveSchemaVersions()
           throws MCSException {
 
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
@@ -413,7 +413,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldRetrieveRepresentationVersion() throws MCSException {
+  void shouldRetrieveRepresentationVersion() throws MCSException {
 
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
             username, password);
@@ -435,7 +435,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldRetrieveLatestRepresentationVersion() throws MCSException {
+  void shouldRetrieveLatestRepresentationVersion() throws MCSException {
     String cloudId = "J93T5R6615H";
     String representationName = "schema22";
     // this is the version of latest persistent version
@@ -458,13 +458,13 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldTreatLatestPersistentVersionAsLatestCreated() throws MCSException {
+  void shouldTreatLatestPersistentVersionAsLatestCreated() throws MCSException {
 
     String fileType = "text/plain";
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
-        username, password);
+            username, password);
     FileServiceClient fileService = new FileServiceClient(baseUrl,
-        username, password);
+            username, password);
 
     //
     new WiremockHelper(wireMockExtension).stubPost(
@@ -571,9 +571,9 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldDeleteRepresentationVersion() throws MCSException {
+  void shouldDeleteRepresentationVersion() throws MCSException {
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
-        username, password);
+            username, password);
 
     //
     new WiremockHelper(wireMockExtension).stubPost(
@@ -704,13 +704,13 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldPersistAfterAddingFiles() throws MCSException {
+  void shouldPersistAfterAddingFiles() throws MCSException {
 
     String representationName = "schema33";
     RecordServiceClient instance = new RecordServiceClient(baseUrl,
-        username, password);
+            username, password);
     FileServiceClient fileService = new FileServiceClient(baseUrl,
-        username, password);
+            username, password);
     String fileContent = "The content of the file.";
     String fileType = "text/plain";
 
@@ -877,7 +877,7 @@ class RecordServiceClientTest {
 
 
   @Test
-  public void shouldCreateNewRepresentationAndUploadAFile() throws IOException, MCSException {
+  void shouldCreateNewRepresentationAndUploadAFile() throws IOException, MCSException {
     RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
     InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
     //
@@ -893,7 +893,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldCreateNewRepresentationAndUploadAFile_1() throws IOException, MCSException {
+  void shouldCreateNewRepresentationAndUploadAFile_1() throws IOException, MCSException {
     RecordServiceClient client = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
     InputStream stream = new ByteArrayInputStream("example File Content".getBytes(StandardCharsets.UTF_8));
 
@@ -911,7 +911,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  public void shouldRetrieveRepresentationRevision() throws MCSException {
+  void shouldRetrieveRepresentationRevision() throws MCSException {
 
     RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
     //

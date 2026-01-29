@@ -26,16 +26,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraAclServiceTest extends CassandraTestBase {
+class CassandraAclServiceTest extends CassandraTestBase {
 
-  @Autowired
-  private CassandraMutableAclService mutableAclService;
+    @Autowired
+    private CassandraMutableAclService mutableAclService;
 
-  private final String creator = "markus";
+    private final String creator = "markus";
 
-  private final String testKey = CassandraAclServiceTest.class.getName();
+    private final String testKey = CassandraAclServiceTest.class.getName();
 
-  private final String testValue = "entry";
+    private final String testValue = "entry";
 
     /**
      * Test creation and retrieving of user.

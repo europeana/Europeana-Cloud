@@ -59,16 +59,16 @@ class DataSetsAATest extends AbstractSecurityTest {
 
 
     @BeforeEach
-  public void mockUp() throws Exception {
+    void mockUp() throws Exception {
 
-    DataSet dataset = new DataSet();
-    dataset.setId(DATASET_ID);
-    dataset.setProviderId(PROVIDER_ID);
-    dataset.setDescription(DESCRIPTION);
+        DataSet dataset = new DataSet();
+        dataset.setId(DATASET_ID);
+        dataset.setProviderId(PROVIDER_ID);
+        dataset.setDescription(DESCRIPTION);
 
-    // dataProvider.setId("testprov");
-    Mockito.doReturn(new DataProvider()).when(uisHandler)
-            .getProvider(Mockito.anyString());
+        // dataProvider.setId("testprov");
+        Mockito.doReturn(new DataProvider()).when(uisHandler)
+                .getProvider(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler)
                 .existsCloudId(Mockito.anyString());
         Mockito.doReturn(true).when(uisHandler)
@@ -87,7 +87,7 @@ class DataSetsAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void shouldBeAbleToCreateDatasetWhenAuthenticated()
+    void shouldBeAbleToCreateDatasetWhenAuthenticated()
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
         DataSet dS = new DataSet();
@@ -138,19 +138,19 @@ class DataSetsAATest extends AbstractSecurityTest {
     }
 
     @Test
-    public void shouldBeAbleToDeleteDatasetIfHeIsTheOwner()
-      throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
+    void shouldBeAbleToDeleteDatasetIfHeIsTheOwner()
+            throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetDeletionException, DataSetNotExistsException {
 
-    login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
-    datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
-  }
+        login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
+        datasetsResource.createDataSet(URI_INFO, PROVIDER_ID, DATASET_ID, DESCRIPTION);
+        datasetResource.deleteDataSet(PROVIDER_ID, DATASET_ID);
+    }
 
     /**
      * Makes sure Van Persie cannot delete datasets that belong to Cristiano Ronaldo.
      */
     @Test
-    public void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
+    void shouldThrowExceptionWhenVanPersieTriesToDeleteRonaldosDatasets()
             throws ProviderNotExistsException, DataSetAlreadyExistsException {
 
         login(RONALDO, RONALD_PASSWORD);

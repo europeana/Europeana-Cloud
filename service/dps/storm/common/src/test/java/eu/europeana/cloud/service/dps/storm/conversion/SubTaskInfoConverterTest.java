@@ -29,16 +29,16 @@ class SubTaskInfoConverterTest {
 
 
     @BeforeEach
-  public void init() {
-    ADDITIONAL_INFORMATION.put(NotificationsDAO.STATE_DESCRIPTION_KEY, DESCRIPTION_KEY_VALUE);
-    ADDITIONAL_INFORMATION.put(NotificationsDAO.EUROPEANA_ID_KEY, EUROPEANA_ID_KEY_VALUE);
-    ADDITIONAL_INFORMATION.put(NotificationsDAO.PROCESSING_TIME_KEY, TIME_KEY_VALUE);
-    when(notification.getResourceNum()).thenReturn(RESOURCE_NUM);
-    when(notification.getResource()).thenReturn(RESOURCE);
-    when(notification.getState()).thenReturn(STATE.toString());
-    when(notification.getAdditionalInformation()).thenReturn(ADDITIONAL_INFORMATION);
-    when(notification.getResultResource()).thenReturn(RESULT_RESOURCE);
-  }
+    void init() {
+        ADDITIONAL_INFORMATION.put(NotificationsDAO.STATE_DESCRIPTION_KEY, DESCRIPTION_KEY_VALUE);
+        ADDITIONAL_INFORMATION.put(NotificationsDAO.EUROPEANA_ID_KEY, EUROPEANA_ID_KEY_VALUE);
+        ADDITIONAL_INFORMATION.put(NotificationsDAO.PROCESSING_TIME_KEY, TIME_KEY_VALUE);
+        when(notification.getResourceNum()).thenReturn(RESOURCE_NUM);
+        when(notification.getResource()).thenReturn(RESOURCE);
+        when(notification.getState()).thenReturn(STATE.toString());
+        when(notification.getAdditionalInformation()).thenReturn(ADDITIONAL_INFORMATION);
+        when(notification.getResultResource()).thenReturn(RESULT_RESOURCE);
+    }
 
     @Test
     void shouldProperlyConvertFromNotification() {

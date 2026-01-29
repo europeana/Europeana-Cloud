@@ -24,21 +24,21 @@ class UncaughtExceptionMapperTest extends AbstractResourceTest {
 
 
   @BeforeEach
-  public void mockUp() {
+  void mockUp() {
     recordService = applicationContext.getBean(RecordService.class);
     Mockito.reset(recordService);
   }
 
 
   @Test
-  public void shouldReturnErrorInfoOnEveryException()
-      throws Exception {
+  void shouldReturnErrorInfoOnEveryException()
+          throws Exception {
     Throwable exception = new RuntimeException("error details");
     when(recordService.getRecord(anyString())).thenThrow(exception);
 
     ResultActions response = mockMvc.perform(get(URITools.getRepresentationsPath("id"))
-                                        .accept(MediaType.APPLICATION_XML))
-                                    .andExpect(status().isInternalServerError());
+                    .accept(MediaType.APPLICATION_XML))
+            .andExpect(status().isInternalServerError());
 
     ErrorInfo errorInfo = responseContentAsErrorInfo(response, APPLICATION_XML);
     assertThat(errorInfo.getErrorCode(), is(McsErrorCode.OTHER.toString()));

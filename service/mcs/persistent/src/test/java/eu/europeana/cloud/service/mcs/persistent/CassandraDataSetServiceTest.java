@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
-public class CassandraDataSetServiceTest extends CassandraTestBase {
+class CassandraDataSetServiceTest extends CassandraTestBase {
 
   @Autowired
   private CassandraRecordService cassandraRecordService;

@@ -261,7 +261,7 @@ class FileServiceClientTest {
   }
 
   @Test
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion() {
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion() {
     String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
     //
     new WiremockHelper(wireMockExtension).stubGet(
