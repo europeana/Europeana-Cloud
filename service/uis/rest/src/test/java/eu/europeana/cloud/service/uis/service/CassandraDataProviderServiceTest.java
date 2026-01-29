@@ -57,7 +57,7 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    * @throws ProviderDoesNotExistException
    */
   @Test
-  public void shouldFailWhenFetchingNonExistingProvider() throws ProviderDoesNotExistException {
+  public void shouldFailWhenFetchingNonExistingProvider() {
     assertThrows(ProviderDoesNotExistException.class, () -> cassandraDataProviderService.getProvider("provident"));
 
   }

@@ -88,7 +88,7 @@ class CassandraAuthenticationServiceTest extends CassandraTestBase {
     }
 
     @Test
-    void shouldThrowExceptionInCaseOfLockingNonExistingUser() throws Exception {
+    void shouldThrowExceptionInCaseOfLockingNonExistingUser() {
         assertThrows(UserDoesNotExistException.class, () -> service.lockUser("nonExistingUser"));
     }
 

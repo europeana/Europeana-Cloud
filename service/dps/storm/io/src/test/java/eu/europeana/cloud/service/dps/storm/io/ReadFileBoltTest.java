@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.net.URISyntaxException;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -38,11 +37,11 @@ class ReadFileBoltTest {
     private StormTaskTuple stormTaskTuple;
     private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";
 
-    @BeforeEach
-    void init() throws IllegalAccessException, MCSException, URISyntaxException {
-        MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
-        stormTaskTuple = prepareTuple();
-    }
+  @BeforeEach
+  void init() {
+    MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
+    stormTaskTuple = prepareTuple();
+  }
 
     @Test
     void shouldEmmitNotificationWhenDataSetListHasOneElement() throws MCSException {

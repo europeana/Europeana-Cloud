@@ -175,8 +175,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   @Test
-  void shouldThrowExpWhileDeletingRecordIfNoRecordInUis()
-          throws Exception {
+  void shouldThrowExpWhileDeletingRecordIfNoRecordInUis() {
     makeUISThrowIllegalStateException();
     assertThrows(IllegalStateException.class,
             () -> cassandraRecordService.deleteRecord("globalId"));
@@ -465,8 +464,7 @@ public class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   @Test
-  void shouldThrowExcWhenDeletingRecordHasNoRepresentations()
-          throws Exception {
+  void shouldThrowExcWhenDeletingRecordHasNoRepresentations() {
     makeUISSuccess();
     mockUISProvider1Success();
     // given

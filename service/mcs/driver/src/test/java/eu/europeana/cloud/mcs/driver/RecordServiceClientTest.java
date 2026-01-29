@@ -103,8 +103,7 @@ class RecordServiceClientTest {
   }
 
   @Test
-  void shouldThrowRepresentationNotExistsForDeleteRecordWhenNoRepresentations()
-          throws MCSException {
+  void shouldThrowRepresentationNotExistsForDeleteRecordWhenNoRepresentations() {
 
     String cloudId = "25DG622J4VM";
     String representationName = "schema1";

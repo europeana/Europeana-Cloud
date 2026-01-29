@@ -39,7 +39,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
   }
 
   @Test
-  void shouldFailWithBadTargetIndexingDatabaseCase01() throws DpsTaskValidationException {
+  void shouldFailWithBadTargetIndexingDatabaseCase01() {
     DpsTask dpsTask = prepareDpsTaskForTests(
             Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
             true,
@@ -81,7 +81,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
   }
 
   @Test
-  void shouldFailWithoutRevisionData() throws DpsTaskValidationException {
+  void shouldFailWithoutRevisionData() {
     DpsTask dpsTask = prepareDpsTaskForTests(
             Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE),
             true,

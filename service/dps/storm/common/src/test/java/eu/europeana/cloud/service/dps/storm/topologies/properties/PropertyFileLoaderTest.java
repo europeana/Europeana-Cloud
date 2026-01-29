@@ -57,7 +57,7 @@ class PropertyFileLoaderTest {
 
 
     @Test
-    void testLoadingFileWhenProvidedPropertyFileNotExisted() throws IOException {
+    void testLoadingFileWhenProvidedPropertyFileNotExisted() {
         PropertyFileLoader.loadPropertyFile(DEFAULT_PROPERTIES_FILE, "NON_EXISTED_PROVIDED_FILE", topologyProperties);
         assertNotNull(topologyProperties);
         assertFalse(topologyProperties.isEmpty());

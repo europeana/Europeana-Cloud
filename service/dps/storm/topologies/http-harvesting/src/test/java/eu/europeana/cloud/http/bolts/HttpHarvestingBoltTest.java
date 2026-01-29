@@ -70,7 +70,7 @@ class HttpHarvestingBoltTest {
                   .build();
 
   @BeforeEach
-  void setup() throws IllegalAccessException {
+  void setup() {
     wireMockExtension.resetAll();
     fileUrl = "http://localhost:" + wireMockExtension.getPort() + "/http_harvest/task_-5964014235733572511/record.xml";
     tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());

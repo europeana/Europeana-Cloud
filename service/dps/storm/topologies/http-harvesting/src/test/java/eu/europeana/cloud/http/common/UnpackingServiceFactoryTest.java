@@ -38,7 +38,7 @@ class UnpackingServiceFactoryTest {
   }
 
   @Test
-  void shouldThrowExceptionIfTheExTensionWasNotRecognized() throws CompressionExtensionNotRecognizedException {
+  void shouldThrowExceptionIfTheExTensionWasNotRecognized() {
     assertThrows(CompressionExtensionNotRecognizedException.class, () -> UnpackingServiceFactory.createUnpackingService(UNDEFINED_COMPRESSION_EXTENSION));
   }
 

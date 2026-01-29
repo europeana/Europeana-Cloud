@@ -222,8 +222,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  void shouldThrowExceptionWhenDeletingNotExistingDataSet()
-          throws Exception {
+  void shouldThrowExceptionWhenDeletingNotExistingDataSet() {
     assertThrows(DataSetNotExistsException.class,
             () -> cassandraDataSetService.deleteDataSet("xxx", "xxx"));
   }

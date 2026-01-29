@@ -65,7 +65,7 @@ class HarvestingWriteRecordBoltTest {
           "password");
 
   @BeforeEach
-  void init() throws Exception {
+  void init() {
     MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
     when(outputCollector.emit(anyList())).thenReturn(null);
     MockitoAnnotations.initMocks(this);
