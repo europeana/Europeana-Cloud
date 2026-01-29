@@ -41,16 +41,16 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CassandraHarvestExecutorContext.class})
-public class HarvestsExecutorTest {
+class HarvestsExecutorTest {
 
-  public static final String DATASET_URL = "https://xyx.abc/mcs/data-providers/prov/data-sets/dat";
-  public static final String METIS_DATASET_ID = "114411";
-  private static final String TOPIC = "topic_1";
-  private static final Instant DATE_AFTER_FULL = Instant.ofEpochMilli(2000);
-  private static final String OAI_ID_1 = "http://test.abc/oai/ag50034509234";
-  private static final String OAI_ID_2 = "http://test.abc/oai/ag50034507777";
+    public static final String DATASET_URL = "https://xyx.abc/mcs/data-providers/prov/data-sets/dat";
+    public static final String METIS_DATASET_ID = "114411";
+    private static final String TOPIC = "topic_1";
+    private static final Instant DATE_AFTER_FULL = Instant.ofEpochMilli(2000);
+    private static final String OAI_ID_1 = "http://test.abc/oai/ag50034509234";
+    private static final String OAI_ID_2 = "http://test.abc/oai/ag50034507777";
 
-  private final OaiHarvest harvest = new OaiHarvest.Builder().createOaiHarvest();
+    private final OaiHarvest harvest = new OaiHarvest.Builder().createOaiHarvest();
 
   @Mock
   private OaiHarvester harvester;

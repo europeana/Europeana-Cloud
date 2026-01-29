@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 @WebAppConfiguration
 @ContextConfiguration(classes = {CleanTaskDirService.class, CleanTaskDirServiceTestContext.class})
 @TestPropertySource(properties = {"harvestingTasksDir=" + CleanTaskDirServiceTest.TEST_BASE_DIR})
-public class CleanTaskDirServiceTest {
+class CleanTaskDirServiceTest {
 
   private static final String TEST_ANY_DIR = "/any/dir";
   static final String TEST_BASE_DIR = "./test_http_harvest";

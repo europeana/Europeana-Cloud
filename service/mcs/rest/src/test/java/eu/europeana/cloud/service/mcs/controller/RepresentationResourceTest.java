@@ -37,16 +37,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
-public class RepresentationResourceTest extends AbstractResourceTest {
+class RepresentationResourceTest extends AbstractResourceTest {
 
-  private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
+    private static final UUID VERSION = UUID.fromString(new com.eaio.uuid.UUID().toString());
 
-  private RecordService recordService;
+    private RecordService recordService;
 
-  static final private String globalId = "1";
-  static final private String schema = "DC";
-  static final private String version = "1.0";
-  static final private String providerID = "DLF";
+    static final private String globalId = "1";
+    static final private String schema = "DC";
+    static final private String version = "1.0";
+    static final private String providerID = "DLF";
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
             null)), null, true, new Date(), null);

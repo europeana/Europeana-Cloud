@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Tests for validation of depublication tasks
  */
-public class DpsTaskValidationForDepublicationTopologyTest {
+class DpsTaskValidationForDepublicationTopologyTest {
 
   @Test
   public void shouldFailBecauseOfMissingRequiredParametersForDatasetDepublication() {

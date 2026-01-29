@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author krystian.
  */
-public class StreamCompressorTest {
+class StreamCompressorTest {
 
   StreamCompressor instance = new StreamCompressor();
 

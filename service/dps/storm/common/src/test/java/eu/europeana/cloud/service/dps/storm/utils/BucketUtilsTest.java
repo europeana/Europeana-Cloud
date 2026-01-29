@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class BucketUtilsTest {
+class BucketUtilsTest {
 
   @Test
   //WARNING This hash function is used as partition key in Cassandra, so after any change in method behaviour data in

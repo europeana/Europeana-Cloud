@@ -34,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, ReportResource.class, TaskStatusUpdater.class,
-    MCSTaskSubmitter.class})
+        MCSTaskSubmitter.class})
 @TestPropertySource(properties = {"numberOfElementsOnPage=100", "maxIdentifiersCount=100"})
-public class ReportResourceTest extends AbstractResourceTest {
+class ReportResourceTest extends AbstractResourceTest {
 
   /* Endpoints */
   private final static String WEB_TARGET = ReportResource.class.getAnnotation(RequestMapping.class).value()[0];

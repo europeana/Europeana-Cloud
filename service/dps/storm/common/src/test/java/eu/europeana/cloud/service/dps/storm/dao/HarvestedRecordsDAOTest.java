@@ -18,10 +18,10 @@ import static eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDataba
 import static eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord.builder;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class HarvestedRecordsDAOTest extends CassandraTestBase {
+class HarvestedRecordsDAOTest extends CassandraTestBase {
 
-  private static final String METIS_DATASET_ID = "114411";
-  private static final String OAI_ID_1 = "http://data.europeana.eu/item/2058621/LoCloud_census_1891_00037ace_1df9_438f_96eb_ea37bc646ec9";
+    private static final String METIS_DATASET_ID = "114411";
+    private static final String OAI_ID_1 = "http://data.europeana.eu/item/2058621/LoCloud_census_1891_00037ace_1df9_438f_96eb_ea37bc646ec9";
     private static final String OAI_ID_2 = "http://data.europeana.eu/item/2058621/object_NRA_9857684";
     private static final String OAI_ID_3 = "http://data.europeana.eu/item/2058621/LoCloud_census_1891_008283c8_8ed6_49ab_9082_44ab4317d62a";
     private static final Date HARVESTED_DATE = new Date(0);

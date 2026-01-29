@@ -17,7 +17,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
+class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
   private static final String METIS_DATASET_ID = "114411";
   private static final Date HARVESTED_DATE = new Date(0);

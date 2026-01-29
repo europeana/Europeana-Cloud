@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RecordSubmitServiceTest {
+class RecordSubmitServiceTest {
 
   private static final String TOPOLOGY = "a_topology";
   private static final long TASK_ID = 1234567890;

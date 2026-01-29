@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author akrystian
  */
 @ExtendWith(CassandraTestExtension.class)
-public class DataSetRevisionsResourceTest extends CassandraBasedAbstractResourceTest {
+class DataSetRevisionsResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataSetService dataSetService;
 

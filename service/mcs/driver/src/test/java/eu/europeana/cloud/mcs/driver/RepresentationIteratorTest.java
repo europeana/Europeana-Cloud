@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class RepresentationIteratorTest {
+class RepresentationIteratorTest {
 
     public static final String NEXT_SLICE = "nextSlice";
     private DataSetServiceClient dataSetServiceClient;

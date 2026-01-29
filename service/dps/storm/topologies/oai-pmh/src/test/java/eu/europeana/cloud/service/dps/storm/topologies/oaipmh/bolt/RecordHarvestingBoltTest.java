@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
  * Tests for {@link RecordHarvestingBolt}
  */
 
-public class RecordHarvestingBoltTest {
+class RecordHarvestingBoltTest {
 
   @Mock
   private OutputCollector outputCollector;

@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(CassandraTestExtension.class)
-public class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
+class FileUploadResourceTest extends CassandraBasedAbstractResourceTest {
 
   private String fileWebTarget;
 

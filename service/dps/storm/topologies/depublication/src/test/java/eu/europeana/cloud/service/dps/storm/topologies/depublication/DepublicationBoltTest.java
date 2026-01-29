@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-public class DepublicationBoltTest {
+class DepublicationBoltTest {
 
   public static final long TASK_ID = 10L;
   private static final String METIS_DATASET_ID = "100";
@@ -33,8 +33,8 @@ public class DepublicationBoltTest {
   private static final UUID LATEST_HARVEST_MD5 = UUID.randomUUID();
   private static final DepublicationReason REASON = DepublicationReason.PERMISSION_ISSUES;
   private static final Map<String, String> INPUT_TUPLE_PARAMETERS = Map.of(
-      PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID,
-      PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
+          PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID,
+          PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
       PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
   public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(TASK_ID, "taskName",

@@ -23,16 +23,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskFinishServiceTest {
+class TaskFinishServiceTest {
 
 
-  public static final long TASK_ID = 100L;
-  public static final String APPLICATION_ID = "TestApp";
-  @Mock
-  private TasksByStateDAO tasksByStateDAO;
+    public static final long TASK_ID = 100L;
+    public static final String APPLICATION_ID = "TestApp";
+    @Mock
+    private TasksByStateDAO tasksByStateDAO;
 
-  @Mock
-  private PostProcessingService postProcessingService;
+    @Mock
+    private PostProcessingService postProcessingService;
 
     @Mock
     private TaskStatusUpdater taskStatusUpdater;

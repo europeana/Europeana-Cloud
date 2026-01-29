@@ -20,16 +20,16 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class KafkaTopicSelectorTest {
+class KafkaTopicSelectorTest {
 
-  private static final int SAMPLES_COUNT = 10_000;
-  private static final double TOLERANCE = 0.02;
-  private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
-  private static final String TOPOLOGY = "topology";
-  private static final String TOPIC_1 = "topic_1";
-  private static final String TOPIC_2 = "topic_2";
-  private static final String TOPIC_3 = "topic_3";
-  private static final String TOPIC_4 = "topic_4";
+    private static final int SAMPLES_COUNT = 10_000;
+    private static final double TOLERANCE = 0.02;
+    private static final String TOPIC_CONFIG = "topology:topic_1,topic_2,topic_3,topic_4";
+    private static final String TOPOLOGY = "topology";
+    private static final String TOPIC_1 = "topic_1";
+    private static final String TOPIC_2 = "topic_2";
+    private static final String TOPIC_3 = "topic_3";
+    private static final String TOPIC_4 = "topic_4";
 
 
   @Mock

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class IndexingPostProcessorTest {
+class IndexingPostProcessorTest {
 
   public static final String RECORD_ID_1 = "recordId1";
   private static final String RECORD_ID_2 = "recordId2";

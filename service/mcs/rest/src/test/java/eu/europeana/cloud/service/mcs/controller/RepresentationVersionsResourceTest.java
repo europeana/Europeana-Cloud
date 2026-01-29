@@ -34,17 +34,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-public class RepresentationVersionsResourceTest extends AbstractResourceTest {
+class RepresentationVersionsResourceTest extends AbstractResourceTest {
 
-  private RecordService recordService;
+    private RecordService recordService;
 
-  static final private String GLOBAL_ID = "1";
-  static final private String SCHEMA = "DC";
-  static final private String VERSION = "1.0";
+    static final private String GLOBAL_ID = "1";
+    static final private String SCHEMA = "DC";
+    static final private String VERSION = "1.0";
 
-  private static final String LIST_VERSIONS_PATH = URITools.getListVersionsPath(GLOBAL_ID, SCHEMA).toString();
-  static final private List<Representation> REPRESENTATIONS = ImmutableList.of(new Representation(GLOBAL_ID, SCHEMA,
-      VERSION, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
+    private static final String LIST_VERSIONS_PATH = URITools.getListVersionsPath(GLOBAL_ID, SCHEMA).toString();
+    static final private List<Representation> REPRESENTATIONS = ImmutableList.of(new Representation(GLOBAL_ID, SCHEMA,
+            VERSION, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
           "2013-01-01", 12345, null)), null, true, new Date(), null));
 
 

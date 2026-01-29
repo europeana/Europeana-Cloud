@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>
  * emmanouil.koufakis@theeuropeanlibrary.org
  */
-public class UISClientTest {
+class UISClientTest {
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =

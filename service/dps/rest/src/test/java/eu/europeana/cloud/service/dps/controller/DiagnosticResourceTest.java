@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class DiagnosticResourceTest {
+class DiagnosticResourceTest {
 
   @InjectMocks
   DiagnosticResource resource;

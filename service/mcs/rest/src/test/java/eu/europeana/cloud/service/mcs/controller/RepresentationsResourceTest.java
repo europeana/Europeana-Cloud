@@ -32,16 +32,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-public class RepresentationsResourceTest extends AbstractResourceTest {
+class RepresentationsResourceTest extends AbstractResourceTest {
 
-  private RecordService recordService;
+    private RecordService recordService;
 
-  static final private String globalId = "1";
-  static final private String schema = "DC";
-  static final private String version = "1.0";
-  static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
-      version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-          "2013-01-01", 12345, null)), null, true, new Date(), null)));
+    static final private String globalId = "1";
+    static final private String schema = "DC";
+    static final private String version = "1.0";
+    static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
+            version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
+            "2013-01-01", 12345, null)), null, true, new Date(), null)));
 
 
     @BeforeEach

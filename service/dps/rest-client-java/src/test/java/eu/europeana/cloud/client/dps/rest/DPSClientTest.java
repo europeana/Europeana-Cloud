@@ -27,7 +27,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DPSClientTest {
+class DPSClientTest {
 
   private static final String BASE_URL = "http://localhost:8181/services/";
   private static final String USERNAME_ADMIN = "admin";

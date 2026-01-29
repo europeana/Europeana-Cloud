@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class DepublicationFilesCounterTest {
+class DepublicationFilesCounterTest {
 
     private static final int DATASET_EXPECTED_SIZE = 500;
 

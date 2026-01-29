@@ -13,17 +13,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SubTaskInfoConverterTest {
+class SubTaskInfoConverterTest {
 
 
-  public static final HashMap<String, String> ADDITIONAL_INFORMATION = new HashMap<>();
-  public static final int RESOURCE_NUM = 2;
-  public static final String RESOURCE = "some_resource";
-  public static final String RESULT_RESOURCE = "some_result_resource";
-  public static final RecordState STATE = RecordState.QUEUED;
-  public static final String DESCRIPTION_KEY_VALUE = "some_description_key";
-  public static final String EUROPEANA_ID_KEY_VALUE = "some_europeana_id_key";
-  public static final String TIME_KEY_VALUE = "1112";
+    public static final HashMap<String, String> ADDITIONAL_INFORMATION = new HashMap<>();
+    public static final int RESOURCE_NUM = 2;
+    public static final String RESOURCE = "some_resource";
+    public static final String RESULT_RESOURCE = "some_result_resource";
+    public static final RecordState STATE = RecordState.QUEUED;
+    public static final String DESCRIPTION_KEY_VALUE = "some_description_key";
+    public static final String EUROPEANA_ID_KEY_VALUE = "some_europeana_id_key";
+    public static final String TIME_KEY_VALUE = "1112";
 
   Notification notification = mock(Notification.class);
 

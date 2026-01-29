@@ -8,17 +8,17 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class TopologiesTopicsParserTest {
+class TopologiesTopicsParserTest {
 
-  private static String VALID_INPUT = "oai_topology:oai_topology_1,oai_topology_2,oai_topology_3;another_topology:topic1,topic2";
-  private static String VALID_INPUT_1 = "oai_topology:oai_topology_1,oai_topology_2,oai_topology_3;another_topology:";
-  private static String INVALID_INPUT_1 = "invalid_topics_list";
+    private static String VALID_INPUT = "oai_topology:oai_topology_1,oai_topology_2,oai_topology_3;another_topology:topic1,topic2";
+    private static String VALID_INPUT_1 = "oai_topology:oai_topology_1,oai_topology_2,oai_topology_3;another_topology:";
+    private static String INVALID_INPUT_1 = "invalid_topics_list";
 
-  @Test
-  public void shouldSuccessfullyParseTopicsList() {
-      TopologiesTopicsParser t = new TopologiesTopicsParser();
-      Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT);
-      assertEquals(2, topologiesTopicsList.size());
+    @Test
+    public void shouldSuccessfullyParseTopicsList() {
+        TopologiesTopicsParser t = new TopologiesTopicsParser();
+        Map<String, List<String>> topologiesTopicsList = t.parse(VALID_INPUT);
+        assertEquals(2, topologiesTopicsList.size());
       assertNotNull(topologiesTopicsList.get("oai_topology"));
       assertNotNull(topologiesTopicsList.get("another_topology"));
 

@@ -14,10 +14,10 @@ import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.
 import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreErrorType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CassandraTaskErrorsDAOTest extends CassandraTestBase {
+class CassandraTaskErrorsDAOTest extends CassandraTestBase {
 
-  public static final String ERROR_TYPE_1 = "03e473e0-a201-11e7-a8ab-0242ac110009";
-  public static final String ERROR_TYPE_2 = "03e473e0-a201-11e7-a8ab-0242ac110010";
+    public static final String ERROR_TYPE_1 = "03e473e0-a201-11e7-a8ab-0242ac110009";
+    public static final String ERROR_TYPE_2 = "03e473e0-a201-11e7-a8ab-0242ac110010";
     private static final String ERROR_TYPE_3 = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b3";
     private static final String ERROR_TYPE_4 = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b4";
     private static final String ERROR_TYPE_5 = "1c71e7b0-7633-11ed-b1fe-a7fdf50126b5";

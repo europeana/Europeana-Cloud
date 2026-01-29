@@ -21,10 +21,10 @@ import java.time.Instant;
 
 import static org.mockito.Mockito.*;
 
-public class HttpHarvestedRecordCategorizationBoltTest {
+class HttpHarvestedRecordCategorizationBoltTest {
 
-  @Captor
-  ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
+    @Captor
+    ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
     @Mock(name = "harvestedRecordCategorizationService")
     private HarvestedRecordCategorizationService harvestedRecordCategorizationService;
     @Mock(name = "outputCollector")

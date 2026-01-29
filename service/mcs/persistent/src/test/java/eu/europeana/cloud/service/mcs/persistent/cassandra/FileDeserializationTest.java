@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author krystian.
  */
-public class FileDeserializationTest {
+class FileDeserializationTest {
 
   private final Gson gson = new Gson();
 

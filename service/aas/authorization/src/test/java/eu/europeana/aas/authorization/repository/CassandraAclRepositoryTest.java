@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestContextConfiguration.class})
-public class CassandraAclRepositoryTest extends CassandraTestBase {
+class CassandraAclRepositoryTest extends CassandraTestBase {
 
 
     @Autowired

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ResourceProcessingBoltTest {
+class ResourceProcessingBoltTest {
 
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
   private static final long TASK_ID = 1;

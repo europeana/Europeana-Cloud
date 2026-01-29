@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {RetryableTestContextConfiguration.class})
-public class CassandraAclRepositoryRetryableTest {
+class CassandraAclRepositoryRetryableTest {
 
 
     @Autowired

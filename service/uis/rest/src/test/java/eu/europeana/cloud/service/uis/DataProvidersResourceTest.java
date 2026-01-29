@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {TestConfiguration.class})
-public class DataProvidersResourceTest {
+class DataProvidersResourceTest {
 
   MockMvc mockMvc;
   @Autowired

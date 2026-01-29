@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * RevisionResourceTest
  */
 @ExtendWith(CassandraTestExtension.class)
-public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
+class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
   private Representation rep;

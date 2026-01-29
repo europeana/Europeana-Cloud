@@ -11,7 +11,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
-public class TopologyManagerTest {
+class TopologyManagerTest {
 
   final String nameList = "topologyA,topologyB";
   TopologyManager instance;

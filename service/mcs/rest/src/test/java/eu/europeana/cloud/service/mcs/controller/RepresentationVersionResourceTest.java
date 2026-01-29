@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
-public class RepresentationVersionResourceTest extends AbstractResourceTest {
+class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   private RecordService recordService;
 
@@ -48,8 +48,8 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
   private static final String VERSION = "1.0";
   private static final String FILE_NAME = "1.xml";
   private static final String PERSIST_PATH =
-      UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
-                          .build(GLOBAL_ID, SCHEMA, VERSION).toString();
+          UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
+                  .build(GLOBAL_ID, SCHEMA, VERSION).toString();
 
 
   private static final Representation REPRESENTATION = new Representation(GLOBAL_ID, SCHEMA, VERSION, null, null,

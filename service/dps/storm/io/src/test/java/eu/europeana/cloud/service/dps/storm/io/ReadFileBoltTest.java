@@ -22,7 +22,7 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-public class ReadFileBoltTest {
+class ReadFileBoltTest {
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -30,9 +30,9 @@ public class ReadFileBoltTest {
   @Mock(name = "fileClient")
   private FileServiceClient fileServiceClient;
 
-    private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
+  private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
 
-    @InjectMocks
+  @InjectMocks
     private ReadFileBolt readFileBolt = new ReadFileBolt(new CassandraProperties(), "MCS_URL", "user", "password");
 
     private StormTaskTuple stormTaskTuple;

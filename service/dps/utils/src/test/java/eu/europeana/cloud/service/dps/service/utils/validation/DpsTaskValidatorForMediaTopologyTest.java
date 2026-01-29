@@ -16,9 +16,9 @@ import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class DpsTaskValidatorForMediaTopologyTest {
+class DpsTaskValidatorForMediaTopologyTest {
 
-  private static final String TASK_NAME = "taskName";
+    private static final String TASK_NAME = "taskName";
 
     private DpsTask dpsTaskForMediaTopologyWithDataset;
     private DpsTask dpsTaskForMediaTopologyWithoutInputData;

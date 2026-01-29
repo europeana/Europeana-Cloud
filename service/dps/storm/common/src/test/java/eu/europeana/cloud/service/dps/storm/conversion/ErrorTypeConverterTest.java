@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ErrorTypeConverterTest {
+class ErrorTypeConverterTest {
 
     public static final int COUNT = 5;
     private static final long TASK_ID = 111L;

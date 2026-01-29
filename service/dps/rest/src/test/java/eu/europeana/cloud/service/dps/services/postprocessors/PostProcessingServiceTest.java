@@ -25,15 +25,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class PostProcessingServiceTest {
+class PostProcessingServiceTest {
 
   private final long TASK_ID_1 = 1L;
   private final long TASK_ID_2 = 2L;
   private final TaskInfo TASK_INFO_1 = TaskInfo.builder().build();
   private final TaskByTaskState TASK_BY_TASK_STATE_1
-      = TaskByTaskState.builder().id(TASK_ID_1).topologyName(TopologiesNames.HTTP_TOPOLOGY).build();
+          = TaskByTaskState.builder().id(TASK_ID_1).topologyName(TopologiesNames.HTTP_TOPOLOGY).build();
   private final TaskByTaskState TASK_BY_TASK_STATE_2
-      = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
+          = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
 
   private final String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
 

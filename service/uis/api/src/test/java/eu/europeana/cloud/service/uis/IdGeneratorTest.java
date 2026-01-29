@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class IdGeneratorTest {
+class IdGeneratorTest {
 
   /**
    * Encode collision test. Related to jira issue ECL-392. Test might took long time and resource.

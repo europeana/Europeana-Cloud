@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {TestConfiguration.class})
-public class UniqueIdentifierResourceTest {
+class UniqueIdentifierResourceTest {
 
   private final String providerId = "providerId";
   private final String recordId = "recordId";

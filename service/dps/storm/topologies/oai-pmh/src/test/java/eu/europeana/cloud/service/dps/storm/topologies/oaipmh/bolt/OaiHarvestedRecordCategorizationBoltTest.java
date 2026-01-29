@@ -22,7 +22,7 @@ import java.time.Instant;
 
 import static org.mockito.Mockito.*;
 
-public class OaiHarvestedRecordCategorizationBoltTest {
+class OaiHarvestedRecordCategorizationBoltTest {
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);

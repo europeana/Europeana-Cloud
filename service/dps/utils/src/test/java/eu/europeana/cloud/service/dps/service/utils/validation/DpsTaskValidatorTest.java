@@ -18,7 +18,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.*;
 import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DpsTaskValidatorTest {
+class DpsTaskValidatorTest {
 
   private DpsTask dpsTask;
   private DpsTask icTopologyTask;

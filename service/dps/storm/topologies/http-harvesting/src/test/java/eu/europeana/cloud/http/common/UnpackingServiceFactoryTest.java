@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class UnpackingServiceFactoryTest {
+class UnpackingServiceFactoryTest {
 
   private final static String ZIP_EXTENSION = "zip";
   private final static String GZIP_EXTENSION = "gz";

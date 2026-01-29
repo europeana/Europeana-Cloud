@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-public class DpsResourceAATest extends AbstractSecurityTest {
+class DpsResourceAATest extends AbstractSecurityTest {
 
   /* Constants */
   private final static String VAN_PERSIE = "Robin_Van_Persie";

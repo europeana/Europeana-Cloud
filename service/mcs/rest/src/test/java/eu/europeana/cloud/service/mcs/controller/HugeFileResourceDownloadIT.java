@@ -27,13 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * This tests checks if content is streamed (not put entirely into memory) when downloading file.
  */
-public class HugeFileResourceDownloadIT extends AbstractResourceTest {
+class HugeFileResourceDownloadIT extends AbstractResourceTest {
 
   private static RecordService recordService;
 
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
-    @BeforeEach
+  @BeforeEach
   public void mockUp() {
     recordService = applicationContext.getBean(RecordService.class);
   }

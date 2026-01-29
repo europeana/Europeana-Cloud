@@ -16,7 +16,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class DpsTaskValidatorForIndexingTopologyTest {
+class DpsTaskValidatorForIndexingTopologyTest {
 
   private static final String TASK_NAME = "taskName";
   private static final String FILE_01 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-01.txt";

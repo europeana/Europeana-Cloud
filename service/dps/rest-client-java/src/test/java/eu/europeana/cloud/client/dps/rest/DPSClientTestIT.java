@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * adding more integration test. Probably we will also create separate module for integration tests.<br/>
  */
 @Disabled
-public class DPSClientTestIT {
+class DPSClientTestIT {
 
   private static final String DPS_LOCATION = "http://127.0.0.1:8080/services";
   private static final String USER = "user";

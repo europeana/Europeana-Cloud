@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 
-public class ParseFileBoltTest {
+class ParseFileBoltTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParseFileBoltTest.class);
 

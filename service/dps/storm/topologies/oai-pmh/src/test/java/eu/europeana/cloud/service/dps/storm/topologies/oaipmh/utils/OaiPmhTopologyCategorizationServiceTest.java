@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public class OaiPmhTopologyCategorizationServiceTest {
+class OaiPmhTopologyCategorizationServiceTest {
 
     @Test
     void shouldCategorizeRecordAsReadyForProcessingInCaseOfNoDefinitionInDB() {

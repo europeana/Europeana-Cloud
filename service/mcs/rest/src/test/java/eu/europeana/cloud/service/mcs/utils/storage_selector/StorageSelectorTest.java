@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author krystian.
  */
-public class StorageSelectorTest {
+class StorageSelectorTest {
 
     @ParameterizedTest
     @CsvSource({

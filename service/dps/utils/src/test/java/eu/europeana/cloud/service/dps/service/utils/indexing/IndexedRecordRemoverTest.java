@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class IndexedRecordRemoverTest {
+class IndexedRecordRemoverTest {
 
   public static final long TASK_ID = 10L;
   private static final String RECORD_ID = "/100/record1";

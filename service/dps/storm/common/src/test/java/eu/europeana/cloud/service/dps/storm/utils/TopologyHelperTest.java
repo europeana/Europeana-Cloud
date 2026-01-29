@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class TopologyHelperTest {
+class TopologyHelperTest {
 
 
   public static final String MAX_POLL_RECORDS_VALUE = "1";

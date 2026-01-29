@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * @author krystian.
  */
-public class ContentStreamDetectorTest {
+class ContentStreamDetectorTest {
 
   @ParameterizedTest
   @CsvSource({

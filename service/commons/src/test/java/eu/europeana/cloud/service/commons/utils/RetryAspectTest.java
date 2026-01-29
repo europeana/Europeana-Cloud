@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
  * purposeless. In case when that value is set then some extra tests will be executed in order to assure that overriding work as
  * intended
  */
-public class RetryAspectTest {
+class RetryAspectTest {
 
   private static AspectedTest1Impl aspectTestTarget;
   private static AspectedTest1Interface aspectTestProxy;

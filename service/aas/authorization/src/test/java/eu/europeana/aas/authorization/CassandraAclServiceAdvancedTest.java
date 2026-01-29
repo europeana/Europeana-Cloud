@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraAclServiceAdvancedTest extends CassandraTestBase {
+class CassandraAclServiceAdvancedTest extends CassandraTestBase {
 
   private static final String sid1 = "sid1@system";
   private static final String sid2 = "sid2@system";

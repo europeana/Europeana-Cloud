@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class EDMObjectProcessorBoltTest {
+class EDMObjectProcessorBoltTest {
 
   @Captor
   ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);

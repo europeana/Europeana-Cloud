@@ -20,7 +20,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public class MetisDatasetServiceTest {
+class MetisDatasetServiceTest {
 
     @Test
     void shouldPrepareCorrectStatsForMetisDatasetForDefaultPreviewDatabase() throws IndexingException {

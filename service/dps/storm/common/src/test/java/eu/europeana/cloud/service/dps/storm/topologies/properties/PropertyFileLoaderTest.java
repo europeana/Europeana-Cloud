@@ -10,7 +10,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PropertyFileLoaderTest {
+class PropertyFileLoaderTest {
 
     String DEFAULT_PROPERTIES_FILE = "test-config.properties";
     String PROVIDED_PROPERTIES_FILE = "src/main/resources/test-config.properties";

@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class FileServiceClientTestIT {
+class FileServiceClientTestIT {
 
   private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 

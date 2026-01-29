@@ -28,10 +28,10 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {GhostTaskService.class, GhostTaskServiceTestContext.class})
-public class GhostTaskServiceTest {
+class GhostTaskServiceTest {
 
   private static final List<TaskState> ACTIVE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION,
-      TaskState.QUEUED);
+          TaskState.QUEUED);
   public static final long TASK_ID = 1L;
   private static final TaskByTaskState TOPIC_INFO_1 = createTopicInfo("oai_topology_2");
   private static final TaskByTaskState TOPIC_INFO_1_UNKNOWN_TOPIC = createTopicInfo("unknown_topic");

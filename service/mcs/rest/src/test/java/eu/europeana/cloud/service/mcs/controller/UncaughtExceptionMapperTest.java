@@ -18,7 +18,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UncaughtExceptionMapperTest extends AbstractResourceTest {
+class UncaughtExceptionMapperTest extends AbstractResourceTest {
 
   private RecordService recordService;
 

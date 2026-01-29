@@ -1,25 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.CLOUD_ID;
-import static eu.europeana.cloud.service.dps.test.TestConstants.DATASET_NAME;
-import static eu.europeana.cloud.service.dps.test.TestConstants.DATA_PROVIDER;
-import static eu.europeana.cloud.service.dps.test.TestConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static eu.europeana.cloud.service.dps.test.TestConstants.VERSION;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
@@ -29,6 +9,13 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.apache.storm.tuple.Values;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -37,19 +24,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.apache.storm.tuple.Values;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-public class WriteRecordBoltTest {
+class WriteRecordBoltTest {
 
   private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
   private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-8c50aca96d65");

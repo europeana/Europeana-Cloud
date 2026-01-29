@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class EnrichmentBoltTest {
+class EnrichmentBoltTest {
 
   public static final String DEREFERENCE_URL = "https:/dereference.org";
   public static final String ENRICHMENT_ENTITY_MANAGEMENT_URL_URL = "https://entity-management-url.org";

@@ -16,7 +16,7 @@ import java.net.URI;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RevisionServiceClientTest {
+class RevisionServiceClientTest {
   @RegisterExtension
   static WireMockExtension wireMockExtension =
           WireMockExtension.newInstance()

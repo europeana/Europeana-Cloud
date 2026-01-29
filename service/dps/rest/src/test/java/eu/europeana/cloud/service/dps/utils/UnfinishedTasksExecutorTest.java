@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {UnfinishedTasksContext.class, UnfinishedTasksExecutor.class})
 @ExtendWith(SpringExtension.class)
-public class UnfinishedTasksExecutorTest {
+class UnfinishedTasksExecutorTest {
 
   @Autowired
   private TasksByStateDAO tasksByStateDAO;

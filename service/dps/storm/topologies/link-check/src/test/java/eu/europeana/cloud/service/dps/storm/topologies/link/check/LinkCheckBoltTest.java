@@ -22,7 +22,7 @@ import static eu.europeana.cloud.service.dps.PluginParameterKeys.RESOURCE_URL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class LinkCheckBoltTest {
+class LinkCheckBoltTest {
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-public class GzUnpackingServiceTest {
+class GzUnpackingServiceTest {
 
   private FileUnpackingService gzUnpackingService;
   private final static String DESTINATION_DIR = "src/test/resources/__files/";

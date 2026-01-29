@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class PostProcessorFactoryTest {
+class PostProcessorFactoryTest {
 
     private HarvestingPostProcessor harvestingPostProcessor;
     private IndexingPostProcessor indexingPostProcessor;

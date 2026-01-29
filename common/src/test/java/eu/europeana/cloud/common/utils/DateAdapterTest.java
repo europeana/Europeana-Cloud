@@ -8,7 +8,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DateAdapterTest {
+class DateAdapterTest {
 
     //example string representing date that is serialized to xml/json. It is number of ms from 1970
     public static final String DATE_STRING = "1613480338321";

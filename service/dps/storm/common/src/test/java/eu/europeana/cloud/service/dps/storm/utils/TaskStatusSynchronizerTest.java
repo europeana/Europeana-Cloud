@@ -20,17 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskStatusSynchronizerTest {
+class TaskStatusSynchronizerTest {
 
-  public static final String TOPIC_1 = "topic_1";
-  private static final List<String> TOPICS = Arrays.asList(TOPIC_1, "topic_2", "topic_3");
+    public static final String TOPIC_1 = "topic_1";
+    private static final List<String> TOPICS = Arrays.asList(TOPIC_1, "topic_2", "topic_3");
 
-  private static final String TOPOLOGY_NAME = "test_topology";
-  private static final TaskByTaskState TASK_TOPIC_INFO_1 = createTaskTopicInfo(1L, TaskState.QUEUED, TOPIC_1);
-  private static final TaskByTaskState TASK_TOPIC_INFO_1_UNKNOWN_TOPIC = createTaskTopicInfo(1L, TaskState.QUEUED,
-      "topic_unknown");
-  private static final TaskInfo INFO_1 = createTaskTopicInfo(TaskState.QUEUED);
-  private static final TaskInfo INFO_1_OF_UNSYNCED = createTaskTopicInfo(TaskState.PROCESSED);
+    private static final String TOPOLOGY_NAME = "test_topology";
+    private static final TaskByTaskState TASK_TOPIC_INFO_1 = createTaskTopicInfo(1L, TaskState.QUEUED, TOPIC_1);
+    private static final TaskByTaskState TASK_TOPIC_INFO_1_UNKNOWN_TOPIC = createTaskTopicInfo(1L, TaskState.QUEUED,
+            "topic_unknown");
+    private static final TaskInfo INFO_1 = createTaskTopicInfo(TaskState.QUEUED);
+    private static final TaskInfo INFO_1_OF_UNSYNCED = createTaskTopicInfo(TaskState.PROCESSED);
 
   @Mock
   private CassandraTaskInfoDAO taskInfoDAO;

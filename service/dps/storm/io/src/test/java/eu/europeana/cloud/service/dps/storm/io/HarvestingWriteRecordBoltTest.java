@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class HarvestingWriteRecordBoltTest {
+class HarvestingWriteRecordBoltTest {
 
   private final int TASK_ID = 1;
   private final String TASK_NAME = "TASK_NAME";

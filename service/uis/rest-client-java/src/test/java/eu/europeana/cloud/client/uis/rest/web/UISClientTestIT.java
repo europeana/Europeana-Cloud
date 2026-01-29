@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Disabled
-public class UISClientTestIT {
+class UISClientTestIT {
 
   private static final String UIS_LOCATION = "http://127.0.0.1:8092/uis";
   private static final String USER = "testUser1";
@@ -25,7 +25,7 @@ public class UISClientTestIT {
 
   @Test
   public void shouldCreateProvider()
-      throws CloudException {
+          throws CloudException {
     UISClient c = new UISClient(UIS_LOCATION, USER, PASSWORD);
     DataProviderProperties dataProviderProperties =
         new DataProviderProperties(

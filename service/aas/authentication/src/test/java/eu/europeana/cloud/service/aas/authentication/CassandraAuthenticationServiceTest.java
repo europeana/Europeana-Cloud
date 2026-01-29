@@ -23,17 +23,17 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraAuthenticationServiceTest extends CassandraTestBase {
+class CassandraAuthenticationServiceTest extends CassandraTestBase {
 
-  @Autowired
-  private CassandraAuthenticationService service;
-  @Autowired
-  private CassandraConnectionProvider provider;
-  @Autowired
-  private CassandraUserDAO dao;
+    @Autowired
+    private CassandraAuthenticationService service;
+    @Autowired
+    private CassandraConnectionProvider provider;
+    @Autowired
+    private CassandraUserDAO dao;
 
-  /**
-   * Test creation and retrieving of user.
+    /**
+     * Test creation and retrieving of user.
    *
    */
   @Test

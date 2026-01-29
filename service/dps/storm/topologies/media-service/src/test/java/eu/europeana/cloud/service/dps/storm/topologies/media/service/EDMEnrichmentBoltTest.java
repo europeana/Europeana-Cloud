@@ -19,7 +19,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class EDMEnrichmentBoltTest {
+class EDMEnrichmentBoltTest {
 
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
   public static final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";

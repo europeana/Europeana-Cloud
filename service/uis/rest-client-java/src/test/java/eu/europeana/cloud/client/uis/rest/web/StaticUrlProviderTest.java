@@ -7,7 +7,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
-public class StaticUrlProviderTest {
+class StaticUrlProviderTest {
 
     public static final String URL_PREFIX = "http://localhost:8080/";
 

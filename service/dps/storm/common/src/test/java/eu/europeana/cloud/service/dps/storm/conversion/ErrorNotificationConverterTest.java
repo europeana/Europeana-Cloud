@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ErrorNotificationConverterTest {
+class ErrorNotificationConverterTest {
 
     public static final String ADDITIONAL_INFORMATIONS = "some_additional_informations";
     public static final String ERROR_MESSAGE = "some_error_message";

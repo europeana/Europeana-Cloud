@@ -23,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparisons.greaterThan;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RecordServiceClientTest {
+class RecordServiceClientTest {
 
   private static final String DATASET_ID = "31ad3e70-be5f-45bc-b60e-f102ff24fa88";
   @RegisterExtension

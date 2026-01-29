@@ -29,7 +29,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RecordStatisticsGeneratorTest {
+class RecordStatisticsGeneratorTest {
 
     private static final int MAX_SIZE = 1000;
     private static Multimap<String, String> xpathValueMap;

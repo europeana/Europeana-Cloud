@@ -10,6 +10,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {S3TestContext.class})
-public class S3ContentDAOTest extends ContentDAOTest {
+class S3ContentDAOTest extends ContentDAOTest {
 
 }

@@ -12,15 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * ContentRangeTest
  */
-public class ContentRangeTest {
+class ContentRangeTest {
 
-  @Test
-  public void testParsingProperRange()
-      throws WrongContentRangeException {
-    FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1-2");
-    assertThat(range.getStart(), is(1L));
-    assertThat(range.getEnd(), is(2L));
-  }
+    @Test
+    public void testParsingProperRange()
+            throws WrongContentRangeException {
+        FileResource.ContentRange range = FileResource.ContentRange.parse("bytes=1-2");
+        assertThat(range.getStart(), is(1L));
+        assertThat(range.getEnd(), is(2L));
+    }
 
 
   @Test

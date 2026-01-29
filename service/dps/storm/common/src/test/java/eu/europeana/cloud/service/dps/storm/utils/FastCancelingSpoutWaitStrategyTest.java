@@ -12,7 +12,7 @@ import static eu.europeana.cloud.service.dps.storm.topologies.properties.Topolog
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.SPOUT_SLEEP_MS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FastCancelingSpoutWaitStrategyTest {
+class FastCancelingSpoutWaitStrategyTest {
 
   private static final long TOLERANCE = 100L;
   public static final long SLEEP = 200L;

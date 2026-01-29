@@ -40,7 +40,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class HttpHarvestingBoltTest {
+class HttpHarvestingBoltTest {
 
   private static final String TASK_NAME = "TASK_NAME";
   private static final long TASK_ID = -5964014235733572511L;
@@ -48,7 +48,7 @@ public class HttpHarvestingBoltTest {
   private String fileUrl;
 
   private final Optional<Integer> optOverriddenRetryAttemptsCount = Optional.ofNullable(
-      RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT);
+          RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT);
   private StormTaskTuple tuple;
 
   @InjectMocks

@@ -18,7 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class DataSetServiceClientTestIT {
+class DataSetServiceClientTestIT {
 
   private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 

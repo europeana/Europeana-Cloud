@@ -11,17 +11,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-public class AbstractResourceTest {
+class AbstractResourceTest {
 
-  /* Constants */
-  protected static final long TASK_ID = 12345;
-  protected static final String TOPOLOGY_NAME = "ANY_TOPOLOGY";
-  protected static final String RESULT_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE";
-  protected static final String EMPTY_STRING = "";
-  protected static final String TEST_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
+    /* Constants */
+    protected static final long TASK_ID = 12345;
+    protected static final String TOPOLOGY_NAME = "ANY_TOPOLOGY";
+    protected static final String RESULT_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/DESTINATION-REPRESENTATION/versions/destination_VERSION/files/DESTINATION_FILE";
+    protected static final String EMPTY_STRING = "";
+    protected static final String TEST_RESOURCE_URL = "http://tomcat:8080/mcs/records/ZU5NI2ILYC6RMUZRB53YLIWXPNYFHL5VCX7HE2JCX7OLI2OLIGNQ/representations/SOURCE-REPRESENTATION/versions/SOURCE_VERSION/files/SOURCE_FILE";
 
-  /* Beans (or mocked beans) */
-  protected TopologyManager topologyManager;
+    /* Beans (or mocked beans) */
+    protected TopologyManager topologyManager;
   protected ValidationStatisticsService validationStatisticsService;
 
   /* Main mock for testing MVC in Spring */

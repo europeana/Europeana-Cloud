@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class EuropeanaIdFinderTest {
+class EuropeanaIdFinderTest {
 
   private static final String METIS_DATASET_ID = "11";
   private static final String CLOUD_ID = "CXJVA4V473SUOKUT2AX6ZAI6KKD6NDVY6GRALFVRIEVKOOBUZA6A";

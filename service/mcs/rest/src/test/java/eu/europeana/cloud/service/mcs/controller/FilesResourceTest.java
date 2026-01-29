@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * FileResourceTest
  */
 @ExtendWith(CassandraTestExtension.class)
-public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
+class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
   private DataSetService dataSetService;

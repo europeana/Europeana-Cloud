@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileMd5GenerationServiceTest {
+class FileMd5GenerationServiceTest {
 
   @Test
   void shouldGenerateDifferentMd5ForSlightlyDifferentFiles() throws URISyntaxException, IOException {

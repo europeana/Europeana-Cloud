@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class MetisDatasetResourceTest {
+class MetisDatasetResourceTest {
 
   private final MetisDatasetService mock = Mockito.mock(MetisDatasetService.class);
   MockMvc mockMvc;

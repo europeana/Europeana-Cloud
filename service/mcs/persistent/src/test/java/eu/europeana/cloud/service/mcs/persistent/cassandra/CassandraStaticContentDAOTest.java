@@ -13,7 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CassandraStaticContentDAOTestContext.class})
-public class CassandraStaticContentDAOTest extends ContentDAOTest {
+class CassandraStaticContentDAOTest extends ContentDAOTest {
 
   CassandraTestBase testBase = new CassandraTestBase() {
   };

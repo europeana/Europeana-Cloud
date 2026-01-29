@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-public class RecordsResourceTest extends AbstractResourceTest {
+class RecordsResourceTest extends AbstractResourceTest {
 
   private RecordService recordService;
 

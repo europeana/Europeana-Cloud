@@ -21,17 +21,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraUserDAOTest extends CassandraTestBase {
+class CassandraUserDAOTest extends CassandraTestBase {
 
   private static final String ROLE_USER = Role.USER;
   private static final String ROLE_ADMIN = Role.ADMIN;
   private static final Set<String> DEFAULT_USER_ROLES = ImmutableSet
-      .of(ROLE_USER);
+          .of(ROLE_USER);
 
   @Autowired
   private CassandraUserDAO dao;
 
-    /**
+  /**
      * Prepare the unit tests
      */
     @BeforeEach

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
  * @author manos
  */
 @ExtendWith(SpringExtension.class)
-public class DataProviderAATest extends AbstractSecurityTest {
+class DataProviderAATest extends AbstractSecurityTest {
 
   @Autowired
   @NotNull

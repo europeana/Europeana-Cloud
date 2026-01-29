@@ -14,17 +14,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TaskInfoConverterTest {
+class TaskInfoConverterTest {
 
-  public static final String TOPOLOGY_NAME = "some_topology_name";
-  public static final int EXPECTED_RECORDS_NUMBER = 1;
-  public static final int PROCESSED_RECORDS_COUNT = 2;
-  public static final int DELETED_RECORDS_COUNT = 3;
-  public static final int IGNORED_RECORDS_COUNT = 4;
-  public static final TaskState STATE = TaskState.QUEUED;
-  public static final String DESCRIPTION = "some_state_description";
-  public static final Date SENT = Date.from(Instant.now());
-  public static final Date START = Date.from(Instant.now());
+    public static final String TOPOLOGY_NAME = "some_topology_name";
+    public static final int EXPECTED_RECORDS_NUMBER = 1;
+    public static final int PROCESSED_RECORDS_COUNT = 2;
+    public static final int DELETED_RECORDS_COUNT = 3;
+    public static final int IGNORED_RECORDS_COUNT = 4;
+    public static final TaskState STATE = TaskState.QUEUED;
+    public static final String DESCRIPTION = "some_state_description";
+    public static final Date SENT = Date.from(Instant.now());
+    public static final Date START = Date.from(Instant.now());
     public static final Date FINISH = Date.from(Instant.now());
     public static final int PROCESSED_ERRORS_COUNT = 5;
     public static final int DELETED_ERRORS_COUNT = 6;

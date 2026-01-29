@@ -13,12 +13,12 @@ import java.util.GregorianCalendar;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RevisionServiceClientTestIT {
+class RevisionServiceClientTestIT {
 
-  private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
+    private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 
-  private static final String USER_NAME = "metis_test";  //user z bazy danych
-  private static final String USER_PASSWORD = "1RkZBuVf";
+    private static final String USER_NAME = "metis_test";  //user z bazy danych
+    private static final String USER_PASSWORD = "1RkZBuVf";
 
     @Test
     void addRevision() throws MCSException {

@@ -17,7 +17,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-public class RecordResourceAATest extends AbstractSecurityTest {
+class RecordResourceAATest extends AbstractSecurityTest {
 
     @Autowired
     @NotNull
@@ -27,7 +27,7 @@ public class RecordResourceAATest extends AbstractSecurityTest {
     @NotNull
     private RecordService recordService;
 
-  private static final String GLOBAL_ID = "GLOBAL_ID";
+    private static final String GLOBAL_ID = "GLOBAL_ID";
 
   private Record record;
 

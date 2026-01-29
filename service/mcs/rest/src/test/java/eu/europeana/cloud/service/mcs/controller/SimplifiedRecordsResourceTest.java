@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
+class SimplifiedRecordsResourceTest extends AbstractResourceTest {
 
     @Autowired
     private SimplifiedRecordsResource recordsResource;
@@ -31,7 +31,7 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
     private RecordService recordService;
 
     @Autowired
-  private UISClient uisClient;
+    private UISClient uisClient;
 
 
   private static final String PROVIDER_ID = "providerId";

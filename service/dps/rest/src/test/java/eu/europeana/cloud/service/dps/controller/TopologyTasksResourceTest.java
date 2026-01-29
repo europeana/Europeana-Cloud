@@ -66,21 +66,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
-    TaskSubmissionValidator.class, SubmitTaskService.class, TaskDiagnosticInfoDAO.class,
-    OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
-    TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class,
-    FileURLCreator.class})
-public class TopologyTasksResourceTest extends AbstractResourceTest {
+        TaskSubmissionValidator.class, SubmitTaskService.class, TaskDiagnosticInfoDAO.class,
+        OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
+        TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class,
+        FileURLCreator.class})
+class TopologyTasksResourceTest extends AbstractResourceTest {
 
-  /* Endpoints */
-  private static final String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
-  private static final String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
-  private static final String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
+    /* Endpoints */
+    private static final String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
+    private static final String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
+    private static final String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
 
-  /* Constants */
-  private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
-  private static final String DATASET_ID = "s1";
-  private static final String IMAGE_TIFF = "image/tiff";
+    /* Constants */
+    private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
+    private static final String DATASET_ID = "s1";
+    private static final String IMAGE_TIFF = "image/tiff";
   private static final String IMAGE_JP2 = "image/jp2";
   private static final String IC_TOPOLOGY = "ic_topology";
   private static final String TASK_NAME = "TASK_NAME";

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(MockitoExtension.class)
-public class RetryableMethodExecutorTest {
+class RetryableMethodExecutorTest {
 
   private static final int RETRY_COUNT = 3;
   private static final int SLEEP_BETWEEN_RETRIES_MS = 200;

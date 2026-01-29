@@ -25,7 +25,7 @@ import static org.mockito.Mockito.validateMockitoUsage;
  */
 @ContextConfiguration(classes = {RetryAspectConfiguration.class})
 @ExtendWith(SpringExtension.class)
-public class RetryAspectSpringTest {
+class RetryAspectSpringTest {
 
   @Autowired
   private AspectedTestSpringCtx aspectedTest;

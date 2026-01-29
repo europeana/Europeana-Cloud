@@ -2,20 +2,19 @@ package eu.europeana.cloud.http.service;
 
 
 import eu.europeana.cloud.http.exceptions.CompressionExtensionNotRecognizedException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ZipUnpackingServiceTest {
+class ZipUnpackingServiceTest {
 
   private FileUnpackingService zipUnpackingService;
   private final static String DESTINATION_DIR = "src/test/resources/__files/";

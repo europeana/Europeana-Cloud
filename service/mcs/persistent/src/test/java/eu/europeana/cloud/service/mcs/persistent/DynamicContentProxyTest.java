@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author krystian.
  */
-public class DynamicContentProxyTest {
+class DynamicContentProxyTest {
 
     @Test
     void shouldThrowExceptionOnNonExistingDAO() {

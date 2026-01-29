@@ -21,7 +21,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class DataSetsAATest extends AbstractSecurityTest {
+class DataSetsAATest extends AbstractSecurityTest {
 
     @Autowired
     private CassandraDataSetService dataSetService;
@@ -30,8 +30,8 @@ public class DataSetsAATest extends AbstractSecurityTest {
     @NotNull
     private DataSetsResource datasetsResource;
 
-  @Autowired
-  @NotNull
+    @Autowired
+    @NotNull
   private DataSetResource datasetResource;
 
   @Autowired

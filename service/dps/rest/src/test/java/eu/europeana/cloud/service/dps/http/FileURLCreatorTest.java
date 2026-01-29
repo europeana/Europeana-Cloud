@@ -11,7 +11,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class FileURLCreatorTest {
+class FileURLCreatorTest {
 
     FileURLCreator creator = new FileURLCreator("http://127.0.0.1");
 

@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-public class NormalizationBoltTest {
+class NormalizationBoltTest {
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;

@@ -20,13 +20,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PostProcessingSchedulerTest {
+class PostProcessingSchedulerTest {
 
 
-  public static final long TASK_ID = 100L;
-  public static final String APPLICATION_ID = "TestApp";
-  @Mock
-  private TasksByStateDAO tasksByStateDAO;
+    public static final long TASK_ID = 100L;
+    public static final String APPLICATION_ID = "TestApp";
+    @Mock
+    private TasksByStateDAO tasksByStateDAO;
 
     @Mock
     private PostProcessingService postProcessingService;

@@ -10,16 +10,16 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RevisionIdentifierTest {
+class RevisionIdentifierTest {
 
-  private static final String REVISION_NAME_1 = "revisionName1";
-  private static final String REVISION_NAME_2 = "revisionName2";
+    private static final String REVISION_NAME_1 = "revisionName1";
+    private static final String REVISION_NAME_2 = "revisionName2";
 
-  private static final String REVISION_PROVIDER_1 = "revisionName1";
-  private static final String REVISION_PROVIDER_2 = "revisionName2";
+    private static final String REVISION_PROVIDER_1 = "revisionName1";
+    private static final String REVISION_PROVIDER_2 = "revisionName2";
 
-  private static final Date REVISION_TIMESTAMP_1 = new Date(0);
-  private static final Date REVISION_TIMESTAMP_2 = new Date(1);
+    private static final Date REVISION_TIMESTAMP_1 = new Date(0);
+    private static final Date REVISION_TIMESTAMP_2 = new Date(1);
 
     @Test
     void identifiesShouldReturnTrueWhileRevisionNameProviderAndTimestampAreTheSameAsInRevision() {

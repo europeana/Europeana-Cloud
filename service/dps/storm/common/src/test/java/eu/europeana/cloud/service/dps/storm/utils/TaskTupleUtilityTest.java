@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TaskTupleUtilityTest {
+class TaskTupleUtilityTest {
 
     StormTaskTuple stormTaskTuple;
     static final String MIME_TYPE = "text/xml";

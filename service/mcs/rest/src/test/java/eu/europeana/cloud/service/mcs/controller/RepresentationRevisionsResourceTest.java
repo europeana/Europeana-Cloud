@@ -35,17 +35,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-public class RepresentationRevisionsResourceTest extends AbstractResourceTest {
+class RepresentationRevisionsResourceTest extends AbstractResourceTest {
 
-  private RecordService recordService;
+    private RecordService recordService;
 
-  private static final String GLOBAL_ID = "1";
-  private static final String SCHEMA = "DC";
-  private static final String REVISION_PROVIDER_ID = "ABC";
-  private static final String REVISION_NAME = "rev1";
-  private static final String VERSION = "1.0";
-  private static final String REPRESENTATION_NAME = "rep1";
-  private static final Date REVISION_TIMESTAMP = new Date();
+    private static final String GLOBAL_ID = "1";
+    private static final String SCHEMA = "DC";
+    private static final String REVISION_PROVIDER_ID = "ABC";
+    private static final String REVISION_NAME = "rev1";
+    private static final String VERSION = "1.0";
+    private static final String REPRESENTATION_NAME = "rep1";
+    private static final Date REVISION_TIMESTAMP = new Date();
   private static final RepresentationRevisionResponse representationResponse = new RepresentationRevisionResponse(GLOBAL_ID,
           SCHEMA, VERSION, List.of(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
       null)), REVISION_PROVIDER_ID, REVISION_NAME, REVISION_TIMESTAMP);

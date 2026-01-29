@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-public class XSLTTopologyTest {
+class XSLTTopologyTest {
   private static final int DEFAULT_PROPERTIES_BOLT_PARALLELISM = 2;
   private static final int DEFAULT_PROPERTIES_SPOUT_PARALLELISM = 1;
 

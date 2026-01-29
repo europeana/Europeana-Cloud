@@ -22,16 +22,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
+class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
 
-  @Autowired
-  private SimplifiedRepresentationResource representationResource;
+    @Autowired
+    private SimplifiedRepresentationResource representationResource;
 
-  @Autowired
-  private RecordService recordService;
+    @Autowired
+    private RecordService recordService;
 
-  @Autowired
-  private UISClient uisClient;
+    @Autowired
+    private UISClient uisClient;
 
 
   private static final String PROVIDER_ID = "providerId";

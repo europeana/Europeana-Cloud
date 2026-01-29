@@ -37,17 +37,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * This tests checks if content is streamed (not put entirely into memory) when uploading file.
  */
 @ExtendWith(CassandraTestExtension.class)
-public class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
+class HugeFileResourceUploadIT extends CassandraBasedAbstractResourceTest {
 
   private static RecordService recordService;
   private static DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
   private static final int HUGE_FILE_SIZE = 200_000_000;
 
-    @BeforeEach
-    void mockUp() {
-      recordService = applicationContext.getBean(RecordService.class);
-      dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+  @BeforeEach
+  void mockUp() {
+    recordService = applicationContext.getBean(RecordService.class);
+    dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
 
     }
 

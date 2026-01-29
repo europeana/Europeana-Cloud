@@ -31,7 +31,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
+class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
 
   @Autowired
   private SimplifiedFileAccessResource fileAccessResource;

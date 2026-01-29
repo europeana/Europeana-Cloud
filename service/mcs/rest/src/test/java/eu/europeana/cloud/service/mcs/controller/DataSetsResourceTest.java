@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * DataSetResourceTest
  */
 @ExtendWith(CassandraTestExtension.class)
-public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
+class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataSetService dataSetService;
 
@@ -40,7 +40,7 @@ public class DataSetsResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataProvider dataProvider = new DataProvider();
 
-    @BeforeEach
+  @BeforeEach
     void mockUp() {
       dataProvider.setId("provId");
       dataSetService = applicationContext.getBean(DataSetService.class);

@@ -12,7 +12,7 @@ import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class DpsTaskValidatorForOaiTopologyTest {
+class DpsTaskValidatorForOaiTopologyTest {
 
   private DpsTask oaiTopologyTask;
   private DpsTask oaiTopologyTaskWithoutOutputDataset;

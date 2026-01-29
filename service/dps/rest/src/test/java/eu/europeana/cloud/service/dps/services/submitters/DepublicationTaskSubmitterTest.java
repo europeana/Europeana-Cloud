@@ -41,17 +41,17 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class DepublicationTaskSubmitterTest {
+class DepublicationTaskSubmitterTest {
 
-  private static final String TOPIC_NAME = "mock_topic";
-  private static final long TASK_ID = 50;
-  private static final String DATASET_ID = "10";
-  private static final String RECORD_ID_1 = "/10/recordId1";
-  private static final String RECORD_ID_2 = "/10/recordId2";
-  private static final DpsRecord RECORD_1 = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID_1).build();
-  private static final DpsRecord RECORD_2 = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID_2).build();
+    private static final String TOPIC_NAME = "mock_topic";
+    private static final long TASK_ID = 50;
+    private static final String DATASET_ID = "10";
+    private static final String RECORD_ID_1 = "/10/recordId1";
+    private static final String RECORD_ID_2 = "/10/recordId2";
+    private static final DpsRecord RECORD_1 = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID_1).build();
+    private static final DpsRecord RECORD_2 = DpsRecord.builder().taskId(TASK_ID).recordId(RECORD_ID_2).build();
 
-  @Mock
+    @Mock
   private FilesCounterFactory filesCounterFactory;
   @Mock
   private TaskStatusUpdater taskStatusUpdater;

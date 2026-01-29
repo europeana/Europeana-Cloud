@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static java.util.Arrays.copyOfRange;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileServiceClientTest {
+class FileServiceClientTest {
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =

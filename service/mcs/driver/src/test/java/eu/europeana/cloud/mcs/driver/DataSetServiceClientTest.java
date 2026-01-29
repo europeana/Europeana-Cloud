@@ -27,7 +27,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DataSetServiceClientTest {
+class DataSetServiceClientTest {
 
   public static final String PROVIDER_ID = "Provider001";
   public static final String DATASET_ID = "dataset000002";

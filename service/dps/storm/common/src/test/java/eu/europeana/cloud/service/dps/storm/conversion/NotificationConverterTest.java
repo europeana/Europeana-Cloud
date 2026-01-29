@@ -12,10 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NotificationConverterTest {
+class NotificationConverterTest {
 
-  public static final HashMap<String, String> ADDITIONAL_INFORMATION = new HashMap<>();
-  public static final int BUCKET_NUMBER = 1;
+    public static final HashMap<String, String> ADDITIONAL_INFORMATION = new HashMap<>();
+    public static final int BUCKET_NUMBER = 1;
     public static final int RESOURCE_NUM = 2;
     public static final String INFO_TEXT = "some_info_text";
     public static final String RESOURCE = "some_resource";

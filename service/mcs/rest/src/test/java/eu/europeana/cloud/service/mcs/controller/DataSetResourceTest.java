@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * DataSetResourceTest
  */
 @ExtendWith(CassandraTestExtension.class)
-public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
+class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
   private DataSetService dataSetService;
 
@@ -42,7 +42,7 @@ public class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
   private UISClientHandler uisHandler;
 
-    @BeforeAll
+  @BeforeAll
     static void setUp() {
       S3TestHelper.startS3MockServer();
     }

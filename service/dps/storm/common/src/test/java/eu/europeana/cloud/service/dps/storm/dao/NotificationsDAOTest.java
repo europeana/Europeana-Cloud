@@ -12,7 +12,7 @@ import java.util.Map;
 import static eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils.createAndStoreNotification;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class NotificationsDAOTest extends CassandraTestBase {
+class NotificationsDAOTest extends CassandraTestBase {
 
     private static final long TASK_ID = 111;
     private NotificationsDAO subtaskInfoDao;

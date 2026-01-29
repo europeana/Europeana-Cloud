@@ -49,7 +49,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class HarvestingPostProcessorTest {
+class HarvestingPostProcessorTest {
 
   private static final long TASK_ID = 1000;
   private static final String METIS_DATASET_ID = "111";

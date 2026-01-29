@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class MCSExceptionProviderTest {
+class MCSExceptionProviderTest {
 
     @Test
     void shouldThrowDriverExceptionWhenNullErrorInfoPassed() {

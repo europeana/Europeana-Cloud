@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author manos
  */
 @ExtendWith(SpringExtension.class)
-public class UisAATest extends AbstractSecurityTest {
+class UisAATest extends AbstractSecurityTest {
 
   @Autowired
   private UniqueIdentifierService uniqueIdentifierService;
