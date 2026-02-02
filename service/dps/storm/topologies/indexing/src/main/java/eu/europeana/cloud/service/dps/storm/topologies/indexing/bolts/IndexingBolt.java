@@ -178,7 +178,6 @@ public class IndexingBolt extends AbstractDpsBolt {
   }
 
   private void prepareTuple(StormTaskTuple stormTaskTuple, String europeanaId) {
-    stormTaskTuple.setFileData((byte[]) null);
     stormTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
   }
 
