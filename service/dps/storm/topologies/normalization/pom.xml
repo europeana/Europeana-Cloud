@@ -57,8 +57,12 @@
                     <groupId>*</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>org.springframework.security</artifactId>
+                    <artifactId>org.xspringframework.security</artifactId>
                     <groupId>*</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
