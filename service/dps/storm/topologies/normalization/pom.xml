@@ -57,7 +57,7 @@
                     <groupId>*</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>org.xspringframework.security</artifactId>
+                    <artifactId>org.springframework.security</artifactId>
                     <groupId>*</groupId>
                 </exclusion>
                 <exclusion>
