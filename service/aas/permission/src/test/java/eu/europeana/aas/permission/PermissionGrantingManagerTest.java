@@ -1,170 +1,172 @@
 package eu.europeana.aas.permission;
 
 import eu.europeana.aas.permission.cassandra.CassandraTestBase;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import eu.europeana.aas.permission.config.AuthenticationTestContext;
+import eu.europeana.aas.permission.config.DefaultTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.model.AccessControlEntry;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:/authentication-context-test.xml",
-    "classpath:default-context.xml"})
-public class PermissionGrantingManagerTest extends CassandraTestBase {
+import java.util.Arrays;
+import java.util.List;
 
-  @Autowired
-  private MutableAclService mutableAclService;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  @Autowired
-  private PermissionsGrantingManager permissionsGrantingManager;
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {
+        AuthenticationTestContext.class,
+        DefaultTestContext.class
+})
+class PermissionGrantingManagerTest extends CassandraTestBase {
 
-  @Autowired
-  @Qualifier("authenticationManager")
-  private AuthenticationManager authenticationManager;
+    @Autowired
+    private MutableAclService mutableAclService;
 
-  private static final String ADMIN_NAME = "admin";
-  private static final String ADMIN_PASSWORD = "admin";
+    @Autowired
+    private PermissionsGrantingManager permissionsGrantingManager;
 
-  private static final String OBJECT_TYPE = "representation";
-  private static final String OBJECT_ID = "identifier";
-  private static final String USER_NAME = "sampleUserName";
+    @Autowired
+    @Qualifier("authenticationManager")
+    private AuthenticationManager authenticationManager;
 
-  @Before
-  public void init() {
-    Authentication auth = new UsernamePasswordAuthenticationToken(ADMIN_NAME, ADMIN_PASSWORD);
-    SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
-  }
+    private static final String ADMIN_NAME = "admin";
+    private static final String ADMIN_PASSWORD = "admin";
 
-  //////////////////////
-  // adding permissions
-  //////////////////////
-  @Test
-  public void readPermissionShouldBeGranted() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
+    private static final String OBJECT_TYPE = "representation";
+    private static final String OBJECT_ID = "identifier";
+    private static final String USER_NAME = "sampleUserName";
 
-    Acl acl = readAcl();
+    @BeforeEach
+    void init() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(ADMIN_NAME, ADMIN_PASSWORD);
+        SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(auth));
+    }
 
-    Assert.assertTrue(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-  }
+    //////////////////////
+    // adding permissions
+    //////////////////////
+    @Test
+    void readPermissionShouldBeGranted() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
 
-  @Test
-  public void writePermissionShouldBeGranted() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
+        Acl acl = readAcl();
 
-    Acl acl = readAcl();
+        assertTrue(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+    }
 
-    Assert.assertTrue(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-  }
+    @Test
+    void writePermissionShouldBeGranted() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
 
-  @Test
-  public void createPermissionShouldBeGranted() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
+        Acl acl = readAcl();
 
-    Acl acl = readAcl();
+        assertTrue(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+    }
 
-    Assert.assertTrue(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-  }
+    @Test
+    void createPermissionShouldBeGranted() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
 
-  @Test
-  public void deletePermissionShouldBeGranted() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
+        Acl acl = readAcl();
 
-    Acl acl = readAcl();
+        assertTrue(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+    }
 
-    Assert.assertTrue(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-  }
+    @Test
+    void deletePermissionShouldBeGranted() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
+
+        Acl acl = readAcl();
+
+        assertTrue(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+    }
 
   //////////////////////
   // removing permissions
   //////////////////////
 
-  @Test
-  public void readPermissionShouldBeRemoved() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
+    @Test
+    void readPermissionShouldBeRemoved() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
 
-    Acl acl = readAcl();
+        Acl acl = readAcl();
 
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
-  }
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
+    }
 
-  @Test
-  public void writePermissionShouldBeRemoved() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
+    @Test
+    void writePermissionShouldBeRemoved() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.WRITE));
 
-    Acl acl = readAcl();
+        Acl acl = readAcl();
 
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
-  }
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
+    }
 
-  @Test
-  public void createPermissionShouldBeRemoved() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
+    @Test
+    void createPermissionShouldBeRemoved() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.CREATE));
 
-    Acl acl = readAcl();
+        Acl acl = readAcl();
 
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
-  }
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.CREATE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
+    }
 
-  @Test
-  public void deletePermissionShouldBeRemoved() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
-    Acl acl = readAcl();
+    @Test
+    void deletePermissionShouldBeRemoved() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
+        Acl acl = readAcl();
 
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
-  }
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
+    }
 
-  @Test
-  public void notExistingPermissionShouldBeRemoved() {
-    permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
-    permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
-    Acl acl = readAcl();
+    @Test
+    void notExistingPermissionShouldBeRemoved() {
+        permissionsGrantingManager.grantPermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.DELETE));
+        permissionsGrantingManager.removePermissions(OBJECT_TYPE, OBJECT_ID, USER_NAME, Arrays.asList(BasePermission.READ));
+        Acl acl = readAcl();
 
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
-    Assert.assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
-  }
+        assertFalse(isPermissionOnTheList(BasePermission.READ, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.WRITE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.DELETE, acl.getEntries()));
+        assertFalse(isPermissionOnTheList(BasePermission.ADMINISTRATION, acl.getEntries()));
+    }
 
   private Acl readAcl() {
     ObjectIdentity objectIdentity = new ObjectIdentityImpl(OBJECT_TYPE, OBJECT_ID);

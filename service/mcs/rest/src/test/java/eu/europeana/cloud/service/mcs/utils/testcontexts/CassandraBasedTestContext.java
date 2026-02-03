@@ -19,9 +19,9 @@ import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.acls.model.MutableAclService;
@@ -29,11 +29,11 @@ import org.springframework.security.acls.model.MutableAclService;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_AAS_KEYSPACE;
-import static eu.europeana.cloud.test.CassandraTestRunner.JUNIT_MCS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestExtension.JUNIT_AAS_KEYSPACE;
+import static eu.europeana.cloud.test.CassandraTestExtension.JUNIT_MCS_KEYSPACE;
 import static eu.europeana.cloud.test.S3TestHelper.S3TestConstants.*;
 
-@TestConfiguration
+@Configuration
 public class CassandraBasedTestContext {
 
   @Bean()
@@ -50,41 +50,52 @@ public class CassandraBasedTestContext {
 
   @Bean()
   @Order(100)
-    public SimpleS3ConnectionProvider s3ConnectionProvider() {
-        return new SimpleS3ConnectionProvider(
-                S3_TEST_CONTAINER,
-                S3_TEST_ENDPOINT,
-                S3_TEST_USER,
-                S3_TEST_PASSWORD,
-                S3_TEST_REGION);
+  public SimpleS3ConnectionProvider s3ConnectionProvider() {
+      return new SimpleS3ConnectionProvider(
+              S3_TEST_CONTAINER,
+              S3_TEST_ENDPOINT,
+              S3_TEST_USER,
+              S3_TEST_PASSWORD,
+              S3_TEST_REGION);
   }
 
-  //mock
-  @MockBean
-  public UISClientHandler uisHandler;
+    @Bean
+    @Primary
+    public UISClientHandler uisHandler() {
+        return Mockito.mock(UISClientHandler.class);
+    }
 
-  @MockBean
-  public MutableAclService mutableAclService;
+    @Bean
+    @Primary
+    public MutableAclService mutableAclService() {
+        return Mockito.mock(MutableAclService.class);
+    }
 
-  @MockBean
-  public PermissionsGrantingManager permissionsGrantingManager;
+    @Bean
+    @Primary
+    public PermissionsGrantingManager permissionsGrantingManager() {
+        return Mockito.mock(PermissionsGrantingManager.class);
+    }
 
-  @MockBean
-  public PermissionEvaluator permissionEvaluator;
+    @Bean
+    @Primary
+    public PermissionEvaluator permissionEvaluator() {
+        return Mockito.mock(PermissionEvaluator.class);
+    }
 
-  @Bean
-  public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
-      PermissionEvaluator permissionEvaluator) {
-    return Mockito.mock(DataSetPermissionsVerifier.class);
-  }
+    @Bean
+    public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
+                                                                 PermissionEvaluator permissionEvaluator) {
+        return Mockito.mock(DataSetPermissionsVerifier.class);
+    }
 
-  @Bean
-  public CassandraDataSetService cassandraDataSetService() {
-    return Mockito.spy(new CassandraDataSetService(
-        cassandraDataSetDAO(),
-        cassandraRecordDAO(),
-        uisHandler,
-        bucketsHandler()));
+    @Bean
+    public CassandraDataSetService cassandraDataSetService() {
+        return Mockito.spy(new CassandraDataSetService(
+                cassandraDataSetDAO(),
+                cassandraRecordDAO(),
+                uisHandler(),
+                bucketsHandler()));
   }
 
   @Bean
@@ -130,11 +141,11 @@ public class CassandraBasedTestContext {
   @Bean
   public CassandraRecordService cassandraRecordService() {
     return Mockito.spy(new CassandraRecordService(
-        cassandraRecordDAO(),
-        cassandraDataSetService(),
-        cassandraDataSetDAO(),
-        dynamicContentProxy(),
-        uisHandler)
+            cassandraRecordDAO(),
+            cassandraDataSetService(),
+            cassandraDataSetDAO(),
+            dynamicContentProxy(),
+            uisHandler())
     );
 
   }

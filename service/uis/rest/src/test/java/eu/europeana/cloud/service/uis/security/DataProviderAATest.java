@@ -14,19 +14,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -34,8 +36,8 @@ import static org.mockito.Mockito.when;
  *
  * @author manos
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-public class DataProviderAATest extends AbstractSecurityTest {
+@ExtendWith(SpringExtension.class)
+class DataProviderAATest extends AbstractSecurityTest {
 
   @Autowired
   @NotNull
@@ -90,12 +92,12 @@ public class DataProviderAATest extends AbstractSecurityTest {
    * @throws CloudIdDoesNotExistException
    * @throws DatabaseConnectionException
    */
-  @Before
-  public void prepare() throws
-      ProviderAlreadyExistsException,
-      ProviderDoesNotExistException, URISyntaxException,
-      DatabaseConnectionException, CloudIdDoesNotExistException,
-      IdHasBeenMappedException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
+  @BeforeEach
+  void prepare() throws
+          ProviderAlreadyExistsException,
+          ProviderDoesNotExistException, URISyntaxException,
+          DatabaseConnectionException, CloudIdDoesNotExistException,
+          RecordDatasetEmptyException, CloudIdAlreadyExistException {
 
     DataProvider dp = new DataProvider();
     dp.setId("");
@@ -122,10 +124,10 @@ public class DataProviderAATest extends AbstractSecurityTest {
     Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
     Mockito.doReturn(uriBuilder).when(uriInfo).getBaseUriBuilder();
 
-    Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) Mockito.anyObject());
+    Mockito.doReturn(uriBuilder).when(uriBuilder).path((Class) any());
     Mockito.doReturn(new URI("")).when(uriBuilder).buildFromMap(Mockito.anyMap());
 
-    Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) Mockito.anyObject());
+    Mockito.doReturn(new URI("")).when(uriInfo).resolve((URI) any());
 
     when(
         uis.createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(cId);
@@ -142,11 +144,8 @@ public class DataProviderAATest extends AbstractSecurityTest {
    * @throws RecordIdDoesNotExistException
    */
   @Test
-  public void testMethodsThatDontNeedAnyAuthentication()
-      throws ProviderDoesNotExistException, DatabaseConnectionException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException,
-      IdHasBeenMappedException, RecordIdDoesNotExistException,
-      CloudIdAlreadyExistException {
+  void testMethodsThatDontNeedAnyAuthentication()
+          throws ProviderDoesNotExistException {
 
     dataProviderResource.getProvider(PROVIDER_ID);
     dataProvidersResource.getProviders(PROVIDER_ID);
@@ -160,16 +159,15 @@ public class DataProviderAATest extends AbstractSecurityTest {
    * @throws RecordIdDoesNotExistException
    */
   @Test
-  public void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
-      throws ProviderDoesNotExistException, DatabaseConnectionException,
-      RecordDatasetEmptyException, CloudIdDoesNotExistException,
-      IdHasBeenMappedException, RecordIdDoesNotExistException,
-      CloudIdAlreadyExistException {
+  void shouldBeAbleToCallMethodsThatDontNeedAnyAuthenticationWithSomeRandomPersonLoggedIn()
+          throws ProviderDoesNotExistException, DatabaseConnectionException,
+          RecordDatasetEmptyException, CloudIdDoesNotExistException,
+          CloudIdAlreadyExistException {
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
     dataProviderResource.getProvider(PROVIDER_ID);
     dataProviderResource.createIdMapping(PROVIDER_ID, CLOUD_ID,
-        RECORD_ID);
+            RECORD_ID);
 
     dataProvidersResource.getProviders(PROVIDER_ID);
   }
@@ -178,49 +176,45 @@ public class DataProviderAATest extends AbstractSecurityTest {
    * Makes sure that a random person cannot just update a Provider. Simple authentication test to make sure spring security
    * annotations are in place.
    */
-  @Test(expected = AccessDeniedException.class)
-  public void shouldThrowAccessDeniedExceptionWhenRandomPersonTriesToUpdateProvider()
-      throws ProviderDoesNotExistException {
+  @Test
+  void shouldThrowAccessDeniedExceptionWhenRandomPersonTriesToUpdateProvider() {
 
     login(RANDOM_PERSON, RANDOM_PASSWORD);
-    dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
+    assertThrows(AccessDeniedException.class, () -> dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID));
   }
 
-  @Test(expected = AuthenticationCredentialsNotFoundException.class)
-  public void shouldThrowExceptionWhenUnknowUserTriesToCreateIdMapping()
-      throws DatabaseConnectionException, CloudIdDoesNotExistException, IdHasBeenMappedException,
-      ProviderDoesNotExistException, RecordDatasetEmptyException, CloudIdAlreadyExistException {
+  @Test
+  void shouldThrowExceptionWhenUnknowUserTriesToCreateIdMapping() {
 
-    dataProviderResource.createIdMapping(PROVIDER_ID, CLOUD_ID, RECORD_ID);
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> dataProviderResource.createIdMapping(PROVIDER_ID, CLOUD_ID, RECORD_ID));
   }
 
   /**
    * Makes sure the person who created a provider has update permissions as well.
    */
   @Test
-  public void shouldBeAbleToPerformUpdateIfHeIsAnAdmin()
-      throws ProviderDoesNotExistException,
-      ProviderAlreadyExistsException, URISyntaxException {
+  void shouldBeAbleToPerformUpdateIfHeIsAnAdmin()
+          throws ProviderDoesNotExistException,
+          ProviderAlreadyExistsException {
 
     login(ADMIN, ADMIN_PASSWORD);
     dataProvidersResource.createProvider(mockHttpServletRequest(), DATA_PROVIDER_PROPERTIES,
-        PROVIDER_ID);
+            PROVIDER_ID);
     dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
   }
 
   /**
    * Makes sure Van Persie cannot update a provider that belongs to Christiano Ronaldo.
    */
-  @Test(expected = AccessDeniedException.class)
-  public void shouldThrowExceptionWhenVanPersieTriesToUpdateRonaldosStuff()
-      throws ProviderDoesNotExistException,
-      ProviderAlreadyExistsException, URISyntaxException {
+  @Test
+  void shouldThrowExceptionWhenVanPersieTriesToUpdateRonaldosStuff()
+          throws ProviderAlreadyExistsException {
 
     login(RONALDO, RONALD_PASSWORD);
     dataProvidersResource.createProvider(mockHttpServletRequest(), DATA_PROVIDER_PROPERTIES,
-        PROVIDER_ID);
+            PROVIDER_ID);
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID);
+    assertThrows(AccessDeniedException.class, () -> dataProviderResource.updateProvider(DATA_PROVIDER_PROPERTIES, PROVIDER_ID));
   }
 
   private HttpServletRequest mockHttpServletRequest() {

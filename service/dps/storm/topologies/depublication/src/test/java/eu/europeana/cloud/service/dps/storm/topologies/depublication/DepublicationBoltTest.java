@@ -1,16 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.depublication;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
@@ -21,23 +10,30 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.UUID;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class DepublicationBoltTest {
+import java.util.*;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DepublicationBoltTest {
 
   public static final long TASK_ID = 10L;
   private static final String METIS_DATASET_ID = "100";
@@ -46,12 +42,12 @@ public class DepublicationBoltTest {
   private static final UUID LATEST_HARVEST_MD5 = UUID.randomUUID();
   private static final DepublicationReason REASON = DepublicationReason.PERMISSION_ISSUES;
   private static final Map<String, String> INPUT_TUPLE_PARAMETERS = Map.of(
-      PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID,
-      PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
-      PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+          PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID,
+          PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
+          PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
   public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(TASK_ID, "taskName",
-      RECORD_ID, null, INPUT_TUPLE_PARAMETERS, null);
+          RECORD_ID, null, INPUT_TUPLE_PARAMETERS, null);
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -71,19 +67,18 @@ public class DepublicationBoltTest {
   @Captor
   private ArgumentCaptor<Values> captor;
 
-  @Before
-  public void init() {
-    MockitoAnnotations.initMocks(this);
+  @BeforeEach
+  void init() {
     when(harvestedRecordsDAO.findRecord(anyString(), anyString())).thenReturn(Optional.of(
-        HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(RECORD_ID)
-                       .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
-                       .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
-                       .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build()));
+            HarvestedRecord.builder().metisDatasetId(METIS_DATASET_ID).recordLocalId(RECORD_ID)
+                    .latestHarvestDate(LATEST_HARVEST_DATE).latestHarvestMd5(LATEST_HARVEST_MD5)
+                    .previewHarvestDate(LATEST_HARVEST_DATE).previewHarvestMd5(LATEST_HARVEST_MD5)
+                    .publishedHarvestDate(LATEST_HARVEST_DATE).publishedHarvestMd5(LATEST_HARVEST_MD5).build()));
   }
 
   @Test
-  public void shouldRemoveRecordWithTombstoneCreating() throws Exception {
-    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenReturn(true);
+  void shouldRemoveRecordWithTombstoneCreating() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(), any(), any())).thenReturn(true);
 
 
     //when
@@ -92,28 +87,28 @@ public class DepublicationBoltTest {
     //then
     verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedSuccessTuple();
-    verify(outputCollector).ack(eq(anchorTuple));
+    verify(outputCollector).ack(anchorTuple);
     verifyNoMoreInteractions(outputCollector);
     verifyClearedPublishedDateAndMd5InHarvestedRecordsTable();
   }
 
   @Test
-  public void shouldEmitErrorWhenRemoveRecordReturnedFalse() throws Exception {
-    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenReturn(false);
+  void shouldEmitErrorWhenRemoveRecordReturnedFalse() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(), any(), any())).thenReturn(false);
     //when
     depublicationBolt.execute(anchorTuple, INPUT_TUPLE);
 
     //then
     verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedErrorTuple();
-    verify(outputCollector).ack(eq(anchorTuple));
+    verify(outputCollector).ack(anchorTuple);
     verifyNoMoreInteractions(outputCollector);
     verifyNoInteractions(harvestedRecordsDAO);
   }
 
   @Test
-  public void shouldEmitErrorWhenRemoveRecordThrowsException() throws Exception {
-    when(indexedRecordRemover.removeRecord(any(),any(), any())).thenThrow(new IndexingException("") {
+  void shouldEmitErrorWhenRemoveRecordThrowsException() throws Exception {
+    when(indexedRecordRemover.removeRecord(any(), any(), any())).thenThrow(new IndexingException("") {
     });
 
     //when
@@ -122,7 +117,7 @@ public class DepublicationBoltTest {
     //then
     verify(indexedRecordRemover).removeRecord(TargetIndexingDatabase.PUBLISH, RECORD_ID, REASON);
     verifyEmittedErrorTuple();
-    verify(outputCollector).ack(eq(anchorTuple));
+    verify(outputCollector).ack(anchorTuple);
     verifyNoMoreInteractions(outputCollector);
     verifyNoInteractions(harvestedRecordsDAO);
   }
@@ -130,14 +125,14 @@ public class DepublicationBoltTest {
   private void verifyClearedPublishedDateAndMd5InHarvestedRecordsTable() {
     verify(harvestedRecordsDAO).findRecord(anyString(), anyString());
     verify(harvestedRecordsDAO).insertHarvestedRecord(HarvestedRecord.builder()
-                                                                     .metisDatasetId(METIS_DATASET_ID)
-                                                                     .recordLocalId(RECORD_ID)
-                                                                     .latestHarvestDate(LATEST_HARVEST_DATE)
-                                                                     .latestHarvestMd5(LATEST_HARVEST_MD5)
-                                                                     .previewHarvestDate(LATEST_HARVEST_DATE)
-                                                                     .previewHarvestMd5(LATEST_HARVEST_MD5)
-                                                                     .publishedHarvestDate(null)
-                                                                     .publishedHarvestMd5(null).build());
+            .metisDatasetId(METIS_DATASET_ID)
+            .recordLocalId(RECORD_ID)
+            .latestHarvestDate(LATEST_HARVEST_DATE)
+            .latestHarvestMd5(LATEST_HARVEST_MD5)
+            .previewHarvestDate(LATEST_HARVEST_DATE)
+            .previewHarvestMd5(LATEST_HARVEST_MD5)
+            .publishedHarvestDate(null)
+            .publishedHarvestMd5(null).build());
   }
 
   private void verifyEmittedSuccessTuple() {

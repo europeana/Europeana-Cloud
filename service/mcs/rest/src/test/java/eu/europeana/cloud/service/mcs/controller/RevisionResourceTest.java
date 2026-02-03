@@ -10,13 +10,13 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.RestInterfaceConstants;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -27,7 +27,7 @@ import java.util.TimeZone;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.toJson;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,8 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * RevisionResourceTest
  */
-@RunWith(CassandraTestRunner.class)
-public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
+@ExtendWith(CassandraTestExtension.class)
+class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
   private Representation rep;
@@ -55,18 +55,18 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
   private Revision revisionForDataProvider;
   private DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
-  @Before
-  public void mockUp() throws Exception {
-    recordService = applicationContext.getBean(RecordService.class);
-    dataSetService = applicationContext.getBean(DataSetService.class);
-    uisHandler = applicationContext.getBean(UISClientHandler.class);
-    dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
-    dataProvider = new DataProvider();
-    dataProvider.setId("1");
-    Mockito.doReturn(new DataProvider()).when(uisHandler)
-           .getProvider("1");
-    Mockito.doReturn(true).when(uisHandler)
-           .existsCloudId(Mockito.anyString());
+    @BeforeEach
+    void mockUp() throws Exception {
+      recordService = applicationContext.getBean(RecordService.class);
+      dataSetService = applicationContext.getBean(DataSetService.class);
+      uisHandler = applicationContext.getBean(UISClientHandler.class);
+      dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
+      dataProvider = new DataProvider();
+      dataProvider.setId("1");
+      Mockito.doReturn(new DataProvider()).when(uisHandler)
+              .getProvider("1");
+      Mockito.doReturn(true).when(uisHandler)
+              .existsCloudId(Mockito.anyString());
     Mockito.when(uisHandler.getProvider(PROVIDER_ID)).thenReturn(new DataProvider(PROVIDER_ID));
     Mockito.when(uisHandler.existsProvider(REVISION_PROVIDER_ID)).thenReturn(true);
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToAddRevisionTo(Mockito.any());
@@ -119,92 +119,92 @@ public class RevisionResourceTest extends CassandraBasedAbstractResourceTest {
 
    }
 
-  @After
-  public void cleanUp() throws Exception {
+  @AfterEach
+  void cleanUp() throws Exception {
     recordService.deleteRepresentation(rep.getCloudId(),
-        rep.getRepresentationName());
+            rep.getRepresentationName());
     reset(recordService);
     reset(dataSetService);
   }
 
   @Test
-  public void shouldAddRevision() throws Exception {
+  void shouldAddRevision() throws Exception {
     mockMvc.perform(post(revisionWebTarget)
-               .contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
-           .andExpect(status().isCreated());
+                    .contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
+            .andExpect(status().isCreated());
   }
 
 
   @Test
-  public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullProviderId() throws Exception {
+  void shouldReturnMethodNotAllowedWhenAddRevisionWithNullProviderId() throws Exception {
     revision.setRevisionProviderId(null);
     mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
-           .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isMethodNotAllowed());
   }
 
   @Test
-  public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullRevisionName() throws Exception {
+  void shouldReturnMethodNotAllowedWhenAddRevisionWithNullRevisionName() throws Exception {
     revision.setRevisionName(null);
     mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
-           .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isMethodNotAllowed());
   }
 
   @Test
-  public void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
+  void shouldReturnMethodNotAllowedWhenAddRevisionWithNullCreationDate() throws Exception {
     revision.setCreationTimeStamp(null);
     mockMvc.perform(post(revisionWebTarget).contentType(MediaType.APPLICATION_JSON).content(toJson(revision)))
-           .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isMethodNotAllowed());
 
   }
 
   @Test
-  public void shouldAddRevisionWithDeletedTag() throws Exception {
+  void shouldAddRevisionWithDeletedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithTag, Tags.DELETED.getTag()))
-           .andExpect(status().isCreated());
+            .andExpect(status().isCreated());
   }
 
   @Test
-  public void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
+  void ShouldReturnBadRequestWhenAddingRevisionWithUnrecognisedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithTag, "UNDEFINED"))
-           .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest());
   }
 
   @Test
-  public void shouldAddRevisionWithEmptyTags() throws Exception {
+  void shouldAddRevisionWithEmptyTags() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithMultipleTags)
-               .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED))
-           .andExpect(status().isCreated());
+                    .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().isCreated());
   }
 
   @Test
-  public void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
+  void ShouldReturnBadRequestWhenAddingRevisionWithUnexpectedTag() throws Exception {
     mockMvc.perform(post(revisionWebTargetWithMultipleTags)
-               .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-               .param(F_TAGS, Tags.DELETED.getTag(), "undefined"))
-           .andExpect(status().isBadRequest());
+                    .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
+                    .param(F_TAGS, Tags.DELETED.getTag(), "undefined"))
+            .andExpect(status().isBadRequest());
   }
 
   @Test
-  public void shouldProperlyAddRevisionToDataSets() throws Exception {
+  void shouldProperlyAddRevisionToDataSets() throws Exception {
     //given
     dataSetService.createDataSet(dataProvider.getId(), "dataSetId", "DataSetDescription");
 
     //when
     mockMvc.perform(post(revisionWebTarget)
-               .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
-           .andExpect(status().isCreated());
+                    .contentType(MediaType.APPLICATION_JSON).content(toJson(revisionForDataProvider)))
+            .andExpect(status().isCreated());
     //then
     verify(dataSetService, times(1)).updateAllRevisionDatasetsEntries(rep.getCloudId(), rep.getRepresentationName(),
-        rep.getVersion(), revisionForDataProvider);
+            rep.getVersion(), revisionForDataProvider);
   }
 
 
-
   @Test
-  public void shouldRemoveRevisionSuccessfully() throws Exception {
+  void shouldRemoveRevisionSuccessfully() throws Exception {
     // given
     String datasetId = "dataset";
     String format = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
     FastDateFormat formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("UTC"));
     Date date = new Date();
     String revisionTimeStamp = formatter.format(date);

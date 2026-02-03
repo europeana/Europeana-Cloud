@@ -1,19 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -27,26 +14,25 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
-import java.io.InputStream;
-import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class EDMObjectProcessorBoltTest {
+import java.io.InputStream;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class EDMObjectProcessorBoltTest {
 
   @Captor
   ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
@@ -71,18 +57,19 @@ public class EDMObjectProcessorBoltTest {
 
   @InjectMocks
   private final EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt(
-      new CassandraProperties(), "MCS_URL", "user", "password", amazonClient);
+          new CassandraProperties(), "MCS_URL", "user", "password", amazonClient);
 
-  @Before
-  public void init() throws MediaProcessorException {
+  @BeforeEach
+  void init() throws MediaProcessorException {
     edmObjectProcessorBolt.prepare();
     mediaExtractor = new MediaProcessorFactory().createMediaExtractor();
     rdfDeserializer = new RdfConverterFactory().createRdfDeserializer();
+    // For some reason test crashes without this even though we use MockitoExtension?
     MockitoAnnotations.initMocks(this); // initialize all the @Mock objects
   }
 
   @Test
-  public void shouldDoProperEmissionInCaseOfFileWithSingleResource() throws Exception {
+  void shouldDoProperEmissionInCaseOfFileWithSingleResource() throws Exception {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
@@ -109,12 +96,12 @@ public class EDMObjectProcessorBoltTest {
   }
 
   @Test
-  public void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForSingleResourceFile() throws Exception {
+  void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForSingleResourceFile() throws Exception {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
       doThrow(MediaExtractionException.class).when(mediaExtractor)
-                                             .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+              .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
       StormTaskTuple tuple = new StormTaskTuple();
       tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
@@ -139,12 +126,12 @@ public class EDMObjectProcessorBoltTest {
   }
 
   @Test
-  public void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForTwoResourcesFile() throws Exception {
+  void shouldDoProperEmissionInCaseOfResourceProcessingExceptionForTwoResourcesFile() throws Exception {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
       doThrow(MediaExtractionException.class).when(mediaExtractor)
-                                             .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+              .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
       StormTaskTuple tuple = new StormTaskTuple();
       tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
@@ -169,7 +156,7 @@ public class EDMObjectProcessorBoltTest {
   }
 
   @Test
-  public void shouldDoProperEmissionInCaseOfFileContainingNoMainThumbnailResource() throws Exception {
+  void shouldDoProperEmissionInCaseOfFileContainingNoMainThumbnailResource() throws Exception {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
@@ -196,13 +183,13 @@ public class EDMObjectProcessorBoltTest {
   }
 
   @Test
-  public void shouldDoProperEmissionWhileThumbnailStoringFailure() throws Exception {
+  void shouldDoProperEmissionWhileThumbnailStoringFailure() throws Exception {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithTwoResources.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
 
       when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(
-          new RuntimeException());
+              new RuntimeException());
 
       StormTaskTuple tuple = new StormTaskTuple();
       tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");

@@ -1,7 +1,5 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
@@ -10,13 +8,16 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
-import java.net.URI;
-import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DataSetServiceClientTestIT {
+import java.net.URI;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class DataSetServiceClientTestIT {
 
   private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 
@@ -26,7 +27,7 @@ public class DataSetServiceClientTestIT {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientTestIT.class);
 
   @Test
-  public void createDataSet() throws MCSException {
+  void createDataSet() throws MCSException {
     String providerId = "<enter_provider_id_here>";
     String dataSetId = "<enter_data_set_id_here>";
     String description = "<enter_description_here_can_be_null>";
@@ -35,11 +36,11 @@ public class DataSetServiceClientTestIT {
 
     URI dataSetURI = mcsClient.createDataSet(providerId, dataSetId, description);
 
-    assertNotEquals(dataSetURI, null);
+    assertNotNull(dataSetURI);
   }
 
   @Test
-  public void getDataSetRevisionsChunk() throws MCSException {
+  void getDataSetRevisionsChunk() throws MCSException {
     String providerId = "<enter_provider_id_here>";
     String dataSetId = "<enter_data_set_id_here>";
     String representationName = "<enter_representation_name_here>";
@@ -62,7 +63,7 @@ public class DataSetServiceClientTestIT {
 
   //https://test.ecloud.psnc.pl/api/data-providers/metis_acceptance/data-sets/218068ec-aad2-4bd3-9421-9bfcefe92e2a/representations/metadataRecord/revisions/VALIDATION_EXTERNAL/revisionProvider/metis_acceptance?revisionTimestamp=2019-09-26T16:30:04.972
   @Test
-  public void getDataSetRevisionsChunkRealData() throws MCSException {
+  void getDataSetRevisionsChunkRealData() throws MCSException {
     String providerId = "metis_acceptance";
     String dataSetId = "218068ec-aad2-4bd3-9421-9bfcefe92e2a";
     String representationName = "metadataRecord";
@@ -83,7 +84,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void getRevisionsWithDeletedFlagSetToFalse() throws MCSException {
+  void getRevisionsWithDeletedFlagSetToFalse() throws MCSException {
     String providerId = "xxx";
     String dataSetId = "autotests";
     String representationName = "xxx";
@@ -102,7 +103,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void getDataSetRepresentationsChunk() throws MCSException {
+  void getDataSetRepresentationsChunk() throws MCSException {
     String providerId = "<enter_provider_id_here>";
     String dataSetId = "<enter_data_set_id_here>";
     String startFrom = "<enter_start_from_here>";
@@ -117,7 +118,7 @@ public class DataSetServiceClientTestIT {
 
 
   @Test
-  public void getDataSetRepresentationsChunkRealData() throws MCSException {
+  void getDataSetRepresentationsChunkRealData() throws MCSException {
     String providerId = "metis_acceptance";
     String dataSetId = "218068ec-aad2-4bd3-9421-9bfcefe92e2a";
     String startFrom = null;
@@ -131,7 +132,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void getDataSetsForProviderChunk() throws MCSException {
+  void getDataSetsForProviderChunk() throws MCSException {
     String providerId = "<enter_provider_id_here>";
     String startFrom = "<enter_start_from_here>";
 
@@ -144,7 +145,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void getDataSetsForProviderChunkRealData() throws MCSException {
+  void getDataSetsForProviderChunkRealData() throws MCSException {
     String providerId = "metis_acceptance";
     String startFrom = null;
 
@@ -158,7 +159,7 @@ public class DataSetServiceClientTestIT {
 
 
   @Test
-  public void testGetDataSetsForProvider() throws MCSException {
+  void testGetDataSetsForProvider() throws MCSException {
     String providerId = "metis_acceptance";
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
@@ -169,7 +170,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void testGetDataSetIteratorForProvider() {
+  void testGetDataSetIteratorForProvider() {
     String providerId = "metis_acceptance";
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
@@ -181,7 +182,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void testGetDataSetRepresentations() throws MCSException {
+  void testGetDataSetRepresentations() throws MCSException {
     String providerId = "metis_acceptance";
     String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -191,7 +192,7 @@ public class DataSetServiceClientTestIT {
   }
 
   @Test
-  public void testGetDataSetRevisions() throws MCSException {
+  void testGetDataSetRevisions() throws MCSException {
     String providerId = "metis_acceptance";
     String dataSetId = "6f193618-476a-4431-a78a-69571df58163";
     String representationName = "metadataRecord";
@@ -201,7 +202,7 @@ public class DataSetServiceClientTestIT {
     DataSetServiceClient mcsClient = new DataSetServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
 
     List<CloudTagsResponse> result = mcsClient.getDataSetRevisionsList(providerId, dataSetId, representationName,
-        new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
+            new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
 
     assertNotNull(result);
   }

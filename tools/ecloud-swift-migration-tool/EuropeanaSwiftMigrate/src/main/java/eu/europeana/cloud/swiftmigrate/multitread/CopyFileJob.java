@@ -14,39 +14,39 @@ import java.util.concurrent.Callable;
  */
 public class CopyFileJob implements Callable<String> {
 
-  public final static Logger logger = LoggerFactory.getLogger(CopyFileJob.class);
+    public final static Logger logger = LoggerFactory.getLogger(CopyFileJob.class);
 
-  final private String oldFileName;
-  final private SwiftMigrationDAO dao;
-  final private SwiftMigrator swiftMigrator;
-
-
-  public CopyFileJob(String oldFileName, SwiftMigrationDAO dao, SwiftMigrator swiftMigrator) {
-    this.oldFileName = oldFileName;
-    this.dao = dao;
-    this.swiftMigrator = swiftMigrator;
-  }
+    final private String oldFileName;
+    final private SwiftMigrationDAO dao;
+    final private SwiftMigrator swiftMigrator;
 
 
-  public String changeFile() {
-    try {
-      final String newFileName = swiftMigrator.nameConversion(oldFileName);
-      if (newFileName != null) {
-        dao.copyFile(oldFileName, newFileName);
-        logger.info("copy file " + oldFileName + " => " + newFileName);
-      }
-      return "ok";
-    } catch (FileNotExistsException | FileAlreadyExistsException ex) {
-
-      logger.error("Problem with copy file:", ex);
+    public CopyFileJob(String oldFileName, SwiftMigrationDAO dao, SwiftMigrator swiftMigrator) {
+        this.oldFileName = oldFileName;
+        this.dao = dao;
+        this.swiftMigrator = swiftMigrator;
     }
-    return "failure";
-  }
 
 
-  @Override
-  public String call() {
-    return changeFile();
-  }
+    public String changeFile() {
+        try {
+            final String newFileName = swiftMigrator.nameConversion(oldFileName);
+            if (newFileName != null) {
+                dao.copyFile(oldFileName, newFileName);
+                logger.info("copy file " + oldFileName + " => " + newFileName);
+            }
+            return "ok";
+        } catch (FileNotExistsException | FileAlreadyExistsException ex) {
+
+            logger.error("Problem with copy file:", ex);
+        }
+        return "failure";
+    }
+
+
+    @Override
+    public String call() {
+        return changeFile();
+    }
 
 }

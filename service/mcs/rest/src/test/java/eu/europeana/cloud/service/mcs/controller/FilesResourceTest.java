@@ -9,13 +9,13 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestRunner;
+import eu.europeana.cloud.test.CassandraTestExtension;
 import eu.europeana.cloud.test.S3TestHelper;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
@@ -29,16 +29,16 @@ import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.isEtag;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.postFile;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * FileResourceTest
  */
-@RunWith(CassandraTestRunner.class)
-public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
+@ExtendWith(CassandraTestExtension.class)
+class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
   private RecordService recordService;
   private DataSetService dataSetService;
@@ -58,13 +58,14 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   private static final byte[] RDF_CONTENT = "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:si=\"https://www.w3schools.com/rdf/\"></rdf:RDF>".getBytes();
 
 
-  @BeforeClass
-  public static void setUp(){
-    S3TestHelper.startS3MockServer();
-  }
-  @Before
-  public void mockUp()
-      throws Exception {
+    @BeforeAll
+    static void setUp() {
+      S3TestHelper.startS3MockServer();
+    }
+
+  @BeforeEach
+  void mockUp()
+          throws Exception {
     recordService = applicationContext.getBean(RecordService.class);
     dataSetService = applicationContext.getBean(DataSetService.class);
 
@@ -94,8 +95,8 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
 
-  @After
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     try {
       recordService.deleteRepresentation(rep.getCloudId(), rep.getRepresentationName());
       S3TestHelper.cleanUpBetweenTests();
@@ -104,14 +105,14 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     }
   }
 
-  @AfterClass
-  public static void cleanUpAfterTests() {
+  @AfterAll
+  static void cleanUpAfterTests() {
     S3TestHelper.stopS3MockServer();
   }
 
   @Test
-  public void shouldUploadDataWithPostWithoutFileName()
-      throws Exception {
+  void shouldUploadDataWithPostWithoutFileName()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = new byte[1000];
     ThreadLocalRandom.current().nextBytes(content);
@@ -120,7 +121,7 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     // when content is added to record representation
 
     mockMvc.perform(postFile(filesWebTarget, file.getMimeType(), content))
-           .andExpect(status().isCreated())
+            .andExpect(status().isCreated())
            .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
     // then data should be in record service
@@ -129,17 +130,17 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     File insertedFile = rep.getFiles().get(0);
     ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(content.length, insertedFile.getContentLength());
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(content.length, insertedFile.getContentLength());
     assertArrayEquals(content, contentBos.toByteArray());
   }
 
 
   @Test
-  public void shouldUploadDataWithPostWithFileName()
-      throws Exception {
+  void shouldUploadDataWithPostWithFileName()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = new byte[1000];
     ThreadLocalRandom.current().nextBytes(content);
@@ -147,31 +148,31 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     // when content is added to record representation
     mockMvc.perform(postFile(filesWebTarget, file.getMimeType(), content)
-               .param(ParamConstants.F_FILE_NAME, file.getFileName()))
-           .andExpect(status().isCreated())
-           .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
+                    .param(ParamConstants.F_FILE_NAME, file.getFileName()))
+            .andExpect(status().isCreated())
+            .andExpect(header().string(HttpHeaders.ETAG, isEtag(contentMd5)));
 
-    // then data should be in record service
-    rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
-    assertEquals(1, rep.getFiles().size());
+      // then data should be in record service
+      rep = recordService.getRepresentation(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion());
+      assertEquals(1, rep.getFiles().size());
 
-    File insertedFile = rep.getFiles().get(0);
-    ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("FileName mismatch", file.getFileName(), insertedFile.getFileName());
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(content.length, insertedFile.getContentLength());
-    assertArrayEquals(content, contentBos.toByteArray());
+      File insertedFile = rep.getFiles().get(0);
+      ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(file.getFileName(), insertedFile.getFileName());
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(content.length, insertedFile.getContentLength());
+      assertArrayEquals(content, contentBos.toByteArray());
   }
 
   @Test
-  public void shouldBeReturn409WhenFileAlreadyExist()
-      throws Exception {
+  void shouldBeReturn409WhenFileAlreadyExist()
+          throws Exception {
     // given particular (random in this case) content in service
     byte[] content = {1, 2, 3, 4};
     recordService.putContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file,
-        new ByteArrayInputStream(content));
+            new ByteArrayInputStream(content));
 
     byte[] modifiedContent = {5, 6, 7};
     ThreadLocalRandom.current().nextBytes(modifiedContent);
@@ -203,56 +204,56 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
   }
 
   @Test
-  public void shouldUploadXMLFileWithApplicationXMLMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithApplicationXMLMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "application/xml");
   }
 
   @Test
-  public void shouldUploadXMLFileWithTextXMLMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithTextXMLMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadXMLFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadXMLFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XML_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadRdfFileWithTextXmlMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithTextXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadRdfFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadRdfFileWithApplicationXmlMimeType()
-      throws Exception {
+  void shouldUploadRdfFileWithApplicationXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(RDF_CONTENT, "application/xml");
   }
 
   @Test
-  public void shouldUploadXsltFileWithTextPlainMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithTextPlainMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "text/plain");
   }
 
   @Test
-  public void shouldUploadXsltFileWithTextXmlMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithTextXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "text/xml");
   }
 
   @Test
-  public void shouldUploadXsltFileWithApplicationXmlMimeType()
-      throws Exception {
+  void shouldUploadXsltFileWithApplicationXmlMimeType()
+          throws Exception {
     uploadFileWithGivenMimeType(XSLT_CONTENT, "application/xml");
   }
 
@@ -270,10 +271,10 @@ public class FilesResourceTest extends CassandraBasedAbstractResourceTest {
 
     File insertedFile = rep.getFiles().get(0);
     ByteArrayOutputStream contentBos = new ByteArrayOutputStream();
-    recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
-        insertedFile.getFileName(), contentBos);
-    assertEquals("MD5 file mismatch", contentMd5, insertedFile.getMd5());
-    assertEquals(fileContent.length, insertedFile.getContentLength());
+      recordService.getContent(rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(),
+              insertedFile.getFileName(), contentBos);
+      assertEquals(contentMd5, insertedFile.getMd5());
+      assertEquals(fileContent.length, insertedFile.getContentLength());
     assertArrayEquals(fileContent, contentBos.toByteArray());
   }
 }

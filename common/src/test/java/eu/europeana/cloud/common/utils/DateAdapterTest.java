@@ -1,53 +1,54 @@
 package eu.europeana.cloud.common.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
-public class DateAdapterTest {
+import static org.junit.jupiter.api.Assertions.*;
 
-  //example string representing date that is serialized to xml/json. It is number of ms from 1970
-  public static final String DATE_STRING = "1613480338321";
+class DateAdapterTest {
 
-  //DATE reprezented by field DATE_STRING
-  public static final Date DATE = new Date(1613480338321L);
+    //example string representing date that is serialized to xml/json. It is number of ms from 1970
+    public static final String DATE_STRING = "1613480338321";
 
-  private static DateAdapter dateAdapter;
+    //DATE reprezented by field DATE_STRING
+    public static final Date DATE = new Date(1613480338321L);
 
-  @BeforeClass
-  public static void init() {
-    dateAdapter = new DateAdapter();
-  }
+    private static DateAdapter dateAdapter;
 
-  @Test
-  public void shouldSerializeTheDateSuccessfully() {
-    Date date = dateAdapter.unmarshal(DATE_STRING);
-    assertEquals(DATE, date);
-  }
+    @BeforeAll
+    static void init() {
+        dateAdapter = new DateAdapter();
+    }
 
-  @Test
-  public void shouldDeSerializeTheDateSuccessfully() {
-    assertEquals(dateAdapter.marshal(DATE), DATE_STRING);
-  }
+    @Test
+    void shouldSerializeTheDateSuccessfully() {
+        Date date = dateAdapter.unmarshal(DATE_STRING);
+        assertEquals(DATE, date);
+    }
 
-  @Test(expected = NumberFormatException.class)
-  public void shouldThrowParsingException() {
-    String unParsedDateString = "2017-11-23";
-    dateAdapter.unmarshal(unParsedDateString);
-  }
+    @Test
+    void shouldDeSerializeTheDateSuccessfully() {
+        assertEquals(dateAdapter.marshal(DATE), DATE_STRING);
+    }
 
-  @Test
-  public void shouldCreateNullDateInCaseEmptyOrNull() {
-    assertNull(dateAdapter.unmarshal(null));
-    assertNull(dateAdapter.unmarshal(""));
-  }
+    @Test
+    void shouldThrowParsingException() {
+        String unParsedDateString = "2017-11-23";
+        assertThrows(NumberFormatException.class, () -> dateAdapter.unmarshal(unParsedDateString));
+    }
 
-  @Test(expected = RuntimeException.class)
-  public void shouldThrowRunTimeException() {
-    dateAdapter.marshal(null);
-  }
+    @Test
+    void shouldCreateNullDateInCaseEmptyOrNull() {
+        assertNull(dateAdapter.unmarshal(null));
+        assertNull(dateAdapter.unmarshal(""));
+    }
+
+    @Test
+    void shouldThrowRunTimeException() {
+        assertThrows(RuntimeException.class, () -> dateAdapter.marshal(null));
+    }
 
 }

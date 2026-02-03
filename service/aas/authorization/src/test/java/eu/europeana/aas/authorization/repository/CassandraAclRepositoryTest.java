@@ -14,88 +14,71 @@
  */
 package eu.europeana.aas.authorization.repository;
 
-import static eu.europeana.aas.authorization.repository.AclUtils.ROLE_ADMIN;
-import static eu.europeana.aas.authorization.repository.AclUtils.aoi_class;
-import static eu.europeana.aas.authorization.repository.AclUtils.assertAclEntry;
-import static eu.europeana.aas.authorization.repository.AclUtils.assertAclObjectIdentity;
-import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclEntry;
-import static eu.europeana.aas.authorization.repository.AclUtils.createTestAclObjectIdentity;
-import static eu.europeana.aas.authorization.repository.AclUtils.sid1;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import eu.europeana.aas.authorization.CassandraTestBase;
 import eu.europeana.aas.authorization.TestContextConfiguration;
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import eu.europeana.aas.authorization.repository.exceptions.AclNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.*;
+
+import static eu.europeana.aas.authorization.repository.AclUtils.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestContextConfiguration.class})
-public class CassandraAclRepositoryTest extends CassandraTestBase {
+class CassandraAclRepositoryTest extends CassandraTestBase {
 
 
-  @Autowired
-  private CassandraAclRepository service;
+    @Autowired
+    private CassandraAclRepository service;
 
 
-  private boolean isInitialized = false;
+    private boolean isInitialized = false;
 
-  @Before
-  public void setUp() {
-    if (!isInitialized) {
-      service.createAoisTable();
-      service.createAclsTable();
-      service.createChildrenTable();
-      isInitialized = true;
+    @BeforeEach
+    void setUp() {
+        if (!isInitialized) {
+            service.createAoisTable();
+            service.createAclsTable();
+            service.createChildrenTable();
+            isInitialized = true;
+        }
+        SecurityContextHolder
+                .getContext()
+                .setAuthentication(
+                        new UsernamePasswordAuthenticationToken(
+                                sid1,
+                                "password",
+                                List.of(new SimpleGrantedAuthority(
+                                        ROLE_ADMIN))));
     }
-    SecurityContextHolder
-        .getContext()
-        .setAuthentication(
-            new UsernamePasswordAuthenticationToken(
-                sid1,
-                "password",
-                Arrays.asList(new SimpleGrantedAuthority(
-                    ROLE_ADMIN))));
-  }
 
 
-  @After
-  public void tearDown() throws Exception {
-  }
 
 
-  @Test
-  public void testSaveFindUpdateDeleteAcl() {
-    AclObjectIdentity newAoi = createTestAclObjectIdentity();
+    @Test
+    void testSaveFindUpdateDeleteAcl() {
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
 
-    service.saveAcl(newAoi);
+        service.saveAcl(newAoi);
 
-    AclObjectIdentity aoi = service.findAclObjectIdentity(newAoi);
-    assertAclObjectIdentity(newAoi, aoi);
+        AclObjectIdentity aoi = service.findAclObjectIdentity(newAoi);
+        assertAclObjectIdentity(newAoi, aoi);
 
-    aoi.setEntriesInheriting(false);
-    // Do not fill in id. It should get values automatically anyway.
-    AclEntry entry1 = createTestAclEntry(sid1, 0);
+        aoi.setEntriesInheriting(false);
+        // Do not fill in id. It should get values automatically anyway.
+        AclEntry entry1 = createTestAclEntry(sid1, 0);
     AclEntry entry2 = createTestAclEntry(ROLE_ADMIN, 1);
 
     service.updateAcl(aoi, Arrays.asList(new AclEntry[]{entry1, entry2}));
@@ -115,28 +98,28 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
     assertNull(aoi);
   }
 
-  @Test
-  public void testFindAclListManyAcls() {
-    AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
-    AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
-    newAoi2.setId("567");
+    @Test
+    void testFindAclListManyAcls() {
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
+        AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
+        newAoi2.setId("567");
 
-    AclEntry entry1 = createTestAclEntry(sid1, 0);
+        AclEntry entry1 = createTestAclEntry(sid1, 0);
 
-    service.saveAcl(newAoi1);
-    service.saveAcl(newAoi2);
-    service.updateAcl(newAoi1, Arrays.asList(new AclEntry[]{entry1}));
-    service.updateAcl(newAoi2, Arrays.asList(new AclEntry[]{entry1}));
-    Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
-        .asList(new AclObjectIdentity[]{newAoi1, newAoi2}));
+        service.saveAcl(newAoi1);
+        service.saveAcl(newAoi2);
+        service.updateAcl(newAoi1, List.of(entry1));
+        service.updateAcl(newAoi2, List.of(entry1));
+        Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
+                .asList(newAoi1, newAoi2));
 
-    assertEquals(2, result.size());
-    Iterator<AclObjectIdentity> it = result.keySet().iterator();
-    AclObjectIdentity resAoi = it.next();
-    if (resAoi.getId().equals(newAoi1.getId())) {
-      assertAclObjectIdentity(newAoi1, resAoi);
-      assertAclObjectIdentity(newAoi2, it.next());
-    } else {
+        assertEquals(2, result.size());
+        Iterator<AclObjectIdentity> it = result.keySet().iterator();
+        AclObjectIdentity resAoi = it.next();
+        if (resAoi.getId().equals(newAoi1.getId())) {
+            assertAclObjectIdentity(newAoi1, resAoi);
+            assertAclObjectIdentity(newAoi2, it.next());
+        } else {
       assertAclObjectIdentity(newAoi2, resAoi);
       assertAclObjectIdentity(newAoi1, it.next());
     }
@@ -158,48 +141,49 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindAclListEmpty() {
-    service.findAcls(new ArrayList<AclObjectIdentity>());
-  }
+    @Test
+    void testFindAclListEmpty() {
+        List<AclObjectIdentity> acls = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class, () -> service.findAcls(acls));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindNullAclList() {
-    service.findAcls(null);
-  }
+    @Test
+    void testFindNullAclList() {
+        assertThrows(IllegalArgumentException.class, () -> service.findAcls(null));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindNullAcl() {
-    service.findAclObjectIdentity(null);
-  }
+    @Test
+    void testFindNullAcl() {
+        assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentity(null));
+    }
 
-  @Test
-  public void testFindAclNotExisting() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    newAoi.setId("invalid");
-    newAoi.setObjectClass(aoi_class);
-    newAoi.setOwnerId(sid1);
-    service.findAclObjectIdentity(newAoi);
-  }
+    @Test
+    void testFindAclNotExisting() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        newAoi.setId("invalid");
+        newAoi.setObjectClass(aoi_class);
+        newAoi.setOwnerId(sid1);
+        service.findAclObjectIdentity(newAoi);
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindAclWithNullValues() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    service.findAclObjectIdentity(newAoi);
-  }
+    @Test
+    void testFindAclWithNullValues() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentity(newAoi));
+    }
 
-  @Test
-  public void testFindAclChildren() {
-    AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
-    service.saveAcl(newAoi1);
+    @Test
+    void testFindAclChildren() {
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
+        service.saveAcl(newAoi1);
 
-    AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
-    newAoi2.setId("456");
-    newAoi2.setParentObjectClass(newAoi1.getObjectClass());
-    newAoi2.setParentObjectId(newAoi1.getId());
-    service.saveAcl(newAoi2);
+        AclObjectIdentity newAoi2 = createTestAclObjectIdentity();
+        newAoi2.setId("456");
+        newAoi2.setParentObjectClass(newAoi1.getObjectClass());
+        newAoi2.setParentObjectId(newAoi1.getId());
+        service.saveAcl(newAoi2);
 
-    List<AclObjectIdentity> children = service
+        List<AclObjectIdentity> children = service
         .findAclObjectIdentityChildren(newAoi1);
     assertNotNull(children);
     assertEquals(1, children.size());
@@ -207,54 +191,54 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
     assertEquals(newAoi2.getObjectClass(), children.get(0).getObjectClass());
   }
 
-  @Test
-  public void testFindAclChildrenForAclWithNoChildren() {
-    AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
-    service.saveAcl(newAoi1);
-    List<AclObjectIdentity> children = service
-        .findAclObjectIdentityChildren(newAoi1);
-    assertTrue(children.isEmpty());
-  }
+    @Test
+    void testFindAclChildrenForAclWithNoChildren() {
+        AclObjectIdentity newAoi1 = createTestAclObjectIdentity();
+        service.saveAcl(newAoi1);
+        List<AclObjectIdentity> children = service
+                .findAclObjectIdentityChildren(newAoi1);
+        assertTrue(children.isEmpty());
+    }
 
-  @Test
-  public void testFindAclChildrenForNotExistingAcl() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    newAoi.setId("invalid");
-    newAoi.setObjectClass(aoi_class);
-    newAoi.setOwnerId(sid1);
-    List<AclObjectIdentity> children = service
-        .findAclObjectIdentityChildren(newAoi);
-    assertTrue(children.isEmpty());
-  }
+    @Test
+    void testFindAclChildrenForNotExistingAcl() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        newAoi.setId("invalid");
+        newAoi.setObjectClass(aoi_class);
+        newAoi.setOwnerId(sid1);
+        List<AclObjectIdentity> children = service
+                .findAclObjectIdentityChildren(newAoi);
+        assertTrue(children.isEmpty());
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindNullAclChildren() {
-    service.findAclObjectIdentityChildren(null);
-  }
+    @Test
+    void testFindNullAclChildren() {
+        assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentityChildren(null));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testFindAclChildrenWithNullValues() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    service.findAclObjectIdentityChildren(newAoi);
-  }
+    @Test
+    void testFindAclChildrenWithNullValues() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        assertThrows(IllegalArgumentException.class, () -> service.findAclObjectIdentityChildren(newAoi));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testUpdateNullAcl() {
-    service.updateAcl(null, null);
-  }
+    @Test
+    void testUpdateNullAcl() {
+        assertThrows(IllegalArgumentException.class, () -> service.updateAcl(null, null));
+    }
 
-  @Test
-  public void testUpdateAclNullEntries() {
-    AclObjectIdentity newAoi = createTestAclObjectIdentity();
-    service.saveAcl(newAoi);
+    @Test
+    void testUpdateAclNullEntries() {
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
+        service.saveAcl(newAoi);
 
-    AclEntry entry1 = createTestAclEntry(sid1, 0);
-    service.updateAcl(newAoi, Arrays.asList(new AclEntry[]{entry1}));
+        AclEntry entry1 = createTestAclEntry(sid1, 0);
+        service.updateAcl(newAoi, Arrays.asList(new AclEntry[]{entry1}));
 
-    Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
-        .asList(new AclObjectIdentity[]{newAoi}));
-    assertEquals(1, result.size());
-    assertAclObjectIdentity(newAoi, result.keySet().iterator().next());
+        Map<AclObjectIdentity, Set<AclEntry>> result = service.findAcls(Arrays
+                .asList(new AclObjectIdentity[]{newAoi}));
+        assertEquals(1, result.size());
+        assertAclObjectIdentity(newAoi, result.keySet().iterator().next());
     Set<AclEntry> aclEntries = result.values().iterator().next();
     assertAclEntry(newAoi, entry1, aclEntries.iterator().next());
 
@@ -266,57 +250,60 @@ public class CassandraAclRepositoryTest extends CassandraTestBase {
     assertTrue(result.values().iterator().next().isEmpty());
   }
 
-  @Test(expected = AclNotFoundException.class)
-  public void testUpdateAclNotExisting() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    newAoi.setId("invalid");
-    newAoi.setObjectClass(aoi_class);
-    newAoi.setOwnerId(sid1);
-    service.updateAcl(newAoi, new ArrayList<AclEntry>());
-  }
+    @Test
+    void testUpdateAclNotExisting() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        newAoi.setId("invalid");
+        newAoi.setObjectClass(aoi_class);
+        newAoi.setOwnerId(sid1);
+        List<AclEntry> entries = new ArrayList<>();
+        assertThrows(AclNotFoundException.class, () -> service.updateAcl(newAoi, entries));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testSaveNullAcl() {
-    service.saveAcl(null);
-  }
+    @Test
+    void testSaveNullAcl() {
+        assertThrows(IllegalArgumentException.class, () -> service.saveAcl(null));
+    }
 
-  @Test
-  public void testSaveAclAlreadyExisting() {
-    AclObjectIdentity newAoi = createTestAclObjectIdentity();
-    service.saveAcl(newAoi);
-    service.saveAcl(newAoi);
-  }
+    @Test
+    void testSaveAclAlreadyExisting() {
+        AclObjectIdentity newAoi = createTestAclObjectIdentity();
+        service.saveAcl(newAoi);
+        service.saveAcl(newAoi);
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testDeleteNullAcl() {
-    service.deleteAcls(null);
-  }
+    @Test
+    void testDeleteNullAcl() {
+        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(null));
+    }
 
-  @Test
-  public void testDeleteAclNotExisting() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    newAoi.setId("invalid");
-    newAoi.setObjectClass(aoi_class);
-    newAoi.setOwnerId(sid1);
-    service.deleteAcls(Arrays.asList(new AclObjectIdentity[]{newAoi}));
-  }
+    @Test
+    void testDeleteAclNotExisting() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        newAoi.setId("invalid");
+        newAoi.setObjectClass(aoi_class);
+        newAoi.setOwnerId(sid1);
+        service.deleteAcls(Arrays.asList(new AclObjectIdentity[]{newAoi}));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testDeleteEmptyAclList() {
-    service.deleteAcls(new ArrayList<AclObjectIdentity>());
-  }
+    @Test
+    void testDeleteEmptyAclList() {
+        List<AclObjectIdentity> acls = new ArrayList<>();
+        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(acls));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testSaveAclWithNullValues() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    service.saveAcl(newAoi);
-  }
+    @Test
+    void testSaveAclWithNullValues() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        assertThrows(IllegalArgumentException.class, () -> service.saveAcl(newAoi));
+    }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testDeleteAclWithNullValues() {
-    AclObjectIdentity newAoi = new AclObjectIdentity();
-    service.deleteAcls(Arrays.asList(new AclObjectIdentity[]{newAoi}));
-  }
+    @Test
+    void testDeleteAclWithNullValues() {
+        AclObjectIdentity newAoi = new AclObjectIdentity();
+        List<AclObjectIdentity> acls = List.of(newAoi);
+        assertThrows(IllegalArgumentException.class, () -> service.deleteAcls(acls));
+    }
 
 
 }

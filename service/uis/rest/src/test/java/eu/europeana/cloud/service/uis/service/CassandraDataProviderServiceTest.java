@@ -1,26 +1,24 @@
 package eu.europeana.cloud.service.uis.service;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.io.BaseEncoding;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataProviderProperties;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * DataProvider Service Test
@@ -28,9 +26,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Yorgos Mamakis (Yorgos.Mamakis@ europeana.eu)
  * @since Jan 10, 2014
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(value = {"classpath:/default-context.xml"})
-public class CassandraDataProviderServiceTest extends CassandraTestBase {
+class CassandraDataProviderServiceTest extends CassandraTestBase {
 
 
   @Autowired
@@ -38,15 +36,12 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
 
   /**
    * Create and get a provider
-   *
-   * @throws ProviderAlreadyExistsException
-   * @throws ProviderDoesNotExistException
    */
   @Test
-  public void shouldCreateAndGetProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
+  void shouldCreateAndGetProvider() throws ProviderAlreadyExistsException, ProviderDoesNotExistException {
     String id = "provident";
     DataProvider dp = cassandraDataProviderService
-        .createProvider(id, createRandomDataProviderProperties());
+            .createProvider(id, createRandomDataProviderProperties());
 
     DataProvider dpFromService = cassandraDataProviderService.getProvider("provident");
     assertThat(dp, is(dpFromService));
@@ -58,17 +53,18 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    *
    * @throws ProviderDoesNotExistException
    */
-  @Test(expected = ProviderDoesNotExistException.class)
-  public void shouldFailWhenFetchingNonExistingProvider() throws ProviderDoesNotExistException {
-    cassandraDataProviderService.getProvider("provident");
+  @Test
+  void shouldFailWhenFetchingNonExistingProvider() {
+    assertThrows(ProviderDoesNotExistException.class, () -> cassandraDataProviderService.getProvider("provident"));
+
   }
 
   /**
    * Empty array retrieval
    */
   @Test
-  public void shouldReturnEmptyArrayWhenNoProviderAdded() {
-    assertTrue("Expecting no providers", cassandraDataProviderService.getProviders(null, 1).getResults().isEmpty());
+  void shouldReturnEmptyArrayWhenNoProviderAdded() {
+    assertTrue(cassandraDataProviderService.getProviders(null, 1).getResults().isEmpty());
   }
 
   /**
@@ -77,14 +73,14 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    * @throws ProviderAlreadyExistsException
    */
   @Test
-  public void shouldReturnAllProviders() throws ProviderAlreadyExistsException {
+  void shouldReturnAllProviders() throws ProviderAlreadyExistsException {
     int providerCount = 10;
     Set<DataProvider> insertedProviders = new HashSet<>(providerCount * 2);
 
     // insert random providers
     for (int provId = 0; provId < providerCount; provId++) {
       insertedProviders.add(cassandraDataProviderService.createProvider("dp_" + provId,
-          createRandomDataProviderProperties()));
+              createRandomDataProviderProperties()));
     }
 
     Set<DataProvider> fetchedProviders = new HashSet<>(cassandraDataProviderService.getProviders(null, 100)
@@ -98,14 +94,14 @@ public class CassandraDataProviderServiceTest extends CassandraTestBase {
    * @throws ProviderAlreadyExistsException
    */
   @Test
-  public void shouldReturnPagedProviderList() throws ProviderAlreadyExistsException {
+  void shouldReturnPagedProviderList() throws ProviderAlreadyExistsException {
     int providerCount = 100;
     List<String> insertedProviderIds = new ArrayList<>(providerCount);
 
     // insert random providers
     for (int provId = 0; provId < providerCount; provId++) {
       DataProvider prov = cassandraDataProviderService.createProvider("dp_" + provId,
-          createRandomDataProviderProperties());
+              createRandomDataProviderProperties());
       insertedProviderIds.add(prov.getId());
     }
 

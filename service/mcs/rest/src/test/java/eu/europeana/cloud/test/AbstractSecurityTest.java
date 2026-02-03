@@ -1,19 +1,16 @@
 package eu.europeana.cloud.test;
 
-import static eu.europeana.cloud.service.mcs.controller.AbstractResourceTest.mockHttpServletRequest;
-
 import eu.europeana.cloud.service.mcs.config.AuthorizationConfiguration;
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.SecurityTestContext;
-import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthentificationConfiguration;
-
+import eu.europeana.cloud.service.mcs.utils.testcontexts.TestAuthenticationConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,12 +19,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import static eu.europeana.cloud.service.mcs.controller.AbstractResourceTest.mockHttpServletRequest;
 
 
 /**
@@ -38,26 +35,23 @@ import org.springframework.web.context.WebApplicationContext;
 //        "classpath:authorization-context-test.xml", // authorization uses Embedded cassandra
 //		"classpath:aaTestContext.xml"
 //        })
-@RunWith(CassandraTestRunner.class)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "spring.main.allow-bean-definition-overriding=true")
+@ExtendWith(CassandraTestExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {
-    TestAuthentificationConfiguration.class,
-    PropertyBeansContext.class,
-    ServiceConfiguration.class,
-    AuthorizationConfiguration.class,
-    UnifiedExceptionsMapper.class,
-    SecurityTestContext.class,
-        })
+        TestAuthenticationConfiguration.class,
+        PropertyBeansContext.class,
+        ServiceConfiguration.class,
+        AuthorizationConfiguration.class,
+        UnifiedExceptionsMapper.class,
+        SecurityTestContext.class,
+})
 @TestPropertySource("classpath:mcs-test.properties")
 @EnableWebSecurity
 @EnableMethodSecurity
 public abstract class AbstractSecurityTest {
-
-  @Rule
-  public SpringClassRule springRule = new SpringClassRule();
-
-  @Rule
-  public SpringMethodRule methodRule = new SpringMethodRule();
 
   @Autowired
   protected WebApplicationContext applicationContext;
@@ -68,7 +62,7 @@ public abstract class AbstractSecurityTest {
 
   /****/
 
-  @Before
+  @BeforeEach
   public void prepareMockMvc() {
     mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 
@@ -84,7 +78,7 @@ public abstract class AbstractSecurityTest {
   @Autowired
   private AuthenticationManager authenticationManager;
 
-  @Before
+    @BeforeEach
   public synchronized void clear() {
     SecurityContextHolder.clearContext();
   }

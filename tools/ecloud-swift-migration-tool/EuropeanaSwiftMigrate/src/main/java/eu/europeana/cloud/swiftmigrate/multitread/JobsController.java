@@ -15,49 +15,49 @@ import java.util.concurrent.*;
  */
 public class JobsController {
 
-  public static Logger logger = LoggerFactory.getLogger(JobsController.class);
-  Set<String> fileNames;
+    public static Logger logger = LoggerFactory.getLogger(JobsController.class);
+    Set<String> fileNames;
 
-  final private SwiftMigrationDAO dao;
-  final private SwiftMigrator swiftMigrator;
-  final private int threadNumber;
-
-
-  public JobsController(Set<String> fileNames, SwiftMigrationDAO dao, SwiftMigrator swiftMigrator,
-      final int threadNumber) {
-    this.fileNames = fileNames;
-    this.dao = dao;
-    this.swiftMigrator = swiftMigrator;
-    this.threadNumber = threadNumber;
-  }
+    final private SwiftMigrationDAO dao;
+    final private SwiftMigrator swiftMigrator;
+    final private int threadNumber;
 
 
-  /**
-   * Execute jobs.
-   *
-   * @throws InterruptedException
-   * @throws ExecutionException
-   */
-  public void run()
-      throws InterruptedException, ExecutionException {
-    final ExecutorService executorService = Executors.newFixedThreadPool(threadNumber);
-    final Set<Callable<String>> copyJobs = new HashSet<Callable<String>>();
-    for (String fileName : fileNames) {
-      copyJobs.add(new CopyFileJob(fileName, dao, swiftMigrator));
+    public JobsController(Set<String> fileNames, SwiftMigrationDAO dao, SwiftMigrator swiftMigrator,
+                          final int threadNumber) {
+        this.fileNames = fileNames;
+        this.dao = dao;
+        this.swiftMigrator = swiftMigrator;
+        this.threadNumber = threadNumber;
     }
-    try {
-      final List<Future<String>> futures = executorService.invokeAll(copyJobs);
-      long copiedFileNumber = 0;
-      for (Future<String> future : futures) {
-        if (future.get().equalsIgnoreCase("ok")) {
-          copiedFileNumber++;
+
+
+    /**
+     * Execute jobs.
+     *
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+    public void run()
+            throws InterruptedException, ExecutionException {
+        final ExecutorService executorService = Executors.newFixedThreadPool(threadNumber);
+        final Set<Callable<String>> copyJobs = new HashSet<Callable<String>>();
+        for (String fileName : fileNames) {
+            copyJobs.add(new CopyFileJob(fileName, dao, swiftMigrator));
         }
-      }
-      logger.info("Copied file number: " + copiedFileNumber);
-    } catch (InterruptedException ex) {
-      logger.error("Processing problem: ", ex.getMessage());
+        try {
+            final List<Future<String>> futures = executorService.invokeAll(copyJobs);
+            long copiedFileNumber = 0;
+            for (Future<String> future : futures) {
+                if (future.get().equalsIgnoreCase("ok")) {
+                    copiedFileNumber++;
+                }
+            }
+            logger.info("Copied file number: " + copiedFileNumber);
+        } catch (InterruptedException ex) {
+            logger.error("Processing problem: ", ex.getMessage());
+        }
+        executorService.shutdown();
     }
-    executorService.shutdown();
-  }
 
 }

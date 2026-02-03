@@ -1,33 +1,31 @@
 package eu.europeana.cloud.normalization.bolts;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class NormalizationBoltTest {
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+
+@ExtendWith(MockitoExtension.class)
+class NormalizationBoltTest {
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -38,13 +36,8 @@ public class NormalizationBoltTest {
   @InjectMocks
   private NormalizationBolt normalizationBolt = new NormalizationBolt(new CassandraProperties());
 
-  @Before
-  public void init() {
-    MockitoAnnotations.initMocks(this);
-  }
-
   @Test
-  public void shouldNormalizeRecord() throws Exception {
+  void shouldNormalizeRecord() throws Exception {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm.xml"));
@@ -63,7 +56,7 @@ public class NormalizationBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorWhenNormalizationResultContainsErrorMessage() throws Exception {
+  void shouldEmitErrorWhenNormalizationResultContainsErrorMessage() throws Exception {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm-not-valid.xml"));
@@ -82,7 +75,7 @@ public class NormalizationBoltTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void shouldEmitErrorWhenCantPrepareTupleForEmission() throws Exception {
+  void shouldEmitErrorWhenCantPrepareTupleForEmission() throws Exception {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] inputData = Files.readAllBytes(Paths.get("src/test/resources/edm.xml"));

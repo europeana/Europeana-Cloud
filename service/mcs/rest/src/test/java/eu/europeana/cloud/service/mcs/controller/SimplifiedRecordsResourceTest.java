@@ -12,25 +12,26 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
+import java.util.List;
 
-  @Autowired
-  private SimplifiedRecordsResource recordsResource;
+import static org.junit.jupiter.api.Assertions.*;
 
-  @Autowired
-  private RecordService recordService;
+class SimplifiedRecordsResourceTest extends AbstractResourceTest {
 
-  @Autowired
-  private UISClient uisClient;
+    @Autowired
+    private SimplifiedRecordsResource recordsResource;
+
+    @Autowired
+    private RecordService recordService;
+
+    @Autowired
+    private UISClient uisClient;
 
 
   private static final String PROVIDER_ID = "providerId";
@@ -38,44 +39,52 @@ public class SimplifiedRecordsResourceTest extends AbstractResourceTest {
   private static final String LOCAL_ID_FOR_NOT_EXISTING_RECORD = "localIdForNotExistingRecord";
   private static final String LOCAL_ID_FOR_EXISTING_RECORD = "";
   private static final String LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS = "localIdForRecordWithoutRepresentations";
-  private static final String CLOUD_ID = "cloudId";
-  private static final String CLOUD_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS = "cloudIdForRecordsWithoutRepresentations";
+    private static final String CLOUD_ID = "cloudId";
+    private static final String CLOUD_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS = "cloudIdForRecordsWithoutRepresentations";
 
 
-  @Before
-  public void init() throws CloudException, RecordNotExistsException {
-    setupUisClient();
-    setupRecordService();
-  }
-
-  @Test(expected = ProviderNotExistsException.class)
-  public void exceptionShouldBeThrowForNotExistingProviderId() throws RecordNotExistsException, ProviderNotExistsException {
-    recordsResource.getRecord(null, NOT_EXISTING_PROVIDER_ID, "anyLocalId");
-  }
-
-  @Test(expected = RecordNotExistsException.class)
-  public void exceptionShouldBeThrowForNotExistingCloudId() throws RecordNotExistsException, ProviderNotExistsException {
-    recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD);
-  }
-
-  @Test(expected = RecordNotExistsException.class)
-  public void exceptionShouldBeThrowForRecordWithoutRepresentations()
-      throws RecordNotExistsException, ProviderNotExistsException {
-    recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS);
-  }
-
-  @Test
-  public void properRecordShouldBeReturned() throws RecordNotExistsException, ProviderNotExistsException {
-    HttpServletRequest info = mockHttpServletRequest();
-    //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
-    //
-    Record record = recordsResource.getRecord(info, PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);
-
-    Assert.assertNotNull(record);
-    for (Representation representation : record.getRepresentations()) {
-      Assert.assertNull(representation.getCloudId());
+    @BeforeEach
+    void init() throws CloudException, RecordNotExistsException {
+        setupUisClient();
+        setupRecordService();
     }
-  }
+
+    @Test
+    void exceptionShouldBeThrowForNotExistingProviderId() {
+        assertThrows(
+                ProviderNotExistsException.class,
+                () -> recordsResource.getRecord(null, NOT_EXISTING_PROVIDER_ID, "anyLocalId")
+        );
+    }
+
+    @Test
+    void exceptionShouldBeThrowForNotExistingCloudId() {
+        assertThrows(
+                RecordNotExistsException.class,
+                () -> recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_NOT_EXISTING_RECORD)
+        );
+    }
+
+    @Test
+    void exceptionShouldBeThrowForRecordWithoutRepresentations() {
+        assertThrows(
+                RecordNotExistsException.class,
+                () -> recordsResource.getRecord(null, PROVIDER_ID, LOCAL_ID_FOR_RECORD_WITHOUT_REPRESENTATIONS)
+        );
+    }
+
+    @Test
+    void properRecordShouldBeReturned() throws RecordNotExistsException, ProviderNotExistsException {
+        HttpServletRequest info = mockHttpServletRequest();
+        //Mockito.when(info.getBaseUriBuilder()).thenReturn(new JerseyUriBuilder());
+        //
+        Record record = recordsResource.getRecord(info, PROVIDER_ID, LOCAL_ID_FOR_EXISTING_RECORD);
+
+        assertNotNull(record);
+        for (Representation representation : record.getRepresentations()) {
+            assertNull(representation.getCloudId());
+        }
+    }
 
   /////////////
   //

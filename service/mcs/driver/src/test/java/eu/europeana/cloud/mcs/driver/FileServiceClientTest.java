@@ -1,22 +1,13 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static java.util.Arrays.copyOfRange;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import com.fasterxml.jackson.databind.AnnotationIntrospector;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.google.common.io.ByteStreams;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.test.WiremockHelper;
 import jakarta.xml.bind.DatatypeConverter;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,14 +15,18 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.junit.Rule;
-import org.junit.Test;
 
-public class FileServiceClientTest {
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.Arrays.copyOfRange;
+import static org.junit.jupiter.api.Assertions.*;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
+class FileServiceClientTest {
 
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().port(8080))
+                  .build();
   private static final String baseUrl = "http://127.0.0.1:8080/mcs";
 
   private static final String mediaType = "text/plain";
@@ -65,19 +60,19 @@ public class FileServiceClientTest {
   private static final String password = "Ronaldo";
 
   @Test
-  public void shouldGetFileWithoutRange() throws MCSException, IOException, NoSuchAlgorithmException {
+  void shouldGetFileWithoutRange() throws MCSException, IOException, NoSuchAlgorithmException {
     byte[] contentBytes = MODIFIED_FILE_CONTENTS.getBytes(StandardCharsets.UTF_8);
     String contentChecksum = createMD5(contentBytes);
 
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        200,
-        "Test_123456789_8");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        200,
-        "Test_123456789_123456");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            200,
+            "Test_123456789_8");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            200,
+            "Test_123456789_123456");
     //
 
     FileServiceClient instance = new FileServiceClient("http://127.0.0.1:8080/mcs", username, password);
@@ -86,71 +81,71 @@ public class FileServiceClientTest {
 
     assertNotNull(responseStream);
     byte[] responseBytes = ByteStreams.toByteArray(responseStream);
-    assertArrayEquals("Content is incorrect", contentBytes, responseBytes);
+    assertArrayEquals(contentBytes, responseBytes, "Content is incorrect");
     String responseChecksum = createMD5(responseBytes);
-    assertEquals("Checksum is incorrect", contentChecksum, responseChecksum);
+    assertEquals(contentChecksum, responseChecksum, "Checksum is incorrect");
   }
 
 
   @Test
-  public void shouldGetFileWithRange1() throws MCSException, IOException {
+  void shouldGetFileWithRange1() throws MCSException, IOException {
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        206,
-        "es");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            206,
+            "es");
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        206,
-        "es");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            206,
+            "es");
     //
 
     getFileWithRange(1, 2);
   }
 
   @Test
-  public void shouldGetFileWithRange2() throws MCSException, IOException {
+  void shouldGetFileWithRange2() throws MCSException, IOException {
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        206,
-        "t_123456789_");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        206,
-        "t_123456789_");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            206,
+            "t_123456789_");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            206,
+            "t_123456789_");
     //
     getFileWithRange(3, 14);
   }
 
 
   @Test
-  public void shouldGetFileWithRange3() throws MCSException, IOException {
+  void shouldGetFileWithRange3() throws MCSException, IOException {
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        206,
-        "Test_123456");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        206,
-        "Test_123456");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            206,
+            "Test_123456");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            206,
+            "Test_123456");
     //
     getFileWithRange(0, 10);
   }
 
   @Test
-  public void shouldGetFileWithRange4() throws MCSException, IOException {
+  void shouldGetFileWithRange4() throws MCSException, IOException {
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        206,
-        "T");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        206,
-        "T");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            206,
+            "T");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            206,
+            "T");
     //
 
     getFileWithRange(0, 0);
@@ -164,140 +159,137 @@ public class FileServiceClientTest {
     String range = String.format("bytes=%d-%d", rangeStart, rangeEnd);
 
     InputStream responseStream = instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_NAME,
-        range);
+            range);
 
     assertNotNull(responseStream);
     byte[] responseBytes = ByteStreams.toByteArray(responseStream);
     byte[] rangedContentBytes = copyOfRange(contentBytes, rangeStart, rangeEnd + 1);
-    assertArrayEquals("Content is incorrect", rangedContentBytes, responseBytes);
+    assertArrayEquals(rangedContentBytes, responseBytes, "Content is incorrect");
   }
 
-  @Test(expected = WrongContentRangeException.class)
-  public void shouldThrowWrongContentRangeExceptionForGetFileWithRangeWhenIncorrectFormat() throws MCSException {
+  @Test
+  void shouldThrowWrongContentRangeExceptionForGetFileWithRangeWhenIncorrectFormat() {
     int rangeStart = 1;
     int rangeEnd = 4;
 
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36\"",
-        416,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36\"",
+            416,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
 
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        416,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            416,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
     //
 
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
     String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
-    instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range);
+    assertThrows(WrongContentRangeException.class, () -> instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range));
   }
 
 
-  @Test(expected = WrongContentRangeException.class)
-  public void shouldThrowWrongContentRangeExceptionForGetFileWithRangeWhenIncorrectRangeValues() throws MCSException {
+  @Test
+  void shouldThrowWrongContentRangeExceptionForGetFileWithRangeWhenIncorrectRangeValues() {
     int rangeStart = 1;
     int rangeEnd = 50;
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
     String range = String.format("bytese=%d-%d", rangeStart, rangeEnd);
 
     //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        416,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        416,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            416,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            416,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Expected range header format is: bytes=(?&lt;start&gt;\\d+)[-](?&lt;end&gt;\\d*)</details><errorCode>WRONG_CONTENT_RANGE</errorCode></errorInfo>");
     //
-    instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range);
-  }
-
-
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRange() throws MCSException {
-    String incorrectFileName = "edefc11e-1c5f-4a71-adb6-28efdd7b3b00";
-    //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/edefc11e-1c5f-4a71-adb6-28efdd7b3b00",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
-    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
-
-    instance.getFile(cloudId, representationName, version, incorrectFileName);
-  }
-
-
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectCloudId() throws MCSException {
-    String incorrectCloudId = "7MZWQJF8P99";
-    //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
-
-    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
-
-    instance.getFile(incorrectCloudId, representationName, version, unmovableFileName);
-  }
-
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectRepresentationName()
-      throws MCSException {
-    String incorrectRepresentationName = "schema_000101";
-    //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
-    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
-
-    instance.getFile(cloudId, incorrectRepresentationName, version, unmovableFileName);
-  }
-
-
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion()
-      throws MCSException {
-    String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
-    //
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/9007c26f-e29d-4924-9c49-8ff064484264",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
-    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
-
-    instance.getFile(cloudId, representationName, incorrectVersion, unmovableFileName);
+    assertThrows(WrongContentRangeException.class, () -> instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, unmovableFileName, range));
   }
 
 
   @Test
-  public void shouldUploadFile() throws MCSException {
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRange() {
+    String incorrectFileName = "edefc11e-1c5f-4a71-adb6-28efdd7b3b00";
+    //
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/edefc11e-1c5f-4a71-adb6-28efdd7b3b00",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
+    //
+    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
+
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () -> instance.getFile(cloudId, representationName, version, incorrectFileName));
+  }
+
+
+  @Test
+  void shouldThrowRepresentationNotExistsForGetFileWithoutRangeWhenIncorrectCloudId() {
+    String incorrectCloudId = "7MZWQJF8P99";
+    //
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/08fcc281-e1fd-4cec-bd33-c12a49145d36",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
+    //
+
+    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
+
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () -> instance.getFile(incorrectCloudId, representationName, version, unmovableFileName));
+  }
+
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectRepresentationName() {
+    String incorrectRepresentationName = "schema_000101";
+    //
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
+    //
+    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
+
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () -> instance.getFile(cloudId, incorrectRepresentationName, version, unmovableFileName));
+  }
+
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForGetFileWithoutRangeWhenIncorrectVersion() {
+    String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
+    //
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/9007c26f-e29d-4924-9c49-8ff064484264",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
+    //
+    FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
+
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () -> instance.getFile(cloudId, representationName, incorrectVersion, unmovableFileName));
+  }
+
+
+  @Test
+  void shouldUploadFile() throws MCSException {
     byte[] contentBytes = UPLOADED_FILE_CONTENTS.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
-        201,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/65d195f0-e2a1-46a1-be8e-d2ba27a12823",
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
+            201,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/65d195f0-e2a1-46a1-be8e-d2ba27a12823",
+            null);
 
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/9cfebb4d-e5d6-4523-9d5b-608d9530ee57",
-        202,
-        "Test_123456789_");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/9cfebb4d-e5d6-4523-9d5b-608d9530ee57",
+            202,
+            "Test_123456789_");
     //
 
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
@@ -308,8 +300,8 @@ public class FileServiceClientTest {
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectCloudId() throws MCSException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectCloudId() {
     String contentString = "Test_123456789_";
     String incorrectCloudId = "7MZWQJS8P84";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -317,18 +309,18 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJS8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJS8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType));
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectRepresentationName() throws MCSException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectRepresentationName() {
     String contentString = "Test_123456789_";
     String incorrectRepresentationName = "schema_000101";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -336,18 +328,18 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType));
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectVersion() throws MCSException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWhenIncorrectVersion() {
     String contentString = "Test_123456789_";
     String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -355,35 +347,34 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
-
-    instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType));
   }
 
-  @Test(expected = CannotModifyPersistentRepresentationException.class)
-  public void shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFile() throws MCSException {
+  @Test
+  void shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFile() {
     String contentString = "Test_123456789_";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType);
+    assertThrows(CannotModifyPersistentRepresentationException.class, () -> instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType));
   }
 
 
   @Test
-  public void shouldUploadFileWithChecksum() throws MCSException, NoSuchAlgorithmException {
+  void shouldUploadFileWithChecksum() throws MCSException, NoSuchAlgorithmException {
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
@@ -391,23 +382,23 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
-        201,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/46688d93-3519-4b4f-b841-639959adf250",
-        "\"cc3dedabc38bdafc5a5fd53b5485544f\"",
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
+            201,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/46688d93-3519-4b4f-b841-639959adf250",
+            "\"cc3dedabc38bdafc5a5fd53b5485544f\"",
+            null);
     //
 
     URI uri = instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType,
-        contentChecksum);
+            contentChecksum);
     assertNotNull(uri);
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectCloudId()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectCloudId()
+          throws NoSuchAlgorithmException {
     String incorrectCloudId = "7MZWQJF8P00";
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -416,19 +407,19 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P00/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P00/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType, contentChecksum);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(incorrectCloudId, representationName, version, contentStream, mediaType, contentChecksum));
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectRepresentationName()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectRepresentationName()
+          throws NoSuchAlgorithmException {
     String incorrectRepresentationName = "schema_000101";
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -437,19 +428,19 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType, contentChecksum);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType, contentChecksum));
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectVersion()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionForUploadFileWithChecksumWhenIncorrectVersion()
+          throws NoSuchAlgorithmException {
     String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
@@ -458,273 +449,281 @@ public class FileServiceClientTest {
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
 
-    instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType, contentChecksum);
+    assertThrows(RepresentationNotExistsException.class, () -> instance.uploadFile(cloudId, representationName, incorrectVersion, contentStream, mediaType, contentChecksum));
   }
 
 
-  @Test(expected = CannotModifyPersistentRepresentationException.class)
-  public void shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFileWithChecksum()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowCannotModifyPersistentRepresentationExceptionForUploadFileWithChecksum()
+          throws NoSuchAlgorithmException {
+
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/881c5c00-4259-11e4-9c35-00163eefc9c8/files",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
 
-    instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION, contentStream, mediaType, contentChecksum);
+    assertThrows(CannotModifyPersistentRepresentationException.class, () ->
+            instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, PERSISTED_VERSION,
+                    contentStream, mediaType, contentChecksum));
   }
 
 
-  @Test(expected = MCSException.class)
-  public void shouldThrowMCSExceptionForUploadFile() throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowMCSExceptionForUploadFile() throws NoSuchAlgorithmException {
+
     String contentString = "Test_123456789_1";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
     String incorrectContentChecksum = contentChecksum.substring(1) + "0";
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
-        201,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/26bbc4ac-5da6-4736-b537-9ccb0d35125d",
-        "\"cc3dedabc38bdafc5a5fd53b5485544f\"",
-        null);
-    //
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files",
+            201,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/26bbc4ac-5da6-4736-b537-9ccb0d35125d",
+            "\"cc3dedabc38bdafc5a5fd53b5485544f\"",
+            null);
 
-    instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType,
-        incorrectContentChecksum);
+    assertThrows(MCSException.class, () ->
+            instance.uploadFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION,
+                    contentStream, mediaType, incorrectContentChecksum));
   }
 
 
   @Test
-  public void shouldModifyFile() throws MCSException, NoSuchAlgorithmException {
+  void shouldModifyFile() throws MCSException, NoSuchAlgorithmException {
+
     byte[] contentBytes = MODIFIED_FILE_CONTENTS.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
 
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPut(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        204,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
-        null);
-    //
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            204,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
+            null);
 
-    URI uri = instance.modifyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType,
-        MODIFIED_FILE_NAME, contentChecksum);
+    URI uri = instance.modifyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION,
+            contentStream, mediaType, MODIFIED_FILE_NAME, contentChecksum);
 
     assertNotNull(uri);
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectCloudId()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectCloudId()
+          throws NoSuchAlgorithmException {
+
     String incorrectCloudId = "12c068c9-461d-484e-878f-099c5fca4400";
     String contentString = "Test_123456789_123456";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPut(
-        "/mcs/records/12c068c9-461d-484e-878f-099c5fca4400/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/12c068c9-461d-484e-878f-099c5fca447f",
-        405,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/mcs/records/12c068c9-461d-484e-878f-099c5fca4400/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/12c068c9-461d-484e-878f-099c5fca447f",
+            405,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.modifyFile(incorrectCloudId, representationName, version, contentStream, mediaType, modyfiedFileName,
-        contentChecksum);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.modifyFile(incorrectCloudId, representationName, version, contentStream,
+                    mediaType, modyfiedFileName, contentChecksum));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectRepresentationName()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectRepresentationName()
+          throws NoSuchAlgorithmException {
+
     String incorrectRepresentationName = "schema_000101";
     String contentString = "Test_123456789_123456";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPut(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/12c068c9-461d-484e-878f-099c5fca447f",
-        405,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/12c068c9-461d-484e-878f-099c5fca447f",
+            405,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.modifyFile(cloudId, incorrectRepresentationName, version, contentStream, mediaType, modyfiedFileName,
-        contentChecksum);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.modifyFile(cloudId, incorrectRepresentationName, version, contentStream,
+                    mediaType, modyfiedFileName, contentChecksum));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectVersion()
-      throws MCSException, NoSuchAlgorithmException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForModifyFileWhenIncorrectVersion()
+          throws NoSuchAlgorithmException {
+
     String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
     String contentString = "Test_123456789_123456";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPut(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/12c068c9-461d-484e-878f-099c5fca447f",
-        405,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/12c068c9-461d-484e-878f-099c5fca447f",
+            405,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.modifyFile(cloudId, representationName, incorrectVersion, contentStream, mediaType, modyfiedFileName,
-        contentChecksum);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.modifyFile(cloudId, representationName, incorrectVersion, contentStream,
+                    mediaType, modyfiedFileName, contentChecksum));
   }
 
-  @Test(expected = MCSException.class)
-  public void shouldThrowMCSExceptionForModifyFile() throws MCSException, NoSuchAlgorithmException {
+
+  @Test
+  void shouldThrowMCSExceptionForModifyFile() throws NoSuchAlgorithmException {
+
     String contentString = "Test_123456789_123456";
     byte[] contentBytes = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream contentStream = new ByteArrayInputStream(contentBytes);
     String contentChecksum = createMD5(contentBytes);
     String incorrectContentChecksum = contentChecksum.substring(1) + "0";
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubPut(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        204,
-        "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
-        "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
-        null);
-    //
+    new WiremockHelper(wireMockExtension).stubPut(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            204,
+            "http://ecloud.eanadev.org:8080/ecloud-service-mcs-rest-0.2-SNAPSHOT/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/06abeac8-6221-4399-be68-5be5ae8d1473",
+            "\"e0b2ac158446e3169a8ca9e9d084bd42\"",
+            null);
 
-    instance.modifyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, contentStream, mediaType, MODIFIED_FILE_NAME,
-        incorrectContentChecksum);
+    assertThrows(MCSException.class, () ->
+            instance.modifyFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION,
+                    contentStream, mediaType, MODIFIED_FILE_NAME, incorrectContentChecksum));
   }
 
 
-  @Test(expected = FileNotExistsException.class)
-  public void shouldDeleteFile() throws MCSException {
+  @Test
+  void shouldDeleteFile() throws MCSException {
+
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/Test_123456789_",
-        204);
-    new WiremockHelper(wireMockRule).stubGet(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/Test_123456789_",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>FILE_NOT_EXISTS</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/Test_123456789_",
+            204);
+    new WiremockHelper(wireMockExtension).stubGet(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/e91d6300-431c-11e4-8576-00163eefc9c8/files/Test_123456789_",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>FILE_NOT_EXISTS</errorCode></errorInfo>");
 
     instance.deleteFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_CONTENTS);
-    instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_CONTENTS);
 
+    assertThrows(FileNotExistsException.class, () ->
+            instance.getFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, TEST_VERSION, UPLOADED_FILE_CONTENTS));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectCloudId() throws MCSException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectCloudId() {
+
     String incorrectCloudId = "7MZWQJF8P99";
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff067",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/7MZWQJF8P99/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff067",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.deleteFile(incorrectCloudId, representationName, version, deletedFileName);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.deleteFile(incorrectCloudId, representationName, version, deletedFileName));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectRepresentationName()
-      throws MCSException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectRepresentationName() {
+
     String incorrectRepresentationName = "schema_000101";
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff067",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000101/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff067",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.deleteFile(cloudId, incorrectRepresentationName, version, deletedFileName);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.deleteFile(cloudId, incorrectRepresentationName, version, deletedFileName));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectVersion() throws MCSException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFileWhenIncorrectVersion() {
+
     String incorrectVersion = "8a64f9b0-98b6-11e3-b072-50e549e85200";
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/d64b423b-1018-4526-ab4b-3539261ff067",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
-    instance.deleteFile(cloudId, representationName, incorrectVersion, deletedFileName);
+
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/8a64f9b0-98b6-11e3-b072-50e549e85200/files/d64b423b-1018-4526-ab4b-3539261ff067",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
+
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.deleteFile(cloudId, representationName, incorrectVersion, deletedFileName));
   }
 
 
-  @Test(expected = AccessDeniedOrObjectDoesNotExistException.class)
-  public void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFile() throws MCSException {
+  @Test
+  void shouldThrowAccessDeniedOrObjectDoesNotExistExceptionForDeleteFile() {
+
     String notExistDeletedFileName = "d64b423b-1018-4526-ab4b-3539261ff000";
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff000",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/7MZWQJF8P84/representations/schema_000001/versions/de084210-a393-11e3-8614-50e549e85271/files/d64b423b-1018-4526-ab4b-3539261ff000",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
 
-    instance.deleteFile(cloudId, representationName, version, notExistDeletedFileName);
+    assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
+            instance.deleteFile(cloudId, representationName, version, notExistDeletedFileName));
   }
 
 
-  @Test(expected = CannotModifyPersistentRepresentationException.class)
-  public void shouldThrowCannotModifyPersistentRepresentationExceptionForDeleteFile() throws MCSException {
+  @Test
+  void shouldThrowCannotModifyPersistentRepresentationExceptionForDeleteFile() {
 
     FileServiceClient instance = new FileServiceClient(baseUrl, username, password);
 
-    //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/eb5c0a60-4306-11e4-8576-00163eefc9c8/files/b32b56e9-94d7-44b8-9010-7a1795ee7f95",
-        405,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
-    //
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/W3KBLNZDKNQ/representations/schema66/versions/eb5c0a60-4306-11e4-8576-00163eefc9c8/files/b32b56e9-94d7-44b8-9010-7a1795ee7f95",
+            405,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>CANNOT_MODIFY_PERSISTENT_REPRESENTATION</errorCode></errorInfo>");
 
-    instance.deleteFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME, "eb5c0a60-4306-11e4-8576-00163eefc9c8", DELETED_FILE_NAME);
+    assertThrows(CannotModifyPersistentRepresentationException.class, () ->
+            instance.deleteFile(TEST_CLOUD_ID, TEST_REPRESENTATION_NAME,
+                    "eb5c0a60-4306-11e4-8576-00163eefc9c8", DELETED_FILE_NAME));
   }
 
   private String createMD5(byte[] bytes) throws NoSuchAlgorithmException {

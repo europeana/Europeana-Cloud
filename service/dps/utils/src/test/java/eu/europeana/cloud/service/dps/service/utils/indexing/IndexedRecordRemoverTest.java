@@ -1,26 +1,23 @@
 package eu.europeana.cloud.service.dps.service.utils.indexing;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class IndexedRecordRemoverTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class IndexedRecordRemoverTest {
 
   public static final long TASK_ID = 10L;
   private static final String RECORD_ID = "/100/record1";
@@ -39,14 +36,13 @@ public class IndexedRecordRemoverTest {
   @InjectMocks
   private IndexedRecordRemover indexedRecordRemover;
 
-  @Before
-  public void init() {
-    MockitoAnnotations.initMocks(this);
+  @BeforeEach
+  void init() {
     when(indexWrapper.getIndexer(Mockito.any())).thenReturn(indexer);
   }
 
   @Test
-  public void shouldCreateTombstoneAndRemoveRecordForPreviewDB() throws Exception {
+  void shouldCreateTombstoneAndRemoveRecordForPreviewDB() throws Exception {
     when(indexer.indexTombstone(any(), any())).thenReturn(true);
     when(indexer.remove(any())).thenReturn(true);
 
@@ -60,7 +56,7 @@ public class IndexedRecordRemoverTest {
   }
 
   @Test
-  public void shouldCreateTombstoneAndRemoveRecordForPublishDB() throws Exception {
+  void shouldCreateTombstoneAndRemoveRecordForPublishDB() throws Exception {
     when(indexer.indexTombstone(any(), any())).thenReturn(true);
     when(indexer.remove(any())).thenReturn(true);
 
@@ -74,7 +70,7 @@ public class IndexedRecordRemoverTest {
   }
 
   @Test
-  public void shouldRemoveRecordWhenCouldNotCreateNewTombstoneButTombstoneAlreadyExists() throws Exception {
+  void shouldRemoveRecordWhenCouldNotCreateNewTombstoneButTombstoneAlreadyExists() throws Exception {
     when(indexer.indexTombstone(any(), any())).thenReturn(false);
     when(indexer.getTombstone(any())).thenReturn(tombstone);
     when(indexer.remove(any())).thenReturn(false);
@@ -92,7 +88,7 @@ public class IndexedRecordRemoverTest {
 
 
   @Test
-  public void shouldNotRemoveRecordWhenCouldNotCreateNewTombstoneAndTombstoneNotExists() throws Exception {
+  void shouldNotRemoveRecordWhenCouldNotCreateNewTombstoneAndTombstoneNotExists() throws Exception {
     when(indexer.indexTombstone(any(), any())).thenReturn(false);
     when(indexer.getTombstone(any())).thenReturn(null);
 
@@ -109,7 +105,7 @@ public class IndexedRecordRemoverTest {
 
 
   @Test
-  public void shouldNotRemoveRecordWhenIndexTombstoneThrowsException() throws Exception {
+  void shouldNotRemoveRecordWhenIndexTombstoneThrowsException() throws Exception {
     when(indexer.indexTombstone(any(), any())).thenThrow(new IndexingException("") {
     });
 

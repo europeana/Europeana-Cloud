@@ -1,12 +1,5 @@
 package eu.europeana.cloud.service.uis;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.CloudId;
@@ -16,27 +9,31 @@ import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * UniqueIdResource unit test
@@ -44,10 +41,10 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Yorgos.Mamakis@ kb.nl
  * @since Oct 23, 2013
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {TestConfiguration.class})
-public class UniqueIdentifierResourceTest {
+class UniqueIdentifierResourceTest {
 
   private final String providerId = "providerId";
   private final String recordId = "recordId";
@@ -60,23 +57,23 @@ public class UniqueIdentifierResourceTest {
   @Autowired
   private WebApplicationContext wac;
 
-  @Before
-  public void mockUp() {
+  @BeforeEach
+  void mockUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
   }
 
   @Test
-  public void testCreateCloudId()
-      throws Exception {
+  void testCreateCloudId()
+          throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     Mockito.reset(uniqueIdentifierService);
     CloudId originalGid = createCloudId(providerId, recordId);
     Mockito.when(uniqueIdentifierService.createCloudId(providerId, recordId)).thenReturn(originalGid);
 
     MvcResult mvcResult = mockMvc.perform(post("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
-                                     .param(UISParamConstants.Q_RECORD_ID, recordId)
-                                     .accept(MediaType.APPLICATION_JSON))
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_RECORD_ID, recordId)
+                    .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().isOk()).andReturn();
 
     String content = mvcResult.getResponse().getContentAsString();
@@ -89,17 +86,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testCreateCloudIdDbException()
-      throws Exception {
+  void testCreateCloudIdDbException()
+          throws Exception {
     Mockito.reset(uniqueIdentifierService);
 
     Throwable databaseException = new DatabaseConnectionException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-            uniqueIdentifierService.getPort(), "")));
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                    uniqueIdentifierService.getPort(), "")));
 
     Mockito.doThrow(
-        databaseException).when(uniqueIdentifierService).createCloudId(providerId, recordId);
+            databaseException).when(uniqueIdentifierService).createCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(post("/cloudIds")
                                      .param(UISParamConstants.Q_PROVIDER_ID, providerId)
@@ -122,17 +119,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testCreateCloudIdRecordExistsException()
-      throws Exception {
+  void testCreateCloudIdRecordExistsException()
+          throws Exception {
     Throwable exception = new RecordExistsException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
-        IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId)));
+            IdentifierErrorTemplate.RECORD_EXISTS.getHttpCode(),
+            IdentifierErrorTemplate.RECORD_EXISTS.getErrorInfo(providerId, recordId)));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).createCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(post("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
-                                     .param(UISParamConstants.Q_RECORD_ID, recordId)
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_RECORD_ID, recordId)
                                      .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().is4xxClientError()).andReturn();
 
@@ -147,17 +144,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testCreateCloudIdAlreadyExistException()
-      throws Exception {
+  void testCreateCloudIdAlreadyExistException()
+          throws Exception {
     // given
     Throwable exception = new CloudIdAlreadyExistException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getHttpCode(),
-        IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId)));
+            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getHttpCode(),
+            IdentifierErrorTemplate.CLOUDID_ALREADY_EXIST.getErrorInfo(providerId, recordId)));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).createCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(post("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
                                      .param(UISParamConstants.Q_RECORD_ID, recordId)
                                      .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().is4xxClientError()).andReturn();
@@ -173,17 +170,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetCloudId()
-      throws Exception {
+  void testGetCloudId()
+          throws Exception {
     CloudId originalGid = createCloudId(providerId, recordId);
 
     Mockito.doReturn(originalGid).when(uniqueIdentifierService).getCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(get("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
-                                     .param(UISParamConstants.Q_RECORD_ID, recordId)
-                                     .accept(MediaType.APPLICATION_JSON))
-                                 .andExpect(status().isOk()).andReturn();
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_RECORD_ID, recordId)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andReturn();
 
     String content = mvcResult.getResponse().getContentAsString();
     CloudId retrieveGet = new ObjectMapper().readValue(
@@ -195,17 +192,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetCloudIdDBException()
-      throws Exception {
+  void testGetCloudIdDBException()
+          throws Exception {
     Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-            uniqueIdentifierService.getPort(), "")));
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                    uniqueIdentifierService.getPort(), "")));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).getCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(get("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
                                      .param(UISParamConstants.Q_RECORD_ID, recordId)
                                      .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().is5xxServerError()).andReturn();
@@ -225,17 +222,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetCloudIdRecordDoesNotExistException()
-      throws Exception {
+  void testGetCloudIdRecordDoesNotExistException()
+          throws Exception {
     Throwable exception = new RecordDoesNotExistException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
-        IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)));
+            IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getHttpCode(),
+            IdentifierErrorTemplate.RECORD_DOES_NOT_EXIST.getErrorInfo(providerId, recordId)));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).getCloudId(providerId, recordId);
 
     MvcResult mvcResult = mockMvc.perform(get("/cloudIds")
-                                     .param(UISParamConstants.Q_PROVIDER_ID, providerId)
-                                     .param(UISParamConstants.Q_RECORD_ID, recordId)
+                    .param(UISParamConstants.Q_PROVIDER_ID, providerId)
+                    .param(UISParamConstants.Q_RECORD_ID, recordId)
                                      .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().isNotFound()).andReturn();
 
@@ -250,8 +247,8 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetLocalIds()
-      throws Exception {
+  void testGetLocalIds()
+          throws Exception {
     ResultSlice<CloudId> lidListWrapper = new ResultSlice<>();
     List<CloudId> localIdList = new ArrayList<>(1);
     localIdList.add(createCloudId(providerId, recordId));
@@ -277,17 +274,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetLocalIdsDBException()
-      throws Exception {
+  void testGetLocalIdsDBException()
+          throws Exception {
     Throwable exception = new DatabaseConnectionException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
-        IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
-            uniqueIdentifierService.getPort(), "")));
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getHttpCode(),
+            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR.getErrorInfo(uniqueIdentifierService.getHostList(),
+                    uniqueIdentifierService.getPort(), "")));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).getLocalIdsByCloudId("cloudId");
 
     MvcResult mvcResult = mockMvc.perform(get("/cloudIds/cloudId")
-                                     .accept(MediaType.APPLICATION_JSON))
+                    .accept(MediaType.APPLICATION_JSON))
                                  .andExpect(status().is5xxServerError()).andReturn();
 
     String content = mvcResult.getResponse().getContentAsString();
@@ -305,17 +302,17 @@ public class UniqueIdentifierResourceTest {
   }
 
   @Test
-  public void testGetLocalIdsCloudIdDoesNotExistException()
-      throws Exception {
+  void testGetLocalIdsCloudIdDoesNotExistException()
+          throws Exception {
     Throwable exception = new CloudIdDoesNotExistException(new IdentifierErrorInfo(
-        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
-        IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")));
+            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getHttpCode(),
+            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST.getErrorInfo("cloudId")));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).getLocalIdsByCloudId("cloudId");
 
     MvcResult mvcResult = mockMvc.perform(get("/cloudIds/cloudId")
-                                     .accept(MediaType.APPLICATION_JSON))
-                                 .andExpect(status().isNotFound()).andReturn();
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound()).andReturn();
 
     String content = mvcResult.getResponse().getContentAsString();
     ErrorInfo errorInfo = new ObjectMapper().readValue(

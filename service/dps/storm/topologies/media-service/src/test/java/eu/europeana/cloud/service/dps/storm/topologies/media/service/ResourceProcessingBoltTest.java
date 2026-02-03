@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.nullable;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
@@ -23,34 +9,30 @@ import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
-import eu.europeana.metis.mediaprocessing.model.AbstractResourceMetadata;
-import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
-import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
-import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResultImpl;
-import eu.europeana.metis.mediaprocessing.model.TextResourceMetadata;
-import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+import eu.europeana.metis.mediaprocessing.model.*;
+import org.apache.storm.shade.org.apache.commons.lang.StringUtils;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.apache.storm.tuple.Values;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.storm.shade.org.apache.commons.lang.StringUtils;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.apache.storm.tuple.Values;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.FieldSetter;
 
-public class ResourceProcessingBoltTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ResourceProcessingBoltTest {
 
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
   private static final long TASK_ID = 1;
@@ -83,11 +65,12 @@ public class ResourceProcessingBoltTest {
   ResourceProcessingBolt resourceProcessingBolt = new ResourceProcessingBolt(new CassandraProperties(), amazonClient);
 
 
-  @Before
-  public void prepareTuple() throws Exception {
-    MockitoAnnotations.initMocks(this);
-    FieldSetter.setField(resourceProcessingBolt,
-        ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader"), thumbnailUploader);
+  @BeforeEach
+  void prepareTuple() throws Exception {
+    Field thumbnailField = ResourceProcessingBolt.class.getDeclaredField("thumbnailUploader");
+    thumbnailField.setAccessible(true);
+    thumbnailField.set(resourceProcessingBolt, thumbnailUploader);
+
     resourceProcessingBolt.initGson();
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setFileUrl(FILE_URL);
@@ -104,23 +87,23 @@ public class ResourceProcessingBoltTest {
 
 
   @Test
-  public void shouldSuccessfullyProcessTheResource() throws Exception {
+  void shouldSuccessfullyProcessTheResource() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
-        "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+            "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
     int thumbnailCount = 3;
     List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     when(amazonClient.putObject(anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(
-        new PutObjectResult());
+            new PutObjectResult());
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
@@ -135,23 +118,23 @@ public class ResourceProcessingBoltTest {
 
 
   @Test
-  public void shouldDropTheTaskAndStopProcessing() throws Exception {
+  void shouldDropTheTaskAndStopProcessing() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
-        "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+            "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
     int thumbnailCount = 3;
     List<Thumbnail> thumbnailList = getThumbnails(thumbnailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     when(amazonClient.putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class))).thenReturn(
-        new PutObjectResult());
+            new PutObjectResult());
 
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(true);
 
@@ -161,24 +144,24 @@ public class ResourceProcessingBoltTest {
 
 
   @Test
-  public void shouldFormulateTheAggregateExceptionsWhenSavingToAmazonFails() throws Exception {
+  void shouldFormulateTheAggregateExceptionsWhenSavingToAmazonFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
-        "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+            "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
     int thumbNailCount = 3;
     List<Thumbnail> thumbnailList = getThumbnails(thumbNailCount);
 
     AbstractResourceMetadata resourceMetadata = new TextResourceMetadata("text/xml", resourceName, 100L, false, 10,
-        thumbnailList);
+            thumbnailList);
     ResourceExtractionResult resourceExtractionResult = new ResourceExtractionResultImpl(resourceMetadata, thumbnailList);
     String errorMessage = "The error was thrown because of something";
 
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     doThrow(new AmazonServiceException(errorMessage)).when(amazonClient)
-                                                     .putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
+            .putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
     verify(amazonClient, Mockito.times(3)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
@@ -190,7 +173,7 @@ public class ResourceProcessingBoltTest {
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
     assertEquals(thumbNailCount,
-        StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
+            StringUtils.countMatches(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE), errorMessage));
     assertNull(parameters.get(PluginParameterKeys.RESOURCE_LINK_KEY));
     assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
 
@@ -198,13 +181,13 @@ public class ResourceProcessingBoltTest {
 
 
   @Test
-  public void shouldSendExceptionsWhenProcessingFails() throws Exception {
+  void shouldSendExceptionsWhenProcessingFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
-        "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
+            "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
     doThrow(MediaExtractionException.class).when(mediaExtractor)
-                                           .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
+            .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
 
@@ -224,7 +207,7 @@ public class ResourceProcessingBoltTest {
   }
 
   @Test
-  public void shouldForwardTheTupleWhenNoResourceLinkFound() {
+  void shouldForwardTheTupleWhenNoResourceLinkFound() {
     Tuple anchorTuple = mock(TupleImpl.class);
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
     int expectedParametersSize = 1;

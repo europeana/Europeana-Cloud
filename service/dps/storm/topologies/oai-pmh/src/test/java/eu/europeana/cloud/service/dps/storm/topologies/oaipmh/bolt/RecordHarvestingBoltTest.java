@@ -1,15 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
@@ -19,26 +9,30 @@ import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.TupleImpl;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.function.Supplier;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link RecordHarvestingBolt}
  */
-
-public class RecordHarvestingBoltTest {
+@ExtendWith(MockitoExtension.class)
+class RecordHarvestingBoltTest {
 
   @Mock
   private OutputCollector outputCollector;
@@ -56,13 +50,9 @@ public class RecordHarvestingBoltTest {
     return RecordHarvestingBoltTest.class.getResourceAsStream(name);
   }
 
-  @Before
-  public void init() {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
-  public void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
+  void harvestingForAllParametersSpecified() throws IOException, HarvesterException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -80,7 +70,7 @@ public class RecordHarvestingBoltTest {
   }
 
   @Test
-  public void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
+  void shouldHarvestRecordInEDMAndExtractIdentifiers() throws IOException, HarvesterException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -114,77 +104,77 @@ public class RecordHarvestingBoltTest {
     };
   }
 
-  @Test
-  public void shouldEmitErrorOnHarvestingExceptionWhenCannotExctractEuropeanaIdFromEDM() throws HarvesterException {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
+    @Test
+    void shouldEmitErrorOnHarvestingExceptionWhenCannotExtractEuropeanaIdFromEDM() throws HarvesterException {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
 
-    OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/corruptedEDMRecord.xml"));
-    when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-    StormTaskTuple task = taskWithAllNeededParameters();
-    StormTaskTuple spiedTask = spy(task);
+        OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/corruptedEDMRecord.xml"));
+        when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
+        StormTaskTuple task = taskWithAllNeededParameters();
+        StormTaskTuple spiedTask = spy(task);
 
-    //when
-    recordHarvestingBolt.execute(anchorTuple, spiedTask);
-
-    //then
-    verifyErrorEmit();
-  }
-
-  @Test
-  public void shouldEmitErrorOnHarvestingException() throws HarvesterException {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-
-    when(harvester.harvestRecord(any(), anyString())).thenThrow(new HarvesterException("Some!"));
-    StormTaskTuple task = taskWithAllNeededParameters();
-    StormTaskTuple spiedTask = spy(task);
-
-    //when
-    recordHarvestingBolt.execute(anchorTuple, spiedTask);
+        //when
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
     //then
     verifyErrorEmit();
   }
 
-  @Test
-  public void harvestingForEmptyUrl() {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple task = taskWithoutResourceUrl();
+    @Test
+    void shouldEmitErrorOnHarvestingException() throws HarvesterException {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
 
-    //when
-    recordHarvestingBolt.execute(anchorTuple, task);
+        when(harvester.harvestRecord(any(), anyString())).thenThrow(new HarvesterException("Some!"));
+        StormTaskTuple task = taskWithAllNeededParameters();
+        StormTaskTuple spiedTask = spy(task);
 
-    //then
-    verifyErrorEmit();
-  }
-
-  @Test
-  public void harvestingForEmptyRecordId() {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple task = taskWithoutRecordId();
-
-    //when
-    recordHarvestingBolt.execute(anchorTuple, task);
+        //when
+        recordHarvestingBolt.execute(anchorTuple, spiedTask);
 
     //then
     verifyErrorEmit();
   }
 
-  @Test
-  public void harvestForEmptyPrefix() {
-    //given
-    Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple task = taskWithoutPrefix();
+    @Test
+    void harvestingForEmptyUrl() {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple task = taskWithoutResourceUrl();
 
-    //when
-    recordHarvestingBolt.execute(anchorTuple, task);
+        //when
+        recordHarvestingBolt.execute(anchorTuple, task);
 
-    //then
-    verifyErrorEmit();
-  }
+        //then
+        verifyErrorEmit();
+    }
+
+    @Test
+    void harvestingForEmptyRecordId() {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple task = taskWithoutRecordId();
+
+        //when
+        recordHarvestingBolt.execute(anchorTuple, task);
+
+        //then
+        verifyErrorEmit();
+    }
+
+    @Test
+    void harvestForEmptyPrefix() {
+        //given
+        Tuple anchorTuple = mock(TupleImpl.class);
+        StormTaskTuple task = taskWithoutPrefix();
+
+        //when
+        recordHarvestingBolt.execute(anchorTuple, task);
+
+        //then
+        verifyErrorEmit();
+    }
 
   private StormTaskTuple taskWithAllNeededParameters() {
     StormTaskTuple task = new StormTaskTuple();

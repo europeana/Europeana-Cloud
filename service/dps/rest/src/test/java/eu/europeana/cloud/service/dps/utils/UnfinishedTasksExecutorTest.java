@@ -1,32 +1,28 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import static org.mockito.Mockito.when;
-
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
-import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.*;
+
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {UnfinishedTasksContext.class, UnfinishedTasksExecutor.class})
-@RunWith(SpringRunner.class)
-public class UnfinishedTasksExecutorTest {
+@ExtendWith(SpringExtension.class)
+class UnfinishedTasksExecutorTest {
 
   @Autowired
   private TasksByStateDAO tasksByStateDAO;
@@ -41,7 +37,7 @@ public class UnfinishedTasksExecutorTest {
   private TaskSubmitterFactory taskSubmitterFactory;
 
   @Test
-  public void shouldNotStartExecutionForEmptyTasksList() {
+  void shouldNotStartExecutionForEmptyTasksList() {
     //given
     List<TaskInfo> unfinishedTasks = new ArrayList<>();
 
@@ -54,7 +50,7 @@ public class UnfinishedTasksExecutorTest {
   }
 
   @Test
-  public void shouldStartExecutionForOneTasks() throws TaskInfoDoesNotExistException {
+  void shouldStartExecutionForOneTasks() {
     //given
     List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
     TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();
@@ -75,7 +71,7 @@ public class UnfinishedTasksExecutorTest {
 
 
   @Test
-  public void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
+  void shouldStartExecutionForTasksThatBelongsToGivenMachine() {
     //given
     List<TaskByTaskState> unfinishedTasks = new ArrayList<>();
     TaskByTaskState taskByTaskState = prepareTestTaskByTaskState();

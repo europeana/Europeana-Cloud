@@ -1,29 +1,27 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.utils.Tags;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.WiremockHelper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
 
-public class RevisionServiceClientTest {
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.jupiter.api.Assertions.*;
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(8080));
-
+class RevisionServiceClientTest {
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().port(8080))
+                  .build();
   private static final String baseUrl = "http://localhost:8080/mcs/";
   private static final String CLOUD_ID = "test_cloud_id";
   private static final String REPRESENTATION_NAME = "test_representation";
@@ -37,19 +35,19 @@ public class RevisionServiceClientTest {
 
   private RevisionServiceClient instance;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     instance = new RevisionServiceClient(baseUrl);
   }
 
   @Test
-  public void shouldSuccessfullyAddRevision() throws MCSException {
+  void shouldSuccessfullyAddRevision() throws MCSException {
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions",
-        201,
-        EXPECTED_REVISIONS_LOCATION,
-        null);
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions",
+            201,
+            EXPECTED_REVISIONS_LOCATION,
+            null);
     //
     Revision revision = new Revision(REVISION_NAME, PROVIDER_ID);
     URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, revision);
@@ -58,13 +56,13 @@ public class RevisionServiceClientTest {
   }
 
   @Test
-  public void shouldAddRevisionWithDeletedTag() throws MCSException {
+  void shouldAddRevisionWithDeletedTag() throws MCSException {
     //
-    new WiremockHelper(wireMockRule).stubPost(
-        "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/deleted",
-        201,
-        EXPECTED_REVISION_PATH_WITH_DELETED_TAG,
-        null
+    new WiremockHelper(wireMockExtension).stubPost(
+            "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id/tag/deleted",
+            201,
+            EXPECTED_REVISION_PATH_WITH_DELETED_TAG,
+            null
     );
     //
     URI uri = instance.addRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION, REVISION_NAME, PROVIDER_ID, Tags.DELETED.getTag());
@@ -73,27 +71,27 @@ public class RevisionServiceClientTest {
   }
 
   @Test
-  public void shouldRemoveRevision() throws MCSException {
+  void shouldRemoveRevision() throws MCSException {
     //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
-        204);
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/test_cloud_id/representations/test_representation/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
+            204);
     //
     instance.deleteRevision(CLOUD_ID, REPRESENTATION_NAME, VERSION,
-        new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
+            new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
     assertTrue(true);
   }
 
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowPresentationDoesNotExistsException() throws MCSException {
+  @Test
+  void shouldThrowPresentationDoesNotExistsException() {
     //
-    new WiremockHelper(wireMockRule).stubDelete(
-        "/mcs/records/test_cloud_id/representations/REP_NOT_FOUND/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
-        404,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
+    new WiremockHelper(wireMockExtension).stubDelete(
+            "/mcs/records/test_cloud_id/representations/REP_NOT_FOUND/versions/de084210-a393-11e3-8614-50e549e85271/revisions/test_revision_name/revisionProvider/test_provider_id?revisionTimestamp=2019-07-11T00%3A00%3A00Z",
+            404,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
     //
-    instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION,
-        new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z")));
+    assertThrows(RepresentationNotExistsException.class, () -> instance.deleteRevision(CLOUD_ID, "REP_NOT_FOUND", VERSION,
+            new Revision(REVISION_NAME, PROVIDER_ID, DateHelper.parseISODate("2019-07-11T00:00:00Z"))));
   }
 }

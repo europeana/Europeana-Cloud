@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.Session;
 import eu.europeana.cloud.test.CassandraTestInstance;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CassandraTestBase {
 
@@ -13,16 +13,16 @@ public abstract class CassandraTestBase {
   public static final String PASSWORD = "";
 
 
-  public CassandraTestBase() {
-    CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
-  }
+    public CassandraTestBase() {
+        CassandraTestInstance.getInstance(KEYSPACE_SCHEMA_CQL, KEYSPACE);
+    }
 
-  protected Session getSession() {
-    return CassandraTestInstance.getSession(KEYSPACE);
-  }
+    protected Session getSession() {
+        return CassandraTestInstance.getSession(KEYSPACE);
+    }
 
-  @Before
-  public void truncateAll() {
-    CassandraTestInstance.truncateAllData(false);
-  }
+    @BeforeEach
+    void truncateAll() {
+        CassandraTestInstance.truncateAllData(false);
+    }
 }

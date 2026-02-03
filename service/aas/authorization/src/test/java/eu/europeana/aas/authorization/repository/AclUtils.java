@@ -1,20 +1,21 @@
 package eu.europeana.aas.authorization.repository;
 
-import static org.junit.Assert.assertEquals;
 
 import eu.europeana.aas.authorization.model.AclEntry;
 import eu.europeana.aas.authorization.model.AclObjectIdentity;
 import eu.europeana.cloud.common.model.Role;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class AclUtils {
 
-  //Needed to ensure that creating instance of Utils class is blocked
-  private AclUtils() {
-  }
+    //Needed to ensure that creating instance of Utils class is blocked
+    private AclUtils() {
+    }
 
-  protected static final String sid1 = "sid1@system";
-  protected static final String aoi_id = "123";
-  protected static final String aoi_parent_id = "456";
+    protected static final String sid1 = "sid1@system";
+    protected static final String aoi_id = "123";
+    protected static final String aoi_parent_id = "456";
   protected static final String aoi_class = "a.b.c.Class";
   protected static final String ROLE_ADMIN = Role.ADMIN;
 

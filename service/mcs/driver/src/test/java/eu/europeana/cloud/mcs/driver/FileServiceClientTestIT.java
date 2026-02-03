@@ -1,22 +1,21 @@
 package eu.europeana.cloud.mcs.driver;
 
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.springframework.http.MediaType;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
-public class FileServiceClientTestIT {
+class FileServiceClientTestIT {
 
   private static final String LOCAL_TEST_URL = "http://localhost:8080/mcs";
 
@@ -24,7 +23,7 @@ public class FileServiceClientTestIT {
   private static final String USER_PASSWORD = "1RkZBuVf";
 
   @Test
-  public void getFile1() throws MCSException {
+  void getFile1() throws MCSException {
     String fileUrlText = "http://localhost:8080/mcs/<enter_path_to_file_here>";
 
     FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
@@ -34,7 +33,7 @@ public class FileServiceClientTestIT {
   }
 
   @Test
-  public void getFile3() throws MCSException {
+  void getFile3() throws MCSException {
     String fileUrlText = "http://localhost:8080/mcs/<enter_path_to_file_here>";
 
     FileServiceClient mcsClient = new FileServiceClient(LOCAL_TEST_URL);
@@ -44,7 +43,7 @@ public class FileServiceClientTestIT {
   }
 
   @Test
-  public void uploadFile() throws MCSException {
+  void uploadFile() throws MCSException {
     String cloudId = "<enter_cloud_id_here>";
     String representationName = "<enter_representation_name_here>";
     String version = "<enter_version_here>";
@@ -61,7 +60,7 @@ public class FileServiceClientTestIT {
 
 
   @Test
-  public void uploadFile_verifyValidBinaryDataStored() throws Exception {
+  void uploadFile_verifyValidBinaryDataStored() throws Exception {
 
     String cloudId = "7XGEDN7JTPRL6SALCRQDG4WX5CYRZTFJ6GDXJKLAAZHHJNSUCMSA";
     String representationName = "tekstowy";
@@ -81,7 +80,7 @@ public class FileServiceClientTestIT {
     }
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
-    //Uncoment one of them to test and comment modification section
+    //Uncomment one of them to test and comment modification section
     var resultUri = mcsClient.uploadFile(cloudId, representationName, version, fileName, inputStream, mediaType);
     //     resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType, contentMd5);
     //    resultUri = mcsClient.uploadFile(cloudId, representationName, version, inputStream, mediaType);
@@ -104,7 +103,7 @@ public class FileServiceClientTestIT {
   }
 
   @Test
-  public void getFile_throwsFileNotExistsExceptionWhileFileNotExists() {
+  void getFile_throwsFileNotExistsExceptionWhileFileNotExists() {
 
     String cloudId = "7XGEDN7JTPRL6SALCRQDG4WX5CYRZTFJ6GDXJKLAAZHHJNSUCMSA";
     String representationName = "tekstowy";

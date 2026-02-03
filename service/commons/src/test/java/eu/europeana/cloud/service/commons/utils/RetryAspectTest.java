@@ -1,32 +1,29 @@
 package eu.europeana.cloud.service.commons.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import eu.europeana.cloud.common.annotation.Retryable;
-import java.util.Optional;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.mockito.Mockito.*;
+
 /**
  * Several tests from this class is skipped when overridden value for retries attempt is set because it makes those tests
  * purposeless. In case when that value is set then some extra tests will be executed in order to assure that overriding work as
  * intended
  */
-public class RetryAspectTest {
+class RetryAspectTest {
 
   private static AspectedTest1Impl aspectTestTarget;
   private static AspectedTest1Interface aspectTestProxy;
 
-  @Before
-  public void prepareTests() {
+  @BeforeEach
+  void prepareTests() {
     aspectTestTarget = spy(new AspectedTest1Impl());
 
     AspectJProxyFactory factory = new AspectJProxyFactory(aspectTestTarget);
@@ -38,8 +35,8 @@ public class RetryAspectTest {
 
 
   @Test
-  public void shouldCallThreeTimesAspectedMethodWithSuccess() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldCallThreeTimesAspectedMethodWithSuccess() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     String result = aspectTestProxy.testMethod01_fails_2("test 01", 1);
     verify(aspectTestTarget, times(3)).testMethod01_fails_2("test 01", 1);
 
@@ -48,30 +45,30 @@ public class RetryAspectTest {
   }
 
   @Test
-  public void shouldCallThreeTimesAspectedMethodWithoutSuccess() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldCallThreeTimesAspectedMethodWithoutSuccess() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     assertThrows(TestRuntimeExpection.class, () -> aspectTestProxy.testMethod02_fails_4("s1", "s2"));
     verify(aspectTestTarget, times(3)).testMethod02_fails_4("s1", "s2");
   }
 
   @Test
-  public void shouldCallTwoTimesOneFailLongDelayAspectedMethodWithSuccess() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldCallTwoTimesOneFailLongDelayAspectedMethodWithSuccess() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     String result = aspectTestProxy.testMethod03_fails_1();
     verify(aspectTestTarget, times(2)).testMethod03_fails_1();
     assertEquals("SUCCESS", result);
   }
 
   @Test
-  public void shouldCallTwoTimesThreeFailAspectedMethodWithoutSuccess() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldCallTwoTimesThreeFailAspectedMethodWithoutSuccess() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     assertThrows(TestRuntimeExpection.class, () -> aspectTestProxy.testMethod04_fails_3());
     verify(aspectTestTarget, times(2)).testMethod04_fails_3();
   }
 
   @Test
-  public void shouldCallThreeTimesOnlyForAnnotatedMethodWithoutSuccess() {
-    Assume.assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldCallThreeTimesOnlyForAnnotatedMethodWithoutSuccess() {
+    assumeFalse(RetryableMethodExecutor.areRetryParamsOverridden());
     //prepare test
     AspectedTest2Impl aspectTestTarget = spy(new AspectedTest2Impl());
 
@@ -87,19 +84,19 @@ public class RetryAspectTest {
   }
 
   @Test
-  public void shouldOverrideRetryParamsAndMethodShouldSuccessAfterFailingAllowedNumberOfTimes() {
-    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldOverrideRetryParamsAndMethodShouldSuccessAfterFailingAllowedNumberOfTimes() {
+    assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(
-        Retryable.DEFAULT_MAX_ATTEMPTS);
+            Retryable.DEFAULT_MAX_ATTEMPTS);
     aspectTestProxy.failGivenAmountOfTimes(attemptCount - 1);
     verify(aspectTestTarget, times(attemptCount)).failGivenAmountOfTimes(anyInt());
   }
 
   @Test
-  public void shouldOverrideRetryParamsAndThrowExceptionAfterFailingAllRetries() {
-    Assume.assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
+  void shouldOverrideRetryParamsAndThrowExceptionAfterFailingAllRetries() {
+    assumeTrue(RetryableMethodExecutor.areRetryParamsOverridden());
     int attemptCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(
-        Retryable.DEFAULT_MAX_ATTEMPTS);
+            Retryable.DEFAULT_MAX_ATTEMPTS);
     assertThrows(TestRuntimeExpection.class, () -> aspectTestProxy.failGivenAmountOfTimes(attemptCount));
     verify(aspectTestTarget, times(attemptCount)).failGivenAmountOfTimes(anyInt());
   }
