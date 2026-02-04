@@ -1,15 +1,5 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
@@ -17,16 +7,21 @@ import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import java.util.Date;
-import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class RecordSubmitServiceTest {
+import java.util.Date;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class RecordSubmitServiceTest {
 
   private static final String TOPOLOGY = "a_topology";
   private static final long TASK_ID = 1234567890;
@@ -58,7 +53,7 @@ public class RecordSubmitServiceTest {
   private RecordSubmitService service;
 
   @Test
-  public void shouldSubmitRecordThatNotAlreadyExists() {
+  void shouldSubmitRecordThatNotAlreadyExists() {
     service.submitRecord(record, parameters);
 
     verify(kafkaSubmitService).submitRecord(record, TOPIC);
@@ -66,7 +61,7 @@ public class RecordSubmitServiceTest {
 
 
   @Test
-  public void shouldNotSubmitAlreadyExistingRecord() {
+  void shouldNotSubmitAlreadyExistingRecord() {
     when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
     service.submitRecord(record, parameters);
@@ -75,33 +70,33 @@ public class RecordSubmitServiceTest {
   }
 
   @Test
-  public void shouldSaveRecordThatNotAlreadyExists() {
+  void shouldSaveRecordThatNotAlreadyExists() {
     service.submitRecord(record, parameters);
 
     verify(processedRecordsDAO).insert(anyLong(), anyString(), eq(0), anyString(),
-        anyString(), eq(RecordState.QUEUED.toString()), anyString(), anyString());
+            anyString(), eq(RecordState.QUEUED.toString()), anyString(), anyString());
   }
 
   @Test
-  public void shouldNotSaveAlreadyExistingRecord() {
+  void shouldNotSaveAlreadyExistingRecord() {
     when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
     service.submitRecord(record, parameters);
 
     verify(processedRecordsDAO, never()).insert(anyLong(), anyString(), anyInt(), anyString(),
-        anyString(), anyString(), anyString(), anyString());
+            anyString(), anyString(), anyString(), anyString());
   }
 
 
   @Test
-  public void shouldReturnTrueWhenSubmitingNewRecord() {
+  void shouldReturnTrueWhenSubmittingNewRecord() {
     boolean result = service.submitRecord(record, parameters);
 
     assertTrue(result);
   }
 
   @Test
-  public void shouldReturnFalseWhenSubmitDuplicatedRecord() {
+  void shouldReturnFalseWhenSubmitDuplicatedRecord() {
     when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
 
     boolean result = service.submitRecord(record, parameters);
@@ -111,7 +106,7 @@ public class RecordSubmitServiceTest {
 
 
   @Test
-  public void shouldReturnTrueWhenSubmitRetriedRecord() {
+  void shouldReturnTrueWhenSubmitRetriedRecord() {
     parameters.setRestarted(true);
     alreadyProcessedRecord.setStarTime(TIME_BEFORE_CURRENT_EXECUTION_START);
     when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));
@@ -123,7 +118,7 @@ public class RecordSubmitServiceTest {
 
 
   @Test
-  public void shouldReturnFalseWhenSubmitRetriedDuplicatedRecord() {
+  void shouldReturnFalseWhenSubmitRetriedDuplicatedRecord() {
     parameters.setRestarted(true);
     alreadyProcessedRecord.setStarTime(CURRENT_EXECUTION_START_TIME);
     when(processedRecordsDAO.selectByPrimaryKey(anyLong(), anyString())).thenReturn(Optional.of(alreadyProcessedRecord));

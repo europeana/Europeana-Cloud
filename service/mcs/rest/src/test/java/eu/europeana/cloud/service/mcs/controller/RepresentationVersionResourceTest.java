@@ -13,31 +13,33 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import jakarta.ws.rs.core.HttpHeaders;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.hamcrest.MatcherAssert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
-import static junitparams.JUnitParamsRunner.$;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(JUnitParamsRunner.class)
-public class RepresentationVersionResourceTest extends AbstractResourceTest {
+@ExtendWith(SpringExtension.class)
+class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   private RecordService recordService;
 
@@ -46,8 +48,8 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
   private static final String VERSION = "1.0";
   private static final String FILE_NAME = "1.xml";
   private static final String PERSIST_PATH =
-      UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
-                          .build(GLOBAL_ID, SCHEMA, VERSION).toString();
+          UriComponentsBuilder.fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST)
+                  .build(GLOBAL_ID, SCHEMA, VERSION).toString();
 
 
   private static final Representation REPRESENTATION = new Representation(GLOBAL_ID, SCHEMA, VERSION, null, null,
@@ -55,15 +57,15 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
           12345, null)), null, true, new Date(), null, false);
 
 
-  @Before
-  public void mockUp() throws RepresentationNotExistsException {
+  @BeforeEach
+  void mockUp() throws RepresentationNotExistsException {
     recordService = applicationContext.getBean(RecordService.class);
     CassandraRecordDAO cassandraRecordDAO = applicationContext.getBean(CassandraRecordDAO.class);
     DataSetPermissionsVerifier dataSetPermissionsVerifier = applicationContext.getBean(DataSetPermissionsVerifier.class);
     Mockito.reset(recordService);
 
     when(cassandraRecordDAO.getRepresentationDatasetId(any(), any(), any()))
-        .thenReturn(Optional.of(new CompoundDataSetId("dsProvId", "datasetId")));
+            .thenReturn(Optional.of(new CompoundDataSetId("dsProvId", "datasetId")));
 
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(any());
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(any());
@@ -71,22 +73,20 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
   }
 
 
-  @SuppressWarnings("unused")
-  private Object[] mimeTypes() {
-    return $($(MediaType.APPLICATION_XML), $(MediaType.APPLICATION_JSON));
+  static MediaType[] mimeTypes() {
+    return new MediaType[]{MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON};
   }
 
-
-  @Test
-  @Parameters(method = "mimeTypes")
-  public void testGetRepresentationVersion(MediaType mediaType) throws Exception {
+  @ParameterizedTest
+  @MethodSource("mimeTypes")
+  void testGetRepresentationVersion(MediaType mediaType) throws Exception {
     Representation expected = new Representation(REPRESENTATION);
     URITools.enrich(expected, getBaseUri());
     when(recordService.getRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenReturn(new Representation(REPRESENTATION));
 
     ResultActions response = mockMvc.perform(get(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION)).accept(mediaType))
-                                    .andExpect(status().isOk())
-                                    .andExpect(content().contentType(mediaType));
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(mediaType));
 
     Representation entity = responseContent(response, Representation.class, mediaType);
     assertThat(entity, is(expected));
@@ -95,56 +95,62 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
   }
 
 
-  private Object[] errors() {
-    return $($(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404));
+  private static Stream<Arguments> errors() {
+    return Stream.of(
+            arguments(
+                    new RepresentationNotExistsException(),
+                    McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(),
+                    404
+            )
+    );
   }
 
 
-  @Test
-  @Parameters(method = "errors")
-  public void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
-      Throwable exception, String errorCode, int statusCode)
-      throws Exception {
+  @ParameterizedTest
+  @MethodSource("errors")
+  void testGetRepresentationVersionReturns404IfRepresentationOrRecordOrVersionDoesNotExists(
+          Throwable exception, String errorCode, int statusCode)
+          throws Exception {
     when(recordService.getRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenThrow(exception);
 
     ResultActions response = mockMvc.perform(get(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION))
-                                        .accept(MediaType.APPLICATION_XML))
-                                    .andExpect(status().is(statusCode));
+                    .accept(MediaType.APPLICATION_XML))
+            .andExpect(status().is(statusCode));
 
     ErrorInfo errorInfo = responseContentAsErrorInfo(response, MediaType.APPLICATION_XML);
-    MatcherAssert.assertThat(errorInfo.getErrorCode(), is(errorCode));
+    assertThat(errorInfo.getErrorCode(), is(errorCode));
     verify(recordService, times(1)).getRepresentation(GLOBAL_ID, SCHEMA, VERSION);
     verifyNoMoreInteractions(recordService);
   }
 
 
   @Test
-  public void testGetRepresentationVersionReturns406ForUnsupportedFormat() throws Exception {
+  void testGetRepresentationVersionReturns406ForUnsupportedFormat() throws Exception {
     mockMvc.perform(get(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION))
-               .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
-           .andExpect(status().isNotAcceptable());
+                    .accept(MEDIA_TYPE_APPLICATION_SVG_XML))
+            .andExpect(status().isNotAcceptable());
   }
 
 
   @Test
-  public void testDeleteRepresentation()
-      throws Exception {
+  void testDeleteRepresentation()
+          throws Exception {
     mockMvc.perform(delete(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION)))
-           .andExpect(status().isNoContent());
+            .andExpect(status().isNoContent());
     verify(recordService, times(1)).deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
     verifyNoMoreInteractions(recordService);
   }
 
 
-  @Test
-  @Parameters(method = "errors")
-  public void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
-      String errorCode, int statusCode)
-      throws Exception {
+  @ParameterizedTest
+  @MethodSource("errors")
+  void testDeleteRepresentationReturns404IfRecordOrRepresentationDoesNotExists(Throwable exception,
+                                                                               String errorCode, int statusCode)
+          throws Exception {
     Mockito.doThrow(exception).when(recordService).deleteRepresentation(GLOBAL_ID, SCHEMA, VERSION);
 
     ResultActions response = mockMvc.perform(delete(URITools.getVersionPath(GLOBAL_ID, SCHEMA, VERSION)))
-                                    .andExpect(status().is(statusCode));
+            .andExpect(status().is(statusCode));
 
     ErrorInfo errorInfo = responseContentAsErrorInfo(response);
     assertThat(errorInfo.getErrorCode(), is(errorCode));
@@ -154,30 +160,30 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
 
 
   @Test
-  public void testPersistRepresentation()
-      throws Exception {
+  void testPersistRepresentation()
+          throws Exception {
     when(recordService.persistRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenReturn(
-        new Representation(REPRESENTATION));
+            new Representation(REPRESENTATION));
 
     mockMvc.perform(post(PERSIST_PATH).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-           .andExpect(status().isCreated())
-           .andExpect(
-               header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), GLOBAL_ID, SCHEMA, VERSION).toString()));
+            .andExpect(status().isCreated())
+            .andExpect(
+                    header().string(HttpHeaders.LOCATION, URITools.getVersionUri(getBaseUri(), GLOBAL_ID, SCHEMA, VERSION).toString()));
 
     verify(recordService, times(1)).persistRepresentation(GLOBAL_ID, SCHEMA, VERSION);
     verifyNoMoreInteractions(recordService);
   }
 
 
-  @Test
-  @Parameters(method = "persistErrors")
-  public void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
-      int statusCode)
-      throws Exception {
+  @ParameterizedTest
+  @MethodSource("persistErrors")
+  void testPersistRepresentationReturns40XIfExceptionOccur(Throwable exception, String errorCode,
+                                                           int statusCode)
+          throws Exception {
     when(recordService.persistRepresentation(GLOBAL_ID, SCHEMA, VERSION)).thenThrow(exception);
 
     ResultActions response = mockMvc.perform(post(PERSIST_PATH).contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                                    .andExpect(status().is(statusCode));
+            .andExpect(status().is(statusCode));
 
     ErrorInfo errorInfo = responseContentAsErrorInfo(response);
     assertThat(errorInfo.getErrorCode(), is(errorCode));
@@ -186,14 +192,19 @@ public class RepresentationVersionResourceTest extends AbstractResourceTest {
   }
 
 
-  @SuppressWarnings("unused")
-  private Object[] persistErrors() {
-    return $(
-        $(new RepresentationNotExistsException(), McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(), 404),
-        $(new CannotModifyPersistentRepresentationException(),
-            McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(), 405),
-        $(new CannotPersistEmptyRepresentationException(),
-            McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(), 405));
-  }
+  private static Stream<Arguments> persistErrors() {
+    return Stream.of(
+            arguments(new RepresentationNotExistsException(),
+                    McsErrorCode.REPRESENTATION_NOT_EXISTS.toString(),
+                    404),
 
+            arguments(new CannotModifyPersistentRepresentationException(),
+                    McsErrorCode.CANNOT_MODIFY_PERSISTENT_REPRESENTATION.toString(),
+                    405),
+
+            arguments(new CannotPersistEmptyRepresentationException(),
+                    McsErrorCode.CANNOT_PERSIST_EMPTY_REPRESENTATION.toString(),
+                    405)
+    );
+  }
 }

@@ -1,14 +1,13 @@
 package eu.europeana.cloud.service.mcs.persistent.s3;
 
 import eu.europeana.cloud.common.model.File;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.test.S3TestHelper;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -17,7 +16,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * @author krystian.
@@ -30,22 +30,24 @@ public abstract class ContentDAOTest {
   @Autowired
   protected ContentDAO instance;
 
-  @BeforeClass
-  public static void setUp() {
+  @BeforeAll
+  static void setUp() {
     S3TestHelper.startS3MockServer();
   }
 
-  @Before
-  public void cleanUpBeforeTest() {
+  @BeforeEach
+  void cleanUpBeforeTest() {
     S3TestHelper.cleanUpBetweenTests();
   }
-  @AfterClass
-  public static void cleanUp() {
+
+  @AfterAll
+  static void cleanUp() {
     S3TestHelper.stopS3MockServer();
   }
+
   @Test
-  public void shouldPutAndGetContent()
-      throws Exception {
+  void shouldPutAndGetContent()
+          throws Exception {
     String fileName = "someFileName";
     byte[] content = EXAMPLE_FILE_CONTENT.getBytes(StandardCharsets.UTF_8);
     InputStream is = new ByteArrayInputStream(content);
@@ -70,8 +72,8 @@ public abstract class ContentDAOTest {
   }
 
   @Test
-  public void shouldRetrieveRangeOfBytes()
-      throws Exception {
+  void shouldRetrieveRangeOfBytes()
+          throws Exception {
     String fileName = "rangeFile";
     InputStream is = new ByteArrayInputStream(EXAMPLE_FILE_CONTENT.getBytes(StandardCharsets.UTF_8));
 
@@ -120,12 +122,12 @@ public abstract class ContentDAOTest {
       rangeEnd = expected.length;
     }
     byte[] rangeOfContent = Arrays.copyOfRange(expected, rangeStart, rangeEnd);
-    assertTrue(String.format("Ranges not equal %d-%d", from, to), Arrays.equals(rangeOfContent, os.toByteArray()));
+    assertArrayEquals(rangeOfContent, os.toByteArray(), String.format("Ranges not equal %d-%d", from, to));
   }
 
-  @Test(expected = FileNotExistsException.class)
-  public void testDeleteContent()
-      throws Exception {
+  @Test
+  void testDeleteContent()
+          throws Exception {
     String objectId = "to_delete";
     File file = new File();
     InputStream is = new ByteArrayInputStream(EXAMPLE_FILE_CONTENT.getBytes());
@@ -136,26 +138,27 @@ public abstract class ContentDAOTest {
 
     assertEquals(file.getMd5(), EXAMPLE_MD5);
     instance.deleteContent(md5, objectId);
-    instance.getContent(md5, objectId, -1, -1, null);
+    assertThrows(FileNotExistsException.class,
+            () -> instance.getContent(md5, objectId, -1, -1, null));
   }
 
-  @Test(expected = FileNotExistsException.class)
-  public void shouldThrowNotFoundExpWhenGettingNotExistingFile()
-      throws Exception {
+  @Test
+  void shouldThrowNotFoundExpWhenGettingNotExistingFile() {
     String objectId = "not_exist";
-    instance.getContent(EXAMPLE_MD5, objectId, -1, -1, null);
+    assertThrows(FileNotExistsException.class,
+            () -> instance.getContent(EXAMPLE_MD5, objectId, -1, -1, null));
   }
 
-  @Test(expected = FileNotExistsException.class)
-  public void shouldThrowNotFoundExpWhenDeletingNotExistingFile()
-      throws Exception {
+  @Test
+  void shouldThrowNotFoundExpWhenDeletingNotExistingFile() {
     String objectId = "not_exist";
-    instance.deleteContent(EXAMPLE_MD5, objectId);
+    assertThrows(FileNotExistsException.class,
+            () -> instance.deleteContent(EXAMPLE_MD5, objectId));
   }
 
 
   @Test
-  public void shouldCopyContent()
+  void shouldCopyContent()
           throws Exception {
     String sourceObjectId = "sourceObjectId";
     String trgObjectId = "trgObjectId";

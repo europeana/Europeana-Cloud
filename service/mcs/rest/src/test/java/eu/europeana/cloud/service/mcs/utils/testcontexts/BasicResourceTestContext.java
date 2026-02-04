@@ -15,16 +15,17 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.acls.AclPermissionEvaluator;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@TestConfiguration
+@Configuration
 public class BasicResourceTestContext {
 
   @Bean()
@@ -36,40 +37,71 @@ public class BasicResourceTestContext {
     return dbService;
   }
 
-  @MockBean
-  public ExtendedAclService aclService;
-
   @Bean
   public PermissionsGrantingManager permissionsGrantingManager() {
     return new PermissionsGrantingManager();
   }
 
-  @MockBean
-  public AclPermissionEvaluator aclPermissionEvaluator;
+  @Bean
+  @Primary
+  public ExtendedAclService aclService() {
+    return Mockito.mock(ExtendedAclService.class);
+  }
 
-  @MockBean
-  public DataSetPermissionsVerifier dataSetPermissionsVerifier;
+  @Bean
+  @Primary
+  public AclPermissionEvaluator aclPermissionEvaluator() {
+    return Mockito.mock(AclPermissionEvaluator.class);
+  }
 
-  @MockBean
-  public CassandraDataSetDAO cassandraDataSetDAO;
-  @MockBean
-  public CassandraRecordDAO cassandraRecordDAO;
+  @Bean
+  @Primary
+  public DataSetPermissionsVerifier dataSetPermissionsVerifier() {
+    return Mockito.mock(DataSetPermissionsVerifier.class);
+  }
 
-  @MockBean
-  public DynamicContentProxy dynamicContentProxy;
-  @MockBean
-  public SimpleS3ConnectionProvider s3ConnectionProvider;
-  @MockBean
-  public CassandraRecordService cassandraRecordService;
-  @MockBean
-  public UISClient uisClient;
+  @Bean
+  @Primary
+  public CassandraRecordDAO cassandraRecordDAO() {
+    return Mockito.mock(CassandraRecordDAO.class);
+  }
+
+  @Bean
+  @Primary
+  public CassandraDataSetDAO cassandraDataSetDAO() {
+    return Mockito.mock(CassandraDataSetDAO.class);
+  }
+
+  @Bean
+  @Primary
+  public DynamicContentProxy dynamicContentProxy() {
+    return Mockito.mock(DynamicContentProxy.class);
+  }
+
+  @Bean
+  @Primary
+  public SimpleS3ConnectionProvider s3ConnectionProvider() {
+    return Mockito.mock(SimpleS3ConnectionProvider.class);
+  }
+
+  @Bean
+  @Primary
+  public CassandraRecordService cassandraRecordService() {
+    return Mockito.mock(CassandraRecordService.class);
+  }
+
+  @Bean
+  @Primary
+  public UISClient uisClient() {
+    return Mockito.mock(UISClient.class);
+  }
 
   @Bean
   public CassandraDataSetService cassandraDataSetService() {
     return new CassandraDataSetService(
-        new CassandraDataSetDAO(dbService()),
-        new CassandraRecordDAO(dbService()),
-        mock(UISClientHandler.class),
-        new BucketsHandler(dbService().getSession()));
+            new CassandraDataSetDAO(dbService()),
+            new CassandraRecordDAO(dbService()),
+            mock(UISClientHandler.class),
+            new BucketsHandler(dbService().getSession()));
   }
 }

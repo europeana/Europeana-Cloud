@@ -13,12 +13,15 @@ import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContex
 import eu.europeana.cloud.test.S3TestHelper;
 import org.hamcrest.core.Is;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,14 +35,14 @@ import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUti
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author sielski
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SpiedServicesTestContext.class})
-public class CassandraDataSetServiceTest extends CassandraTestBase {
+class CassandraDataSetServiceTest extends CassandraTestBase {
 
   public static final UUID SAMPLE_VERSION_1 = UUIDs.timeBased();
   public static final UUID SAMPLE_VERSION_2 = UUIDs.timeBased();
@@ -79,24 +82,25 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   private static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100000;
   private static final int ASSIGNMENTS_COUNT = 1000;
 
-  @BeforeClass
-  public static void setUp(){
+  @BeforeAll
+  static void setUp() {
     S3TestHelper.startS3MockServer();
   }
 
-  @Before
-  public void cleanUpBeforeTest() {
+  @BeforeEach
+  void cleanUpBeforeTest() {
     S3TestHelper.cleanUpBetweenTests();
     Mockito.reset(uisHandler);
     Mockito.reset(dataSetDAO);
   }
-  @AfterClass
-  public static void cleanUp() {
+
+  @AfterAll
+  static void cleanUp() {
     S3TestHelper.stopS3MockServer();
   }
 
   @Test
-  public void shouldCreateDataSet() throws Exception {
+  void shouldCreateDataSet() throws Exception {
     makeUISProviderSuccess();
     // given properties of data set
     String dsName = "ds";
@@ -104,7 +108,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     // when new data set is created
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        description);
+            description);
 
     // the created data set should properties as given for construction
     assertThat(ds.getId(), is(dsName));
@@ -113,7 +117,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldCreateDataSetWithEmptyDescription() throws Exception {
+  void shouldCreateDataSetWithEmptyDescription() throws Exception {
 
     makeUISProviderSuccess();
     // given properties of data set
@@ -122,7 +126,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     // when new data set is created
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        description);
+            description);
 
     ResultSlice<DataSet> dataSets = cassandraDataSetService.getDataSets(
         PROVIDER_ID, null, 50);
@@ -131,7 +135,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemoveAssignmentOnceForTheSameVersion() throws Exception {
+  void shouldRemoveAssignmentOnceForTheSameVersion() throws Exception {
     makeUISProviderSuccess();
 
     // given particular data set and representations
@@ -164,8 +168,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
   @Test
-  public void shouldAssignRepresentationsToDataSet()
-      throws Exception {
+  void shouldAssignRepresentationsToDataSet()
+          throws Exception {
     makeUISProviderSuccess();
     // given particular data set and representations
     String dsName = "ds";
@@ -183,64 +187,65 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
   @Test
-  public void shouldRemoveAssignmentsFromDataSet() throws Exception {
+  void shouldRemoveAssignmentsFromDataSet() throws Exception {
     makeUISProviderSuccess();
     // given some representations in data set
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        "description of this set");
+            "description of this set");
     Representation r1 = insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     Representation r2 = insertDummyPersistentRepresentation("cloud-id_1",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
 
     // when one of the representation is removed from data set
     cassandraDataSetService.removeAssignment(ds.getProviderId(),
-        ds.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
+            ds.getId(), r1.getCloudId(), r1.getRepresentationName(), r1.getVersion());
 
     // then only one representation should remain assigned in data set
     List<Representation> assignedRepresentations = cassandraDataSetService
-        .listDataSet(ds.getProviderId(), ds.getId(), null, false, 10000)
-        .getResults();
+            .listDataSet(ds.getProviderId(), ds.getId(), null, false, 10000)
+            .getResults();
     assertThat(assignedRepresentations, is(Arrays.asList(r2)));
   }
 
-  @Test(expected = DataSetDeletionException.class)
-  public void shouldThrowExceptionForNonEmptyDataset() throws Exception {
+  @Test
+  void shouldThrowExceptionForNonEmptyDataset() throws Exception {
     makeUISProviderSuccess();
     // given particular data set and representations in it
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        "description of this set");
+            "description of this set");
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     insertDummyPersistentRepresentation("cloud-id_1",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
 
     // when this particular data set is removed
-    cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId());
-  }
-
-  @Test(expected = DataSetNotExistsException.class)
-  public void shouldThrowExceptionWhenDeletingNotExistingDataSet()
-      throws Exception {
-    cassandraDataSetService.deleteDataSet("xxx", "xxx");
+    assertThrows(DataSetDeletionException.class,
+            () -> cassandraDataSetService.deleteDataSet(ds.getProviderId(), ds.getId()));
   }
 
   @Test
-  public void shouldAssignMostRecentVersionToDataSet() throws Exception {
+  void shouldThrowExceptionWhenDeletingNotExistingDataSet() {
+    assertThrows(DataSetNotExistsException.class,
+            () -> cassandraDataSetService.deleteDataSet("xxx", "xxx"));
+  }
+
+  @Test
+  void shouldAssignMostRecentVersionToDataSet() throws Exception {
     makeUISProviderSuccess();
     // given data set and multiple versions of the same representation
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        "description of this set");
+            "description of this set");
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     insertDummyPersistentRepresentation("cloud-id",
             "schema", PROVIDER_ID, SAMPLE_VERSION_2, ds.getId());
     insertDummyPersistentRepresentation("cloud-id",
-        "schema", PROVIDER_ID, SAMPLE_VERSION_3, ds.getId());
+            "schema", PROVIDER_ID, SAMPLE_VERSION_3, ds.getId());
 
     // then the most recent version should be returned
     List<Representation> assignedRepresentations = cassandraDataSetService
@@ -250,16 +255,16 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldCreateAndGetDataSet() throws Exception {
+  void shouldCreateAndGetDataSet() throws Exception {
     makeUISProviderSuccess();
     // given
     String dsName = "ds";
     DataSet ds = cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        "description of this set");
+            "description of this set");
 
     // when data sets for this provider are fetched
     List<DataSet> dataSets = cassandraDataSetService.getDataSets(
-        PROVIDER_ID, null, 10000).getResults();
+            PROVIDER_ID, null, 10000).getResults();
 
     // then those data sets should contain only the one inserted
     assertThat(dataSets.size(), is(1));
@@ -267,8 +272,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldReturnPagedDataSets()
-      throws Exception {
+  void shouldReturnPagedDataSets()
+          throws Exception {
     makeUISSuccess();
     makeUISProviderSuccess();
     int dataSetCount = 1000;
@@ -298,23 +303,23 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     assertThat(insertedDataSetIds, is(fetchedDataSets));
   }
 
-  @Test(expected = ProviderNotExistsException.class)
-  public void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider()
-      throws Exception {
+  @Test
+  void shouldThrowExceptionWhenCreatingDatasetForNotExistingProvider() {
     makeUISProviderFailure();
-    cassandraDataSetService.createDataSet("not-existing-provider", "ds",
-        "description");
+    assertThrows(ProviderNotExistsException.class,
+            () -> cassandraDataSetService.createDataSet("not-existing-provider", "ds",
+                    "description"));
   }
 
-  @Test(expected = DataSetAlreadyExistsException.class)
-  public void shouldNotCreateTwoDatasetsWithSameNameForProvider()
-      throws Exception {
+  @Test
+  void shouldNotCreateTwoDatasetsWithSameNameForProvider()
+          throws Exception {
     String dsName = "ds";
     makeUISProviderSuccess();
     cassandraDataSetService
-        .createDataSet(PROVIDER_ID, dsName, "description");
-    cassandraDataSetService.createDataSet(PROVIDER_ID, dsName,
-        "description of another");
+            .createDataSet(PROVIDER_ID, dsName, "description");
+    assertThrows(DataSetAlreadyExistsException.class,
+            () -> cassandraDataSetService.createDataSet(PROVIDER_ID, dsName, "description of another"));
   }
 
 
@@ -356,7 +361,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldDeleteRevisionFromDataSet() throws Exception {
+  void shouldDeleteRevisionFromDataSet() throws Exception {
     makeUISProviderSuccess();
     makeUISSuccess();
     Date date = new Date();
@@ -366,7 +371,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Representation representation = insertDummyPersistentRepresentation(cloudId, REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_1, ds.getId());
     Revision revision = new Revision(REVISION, PROVIDER_ID, date, false);
     cassandraRecordService.addRevision(representation.getCloudId(),
-        representation.getRepresentationName(), representation.getVersion(), revision);
+            representation.getRepresentationName(), representation.getVersion(), revision);
     cassandraDataSetService.updateAllRevisionDatasetsEntries(representation.getCloudId(),
         representation.getRepresentationName(),
         representation.getVersion(), revision);
@@ -388,7 +393,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldAllowReturningOnlyExistingRevisions() throws Exception {
+  void shouldAllowReturningOnlyExistingRevisions() throws Exception {
     makeUISProviderSuccess();
     //given
     makeUISSuccess();
@@ -422,14 +427,14 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
     //when
     result = cassandraDataSetService.getDataSetsExistingRevisions(PROVIDER_ID, DATA_SET_NAME, REVISION_PROVIDER,
-        REVISION, exitstingRevision.getCreationTimeStamp(), REPRESENTATION, 10);
+            REVISION, exitstingRevision.getCreationTimeStamp(), REPRESENTATION, 10);
     //then
     assertEquals(6, result.size());
     result.forEach(response -> assertFalse(response.isDeleted()));
   }
 
-  @Test(expected = RepresentationNotExistsException.class)
-  public void shouldThrowRepresentationNotExistsException() throws Exception {
+  @Test
+  void shouldThrowRepresentationNotExistsException() {
     makeUISProviderSuccess();
     makeUISSuccess();
     makeDatasetExists();
@@ -437,15 +442,17 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Date date = new Date();
     String cloudId = "2EEN23VWNXOW7LGLM6SKTDOZUBUOTKEWZ3IULSYEWEMERHISS6XA";
 
-    cassandraDataSetService.deleteRevision(cloudId, REPRESENTATION, "3d6381c0-a3cf-11e9-960f-fa163e8d4ae3", REVISION, PROVIDER_ID,
-        date);
+    assertThrows(RepresentationNotExistsException.class,
+            () -> cassandraDataSetService.deleteRevision(
+                    cloudId, REPRESENTATION, "3d6381c0-a3cf-11e9-960f-fa163e8d4ae3",
+                    REVISION, PROVIDER_ID, date));
 
   }
 
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionAndDataset()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionAndDataset()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -453,7 +460,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
     //assigned to different revision
@@ -475,8 +482,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBuckets()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBuckets()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -484,7 +491,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
@@ -507,15 +514,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdsForGivenRevisionAndDatasetFromDifferentBucketsWhenMoreDataThanOnePage()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdsForGivenRevisionAndDatasetFromDifferentBucketsWhenMoreDataThanOnePage()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
     Bucket bucket1 = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
@@ -533,15 +540,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     assertThat(page1.getResults().size(), Is.is(2));
     assertThat(page1.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID));
     assertThat(page1.getResults().get(1).getCloudId(), Is.is(SAMPLE_CLOUD_ID2));
-    Assert.assertNotNull(page1.getNextSlice());
+    assertNotNull(page1.getNextSlice());
     assertThat(page2.getResults().size(), Is.is(1));
     assertThat(page2.getResults().get(0).getCloudId(), Is.is(SAMPLE_CLOUD_ID3));
-    Assert.assertNull(page2.getNextSlice());
+    assertNull(page2.getNextSlice());
   }
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBucketsWithLimit()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionAndDatasetFromDifferentBucketsWithLimit()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -549,7 +556,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket1.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     Bucket bucket2 = createDatasetAssignmentRevisionIdBucket();
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket2.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
@@ -573,8 +580,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionAndDatasetWithLimit()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionAndDatasetWithLimit()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -582,7 +589,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
     //assigned to different revision
@@ -599,17 +606,17 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionAndDatasetWithPagination()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionAndDatasetWithPagination()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
     Bucket bucket = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID3, VERSION);
 
@@ -620,13 +627,13 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     //then
     assertThat(result.getResults().size(), is(1));
     assertThat(result.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID));
-    Assert.assertNotNull(result.getNextSlice());
+    assertNotNull(result.getNextSlice());
 
     result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER,
         SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, result.getNextSlice(), 1);
     assertThat(result.getResults().size(), is(1));
     assertThat(result.getResults().get(0).getCloudId(), is(SAMPLE_CLOUD_ID2));
-    Assert.assertNotNull(result.getNextSlice());
+    assertNotNull(result.getNextSlice());
 
     result = cassandraDataSetService.getDataSetsRevisions(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, SAMPLE_REVISION_PROVIDER,
         SAMPLE_REVISION_NAME, revision1.getCreationTimeStamp(), SAMPLE_REPRESENTATION_NAME_1, result.getNextSlice(), 1);
@@ -636,8 +643,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdForGivenRevisionForSecondRevision()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForGivenRevisionForSecondRevision()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -645,7 +652,7 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     Revision revision2 = new Revision(SAMPLE_REVISION_NAME2, SAMPLE_REVISION_PROVIDER2);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
     //assigned to different revision
@@ -663,8 +670,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListAllCloudIdForBigDataLimit()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldListAllCloudIdForBigDataLimit()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
@@ -690,15 +697,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemoveRevisionFromDataSet()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldRemoveRevisionFromDataSet()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
     Bucket bucket = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     increaseDatasetAssignmentRevisionIdBucketSize(bucket);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
@@ -715,15 +722,15 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemoveRevisionFromDataSetSecondRevision()
-      throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
+  void shouldRemoveRevisionFromDataSetSecondRevision()
+          throws ProviderNotExistsException, DataSetNotExistsException, DataSetAlreadyExistsException {
     //given
     makeUISProviderSuccess();
     createDataset();
     Bucket bucket = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_NAME, SAMPLE_REVISION_PROVIDER);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     increaseDatasetAssignmentRevisionIdBucketSize(bucket);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
         SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
@@ -740,17 +747,17 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldRemoveAssigmentsOnRemoveWholeDataSet()
-      throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetNotExistsException, DataSetDeletionException {
+  void shouldRemoveAssigmentsOnRemoveWholeDataSet()
+          throws ProviderNotExistsException, DataSetAlreadyExistsException, DataSetNotExistsException, DataSetDeletionException {
     //given
     makeUISProviderSuccess();
     createDataset();
     Bucket bucket = createDatasetAssignmentRevisionIdBucket();
     Revision revision1 = new Revision(SAMPLE_REVISION_PROVIDER, SAMPLE_REVISION_NAME);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID, VERSION);
     dataSetDAO.addDataSetsRevision(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID, bucket.getBucketId(), revision1,
-        SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
+            SAMPLE_REPRESENTATION_NAME_1, SAMPLE_CLOUD_ID2, VERSION);
 
     //when
     cassandraDataSetService.deleteDataSet(SAMPLE_PROVIDER_NAME, SAMPLE_DATASET_ID);
@@ -764,8 +771,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
   @Test
-  public void shouldRemoveCountFromAssignmentBucketsWhenRemovingAssignments()
-      throws DataSetNotExistsException, RepresentationNotExistsException, ProviderNotExistsException, DataSetAlreadyExistsException, RecordNotExistsException, DataSetAssignmentException {
+  void shouldRemoveCountFromAssignmentBucketsWhenRemovingAssignments()
+          throws DataSetNotExistsException, RepresentationNotExistsException, ProviderNotExistsException, DataSetAlreadyExistsException, RecordNotExistsException, DataSetAssignmentException {
     // given
     makeUISSuccess();
     makeUISProviderSuccess();
@@ -789,8 +796,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
 
 
   @Test
-  public void shouldListDataSetWithPagination()
-      throws Exception {
+  void shouldListDataSetWithPagination()
+          throws Exception {
     makeUISSuccess();
     makeUISProviderSuccess();
     makeDatasetExists();
@@ -852,8 +859,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListDataSetWithPaginationLastPageLimitEqualAccessibleDataCount()
-      throws Exception {
+  void shouldListDataSetWithPaginationLastPageLimitEqualAccessibleDataCount()
+          throws Exception {
     makeUISSuccess();
     makeUISProviderSuccess();
     makeDatasetExists();
@@ -878,8 +885,8 @@ public class CassandraDataSetServiceTest extends CassandraTestBase {
   }
 
   @Test
-  public void shouldListDataSetWithPaginationHittingExactlyBucketBorders()
-      throws Exception {
+  void shouldListDataSetWithPaginationHittingExactlyBucketBorders()
+          throws Exception {
     makeUISSuccess();
     makeUISProviderSuccess();
     makeDatasetExists();

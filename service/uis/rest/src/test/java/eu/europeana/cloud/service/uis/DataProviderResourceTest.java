@@ -1,47 +1,42 @@
 package eu.europeana.cloud.service.uis;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.exceptions.ProviderDoesNotExistException;
-import eu.europeana.cloud.common.model.CloudId;
-import eu.europeana.cloud.common.model.DataProvider;
-import eu.europeana.cloud.common.model.DataProviderProperties;
-import eu.europeana.cloud.common.model.IdentifierErrorInfo;
-import eu.europeana.cloud.common.model.LocalId;
+import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.common.web.UISParamConstants;
 import eu.europeana.cloud.service.uis.encoder.IdGenerator;
 import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
 import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
 import eu.europeana.cloud.service.uis.status.IdentifierErrorTemplate;
-import java.io.IOException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /**
  * DataProviderResourceTest
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {TestConfiguration.class})
-public class DataProviderResourceTest {
+class DataProviderResourceTest {
 
   MockMvc mockMvc;
   @Autowired
@@ -67,8 +62,8 @@ public class DataProviderResourceTest {
     return cloudId;
   }
 
-  @Before
-  public void mockUp() {
+  @BeforeEach
+  void mockUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
   }
 
@@ -83,7 +78,7 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void shouldUpdateProvider() throws Exception {
+  void shouldUpdateProvider() throws Exception {
 
     // given certain provider data
     String providerName = "provider";
@@ -115,7 +110,7 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void shouldGetProvider() throws Exception {
+  void shouldGetProvider() throws Exception {
     // given certain provider in service
     DataProviderProperties properties = new DataProviderProperties();
     properties.setOrganisationName("Organisation");
@@ -143,15 +138,15 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void shouldReturn404OnNotExistingProvider()
-      throws Exception {
+  void shouldReturn404OnNotExistingProvider()
+          throws Exception {
     // given there is no provider in service
     Mockito.doThrow(
-        new ProviderDoesNotExistException(new IdentifierErrorInfo(
-            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                .getHttpCode(),
-            IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
-                .getErrorInfo("provident")))
+            new ProviderDoesNotExistException(new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                            .getHttpCode(),
+                    IdentifierErrorTemplate.PROVIDER_DOES_NOT_EXIST
+                            .getErrorInfo("provident")))
     ).when(dataProviderService).getProvider("provident");
 
     MvcResult mvcResult = mockMvc.perform(
@@ -166,17 +161,17 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void testCreateMapping() throws Exception {
+  void testCreateMapping() throws Exception {
     CloudId gid = createCloudId();
 
     Mockito.doReturn(gid).when(uniqueIdentifierService).createCloudId("providerId", "recordId");
     Mockito.doReturn(gid).when(uniqueIdentifierService).createIdMapping(Mockito.anyString(), Mockito.anyString());
     Mockito.doReturn(gid).when(uniqueIdentifierService)
-           .createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+            .createIdMapping(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
     mockMvc.perform(post(RestInterfaceConstants.CLOUD_IDS)
-        .param(UISParamConstants.Q_PROVIDER_ID, "providerId")
-        .param(UISParamConstants.Q_RECORD_ID, "recordId")
+            .param(UISParamConstants.Q_PROVIDER_ID, "providerId")
+            .param(UISParamConstants.Q_RECORD_ID, "recordId")
         .accept(MediaType.APPLICATION_JSON));
 
     mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", gid.getId())
@@ -187,15 +182,15 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void testCreateMappingDBException() throws Exception {
+  void testCreateMappingDBException() throws Exception {
     Throwable exception = new DatabaseConnectionException(
-        new IdentifierErrorInfo(
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                .getHttpCode(),
-            IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
-                .getErrorInfo(
-                    uniqueIdentifierService.getHostList(),
-                    uniqueIdentifierService.getPort(), "")));
+            new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                            .getHttpCode(),
+                    IdentifierErrorTemplate.DATABASE_CONNECTION_ERROR
+                            .getErrorInfo(
+                                    uniqueIdentifierService.getHostList(),
+                                    uniqueIdentifierService.getPort(), "")));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
         "cloudId", "providerId", "local1");
@@ -222,16 +217,16 @@ public class DataProviderResourceTest {
   }
 
   @Test
-  public void testCreateMappingCloudIdException() throws Exception {
+  void testCreateMappingCloudIdException() throws Exception {
     Throwable exception = new CloudIdDoesNotExistException(
-        new IdentifierErrorInfo(
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
-                .getHttpCode(),
-            IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
-                .getErrorInfo("cloudId")));
+            new IdentifierErrorInfo(
+                    IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+                            .getHttpCode(),
+                    IdentifierErrorTemplate.CLOUDID_DOES_NOT_EXIST
+                            .getErrorInfo("cloudId")));
 
     Mockito.doThrow(exception).when(uniqueIdentifierService).createIdMapping(
-        "cloudId", "providerId", "local1");
+            "cloudId", "providerId", "local1");
 
     MvcResult mvcResult = mockMvc.perform(post(RestInterfaceConstants.CLOUD_ID_TO_RECORD_ID_MAPPING, "providerId", "cloudId")
                                      .param(UISParamConstants.Q_RECORD_ID, "local1")

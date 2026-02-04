@@ -31,9 +31,7 @@ public class TestConfiguration {
   }
 
   @Bean
-  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService,
-      DataProviderResource dataProviderResource,
-      ACLServiceWrapper aclWrapper) {
+  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService) {
     return new UniqueIdentifierResource(uniqueIdentifierService);
   }
 
@@ -43,8 +41,7 @@ public class TestConfiguration {
   }
 
   @Bean
-  public DataProvidersResource dataProvidersResource(DataProviderService providerService,
-      ACLServiceWrapper aclWrapper) {
+  public DataProvidersResource dataProvidersResource(DataProviderService providerService) {
     return new DataProvidersResource(providerService);
   }
 
@@ -59,7 +56,7 @@ public class TestConfiguration {
   }
 
   @Bean
-  public CassandraDataProviderDAO cassandraDataProviderDAO(CassandraConnectionProvider cassandraConnectionProvider) {
+  public CassandraDataProviderDAO cassandraDataProviderDAO() {
     return Mockito.mock(CassandraDataProviderDAO.class);
   }
 

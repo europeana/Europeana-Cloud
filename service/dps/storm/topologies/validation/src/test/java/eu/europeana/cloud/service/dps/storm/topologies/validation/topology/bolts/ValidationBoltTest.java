@@ -1,39 +1,38 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static org.mockito.Mockito.mock;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Properties;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-@RunWith(JUnitParamsRunner.class)
-public class ValidationBoltTest {
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Properties;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static org.mockito.Mockito.mock;
+
+@ExtendWith(WireMockExtension.class)
+class ValidationBoltTest {
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -42,55 +41,59 @@ public class ValidationBoltTest {
   private final String TASK_NAME = "TASK_NAME";
 
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().dynamicPort())
+                  .build();
 
   @InjectMocks
   private ValidationBolt validationBolt;
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void init() {
     validationBolt = new ValidationBolt(new CassandraProperties(), readProperties());
+    // For some reason test crashes without this even though we use MockitoExtension?
     MockitoAnnotations.initMocks(this);
 
-    wireMockRule.resetAll();
-    wireMockRule.stubFor(get(urlEqualTo("/test_schema.zip"))
-        .willReturn(aResponse()
-            .withStatus(200)
-            .withFixedDelay(2000)
-            .withBodyFile("test_schema.zip")));
-    wireMockRule.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
-        .willReturn(aResponse()
-            .withStatus(200)
-            .withFixedDelay(10)
-            .withBodyFile("edm_sorter.xsl")));
+    wireMockExtension.resetAll();
+    wireMockExtension.stubFor(get(urlEqualTo("/test_schema.zip"))
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withFixedDelay(2000)
+                    .withBodyFile("test_schema.zip")));
+    wireMockExtension.stubFor(get(urlEqualTo("/edm_sorter.xsl"))
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withFixedDelay(10)
+                    .withBodyFile("edm_sorter.xsl")));
     validationBolt.prepare();
   }
 
 
-  @Test
-  @Parameters({
-      "src/test/resources/Item_35834473_test.xml, edm-internal, null", //validateEdmInternalFile
-      "src/test/resources/Item_35834473_test.xml, edm-internal, EDM-INTERNAL.xsd",
-      //validateEdmInternalFileWithProvidedRootLocation
-      "src/test/resources/Item_35834473.xml, edm-external, null", //validateEdmExternalFile
-      "src/test/resources/edmExternalWithOutOfOrderElements.xml, edm-external, null" //validateEdmExternalOutOfOrderFile
+  @ParameterizedTest
+  @CsvSource({
+          "src/test/resources/Item_35834473_test.xml, edm-internal, null", //validateEdmInternalFile
+          "src/test/resources/Item_35834473_test.xml, edm-internal, EDM-INTERNAL.xsd",
+          //validateEdmInternalFileWithProvidedRootLocation
+          "src/test/resources/Item_35834473.xml, edm-external, null", //validateEdmExternalFile
+          "src/test/resources/edmExternalWithOutOfOrderElements.xml, edm-external, null" //validateEdmExternalOutOfOrderFile
   })
-  public void validateEdm(String resourcePath, String schemaName, String schemaRootLocation) throws IOException {
+  void validateEdm(String resourcePath, String schemaName, String schemaRootLocation) throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get(resourcePath));
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters(schemaName, schemaRootLocation), new Revision());
+            prepareStormTaskTupleParameters(schemaName, schemaRootLocation), new Revision());
     validationBolt.execute(anchorTuple, tuple);
     assertSuccessfulValidation();
   }
 
   @Test
-  public void sendErrorNotificationWhenTheValidationFails() throws Exception {
+  void sendErrorNotificationWhenTheValidationFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
     StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-        prepareStormTaskTupleParameters("edm-external", null), new Revision());
+            prepareStormTaskTupleParameters("edm-external", null), new Revision());
     validationBolt.execute(anchorTuple, tuple);
     assertFailedValidation();
   }
@@ -98,22 +101,22 @@ public class ValidationBoltTest {
   private void assertSuccessfulValidation() {
     Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     Mockito.verify(outputCollector, Mockito.times(0))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
   }
 
   private void assertFailedValidation() {
     Mockito.verify(outputCollector, Mockito.times(0)).emit(Mockito.any(Tuple.class), Mockito.anyList());
     Mockito.verify(outputCollector, Mockito.times(1))
-           .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
+            .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(Tuple.class), Mockito.anyList());
   }
 
   private Properties readProperties() {
     Properties props = new Properties();
     props.put("predefinedSchemas", "edm-internal,edm-external");
-    props.put("edmSorterFileLocation", "http://127.0.0.1:" + wireMockRule.port() + "/edm_sorter.xsl");
-    props.put("predefinedSchemas.edm-internal.url", "http://127.0.0.1:" + wireMockRule.port() + "/test_schema.zip");
+    props.put("edmSorterFileLocation", "http://127.0.0.1:" + wireMockExtension.getPort() + "/edm_sorter.xsl");
+    props.put("predefinedSchemas.edm-internal.url", "http://127.0.0.1:" + wireMockExtension.getPort() + "/test_schema.zip");
     props.put("predefinedSchemas.edm-internal.rootLocation", "EDM-INTERNAL.xsd");
-    props.put("predefinedSchemas.edm-external.url", "http://127.0.0.1:" + wireMockRule.port() + "/test_schema.zip");
+    props.put("predefinedSchemas.edm-external.url", "http://127.0.0.1:" + wireMockExtension.getPort() + "/test_schema.zip");
     props.put("predefinedSchemas.edm-external.rootLocation", "EDM.xsd");
     return props;
   }

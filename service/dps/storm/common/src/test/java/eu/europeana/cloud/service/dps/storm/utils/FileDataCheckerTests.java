@@ -1,23 +1,23 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import org.junit.Test;
 
-import java.io.IOException;
+import org.junit.jupiter.api.Test;
+
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FileDataCheckerTests {
+class FileDataCheckerTest {
 
     @Test
-    public void shouldProperlyDetectEmptyString() throws IOException {
+    void shouldProperlyDetectEmptyString() {
         byte[] testValue = "".getBytes(StandardCharsets.UTF_8);
         assertTrue(FileDataChecker.isFileDataNullOrBlank(testValue));
     }
 
     @Test
-    public void shouldProperlyDetectBlankString() throws IOException {
+    void shouldProperlyDetectBlankString() {
         byte[] tabulatorTest = "         ".getBytes(StandardCharsets.UTF_8);
         byte[] spaceTest = "                ".getBytes(StandardCharsets.UTF_8);
         byte[] newLineTest = "\n\n\n\n\n".getBytes(StandardCharsets.UTF_8);
@@ -27,12 +27,12 @@ public class FileDataCheckerTests {
     }
 
     @Test
-    public void shouldProperlyHandleNullByteArray() throws IOException {
+    void shouldProperlyHandleNullByteArray() {
         assertTrue(FileDataChecker.isFileDataNullOrBlank(null));
     }
 
     @Test
-    public void shouldProperlyHandleFilledString() throws IOException {
+    void shouldProperlyHandleFilledString() {
         byte[] testString = "  test  String  ".getBytes(StandardCharsets.UTF_8);
         byte[] testString2 = "  test  String2       ".getBytes(StandardCharsets.UTF_8);
         assertFalse(FileDataChecker.isFileDataNullOrBlank(testString));

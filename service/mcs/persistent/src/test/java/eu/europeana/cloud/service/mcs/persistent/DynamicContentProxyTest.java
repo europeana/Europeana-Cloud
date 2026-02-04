@@ -1,9 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import com.google.common.collect.ImmutableMap;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -12,66 +8,72 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraStaticConten
 import eu.europeana.cloud.service.mcs.persistent.exception.ContentDaoNotFoundException;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author krystian.
  */
-public class DynamicContentProxyTest {
+class DynamicContentProxyTest {
 
-  @Test(expected = ContentDaoNotFoundException.class)
-  public void shouldThrowExceptionOnNonExistingDAO() throws FileNotExistsException {
-    //given
-    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
+    @Test
+    void shouldThrowExceptionOnNonExistingDAO() {
+        //given
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(
                 mock(S3ContentDAO.class)
-    ));
+        ));
 
-    //then
-    instance.deleteContent("exampleFileName", "exampleMd5", Storage.DATA_BASE);
-  }
+        //then
+        assertThrows(ContentDaoNotFoundException.class,
+                () -> instance.deleteContent("exampleFileName", "exampleMd5", Storage.DATA_BASE));
+    }
 
-  @Test
-  public void shouldProperlySelectS3DeleteContent() throws FileNotExistsException {
-    //given
+    @Test
+    void shouldProperlySelectS3DeleteContent() throws FileNotExistsException {
+        //given
         S3ContentDAO daoMock = mock(S3ContentDAO.class);
-    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
-    //when
-    instance.deleteContent("exampleFileName","exampleMd5", Storage.OBJECT_STORAGE);
+        //when
+        instance.deleteContent("exampleFileName", "exampleMd5", Storage.OBJECT_STORAGE);
 
-    //then
-    verify(daoMock).deleteContent(anyString(), anyString());
-
-  }
-
-  @Test
-  public void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
-    //given
-    CassandraContentDAO daoMock = mock(CassandraContentDAO.class);
-    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
-
-    //when
-    instance.deleteContent("exampleFileName","exampleMd5", Storage.DATA_BASE);
-
-    //then
-    verify(daoMock).deleteContent(anyString(), anyString());
+        //then
+        verify(daoMock).deleteContent(anyString(), anyString());
 
   }
 
+    @Test
+    void shouldProperlySelectDataBaseDeleteContent() throws FileNotExistsException {
+        //given
+        CassandraContentDAO daoMock = mock(CassandraContentDAO.class);
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
 
-  @Test
-  public void shouldProperlySelectDataBaseStaticDeleteContent() throws FileNotExistsException {
-    //given
-    CassandraStaticContentDAO daoMock = mock(CassandraStaticContentDAO.class);
-    final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
+        //when
+        instance.deleteContent("exampleFileName", "exampleMd5", Storage.DATA_BASE);
 
-    //when
-    instance.deleteContent("exampleFileName","exampleMd5", Storage.DB_STORAGE);
+        //then
+        verify(daoMock).deleteContent(anyString(), anyString());
 
-    //then
-    verify(daoMock).deleteContent(anyString(), anyString());
+  }
+
+
+    @Test
+    void shouldProperlySelectDataBaseStaticDeleteContent() throws FileNotExistsException {
+        //given
+        CassandraStaticContentDAO daoMock = mock(CassandraStaticContentDAO.class);
+        final DynamicContentProxy instance = new DynamicContentProxy(prepareDAOMap(daoMock));
+
+        //when
+        instance.deleteContent("exampleFileName", "exampleMd5", Storage.DB_STORAGE);
+
+        //then
+        verify(daoMock).deleteContent(anyString(), anyString());
 
   }
 

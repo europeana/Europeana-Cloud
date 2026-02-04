@@ -1,12 +1,5 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
-
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
@@ -14,20 +7,18 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-@RunWith(JUnitParamsRunner.class)
-public class DpsTaskValidatorTest {
+import java.util.*;
+
+import static eu.europeana.cloud.service.dps.InputDataType.*;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class DpsTaskValidatorTest {
 
   private DpsTask dpsTask;
   private DpsTask icTopologyTask;
@@ -62,18 +53,18 @@ public class DpsTaskValidatorTest {
   private static final Revision correctRevision = new Revision("sampleRevisionName", "sampleRevisionProvider");
 
 
-  @Before
-  public void init() {
-    dpsTask = new DpsTask();
-    dpsTask.setTaskName(TASK_NAME);
-    dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
-    dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
-    dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-    dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
-    dpsTask.setOutputRevision(correctRevision);
-    //
-    icTopologyTask = new DpsTask();
-    icTopologyTask.addDataEntry(FILE_URLS,
+    @BeforeEach
+    void init() {
+      dpsTask = new DpsTask();
+      dpsTask.setTaskName(TASK_NAME);
+      dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
+      dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
+      dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
+      dpsTask.addDataEntry(EXISTING_DATA_ENTRY_NAME, EXISTING_DATA_ENTRY_VALUE);
+      dpsTask.setOutputRevision(correctRevision);
+      //
+      icTopologyTask = new DpsTask();
+      icTopologyTask.addDataEntry(FILE_URLS,
         Arrays.asList(
             "https://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c",
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
@@ -158,271 +149,293 @@ public class DpsTaskValidatorTest {
 
   }
 
-  @Test
-  public void shouldValidateThatTaskIsCorrectWhenConstraintsListIsEmpty() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTask);
-  }
+    @Test
+    void shouldValidateThatTaskIsCorrectWhenConstraintsListIsEmpty() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTask);
+    }
 
-  ////
-  // Task id
-  ////
-  @Test
-  public void anyIdShouldBeValidated() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyId().validate(dpsTask);
-  }
+    ////
+    // Task id
+    ////
+    @Test
+    void anyIdShouldBeValidated() throws DpsTaskValidationException {
+        new DpsTaskValidator().withAnyId().validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void shouldThrowExceptionForWrongTaskId() throws DpsTaskValidationException {
-    new DpsTaskValidator().withId(-1).validate(dpsTask);
-  }
+    @Test
+    void shouldThrowExceptionForWrongTaskId() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withId(-1).validate(dpsTask));
+    }
 
-  ////
-  //Task name
-  ////
-  @Test
-  public void validatorShouldValidateThatTaskHasSelectedName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withName(TASK_NAME).validate(dpsTask);
-  }
+    ////
+    //Task name
+    ////
+    @Test
+    void validatorShouldValidateThatTaskHasSelectedName() throws DpsTaskValidationException {
+        new DpsTaskValidator().withName(TASK_NAME).validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatTaskHasWrongName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withName("someWrongName").validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatTaskHasWrongName() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withName("someWrongName").validate(dpsTask));
+    }
 
-  @Test
-  public void validatorShouldValidateThatTaskHasAnyName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyName().validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatTaskHasAnyName() throws DpsTaskValidationException {
+        new DpsTaskValidator().withAnyName().validate(dpsTask);
+    }
 
   ////
   //Parameters
   ////
   @Test
-  public void validatorShouldValidateThatThereIsParameterWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
+  void validatorShouldValidateThatThereIsParameterWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
     new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME).validate(dpsTask);
   }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsNoParameterWithSelectedName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withParameter("p2").validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsNoParameterWithSelectedName() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withParameter("p2").validate(dpsTask));
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsSelectedParameterWithCorrectValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE).validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsSelectedParameterWithCorrectValue() throws DpsTaskValidationException {
+        new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE).validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsSelectedParameterWithWrongValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withParameter("p1", "p3").validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsSelectedParameterWithWrongValue() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withParameter("p1", "p3").validate(dpsTask));
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withEmptyParameter(EMPTY_PARAMETER_NAME).validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
+        new DpsTaskValidator().withEmptyParameter(EMPTY_PARAMETER_NAME).validate(dpsTask);
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
-    new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE,
-        TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsSelectedParameterWithOneOfAllowedValues() throws DpsTaskValidationException {
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE,
+                TargetIndexingDatabase.getTargetIndexingDatabaseValues()).validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsNoSelectedParameterWithEmptyValue() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withEmptyParameter("nonEmptyParameter").validate(dpsTask));
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void shouldDiscardTaskWithMissingDataSetName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask);
-  }
+    @Test
+    void shouldDiscardTaskWithMissingDataSetName() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask));
+    }
 
-  @Test
-  public void shouldValidateTaskCorrectlyWithDataSetName() throws DpsTaskValidationException {
-    Map<String, String> parameters = dpsTask.getParameters();
-    dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "sample");
-    new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask);
-    dpsTask.setParameters(parameters);
-  }
+    @Test
+    void shouldValidateTaskCorrectlyWithDataSetName() throws DpsTaskValidationException {
+        Map<String, String> parameters = dpsTask.getParameters();
+        dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "sample");
+        new DpsTaskValidator().withParameter(PluginParameterKeys.METIS_DATASET_ID).validate(dpsTask);
+        dpsTask.setParameters(parameters);
+    }
 
 
-  ////
-  //inputData
-  ////
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsNoInputDataWithSelectedName() throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry("notExistingDataEntry").validate(dpsTask);
-  }
+    ////
+    //inputData
+    ////
+    @Test
+    void validatorShouldValidateThatThereIsNoInputDataWithSelectedName() {
+        assertThrows(DpsTaskValidationException.class, () -> new DpsTaskValidator().withDataEntry("notExistingDataEntry").validate(dpsTask));
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name()).validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name()).validate(dpsTask);
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Collections.singletonList(
-                              "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"))
-                          .validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectValue() throws DpsTaskValidationException {
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(),
+                        Collections.singletonList(
+                                "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"))
+                .validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndWrongValue() throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Collections.singletonList("someWrongValue"))
-                          .validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndWrongValue() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), Collections.singletonList("someWrongValue"))
+                        .validate(dpsTask));
+    }
 
-  @Test
-  public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectContentType()
-      throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), LINK_TO_FILE)
-                          .validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndCorrectContentType()
+            throws DpsTaskValidationException {
+        new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(), LINK_TO_FILE)
+                .validate(dpsTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndIncorrectContentType()
-      throws DpsTaskValidationException {
-    new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(),
-        LINK_TO_DATASET).validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndIncorrectContentType() {
+        assertThrows(DpsTaskValidationException.class, () ->
+                new DpsTaskValidator().withDataEntry(EXISTING_DATA_ENTRY_NAME.name(),
+                        LINK_TO_DATASET).validate(dpsTask));
+    }
 
-  @Test
-  public void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
-    new DpsTaskValidator()
-        .withDataEntry("FILE_URLS", LINK_TO_FILE)
-        .withParameter("OUTPUT_MIME_TYPE")
-        .withParameter("SAMPLE_PARAMETER")
-        .validate(icTopologyTask);
-  }
+    @Test
+    void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
+        new DpsTaskValidator()
+                .withDataEntry("FILE_URLS", LINK_TO_FILE)
+                .withParameter("OUTPUT_MIME_TYPE")
+                .withParameter("SAMPLE_PARAMETER")
+                .validate(icTopologyTask);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  @Parameters({"domain.broken/path",
-      "https://domainlondon/paht/some.xml", "domainlon.com/path/some.xml"})
-  public void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
-    commonOaiPmhValidation(url);
-  }
+    @ParameterizedTest
+    @CsvSource({"domain.broken/path",
+            "https://domainlondon/paht/some.xml", "domainlon.com/path/some.xml"})
+    void shouldTrowExceptionValidateTaskForOaiPmhTopology(String url) {
+        assertThrows(DpsTaskValidationException.class, () ->
+                commonOaiPmhValidation(url));
+    }
 
-  @Test
-  @Parameters({"https://domain.com/data-providers/xxx1/data-sets/yyy1",
-      "https://domain.com/data-providers/xxx2/data-sets/yyy2", "https://domain.com/data-providers/xxx3/data-sets/yyy3"})
-  public void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
-    commonOaiPmhValidation(url);
-  }
+    @ParameterizedTest
+    @CsvSource({"https://domain.com/data-providers/xxx1/data-sets/yyy1",
+            "https://domain.com/data-providers/xxx2/data-sets/yyy2", "https://domain.com/data-providers/xxx3/data-sets/yyy3"})
+    void shouldValidateTaskForOaiPmhTopology(String url) throws DpsTaskValidationException {
+        commonOaiPmhValidation(url);
+    }
 
-  private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
-    final DpsTask oaiPmhTask = new DpsTask("OaiPmhTopology");
-    final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
-    inputData.put(REPOSITORY_URLS, Collections.singletonList(url));
-    oaiPmhTask.setInputData(inputData);
+    private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
+        final DpsTask oaiPmhTask = new DpsTask("OaiPmhTopology");
+        final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
+        inputData.put(REPOSITORY_URLS, Collections.singletonList(url));
+        oaiPmhTask.setInputData(inputData);
 
     new DpsTaskValidator()
         .withDataEntry(REPOSITORY_URLS.name(), LINK_TO_EXTERNAL_URL)
         .validate(oaiPmhTask);
-  }
-
-  ////
-  //Output Revision
-  ////
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_1() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_1);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_2() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_2);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_3() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_3);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_4() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_4);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_5() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_5);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_6() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_6);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_7() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_7);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_8() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_8);
-  }
-
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatOutputRevisionIsNotCorrect_9() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_9);
-  }
-
-  @Test
-  public void validatorShouldValidateThatInputRevisionIsNotCorrect_10() {
-    try {
-      new DpsTaskValidator().withCustomValidator(new FullyDefinedInputRevisionValidator())
-                            .validate(dpsTaskWithIncorrectRevision_10);
-      Assert.fail("Should fail on FullyDefinedOutputRevisionValidator");
-    } catch (DpsTaskValidationException e) {
-      Assert.assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
     }
-  }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateTheRequiredNullOutputRevisionAsNotCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithNullOutputRevision);
-  }
+    ////
+    //Output Revision
+    ////
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_1() {
+        assertThrows(DpsTaskValidationException.class, () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_1));
+    }
+
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_2() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_2));
+    }
+
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_3() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_3));
+    }
+
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_4() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_4));
+    }
+
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_5() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_5));
+    }
 
   @Test
-  public void validatorShouldValidateTheNotRequiredNullOutputRevisionAsCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().withOptionalOutputRevision().validate(dpsTaskWithNullOutputRevision);
+  void validatorShouldValidateThatOutputRevisionIsNotCorrect_6() {
+    assertThrows(DpsTaskValidationException.class,
+            () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_6));
   }
 
-  @Test
-  public void validatorShouldValidateDpsTaskWithCorrectOutputRevision() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTask);
-  }
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_7() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_7));
+    }
 
-  @Test
-  public void validatorShouldValidateDpsTaskWithValidMaximumParallelization() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithValidMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_8() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_8));
+    }
 
-  @Test
-  public void validatorShouldValidateDpsTaskWithMinimalValidMaximumParallelization() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithMinimalValidMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateThatOutputRevisionIsNotCorrect_9() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithIncorrectRevision_9));
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatNegativeMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithNegativeMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateThatInputRevisionIsNotCorrect_10() {
+        try {
+            new DpsTaskValidator().withCustomValidator(new FullyDefinedInputRevisionValidator())
+                    .validate(dpsTaskWithIncorrectRevision_10);
+            fail("Should fail on FullyDefinedOutputRevisionValidator");
+        } catch (DpsTaskValidationException e) {
+            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE));
+        }
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatZeroMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithZeroMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateTheRequiredNullOutputRevisionAsNotCorrect() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().withAnyOutputRevision().validate(dpsTaskWithNullOutputRevision));
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatTooBigPossibleMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithTooBigPossibleMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateTheNotRequiredNullOutputRevisionAsCorrect() throws DpsTaskValidationException {
+        new DpsTaskValidator().withOptionalOutputRevision().validate(dpsTaskWithNullOutputRevision);
+    }
 
-  @Test(expected = DpsTaskValidationException.class)
-  public void validatorShouldValidateThatNotNumberMaximumParallelizationIsNotCorrect() throws DpsTaskValidationException {
-    new DpsTaskValidator().validate(dpsTaskWithNotNumberMaximumParallelization);
-  }
+    @Test
+    void validatorShouldValidateDpsTaskWithCorrectOutputRevision() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTask);
+    }
+
+    @Test
+    void validatorShouldValidateDpsTaskWithValidMaximumParallelization() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithValidMaximumParallelization);
+    }
+
+    @Test
+    void validatorShouldValidateDpsTaskWithMinimalValidMaximumParallelization() throws DpsTaskValidationException {
+        new DpsTaskValidator().validate(dpsTaskWithMinimalValidMaximumParallelization);
+    }
+
+    @Test
+    void validatorShouldValidateThatNegativeMaximumParallelizationIsNotCorrect() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().validate(dpsTaskWithNegativeMaximumParallelization));
+    }
+
+    @Test
+    void validatorShouldValidateThatZeroMaximumParallelizationIsNotCorrect() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().validate(dpsTaskWithZeroMaximumParallelization));
+    }
+
+    @Test
+    void validatorShouldValidateThatTooBigPossibleMaximumParallelizationIsNotCorrect() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().validate(dpsTaskWithTooBigPossibleMaximumParallelization));
+    }
+
+    @Test
+    void validatorShouldValidateThatNotNumberMaximumParallelizationIsNotCorrect() {
+        assertThrows(DpsTaskValidationException.class,
+                () -> new DpsTaskValidator().validate(dpsTaskWithNotNumberMaximumParallelization));
+    }
 
 }

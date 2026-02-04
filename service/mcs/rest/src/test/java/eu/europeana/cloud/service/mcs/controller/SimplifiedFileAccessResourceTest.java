@@ -8,19 +8,12 @@ import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +21,17 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
+@ExtendWith(SpringExtension.class)
+class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
 
   @Autowired
   private SimplifiedFileAccessResource fileAccessResource;
@@ -56,11 +56,12 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
   private static final String NOT_EXISTING_REPRESENTATION_NAME = "notExistingRepresentationName";
 
   private HttpServletRequest URI_INFO;
+
   /****/
 
 
-  @Before
-  public void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException {
+  @BeforeEach
+  void init() throws CloudException, RepresentationNotExistsException, FileNotExistsException {
 
     setupUisClient();
     setupRecordService();
@@ -70,48 +71,48 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
 
   }
 
-  @Test(expected = RecordNotExistsException.class)
-  public void exceptionShouldBeThrownWhenProviderIdDoesNotExist()
-      throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
-    fileAccessResource.getFile(URI_INFO, NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName");
-  }
-
-  @Test(expected = RecordNotExistsException.class)
-  public void exceptionShouldBeThrownWhenLocalIdDoesNotExist()
-      throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
-    fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName");
-  }
-
-  @Test(expected = RepresentationNotExistsException.class)
-  public void exceptionShouldBeThrownWhenRepresentationIsMissing()
-      throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
-    fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, NOT_EXISTING_REPRESENTATION_NAME);
-  }
-
-
-  @Test(expected = RepresentationNotExistsException.class)
-  public void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord()
-      throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
-    fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION,
-        EXISTING_REPRESENTATION_NAME);
+  @Test
+  void exceptionShouldBeThrownWhenProviderIdDoesNotExist() {
+    assertThrows(RecordNotExistsException.class,
+            () -> fileAccessResource.getFile(URI_INFO, NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName"));
   }
 
   @Test
-  public void fileShouldBeReadSuccessfully()
-      throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
+  void exceptionShouldBeThrownWhenLocalIdDoesNotExist() {
+    assertThrows(RecordNotExistsException.class,
+            () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID, "repName"));
+  }
+
+  @Test
+  void exceptionShouldBeThrownWhenRepresentationIsMissing() {
+    assertThrows(RepresentationNotExistsException.class,
+            () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID, NOT_EXISTING_REPRESENTATION_NAME));
+  }
+
+
+  @Test
+  void exceptionShouldBeThrownWhenThereIsNoPersistentRepresentationInGivenRecord() {
+    assertThrows(RepresentationNotExistsException.class,
+            () -> fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION,
+                    EXISTING_REPRESENTATION_NAME));
+  }
+
+  @Test
+  void fileShouldBeReadSuccessfully()
+          throws RecordNotExistsException, FileNotExistsException, WrongContentRangeException, RepresentationNotExistsException, ProviderNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFile(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
-        EXISTING_REPRESENTATION_NAME);
-    Assert.assertEquals(200, response.getStatusCodeValue());
+            EXISTING_REPRESENTATION_NAME);
+    assertEquals(200, response.getStatusCode().value());
     //        response.toString();
   }
 
   @Test
-  public void fileHeadersShouldBeReadSuccessfully()
-      throws FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException {
+  void fileHeadersShouldBeReadSuccessfully()
+          throws FileNotExistsException, RecordNotExistsException, ProviderNotExistsException, RepresentationNotExistsException {
     ResponseEntity<?> response = fileAccessResource.getFileHeaders(URI_INFO, EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID,
-        EXISTING_REPRESENTATION_NAME);
-    Assert.assertEquals(200, response.getStatusCodeValue());
-    Assert.assertNotNull(response.getHeaders().get("Location"));
+            EXISTING_REPRESENTATION_NAME);
+    assertEquals(200, response.getStatusCode().value());
+    assertNotNull(response.getHeaders().get("Location"));
     //        response.toString();
   }
 
@@ -134,15 +135,15 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
     cid2.setId(EXISTING_CLOUD_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
     cid2.setLocalId(localId);
 
-    Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
-           .getCloudId(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
-    Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
-           .getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
+    doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
+            .getCloudId(NOT_EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
+    doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
+            .getCloudId(EXISTING_PROVIDER_ID, NOT_EXISTING_LOCAL_ID);
     Mockito.doReturn(cid).when(uisClient).getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID);
     Mockito.doReturn(cid2).when(uisClient)
-           .getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
-    Mockito.doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
-           .getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID);
+            .getCloudId(EXISTING_PROVIDER_ID, EXISTING_LOCAL_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION);
+    doThrow(new CloudException("", new RecordDoesNotExistException(new ErrorInfo()))).when(uisClient)
+            .getCloudId("NotExistingProviderId", NOT_EXISTING_LOCAL_ID);
   }
 
   @SuppressWarnings("unchecked")
@@ -161,24 +162,25 @@ public class SimplifiedFileAccessResourceTest extends AbstractResourceTest {
     r2.setPersistent(false);
     representationsListWithoutPersistentRepresentations.add(r2);
     //
-    when(recordService.listRepresentationVersions(EXISTING_CLOUD_ID, NOT_EXISTING_REPRESENTATION_NAME))
-           .thenThrow(RepresentationNotExistsException.class);
+    doThrow(new RepresentationNotExistsException("representation not found"))
+            .when(recordService)
+            .listRepresentationVersions(EXISTING_CLOUD_ID, NOT_EXISTING_REPRESENTATION_NAME);
     when(recordService.listRepresentationVersions(EXISTING_CLOUD_ID, EXISTING_REPRESENTATION_NAME))
-           .thenReturn(representationsList);
+            .thenReturn(representationsList);
     when(recordService.listRepresentationVersions(EXISTING_CLOUD_ID_FOR_RECORD_WITHOUT_PERSISTENT_REPRESENTATION,
-        EXISTING_REPRESENTATION_NAME)).thenReturn(representationsListWithoutPersistentRepresentations);
+            EXISTING_REPRESENTATION_NAME)).thenReturn(representationsListWithoutPersistentRepresentations);
     //
     File file = new File();
     file.setFileName("sampleFileName");
     when(recordService.getFile(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
-           .thenReturn(file);
+            .thenReturn(file);
   }
 
   private void setupPermissionEvaluator() {
     String targetId = EXISTING_CLOUD_ID + "/" + EXISTING_REPRESENTATION_NAME + "/" + 123;
 
     when(permissionEvaluator.hasPermission(Mockito.any(Authentication.class), Mockito.eq(targetId), Mockito.anyString(),
-        Mockito.eq("read"))).thenReturn(true);
+            Mockito.eq("read"))).thenReturn(true);
   }
 
   private void setupAuthentication() {

@@ -1,42 +1,43 @@
 package eu.europeana.cloud.service.aas.authentication;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.collect.ImmutableSet;
 import eu.europeana.cloud.common.model.Role;
 import eu.europeana.cloud.common.model.User;
 import eu.europeana.cloud.service.aas.authentication.repository.CassandraUserDAO;
-import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestContextConfiguration.class)
-public class CassandraUserDAOTest extends CassandraTestBase {
+class CassandraUserDAOTest extends CassandraTestBase {
 
   private static final String ROLE_USER = Role.USER;
   private static final String ROLE_ADMIN = Role.ADMIN;
   private static final Set<String> DEFAULT_USER_ROLES = ImmutableSet
-      .of(ROLE_USER);
+          .of(ROLE_USER);
 
   @Autowired
   private CassandraUserDAO dao;
 
   /**
-   * Prepare the unit tests
-   */
-  @Before
-  public void prepare() {
-    initUsers();
-  }
+     * Prepare the unit tests
+     */
+    @BeforeEach
+    void prepare() {
+        initUsers();
+    }
 
   private void initUsers() {
     getSession().execute("INSERT INTO users (username, password, roles) VALUES('Robin_Van_Persie', 'Feyenoord', " +
@@ -48,7 +49,7 @@ public class CassandraUserDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void testUserWithRoles() throws Exception {
+  void testUserWithRoles() throws Exception {
 
     SpringUser robinVanPersie = dao.getUser("Robin_Van_Persie");
     assertFalse(isAdmin(robinVanPersie));
@@ -58,7 +59,7 @@ public class CassandraUserDAOTest extends CassandraTestBase {
   }
 
   @Test
-  public void createUserTest() throws Exception {
+  void createUserTest() throws Exception {
     //given
     final String password = "PassFrank";
     final String username = "Frank";

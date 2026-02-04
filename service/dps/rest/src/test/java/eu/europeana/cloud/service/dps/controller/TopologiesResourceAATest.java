@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 
 //TODO fix commented test
 //@RunWith(SpringJUnit4ClassRunner.class)
-public class TopologiesResourceAATest extends AbstractSecurityTest {
+class TopologiesResourceAATest extends AbstractSecurityTest {
 
   //@Autowired
   //@NotNull

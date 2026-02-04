@@ -3,23 +3,23 @@ package eu.europeana.cloud.service.mcs.persistent.cassandra;
 import eu.europeana.cloud.service.mcs.persistent.CassandraTestBase;
 import eu.europeana.cloud.service.mcs.persistent.context.CassandraStaticContentDAOTestContext;
 import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAOTest;
-import org.junit.After;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author krystian.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CassandraStaticContentDAOTestContext.class})
-public class CassandraStaticContentDAOTest extends ContentDAOTest {
+class CassandraStaticContentDAOTest extends ContentDAOTest {
 
   CassandraTestBase testBase = new CassandraTestBase() {
   };
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     testBase.truncateAll();
   }
 }

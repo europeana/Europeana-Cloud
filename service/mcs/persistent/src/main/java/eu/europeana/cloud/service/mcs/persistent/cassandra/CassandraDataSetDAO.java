@@ -324,26 +324,31 @@ public class CassandraDataSetDAO {
     }
     PagingState ps = rs.getExecutionInfo().getPagingState();
     if ((result.size() == limit) && !rs.isExhausted()) {
-      // we reached the page limit, prepare the next slice string to be used for the next page
-      return new ResultSlice<>(Optional.ofNullable(ps)
-                                       .map(Object::toString).orElse(null), result);
+        // we reached the page limit, prepare the next slice string to be used for the next page
+        return new ResultSlice<>(Optional.ofNullable(ps)
+                .map(Object::toString).orElse(null), result);
     } else {
-      return new ResultSlice<>(null, result);
+        return new ResultSlice<>(null, result);
     }
   }
 
-  @PostConstruct
-  private void prepareStatements() {
-    createDataSetStatement = connectionProvider.getSession().prepare(
-        "INSERT INTO " +
-            "data_sets(provider_id, dataset_id, description, creation_date) " +
-            "VALUES (?,?,?,?);"
-    );
+    //  Need separate function so mock in test can modify it
+    @PostConstruct
+    private void postConstruct() {
+        prepareStatements();
+    }
 
-    deleteDataSetStatement = connectionProvider.getSession().prepare(
-        "DELETE FROM " +
-            "data_sets " +
-            "WHERE provider_id = ? AND dataset_id = ?;"
+    void prepareStatements() {
+        createDataSetStatement = connectionProvider.getSession().prepare(
+                "INSERT INTO " +
+                        "data_sets(provider_id, dataset_id, description, creation_date) " +
+                        "VALUES (?,?,?,?);"
+        );
+
+        deleteDataSetStatement = connectionProvider.getSession().prepare(
+                "DELETE FROM " +
+                        "data_sets " +
+                        "WHERE provider_id = ? AND dataset_id = ?;"
     );
 
     addAssignmentStatement = connectionProvider.getSession().prepare(
