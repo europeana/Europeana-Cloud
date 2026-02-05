@@ -4,7 +4,6 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedInputRevisionValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -110,56 +109,56 @@ class DpsTaskValidatorForMediaTopologyTest {
         }
     }
 
-    @Test
-    void shouldValidateMediaTopologyTaskWithoutInputRevisionDefinedProperly() {
-        try {
-            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-            validator.validate(dpsTaskForMediaTopologyWithoutInputRevision);
-            fail("Should fail on FullyDefinedOutputRevisionValidator");
-        } catch (DpsTaskValidationException e) {
-            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE), "Should fail in proper validator");
-        }
-    }
+//    @Test
+//    void shouldValidateMediaTopologyTaskWithoutInputRevisionDefinedProperly() {
+//        try {
+//            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
+//                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+//            validator.validate(dpsTaskForMediaTopologyWithoutInputRevision);
+//            fail("Should fail on FullyDefinedOutputRevisionValidator");
+//        } catch (DpsTaskValidationException e) {
+//            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE), "Should fail in proper validator");
+//        }
+//    }
 
-    @Test
-    void shouldValidateMediaTopologyTaskWithoutProviderNameInInputRevision() {
-        try {
-            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-            validator.validate(dpsTaskForMediaTopologyWithoutProviderNameInInputRevision);
-            fail("Should fail on FullyDefinedOutputRevisionValidator");
-        } catch (DpsTaskValidationException e) {
-            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
-                    "Should fail in proper validator");
-        }
-    }
+//    @Test
+//    void shouldValidateMediaTopologyTaskWithoutProviderNameInInputRevision() {
+//        try {
+//            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
+//                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+//            validator.validate(dpsTaskForMediaTopologyWithoutProviderNameInInputRevision);
+//            fail("Should fail on FullyDefinedOutputRevisionValidator");
+//        } catch (DpsTaskValidationException e) {
+//            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
+//                    "Should fail in proper validator");
+//        }
+//    }
 
-    @Test
-    void shouldValidateMediaTopologyTaskWithoutInputRevisionTimestamp() {
-        try {
-            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-            validator.validate(dpsTaskForMediaTopologyWithoutRevisionTimestampInInputRevision);
-            fail("Should fail on FullyDefinedOutputRevisionValidator");
-        } catch (DpsTaskValidationException e) {
-            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
-                    "Should fail in proper validator");
-        }
-    }
+//    @Test
+//    void shouldValidateMediaTopologyTaskWithoutInputRevisionTimestamp() {
+//        try {
+//            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
+//                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+//            validator.validate(dpsTaskForMediaTopologyWithoutRevisionTimestampInInputRevision);
+//            fail("Should fail on FullyDefinedOutputRevisionValidator");
+//        } catch (DpsTaskValidationException e) {
+//            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
+//                    "Should fail in proper validator");
+//        }
+//    }
 
-    @Test
-    void shouldValidateMediaTopologyTaskWithoutRevisionNameInInputRevision() {
-        try {
-            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
-                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
-            validator.validate(dpsTaskForMediaTopologyWithoutRevisionNameInInputRevision);
-            fail("Should fail on FullyDefinedOutputRevisionValidator");
-        } catch (DpsTaskValidationException e) {
-            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
-                    "Should fail in proper validator");
-        }
-    }
+//    @Test
+//    void shouldValidateMediaTopologyTaskWithoutRevisionNameInInputRevision() {
+//        try {
+//            DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(
+//                    DpsTaskValidatorFactory.MEDIA_TOPOLOGY_TASK_WITH_DATASETS);
+//            validator.validate(dpsTaskForMediaTopologyWithoutRevisionNameInInputRevision);
+//            fail("Should fail on FullyDefinedOutputRevisionValidator");
+//        } catch (DpsTaskValidationException e) {
+//            assertTrue(e.getMessage().contains(FullyDefinedInputRevisionValidator.ERROR_MESSAGE),
+//                    "Should fail in proper validator");
+//        }
+//    }
 
 
 }

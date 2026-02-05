@@ -426,14 +426,14 @@ class DataSetServiceClientTest {
     int resultSize = 2;
 
     //
-    wireMockRule.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "?existingOnly=true"))
+    wireMockExtension.stubFor(get(urlEqualTo("/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "?existingOnly=true"))
             .willReturn(aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/xml")
                     .withBody(
                             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><nextSlice>G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI</nextSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:31.735+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>1DZ6HTS415W</cloudId><representationName>schema1</representationName><version>cc076450-987c-11e3-9621-1c6f653f6012</version></results></resultSlice>")));
 
-    wireMockRule.stubFor(get(urlEqualTo(
+    wireMockExtension.stubFor(get(urlEqualTo(
             "/mcs/data-providers/" + providerId + "/data-sets/" + dataSetId + "?existingOnly=true&startFrom=G5DFUSCILJFVGQSEJYFHGY3IMVWWCMI"))
             .willReturn(aResponse()
                     .withStatus(200)
