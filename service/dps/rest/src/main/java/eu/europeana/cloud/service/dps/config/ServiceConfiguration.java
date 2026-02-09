@@ -426,8 +426,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
-  public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider uisCassandraProvider) {
-    return new CassandraHealthIndicator(uisCassandraProvider);
+  public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider dpsCassandraProvider) {
+    return new CassandraHealthIndicator(dpsCassandraProvider);
   }
 
   private String mcsLocation() {
