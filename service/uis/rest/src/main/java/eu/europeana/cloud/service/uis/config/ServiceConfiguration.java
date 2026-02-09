@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.service.commons.CassandraHealthIndicator;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
@@ -144,5 +145,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   RetryAspect retryAspect() {
     return new RetryAspect();
+  }
+
+  @Bean
+  public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider uisCassandraProvider) {
+    return new CassandraHealthIndicator(uisCassandraProvider);
   }
 }

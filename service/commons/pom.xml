@@ -45,6 +45,11 @@
             <version>${version.spring-security}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+            <version>${version.spring-boot}</version>
+        </dependency>
+        <dependency>
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>test-common</artifactId>
             <version>${project.version}</version>
