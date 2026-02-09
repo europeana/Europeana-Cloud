@@ -4,8 +4,8 @@ import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 
 /**
  * Verifies S3 connection for Actuator health endpoint

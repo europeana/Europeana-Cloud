@@ -4,8 +4,8 @@ import com.datastax.driver.core.exceptions.DriverException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.HealthIndicator;
 
 /**
  * Verifies Cassandra connection for Actuator health endpoint
