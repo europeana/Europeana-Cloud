@@ -168,9 +168,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
       LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-      if (dpsTask.isParameterPresent(REVISION_NAME) &&
-              dpsTask.isParameterPresent(REVISION_PROVIDER) &&
-              dpsTask.isParameterPresent(REVISION_TIMESTAMP)) {
+      if (dpsTask.getOutputRevision() != null) {
          addRevisionToRepresentation(dpsTask, representation);
       }
     } catch (CloudException | MCSException | MalformedURLException e) {
@@ -202,7 +200,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
     var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
     var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
-        datasetId);
+        null, datasetId, true);
     return RepresentationParser.parseResultUrl(representationUri);
   }
 

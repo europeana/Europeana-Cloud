@@ -96,8 +96,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     return true;
   }
 
-  private boolean ifRepresentationShouldBeCreatedBasedOnTopology(){
-    List<String> topologiesRequiringNewRepresentation = Arrays.stream(new String[] {"xslt_topology", "enrichment_topology", "normalization_topology", "oai_topology", "media_topology"}).toList();
+  private boolean ifRepresentationShouldBeCreatedBasedOnTopology() {
+    List<String> topologiesRequiringNewRepresentation = Arrays.stream(new String[]{"xslt_topology", "enrichment_topology",
+        "normalization_topology", "oai_topology", "media_topology", "http_topology"}).toList();
     return topologiesRequiringNewRepresentation.contains(this.topologyName);
   }
 
