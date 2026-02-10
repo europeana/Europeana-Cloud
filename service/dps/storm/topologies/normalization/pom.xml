@@ -60,10 +60,6 @@
                     <artifactId>org.springframework.security</artifactId>
                     <groupId>*</groupId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
 
