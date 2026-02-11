@@ -14,10 +14,12 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.*;
+import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
+import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
+import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
-import org.apache.storm.Config;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +29,10 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
-import java.util.*;
+import java.util.UUID;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
 import static eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt.ERROR_MSG_WHILE_CREATING_CLOUD_ID;
 import static eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt.ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID;
 
@@ -47,17 +50,18 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String ecloudUisAddress;
   private final String topologyUserName;
   private final String topologyUserPassword;
+  private final boolean topologyCreatingNewData;
   protected transient RecordServiceClient recordServiceClient;
   protected transient UISClient uisClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress, String ecloudUisAddress,
-                         String topologyUserName, String topologyUserPassword, String topologyName) {
+                         String topologyUserName, String topologyUserPassword, boolean topologyCreatingNewData) {
     super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.ecloudUisAddress = ecloudUisAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
-    this.topologyName = topologyName;
+    this.topologyCreatingNewData = topologyCreatingNewData;
   }
 
   @Override
@@ -85,7 +89,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
       return false;
     }
 
-    return ifRepresentationShouldBeCreatedBasedOnTopology();
+    return topologyCreatingNewData;
   }
 
   private boolean isRevisionProvided(Revision revision) {
@@ -95,13 +99,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     if (revision.getRevisionProviderId() == null) return false;
     return true;
   }
-
-  private boolean ifRepresentationShouldBeCreatedBasedOnTopology() {
-    List<String> topologiesRequiringNewRepresentation = Arrays.stream(new String[]{"xslt_topology", "enrichment_topology",
-        "normalization_topology", "oai_topology", "media_topology", "http_topology"}).toList();
-    return topologiesRequiringNewRepresentation.contains(this.topologyName);
-  }
-
 
 
   @Override

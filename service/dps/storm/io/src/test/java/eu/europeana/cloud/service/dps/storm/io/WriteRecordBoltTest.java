@@ -56,12 +56,12 @@ class WriteRecordBoltTest {
     private RecordServiceClient recordServiceClient;
     @InjectMocks
     private WriteRecordBolt writeRecordBolt =
-            new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", "media_topology");
+            new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", true);
 
 
-  @InjectMocks
-  private WriteRecordBolt writeRecordBoltForNotNewRepresentationTopologies =
-          new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", "depublication_topology");
+    @InjectMocks
+    private WriteRecordBolt writeRecordBoltForNotNewRepresentationTopologies =
+            new WriteRecordBolt(new CassandraProperties(), "http://localhost:8080/uis", "http://localhost:8080/mcs", "user", "password", false);
 
 
     @Test

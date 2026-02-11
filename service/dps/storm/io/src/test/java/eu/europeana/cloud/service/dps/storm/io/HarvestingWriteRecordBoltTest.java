@@ -71,7 +71,8 @@ class HarvestingWriteRecordBoltTest {
             "http://localhost:8080/mcs",
             "http://localhost:8080/uis",
             "user",
-            "password");
+            "password",
+            true);
 
     @BeforeEach
     void init() {

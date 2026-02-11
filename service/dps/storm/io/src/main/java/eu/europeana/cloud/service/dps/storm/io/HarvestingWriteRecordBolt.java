@@ -2,12 +2,11 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.properties.CassandraProperties;
-import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+
 import java.net.MalformedURLException;
 
 /**
@@ -23,11 +22,12 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   private static final long serialVersionUID = 1L;
 
   public HarvestingWriteRecordBolt(CassandraProperties cassandraProperties,
-      String ecloudMcsAddress,
-      String ecloudUisAddress,
-      String topologyUserName,
-      String topologyUserPassword) {
-    super(cassandraProperties, ecloudMcsAddress, ecloudUisAddress, topologyUserName, topologyUserPassword, "oai_topology");
+                                   String ecloudMcsAddress,
+                                   String ecloudUisAddress,
+                                   String topologyUserName,
+                                   String topologyUserPassword,
+                                   boolean topologyCreatingNewData) {
+    super(cassandraProperties, ecloudMcsAddress, ecloudUisAddress, topologyUserName, topologyUserPassword, topologyCreatingNewData);
   }
 
 

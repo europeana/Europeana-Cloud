@@ -1,41 +1,22 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.INPUT_FILES_TUPLE_KEY;
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.AWS_CREDENTIALS_ACCESSKEY;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.AWS_CREDENTIALS_BUCKET;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.AWS_CREDENTIALS_ENDPOINT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.AWS_CREDENTIALS_SECRETKEY;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.EDM_ENRICHMENT_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.EDM_OBJECT_PROCESSOR_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RESOURCE_PROCESSING_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.EDM_ENRICHMENT_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.EDM_OBJECT_PROCESSOR_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.PARSE_FILE_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RESOURCE_PROCESSING_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForMediaBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.INPUT_FILES_TUPLE_KEY;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE;
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * Created by Tarek on 12/14/2018.
@@ -81,16 +62,16 @@ public class MediaTopology {
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
     return new ECloudTopologyPipeline(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties)
-        .addBolt(EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt, EDM_OBJECT_PROCESSOR_BOLT_PARALLEL,
-            EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
-        .addBolt(PARSE_FILE_BOLT, parseFileBolt, PARSE_FILE_BOLT_PARALLEL, PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
-        .addBolt(RESOURCE_PROCESSING_BOLT, resourceProcessingBolt, RESOURCE_PROCESSING_BOLT_PARALLEL,
-            RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
-        .addBolt(EDM_ENRICHMENT_BOLT, edmEnrichmentBolt, EDM_ENRICHMENT_BOLT_PARALLEL, EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS,
-            INPUT_FILES_TUPLE_KEY)
-        .withAdditionalFieldGrouping(EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME,
-            INPUT_FILES_TUPLE_KEY)
-        .addWriteRecordBolt("media_topology")
+            .addBolt(EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt, EDM_OBJECT_PROCESSOR_BOLT_PARALLEL,
+                    EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
+            .addBolt(PARSE_FILE_BOLT, parseFileBolt, PARSE_FILE_BOLT_PARALLEL, PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
+            .addBolt(RESOURCE_PROCESSING_BOLT, resourceProcessingBolt, RESOURCE_PROCESSING_BOLT_PARALLEL,
+                    RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
+            .addBolt(EDM_ENRICHMENT_BOLT, edmEnrichmentBolt, EDM_ENRICHMENT_BOLT_PARALLEL, EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS,
+                    INPUT_FILES_TUPLE_KEY)
+            .withAdditionalFieldGrouping(EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME,
+                    INPUT_FILES_TUPLE_KEY)
+            .addWriteRecordBolt()
         .addRevisionWriterBolt()
         .buildTopology();
   }
