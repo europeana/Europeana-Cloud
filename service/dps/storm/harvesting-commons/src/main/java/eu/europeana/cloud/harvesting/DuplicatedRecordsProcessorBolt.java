@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,67 +68,107 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     try {
       Representation representation = extractRepresentationInfoFromTuple(tuple);
-      List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(tuple, representation);
-      if (representationsWithSameRevisionExists(representationRevisions)) {
-        handleDuplicatedRepresentation(anchorTuple, tuple, representation);
-        return;
+      Revision revision = tuple.getRevisionToBeApplied();
+      // Based on processing mode we either look for representation with same revisions or representations with same versions
+      if (revision != null) {
+        if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision))
+          return;
+      } else {
+        if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
+          return;
       }
       emitSuccessNotification(anchorTuple, tuple, "", "");
-        LOGGER.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+      LOGGER.info("Checking duplicates finished for oai identifier '{}' nad task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     } catch (MalformedURLException | MCSException e) {
-        LOGGER.error("Error while detecting duplicates", e);
-        emitErrorNotification(
-                anchorTuple,
-                tuple,
-                "Error while detecting duplicates",
-                e.getMessage());
+      LOGGER.error("Error while detecting duplicates", e);
+      emitErrorNotification(
+              anchorTuple,
+              tuple,
+              "Error while detecting duplicates",
+              e.getMessage());
     }
     outputCollector.ack(anchorTuple);
   }
 
-  private void handleDuplicatedRepresentation(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
-      throws MCSException {
+  private boolean detectAndHandleDuplicatesInRepresentationBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
+                                                                           Representation representation) throws MCSException {
+    List<Representation> representations = findAllRepresentationWithSameCloudId(representation);
+    if (representationsWithSameCloudIdExist(representations)) {
+      handleDuplicatedRepresentationVersion(anchorTuple, tuple, representation);
+      return true;
+    }
+    return false;
+  }
+
+  private List<Representation> findAllRepresentationWithSameCloudId(Representation representation) throws MCSException {
+    return recordServiceClient
+            .getRepresentations(representation.getCloudId(), representation.getRepresentationName());
+  }
+
+  private boolean detectAndHandleDuplicatesInRevisionBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
+                                                                     Representation representation, Revision revision) throws MCSException {
+    List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(representation, revision);
+    if (representationsWithSameRevisionExists(representationRevisions)) {
+      handleDuplicatedRepresentationRevision(anchorTuple, tuple, representation);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean representationsWithSameCloudIdExist(List<Representation> representationsAlreadyExisting) {
+    return representationsAlreadyExisting.size() > 1;
+  }
+
+  private void handleDuplicatedRepresentationRevision(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
+          throws MCSException {
     LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
     removeRevision(tuple, representation);
     removeRepresentation(representation);
     emitErrorNotification(
-        anchorTuple,
-        tuple,
-        "Duplicate detected",
-        "Duplicate detected for " + tuple.getFileUrl());
+            anchorTuple,
+            tuple,
+            "Duplicate detected",
+            "Duplicate detected for " + tuple.getFileUrl());
+    outputCollector.ack(anchorTuple);
+  }
+
+  private void handleDuplicatedRepresentationVersion(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
+          throws MCSException {
+    LOGGER.warn("Found same version for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
+    removeRepresentation(representation);
+    emitErrorNotification(
+            anchorTuple,
+            tuple,
+            "Duplicate detected",
+            "Duplicate detected for " + tuple.getFileUrl());
     outputCollector.ack(anchorTuple);
   }
 
   private void removeRepresentation(Representation representation) throws MCSException {
     recordServiceClient.deleteRepresentation(
-        representation.getCloudId(),
-        representation.getRepresentationName(),
-        representation.getVersion());
+            representation.getCloudId(),
+            representation.getRepresentationName(),
+            representation.getVersion());
   }
 
   private void removeRevision(StormTaskTuple tuple, Representation representation) throws MCSException {
     revisionServiceClient.deleteRevision(
-        representation.getCloudId(),
-        representation.getRepresentationName(),
-        representation.getVersion(),
-        tuple.getRevisionToBeApplied());
+            representation.getCloudId(),
+            representation.getRepresentationName(),
+            representation.getVersion(),
+            tuple.getRevisionToBeApplied());
   }
 
-  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(StormTaskTuple tuple, Representation representation)
-      throws MCSException {
-    Revision revision = tuple.getRevisionToBeApplied();
-    if (revision != null) {
-      return recordServiceClient.getRepresentationRawRevisions(
-          representation.getCloudId(), representation.getRepresentationName(),
-          new Revision(
-                  revision.getRevisionName(),
-                  revision.getRevisionProviderId(),
-              //TODO there is helper class for that
-              new DateTime(revision.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
-      );
-    } else {
-      return Collections.emptyList();
-    }
+  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(Representation representation, Revision revisionToBeApplied)
+          throws MCSException {
+    return recordServiceClient.getRepresentationRawRevisions(
+            representation.getCloudId(), representation.getRepresentationName(),
+            new Revision(
+                    revisionToBeApplied.getRevisionName(),
+                    revisionToBeApplied.getRevisionProviderId(),
+                    //TODO there is helper class for that
+                    new DateTime(revisionToBeApplied.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
+    );
   }
 
   private boolean representationsWithSameRevisionExists(List<RepresentationRevisionResponse> representationRevisions) {
