@@ -201,7 +201,7 @@ public class CassandraRecordService implements RecordService {
       if (!currentDataset.equals(newVersionDataset)) {
         throw new DataSetAssignmentException("ProviderId and/or datasetId: " + newVersionDataset
                 + " doesn't match the current assignments of the representation: " + currentDataset
-                + ". It is not allowed to assign representations of same record to more than one dataset.");
+                + ". It is not allowed to assign version of same record to more than one dataset.");
       }
     }
   }

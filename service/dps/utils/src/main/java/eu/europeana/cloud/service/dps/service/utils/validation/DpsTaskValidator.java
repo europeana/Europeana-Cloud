@@ -1,11 +1,5 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.OUTPUT_DATA_SETS;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
-
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
@@ -15,10 +9,14 @@ import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.MaximumParallelizationValidator;
+import org.apache.commons.validator.routines.UrlValidator;
+
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.validator.routines.UrlValidator;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.OUTPUT_DATA_SETS;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
 
 public final class DpsTaskValidator {
 
@@ -383,7 +381,6 @@ public final class DpsTaskValidator {
 
   private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, DataSet outputDataset,
                                                                     String taskInputDataValue) throws DpsTaskValidationException {
-    boolean isInputAndOutputDatasetDifferent = true;
     DataSet inputDataset = null;
     if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
       inputDataset = parseDataSetUrl(taskInputDataValue);
@@ -394,9 +391,6 @@ public final class DpsTaskValidator {
     // in case of file constraint we expect user to provide it correctly since it would be a bit problematic to extract
     // dataset from file URI
     if (outputDataset.equals(inputDataset)) {
-      isInputAndOutputDatasetDifferent = false;
-    }
-    if (!isInputAndOutputDatasetDifferent) {
       throw new DpsTaskValidationException("Revision is not filled nor are dataset different!");
     }
   }

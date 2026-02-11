@@ -114,7 +114,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
         stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
       } else {
-        LOGGER.info("WriteRecordBolt: File not suitable to be handled");
+        LOGGER.info("WriteRecordBolt: For this record in this execution representation creation is not needed!");
       }
       prepareEmittedTuple(stormTaskTuple);
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
