@@ -8,6 +8,8 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -33,8 +35,6 @@ import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
-import static eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt.ERROR_MSG_WHILE_CREATING_CLOUD_ID;
-import static eu.europeana.cloud.service.dps.storm.io.HarvestingWriteRecordBolt.ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID;
 
 /**
  * Stores a Record on the cloud.
@@ -163,8 +163,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple)
       throws CloudException, MCSException, MalformedURLException {
     var writeParams = new RecordWriteParams();
+    String cloudId = obtainCloudId(tuple);
     String providerId = obtainProviderId(tuple);
-    String cloudId = obtainCloudId(tuple, providerId);
     writeParams.setCloudId(cloudId);
     writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
     writeParams.setProviderId(providerId);
@@ -174,45 +174,29 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     return writeParams;
   }
 
-  private String obtainCloudId(StormTaskTuple tuple, String providerId) throws CloudException {
+  private String obtainCloudId(StormTaskTuple tuple) throws MalformedURLException {
     String cloudId;
-    if (tuple.ifParametersContainsKey(PluginParameterKeys.CLOUD_ID)){
+    if (tuple.ifParametersContainsKey(PluginParameterKeys.CLOUD_ID)) {
       cloudId = tuple.getParameter(PluginParameterKeys.CLOUD_ID);
     } else {
-      String localId = tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
-      String additionalLocalIdentifier = tuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
-      cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
+      String fileUrl = tuple.getFileUrl();
+      UrlParser urlParser = new UrlParser(fileUrl);
+      if (urlParser.getPart(UrlPart.RECORDS) != null) {
+        cloudId = urlParser.getPart(UrlPart.RECORDS);
+      } else {
+        throw new MalformedURLException("URI doesn't contain cloud Id!");
+      }
     }
+    tuple.addParameter(cloudId, PluginParameterKeys.CLOUD_ID);
     return cloudId;
   }
 
-  protected String getCloudId(String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
-    String result = createCloudId(providerId, localId);
-
-    if (additionalLocalIdentifier != null) {
-      attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId);
-    }
-
-    return result;
-
-  }
-
-  private void attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId)
-          throws CloudException {
-    RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () ->
-            uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier)
-    );
-  }
-
-  private String createCloudId(String providerId, String localId) throws CloudException {
-    return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
-            uisClient.createCloudId(providerId, localId).getId());
-  }
   private String obtainProviderId(StormTaskTuple tuple) throws MCSException, CloudException {
     String providerId;
     if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
       providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
     } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
+      LOGGER.warn("Provider id not in task params!");
       providerId = getProviderId(tuple);
     } else {
       throw new CloudException("Couldn't obtain provider Id!", new RuntimeException());
