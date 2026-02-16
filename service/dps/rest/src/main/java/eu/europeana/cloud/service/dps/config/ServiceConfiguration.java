@@ -3,13 +3,16 @@ package eu.europeana.cloud.service.dps.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.IndexingProperties;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
-import eu.europeana.cloud.service.dps.logging.LoggingAttributeAspect;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
+import eu.europeana.cloud.service.dps.logging.LoggingAttributeAspect;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetStatsRetriever;
 import eu.europeana.cloud.service.dps.properties.GeneralProperties;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
@@ -19,24 +22,10 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.services.TaskFinishService;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
-import eu.europeana.cloud.service.dps.services.postprocessors.HarvestingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.IndexingPostProcessor;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingScheduler;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
-import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessorFactory;
+import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraNodeStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.GeneralStatisticsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.utils.RecordStatusUpdater;
@@ -44,11 +33,14 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.CleanCronExpressionEvaluator;
+import eu.europeana.cloud.service.mcs.DataSetService;
+import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
+import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
+import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
-import eu.europeana.cloud.common.properties.CassandraProperties;
-import eu.europeana.cloud.common.properties.IndexingProperties;
-import java.util.Arrays;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -65,6 +57,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableAsync
@@ -117,6 +111,13 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
     return new CassandraProperties();
   }
 
+  @Bean
+  @ConfigurationProperties(prefix = "cassandra.mcs")
+  public CassandraProperties cassandraMCSProperties() {
+    return new CassandraProperties();
+  }
+
+
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new LoggingFilter());
@@ -130,6 +131,35 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public RecordExecutionSubmitService recordKafkaSubmitService() {
     return new RecordKafkaSubmitService(kafkaProperties().getBrokerLocation());
+  }
+
+  @Bean
+  public CassandraDataSetDAO cassandraDataSetDAO() {
+    return new CassandraDataSetDAO(mcsConnectionProvider());
+  }
+
+  @Bean
+  public CassandraRecordDAO cassandraRecordDAO() {
+    return new CassandraRecordDAO(mcsConnectionProvider());
+  }
+
+  @Bean
+  public BucketsHandler bucketsHandler() {
+    return new BucketsHandler(mcsConnectionProvider().getSession());
+  }
+
+  @Bean
+  public UISClientHandler uisClientHandler() {
+    return new UISClientHandlerImpl(uisClient());
+  }
+
+  @Bean
+  public DataSetService dataSetService() {
+    return new CassandraDataSetService(cassandraDataSetDAO(),
+            cassandraRecordDAO(),
+            uisClientHandler(),
+            bucketsHandler()
+    );
   }
 
   @Bean
@@ -160,11 +190,22 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public CassandraConnectionProvider aasCassandraProvider() {
     return new CassandraConnectionProvider(
-        cassandraAASProperties().getHosts(),
-        cassandraAASProperties().getPort(),
-        cassandraAASProperties().getKeyspace(),
-        cassandraAASProperties().getUser(),
-        cassandraAASProperties().getPassword()
+            cassandraAASProperties().getHosts(),
+            cassandraAASProperties().getPort(),
+            cassandraAASProperties().getKeyspace(),
+            cassandraAASProperties().getUser(),
+            cassandraAASProperties().getPassword()
+    );
+  }
+
+  @Bean
+  public CassandraConnectionProvider mcsConnectionProvider() {
+    return new CassandraConnectionProvider(
+            cassandraMCSProperties().getHosts(),
+            cassandraMCSProperties().getPort(),
+            cassandraMCSProperties().getKeyspace(),
+            cassandraMCSProperties().getUser(),
+            cassandraMCSProperties().getPassword()
     );
   }
 

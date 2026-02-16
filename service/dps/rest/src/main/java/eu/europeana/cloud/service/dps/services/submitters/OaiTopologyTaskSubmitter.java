@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -9,7 +10,6 @@ import eu.europeana.cloud.service.dps.utils.DpsTaskToOaiHarvestConverter;
 import eu.europeana.cloud.service.dps.utils.HarvestsExecutor;
 import eu.europeana.cloud.service.dps.utils.KafkaTopicSelector;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
-import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterRuntimeException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OaiTopologyTaskSubmitter implements TaskSubmitter {
+public class OaiTopologyTaskSubmitter extends AbstractTaskSubmitter implements TaskSubmitter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OaiTopologyTaskSubmitter.class);
 
@@ -27,10 +27,11 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
   private final TaskStatusUpdater taskStatusUpdater;
 
   public OaiTopologyTaskSubmitter(HarvestsExecutor harvestsExecutor,
-      KafkaTopicSelector kafkaTopicSelector,
-      FilesCounterFactory filesCounterFactory,
-      TaskStatusUpdater taskStatusUpdater
-  ) {
+                                  KafkaTopicSelector kafkaTopicSelector,
+                                  FilesCounterFactory filesCounterFactory,
+                                  TaskStatusUpdater taskStatusUpdater,
+                                  DataSetServiceClient dataSetServiceClient) {
+    super(dataSetServiceClient);
     this.harvestsExecutor = harvestsExecutor;
     this.kafkaTopicSelector = kafkaTopicSelector;
     this.filesCounterFactory = filesCounterFactory;
@@ -50,6 +51,7 @@ public class OaiTopologyTaskSubmitter implements TaskSubmitter {
       return;
     }
 
+    createDateSetIfNeeded(parameters.getTask());
     String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
     parameters.setTopicName(preferredTopicName);
     parameters.getTaskInfo().setStateDescription("Task submitted successfully and processed by REST app");
