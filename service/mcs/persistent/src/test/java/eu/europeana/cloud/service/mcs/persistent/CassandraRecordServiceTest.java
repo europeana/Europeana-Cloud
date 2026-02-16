@@ -263,16 +263,16 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation r3 = cassandraRecordService.createRepresentation(
             "globalId", "dc", PROVIDER_1_ID, VERSION_3, DATA_SET_NAME);
     Representation r4 = insertDummyPersistentRepresentation("globalId",
-        "dc", PROVIDER_1_ID, VERSION_4);
+            "dc", PROVIDER_1_ID, VERSION_4);
     Representation r5 = cassandraRecordService.createRepresentation(
-        "globalId", "dc", PROVIDER_1_ID, VERSION_5, DATA_SET_NAME);
+            "globalId", "dc", PROVIDER_1_ID, VERSION_5, DATA_SET_NAME);
     cassandraRecordService.createRepresentation("globalId", "jpg",
-        PROVIDER_1_ID, VERSION_6, DATA_SET_NAME);
+            PROVIDER_1_ID, VERSION_6, DATA_SET_NAME);
 
     List<Representation> representationVersions = cassandraRecordService
-        .listRepresentationVersions("globalId", "dc");
+            .listRepresentationVersions("globalId", "dc");
     assertThat(representationVersions,
-        is(Arrays.asList(r5, r4, r3, r2, r1)));
+            is(Arrays.asList(r5, r4, r3, r2, r1)));
   }
 
   @Test
