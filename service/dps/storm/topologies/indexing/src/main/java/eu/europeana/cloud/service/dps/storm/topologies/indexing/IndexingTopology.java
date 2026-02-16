@@ -45,7 +45,7 @@ public final class IndexingTopology {
                     topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                     topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
             ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
-            .addWriteRecordBolt()
+            .addWriteRecordBolt(false)
         .addBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(createCassandraProperties(topologyProperties),
                 topologyProperties.getProperty(MCS_URL),
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),

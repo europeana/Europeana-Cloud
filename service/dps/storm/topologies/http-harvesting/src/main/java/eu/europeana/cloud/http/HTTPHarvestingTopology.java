@@ -1,9 +1,5 @@
 package eu.europeana.cloud.http;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
-
 import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
@@ -13,11 +9,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * HttpHarvestingTopology main class where its definition is formulated
@@ -46,13 +46,13 @@ public class HTTPHarvestingTopology {
    */
   public final StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.HTTP_TOPOLOGY, topologyProperties)
-        .addBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(createCassandraProperties(topologyProperties)),
-            RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
-        .addBolt(RECORD_CATEGORIZATION_BOLT,
-            new HttpHarvestedRecordCategorizationBolt(createCassandraProperties(topologyProperties)),
-            CATEGORIZATION_BOLT_PARALLEL,
-            CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
-        .addHarvestingWriteRecordBolt()
+            .addBolt(RECORD_HARVESTING_BOLT, new HttpHarvestingBolt(createCassandraProperties(topologyProperties)),
+                    RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
+            .addBolt(RECORD_CATEGORIZATION_BOLT,
+                    new HttpHarvestedRecordCategorizationBolt(createCassandraProperties(topologyProperties)),
+                    CATEGORIZATION_BOLT_PARALLEL,
+                    CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
+            .addHarvestingWriteRecordBolt()
         .addRevisionWriterBoltForHarvesting()
         .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                 createCassandraProperties(topologyProperties),

@@ -73,14 +73,14 @@ public class ECloudTopologyPipeline {
    *
    * @return this
    */
-  public ECloudTopologyPipeline addWriteRecordBolt() {
+  public ECloudTopologyPipeline addWriteRecordBolt(Boolean topologyCreatingNewData) {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
             createCassandraProperties(topologyProperties),
             topologyProperties.getProperty(MCS_URL),
             topologyProperties.getProperty(UIS_URL),
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-            Boolean.parseBoolean(topologyProperties.getProperty(TOPOLOGY_CREATING_NEW_DATA))
+            topologyCreatingNewData
     );
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;
@@ -88,6 +88,7 @@ public class ECloudTopologyPipeline {
 
   /**
    * Adds HarvestingWriteRecordBolt to the pipeline
+   *
    * @return this
    */
   public ECloudTopologyPipeline addHarvestingWriteRecordBolt() {
@@ -97,7 +98,7 @@ public class ECloudTopologyPipeline {
             topologyProperties.getProperty(UIS_URL),
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-            Boolean.parseBoolean(topologyProperties.getProperty(TOPOLOGY_CREATING_NEW_DATA))
+            true
     );
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;

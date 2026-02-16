@@ -1,21 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CATEGORIZATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CATEGORIZATION_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DUPLICATES_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.RECORD_HARVESTING_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.DUPLICATES_DETECTOR_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RECORD_CATEGORIZATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.RECORD_HARVESTING_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
@@ -25,11 +9,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * OAIPMHHarvestingTopology main class where its definition is formulated
@@ -56,12 +44,12 @@ public class OAIPMHHarvestingTopology {
    */
   public final StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.OAI_TOPOLOGY, topologyProperties)
-        .addBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(createCassandraProperties(topologyProperties)),
-            RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
-        .addBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(
-                createCassandraProperties(topologyProperties)), CATEGORIZATION_BOLT_PARALLEL,
-            CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
-        .addHarvestingWriteRecordBolt()
+            .addBolt(RECORD_HARVESTING_BOLT, new RecordHarvestingBolt(createCassandraProperties(topologyProperties)),
+                    RECORD_HARVESTING_BOLT_PARALLEL, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS)
+            .addBolt(RECORD_CATEGORIZATION_BOLT, new OaiHarvestedRecordCategorizationBolt(
+                            createCassandraProperties(topologyProperties)), CATEGORIZATION_BOLT_PARALLEL,
+                    CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
+            .addHarvestingWriteRecordBolt()
         .addRevisionWriterBoltForHarvesting()
         .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                 createCassandraProperties(topologyProperties),

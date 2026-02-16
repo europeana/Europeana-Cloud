@@ -41,7 +41,7 @@ public class EnrichmentTopology {
                             topologyProperties.getProperty(ENRICHMENT_ENTITY_API_GRANT_PARAMS)),
                     ENRICHMENT_BOLT_PARALLEL, ENRICHMENT_BOLT_NUMBER_OF_TASKS
             )
-            .addWriteRecordBolt()
+            .addWriteRecordBolt(true)
         .addRevisionWriterBolt()
         .buildTopology();
   }

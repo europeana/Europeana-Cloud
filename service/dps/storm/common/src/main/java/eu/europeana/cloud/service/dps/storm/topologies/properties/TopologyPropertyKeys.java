@@ -15,7 +15,6 @@ public final class TopologyPropertyKeys {
   public static final String MCS_URL = "MCS_URL";
   public static final String TOPOLOGY_USER_NAME = "TOPOLOGY_USER_NAME";
   public static final String TOPOLOGY_USER_PASSWORD = "TOPOLOGY_USER_PASSWORD";
-  public static final String TOPOLOGY_CREATING_NEW_DATA = "TOPOLOGY_CREATING_NEW_DATA";
   public static final String CASSANDRA_HOSTS = "CASSANDRA_HOSTS";
   public static final String CASSANDRA_PORT = "CASSANDRA_PORT";
   public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";
