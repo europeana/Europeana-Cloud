@@ -44,7 +44,7 @@ public class CassandraBasedTestContext {
 
   @Bean()
   @Order(100)
-  public CassandraConnectionProvider dbService() {
+  public CassandraConnectionProvider mcsCassandraConnectionProvider() {
     return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
   }
 
@@ -100,17 +100,17 @@ public class CassandraBasedTestContext {
 
   @Bean
   public BucketsHandler bucketsHandler() {
-    return new BucketsHandler(dbService().getSession());
+    return new BucketsHandler(mcsCassandraConnectionProvider().getSession());
   }
 
   @Bean
   public CassandraDataSetDAO cassandraDataSetDAO() {
-    return new CassandraDataSetDAO(dbService());
+    return new CassandraDataSetDAO(mcsCassandraConnectionProvider());
   }
 
   @Bean
   public CassandraRecordDAO cassandraRecordDAO() {
-    return new CassandraRecordDAO(dbService());
+    return new CassandraRecordDAO(mcsCassandraConnectionProvider());
   }
 
   @Bean
@@ -120,12 +120,12 @@ public class CassandraBasedTestContext {
 
   @Bean
   public CassandraContentDAO cassandraContentDAO() {
-    return new CassandraContentDAO(dbService());
+    return new CassandraContentDAO(mcsCassandraConnectionProvider());
   }
 
   @Bean
   public CassandraStaticContentDAO cassandraStaticContentDAO() {
-    return new CassandraStaticContentDAO(dbService());
+    return new CassandraStaticContentDAO(mcsCassandraConnectionProvider());
   }
 
   @Bean

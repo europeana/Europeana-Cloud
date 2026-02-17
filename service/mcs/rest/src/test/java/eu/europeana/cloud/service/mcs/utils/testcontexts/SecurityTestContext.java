@@ -30,8 +30,7 @@ public class SecurityTestContext {
   }
 
   @Bean()
-  @Order(100)
-  public CassandraConnectionProvider dbService() {
+  public CassandraConnectionProvider mcsCassandraConnectionProvider() {
     return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
   }
 
