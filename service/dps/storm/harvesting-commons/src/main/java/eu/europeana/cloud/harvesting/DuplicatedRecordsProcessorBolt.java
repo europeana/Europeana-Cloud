@@ -102,7 +102,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private List<Representation> findAllRepresentationWithSameCloudId(Representation representation) throws MCSException {
     return recordServiceClient
-            .getRepresentations(representation.getCloudId(), representation.getRepresentationName());
+            .getRepresentations(representation.getCloudId(), representation.getRepresentationName())
+            .stream().filter(rep -> representation.getDatasetId().equals(rep.getDatasetId())).toList();
   }
 
   private boolean detectAndHandleDuplicatesInRevisionBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
@@ -182,9 +183,20 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       representation.setCloudId(parser.getPart(UrlPart.RECORDS));
       representation.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));
       representation.setVersion(parser.getPart(UrlPart.VERSIONS));
-      return representation;
+    } else {
+      throw new MCSException("Output URL is not URL to the representation version file");
     }
-    throw new MCSException("Output URL is not URL to the representation version file");
+    if (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_DATA_SETS)) {
+      parser = new UrlParser(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+      if (parser.isUrlToDataset()) {
+        representation.setDatasetId(parser.getPart(UrlPart.DATA_SETS));
+        representation.setDataProvider(parser.getPart(UrlPart.DATA_PROVIDERS));
+      } else {
+        throw new MCSException("Output dataset is set but it is not URL to the dataset resource");
+      }
+    }
+
+    return representation;
   }
 
   @Override
