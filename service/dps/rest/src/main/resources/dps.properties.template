@@ -15,12 +15,6 @@ cassandra.dps.password=
 cassandra.dps.hosts=
 cassandra.dps.port=
 
-cassandra.mcs.keyspace=
-cassandra.mcs.user=
-cassandra.mcs.password=
-cassandra.mcs.hosts=
-cassandra.mcs.port=
-
 #### Kafka settings ####
 kafka.topologyAvailableTopics=
 kafka.brokerLocation=
