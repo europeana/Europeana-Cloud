@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -21,6 +22,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   public static final String ERROR_MSG_WHILE_CREATING_CLOUD_ID = "Error while creating CloudId";
   public static final String ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID = "Error while mapping localId to cloudId";
   private static final long serialVersionUID = 1L;
+  private final String ecloudUisAddress;
+  private final String topologyUserName;
+  private final String topologyUserPassword;
+  private transient UISClient uisClient;
 
   public HarvestingWriteRecordBolt(CassandraProperties cassandraProperties,
                                    String ecloudMcsAddress,
@@ -28,12 +33,16 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                                    String topologyUserName,
                                    String topologyUserPassword,
                                    boolean topologyCreatingNewData) {
-    super(cassandraProperties, ecloudMcsAddress, ecloudUisAddress, topologyUserName, topologyUserPassword, topologyCreatingNewData);
+    super(cassandraProperties, ecloudMcsAddress, topologyUserName, topologyUserPassword, topologyCreatingNewData);
+    this.topologyUserName = topologyUserName;
+    this.topologyUserPassword = topologyUserPassword;
+    this.ecloudUisAddress = ecloudUisAddress;
   }
 
 
   @Override
   public void prepare() {
+    uisClient = new UISClient(ecloudUisAddress, topologyUserName, topologyUserPassword);
     super.prepare();
   }
 

@@ -47,18 +47,16 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecordBolt.class);
   private final String ecloudMcsAddress;
-  private final String ecloudUisAddress;
   private final String topologyUserName;
   private final String topologyUserPassword;
   private final boolean topologyCreatingNewData;
   protected transient RecordServiceClient recordServiceClient;
   protected transient UISClient uisClient;
 
-  public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress, String ecloudUisAddress,
+  public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
                          String topologyUserName, String topologyUserPassword, boolean topologyCreatingNewData) {
     super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
-    this.ecloudUisAddress = ecloudUisAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
     this.topologyCreatingNewData = topologyCreatingNewData;
@@ -73,7 +71,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   public void prepare() {
     LOGGER.debug("Preparing MCS client with the following params url={} user={}", ecloudMcsAddress, topologyUserName);
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
-    uisClient = new UISClient(ecloudUisAddress, topologyUserName, topologyUserPassword);
   }
 
   /*
