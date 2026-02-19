@@ -103,7 +103,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   private List<Representation> findAllRepresentationWithSameCloudId(Representation representation) throws MCSException {
     return recordServiceClient
             .getRepresentations(representation.getCloudId(), representation.getRepresentationName())
-            .stream().filter(rep -> representation.getDatasetId().equals(rep.getDatasetId())).toList();
+            .stream().filter(rep -> representation.getDatasetId().equals(rep.getDatasetId()) &&
+                    representation.getDataProvider().equals(rep.getDataProvider())).toList();
   }
 
   private boolean detectAndHandleDuplicatesInRevisionBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
