@@ -73,7 +73,7 @@ public class ECloudTopologyPipeline {
    *
    * @return this
    */
-  public ECloudTopologyPipeline addWriteRecordBolt(Boolean topologyCreatingNewData) {
+  public ECloudTopologyPipeline addWriteRecordBolt(boolean topologyCreatingNewData) {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
             createCassandraProperties(topologyProperties),
             topologyProperties.getProperty(MCS_URL),
