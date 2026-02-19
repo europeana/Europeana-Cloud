@@ -191,14 +191,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     return cloudId;
   }
 
-  private String obtainProviderId(StormTaskTuple tuple) throws MCSException, CloudException {
-    String providerId;
+  private String obtainProviderId(StormTaskTuple tuple) throws MCSException, CloudException, MalformedURLException {
+    String providerId = null;
     if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
       providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
+    } else if (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_DATA_SETS)) {
+      UrlParser parser = new UrlParser(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+      if (parser.isUrlToDataset()) {
+        providerId = parser.getPart(UrlPart.DATA_PROVIDERS);
+      }
     } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
-      LOGGER.warn("Provider id not in task params!");
       providerId = getProviderId(tuple);
-    } else {
+    }
+    if (providerId == null) {
       throw new CloudException("Couldn't obtain provider Id!", new RuntimeException());
     }
     return providerId;
