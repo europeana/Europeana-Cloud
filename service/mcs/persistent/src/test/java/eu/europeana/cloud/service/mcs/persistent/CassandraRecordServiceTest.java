@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.eaio.uuid.UUIDGen;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.*;
@@ -12,7 +10,6 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
 import eu.europeana.cloud.service.mcs.persistent.exception.SystemException;
 import eu.europeana.cloud.test.S3TestHelper;
-import java.time.Instant;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-import static com.datastax.driver.core.utils.UUIDs.timeBased;
 import static eu.europeana.cloud.service.mcs.Storage.DATA_BASE;
 import static eu.europeana.cloud.service.mcs.Storage.OBJECT_STORAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
