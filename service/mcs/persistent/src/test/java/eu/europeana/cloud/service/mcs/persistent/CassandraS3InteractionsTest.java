@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
+import com.datastax.driver.core.utils.UUIDs;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
@@ -66,7 +67,7 @@ class CassandraS3InteractionsTest extends CassandraTestBase {
     byte[] dummyContent = {1, 2, 3};
     File f = new File("content.xml", "application/xml", null, null, 0, null, OBJECT_STORAGE);
     Representation r = cassandraRecordService.createRepresentation("id",
-        "dc", providerId, "ds_name");
+        "dc", providerId, UUIDs.timeBased(), "ds_name");
 
     // when content is put
     try {

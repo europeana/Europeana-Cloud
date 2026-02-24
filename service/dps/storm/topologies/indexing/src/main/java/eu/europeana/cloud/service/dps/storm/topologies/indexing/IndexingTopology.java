@@ -1,19 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INDEXING_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.INDEXING_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.REVISION_WRITER_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.REVISION_WRITER_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.UIS_URL;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.INDEXING_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.REVISION_WRITER_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
@@ -21,11 +7,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * Indexing topology main file
@@ -47,14 +37,15 @@ public final class IndexingTopology {
 
   private StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
-        .addReadFileBolt()
-        .addBolt(INDEXING_BOLT, new IndexingBolt(
-            createCassandraProperties(topologyProperties),
-            indexingProperties,
-            topologyProperties.getProperty(UIS_URL),
-            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
-        ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
+            .addReadFileBolt()
+            .addBolt(INDEXING_BOLT, new IndexingBolt(
+                    createCassandraProperties(topologyProperties),
+                    indexingProperties,
+                    topologyProperties.getProperty(UIS_URL),
+                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+            ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
+            .addWriteRecordBolt(false)
         .addBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(createCassandraProperties(topologyProperties),
                 topologyProperties.getProperty(MCS_URL),
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),

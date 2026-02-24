@@ -71,7 +71,8 @@ class HarvestingWriteRecordBoltTest {
             "http://localhost:8080/mcs",
             "http://localhost:8080/uis",
             "user",
-            "password");
+            "password",
+            true);
 
     @BeforeEach
     void init() {
@@ -116,7 +117,7 @@ class HarvestingWriteRecordBoltTest {
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
-        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), any())).thenReturn(uri);
+        when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), anyString(), anyBoolean())).thenReturn(uri);
 
         StormTaskTuple stormTaskTuple = getStormTaskTuple();
         stormTaskTuple.setMarkedAsDeleted(true);

@@ -13,6 +13,7 @@ public final class RepresentationVersionsDbColumnNames {
     public static final String VERSION_ID = "version_id";
     public static final String PERSISTENT = "persistent";
     public static final String CREATION_DATE = "creation_date";
+    public static final String MARK_DELETED = "mark_deleted";
     private RepresentationVersionsDbColumnNames() {
     }
 }

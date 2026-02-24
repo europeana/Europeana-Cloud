@@ -1,21 +1,22 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_DATASET;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_EXTERNAL_URL;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.LINK_TO_FILE;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
-
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.MaximumParallelizationValidator;
+import org.apache.commons.validator.routines.UrlValidator;
+
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.validator.routines.UrlValidator;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.OUTPUT_DATA_SETS;
+import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
 
 public final class DpsTaskValidator {
 
@@ -257,6 +258,18 @@ public final class DpsTaskValidator {
     }
   }
 
+  private void validateRevisionBasedProcessingParameters(DpsTask task) throws DpsTaskValidationException {
+    if (isRevisionFilled(task)){
+      long numberOfFilesAndDatasets = dpsTaskConstraints.stream().map(DpsTaskConstraint::getExpectedValueType)
+              .filter(dataValueType -> dataValueType.equals(LINK_TO_FILE) || dataValueType.equals(LINK_TO_DATASET)).count();
+      if (numberOfFilesAndDatasets != 1) {
+        throw new DpsTaskValidationException(
+                "Dps task with filled revision can contain only one input dataset or one input file"
+        );
+      }
+    }
+  }
+
 
   private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     String taskName = task.getTaskName();
@@ -322,6 +335,13 @@ public final class DpsTaskValidator {
     if (constraint.getExpectedValue() == null) {   //any value
       return;
     }
+    if (constraint.getExpectedValueType() != null) {
+      if (isRevisionFilled(task)){
+        validateRevisionBasedProcessingParameters(task);
+      } else {
+        validateCorrectDatasets(expectedInputData, task, constraint);
+      }
+    }
     if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
       return;
     }
@@ -337,41 +357,86 @@ public final class DpsTaskValidator {
     }
   }
 
-  private void validateInputDataContent(List<String> expectedInputData, DpsTaskConstraint constraint)
+  public void validateCorrectDatasets(List<String> taskInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+      DataSet outputDataset = parseDataSetUrl(task.getParameter(OUTPUT_DATA_SETS));
+      if (outputDataset != null){
+        for (String taskInputDataValue : taskInputData) {
+          validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, taskInputDataValue);
+        }
+      } else {
+        throw new DpsTaskValidationException("Revision is not filled and input dataset is null!");
+      }
+  }
+
+  private static DataSet parseDataSetUrl(String datasetUrl) throws DpsTaskValidationException {
+    DataSet dataSet;
+    try {
+      dataSet = DataSetUrlParser.parse(datasetUrl);
+    } catch (MalformedURLException e){
+      throw new DpsTaskValidationException("Revision is not filled and output dataset url is malformed!");
+    }
+    return dataSet;
+  }
+
+
+  private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, DataSet outputDataset,
+                                                                    String taskInputDataValue) throws DpsTaskValidationException {
+    DataSet inputDataset = null;
+    if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
+      inputDataset = parseDataSetUrl(taskInputDataValue);
+    }
+    if (constraint.getExpectedValueType() == LINK_TO_FILE){
+      return;
+    }
+    // in case of file constraint we expect user to provide it correctly since it would be a bit problematic to extract
+    // dataset from file URI
+    if (outputDataset.equals(inputDataset)) {
+      throw new DpsTaskValidationException("Revision is not filled nor are dataset different!");
+    }
+  }
+
+  private static boolean isRevisionFilled(DpsTask task) {
+    Revision outputRevision = task.getOutputRevision();
+    return outputRevision!=null && !outputRevision.getRevisionName().isBlank() &&
+            !outputRevision.getRevisionProviderId().isBlank() &&
+            outputRevision.getCreationTimeStamp() != null;
+  }
+
+  private void validateInputDataContent(List<String> taskInputData, DpsTaskConstraint constraint)
       throws DpsTaskValidationException {
-    for (String expectedInputDataValue : expectedInputData) {
+    for (String taskInputDataValue : taskInputData) {
       try {
         if (constraint.getExpectedValueType() == LINK_TO_FILE) {
-          tryValidateFileUrl(expectedInputDataValue);
+          tryValidateFileUrl(taskInputDataValue);
         } else if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
-          tryValidateDatasetUrl(expectedInputDataValue);
+          tryValidateDatasetUrl(taskInputDataValue);
         } else if (constraint.getExpectedValueType() == LINK_TO_EXTERNAL_URL) {
-          tryValidateResourceUrl(expectedInputDataValue);
+          tryValidateResourceUrl(taskInputDataValue);
         }
       } catch (MalformedURLException e) {
-        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue, e);
+        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue, e);
       }
     }
   }
 
-  private void tryValidateResourceUrl(String expectedInputDataValue) throws DpsTaskValidationException {
+  private void tryValidateResourceUrl(String taskInputDataValue) throws DpsTaskValidationException {
     UrlValidator urlValidator = new UrlValidator();
-    if (!urlValidator.isValid(expectedInputDataValue)) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+    if (!urlValidator.isValid(taskInputDataValue)) {
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 
-  private void tryValidateFileUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(expectedInputDataValue);
+  private void tryValidateFileUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+    UrlParser parser = new UrlParser(taskInputDataValue);
     if (!parser.isUrlToRepresentationVersionFile()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 
-  private void tryValidateDatasetUrl(String expectedInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(expectedInputDataValue);
+  private void tryValidateDatasetUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
+    UrlParser parser = new UrlParser(taskInputDataValue);
     if (!parser.isUrlToDataset()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + expectedInputDataValue);
+      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
     }
   }
 

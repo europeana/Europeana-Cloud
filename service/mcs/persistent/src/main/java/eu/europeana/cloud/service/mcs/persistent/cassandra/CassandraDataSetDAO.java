@@ -40,6 +40,7 @@ public class CassandraDataSetDAO {
   private PreparedStatement addAssignmentStatement;
   private PreparedStatement removeAssignmentStatement;
   private PreparedStatement listDataSetRepresentationsStatement;
+  private PreparedStatement listExistingDataSetRepresentationsStatement;
   private PreparedStatement listDataSetsStatement;
   private PreparedStatement getDataSetStatement;
   private PreparedStatement addDataSetsRevisionStatement;
@@ -66,12 +67,17 @@ public class CassandraDataSetDAO {
    * @return slice of the results
    */
   public ResultSlice<DatasetAssignment> getDataSetAssignments(String providerDataSetId, String bucketId, PagingState state,
-      int limit) {
+      int limit, boolean existingOnly) {
     List<DatasetAssignment> assignments = new ArrayList<>();
     // bind parameters, set limit to max int value
-    BoundStatement boundStatement = listDataSetRepresentationsStatement.bind(
-        providerDataSetId, UUID.fromString(bucketId), Integer.MAX_VALUE);
-
+    BoundStatement boundStatement;
+    if (existingOnly) {
+      boundStatement = listExistingDataSetRepresentationsStatement.bind(
+              providerDataSetId, UUID.fromString(bucketId), Integer.MAX_VALUE);
+    } else {
+      boundStatement = listDataSetRepresentationsStatement.bind(
+              providerDataSetId, UUID.fromString(bucketId), Integer.MAX_VALUE);
+    }
     // limit page to "limit" number of results
     boundStatement.setFetchSize(limit);
     // when this is not a first page call set paging state in the statement
@@ -113,10 +119,10 @@ public class CassandraDataSetDAO {
    * @param versionId representation version
    */
   public void addAssignment(String providerId, String dataSetId, String bucketId, String recordId, String schema, Date now,
-      UUID versionId) {
+      UUID versionId, boolean markDeleted) {
     String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
     BoundStatement boundStatement = addAssignmentStatement.bind(
-        providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now);
+        providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now, markDeleted);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
@@ -347,9 +353,9 @@ public class CassandraDataSetDAO {
 
     addAssignmentStatement = connectionProvider.getSession().prepare(
         "INSERT " +
-            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date) "
+            "INTO data_set_assignments_by_data_set (provider_dataset_id, bucket_id, schema_id, cloud_id, version_id, creation_date, mark_deleted) "
             +
-            "VALUES (?,?,?,?,?,?);"
+            "VALUES (?,?,?,?,?,?,?);"
     );
 
 
@@ -367,6 +373,14 @@ public class CassandraDataSetDAO {
             "LIMIT ?;"
     );
 
+    listExistingDataSetRepresentationsStatement = connectionProvider.getSession().prepare(
+            "SELECT cloud_id, schema_id, version_id " +
+                    "FROM data_set_assignments_by_data_set " +
+                    "WHERE provider_dataset_id = ? AND bucket_id = ? " +
+                    "AND mark_deleted = false " +
+                    "LIMIT ? ALLOW FILTERING;"
+    );
+
     listDataSetsStatement = connectionProvider.getSession().prepare(
         "SELECT provider_id, dataset_id, description " +
             "FROM data_sets " +
@@ -379,6 +393,8 @@ public class CassandraDataSetDAO {
             "FROM data_sets " +
             "WHERE provider_id = ? AND dataset_id = ?;"
     );
+
+
 
 
     addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
@@ -403,6 +419,7 @@ public class CassandraDataSetDAO {
                     "AND version_id = ? " +
                     "IF EXISTS;"
     );
+
 
     getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
         "SELECT cloud_id, mark_deleted " +

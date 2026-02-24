@@ -76,6 +76,11 @@ public class Representation {
      * Indicator whether this is persistent representation version (true) or temporary (false).
      */
     private boolean persistent;
+
+    /**
+     * Indicator whether this is deleted representation version or no.
+     */
+    private boolean markDeleted;
     /**
      * A list of revisions which constitute this representation.
      */
@@ -105,7 +110,7 @@ public class Representation {
      * @param datasetId          dataset identifier
      */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId) {
+                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId, boolean markDeleted) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -118,6 +123,7 @@ public class Representation {
         this.persistent = persistent;
         this.creationDate = creationDate;
         this.datasetId = datasetId;
+        this.markDeleted = markDeleted;
     }
 
 
@@ -130,7 +136,7 @@ public class Representation {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
                 cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(),
-                representation.getCreationDate(), representation.getDatasetId());
+                representation.getCreationDate(), representation.getDatasetId(), representation.isMarkDeleted());
     }
 
     private static List<File> cloneFiles(Representation representation) {
@@ -272,6 +278,16 @@ public class Representation {
 
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+
+
+
+    public boolean isMarkDeleted() {
+        return markDeleted;
+    }
+
+    public void setMarkDeleted(boolean markDeleted) {
+        this.markDeleted = markDeleted;
     }
 
     /**

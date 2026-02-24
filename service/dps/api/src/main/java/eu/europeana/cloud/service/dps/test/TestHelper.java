@@ -54,7 +54,7 @@ public class TestHelper {
       files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(fileUrl)));
     }
     return new Representation(cloudId, representationName, version, new URI(fileUrl), new URI(fileUrl), dataProvider, files,
-        revisions, persistent, creationDate, datasetId);
+        revisions, persistent, creationDate, datasetId, false);
   }
 
 }

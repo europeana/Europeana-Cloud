@@ -109,6 +109,7 @@ public class DataSetResource {
    * @param providerId identifier of the dataset's provider (required).
    * @param dataSetId identifier of a data set (required).
    * @param startFrom reference to next slice of result. If not provided, first slice of result will be returned.
+   * @param existingOnly if set to true, records with deleted flag would be filtered out
    * @return slice of representation version list.
    * @throws DataSetNotExistsException no such data set exists.
    * @summary get representation versions from a data set
@@ -118,10 +119,11 @@ public class DataSetResource {
       HttpServletRequest httpServletRequest,
       @PathVariable("providerId") String providerId,
       @PathVariable("dataSetId") String dataSetId,
+      @RequestParam(value = "existingOnly", defaultValue = "false") boolean existingOnly,
       @RequestParam(value = "startFrom", required = false) String startFrom) throws DataSetNotExistsException {
 
     ResultSlice<Representation> representations =
-        dataSetService.listDataSet(providerId, dataSetId, startFrom, numberOfElementsOnPage);
+            dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, numberOfElementsOnPage);
 
     for (Representation rep : representations.getResults()) {
       EnrichUriUtil.enrich(httpServletRequest, rep);

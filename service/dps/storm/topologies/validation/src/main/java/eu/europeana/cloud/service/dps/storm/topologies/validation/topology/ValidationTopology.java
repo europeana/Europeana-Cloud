@@ -1,20 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_HOSTS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_KEYSPACE_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_PORT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_SECRET_TOKEN;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.CASSANDRA_USERNAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STATISTICS_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.STATISTICS_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.VALIDATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.VALIDATION_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.STATISTICS_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.VALIDATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
@@ -22,11 +7,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 
 /**
@@ -50,14 +39,15 @@ public class ValidationTopology {
 
   public final StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.VALIDATION_TOPOLOGY, topologyProperties)
-        .addReadFileBolt()
-        .addBolt(VALIDATION_BOLT, new ValidationBolt(createCassandraProperties(topologyProperties), validationProperties),
-            VALIDATION_BOLT_PARALLEL, VALIDATION_BOLT_NUMBER_OF_TASKS)
-        .addBolt(STATISTICS_BOLT, new StatisticsBolt(createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(CASSANDRA_HOSTS), Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
-                topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME), topologyProperties.getProperty(CASSANDRA_USERNAME),
-                topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
-            STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
+            .addReadFileBolt()
+            .addBolt(VALIDATION_BOLT, new ValidationBolt(createCassandraProperties(topologyProperties), validationProperties),
+                    VALIDATION_BOLT_PARALLEL, VALIDATION_BOLT_NUMBER_OF_TASKS)
+            .addBolt(STATISTICS_BOLT, new StatisticsBolt(createCassandraProperties(topologyProperties),
+                            topologyProperties.getProperty(CASSANDRA_HOSTS), Integer.parseInt(topologyProperties.getProperty(CASSANDRA_PORT)),
+                            topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME), topologyProperties.getProperty(CASSANDRA_USERNAME),
+                            topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
+                    STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
+            .addWriteRecordBolt(false)
         .addRevisionWriterBolt()
         .buildTopology();
   }

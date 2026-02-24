@@ -1,23 +1,20 @@
 package eu.europeana.cloud.normalization;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NORMALIZATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.NORMALIZATION_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.NORMALIZATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.normalization.bolts.NormalizationBolt;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 public class NormalizationTopology {
 
@@ -33,10 +30,10 @@ public class NormalizationTopology {
 
   public StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
-        .addReadFileBolt()
-        .addBolt(NORMALIZATION_BOLT, new NormalizationBolt(createCassandraProperties(topologyProperties)),
-            NORMALIZATION_BOLT_PARALLEL, NORMALIZATION_BOLT_NUMBER_OF_TASKS)
-        .addWriteRecordBolt()
+            .addReadFileBolt()
+            .addBolt(NORMALIZATION_BOLT, new NormalizationBolt(createCassandraProperties(topologyProperties)),
+                    NORMALIZATION_BOLT_PARALLEL, NORMALIZATION_BOLT_NUMBER_OF_TASKS)
+            .addWriteRecordBolt(true)
         .addRevisionWriterBolt()
         .buildTopology();
   }

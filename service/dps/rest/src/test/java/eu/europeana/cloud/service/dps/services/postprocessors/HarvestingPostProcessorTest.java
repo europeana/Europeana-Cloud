@@ -64,10 +64,13 @@ class HarvestingPostProcessorTest {
   private static final String VERSION = "v1";
   private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
   private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
-  private static final Date REVISION_TIMESTAMP = new Date(0);
-  private static final String REVISION_PROVIDER = "revisionProvider";
-  private static final String REVISION_NAME = "revisionName";
-  private static final Revision RESULT_REVISION = new Revision(REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP, true);
+  private static final Date INPUT_REVISION_TIMESTAMP = new Date(0);
+  private static final String INPUT_REVISION_PROVIDER = "revisionProvider";
+  private static final String INPUT_REVISION_NAME = "revisionName";
+  private static final Date OUTPUT_REVISION_TIMESTAMP = new Date(0);
+  private static final String OUTPUT_REVISION_PROVIDER = "revisionProvider";
+  private static final String OUTPUT_REVISION_NAME = "revisionName";
+  private static final Revision RESULT_REVISION = new Revision(OUTPUT_REVISION_NAME, OUTPUT_REVISION_PROVIDER, OUTPUT_REVISION_TIMESTAMP, true);
   private static final String HARVEST_DATE_STRING = "2021-05-26T08:00:00.000Z";
   private static final Date HARVEST_DATE = DateHelper.parseISODate(HARVEST_DATE_STRING);
   private static final Date OLDER_DATE = DateHelper.parseISODate("2021-05-26T07:30:00.000Z");
@@ -128,10 +131,10 @@ class HarvestingPostProcessorTest {
   }
 
   private void mockRecordServiceClient() throws MCSException, URISyntaxException {
-    when(recordServiceClient.createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID))
-        .thenReturn(new URI(RECORD1_REPRESENTATION_URI));
-    when(recordServiceClient.createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID))
-        .thenReturn(new URI(RECORD2_REPRESENTATION_URI));
+    when(recordServiceClient.createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
+            .thenReturn(new URI(RECORD1_REPRESENTATION_URI));
+    when(recordServiceClient.createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
+            .thenReturn(new URI(RECORD2_REPRESENTATION_URI));
 
   }
 
@@ -155,10 +158,23 @@ class HarvestingPostProcessorTest {
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
     task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
     task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
+  }
+
+  private void prepareTaskWithRevisionOrientedMode(){
+    task.setTaskId(TASK_ID);
+    task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+    task.addParameter(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_STRING);
+    task.addParameter(PluginParameterKeys.PROVIDER_ID, PROVIDER_ID);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_ID);
+    task.addParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME, REPRESENTATION_NAME);
+    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, OUTPUT_DATA_SETS);
+    task.addParameter(PluginParameterKeys.REVISION_NAME, INPUT_REVISION_NAME);
+    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, INPUT_REVISION_PROVIDER);
+    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, INPUT_REVISION_TIMESTAMP.toString());
     Revision revision = new Revision();
-    revision.setRevisionName(REVISION_NAME);
-    revision.setRevisionProviderId(REVISION_PROVIDER);
-    revision.setCreationTimeStamp(REVISION_TIMESTAMP);
+    revision.setRevisionName(OUTPUT_REVISION_NAME);
+    revision.setRevisionProviderId(OUTPUT_REVISION_PROVIDER);
+    revision.setCreationTimeStamp(OUTPUT_REVISION_TIMESTAMP);
     task.setOutputRevision(revision);
   }
 
@@ -191,8 +207,24 @@ class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
-    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
+    verify(taskStatusUpdater, times(2))
+        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+    verifyNoMoreInteractions(taskStatusUpdater);
+  }
+
+  @Test
+  public void shouldAddOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
+    prepareTaskWithRevisionOrientedMode();
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+
+    service.execute(taskInfo, task);
+
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
@@ -225,15 +257,38 @@ class HarvestingPostProcessorTest {
     service.execute(taskInfo, task);
 
     //record1
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
-    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     //record2
-    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
-    verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     //task
     verify(processedRecordsDAO, times(2)).insert(any());
     verify(taskStatusUpdater, times(2))
         .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 2);
+    verifyNoMoreInteractions(taskStatusUpdater);
+  }
+
+  @Test
+  public void shouldAddAllOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
+    prepareTaskWithRevisionOrientedMode();
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
+    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
+
+    service.execute(taskInfo, task);
+
+    //record1
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    //record2
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    //task
+    verify(processedRecordsDAO, times(2)).insert(any());
+    verify(taskStatusUpdater, times(2))
+            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
@@ -248,8 +303,7 @@ class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, DATASET_ID);
-    verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any());
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());

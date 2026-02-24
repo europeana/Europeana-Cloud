@@ -1,15 +1,7 @@
 package eu.europeana.cloud.mcs.driver;
 
 import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
-import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_DATASET;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
@@ -198,13 +190,15 @@ public class RecordServiceClient extends MCSClient {
    * @param representationName name of the representation to be created (required)
    * @param providerId provider of this representation version (required)
    * @param version representation's version
+   * @param datasetId id of dataset that representation belongs to
+   * @param markDeleted whether or no should set representation version deleted flag
    * @return URI to the created representation
    * @throws ProviderNotExistsException when no provider with given id exists
    * @throws RecordNotExistsException when cloud id is not known to UIS Service
    * @throws MCSException on unexpected situations
    */
   public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-      String datasetId) throws MCSException {
+      String datasetId, boolean markDeleted) throws MCSException {
     var form = new Form();
     form.param(PROVIDER_ID, providerId);
     form.param(DATA_SET_ID, datasetId);
@@ -216,22 +210,58 @@ public class RecordServiceClient extends MCSClient {
                     .path(REPRESENTATION_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
+                    .queryParam(MARK_DELETED, markDeleted)
+                    .request())
+                    .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+    );
+  }
+
+
+  /**
+   * Creates new representation version. By default, sets mark_deleted flag as false.
+   *
+   * @param cloudId id of the record in which to create the representation (required)
+   * @param representationName name of the representation to be created (required)
+   * @param providerId provider of this representation version (required)
+   * @param version representation's version
+   * @param datasetId id of dataset that representation belongs to
+   * @return URI to the created representation
+   * @throws ProviderNotExistsException when no provider with given id exists
+   * @throws RecordNotExistsException when cloud id is not known to UIS Service
+   * @throws MCSException on unexpected situations
+   */
+  public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
+                                  String datasetId) throws MCSException {
+    var form = new Form();
+    form.param(PROVIDER_ID, providerId);
+    form.param(DATA_SET_ID, datasetId);
+    if (version != null) {
+      form.param(VERSION, version.toString());
+    }
+    return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
+            () -> passLogContext(client.target(baseUrl)
+                    .path(REPRESENTATION_RESOURCE)
+                    .resolveTemplate(CLOUD_ID, cloudId)
+                    .resolveTemplate(REPRESENTATION_NAME, representationName)
+                    .queryParam(MARK_DELETED)
                     .request())
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
 
   public URI createRepresentation(String cloudId, String representationName, String providerId, String datasetId)
-      throws MCSException {
+          throws MCSException {
     return createRepresentation(cloudId, representationName, providerId, null, datasetId);
   }
 
   /**
-   * Creates new representation version, uploads a file and makes this representation persistent (in one request)
+   * Creates new representation version, uploads a file and makes this representation persistent (in one request).
+   * By default, sets mark_deleted flag as false.
    *
    * @param cloudId id of the record in which to create the representation (required)
    * @param representationName name of the representation to be created (required)
    * @param providerId provider of this representation version (required)
+   * @param datasetId id of dataset that representation belongs to
    * @param data file that should be uploaded (required)
    * @param fileName name for created file
    * @param mediaType mimeType of uploaded file

@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
@@ -135,7 +136,7 @@ class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
 
   private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
       throws Exception {
-    Representation r = recordService.createRepresentation(cloudId, schema, providerId, "dataset");
+    Representation r = recordService.createRepresentation(cloudId, schema, providerId, UUIDs.timeBased(),"dataset", false);
     byte[] dummyContent = {1, 2, 3};
     File f = new File("content.xml", "application/xml", null, null, 0, null);
     recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));

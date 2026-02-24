@@ -90,6 +90,12 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
               tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
   }
 
+  /*
+  * By resourceUrl we means either:
+  * - Output Url from previous step,
+  * - File Url if Output Url wasn't provided
+  * (For example when record was marked as deleted in case previous bolt is instance of WriteRecordBolt)
+   */
   private String getResourceUrl(StormTaskTuple stormTaskTuple) {
     String resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
     if (resourceURL == null) {

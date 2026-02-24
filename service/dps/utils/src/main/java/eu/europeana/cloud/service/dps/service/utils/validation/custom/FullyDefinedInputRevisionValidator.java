@@ -1,7 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+
+import java.util.List;
 
 /**
  * Verifies if provided {@link DpsTask} has input revision that is fully defined. Fully defined revision means that all its
@@ -18,11 +21,15 @@ public class FullyDefinedInputRevisionValidator extends CustomValidator {
 
   @Override
   public boolean test(DpsTask dpsTask) {
-    return
-        dpsTask.getParameter(PluginParameterKeys.REVISION_PROVIDER) != null &&
-            !dpsTask.getParameter(PluginParameterKeys.REVISION_PROVIDER).matches("\\s*") &&
-            dpsTask.getParameter(PluginParameterKeys.REVISION_NAME) != null &&
-            !dpsTask.getParameter(PluginParameterKeys.REVISION_NAME).matches("\\s*") &&
-            dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP) != null;
+    List<InputDataType> inputDataTypes = dpsTask.getInputData().keySet().stream().distinct().toList();
+    if (inputDataTypes.contains(InputDataType.DATASET_URLS)){
+      return true;
+    } else{
+      return  dpsTask.getParameter(PluginParameterKeys.REVISION_PROVIDER) != null &&
+              !dpsTask.getParameter(PluginParameterKeys.REVISION_PROVIDER).matches("\\s*") &&
+              dpsTask.getParameter(PluginParameterKeys.REVISION_NAME) != null &&
+              !dpsTask.getParameter(PluginParameterKeys.REVISION_NAME).matches("\\s*") &&
+              dpsTask.getParameter(PluginParameterKeys.REVISION_TIMESTAMP) != null;
+    }
   }
 }

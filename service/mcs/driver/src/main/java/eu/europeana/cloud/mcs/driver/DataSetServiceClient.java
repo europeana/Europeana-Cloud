@@ -184,6 +184,8 @@ public class DataSetServiceClient extends MCSClient {
     );
   }
 
+
+
   /**
    * Returns chunk of representation versions list from data set.
    * <p/>
@@ -197,13 +199,14 @@ public class DataSetServiceClient extends MCSClient {
    *
    * @param providerId provider identifier (required)
    * @param dataSetId data set identifier (required)
+   * @param existingOnly whether or no should return only existing representation versions
    * @param startFrom code pointing to the requested result slice (if equal to null, first slice is returned)
    * @return chunk of representation versions list from data set
    * @throws DataSetNotExistsException if data set does not exist
    * @throws MCSException on unexpected situations
    */
   @SuppressWarnings("unchecked")
-  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
+  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, boolean existingOnly, String startFrom)
       throws MCSException {
     return manageResponse(new ResponseParams<>(ResultSlice.class),
         () -> passLogContext(client
@@ -211,9 +214,39 @@ public class DataSetServiceClient extends MCSClient {
             .path(DATA_SET_RESOURCE)
             .resolveTemplate(PROVIDER_ID, providerId)
             .resolveTemplate(DATA_SET_ID, dataSetId)
+            .queryParam(ParamConstants.F_EXISTING_ONLY, existingOnly)
             .queryParam(ParamConstants.F_START_FROM, startFrom)
             .request())
             .get()
+    );
+  }
+  /**
+   * Returns chunk of representation versions list from data set.
+   *
+   * <p/>If specific version of representation is assigned to data set, this version is returned.
+   * If a whole representation is assigned, the latest persistent representation version is returned.
+   * <p/>See {@link #getDataSetRepresentationsChunk(String, String, boolean, String)} for details.
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @param startFrom code pointing to the requested result slice (null = first slice)
+   * @return chunk of representation versions list from data set
+   * @throws DataSetNotExistsException if data set does not exist
+   * @throws MCSException on unexpected situations
+   * @see #getDataSetRepresentationsChunk(String, String, boolean, String)
+   */
+  @SuppressWarnings("unchecked")
+  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, String startFrom)
+          throws MCSException {
+    return manageResponse(new ResponseParams<>(ResultSlice.class),
+            () -> passLogContext(client
+                    .target(this.baseUrl)
+                    .path(DATA_SET_RESOURCE)
+                    .resolveTemplate(PROVIDER_ID, providerId)
+                    .resolveTemplate(DATA_SET_ID, dataSetId)
+                    .queryParam(ParamConstants.F_START_FROM, startFrom)
+                    .request())
+                    .get()
     );
   }
 
@@ -234,6 +267,10 @@ public class DataSetServiceClient extends MCSClient {
     return getDataSetRepresentationsChunk(providerId, dataSetId, null);
   }
 
+  public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
+    return getDataSetRepresentationsChunk(providerId, dataSetId, existingOnly, null);
+  }
+
   /**
    * Lists all representation versions from data set.
    * <p/>
@@ -242,16 +279,17 @@ public class DataSetServiceClient extends MCSClient {
    *
    * @param providerId provider identifier (required)
    * @param dataSetId data set identifier (required)
+   * @param existingOnly return only representation versions containing files if set to true
    * @return list of representation versions from data set
    * @throws DataSetNotExistsException if data set does not exist
    * @throws MCSException on unexpected situations
    */
-  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
+  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
     List<Representation> resultList = new ArrayList<>();
     ResultSlice<Representation> resultSlice;
     String startFrom = null;
     do {
-      resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, startFrom);
+      resultSlice = getDataSetRepresentationsChunk(providerId, dataSetId, existingOnly, startFrom);
 
       if (resultSlice == null || resultSlice.getResults() == null) {
         throw new DriverException("Getting DataSet: result chunk obtained but is empty.");
@@ -264,6 +302,24 @@ public class DataSetServiceClient extends MCSClient {
     return resultList;
   }
 
+
+  /**
+   * Lists all representation versions from data set.
+   * <p/>
+   * If specific version of representation is assigned to data set, this version is returned. If a whole representation is
+   * assigned to data set, the latest persistent representation version is returned.
+   * <p/>See {@link #getDataSetRepresentationsList(String, String, boolean)} for details.
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @return list of representation versions from data set
+   * @throws DataSetNotExistsException if data set does not exist
+   * @throws MCSException on unexpected situations
+   * @see #getDataSetRepresentationsList(String, String, boolean)
+   */
+  public List<Representation> getDataSetRepresentationsList(String providerId, String dataSetId) throws MCSException {
+    return getDataSetRepresentationsList(providerId, dataSetId, false);
+  }
   /**
    * Returns iterator to list of representation versions of data set.
    * <p/>

@@ -2,10 +2,14 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
+import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -29,6 +33,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
 
 /**
@@ -44,14 +49,22 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String ecloudMcsAddress;
   private final String topologyUserName;
   private final String topologyUserPassword;
+  private final boolean topologyCreatingNewData;
   protected transient RecordServiceClient recordServiceClient;
+  protected transient UISClient uisClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
-      String topologyUserName, String topologyUserPassword) {
+                         String topologyUserName, String topologyUserPassword, boolean topologyCreatingNewData) {
     super(cassandraProperties);
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
+    this.topologyCreatingNewData = topologyCreatingNewData;
+  }
+
+  @Override
+  protected boolean ignoreDeleted() {
+    return false;
   }
 
   @Override
@@ -60,19 +73,49 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
+  /*
+  * New representation should be created if:
+  * - We are using revision output,
+  * - We are using dataset output and record is not marked as deleted and is processed as part of specific topologies.
+  * (xslt, enrichment, normalization, oai or media)
+   */
+  private boolean shouldNewRepresentationBeCreated(StormTaskTuple tuple) {
+    if (!isRevisionProvided(tuple.getRevisionToBeApplied())) return true;
+
+    if (tuple.isMarkedAsDeleted()) {
+      return false;
+    }
+
+    return topologyCreatingNewData;
+  }
+
+  private boolean isRevisionProvided(Revision revision) {
+    if (revision == null) return false;
+    if (revision.getRevisionName() == null) return false;
+    if (revision.getCreationTimeStamp() == null) return false;
+    if (revision.getRevisionProviderId() == null) return false;
+    return true;
+  }
+
+
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
-      LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
-      var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
-      LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
-      prepareEmittedTuple(stormTaskTuple, uri.toString());
+      if (shouldNewRepresentationBeCreated(stormTaskTuple)) {
+        RecordWriteParams writeParams = prepareWriteParameters(stormTaskTuple);
+        LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
+        var uri = uploadFileInNewRepresentation(stormTaskTuple, writeParams);
+        LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
+        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+        stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
+      } else {
+        LOGGER.info("WriteRecordBolt: For this record in this execution representation creation is not needed!");
+      }
+      prepareEmittedTuple(stormTaskTuple);
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
-      LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
@@ -96,8 +139,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
             stormTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION)));
   }
 
-  private void prepareEmittedTuple(StormTaskTuple stormTaskTuple, String resultedResourceURL) {
-    stormTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultedResourceURL);
+  private void prepareEmittedTuple(StormTaskTuple stormTaskTuple) {
     stormTaskTuple.setFileData((byte[]) null);
     stormTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
     stormTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
@@ -118,13 +160,50 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   protected RecordWriteParams prepareWriteParameters(StormTaskTuple tuple)
       throws CloudException, MCSException, MalformedURLException {
     var writeParams = new RecordWriteParams();
-    writeParams.setCloudId(tuple.getParameter(PluginParameterKeys.CLOUD_ID));
+    String cloudId = obtainCloudId(tuple);
+    String providerId = obtainProviderId(tuple);
+    writeParams.setCloudId(cloudId);
     writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
-    writeParams.setProviderId(getProviderId(tuple));
+    writeParams.setProviderId(providerId);
     writeParams.setNewVersion(generateNewVersionId(tuple));
     writeParams.setNewFileName(generateNewFileName(tuple));
     writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(tuple));
     return writeParams;
+  }
+
+  private String obtainCloudId(StormTaskTuple tuple) throws MalformedURLException {
+    String cloudId;
+    if (tuple.ifParametersContainsKey(PluginParameterKeys.CLOUD_ID)) {
+      cloudId = tuple.getParameter(PluginParameterKeys.CLOUD_ID);
+    } else {
+      String fileUrl = tuple.getFileUrl();
+      UrlParser urlParser = new UrlParser(fileUrl);
+      if (urlParser.getPart(UrlPart.RECORDS) != null) {
+        cloudId = urlParser.getPart(UrlPart.RECORDS);
+      } else {
+        throw new MalformedURLException("URI doesn't contain cloud Id!");
+      }
+    }
+    tuple.addParameter(cloudId, PluginParameterKeys.CLOUD_ID);
+    return cloudId;
+  }
+
+  private String obtainProviderId(StormTaskTuple tuple) throws MCSException, CloudException, MalformedURLException {
+    String providerId = null;
+    if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
+      providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
+    } else if (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_DATA_SETS)) {
+      UrlParser parser = new UrlParser(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+      if (parser.isUrlToDataset()) {
+        providerId = parser.getPart(UrlPart.DATA_PROVIDERS);
+      }
+    } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
+      providerId = getProviderId(tuple);
+    }
+    if (providerId == null) {
+      throw new CloudException("Couldn't obtain provider Id!", new RuntimeException());
+    }
+    return providerId;
   }
 
   protected URI uploadFileInNewRepresentation(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {
@@ -141,7 +220,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         recordServiceClient.createRepresentation(writeParams.getCloudId(), writeParams.getRepresentationName(),
             writeParams.getProviderId(),
             writeParams.getNewVersion(),
-            writeParams.getDataSetId()));
+            writeParams.getDataSetId(),
+                true));
   }
 
   protected URI createRepresentationAndUploadFile(StormTaskTuple stormTaskTuple, RecordWriteParams writeParams) throws Exception {

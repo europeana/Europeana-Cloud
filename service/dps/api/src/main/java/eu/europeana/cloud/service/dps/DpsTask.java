@@ -112,6 +112,13 @@ public class DpsTask implements Serializable {
     return parameters.get(parameterKey);
   }
 
+  /*
+   * @return true if parameter is present and is not empty
+   */
+  public boolean isParameterPresent(String parameterKey){
+    return parameters.containsKey(parameterKey) && !parameters.get(parameterKey).isBlank();
+  }
+
   /**
    * @return List of parameters (specific for each dps-topology)
    */

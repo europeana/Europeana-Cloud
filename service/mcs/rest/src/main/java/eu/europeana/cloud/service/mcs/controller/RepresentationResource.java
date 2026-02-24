@@ -90,6 +90,9 @@ public class RepresentationResource {
    * @param representationName name of the representation to be created (required).
    * @param providerId provider id of this representation version.
    * @param dataSetId dataset where newly created representation will be assigned
+   * @param version version of representation that will be used. If empty, then random version will be selected
+   * @param markDeleted flag that will decide whether representation will be treated as deleted.
+   *                   If empty, then false will be used by default.
    * @return The url of the created representation.
    * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
    * @throws ProviderNotExistsException no provider with given id exists
@@ -104,11 +107,12 @@ public class RepresentationResource {
       @PathVariable("representationName") String representationName,
       @RequestParam("providerId") String providerId,
       @RequestParam("dataSetId") String dataSetId,
-      @RequestParam(value = "version", required = false) UUID version
+      @RequestParam(value = "version", required = false) UUID version,
+      @RequestParam(value = "markDeleted", required = false, defaultValue = "false") boolean markDeleted
   )
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
-    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId);
+    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId, markDeleted);
     EnrichUriUtil.enrich(httpServletRequest, representation);
     return ResponseEntity.created(representation.getUri()).build();
   }

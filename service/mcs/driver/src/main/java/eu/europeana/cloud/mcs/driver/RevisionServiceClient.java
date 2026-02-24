@@ -22,6 +22,7 @@ import java.net.URI;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
@@ -111,6 +112,8 @@ public class RevisionServiceClient extends MCSClient {
    * @throws MCSException on unexpected situations.
    */
   public URI addRevision(String cloudId, String representationName, String version, Revision revision) throws MCSException {
+    Objects.requireNonNull(cloudId,"cloudId");
+    Objects.requireNonNull(cloudId,"representationName");
     return manageResponse(new ResponseParams<>(URI.class, Response.Status.CREATED),
         () -> passLogContext(client
             .target(baseUrl)

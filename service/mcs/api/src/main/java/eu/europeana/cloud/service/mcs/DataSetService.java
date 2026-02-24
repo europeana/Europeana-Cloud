@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.mcs.exception.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for data sets and representation assignments to data sets.
@@ -26,12 +27,12 @@ public interface DataSetService {
    * @param thresholdParam if null - will return first result slice. Result slices contain token for next pages, which should be
    * provided in this parameter.
    * @param limit max number of results in one slice.
+   * @param existingOnly returns only representations that contain files if set to true
    * @return list of representations as a result slice.
    * @throws DataSetNotExistsException dataset not exists.
    */
-  ResultSlice<Representation> listDataSet(String providerId, String dataSetId, String thresholdParam, int limit)
-      throws DataSetNotExistsException;
-
+  ResultSlice<Representation> listDataSet(String providerId, String dataSetId,
+                                          String thresholdParam, boolean existingOnly, int limit) throws DataSetNotExistsException;
 
   /**
    * Creates a new data set revision for specified provider and dataset.
@@ -45,7 +46,7 @@ public interface DataSetService {
    */
   void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
 
-  void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version);
+  void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDeleted);
 
   /**
    * Removes representation assignment from data set.
@@ -155,7 +156,6 @@ public interface DataSetService {
    * @param revisionName revision name
    * @param revisionProviderId revision provider
    * @param revisionTimestamp revision timestamp
-   * @throws ProviderNotExistsException
    * @throws RepresentationNotExistsException
    */
   void deleteRevision(String cloudId, String representationName, String version, String revisionName,
@@ -180,10 +180,11 @@ public interface DataSetService {
    *
    * @param cloudId cloud identifier to be used
    * @param representationName representation name to be used
+   * @param version version of representation that we get dataset for
    * @return found data set
    * @throws RepresentationNotExistsException in case of non-existing representation version
    */
-  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName) throws RepresentationNotExistsException;
+  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) throws RepresentationNotExistsException;
 
   public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }

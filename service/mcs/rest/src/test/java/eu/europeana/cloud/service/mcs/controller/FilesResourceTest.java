@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.DataProvider;
 import eu.europeana.cloud.common.model.File;
@@ -80,7 +81,7 @@ class FilesResourceTest extends CassandraBasedAbstractResourceTest {
     dp.setId("1");
 
     dataSetService.createDataSet(PROVIDER_ID, DATA_SET_ID, "");
-    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, DATA_SET_ID);
+    rep = recordService.createRepresentation("1", "1", PROVIDER_ID, UUIDs.timeBased(), DATA_SET_ID);
 
     file = new File();
     file.setFileName("fileName");

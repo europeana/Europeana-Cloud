@@ -1,28 +1,20 @@
 package eu.europeana.cloud.enrichment;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DEREFERENCE_SERVICE_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_GRANT_PARAMS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_API_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.ENRICHMENT_ENTITY_MANAGEMENT_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.ENRICHMENT_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.enrichment.bolts.EnrichmentBolt;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * Created by Tarek on 1/24/2018.
@@ -40,16 +32,16 @@ public class EnrichmentTopology {
 
   public StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
-        .addReadFileBolt()
-        .addBolt(ENRICHMENT_BOLT, new EnrichmentBolt(createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
-                topologyProperties.getProperty(ENRICHMENT_ENTITY_MANAGEMENT_URL),
-                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_URL),
-                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT),
-                topologyProperties.getProperty(ENRICHMENT_ENTITY_API_GRANT_PARAMS)),
-            ENRICHMENT_BOLT_PARALLEL, ENRICHMENT_BOLT_NUMBER_OF_TASKS
-        )
-        .addWriteRecordBolt()
+            .addReadFileBolt()
+            .addBolt(ENRICHMENT_BOLT, new EnrichmentBolt(createCassandraProperties(topologyProperties),
+                            topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),
+                            topologyProperties.getProperty(ENRICHMENT_ENTITY_MANAGEMENT_URL),
+                            topologyProperties.getProperty(ENRICHMENT_ENTITY_API_URL),
+                            topologyProperties.getProperty(ENRICHMENT_ENTITY_API_TOKEN_ENDPOINT),
+                            topologyProperties.getProperty(ENRICHMENT_ENTITY_API_GRANT_PARAMS)),
+                    ENRICHMENT_BOLT_PARALLEL, ENRICHMENT_BOLT_NUMBER_OF_TASKS
+            )
+            .addWriteRecordBolt(true)
         .addRevisionWriterBolt()
         .buildTopology();
   }
