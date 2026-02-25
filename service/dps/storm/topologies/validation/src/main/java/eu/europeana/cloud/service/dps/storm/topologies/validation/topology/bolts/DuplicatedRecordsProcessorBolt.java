@@ -1,4 +1,4 @@
-package eu.europeana.cloud.harvesting;
+package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -65,29 +65,32 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
-    LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-    try {
-      Representation representation = extractRepresentationInfoFromTuple(tuple);
-      Revision revision = tuple.getRevisionToBeApplied();
-      // Based on processing mode we either look for representation with same revisions or representations with same versions
-      if (revision != null) {
-        if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision))
-          return;
-      } else {
-        if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
-          return;
+    LOGGER.info("Checking duplicates for file url '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+    if (!tuple.ifParametersContainsKey(PluginParameterKeys.SCHEMATRON_LOCATION) ||
+            !tuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION).contains("internal")) {
+      try {
+        Representation representation = extractRepresentationInfoFromTuple(tuple);
+        Revision revision = tuple.getRevisionToBeApplied();
+        // Based on processing mode we either look for representation with same revisions or representations with same versions
+        if (revision != null) {
+          if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision))
+            return;
+        } else {
+          if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
+            return;
+        }
+        emitSuccessNotification(anchorTuple, tuple, "", "");
+        LOGGER.info("Checking duplicates finished for file url '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+      } catch (MalformedURLException | MCSException e) {
+        LOGGER.error("Error while detecting duplicates", e);
+        emitErrorNotification(
+                anchorTuple,
+                tuple,
+                "Error while detecting duplicates",
+                e.getMessage());
       }
-      emitSuccessNotification(anchorTuple, tuple, "", "");
-      LOGGER.info("Checking duplicates finished for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-    } catch (MalformedURLException | MCSException e) {
-      LOGGER.error("Error while detecting duplicates", e);
-      emitErrorNotification(
-              anchorTuple,
-              tuple,
-              "Error while detecting duplicates",
-              e.getMessage());
+      outputCollector.ack(anchorTuple);
     }
-    outputCollector.ack(anchorTuple);
   }
 
   private boolean detectAndHandleDuplicatesInRepresentationBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
@@ -179,7 +182,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private Representation extractRepresentationInfoFromTuple(StormTaskTuple tuple) throws MalformedURLException, MCSException {
     Representation representation = new Representation();
-    UrlParser parser = new UrlParser(tuple.getParameters().get(PluginParameterKeys.OUTPUT_URL));
+    UrlParser parser = new UrlParser(tuple.getFileUrl());
     if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
       representation.setCloudId(parser.getPart(UrlPart.RECORDS));
       representation.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));

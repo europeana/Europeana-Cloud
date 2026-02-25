@@ -1,9 +1,7 @@
 package eu.europeana.cloud.http;
 
-import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.http.bolts.HttpHarvestingBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -53,13 +51,7 @@ public class HTTPHarvestingTopology {
                     CATEGORIZATION_BOLT_PARALLEL,
                     CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
             .addHarvestingWriteRecordBolt()
-        .addRevisionWriterBoltForHarvesting()
-        .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
-                createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
-            DUPLICATES_BOLT_NUMBER_OF_TASKS, NotificationTuple.TASK_ID_FIELD_NAME)
+            .addRevisionWriterBolt()
         .buildTopology();
   }
 

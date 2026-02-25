@@ -120,14 +120,15 @@ public class ECloudTopologyPipeline {
 
   /**
    * Adds RevisionWriterBoltForHarvesting to the pipeline
+   *
    * @return this
    */
-  public ECloudTopologyPipeline addRevisionWriterBoltForHarvesting() {
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
-        createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
-        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+  public ECloudTopologyPipeline addRevisionWriterBoltForValidation() {
+    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForValidation(
+            createCassandraProperties(topologyProperties),
+            topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
 
     addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
