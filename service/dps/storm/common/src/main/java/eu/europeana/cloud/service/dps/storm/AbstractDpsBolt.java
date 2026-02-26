@@ -26,9 +26,6 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static java.lang.Integer.parseInt;
-
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
  *

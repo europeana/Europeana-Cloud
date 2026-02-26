@@ -118,22 +118,6 @@ public class ECloudTopologyPipeline {
     return this;
   }
 
-  /**
-   * Adds RevisionWriterBoltForHarvesting to the pipeline
-   *
-   * @return this
-   */
-  public ECloudTopologyPipeline addRevisionWriterBoltForValidation() {
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForValidation(
-            createCassandraProperties(topologyProperties),
-            topologyProperties.getProperty(MCS_URL),
-            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
-    );
-
-    addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
-    return this;
-  }
 
   /**
    * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.
@@ -153,6 +137,24 @@ public class ECloudTopologyPipeline {
       TopologyHelper.addSpoutShuffleGrouping(spoutNames, declarer);
     }
 
+    notificationBolt.fieldsGrouping(boltName, NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+    lastBoltName = boltName;
+    lastBolt = declarer;
+    return this;
+  }
+
+  /**
+   * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.
+   *
+   * @param boltName             - bolt name used as key for grouping and for diagnostic
+   * @param bolt                 - bolt instance
+   * @param parallelismParamName - name of the parameter defining bolt parallelism, from the topology properties
+   * @param taskCountParamName   - name of the parameter defining number of bolt tasks, from the topology properties
+   * @return this builder
+   */
+  public ECloudTopologyPipeline addBoltWithoutGrouping(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName) {
+    BoltDeclarer declarer = topologyBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
+            .setNumTasks(getIntProperty(taskCountParamName));
     notificationBolt.fieldsGrouping(boltName, NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
     lastBoltName = boltName;
     lastBolt = declarer;

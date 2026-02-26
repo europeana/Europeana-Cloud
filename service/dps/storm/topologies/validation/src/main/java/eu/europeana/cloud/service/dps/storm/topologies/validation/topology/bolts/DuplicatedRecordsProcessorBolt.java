@@ -57,6 +57,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     return false;
   }
 
+
   @Override
   public void prepare() {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
@@ -66,8 +67,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
     LOGGER.info("Checking duplicates for file url '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
-    if (!tuple.ifParametersContainsKey(PluginParameterKeys.SCHEMATRON_LOCATION) ||
-            !tuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION).contains("internal")) {
       try {
         Representation representation = extractRepresentationInfoFromTuple(tuple);
         Revision revision = tuple.getRevisionToBeApplied();
@@ -79,7 +78,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
           if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
             return;
         }
-        emitSuccessNotification(anchorTuple, tuple, "", "");
+        emitSuccessNotification(anchorTuple, tuple);
         LOGGER.info("Checking duplicates finished for file url '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
       } catch (MalformedURLException | MCSException e) {
         LOGGER.error("Error while detecting duplicates", e);
@@ -89,9 +88,10 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                 "Error while detecting duplicates",
                 e.getMessage());
       }
-      outputCollector.ack(anchorTuple);
-    }
+    outputCollector.ack(anchorTuple);
   }
+
+
 
   private boolean detectAndHandleDuplicatesInRepresentationBasedProcessing(Tuple anchorTuple, StormTaskTuple tuple,
                                                                            Representation representation) throws MCSException {

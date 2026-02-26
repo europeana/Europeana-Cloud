@@ -4,6 +4,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.DuplicatedRecordsProcessorBolt;
+import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.RevisionWriterBoltForValidation;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -50,13 +51,20 @@ public class ValidationTopology {
                             topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                     STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(false)
-            .addRevisionWriterBoltForValidation()
-            .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
+            .addBolt(REVISION_WRITER_BOLT, new RevisionWriterBoltForValidation(
+                            createCassandraProperties(topologyProperties),
+                            topologyProperties.getProperty(MCS_URL),
+                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
+                    REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS)
+            .addBoltWithoutGrouping(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                             createCassandraProperties(topologyProperties),
                             topologyProperties.getProperty(MCS_URL),
                             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
-                    DUPLICATES_BOLT_NUMBER_OF_TASKS, NotificationTuple.TASK_ID_FIELD_NAME)
+                    DUPLICATES_BOLT_NUMBER_OF_TASKS)
+            .withAdditionalFieldGrouping(REVISION_WRITER_BOLT, RevisionWriterBoltForValidation.DUPLICATE_RECORD_STREAM,
+                    NotificationTuple.TASK_ID_FIELD_NAME)
         .buildTopology();
   }
 

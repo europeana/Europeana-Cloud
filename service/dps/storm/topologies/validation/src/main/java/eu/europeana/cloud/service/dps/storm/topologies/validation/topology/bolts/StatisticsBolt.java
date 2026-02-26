@@ -12,15 +12,16 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.EnumSet;
-import java.util.Optional;
-import javax.xml.parsers.ParserConfigurationException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
+import java.util.Optional;
 
 
 public class StatisticsBolt extends AbstractDpsBolt {
@@ -33,11 +34,12 @@ public class StatisticsBolt extends AbstractDpsBolt {
   private final String keyspaceName;
   private final String userName;
   private final String password;
+
   private transient ValidationStatisticsServiceImpl statisticsService;
   private transient ProcessedRecordsDAO processedRecordsDAO;
 
   public StatisticsBolt(CassandraProperties cassandraProperties, String hosts, int port,
-      String keyspaceName, String userName, String password) {
+                        String keyspaceName, String userName, String password) {
     super(cassandraProperties);
     this.hosts = hosts;
     this.port = port;
