@@ -8,6 +8,7 @@ import eu.europeana.cloud.common.properties.IndexingProperties;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
+import eu.europeana.cloud.service.commons.CassandraHealthIndicator;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
@@ -409,6 +410,11 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   public CleanCronExpressionEvaluator cleanCronExpressionEvaluator(
       @Value("${maxNodeCount:3}") int maxNodeCount, @Value("${AppId}") String applicationId) {
     return new CleanCronExpressionEvaluator(maxNodeCount, applicationId);
+  }
+
+  @Bean
+  public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider dpsCassandraProvider) {
+    return new CassandraHealthIndicator(dpsCassandraProvider);
   }
 
   private String mcsLocation() {

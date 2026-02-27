@@ -1,8 +1,11 @@
 package eu.europeana.cloud.service.mcs.config;
 
+import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.service.commons.CassandraHealthIndicator;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
@@ -76,6 +79,16 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     executor.setThreadNamePrefix("MCSThreadPool-");
     executor.setTaskDecorator(loggingContextCopingTaskDecorator());
     return executor;
+  }
+
+  @Bean
+  public S3HealthIndicator s3HealthIndicator(S3ConnectionProvider s3ConnectionProvider) {
+    return new S3HealthIndicator(s3ConnectionProvider);
+  }
+
+  @Bean
+  public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider mcsCassandraConnectionProvider) {
+    return new CassandraHealthIndicator(mcsCassandraConnectionProvider);
   }
 
 }
