@@ -24,8 +24,6 @@ public class ValidationBolt extends AbstractDpsBolt {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(ValidationBolt.class);
   private static final long serialVersionUID = 1L;
-  public static final String STATISTICS_STREAM_NAME = "ValidationStatisticsBoltStream";
-  public static final String DUPLICATE_RECORDS_STREAM_NAME = "ValidationDuplicateRecordsBoltStream";
   private final Properties properties;
   private transient ValidationExecutionService validationService;
   private transient XsltTransformer transformer;
