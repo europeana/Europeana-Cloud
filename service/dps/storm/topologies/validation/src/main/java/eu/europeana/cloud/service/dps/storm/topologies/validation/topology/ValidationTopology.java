@@ -57,14 +57,12 @@ public class ValidationTopology {
                             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
                     REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS)
-            .addBoltWithoutGrouping(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
-                            createCassandraProperties(topologyProperties),
-                            topologyProperties.getProperty(MCS_URL),
-                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
-                    DUPLICATES_BOLT_NUMBER_OF_TASKS)
-            .withAdditionalFieldGrouping(REVISION_WRITER_BOLT, RevisionWriterBoltForValidation.DUPLICATE_RECORD_STREAM,
-                    NotificationTuple.TASK_ID_FIELD_NAME)
+            .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
+                    createCassandraProperties(topologyProperties),
+                    topologyProperties.getProperty(MCS_URL),
+                    topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                    topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
+                DUPLICATES_BOLT_NUMBER_OF_TASKS, NotificationTuple.TASK_ID_FIELD_NAME)
         .buildTopology();
   }
 

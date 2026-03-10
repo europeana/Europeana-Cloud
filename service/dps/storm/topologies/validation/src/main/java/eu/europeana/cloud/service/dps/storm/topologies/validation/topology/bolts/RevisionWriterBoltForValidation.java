@@ -16,12 +16,6 @@ public class RevisionWriterBoltForValidation extends RevisionWriterBolt {
   private static final long serialVersionUID = 1L;
   public static final String DUPLICATE_RECORD_STREAM = "DuplicatedRecordRevisionWriterBoltStream";
 
-  @Override
-  public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    super.declareOutputFields(declarer);
-
-    declarer.declareStream(DUPLICATE_RECORD_STREAM, StormTaskTuple.getFields());
-  }
 
   public RevisionWriterBoltForValidation(CassandraProperties cassandraProperties, String ecloudMcsAddress,
                                          String ecloudMcsUser, String ecloudMcsUserPassword) {
@@ -37,9 +31,9 @@ public class RevisionWriterBoltForValidation extends RevisionWriterBolt {
   @Override
   protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     if (detectDuplicates(stormTaskTuple)) {
-      outputCollector.emit(DUPLICATE_RECORD_STREAM, anchorTuple, stormTaskTuple.toStormTuple());
+      outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
     } else {
-      emitSuccessNotification(anchorTuple, stormTaskTuple, "", "");
+      super.emitTuple(anchorTuple,stormTaskTuple);
     }
   }
 }

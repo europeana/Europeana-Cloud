@@ -73,7 +73,7 @@ public class ECloudTopologyPipeline {
    *
    * @return this
    */
-  public ECloudTopologyPipeline addWriteRecordBolt(boolean topologyCreatingNewData) {
+  public ECloudTopologyPipeline addWriteRecordBolt(Boolean topologyCreatingNewData) {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
             createCassandraProperties(topologyProperties),
             topologyProperties.getProperty(MCS_URL),
@@ -118,116 +118,66 @@ public class ECloudTopologyPipeline {
     return this;
   }
 
-  /**
-   * Adds the bolt with FieldGrouping tuples from the previous bolt,
-   * or from spouts if this is the first bolt added to the pipeline.
-   *
-   * @param boltName             bolt name used as key for grouping and diagnostics
-   * @param bolt                 bolt instance
-   * @param parallelismParamName name of the parameter defining bolt parallelism from topology properties
-   * @param taskCountParamName   name of the parameter defining number of bolt tasks from topology properties
-   * @param groupingFieldName    name of the field used for FieldGrouping
-   * @return this builder
-   */
-  public ECloudTopologyPipeline addBolt(
-          String boltName,
-          IRichBolt bolt,
-          String parallelismParamName,
-          String taskCountParamName,
-          String groupingFieldName) {
-
-    return addBoltInternal(
-            boltName,
-            bolt,
-            parallelismParamName,
-            taskCountParamName,
-            GroupingType.FIELDS,
-            groupingFieldName);
-  }
+//  /**
+//   * Adds RevisionWriterBoltForHarvesting to the pipeline
+//   * @return this
+//   */
+//  public ECloudTopologyPipeline addRevisionWriterBoltForHarvesting() {
+//    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBoltForHarvesting(
+//            createCassandraProperties(topologyProperties),
+//            topologyProperties.getProperty(MCS_URL),
+//            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+//            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+//    );
+//
+//    addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
+//    return this;
+//  }
 
   /**
-   * Adds the bolt with ShuffleGrouping tuples from the previous bolt,
-   * or from spouts if this is the first bolt added to the pipeline.
+   * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.
    *
-   * @param boltName             bolt name used as key for grouping and diagnostics
-   * @param bolt                 bolt instance
-   * @param parallelismParamName name of the parameter defining bolt parallelism from topology properties
-   * @param taskCountParamName   name of the parameter defining number of bolt tasks from topology properties
+   * @param boltName - bolt name used as key for grouping and for diagnostic
+   * @param bolt - bolt instance
+   * @param parallelismParamName - name of the parameter defining bolt parallelism, from the topology properties
+   * @param taskCountParamName - name of the parameter defining number of bolt tasks, from the topology properties
    * @return this builder
    */
-  public ECloudTopologyPipeline addBolt(
-          String boltName,
-          IRichBolt bolt,
-          String parallelismParamName,
-          String taskCountParamName) {
-
-    return addBoltInternal(
-            boltName,
-            bolt,
-            parallelismParamName,
-            taskCountParamName,
-            GroupingType.SHUFFLE,
-            null);
-  }
-
-  /**
-   * Adds the bolt to the topology pipeline without applying grouping
-   * from the previous bolt or spouts.
-   *
-   * @param boltName             bolt name used as key for grouping and diagnostics
-   * @param bolt                 bolt instance
-   * @param parallelismParamName name of the parameter defining bolt parallelism from topology properties
-   * @param taskCountParamName   name of the parameter defining number of bolt tasks from topology properties
-   * @return this builder
-   */
-  public ECloudTopologyPipeline addBoltWithoutGrouping(
-          String boltName,
-          IRichBolt bolt,
-          String parallelismParamName,
-          String taskCountParamName) {
-
-    return addBoltInternal(
-            boltName,
-            bolt,
-            parallelismParamName,
-            taskCountParamName,
-            GroupingType.NONE,
-            null);
-  }
-
-  private ECloudTopologyPipeline addBoltInternal(
-          String boltName,
-          IRichBolt bolt,
-          String parallelismParamName,
-          String taskCountParamName,
-          GroupingType groupingType,
-          String groupingFieldName) {
-
+  public ECloudTopologyPipeline addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName) {
     BoltDeclarer declarer = topologyBuilder
             .setBolt(boltName, bolt, getIntProperty(parallelismParamName))
             .setNumTasks(getIntProperty(taskCountParamName));
-
-    switch (groupingType) {
-      case SHUFFLE:
         if (lastBoltName != null) {
           declarer.customGrouping(lastBoltName, new ShuffleGrouping());
         } else {
           TopologyHelper.addSpoutShuffleGrouping(spoutNames, declarer);
         }
-        break;
 
-      case FIELDS:
+    notificationBolt.fieldsGrouping(boltName, NOTIFICATION_STREAM_NAME, new Fields(NotificationTuple.TASK_ID_FIELD_NAME));
+    lastBoltName = boltName;
+    lastBolt = declarer;
+    return this;
+  }
+
+  /**
+   * Adds the bolt with FieldGrouping from previous bolt, or spouts for the first bolt.
+   *
+   * @param boltName - bolt name used as key for grouping and for diagnostic
+   * @param bolt - bolt instance
+   * @param parallelismParamName - name of the parameter defining bolt parallelism, from the topology properties
+   * @param taskCountParamName - name of the parameter defining number of bolt tasks, from the topology properties
+   * @param groupingFieldName - name of the field used by FieldGrouping
+   * @return - this builder
+   */
+  public ECloudTopologyPipeline addBolt(String boltName, IRichBolt bolt, String parallelismParamName, String taskCountParamName,
+      String groupingFieldName) {
+    BoltDeclarer declarer = topologyBuilder.setBolt(boltName, bolt, getIntProperty(parallelismParamName))
+                                           .setNumTasks(getIntProperty(taskCountParamName));
         if (lastBoltName != null) {
           declarer.fieldsGrouping(lastBoltName, new Fields(groupingFieldName));
         } else {
           TopologyHelper.addSpoutFieldGrouping(spoutNames, declarer, groupingFieldName);
         }
-        break;
-
-      case NONE:
-        // no grouping applied
-        break;
-    }
 
     notificationBolt.fieldsGrouping(
             boltName,
