@@ -5,7 +5,6 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.enums.ValidationTypes;
-import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 
 /**
@@ -14,7 +13,6 @@ import org.apache.storm.tuple.Tuple;
 public class RevisionWriterBoltForValidation extends RevisionWriterBolt {
 
   private static final long serialVersionUID = 1L;
-  public static final String DUPLICATE_RECORD_STREAM = "DuplicatedRecordRevisionWriterBoltStream";
 
 
   public RevisionWriterBoltForValidation(CassandraProperties cassandraProperties, String ecloudMcsAddress,
