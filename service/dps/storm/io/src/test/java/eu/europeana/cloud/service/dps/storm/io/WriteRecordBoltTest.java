@@ -69,12 +69,13 @@ class WriteRecordBoltTest {
     void successfullyExecuteWriteBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(
-                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME),
                 new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingMetadata(),
                 new StormProcessingMetadata(),
                 prepareStormTaskTupleParameters(), null);
         tuple.setSentDate(SENT_DATE);
+        tuple.setMessageProcessingStartTimeInMs(1);
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -89,9 +90,9 @@ class WriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(10, value.size());
-        assertTrue(value.get(4) instanceof Map);
-        Map<String, String> parameters = (Map<String, String>) value.get(4);
+        assertEquals(6, value.size());
+        assertTrue(value.get(5) instanceof Map);
+        Map<String, String> parameters = (Map<String, String>) value.get(5);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), eq(DATASET_NAME),
@@ -104,13 +105,14 @@ class WriteRecordBoltTest {
     void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         StormTaskTuple tuple = new StormTaskTuple(
-                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
                 new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingMetadata(),
                 new StormProcessingMetadata(),
                 prepareStormTaskTupleParameters(), null);
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+        tuple.setMessageProcessingStartTimeInMs(1);
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -121,16 +123,16 @@ class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-    verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
-    assertThat(captor.getAllValues().size(), is(1));
-    Values value = captor.getAllValues().get(0);
-    assertEquals(10, value.size());
-    assertTrue(value.get(4) instanceof Map);
-    Map<String, String> parameters = (Map<String, String>) value.get(4);
-    assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-    assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
-    verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
-  }
+        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        assertThat(captor.getAllValues().size(), is(1));
+        Values value = captor.getAllValues().get(0);
+        assertEquals(6, value.size());
+        assertTrue(value.get(5) instanceof Map);
+        Map<String, String> parameters = (Map<String, String>) value.get(5);
+        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
+    }
 
   @Test
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNewRevisionTopology() throws Exception {
@@ -138,13 +140,14 @@ class WriteRecordBoltTest {
       ProcessingMetadata processingMetadata = new ProcessingMetadata();
       processingMetadata.setOutputRevision(new Revision());
       StormTaskTuple tuple = new StormTaskTuple(
-              new TaskMetadata(TASK_ID, null, TASK_NAME),
+              new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
               new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
               processingMetadata,
               new StormProcessingMetadata(),
               prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
       tuple.setSentDate(SENT_DATE);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+      tuple.setMessageProcessingStartTimeInMs(1);
       tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
       when(outputCollector.emit(anyList())).thenReturn(null);
       Representation representation = mock(Representation.class);
@@ -156,15 +159,15 @@ class WriteRecordBoltTest {
 
       writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
-        assertThat(captor.getAllValues().size(), is(1));
-        Values value = captor.getAllValues().get(0);
-        assertEquals(10, value.size());
-        assertTrue(value.get(4) instanceof Map);
-        Map<String, String> parameters = (Map<String, String>) value.get(4);
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
-        verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
+      verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+      assertThat(captor.getAllValues().size(), is(1));
+      Values value = captor.getAllValues().get(0);
+      assertEquals(6, value.size());
+      assertTrue(value.get(5) instanceof Map);
+      Map<String, String> parameters = (Map<String, String>) value.get(5);
+      //Before it was wrong but worked due to revision being empty even though shouldnt be empty
+      assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+      verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
   }
 
   @Test
@@ -173,13 +176,14 @@ class WriteRecordBoltTest {
       ProcessingMetadata processingMetadata = new ProcessingMetadata();
       processingMetadata.setOutputRevision(new Revision());
       StormTaskTuple tuple = new StormTaskTuple(
-              new TaskMetadata(TASK_ID, null, TASK_NAME),
+              new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
               new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
               processingMetadata,
               new StormProcessingMetadata(),
               prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setSentDate(SENT_DATE);
+      tuple.setMessageProcessingStartTimeInMs(1);
       tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
       when(outputCollector.emit(anyList())).thenReturn(null);
       Representation representation = mock(Representation.class);
@@ -188,11 +192,16 @@ class WriteRecordBoltTest {
       when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
       writeRecordBoltForNotNewRepresentationTopologies.execute(anchorTuple, tuple);
 
-      verify(outputCollector, times(0)).emit(any(Tuple.class), captor.capture());
-      assertThat(captor.getAllValues().size(), is(0));
-    verify(recordServiceClient, times(1)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
-    verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString());
-    }
+      verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+      assertThat(captor.getAllValues().size(), is(1));
+      Values value = captor.getAllValues().get(0);
+      assertEquals(6, value.size());
+      assertTrue(value.get(5) instanceof Map);
+      Map<String, String> parameters = (Map<String, String>) value.get(5);
+      //Before it was wrong but worked due to revision being empty even though shouldn't be empty
+      assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+      verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
+  }
 
     @Test
     void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
@@ -208,6 +217,7 @@ class WriteRecordBoltTest {
                 prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);
+        tuple.setMessageProcessingStartTimeInMs(1);
 
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -229,13 +239,14 @@ class WriteRecordBoltTest {
         ProcessingMetadata processingMetadata = new ProcessingMetadata();
         processingMetadata.setOutputRevision(new Revision());
         StormTaskTuple tuple = new StormTaskTuple(
-                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME),
                 new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 processingMetadata,
                 new StormProcessingMetadata(),
                 prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);
+        tuple.setMessageProcessingStartTimeInMs(1);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
                 representation);
@@ -254,7 +265,6 @@ class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-        parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
                 "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
         return parameters;
@@ -265,7 +275,6 @@ class WriteRecordBoltTest {
     parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
     parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
     parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
             "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
     return parameters;

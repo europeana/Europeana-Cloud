@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.test;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -85,7 +85,7 @@ public final class TestConstants {
   public static final String TASK_NAME = "TASK_NAME";
   public static final String REVISION_NAME = "REVISION_NAME";
   public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
-  public static final String REVISION_TIMESTAMP = ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+  public static final String REVISION_TIMESTAMP = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
   public static final String TEST_END_BOLT = "testEndBolt";
 

@@ -98,8 +98,8 @@ class ParseFileBoltTest {
       List<Values> capturedValuesList = captor.getAllValues();
       assertEquals(4, capturedValuesList.size());
       for (Values values : capturedValuesList) {
-        assertEquals(10, values.size());
-        var val = (Map<String, String>) values.get(4);
+        assertEquals(6, values.size());
+        var val = (Map<String, String>) values.get(5);
         assertNotNull(val);
         for (String parameterKey : val.keySet()) {
           assertTrue(expectedParametersKeysList.contains(parameterKey));
@@ -135,9 +135,9 @@ class ParseFileBoltTest {
       Values values = captor.getValue();
       assertNotNull(values);
       LOGGER.info("{}", values);
-      var map = (Map<String, String>) values.get(4);
+      var map = (Map<String, String>) values.get(5);
       LOGGER.info("{}", map);
-      assertEquals(3, map.size());
+      assertEquals(1, map.size());
       assertNotNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
     }
