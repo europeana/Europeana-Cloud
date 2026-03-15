@@ -18,6 +18,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -193,16 +194,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
                                                   ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
-      //
+
       var stormTaskTuple = new StormTaskTuple(
-              dpsTask.getTaskId(),
-              dpsTask.getTaskName(),
-              dpsRecord.getRecordId(),
-              null,
+              new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),
+                      dpsTask.getTaskName(), aRecord.getAttemptNumber()),
               dpsTask.getParameters(),
               dpsTask.getHarvestingDetails());
-      //
-      stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
+      // for validation
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
       stormTaskTuple.addParameter(SENT_DATE, DateHelper.format(taskInfo.getSentTimestamp()));
       stormTaskTuple.addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
@@ -232,8 +230,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
       }
 
-      //Implementation of re-try mechanism after topology broken down
-      stormTaskTuple.setRecordAttemptNumber(aRecord.getAttemptNumber());
 
       stormTaskTuple.setMarkedAsDeleted(dpsRecord.isMarkedAsDeleted());
 

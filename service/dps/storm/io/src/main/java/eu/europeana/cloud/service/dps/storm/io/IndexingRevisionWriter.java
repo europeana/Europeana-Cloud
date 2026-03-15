@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -36,8 +35,8 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
       addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
       emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
     } catch (MalformedURLException e) {
-      LOGGER.error("URL is malformed: {}", stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
+      LOGGER.error("URL is malformed: {}", stormTaskTuple.getRecordUri());
+      emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     } catch (MCSException | DriverException e) {
         LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
         emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());

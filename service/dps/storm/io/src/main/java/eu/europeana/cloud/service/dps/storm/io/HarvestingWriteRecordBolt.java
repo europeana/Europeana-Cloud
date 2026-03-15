@@ -49,7 +49,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   @Override
   protected RecordWriteParams prepareWriteParameters(StormTaskTuple stormTaskTuple) throws CloudException, MalformedURLException {
     String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    String localId = stormTaskTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    String localId = stormTaskTuple.getRecordUri();
     String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
     String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);

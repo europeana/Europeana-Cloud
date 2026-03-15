@@ -9,6 +9,7 @@ public final class StormTupleKeys {
 
   // e.g: "54698435894"
   public static final String TASK_ID_TUPLE_KEY = "TASK_ID";
+  public static final String RECORD_URI_TUPLE_KEY = "RECORD_URI";
 
   //e.g: "xslt-transformation-task"
   public static final String TASK_NAME_TUPLE_KEY = "TASK_NAME";

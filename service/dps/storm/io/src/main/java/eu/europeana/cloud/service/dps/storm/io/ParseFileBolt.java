@@ -67,7 +67,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
         outputCollector.emit(anchorTuple, tuple.toStormTuple());
       } else {
         LOGGER.debug("Found {} resources for {} : {}", rdfResourceEntries.size(),
-                stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER),
+                stormTaskTuple.getRecordUri(),
                 rdfResourceEntries);
         for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
           if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {

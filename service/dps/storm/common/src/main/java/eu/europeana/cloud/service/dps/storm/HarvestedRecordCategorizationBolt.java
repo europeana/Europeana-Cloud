@@ -42,9 +42,9 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
 
   private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple) {
     return CategorizationParameters.builder()
-                                   .fullHarvest(!isIncrementalHarvesting(tuple))
-                                   .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
-                                   .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
+            .fullHarvest(!isIncrementalHarvesting(tuple))
+            .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
+            .recordId(tuple.getRecordUri())
                                    .recordMd5(FileMd5GenerationService.generateUUID(tuple.getFileData()))
                                    .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                                    .recordDateStamp(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP) != null ?

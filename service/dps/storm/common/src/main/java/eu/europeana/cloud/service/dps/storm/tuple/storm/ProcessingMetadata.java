@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.enrichment.rest.client.report.Report;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.net.MalformedURLException;
@@ -16,6 +17,7 @@ import java.util.Set;
 
 @Setter
 @Getter
+@NoArgsConstructor
 class ProcessingMetadata {
 
     Revision outputRevision;

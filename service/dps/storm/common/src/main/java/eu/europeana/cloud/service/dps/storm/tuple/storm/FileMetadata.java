@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.tuple.storm;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
@@ -11,6 +12,7 @@ import java.io.InputStream;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class FileMetadata {
 
     private static final int BATCH_MAX_SIZE = 1024 * 4;

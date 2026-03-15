@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
@@ -54,7 +53,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple t) {
-    final String file = t.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    final String file = t.getRecordUri();
     t.setFileUrl(file);
     try (InputStream is = getFileStreamByStormTuple(t)) {
       t.setFileData(is);
@@ -86,7 +85,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
 
   protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
     Instant processingStartTime = Instant.now();
-    final String file = stormTaskTuple.getParameters().get(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER);
+    final String file = stormTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
     stormTaskTuple.setFileUrl(file);
     InputStream downloadedFile = getFile(fileClient, file);

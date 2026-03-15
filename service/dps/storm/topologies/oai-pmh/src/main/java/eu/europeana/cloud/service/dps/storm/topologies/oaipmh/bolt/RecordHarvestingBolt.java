@@ -83,7 +83,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
       emitErrorNotification(anchorTuple, stormTaskTuple, "Invalid parameters");
     }
     LOGGER.info("Harvesting finished in: {}ms for {}", Clock.millisecondsSince(harvestingStartTime),
-        stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+            stormTaskTuple.getRecordUri());
     outputCollector.ack(anchorTuple);
   }
 
@@ -117,7 +117,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
   }
 
   private String readRecordId(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER);
+    return stormTaskTuple.getRecordUri();
   }
 
   private String readMetadataPrefix(StormTaskTuple stormTaskTuple) {
