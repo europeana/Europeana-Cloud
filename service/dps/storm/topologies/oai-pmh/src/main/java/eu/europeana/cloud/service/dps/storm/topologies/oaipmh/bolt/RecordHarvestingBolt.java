@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 
 /**
@@ -53,7 +52,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     Instant harvestingStartTime = Instant.now();
-    LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getParameter(CLOUD_LOCAL_IDENTIFIER));
+    LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getRecordUri());
     String endpointLocation = readEndpointLocation(stormTaskTuple);
     String recordId = readRecordId(stormTaskTuple);
     String metadataPrefix = readMetadataPrefix(stormTaskTuple);
