@@ -59,13 +59,12 @@ public class StormTaskTuple implements Serializable {
 
   public StormTaskTuple(TaskMetadata taskMetadata,
                         StormProcessingMetadata stormProcessingMetadata,
-                        FileMetadata fileMetadata,
-                        Map<String, String> parameters) {
+                        FileMetadata fileMetadata) {
     this.taskMetadata = taskMetadata;
     this.stormProcessingMetadata = stormProcessingMetadata;
     this.fileMetadata = fileMetadata;
-    this.parameters = parameters;
     this.processingMetadata = new ProcessingMetadata();
+    this.parameters = new HashMap<>();
   }
 
   public StormTaskTuple() {
@@ -73,6 +72,7 @@ public class StormTaskTuple implements Serializable {
     this.taskMetadata = new TaskMetadata();
     this.fileMetadata = new FileMetadata();
     this.processingMetadata = new ProcessingMetadata();
+    this.stormProcessingMetadata = new StormProcessingMetadata();
   }
 
   public static StormTaskTuple fromStormTuple(Tuple tuple) {
@@ -86,18 +86,22 @@ public class StormTaskTuple implements Serializable {
             .processingMetadata(
                     (ProcessingMetadata) tuple.getValueByField(PROCESSING_METADATA_TUPLE_KEY))
             .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
-                         .build();
+            .build();
   }
 
   public void addParameter(String parameterKey, String parameterValue) {
     parameters.put(parameterKey, parameterValue);
   }
 
+  public void addParameters(Map<String, String> parameters) {
+    this.parameters.putAll(parameters);
+  }
+
   public String getParameter(String parameterKey) {
     return parameters.get(parameterKey);
   }
 
-  public Boolean ifParametersContainsKey(String parameterKey){
+  public Boolean ifParametersContainsKey(String parameterKey) {
     return parameters.containsKey(parameterKey);
   }
 

@@ -201,8 +201,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
               new StormProcessingMetadata(aRecord.getAttemptNumber(),
                       DateHelper.format(taskInfo.getSentTimestamp()),
                       new Date().getTime()),
-              new FileMetadata(aRecord.getRecordId(), null),
-              dpsTask.getParameters());
+              new FileMetadata(aRecord.getRecordId(), null));
+      Map<String, String> parameters = dpsTask.getParameters();
       // for validation
       stormTaskTuple.addParameter(HARVESTING_DETAILS, dpsTask.getHarvestingDetails().toString());
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
@@ -217,6 +217,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         stormTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));
       }
       if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {
+        parameters.remove(OUTPUT_DATA_SETS);
         stormTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));
       }
 
@@ -226,12 +227,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       if (dpsTask.isParameterPresent(REVISION_TIMESTAMP) &&
               dpsTask.isParameterPresent(REVISION_NAME) &&
               dpsTask.isParameterPresent(REPRESENTATION_VERSION)) {
+        parameters.remove(REVISION_TIMESTAMP);
+        parameters.remove(REVISION_NAME);
+        parameters.remove(REPRESENTATION_VERSION);
         stormTaskTuple.setInputRevision(new Revision(
                 dpsTask.getParameter(REVISION_NAME),
                 dpsTask.getParameter(REVISION_PROVIDER),
                 DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
       }
-
+      stormTaskTuple.addParameters(parameters);
 
       return stormTaskTuple;
     }
