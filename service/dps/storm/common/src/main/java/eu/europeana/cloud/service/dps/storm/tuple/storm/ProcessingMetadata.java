@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,7 +20,7 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class ProcessingMetadata {
+public class ProcessingMetadata implements Serializable {
 
     Revision outputRevision;
     Revision inputRevision;
@@ -28,6 +29,7 @@ public class ProcessingMetadata {
 
 
     Set<Report> reportSet = new HashSet<>();
+
     public ProcessingMetadata(Set<Report> reportSet) {
         this.reportSet = reportSet;
     }

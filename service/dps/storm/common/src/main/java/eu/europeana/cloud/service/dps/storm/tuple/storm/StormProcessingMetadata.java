@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Setter
 @Getter
 @NoArgsConstructor
-public class StormProcessingMetadata {
+public class StormProcessingMetadata implements Serializable {
     int recordAttemptNumber;
     String sentDate;
     long messageProcessingStartTimeInMs;

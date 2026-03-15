@@ -5,15 +5,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
-public class FileMetadata {
+public class FileMetadata implements Serializable {
 
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     String fileUrl;
