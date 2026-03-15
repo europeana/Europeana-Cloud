@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -25,12 +25,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL_CLOUD_ID2;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -64,8 +64,15 @@ class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-                new Revision());
+
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL, fileData),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         //when
@@ -82,13 +89,25 @@ class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         Tuple anchorTuple2 = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-                new Revision());
+
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL, fileData),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
-        StormTaskTuple tuple2 = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL_CLOUD_ID2, fileData2,
-                prepareStormTaskTupleParameters(), new Revision());
+
+        StormTaskTuple tuple2 = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL_CLOUD_ID2, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL_CLOUD_ID2, fileData2),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
         List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
         //when
@@ -105,8 +124,14 @@ class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
-                prepareStormTaskTupleParametersWithoutStatsParam(), new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL, fileData),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
 
         //when
         statisticsBolt.execute(anchorTuple, tuple);
@@ -121,8 +146,14 @@ class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData,
-                prepareStormTaskTupleParametersWithWrongStatsParam(), new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL, fileData),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
 
         //when
         statisticsBolt.execute(anchorTuple, tuple);
@@ -137,8 +168,14 @@ class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         fileData[0] = 'X'; // will cause SAXException
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, fileData, prepareStormTaskTupleParameters(),
-                new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+                new FileMetadata(SOURCE_VERSION_URL, fileData),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
         //when
         statisticsBolt.execute(anchorTuple, tuple);
         //then

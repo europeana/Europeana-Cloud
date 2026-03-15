@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -80,8 +79,8 @@ class ReadFileBoltTest {
 
     private StormTaskTuple prepareTuple() {
         stormTaskTuple = new StormTaskTuple();
-        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        stormTaskTuple.setRecordUri(FILE_URL);
+        stormTaskTuple.setMessageProcessingStartTimeInMs(1);
         return stormTaskTuple;
     }
 }

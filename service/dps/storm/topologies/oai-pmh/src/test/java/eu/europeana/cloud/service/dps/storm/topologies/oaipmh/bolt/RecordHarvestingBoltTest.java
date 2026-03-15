@@ -87,9 +87,9 @@ class RecordHarvestingBoltTest {
 
     verify(spiedTask).setFileData(Mockito.any(InputStream.class));
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
-        spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+            spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017",
-        spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+            spiedTask.getRecordUri());
   }
 
   private Supplier<byte[]> fileContent(String fileName) {
@@ -179,10 +179,10 @@ class RecordHarvestingBoltTest {
   private StormTaskTuple taskWithAllNeededParameters() {
     StormTaskTuple task = new StormTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.setSourceDetails(details);
+    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
+    task.setRecordUri("oaiIdentifier");
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, "2020739_Ag_EU_CARARE_2Culture");
     return task;
@@ -192,17 +192,17 @@ class RecordHarvestingBoltTest {
     StormTaskTuple task = new StormTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.setSourceDetails(details);
+    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     return task;
   }
 
   private StormTaskTuple taskWithoutRecordId() {
     StormTaskTuple task = new StormTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.setSourceDetails(details);
+    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
-    task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+    task.setMessageProcessingStartTimeInMs(0);
     return task;
   }
 
@@ -210,9 +210,9 @@ class RecordHarvestingBoltTest {
     StormTaskTuple task = new StormTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-    task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
-    task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.setSourceDetails(details);
+    task.setRecordUri("oaiIdentifier");
+    task.setMessageProcessingStartTimeInMs(0);
+    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     return task;
   }
 

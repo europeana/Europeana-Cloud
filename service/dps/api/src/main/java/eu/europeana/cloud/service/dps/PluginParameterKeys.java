@@ -53,7 +53,6 @@ public final class PluginParameterKeys {
 
 
   public static final String TOPOLOGY_NAME = "TOPOLOGY_NAME";
-  public static final String SENT_DATE = "SENT_DATE";
 
   //---------- Validation DPS Task ----
 
@@ -73,7 +72,6 @@ public final class PluginParameterKeys {
   public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
 
   // ---------- OAI-PMH ----------
-  public static final String CLOUD_LOCAL_IDENTIFIER = "CLOUD_LOCAL_IDENTIFIER";
   public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
   public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
   public static final String INCREMENTAL_INDEXING = "INCREMENTAL_INDEXING";

@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
@@ -82,15 +82,32 @@ class HarvestingWriteRecordBoltTest {
     }
 
     private StormTaskTuple getStormTaskTuple() {
-        return new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(),
-                new Revision(), oaipmhHarvestingDetails);
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE + LOCAL_ID, "sampleTaskName"),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
+        tuple.setSentDate(SENT_DATE);
+        tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
+        return tuple;
     }
 
     private StormTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
-        HashMap<String, String> parameters = prepareStormTaskTupleParameters();
-        parameters.put(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
-        return new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, parameters, new Revision(),
-                oaipmhHarvestingDetails);
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, SOURCE + LOCAL_ID, "sampleTaskName"),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
+        tuple.setSentDate(SENT_DATE);
+        tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
+        tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
+        return tuple;
     }
 
 
@@ -255,12 +272,10 @@ class HarvestingWriteRecordBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
                 "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/sampleDataset");
-        parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }
 
@@ -268,9 +283,9 @@ class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(10, value.size());
-        assertTrue(value.get(4) instanceof Map);
-        var parameters = (Map<?, ?>) value.get(4);
+        assertEquals(6, value.size());
+        assertTrue(value.get(5) instanceof Map);
+        var parameters = (Map<?, ?>) value.get(5);
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
     }

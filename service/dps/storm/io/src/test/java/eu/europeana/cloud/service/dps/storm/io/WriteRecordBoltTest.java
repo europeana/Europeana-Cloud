@@ -5,9 +5,10 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -67,8 +68,13 @@ class WriteRecordBoltTest {
     @Test
     void successfullyExecuteWriteBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-                prepareStormTaskTupleParameters());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                new ProcessingMetadata(),
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
+        tuple.setSentDate(SENT_DATE);
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -97,18 +103,23 @@ class WriteRecordBoltTest {
     @Test
     void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-                prepareStormTaskTupleParameters());
-    tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    when(outputCollector.emit(anyList())).thenReturn(null);
-    Representation representation = mock(Representation.class);
-    when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-        representation);
-    when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-    URI uri = new URI(SOURCE_VERSION_URL);
-    when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                new ProcessingMetadata(),
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParameters(), null);
+        tuple.setSentDate(SENT_DATE);
+        tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+        when(outputCollector.emit(anyList())).thenReturn(null);
+        Representation representation = mock(Representation.class);
+        when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
+                representation);
+        when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+        URI uri = new URI(SOURCE_VERSION_URL);
+        when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
 
-    writeRecordBolt.execute(anchorTuple, tuple);
+        writeRecordBolt.execute(anchorTuple, tuple);
 
     verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(1));
@@ -123,19 +134,27 @@ class WriteRecordBoltTest {
 
   @Test
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNewRevisionTopology() throws Exception {
-    Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-            prepareStormTaskTupleParametersForRevisionOrientedProcessing(), new Revision());
-    tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    when(outputCollector.emit(anyList())).thenReturn(null);
-    Representation representation = mock(Representation.class);
-    when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-            representation);
-    when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-    URI uri = new URI(SOURCE_VERSION_URL);
-    when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
+      Tuple anchorTuple = mock(TupleImpl.class);
+      ProcessingMetadata processingMetadata = new ProcessingMetadata();
+      processingMetadata.setOutputRevision(new Revision());
+      StormTaskTuple tuple = new StormTaskTuple(
+              new TaskMetadata(TASK_ID, null, TASK_NAME),
+              new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+              processingMetadata,
+              new StormProcessingMetadata(),
+              prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
+      tuple.setSentDate(SENT_DATE);
+      tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+      tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+      when(outputCollector.emit(anyList())).thenReturn(null);
+      Representation representation = mock(Representation.class);
+      when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
+              representation);
+      when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+      URI uri = new URI(SOURCE_VERSION_URL);
+      when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
 
-        writeRecordBolt.execute(anchorTuple, tuple);
+      writeRecordBolt.execute(anchorTuple, tuple);
 
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
@@ -150,19 +169,27 @@ class WriteRecordBoltTest {
 
   @Test
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNotNewRevisionTopology() throws Exception {
-    Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-            prepareStormTaskTupleParametersForRevisionOrientedProcessing(), new Revision());
-    tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    when(outputCollector.emit(anyList())).thenReturn(null);
-    Representation representation = mock(Representation.class);
-    when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-            representation);
-    when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-    writeRecordBoltForNotNewRepresentationTopologies.execute(anchorTuple, tuple);
+      Tuple anchorTuple = mock(TupleImpl.class);
+      ProcessingMetadata processingMetadata = new ProcessingMetadata();
+      processingMetadata.setOutputRevision(new Revision());
+      StormTaskTuple tuple = new StormTaskTuple(
+              new TaskMetadata(TASK_ID, null, TASK_NAME),
+              new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+              processingMetadata,
+              new StormProcessingMetadata(),
+              prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
+      tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+      tuple.setSentDate(SENT_DATE);
+      tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+      when(outputCollector.emit(anyList())).thenReturn(null);
+      Representation representation = mock(Representation.class);
+      when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
+              representation);
+      when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
+      writeRecordBoltForNotNewRepresentationTopologies.execute(anchorTuple, tuple);
 
-    verify(outputCollector, times(0)).emit(any(Tuple.class), captor.capture());
-    assertThat(captor.getAllValues().size(), is(0));
+      verify(outputCollector, times(0)).emit(any(Tuple.class), captor.capture());
+      assertThat(captor.getAllValues().size(), is(0));
     verify(recordServiceClient, times(1)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
     verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString());
     }
@@ -170,8 +197,17 @@ class WriteRecordBoltTest {
     @Test
     void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-                prepareStormTaskTupleParameters(), new Revision());
+
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
+        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        tuple.setSentDate(SENT_DATE);
 
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -189,9 +225,17 @@ class WriteRecordBoltTest {
     @Test
     void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-                prepareStormTaskTupleParameters(), new Revision());
 
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(TASK_ID, null, TASK_NAME),
+                new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareStormTaskTupleParametersForRevisionOrientedProcessing(), null);
+        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        tuple.setSentDate(SENT_DATE);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
                 representation);
@@ -213,7 +257,6 @@ class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
                 "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
-        parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }
 
@@ -223,12 +266,8 @@ class WriteRecordBoltTest {
     parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
     parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
     parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-    parameters.put(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-    parameters.put(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER);
-    parameters.put(PluginParameterKeys.REVISION_TIMESTAMP, REVISION_TIMESTAMP);
     parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
             "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
-    parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
     return parameters;
   }
 

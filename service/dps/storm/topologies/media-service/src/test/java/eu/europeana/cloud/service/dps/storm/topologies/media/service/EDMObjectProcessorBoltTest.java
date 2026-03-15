@@ -74,7 +74,7 @@ class EDMObjectProcessorBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
       StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -82,14 +82,14 @@ class EDMObjectProcessorBoltTest {
       edmObjectProcessorBolt.execute(anchorTuple, tuple);
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
       //
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(5);
+      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(5);
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -104,7 +104,7 @@ class EDMObjectProcessorBoltTest {
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
       StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -112,14 +112,14 @@ class EDMObjectProcessorBoltTest {
       edmObjectProcessorBolt.execute(anchorTuple, tuple);
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(5);
+      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(5);
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -134,7 +134,7 @@ class EDMObjectProcessorBoltTest {
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
       StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -142,14 +142,14 @@ class EDMObjectProcessorBoltTest {
       edmObjectProcessorBolt.execute(anchorTuple, tuple);
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(5);
+      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(5);
       assertEquals("2", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("2", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -164,7 +164,7 @@ class EDMObjectProcessorBoltTest {
       doReturn(null).when(rdfDeserializer).getMainThumbnailResourceForMediaExtraction(any(byte[].class));
 
       StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -177,7 +177,7 @@ class EDMObjectProcessorBoltTest {
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(5);
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
   }
@@ -192,7 +192,7 @@ class EDMObjectProcessorBoltTest {
               new RuntimeException());
 
       StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -205,7 +205,7 @@ class EDMObjectProcessorBoltTest {
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(5);
       assertEquals("2", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("media resource exception", parametersForParseFileBolt.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertTrue(parametersForParseFileBolt.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE).contains("Error while uploading"));

@@ -67,11 +67,9 @@ class ParseFileBoltTest {
     parseFileBolt.prepare();
     expectedParametersKeysList = Arrays.asList(
             PluginParameterKeys.RESOURCE_LINK_KEY,
-            PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER,
             PluginParameterKeys.RESOURCE_URL,
             PluginParameterKeys.RESOURCE_LINKS_COUNT,
             PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
-            PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS,
             PluginParameterKeys.RESOURCE_LINK_KEY);
 
   }
@@ -81,8 +79,8 @@ class ParseFileBoltTest {
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setTaskId(TASK_ID);
     stormTaskTuple.setFileUrl(FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    stormTaskTuple.setRecordUri(FILE_URL);
+    stormTaskTuple.setMessageProcessingStartTimeInMs(1);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
   }
 

@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -123,15 +123,34 @@ class IndexingRevisionWriterTest {
     }
 
     private StormTaskTuple prepareTuple() {
-        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        return new StormTaskTuple(
+                new TaskMetadata(123L, null, "sampleTaskName"),
+                new FileMetadata("http://inputFileUrl", null),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareTaskParameters(), null);
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
-        return new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        return new StormTaskTuple(
+                new TaskMetadata(123L, null, "sampleTaskName"),
+                new FileMetadata("malformed", null),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareTaskParameters(), null);
     }
 
     private StormTaskTuple prepareTupleWithEmptyRevisions() {
-        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
+        return new StormTaskTuple(
+                new TaskMetadata(123L, null, "sampleTaskName"),
+                new FileMetadata("http://inputFileUrl", null),
+                new ProcessingMetadata(),
+                new StormProcessingMetadata(),
+                prepareTaskParameters(), null);
     }
 
     Map<String, String> prepareTaskParameters() {

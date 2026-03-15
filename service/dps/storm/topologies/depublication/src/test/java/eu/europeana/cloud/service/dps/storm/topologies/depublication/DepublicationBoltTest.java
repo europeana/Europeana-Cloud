@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
@@ -46,8 +46,12 @@ class DepublicationBoltTest {
           PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
           PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
-  public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(TASK_ID, "taskName",
-          RECORD_ID, null, INPUT_TUPLE_PARAMETERS, null);
+  public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(
+          new TaskMetadata(TASK_ID, RECORD_ID, "taskName", true),
+          new FileMetadata(RECORD_ID, null),
+          new ProcessingMetadata(),
+          new StormProcessingMetadata(),
+          INPUT_TUPLE_PARAMETERS, null);
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;

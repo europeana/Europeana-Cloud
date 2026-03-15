@@ -6,7 +6,7 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -110,16 +110,28 @@ class RevisionWriterBoltTest {
     }
 
     private StormTaskTuple prepareTuple() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(),
-                new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(123L, null, "sampleTaskName"),
+                new FileMetadata("http://inputFileUrl", null),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareTaskParameters(), null);
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://sampleFileUrl");
 
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
-        StormTaskTuple tuple = new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(),
-                new Revision());
+        ProcessingMetadata processingMetadata = new ProcessingMetadata();
+        processingMetadata.setOutputRevision(new Revision());
+        StormTaskTuple tuple = new StormTaskTuple(
+                new TaskMetadata(123L, null, "sampleTaskName"),
+                new FileMetadata("http://inputFileUrl", null),
+                processingMetadata,
+                new StormProcessingMetadata(),
+                prepareTaskParameters(), null);
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "malformedURL");
         return tuple;
     }

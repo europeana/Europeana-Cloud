@@ -3,7 +3,7 @@ package eu.europeana.cloud.normalization.bolts;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -50,7 +50,7 @@ class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
-    assertEquals(new String(expected), new String((byte[]) capturedValues.get(3)).replaceAll("\r", ""));
+    assertEquals(new String(expected), new String(((FileMetadata) capturedValues.get(4)).getFileData()).replaceAll("\r", ""));
   }
 
 
@@ -100,7 +100,12 @@ class NormalizationBoltTest {
   }
 
   private StormTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
-    return new StormTaskTuple(123, "TASK_NAME", fileUrl, inputData, prepareStormTaskTupleParameters(), null);
+    return new StormTaskTuple(
+            new TaskMetadata(123, SOURCE_VERSION_URL, "TASK_NAME", true),
+            new FileMetadata(fileUrl, inputData),
+            new ProcessingMetadata(),
+            new StormProcessingMetadata(),
+            prepareStormTaskTupleParameters(), null);
   }
 
   private HashMap<String, String> prepareStormTaskTupleParameters() {

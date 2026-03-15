@@ -74,7 +74,7 @@ class ResourceProcessingBoltTest {
     resourceProcessingBolt.initGson();
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setFileUrl(FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
+    stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setTaskId(TASK_ID);
 
     setStaticField(ResourceProcessingBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
@@ -110,9 +110,9 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(thumbnailCount)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(4);
+    Map<String, String> parameters = (Map) value.get(5);
     assertNotNull(parameters);
-    assertEquals(3, parameters.size());
+    assertEquals(2, parameters.size());
     assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
   }
 
@@ -167,9 +167,9 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(3)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(4);
+    Map<String, String> parameters = (Map) value.get(5);
     assertNotNull(parameters);
-    assertEquals(5, parameters.size());
+    assertEquals(4, parameters.size());
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
     assertEquals(thumbNailCount,
@@ -195,9 +195,9 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(0)).putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
 
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(4);
+    Map<String, String> parameters = (Map) value.get(5);
     assertNotNull(parameters);
-    assertEquals(4, parameters.size());
+    assertEquals(3, parameters.size());
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
     assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
     assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
@@ -210,11 +210,11 @@ class ResourceProcessingBoltTest {
   void shouldForwardTheTupleWhenNoResourceLinkFound() {
     Tuple anchorTuple = mock(TupleImpl.class);
     resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
-    int expectedParametersSize = 1;
+    int expectedParametersSize = 0;
     assertEquals(expectedParametersSize, stormTaskTuple.getParameters().size());
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(4);
+    Map<String, String> parameters = (Map) value.get(5);
     assertNotNull(parameters);
     assertEquals(expectedParametersSize, parameters.size());
     assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));

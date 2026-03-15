@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
@@ -116,11 +116,10 @@ class IndexingBoltTest {
             .publishedHarvestDate(EARLIER_HARVEST_DATE)
             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
     assertEquals(7, parameters.size());
   }
 
@@ -154,11 +153,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(EARLIER_HARVEST_DATE)
             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
     assertEquals(7, parameters.size());
   }
 
@@ -194,11 +193,10 @@ class IndexingBoltTest {
             .publishedHarvestDate(LATEST_HARVEST_DATE)
             .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
     assertEquals(7, parameters.size());
   }
 
@@ -274,12 +272,11 @@ class IndexingBoltTest {
             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
             .build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-    assertEquals(8, parameters.size());
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+    assertEquals(7, parameters.size());
   }
 
   @Test
@@ -314,12 +311,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(null).publishedHarvestMd5(null)
             .build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-    assertEquals(8, parameters.size());
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+    assertEquals(7, parameters.size());
   }
 
   @Test
@@ -345,11 +341,10 @@ class IndexingBoltTest {
             .latestHarvestDate(HARVEST_DATE)
             .publishedHarvestDate(HARVEST_DATE).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((FileMetadata) capturedValues.get(4)).getFileUrl());
+    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
     assertEquals(7, parameters.size());
   }
 
@@ -463,11 +458,13 @@ class IndexingBoltTest {
 
   private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
     //
+    ProcessingMetadata processingMetadata = new ProcessingMetadata();
+    processingMetadata.setOutputRevision(new Revision("NAME", "PROVIDER", new Date()));
     return new StormTaskTuple(
-            1,
-            "taskName",
-            FILE_URL,
-            new byte[]{'a', 'b', 'c'},
+            new TaskMetadata(1, FILE_URL, "taskName"),
+            new FileMetadata(FILE_URL, new byte[]{'a', 'b', 'c'}),
+            processingMetadata,
+            new StormProcessingMetadata(),
             new HashMap<>() {
               {
                 put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
@@ -478,7 +475,7 @@ class IndexingBoltTest {
                 put(PluginParameterKeys.OUTPUT_DATA_SETS,
                         "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
               }
-            }, new Revision());
+            }, null);
   }
 
   private void mockIndexer(Class<? extends Throwable> throwingExceptionClass) throws IndexingException {

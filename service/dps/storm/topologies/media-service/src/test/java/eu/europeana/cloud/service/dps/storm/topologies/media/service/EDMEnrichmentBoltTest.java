@@ -52,8 +52,8 @@ class EDMEnrichmentBoltTest {
     edmEnrichmentBolt.cache.clear();
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setFileUrl(FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    stormTaskTuple.setRecordUri(FILE_URL);
+    stormTaskTuple.setMessageProcessingStartTimeInMs(1);
 
   }
 
@@ -66,13 +66,13 @@ class EDMEnrichmentBoltTest {
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
               "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
-      assertEquals(4, stormTaskTuple.getParameters().size());
+      assertEquals(2, stormTaskTuple.getParameters().size());
       edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = (Map) values.get(5);
       assertNotNull(parameters);
-      assertEquals(6, parameters.size());
+      assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
       assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
@@ -91,7 +91,7 @@ class EDMEnrichmentBoltTest {
 
       int resourceLinksCount = 10;
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourceLinksCount));
-      assertEquals(4, stormTaskTuple.getParameters().size());
+      assertEquals(2, stormTaskTuple.getParameters().size());
       for (int i = 1; i <= resourceLinksCount; i++) {
         edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
         if (i < resourceLinksCount) {
@@ -100,9 +100,9 @@ class EDMEnrichmentBoltTest {
       }
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = (Map) values.get(5);
       assertNotNull(parameters);
-      assertEquals(6, parameters.size());
+      assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
       assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
@@ -117,12 +117,12 @@ class EDMEnrichmentBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-      int expectedParametersSize = 7;
+      int expectedParametersSize = 5;
       Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
       assertEquals(expectedParametersSize, initialTupleParameters.size());
       verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
       Values value = captor.getValue();
-      Map<String, String> parametersAfterExecution = (Map) value.get(4);
+      Map<String, String> parametersAfterExecution = (Map) value.get(5);
       assertNotNull(parametersAfterExecution);
       assertEquals(expectedParametersSize, parametersAfterExecution.size());
       for (String key : parametersAfterExecution.keySet()) {
@@ -141,13 +141,13 @@ class EDMEnrichmentBoltTest {
       String brokenMetaData = "{\"textResourceMetadata\":{\"containsTe/xml\",\"resourceUrl\":\"RESOURCE_URL\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}";
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
       stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
-      assertEquals(4, stormTaskTuple.getParameters().size());
+      assertEquals(2, stormTaskTuple.getParameters().size());
       edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = (Map) values.get(5);
       assertNotNull(parameters);
-      assertEquals(8, parameters.size());
+      assertEquals(6, parameters.size());
       assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
       assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));

@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -23,12 +23,13 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static eu.europeana.cloud.service.dps.test.TestConstants.SOURCE_VERSION_URL;
+import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(WireMockExtension.class)
@@ -82,8 +83,14 @@ class ValidationBoltTest {
   void validateEdm(String resourcePath, String schemaName, String schemaRootLocation) throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get(resourcePath));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-            prepareStormTaskTupleParameters(schemaName, schemaRootLocation), new Revision());
+    ProcessingMetadata processingMetadata = new ProcessingMetadata();
+    processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+    StormTaskTuple tuple = new StormTaskTuple(
+            new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+            new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+            processingMetadata,
+            new StormProcessingMetadata(),
+            prepareStormTaskTupleParameters(schemaName, schemaRootLocation), null);
     validationBolt.execute(anchorTuple, tuple);
     assertSuccessfulValidation();
   }
@@ -92,8 +99,14 @@ class ValidationBoltTest {
   void sendErrorNotificationWhenTheValidationFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
-    StormTaskTuple tuple = new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA,
-            prepareStormTaskTupleParameters("edm-external", null), new Revision());
+    ProcessingMetadata processingMetadata = new ProcessingMetadata();
+    processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+    StormTaskTuple tuple = new StormTaskTuple(
+            new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
+            new FileMetadata(SOURCE_VERSION_URL, FILE_DATA),
+            processingMetadata,
+            new StormProcessingMetadata(),
+            prepareStormTaskTupleParameters("edm-external", null), null);
     validationBolt.execute(anchorTuple, tuple);
     assertFailedValidation();
   }

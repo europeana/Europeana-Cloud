@@ -19,7 +19,7 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-class ProcessingMetadata {
+public class ProcessingMetadata {
 
     Revision outputRevision;
     Revision inputRevision;
@@ -28,7 +28,6 @@ class ProcessingMetadata {
 
 
     Set<Report> reportSet = new HashSet<>();
-
     public ProcessingMetadata(Set<Report> reportSet) {
         this.reportSet = reportSet;
     }
