@@ -34,7 +34,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.SENT_DATE;
 
 /**
  * Stores a Record on the cloud.
@@ -241,8 +240,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
   protected UUID generateNewVersionId(StormTaskTuple tuple) {
     return UUIDWrapper.generateRepresentationVersion(
-        DateHelper.parseISODate(tuple.getParameter(SENT_DATE)).toInstant(),
-        tuple.getFileUrl());
+            DateHelper.parseISODate(tuple.getSentDate()).toInstant(),
+            tuple.getFileUrl());
   }
 
   protected String generateNewFileName(StormTaskTuple tuple) {

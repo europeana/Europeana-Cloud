@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.enrichment.rest.client.report.Report;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -52,7 +51,7 @@ public class NotificationTuple {
     parameters.put(NotificationParameterKeys.STATE, state.toString());
     parameters.put(NotificationParameterKeys.INFO_TEXT, message);
     parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, stormTaskTuple.getMessageProcessingStartTimeInMs());
     if (stormTaskTuple.isMarkedAsDeleted()) {
       parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
     }

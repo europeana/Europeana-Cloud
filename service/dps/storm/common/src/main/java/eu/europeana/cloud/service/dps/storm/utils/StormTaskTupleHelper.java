@@ -21,10 +21,6 @@ public final class StormTaskTupleHelper {
     return parameter == null || "true".equalsIgnoreCase(parameter);
   }
 
-  public static long getRecordProcessingStartTime(StormTaskTuple tuple) {
-    return Long.parseLong(tuple.getParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS));
-  }
-
   public static String extractDatasetId(StormTaskTuple tuple) throws MalformedURLException {
     DataSet dataset = DataSetUrlParser.parse(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
     return dataset.getId();

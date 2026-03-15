@@ -10,15 +10,12 @@ import lombok.Setter;
 public class StormProcessingMetadata {
     int recordAttemptNumber;
     String sentDate;
-    String messageProcessingStartTimeInMs;
+    long messageProcessingStartTimeInMs;
 
-    public StormProcessingMetadata(int recordAttemptNumber, String sentDate, String messageProcessingStartTimeInMs) {
-        this(recordAttemptNumber);
+    public StormProcessingMetadata(int recordAttemptNumber, String sentDate, long messageProcessingStartTimeInMs) {
+        this.recordAttemptNumber = recordAttemptNumber;
         this.sentDate = sentDate;
         this.messageProcessingStartTimeInMs = messageProcessingStartTimeInMs;
     }
 
-    public StormProcessingMetadata(int recordAttemptNumber) {
-        this.recordAttemptNumber = recordAttemptNumber;
-    }
 }

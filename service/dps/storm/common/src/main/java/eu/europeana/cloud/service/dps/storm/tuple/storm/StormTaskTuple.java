@@ -4,7 +4,6 @@ package eu.europeana.cloud.service.dps.storm.tuple.storm;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.enrichment.rest.client.report.Report;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,14 +63,15 @@ public class StormTaskTuple implements Serializable {
 
   public StormTaskTuple(TaskMetadata taskMetadata,
                         StormProcessingMetadata stormProcessingMetadata,
+                        FileMetadata fileMetadata,
                         Map<String, String> parameters,
                         OAIPMHHarvestingDetails harvestingDetails) {
     this.taskMetadata = taskMetadata;
     this.stormProcessingMetadata = stormProcessingMetadata;
+    this.fileMetadata = fileMetadata;
     this.parameters = parameters;
     this.sourceDetails = harvestingDetails;
     this.processingMetadata = new ProcessingMetadata();
-    this.fileMetadata = new FileMetadata();
   }
 
   public StormTaskTuple() {
@@ -84,20 +84,15 @@ public class StormTaskTuple implements Serializable {
   public static StormTaskTuple fromStormTuple(Tuple tuple) {
     return StormTaskTuple.builder()
             .taskMetadata(
-                    new TaskMetadata(tuple.getLongByField(TASK_ID_TUPLE_KEY),
-                            tuple.getStringByField(RECORD_URI_TUPLE_KEY),
-                            tuple.getStringByField(TASK_NAME_TUPLE_KEY)))
+                    (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_KEY))
             .stormProcessingMetadata(
-                    new StormProcessingMetadata(
-                            tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER)))
+                    (StormProcessingMetadata) tuple.getValueByField(STORM_PROCESSING_METADATA_TUPLE_KEY))
             .fileMetadata(
-                    new FileMetadata(tuple.getStringByField(INPUT_FILES_TUPLE_KEY),
-                            tuple.getBinaryByField(FILE_CONTENT_TUPLE_KEY)))
-            .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
+                    (FileMetadata) tuple.getValueByField(FILE_METADATA_TUPLE_KEY))
             .processingMetadata(
-                    new ProcessingMetadata(
-                            (HashSet<Report>) tuple.getValueByField(REPORT_SET_TUPLE_KEY)))
-                         .sourceDetails((OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST))
+                    (ProcessingMetadata) tuple.getValueByField(PROCESSING_METADATA_TUPLE_KEY))
+            .sourceDetails((OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST))
+            .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
                          .build();
   }
 
@@ -117,50 +112,36 @@ public class StormTaskTuple implements Serializable {
 
   public static StormTaskTuple fromValues(List<Object> list) {
     return StormTaskTuple.builder()
-            .taskMetadata(new TaskMetadata(
-                    (Long) list.get(0), (String) list.get(10), (String) list.get(1)
-            ))
-            .stormProcessingMetadata(new StormProcessingMetadata(
-                    (Integer) list.get(7)
-            ))
-            .fileMetadata(new FileMetadata(
-                    (String) list.get(2), (byte[]) list.get(3))
-            )
-            .processingMetadata(new ProcessingMetadata(
-                    (HashSet<Report>) list.get(8)
-            ))
+            .taskMetadata((TaskMetadata) list.get(0))
+            .processingMetadata((ProcessingMetadata) list.get(1))
+            .stormProcessingMetadata((StormProcessingMetadata) list.get(2))
+            .fileMetadata((FileMetadata) list.get(3))
             .parameters((Map<String, String>) list.get(4))
-            .sourceDetails((OAIPMHHarvestingDetails) list.get(6))
+            .sourceDetails((OAIPMHHarvestingDetails) list.get(5))
             .build();
   }
 
   public static Fields getFields() {
     return new Fields(
-            TASK_ID_TUPLE_KEY,
-            TASK_NAME_TUPLE_KEY,
-            INPUT_FILES_TUPLE_KEY,
-            FILE_CONTENT_TUPLE_KEY,
+            TASK_METADATA_TUPLE_KEY,
+            PROCESSING_METADATA_TUPLE_KEY,
+            STORM_PROCESSING_METADATA_TUPLE_KEY,
+            FILE_METADATA_TUPLE_KEY,
             PARAMETERS_TUPLE_KEY,
-            REVISIONS,
-            SOURCE_TO_HARVEST,
-            RECORD_ATTEMPT_NUMBER,
-            THROTTLING_GROUPING_ATTRIBUTE,
-            REPORT_SET_TUPLE_KEY,
-            RECORD_URI_TUPLE_KEY
+            SOURCE_TO_HARVEST
     );
   }
 
 
   public Values toStormTuple() {
     return new Values(
-            taskMetadata.getTaskId(), taskMetadata.getTaskName(),
-            fileMetadata.getFileUrl(), fileMetadata.getFileData(),
+            taskMetadata,
+            processingMetadata,
+            stormProcessingMetadata,
+            fileMetadata,
             parameters,
-            processingMetadata.getOutputRevision(), sourceDetails,
-            stormProcessingMetadata.getRecordAttemptNumber(),
-            throttlingGroupingAttribute,
-            processingMetadata.getReportSet(),
-            taskMetadata.getRecordUri());
+            sourceDetails
+    );
   }
 
 

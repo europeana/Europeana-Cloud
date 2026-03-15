@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Setter
@@ -26,7 +27,7 @@ class ProcessingMetadata {
     DataSet inputDataset;
 
 
-    Set<Report> reportSet;
+    Set<Report> reportSet = new HashSet<>();
 
     public ProcessingMetadata(Set<Report> reportSet) {
         this.reportSet = reportSet;

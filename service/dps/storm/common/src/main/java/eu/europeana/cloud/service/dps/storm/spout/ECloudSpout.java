@@ -11,12 +11,12 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.FileMetadata;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
@@ -127,7 +127,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     stormTaskTuple.setTaskId(message.getTaskId());
     stormTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
     stormTaskTuple.setFileUrl(message.getRecordId());
-    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, String.valueOf(System.currentTimeMillis()));
+    stormTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
     return stormTaskTuple;
   }
 
@@ -201,7 +201,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                       dpsTask.getTaskName(), dpsRecord.isMarkedAsDeleted()),
               new StormProcessingMetadata(aRecord.getAttemptNumber(),
                       DateHelper.format(taskInfo.getSentTimestamp()),
-                      new Date().getTime() + ""),
+                      new Date().getTime()),
+              new FileMetadata(aRecord.getRecordId(), null),
               dpsTask.getParameters(),
               dpsTask.getHarvestingDetails());
       // for validation
