@@ -78,6 +78,7 @@ public final class PluginParameterKeys {
   public static final String INCREMENTAL_HARVEST = "INCREMENTAL_HARVEST";
   public static final String INCREMENTAL_INDEXING = "INCREMENTAL_INDEXING";
   public static final String HARVEST_DATE = "HARVEST_DATE";
+  public static final String HARVESTING_DETAILS = "HARVESTING_DETAILS";
   public static final String RECORD_DATESTAMP = "RECORD_DATESTAMP";
 
   //Media

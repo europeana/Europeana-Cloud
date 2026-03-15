@@ -53,7 +53,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
     String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-    if ((representationName == null || representationName.isEmpty()) && stormTaskTuple.getSourceDetails() != null) {
+    if ((representationName == null || representationName.isEmpty()) && stormTaskTuple.ifParametersContainsKey(PluginParameterKeys.HARVESTING_DETAILS)) {
       representationName = stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
       if (representationName == null) {
         representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);

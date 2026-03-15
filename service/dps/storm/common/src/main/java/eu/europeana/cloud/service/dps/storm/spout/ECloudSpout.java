@@ -195,7 +195,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
                                                   ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
-
       var stormTaskTuple = new StormTaskTuple(
               new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),
                       dpsTask.getTaskName(), dpsRecord.isMarkedAsDeleted()),
@@ -203,9 +202,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                       DateHelper.format(taskInfo.getSentTimestamp()),
                       new Date().getTime()),
               new FileMetadata(aRecord.getRecordId(), null),
-              dpsTask.getParameters(),
-              dpsTask.getHarvestingDetails());
+              dpsTask.getParameters());
       // for validation
+      stormTaskTuple.addParameter(HARVESTING_DETAILS, dpsTask.getHarvestingDetails().toString());
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
 

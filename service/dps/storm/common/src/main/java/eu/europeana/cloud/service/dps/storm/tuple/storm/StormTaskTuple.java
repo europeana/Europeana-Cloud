@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.tuple.storm;
 
 
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +32,6 @@ public class StormTaskTuple implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private Map<String, String> parameters;
-  private OAIPMHHarvestingDetails sourceDetails;
   private String throttlingGroupingAttribute;
   @Delegate
   private StormProcessingMetadata stormProcessingMetadata;
@@ -50,27 +48,23 @@ public class StormTaskTuple implements Serializable {
                         ProcessingMetadata processingMetadata,
                         StormProcessingMetadata stormProcessingMetadata,
                         Map<String, String> parameters,
-                        OAIPMHHarvestingDetails sourceDetails,
                         String throttlingGroupingAttribute) {
     this.taskMetadata = taskMetadata;
     this.fileMetadata = fileMetadata;
     this.processingMetadata = processingMetadata;
     this.stormProcessingMetadata = stormProcessingMetadata;
     this.parameters = parameters;
-    this.sourceDetails = sourceDetails;
     this.throttlingGroupingAttribute = throttlingGroupingAttribute;
   }
 
   public StormTaskTuple(TaskMetadata taskMetadata,
                         StormProcessingMetadata stormProcessingMetadata,
                         FileMetadata fileMetadata,
-                        Map<String, String> parameters,
-                        OAIPMHHarvestingDetails harvestingDetails) {
+                        Map<String, String> parameters) {
     this.taskMetadata = taskMetadata;
     this.stormProcessingMetadata = stormProcessingMetadata;
     this.fileMetadata = fileMetadata;
     this.parameters = parameters;
-    this.sourceDetails = harvestingDetails;
     this.processingMetadata = new ProcessingMetadata();
   }
 
@@ -91,7 +85,6 @@ public class StormTaskTuple implements Serializable {
                     (FileMetadata) tuple.getValueByField(FILE_METADATA_TUPLE_KEY))
             .processingMetadata(
                     (ProcessingMetadata) tuple.getValueByField(PROCESSING_METADATA_TUPLE_KEY))
-            .sourceDetails((OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST))
             .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
                          .build();
   }
@@ -117,7 +110,6 @@ public class StormTaskTuple implements Serializable {
             .stormProcessingMetadata((StormProcessingMetadata) list.get(2))
             .fileMetadata((FileMetadata) list.get(3))
             .parameters((Map<String, String>) list.get(4))
-            .sourceDetails((OAIPMHHarvestingDetails) list.get(5))
             .build();
   }
 
@@ -127,8 +119,7 @@ public class StormTaskTuple implements Serializable {
             PROCESSING_METADATA_TUPLE_KEY,
             STORM_PROCESSING_METADATA_TUPLE_KEY,
             FILE_METADATA_TUPLE_KEY,
-            PARAMETERS_TUPLE_KEY,
-            SOURCE_TO_HARVEST
+            PARAMETERS_TUPLE_KEY
     );
   }
 
@@ -139,8 +130,7 @@ public class StormTaskTuple implements Serializable {
             processingMetadata,
             stormProcessingMetadata,
             fileMetadata,
-            parameters,
-            sourceDetails
+            parameters
     );
   }
 
