@@ -12,10 +12,17 @@ public class TaskMetadata {
     long taskId;
     String recordUri;
     String taskName;
+    boolean markedAsDeleted;
+
 
     public TaskMetadata(long taskId, String recordUri, String taskName) {
         this.taskId = taskId;
         this.recordUri = recordUri;
         this.taskName = taskName;
+    }
+
+    public TaskMetadata(long taskId, String recordUri, String taskName, boolean markedAsDeleted) {
+        this(taskId, recordUri, taskName);
+        this.markedAsDeleted = markedAsDeleted;
     }
 }

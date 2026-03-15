@@ -163,17 +163,6 @@ public class StormTaskTuple implements Serializable {
             taskMetadata.getRecordUri());
   }
 
-  public boolean isMarkedAsDeleted() {
-    return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DELETED));
-  }
-
-  public void setMarkedAsDeleted(boolean markedAsDeleted) {
-    if (markedAsDeleted) {
-      parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
-    } else {
-      parameters.remove(PluginParameterKeys.MARKED_AS_DELETED);
-    }
-  }
 
   public int readParallelizationParam() {
     return Optional.ofNullable(getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION))

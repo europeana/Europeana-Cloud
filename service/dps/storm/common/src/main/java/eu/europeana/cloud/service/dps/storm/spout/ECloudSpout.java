@@ -198,7 +198,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
       var stormTaskTuple = new StormTaskTuple(
               new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),
-                      dpsTask.getTaskName()),
+                      dpsTask.getTaskName(), dpsRecord.isMarkedAsDeleted()),
               new StormProcessingMetadata(aRecord.getAttemptNumber(),
                       DateHelper.format(taskInfo.getSentTimestamp()),
                       new Date().getTime() + ""),
@@ -232,8 +232,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
       }
 
-
-      stormTaskTuple.setMarkedAsDeleted(dpsRecord.isMarkedAsDeleted());
 
       return stormTaskTuple;
     }
