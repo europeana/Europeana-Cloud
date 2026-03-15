@@ -37,6 +37,8 @@ public class StormTaskTuple implements Serializable {
   private OAIPMHHarvestingDetails sourceDetails;
   private String throttlingGroupingAttribute;
   @Delegate
+  private StormProcessingMetadata stormProcessingMetadata;
+  @Delegate
   private ProcessingMetadata processingMetadata;
   @Delegate
   private FileMetadata fileMetadata;
@@ -47,23 +49,29 @@ public class StormTaskTuple implements Serializable {
   public StormTaskTuple(TaskMetadata taskMetadata,
                         FileMetadata fileMetadata,
                         ProcessingMetadata processingMetadata,
+                        StormProcessingMetadata stormProcessingMetadata,
                         Map<String, String> parameters,
                         OAIPMHHarvestingDetails sourceDetails,
                         String throttlingGroupingAttribute) {
     this.taskMetadata = taskMetadata;
     this.fileMetadata = fileMetadata;
     this.processingMetadata = processingMetadata;
+    this.stormProcessingMetadata = stormProcessingMetadata;
     this.parameters = parameters;
     this.sourceDetails = sourceDetails;
     this.throttlingGroupingAttribute = throttlingGroupingAttribute;
   }
 
   public StormTaskTuple(TaskMetadata taskMetadata,
+                        StormProcessingMetadata stormProcessingMetadata,
                         Map<String, String> parameters,
                         OAIPMHHarvestingDetails harvestingDetails) {
     this.taskMetadata = taskMetadata;
+    this.stormProcessingMetadata = stormProcessingMetadata;
     this.parameters = parameters;
     this.sourceDetails = harvestingDetails;
+    this.processingMetadata = new ProcessingMetadata();
+    this.fileMetadata = new FileMetadata();
   }
 
   public StormTaskTuple() {
@@ -78,12 +86,13 @@ public class StormTaskTuple implements Serializable {
             .taskMetadata(
                     new TaskMetadata(tuple.getLongByField(TASK_ID_TUPLE_KEY),
                             tuple.getStringByField(RECORD_URI_TUPLE_KEY),
-                            tuple.getStringByField(TASK_NAME_TUPLE_KEY),
+                            tuple.getStringByField(TASK_NAME_TUPLE_KEY)))
+            .stormProcessingMetadata(
+                    new StormProcessingMetadata(
                             tuple.getIntegerByField(RECORD_ATTEMPT_NUMBER)))
             .fileMetadata(
                     new FileMetadata(tuple.getStringByField(INPUT_FILES_TUPLE_KEY),
                             tuple.getBinaryByField(FILE_CONTENT_TUPLE_KEY)))
-
             .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
             .processingMetadata(
                     new ProcessingMetadata(
@@ -109,7 +118,10 @@ public class StormTaskTuple implements Serializable {
   public static StormTaskTuple fromValues(List<Object> list) {
     return StormTaskTuple.builder()
             .taskMetadata(new TaskMetadata(
-                    (Long) list.get(0), (String) list.get(10), (String) list.get(1), (Integer) list.get(7)
+                    (Long) list.get(0), (String) list.get(10), (String) list.get(1)
+            ))
+            .stormProcessingMetadata(new StormProcessingMetadata(
+                    (Integer) list.get(7)
             ))
             .fileMetadata(new FileMetadata(
                     (String) list.get(2), (byte[]) list.get(3))
@@ -145,7 +157,7 @@ public class StormTaskTuple implements Serializable {
             fileMetadata.getFileUrl(), fileMetadata.getFileData(),
             parameters,
             processingMetadata.getOutputRevision(), sourceDetails,
-            taskMetadata.getRecordAttemptNumber(),
+            stormProcessingMetadata.getRecordAttemptNumber(),
             throttlingGroupingAttribute,
             processingMetadata.getReportSet(),
             taskMetadata.getRecordUri());

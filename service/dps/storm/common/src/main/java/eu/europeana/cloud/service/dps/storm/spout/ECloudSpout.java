@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
@@ -197,7 +198,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
       var stormTaskTuple = new StormTaskTuple(
               new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),
-                      dpsTask.getTaskName(), aRecord.getAttemptNumber(),
+                      dpsTask.getTaskName()),
+              new StormProcessingMetadata(aRecord.getAttemptNumber(),
                       DateHelper.format(taskInfo.getSentTimestamp()),
                       new Date().getTime() + ""),
               dpsTask.getParameters(),
