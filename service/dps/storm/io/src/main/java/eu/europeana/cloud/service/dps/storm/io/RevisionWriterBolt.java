@@ -106,32 +106,32 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
   protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL)
       throws MalformedURLException, MCSException {
-    if (stormTaskTuple.hasOutputRevision()) {
+    if (stormTaskTuple.getOutputRevision() != null) {
       LOGGER.info("The following revision will be added: {}", stormTaskTuple.getOutputRevision());
       final UrlParser urlParser = new UrlParser(affectedResourceURL);
-      Revision revisionToBeApplied = stormTaskTuple.getOutputRevision();
-      if (revisionToBeApplied.getCreationTimeStamp() == null) {
-        revisionToBeApplied.setCreationTimeStamp(new Date());
+      Revision outputRevision = stormTaskTuple.getOutputRevision();
+      if (outputRevision.getCreationTimeStamp() == null) {
+        outputRevision.setCreationTimeStamp(new Date());
       }
 
       if (stormTaskTuple.isMarkedAsDeleted()) {
-        revisionToBeApplied = new Revision(revisionToBeApplied);
-        revisionToBeApplied.setDeleted(true);
+        outputRevision = new Revision(outputRevision);
+        outputRevision.setDeleted(true);
       }
 
-      addRevision(urlParser, revisionToBeApplied);
+      addRevision(urlParser, outputRevision);
     } else {
       LOGGER.info("Revisions list is empty");
     }
   }
 
-  private void addRevision(UrlParser urlParser, Revision revisionToBeApplied) throws MCSException {
+  private void addRevision(UrlParser urlParser, Revision outputRevision) throws MCSException {
     RetryableMethodExecutor.executeOnRest("Error while adding Revisions", () ->
-        revisionsClient.addRevision(
-            urlParser.getPart(UrlPart.RECORDS),
-            urlParser.getPart(UrlPart.REPRESENTATIONS),
-            urlParser.getPart(UrlPart.VERSIONS),
-            revisionToBeApplied)
+            revisionsClient.addRevision(
+                    urlParser.getPart(UrlPart.RECORDS),
+                    urlParser.getPart(UrlPart.REPRESENTATIONS),
+                    urlParser.getPart(UrlPart.VERSIONS),
+                    outputRevision)
     );
   }
 

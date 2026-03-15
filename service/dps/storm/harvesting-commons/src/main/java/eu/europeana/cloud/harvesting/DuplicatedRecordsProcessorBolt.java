@@ -161,15 +161,15 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             tuple.getOutputRevision());
   }
 
-  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(Representation representation, Revision revisionToBeApplied)
+  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(Representation representation, Revision outputRevision)
           throws MCSException {
     return recordServiceClient.getRepresentationRawRevisions(
             representation.getCloudId(), representation.getRepresentationName(),
             new Revision(
-                    revisionToBeApplied.getRevisionName(),
-                    revisionToBeApplied.getRevisionProviderId(),
+                    outputRevision.getRevisionName(),
+                    outputRevision.getRevisionProviderId(),
                     //TODO there is helper class for that
-                    new DateTime(revisionToBeApplied.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
+                    new DateTime(outputRevision.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
     );
   }
 
@@ -187,8 +187,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     } else {
       throw new MCSException("Output URL is not URL to the representation version file");
     }
-    if (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_DATA_SETS)) {
-      parser = new UrlParser(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
+    if (tuple.getOutputDataset() != null) {
+      parser = new UrlParser(tuple.getOutputDataset().getUri().toString());
       if (parser.isUrlToDataset()) {
         representation.setDatasetId(parser.getPart(UrlPart.DATA_SETS));
         representation.setDataProvider(parser.getPart(UrlPart.DATA_PROVIDERS));

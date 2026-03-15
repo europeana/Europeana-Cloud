@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.tuple.storm;
 
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -45,37 +44,32 @@ public class StormTaskTuple implements Serializable {
   private TaskMetadata taskMetadata;
 
   public StormTaskTuple() {
-    this(0L, "", null, null, new HashMap<>(), null);
+    this(0L, "", null, null, new HashMap<>());
   }
 
-  public StormTaskTuple(long taskId, String taskName, String fileUrl,
-                        byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied) {
-    this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, null);
-  }
 
   public StormTaskTuple(long taskId, String taskName, String fileUrl,
                         byte[] fileData, Map<String, String> parameters) {
-    this(taskId, taskName, fileUrl, fileData, parameters, null, null);
+    this(taskId, taskName, fileUrl, fileData, parameters, null);
   }
   public StormTaskTuple(long taskId, String taskName, String fileUrl,
-      byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
-      OAIPMHHarvestingDetails sourceDetails) {
-    this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, 0, new HashSet<>());
+                        byte[] fileData, Map<String, String> parameters,
+                        OAIPMHHarvestingDetails sourceDetails) {
+    this(taskId, taskName, fileUrl, fileData, parameters, sourceDetails, 0, new HashSet<>());
   }
 
   public StormTaskTuple(long taskId, String taskName, String fileUrl,
-      byte[] fileData, Map<String, String> parameters, Revision revisionToBeApplied,
-      OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber, Set<Report> reports) {
-    this(taskId, taskName, fileUrl, fileData, parameters, revisionToBeApplied, sourceDetails, recordAttemptNumber, reports, null);
+                        byte[] fileData, Map<String, String> parameters,
+                        OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber, Set<Report> reports) {
+    this(taskId, taskName, fileUrl, fileData, parameters, sourceDetails, recordAttemptNumber, reports, null);
   }
 
-  public StormTaskTuple(long taskId, String taskName, String fileUrl, byte[] fileData, Map<String, String> parameters,
-                        Revision revisionToBeApplied, OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber,
+  public StormTaskTuple(long taskId, String taskName, String fileUrl, byte[] fileData, Map<String, String> parameters, OAIPMHHarvestingDetails sourceDetails, int recordAttemptNumber,
                         Set<Report> reportSet, String throttlingGroupingAttribute) {
     this.parameters = parameters;
     this.sourceDetails = sourceDetails;
     this.throttlingGroupingAttribute = throttlingGroupingAttribute;
-    this.processingMetadata = new ProcessingMetadata(revisionToBeApplied, reportSet);
+    this.processingMetadata = new ProcessingMetadata(reportSet);
     this.fileMetadata = new FileMetadata(fileUrl, fileData);
     this.taskMetadata = new TaskMetadata(taskId, taskName, recordAttemptNumber);
   }
@@ -108,7 +102,6 @@ public class StormTaskTuple implements Serializable {
             .parameters((HashMap<String, String>) tuple.getValueByField(PARAMETERS_TUPLE_KEY))
             .processingMetadata(
                     new ProcessingMetadata(
-                            (Revision) tuple.getValueByField(REVISIONS),
                             (HashSet<Report>) tuple.getValueByField(REPORT_SET_TUPLE_KEY)))
                          .sourceDetails((OAIPMHHarvestingDetails) tuple.getValueByField(SOURCE_TO_HARVEST))
                          .build();
@@ -137,7 +130,7 @@ public class StormTaskTuple implements Serializable {
                     (String) list.get(2), (byte[]) list.get(3))
             )
             .processingMetadata(new ProcessingMetadata(
-                    (Revision) list.get(5), (HashSet<Report>) list.get(8)
+                    (HashSet<Report>) list.get(8)
             ))
             .parameters((Map<String, String>) list.get(4))
             .sourceDetails((OAIPMHHarvestingDetails) list.get(6))

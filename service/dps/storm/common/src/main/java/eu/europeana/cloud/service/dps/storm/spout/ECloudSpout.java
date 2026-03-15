@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
@@ -32,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
@@ -158,6 +161,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         } else {
           return emitRecordForProcessing(streamId, message, aRecord, messageId);
         }
+      } catch (MalformedURLException | URISyntaxException e) {
+        LOGGER.error("Unable to parse Uri", e);
+        return Collections.emptyList();
       } catch (IOException | NullPointerException e) {
         LOGGER.error("Unable to read message", e);
         return Collections.emptyList();
@@ -186,25 +192,44 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
-        ProcessedRecord aRecord) {
+                                                  ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
       //
       var stormTaskTuple = new StormTaskTuple(
-          dpsTask.getTaskId(),
-          dpsTask.getTaskName(),
-          dpsRecord.getRecordId(),
-          null,
-          dpsTask.getParameters(),
-          dpsTask.getOutputRevision(),
-          dpsTask.getHarvestingDetails());
+              dpsTask.getTaskId(),
+              dpsTask.getTaskName(),
+              dpsRecord.getRecordId(),
+              null,
+              dpsTask.getParameters(),
+              dpsTask.getHarvestingDetails());
       //
       stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
       stormTaskTuple.addParameter(SENT_DATE, DateHelper.format(taskInfo.getSentTimestamp()));
       stormTaskTuple.addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
 
+
       List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
       if (!isEmpty(repositoryUrlList)) {
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
+      }
+      List<String> datasetUrlList = dpsTask.getDataEntry(InputDataType.DATASET_URLS);
+      if (!isEmpty(datasetUrlList)) {
+        stormTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));
+      }
+      if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {
+        stormTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));
+      }
+
+      if (dpsTask.getOutputRevision() != null) {
+        stormTaskTuple.setOutputRevision(dpsTask.getOutputRevision());
+      }
+      if (dpsTask.isParameterPresent(REVISION_TIMESTAMP) &&
+              dpsTask.isParameterPresent(REVISION_NAME) &&
+              dpsTask.isParameterPresent(REPRESENTATION_VERSION)) {
+        stormTaskTuple.setInputRevision(new Revision(
+                dpsTask.getParameter(REVISION_NAME),
+                dpsTask.getParameter(REVISION_PROVIDER),
+                DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
       }
 
       //Implementation of re-try mechanism after topology broken down
@@ -268,7 +293,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
-        Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+                                          Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException, URISyntaxException {
       var taskInfo = getTaskInfo(message);
       var dpsTask = DpsTask.fromTaskInfo(taskInfo);
       updateDiagnosticCounters(aRecord);
