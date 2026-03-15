@@ -5,19 +5,20 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 public class ValidationBolt extends AbstractDpsBolt {
 

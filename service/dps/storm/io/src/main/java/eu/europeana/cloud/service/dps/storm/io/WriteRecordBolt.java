@@ -15,7 +15,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
@@ -80,7 +80,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   * (xslt, enrichment, normalization, oai or media)
    */
   private boolean shouldNewRepresentationBeCreated(StormTaskTuple tuple) {
-    if (!isRevisionProvided(tuple.getRevisionToBeApplied())) return true;
+    if (!isRevisionProvided(tuple.getOutputRevision())) return true;
 
     if (tuple.isMarkedAsDeleted()) {
       return false;

@@ -1,12 +1,13 @@
 package eu.europeana.cloud.harvesting.commons;
 
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.lang.StringUtils;
+
+import java.nio.charset.StandardCharsets;
 
 public class IdentifierSupplier {
 
@@ -25,7 +26,7 @@ public class IdentifierSupplier {
 
   private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(StormTaskTuple stormTaskTuple, String datasetId)
       throws EuropeanaIdException {
-    String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+    String document = new String(stormTaskTuple.getFileMetadata().getFileData(), StandardCharsets.UTF_8);
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     return europeanIdCreator.constructEuropeanaId(document, datasetId);
   }

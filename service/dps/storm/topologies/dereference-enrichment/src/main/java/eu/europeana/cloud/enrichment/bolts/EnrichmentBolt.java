@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltFinalizationException;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
@@ -18,13 +18,14 @@ import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult.RecordStatus;
 import eu.europeana.enrichment.rest.client.report.Report;
 import eu.europeana.enrichment.rest.client.report.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Call the remote enrichment service in order to dereference and enrich a file.

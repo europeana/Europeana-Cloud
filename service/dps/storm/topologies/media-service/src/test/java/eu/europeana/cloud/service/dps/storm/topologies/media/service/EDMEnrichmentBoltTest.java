@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;

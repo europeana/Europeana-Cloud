@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -106,10 +106,10 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
 
   protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL)
       throws MalformedURLException, MCSException {
-    if (stormTaskTuple.hasRevisionToBeApplied()) {
-      LOGGER.info("The following revision will be added: {}", stormTaskTuple.getRevisionToBeApplied());
+    if (stormTaskTuple.hasOutputRevision()) {
+      LOGGER.info("The following revision will be added: {}", stormTaskTuple.getOutputRevision());
       final UrlParser urlParser = new UrlParser(affectedResourceURL);
-      Revision revisionToBeApplied = stormTaskTuple.getRevisionToBeApplied();
+      Revision revisionToBeApplied = stormTaskTuple.getOutputRevision();
       if (revisionToBeApplied.getCreationTimeStamp() == null) {
         revisionToBeApplied.setCreationTimeStamp(new Date());
       }

@@ -2,7 +2,7 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;

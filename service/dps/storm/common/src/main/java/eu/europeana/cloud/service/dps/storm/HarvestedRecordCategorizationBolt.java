@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

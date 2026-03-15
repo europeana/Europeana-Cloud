@@ -8,8 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
@@ -18,22 +18,18 @@ import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.exception.RdfSerializationException;
 import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.ResourceMetadata;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EDMEnrichmentBolt extends ReadFileBolt {
 

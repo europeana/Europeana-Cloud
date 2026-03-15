@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;

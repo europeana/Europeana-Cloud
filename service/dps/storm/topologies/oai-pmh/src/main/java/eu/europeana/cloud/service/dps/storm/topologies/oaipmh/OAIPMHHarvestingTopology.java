@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh;
 
 import eu.europeana.cloud.harvesting.DuplicatedRecordsProcessorBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.OaiHarvestedRecordCategorizationBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt.RecordHarvestingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;

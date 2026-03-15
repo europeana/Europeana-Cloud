@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import lombok.ToString;

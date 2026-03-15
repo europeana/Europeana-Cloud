@@ -6,7 +6,7 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;

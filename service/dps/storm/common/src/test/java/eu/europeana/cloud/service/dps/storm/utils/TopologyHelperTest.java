@@ -2,9 +2,9 @@ package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import org.apache.storm.Config;
 import org.apache.storm.topology.BoltDeclarer;
 import org.apache.storm.topology.SpoutDeclarer;

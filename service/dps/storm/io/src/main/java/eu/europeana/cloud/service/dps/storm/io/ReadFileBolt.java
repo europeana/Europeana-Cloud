@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;

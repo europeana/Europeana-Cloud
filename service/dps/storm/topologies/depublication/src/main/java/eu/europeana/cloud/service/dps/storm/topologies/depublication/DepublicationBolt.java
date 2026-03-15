@@ -7,15 +7,16 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
-import java.util.Properties;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
 
 public class DepublicationBolt extends AbstractDpsBolt {
 

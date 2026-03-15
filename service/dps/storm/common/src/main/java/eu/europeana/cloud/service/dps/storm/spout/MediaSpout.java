@@ -3,13 +3,14 @@ package eu.europeana.cloud.service.dps.storm.spout;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.SpoutProperties;
-import java.util.Map;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
+
+import java.util.Map;
 
 public class MediaSpout extends ECloudSpout {
 

@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.enrichment.rest.client.report.Report;

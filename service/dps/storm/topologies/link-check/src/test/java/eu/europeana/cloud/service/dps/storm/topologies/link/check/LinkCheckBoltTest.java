@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import org.apache.storm.task.OutputCollector;

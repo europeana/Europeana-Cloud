@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 import org.joda.time.DateTime;
@@ -68,7 +68,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
     try {
       Representation representation = extractRepresentationInfoFromTuple(tuple);
-      Revision revision = tuple.getRevisionToBeApplied();
+      Revision revision = tuple.getOutputRevision();
       // Based on processing mode we either look for representation with same revisions or representations with same versions
       if (revision != null) {
         if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision))
@@ -158,7 +158,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             representation.getCloudId(),
             representation.getRepresentationName(),
             representation.getVersion(),
-            tuple.getRevisionToBeApplied());
+            tuple.getOutputRevision());
   }
 
   private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(Representation representation, Revision revisionToBeApplied)

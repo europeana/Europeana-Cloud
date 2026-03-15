@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.grouping.ShuffleGrouping;

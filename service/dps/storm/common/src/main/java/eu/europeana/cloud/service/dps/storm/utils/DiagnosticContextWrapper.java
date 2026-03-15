@@ -1,13 +1,13 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.common.log.AttributePassingUtils.*;
-
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
+import static eu.europeana.cloud.common.log.AttributePassingUtils.*;
 
 public final class DiagnosticContextWrapper {
 

@@ -1,18 +1,17 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.tuple.notification;
 
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.enrichment.rest.client.report.Report;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+
+import java.util.*;
 
 /**
  * Tuple for notifications utilities.

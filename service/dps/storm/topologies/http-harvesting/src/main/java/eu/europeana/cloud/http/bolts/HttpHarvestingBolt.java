@@ -1,14 +1,12 @@
 package eu.europeana.cloud.http.bolts;
 
-import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -21,6 +19,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
 
 public class HttpHarvestingBolt extends AbstractDpsBolt {
 

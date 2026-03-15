@@ -4,8 +4,8 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 

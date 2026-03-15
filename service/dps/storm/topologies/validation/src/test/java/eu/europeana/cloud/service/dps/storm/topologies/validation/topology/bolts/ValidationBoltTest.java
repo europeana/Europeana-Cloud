@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;

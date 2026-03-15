@@ -1,26 +1,27 @@
 package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import java.io.IOException;
-import java.time.Instant;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.Instant;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
 
 /**
  * Storm bolt for harvesting single record from OAI endpoint.

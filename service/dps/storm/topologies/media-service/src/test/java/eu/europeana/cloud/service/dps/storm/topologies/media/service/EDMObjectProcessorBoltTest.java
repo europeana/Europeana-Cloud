@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;

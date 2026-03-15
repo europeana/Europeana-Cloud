@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -25,9 +27,6 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-import static java.lang.Integer.parseInt;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.

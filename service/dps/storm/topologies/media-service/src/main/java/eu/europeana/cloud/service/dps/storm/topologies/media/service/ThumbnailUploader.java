@@ -2,16 +2,17 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import eu.europeana.cloud.common.utils.Clock;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThumbnailUploader {
 

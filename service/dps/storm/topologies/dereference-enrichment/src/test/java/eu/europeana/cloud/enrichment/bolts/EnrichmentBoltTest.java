@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
