@@ -21,8 +21,8 @@ public class RevisionWriterBoltForValidation extends RevisionWriterBolt {
   }
 
   private static boolean detectDuplicates(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.ifParametersContainsKey(PluginParameterKeys.TASK_SUBTYPE) &&
-            stormTaskTuple.getParameter(PluginParameterKeys.TASK_SUBTYPE)
+    return stormTaskTuple.ifParametersContainsKey(PluginParameterKeys.JOB_NAME) &&
+            stormTaskTuple.getParameter(PluginParameterKeys.JOB_NAME)
                     .equals(ValidationTypes.VALIDATE_EXTERNAL.toString());
   }
 
