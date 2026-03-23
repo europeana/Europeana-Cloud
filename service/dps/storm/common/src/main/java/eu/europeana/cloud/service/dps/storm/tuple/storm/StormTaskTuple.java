@@ -109,17 +109,18 @@ public class StormTaskTuple implements Serializable {
 
   public static StormTaskTuple fromValues(List<Object> list) {
     return StormTaskTuple.builder()
-            .taskMetadata((TaskMetadata) list.get(1))
-            .processingMetadata((ProcessingMetadata) list.get(2))
-            .stormProcessingMetadata((StormProcessingMetadata) list.get(3))
-            .fileMetadata((FileMetadata) list.get(4))
-            .parameters((Map<String, String>) list.get(5))
+            .taskMetadata((TaskMetadata) list.get(2))
+            .processingMetadata((ProcessingMetadata) list.get(3))
+            .stormProcessingMetadata((StormProcessingMetadata) list.get(4))
+            .fileMetadata((FileMetadata) list.get(5))
+            .parameters((Map<String, String>) list.get(6))
             .build();
   }
 
   public static Fields getFields() {
     return new Fields(
             TASK_ID_TUPLE_KEY,
+            INPUT_FILES_TUPLE_KEY,
             TASK_METADATA_TUPLE_KEY,
             PROCESSING_METADATA_TUPLE_KEY,
             STORM_PROCESSING_METADATA_TUPLE_KEY,
@@ -132,11 +133,13 @@ public class StormTaskTuple implements Serializable {
   public Values toStormTuple() {
     return new Values(
             taskMetadata.getTaskId(),
+            fileMetadata.getFileUrl(),
             taskMetadata,
             processingMetadata,
             stormProcessingMetadata,
             fileMetadata,
             parameters
+
     );
   }
 
