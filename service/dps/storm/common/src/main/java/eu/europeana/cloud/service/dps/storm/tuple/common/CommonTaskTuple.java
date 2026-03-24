@@ -59,11 +59,11 @@ public class CommonTaskTuple implements Serializable {
   public static CommonTaskTuple fromStormTuple(Tuple tuple) {
     return CommonTaskTuple.builder()
             .taskMetadata(
-                    (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_KEY))
+                    (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_FIELD))
             .stormProcessingMetadata(
-                    (StormProcessingMetadata) tuple.getValueByField(STORM_PROCESSING_METADATA_TUPLE_KEY))
+                    (StormProcessingMetadata) tuple.getValueByField(STORM_PROCESSING_METADATA_TUPLE_FIELD))
             .recordMetadata(
-                    (RecordMetadata) tuple.getValueByField(RECORD_METADATA_TUPLE_KEY))
+                    (RecordMetadata) tuple.getValueByField(RECORD_METADATA_TUPLE_FIELD))
             .build();
   }
 
@@ -95,12 +95,12 @@ public class CommonTaskTuple implements Serializable {
 
   public static Fields getFields() {
     return new Fields(
-            TASK_ID_TUPLE_KEY,
-            INPUT_FILES_TUPLE_KEY,
-            THROTTLING_GROUPING_ATTRIBUTE,
-            TASK_METADATA_TUPLE_KEY,
-            STORM_PROCESSING_METADATA_TUPLE_KEY,
-            RECORD_METADATA_TUPLE_KEY
+            TASK_ID_TUPLE_FIELD,
+            INPUT_FILES_TUPLE_FIELD,
+            THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD,
+            TASK_METADATA_TUPLE_FIELD,
+            STORM_PROCESSING_METADATA_TUPLE_FIELD,
+            RECORD_METADATA_TUPLE_FIELD
     );
   }
 
