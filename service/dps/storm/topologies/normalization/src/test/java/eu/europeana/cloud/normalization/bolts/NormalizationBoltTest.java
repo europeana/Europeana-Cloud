@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -106,7 +106,7 @@ class NormalizationBoltTest {
     var tuple = new CommonTaskTuple(
             new TaskData(123, "TASK_NAME"),
             new RecordData(fileUrl, inputData, true),
-            new StormProcessingData());
+            new processingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
     return tuple;
   }

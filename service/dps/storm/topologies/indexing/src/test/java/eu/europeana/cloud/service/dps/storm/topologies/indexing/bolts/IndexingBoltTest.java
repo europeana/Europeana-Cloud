@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemove
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -121,8 +121,9 @@ class IndexingBoltTest {
     Values capturedValues = captor.getValue();
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -159,8 +160,8 @@ class IndexingBoltTest {
     assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -196,10 +197,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(LATEST_HARVEST_DATE)
             .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -275,10 +277,11 @@ class IndexingBoltTest {
             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
             .build());
     Values capturedValues = captor.getValue();
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -316,8 +319,9 @@ class IndexingBoltTest {
     Values capturedValues = captor.getValue();
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -346,8 +350,9 @@ class IndexingBoltTest {
     Values capturedValues = captor.getValue();
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            ((RecordData) capturedValues.get(4)).getRecordUri());
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(5);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -463,19 +468,18 @@ class IndexingBoltTest {
     CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskData(1, "taskName"),
             new RecordData(FILE_URL, new byte[]{'a', 'b', 'c'}),
-            processingMetadata,
-            new StormProcessingData(),
-            new HashMap<>() {
-              {
-                put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
-                put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
-                put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
-                put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-                put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-                put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                        "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
-              }
-            }, null);
+            new processingData());
+    tuple.setParameters(new HashMap<>() {
+      {
+        put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
+        put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
+        put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
+        put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+        put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+        put(PluginParameterKeys.OUTPUT_DATA_SETS,
+                "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
+      }
+    });
     tuple.setOutputRevision(new Revision("NAME", "PROVIDER", new Date()));
     return tuple;
   }

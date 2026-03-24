@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -120,7 +120,7 @@ public final class TopologyHelper {
     kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
             OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
             DataSetCleanerParameters.class.getName(), Report.class.getName(), CassandraProperties.class.getName(),
-            RecordData.class.getName(), StormProcessingData.class.getName(), TaskData.class.getName()));
+            RecordData.class.getName(), processingData.class.getName(), TaskData.class.getName()));
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());

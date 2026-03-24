@@ -35,7 +35,7 @@ public class CommonTaskTuple implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @Delegate
-  private StormProcessingData stormProcessingData;
+  private processingData processingData;
   @Delegate
   private RecordData fileMetadata;
   @Delegate
@@ -44,24 +44,24 @@ public class CommonTaskTuple implements Serializable {
   @Builder
   public CommonTaskTuple(TaskData taskData,
                          RecordData recordData,
-                         StormProcessingData stormProcessingData) {
+                         processingData processingData) {
     this.taskData = taskData;
-    this.stormProcessingData = stormProcessingData;
+    this.processingData = processingData;
     this.fileMetadata = recordData;
   }
 
   public CommonTaskTuple() {
     this.taskData = new TaskData();
     this.fileMetadata = new RecordData();
-    this.stormProcessingData = new StormProcessingData();
+    this.processingData = new processingData();
   }
 
   public static CommonTaskTuple fromStormTuple(Tuple tuple) {
     return CommonTaskTuple.builder()
             .taskData(
                     (TaskData) tuple.getValueByField(TASK_DATA_TUPLE_FIELD))
-            .stormProcessingData(
-                    (StormProcessingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
+            .processingData(
+                    (processingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
             .recordData(
                     (RecordData) tuple.getValueByField(RECORD_DATA_TUPLE_FIELD))
             .build();
@@ -88,7 +88,7 @@ public class CommonTaskTuple implements Serializable {
   public static CommonTaskTuple fromValues(List<Object> list) {
     return CommonTaskTuple.builder()
             .taskData((TaskData) list.get(3))
-            .stormProcessingData((StormProcessingData) list.get(4))
+            .processingData((processingData) list.get(4))
             .recordData((RecordData) list.get(5))
             .build();
   }
@@ -109,9 +109,9 @@ public class CommonTaskTuple implements Serializable {
     return new Values(
             taskData.getTaskId(),
             fileMetadata.getRecordUri(),
-            stormProcessingData.getThrottlingGroupingAttribute(),
+            processingData.getThrottlingGroupingAttribute(),
             taskData,
-            stormProcessingData,
+            processingData,
             fileMetadata
 
     );

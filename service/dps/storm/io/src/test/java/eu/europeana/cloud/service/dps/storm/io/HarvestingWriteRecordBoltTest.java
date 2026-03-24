@@ -14,7 +14,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
@@ -91,7 +91,7 @@ class HarvestingWriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, "sampleTaskName"),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
@@ -103,7 +103,7 @@ class HarvestingWriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, "sampleTaskName"),
                 new RecordData(SOURCE + LOCAL_ID, FILE_DATA),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());

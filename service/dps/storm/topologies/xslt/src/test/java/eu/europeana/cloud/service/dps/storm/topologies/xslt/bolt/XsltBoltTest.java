@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.commons.io.IOUtils;
@@ -65,7 +65,7 @@ class XsltBoltTest {
     CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskData(TASK_ID, TASK_NAME),
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
-            new StormProcessingData());
+            new processingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
@@ -89,7 +89,7 @@ class XsltBoltTest {
     CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskData(TASK_ID, TASK_NAME),
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
-            new StormProcessingData());
+            new processingData());
     tuple.setParameters(parameters);
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);

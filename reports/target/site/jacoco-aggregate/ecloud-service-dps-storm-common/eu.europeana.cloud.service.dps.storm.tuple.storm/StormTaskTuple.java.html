@@ -34,7 +34,7 @@ public class StormTaskTuple implements Serializable {
 <span class="nc" id="L34">  private Map&lt;String, String&gt; parameters;</span>
 <span class="nc" id="L35">  private String throttlingGroupingAttribute;</span>
 <span class="nc" id="L36">  @Delegate</span>
-<span class="nc" id="L37">  private StormProcessingMetadata stormProcessingData;</span>
+<span class="nc" id="L37">  private StormProcessingMetadata processingData;</span>
 <span class="nc" id="L38">  @Delegate</span>
 <span class="nc" id="L39">  private ProcessingMetadata processingMetadata;</span>
 <span class="nc" id="L40">  @Delegate</span>
@@ -46,22 +46,22 @@ public class StormTaskTuple implements Serializable {
   public StormTaskTuple(TaskMetadata taskData,
                         FileMetadata recordData,
                         ProcessingMetadata processingMetadata,
-                        StormProcessingMetadata stormProcessingData,
+                        StormProcessingMetadata processingData,
                         Map&lt;String, String&gt; parameters,
 <span class="nc" id="L51">                        String throttlingGroupingAttribute) {</span>
 <span class="nc" id="L52">    this.taskData = taskData;</span>
 <span class="nc" id="L53">    this.recordData = recordData;</span>
 <span class="nc" id="L54">    this.processingMetadata = processingMetadata;</span>
-<span class="nc" id="L55">    this.stormProcessingData = stormProcessingData;</span>
+<span class="nc" id="L55">    this.processingData = processingData;</span>
 <span class="nc" id="L56">    this.parameters = parameters;</span>
 <span class="nc" id="L57">    this.throttlingGroupingAttribute = throttlingGroupingAttribute;</span>
 <span class="nc" id="L58">  }</span>
 
   public StormTaskTuple(TaskMetadata taskData,
-                        StormProcessingMetadata stormProcessingData,
+                        StormProcessingMetadata processingData,
 <span class="nc" id="L62">                        FileMetadata recordData) {</span>
 <span class="nc" id="L63">    this.taskData = taskData;</span>
-<span class="nc" id="L64">    this.stormProcessingData = stormProcessingData;</span>
+<span class="nc" id="L64">    this.processingData = processingData;</span>
 <span class="nc" id="L65">    this.recordData = recordData;</span>
 <span class="nc" id="L66">    this.processingMetadata = new ProcessingMetadata();</span>
 <span class="nc" id="L67">    this.parameters = new HashMap&lt;&gt;();</span>
@@ -72,14 +72,14 @@ public class StormTaskTuple implements Serializable {
 <span class="nc" id="L72">    this.taskData = new TaskMetadata();</span>
 <span class="nc" id="L73">    this.recordData = new FileMetadata();</span>
 <span class="nc" id="L74">    this.processingMetadata = new ProcessingMetadata();</span>
-<span class="nc" id="L75">    this.stormProcessingData = new StormProcessingMetadata();</span>
+<span class="nc" id="L75">    this.processingData = new StormProcessingMetadata();</span>
 <span class="nc" id="L76">  }</span>
 
   public static StormTaskTuple fromStormTuple(Tuple tuple) {
 <span class="nc" id="L79">    return StormTaskTuple.builder()</span>
 <span class="nc" id="L80">            .taskData(</span>
 <span class="nc" id="L81">                    (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_KEY))</span>
-<span class="nc" id="L82">            .stormProcessingData(</span>
+<span class="nc" id="L82">            .processingData(</span>
 <span class="nc" id="L83">                    (StormProcessingMetadata) tuple.getValueByField(STORM_PROCESSING_METADATA_TUPLE_KEY))</span>
 <span class="nc" id="L84">            .recordData(</span>
 <span class="nc" id="L85">                    (FileMetadata) tuple.getValueByField(FILE_METADATA_TUPLE_KEY))</span>
@@ -111,7 +111,7 @@ public class StormTaskTuple implements Serializable {
 <span class="nc" id="L111">    return StormTaskTuple.builder()</span>
 <span class="nc" id="L112">            .taskData((TaskMetadata) list.get(1))</span>
 <span class="nc" id="L113">            .processingMetadata((ProcessingMetadata) list.get(2))</span>
-<span class="nc" id="L114">            .stormProcessingData((StormProcessingMetadata) list.get(3))</span>
+<span class="nc" id="L114">            .processingData((StormProcessingMetadata) list.get(3))</span>
 <span class="nc" id="L115">            .recordData((FileMetadata) list.get(4))</span>
 <span class="nc" id="L116">            .parameters((Map&lt;String, String&gt;) list.get(5))</span>
 <span class="nc" id="L117">            .build();</span>
@@ -134,7 +134,7 @@ public class StormTaskTuple implements Serializable {
 <span class="nc" id="L134">            taskData.getTaskId(),</span>
             taskData,
             processingMetadata,
-            stormProcessingData,
+            processingData,
             recordData,
             parameters
     );

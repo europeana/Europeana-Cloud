@@ -12,7 +12,7 @@ import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helpe
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
@@ -71,7 +71,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
@@ -94,7 +94,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
@@ -104,7 +104,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple2 = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL_CLOUD_ID2, fileData2, true),
-                new StormProcessingData());
+                new processingData());
         tuple2.setParameters(prepareStormTaskTupleParameters());
         List<NodeStatistics> generated2 = new RecordStatisticsGenerator(new String(fileData2)).getStatistics();
 
@@ -125,7 +125,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
 
@@ -145,7 +145,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
 
@@ -165,7 +165,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
-                new StormProcessingData());
+                new processingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         //when

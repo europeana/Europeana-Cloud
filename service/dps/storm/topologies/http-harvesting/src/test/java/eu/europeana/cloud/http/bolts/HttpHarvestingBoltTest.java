@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.storm.task.OutputCollector;
@@ -82,7 +82,7 @@ class HttpHarvestingBoltTest {
     tuple = new CommonTaskTuple(
             new TaskData(TASK_ID, TASK_NAME),
             new RecordData(fileUrl, null),
-            new StormProcessingData());
+            new processingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     bolt.prepare();

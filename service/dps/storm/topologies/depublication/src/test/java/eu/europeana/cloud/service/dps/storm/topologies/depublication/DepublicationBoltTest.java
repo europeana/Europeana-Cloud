@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
@@ -53,7 +53,7 @@ class DepublicationBoltTest {
   public static final CommonTaskTuple INPUT_TUPLE = new CommonTaskTuple(
           new TaskData(TASK_ID, "taskName"),
           new RecordData(RECORD_ID, null, true),
-          new StormProcessingData());
+          new processingData());
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
