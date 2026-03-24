@@ -26,7 +26,7 @@ public class IdentifierSupplier {
 
   private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(CommonTaskTuple commonTaskTuple, String datasetId)
       throws EuropeanaIdException {
-    String document = new String(commonTaskTuple.getFileMetadata().getFileData(), StandardCharsets.UTF_8);
+    String document = new String(commonTaskTuple.getRecordData().getFileData(), StandardCharsets.UTF_8);
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     return europeanIdCreator.constructEuropeanaId(document, datasetId);
   }

@@ -37,7 +37,7 @@ public class CommonTaskTuple implements Serializable {
   @Delegate
   private processingData processingData;
   @Delegate
-  private RecordData fileMetadata;
+  private RecordData recordData;
   @Delegate
   private TaskData taskData;
 
@@ -47,12 +47,12 @@ public class CommonTaskTuple implements Serializable {
                          processingData processingData) {
     this.taskData = taskData;
     this.processingData = processingData;
-    this.fileMetadata = recordData;
+    this.recordData = recordData;
   }
 
   public CommonTaskTuple() {
     this.taskData = new TaskData();
-    this.fileMetadata = new RecordData();
+    this.recordData = new RecordData();
     this.processingData = new processingData();
   }
 
@@ -108,11 +108,11 @@ public class CommonTaskTuple implements Serializable {
   public Values toStormTuple() {
     return new Values(
             taskData.getTaskId(),
-            fileMetadata.getRecordUri(),
+            recordData.getRecordUri(),
             processingData.getThrottlingGroupingAttribute(),
             taskData,
             processingData,
-            fileMetadata
+            recordData
 
     );
   }
