@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -93,7 +94,13 @@ class ParseFileBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
-      parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      }
       verify(outputCollector, Mockito.times(4)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
 
       List<Values> capturedValuesList = captor.getAllValues();
@@ -118,7 +125,13 @@ class ParseFileBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(false).thenReturn(true);
-      parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      }
       verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class),
               captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
     }
@@ -132,7 +145,13 @@ class ParseFileBoltTest {
 
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        parseFileBolt.execute(anchorTuple, commonTaskTuple);
+      }
       verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
       Values values = captor.getValue();
       assertNotNull(values);
@@ -144,6 +163,7 @@ class ParseFileBoltTest {
       assertNotNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertNull(map.get(PluginParameterKeys.RESOURCE_LINK_KEY));
     }
+
 
   }
 
