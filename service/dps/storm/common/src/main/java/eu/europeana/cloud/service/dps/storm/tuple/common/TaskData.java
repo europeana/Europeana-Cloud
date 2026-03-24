@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,7 +17,7 @@ import java.util.Map;
 @Setter
 @Getter
 @NoArgsConstructor
-public class TaskData implements Serializable {
+public class TaskData {
 
     long taskId;
     String taskName;

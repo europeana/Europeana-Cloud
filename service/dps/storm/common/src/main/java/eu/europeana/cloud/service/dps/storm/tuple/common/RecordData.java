@@ -5,12 +5,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 @Setter
 @Getter
 @NoArgsConstructor
-public class RecordData implements Serializable {
+public class RecordData {
 
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     byte[] fileData;
