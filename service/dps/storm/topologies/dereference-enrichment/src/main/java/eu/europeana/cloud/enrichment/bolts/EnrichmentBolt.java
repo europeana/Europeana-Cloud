@@ -59,7 +59,7 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     try {
-      LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
+      LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getRecordUri());
       String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
       ProcessedResult<String> result = enrichmentWorker.process(fileContent);
       Set<Report> reports = filterOutIgnoredReports(result.getReport());
@@ -109,9 +109,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   }
 
   private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> filteredReports) throws Exception {
-    LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-    emitEnrichedContent(anchorTuple, stormTaskTuple, result, filteredReports);
-    LOGGER.info("Emitted enriched record on {}", stormTaskTuple.getFileUrl());
+      LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getRecordUri());
+      emitEnrichedContent(anchorTuple, stormTaskTuple, result, filteredReports);
+      LOGGER.info("Emitted enriched record on {}", stormTaskTuple.getRecordUri());
   }
 
   private boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {

@@ -64,7 +64,7 @@ public class StatisticsBolt extends AbstractDpsBolt {
         countStatistics(stormTaskTuple);
         markRecordStatsAsCalculated(stormTaskTuple);
       } else {
-        LOGGER.info("File stats will NOT be calculated for: {}", stormTaskTuple.getFileUrl());
+        LOGGER.info("File stats will NOT be calculated for: {}", stormTaskTuple.getRecordUri());
       }
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
@@ -81,8 +81,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
   }
 
   private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {
-    Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(stormTaskTuple.getTaskId(),
-        stormTaskTuple.getFileUrl());
+      Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(stormTaskTuple.getTaskId(),
+              stormTaskTuple.getRecordUri());
     return processingRecordStage.isPresent() &&
         EnumSet.of(RecordState.STATS_GENERATED, RecordState.ERROR, RecordState.SUCCESS)
                .contains(processingRecordStage.get().getState());
@@ -96,8 +96,8 @@ public class StatisticsBolt extends AbstractDpsBolt {
 
   private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
     if (!statsAlreadyCalculated(stormTaskTuple)) {
-      processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
-          RecordState.STATS_GENERATED);
+        processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri(),
+                RecordState.STATS_GENERATED);
     }
   }
 }

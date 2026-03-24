@@ -18,7 +18,7 @@ public final class DiagnosticContextWrapper {
 
   public static void putValuesFrom(StormTaskTuple stormTaskTuple) {
     MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(stormTaskTuple.getTaskId()));
-    MDC.put(RECORD_ID_CONTEXT_ATTR, String.valueOf(stormTaskTuple.getFileUrl()));
+    MDC.put(RECORD_ID_CONTEXT_ATTR, String.valueOf(stormTaskTuple.getRecordUri()));
   }
 
   public static void putValuesFrom(NotificationTuple notificationTuple) {

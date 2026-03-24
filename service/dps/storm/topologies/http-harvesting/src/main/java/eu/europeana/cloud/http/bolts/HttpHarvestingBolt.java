@@ -43,7 +43,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
     try {
-      LOGGER.info("Starting http harvesting for url: {}", tuple.getFileUrl());
+      LOGGER.info("Starting http harvesting for url: {}", tuple.getRecordUri());
       harvestRecord(tuple);
 
       outputCollector.emit(anchorTuple, tuple.toStormTuple());
@@ -57,7 +57,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
       emitErrorNotification(anchorTuple, tuple, "Error while reading a file",
-              "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage());
+              "Can't read file: " + tuple.getRecordUri() + " because of " + e.getMessage());
       outputCollector.ack(anchorTuple);
     }
   }
@@ -66,7 +66,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     HttpResponse<byte[]> response = tryLoadHttpFileCoupleOfTimes(tuple);
     byte[] fileContent = response.body();
     tuple.setFileData(fileContent);
-    tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, probeMimeType(tuple.getFileUrl(), fileContent));
+    tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, probeMimeType(tuple.getRecordUri(), fileContent));
     identifierSupplier.prepareIdentifiers(tuple);
   }
 
@@ -88,7 +88,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   }
 
   private HttpResponse<byte[]> loadHttpFile(StormTaskTuple tuple) throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getFileUrl())).GET().build();
+    HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getRecordUri())).GET().build();
     HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() != 200) {
       throw new IOException("Bad return status code: " + response.statusCode());

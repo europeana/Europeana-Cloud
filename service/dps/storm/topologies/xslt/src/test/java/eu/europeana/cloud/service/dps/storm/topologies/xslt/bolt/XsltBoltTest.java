@@ -4,7 +4,10 @@ import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -24,7 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -56,14 +62,12 @@ class XsltBoltTest {
   void executeBolt() throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     String sampleXmlFileName = "/xmlForTesting.xml";
-    ProcessingMetadata processingMetadata = new ProcessingMetadata();
-    processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     StormTaskTuple tuple = new StormTaskTuple(
-            new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
-            new FileMetadata(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName)),
-            processingMetadata,
-            new StormProcessingMetadata(),
-            prepareStormTaskTupleParameters(), null);
+            new TaskMetadata(TASK_ID, TASK_NAME),
+            new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
+            new StormProcessingMetadata());
+    tuple.setParameters(prepareStormTaskTupleParameters());
+    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
@@ -82,14 +86,12 @@ class XsltBoltTest {
     parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
 
     String injectXmlFileName = "/xmlForTestingParamInjection.xml";
-    ProcessingMetadata processingMetadata = new ProcessingMetadata();
-    processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     StormTaskTuple tuple = new StormTaskTuple(
-            new TaskMetadata(TASK_ID, SOURCE_VERSION_URL, TASK_NAME, true),
-            new FileMetadata(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName)),
-            processingMetadata,
-            new StormProcessingMetadata(),
-            parameters, null);
+            new TaskMetadata(TASK_ID, TASK_NAME),
+            new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
+            new StormProcessingMetadata());
+    tuple.setParameters(parameters);
+    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
@@ -97,7 +99,7 @@ class XsltBoltTest {
     List<Values> allValues = captor.getAllValues();
     assertEmittedTuple(allValues, 4);
 
-    String transformed = new String(((FileMetadata) allValues.get(0).get(4)).getFileData());
+    String transformed = new String(((RecordMetadata) allValues.get(0).get(5)).getFileData());
     assertNotNull(transformed);
     assertTrue(transformed.contains(EXAMPLE_METIS_DATASET_ID));
   }
@@ -119,8 +121,8 @@ class XsltBoltTest {
     assertEquals(1, allValues.size());
 
     //parameters assertion
-    assertTrue(allValues.get(0).get(5) instanceof Map);
-    Map<String, String> parameters = ((Map<String, String>) allValues.get(0).get(5));
+    assertTrue(allValues.get(0).get(3) instanceof TaskMetadata);
+    var parameters = ((TaskMetadata) allValues.get(0).get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(parameters.size(), expectedParametersSize);
     String cloudId = parameters.get(PluginParameterKeys.CLOUD_ID);

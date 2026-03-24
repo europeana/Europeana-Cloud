@@ -73,7 +73,7 @@ class ResourceProcessingBoltTest {
 
     resourceProcessingBolt.initGson();
     stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setFileUrl(FILE_URL);
+    stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setTaskId(TASK_ID);
 

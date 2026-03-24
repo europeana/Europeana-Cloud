@@ -96,7 +96,7 @@ public class IndexingBolt extends AbstractDpsBolt {
       final var properties = new IndexingProperties(recordDate,
           preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, TierCalculationMode.OVERWRITE);
       String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-      String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getFileUrl());
+      String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getRecordUri());
 
       boolean recordNotSuitableForPublication = false;
       if (!stormTaskTuple.isMarkedAsDeleted()) {
@@ -141,8 +141,8 @@ public class IndexingBolt extends AbstractDpsBolt {
       throws IndexingException {
     boolean tombstoneIsCreated = recordRemover.removeRecord(database, europeanaId, DepublicationReason.REMOVED_DATA_AT_SOURCE);
     LOGGER.info("Finished removing indexed record: "
-            + "europeanaId: {}, database: {}, taskId: {}, recordId: {}, tombstone is created: {}",
-        europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(), tombstoneIsCreated);
+                    + "europeanaId: {}, database: {}, taskId: {}, recordId: {}, tombstone is created: {}",
+            europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri(), tombstoneIsCreated);
   }
 
   private void prepareDao() {
@@ -213,14 +213,14 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     LOGGER.info("Saving harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
-        database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+            database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri());
     harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
   }
 
   private HarvestedRecord prepareNewHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, String metisDatasetId) {
     LOGGER.warn(
-        "Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
-        europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+            "Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
+            europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri());
     return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId)
                           .latestHarvestDate(stormTaskTuple.getHarvestDate()).build();
   }

@@ -32,7 +32,7 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
   protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
     LOGGER.info("{} executed", getClass().getSimpleName());
     try {
-      addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getFileUrl());
+      addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getRecordUri());
       emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
     } catch (MalformedURLException e) {
       LOGGER.error("URL is malformed: {}", stormTaskTuple.getRecordUri());

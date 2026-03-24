@@ -51,7 +51,7 @@ class EDMEnrichmentBoltTest {
   void initTuple() {
     edmEnrichmentBolt.cache.clear();
     stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setFileUrl(FILE_URL);
+    stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setMessageProcessingStartTimeInMs(1);
 

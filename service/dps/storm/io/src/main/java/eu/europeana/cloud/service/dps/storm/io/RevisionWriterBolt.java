@@ -99,7 +99,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   private String getResourceUrl(StormTaskTuple stormTaskTuple) {
     String resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
     if (resourceURL == null) {
-      resourceURL = stormTaskTuple.getFileUrl();
+      resourceURL = stormTaskTuple.getRecordUri();
     }
     return resourceURL;
   }

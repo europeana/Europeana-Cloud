@@ -6,7 +6,10 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -110,29 +113,25 @@ class RevisionWriterBoltTest {
     }
 
     private StormTaskTuple prepareTuple() {
-        ProcessingMetadata processingMetadata = new ProcessingMetadata();
-        processingMetadata.setOutputRevision(new Revision());
         StormTaskTuple tuple = new StormTaskTuple(
-                new TaskMetadata(123L, null, "sampleTaskName"),
-                new FileMetadata("http://inputFileUrl", null),
-                processingMetadata,
-                new StormProcessingMetadata(),
-                prepareTaskParameters(), null);
+                new TaskMetadata(123L, "sampleTaskName"),
+                new RecordMetadata("http://inputFileUrl", null),
+                new StormProcessingMetadata());
+        tuple.setParameters(prepareTaskParameters());
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "http://sampleFileUrl");
+        tuple.setOutputRevision(new Revision());
 
         return tuple;
     }
 
     private StormTaskTuple prepareTupleWithMalformedURL() {
-        ProcessingMetadata processingMetadata = new ProcessingMetadata();
-        processingMetadata.setOutputRevision(new Revision());
         StormTaskTuple tuple = new StormTaskTuple(
-                new TaskMetadata(123L, null, "sampleTaskName"),
-                new FileMetadata("http://inputFileUrl", null),
-                processingMetadata,
-                new StormProcessingMetadata(),
-                prepareTaskParameters(), null);
+                new TaskMetadata(123L, "sampleTaskName"),
+                new RecordMetadata("http://inputFileUrl", null),
+                new StormProcessingMetadata());
+        tuple.setParameters(prepareTaskParameters());
         tuple.addParameter(PluginParameterKeys.OUTPUT_URL, "malformedURL");
+        tuple.setOutputRevision(new Revision());
         return tuple;
     }
 

@@ -111,8 +111,8 @@ class LinkCheckBoltTest {
 
   private StormTaskTuple prepareRandomTuple() {
     StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(RESOURCE_LINKS_COUNT, 5 + "");
+    tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(RESOURCE_LINKS_COUNT, 5 + "");
     tuple.addParameter(RESOURCE_URL, "resourceUrl");
     tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return tuple;
@@ -120,8 +120,8 @@ class LinkCheckBoltTest {
 
   private StormTaskTuple prepareTupleWithLinksCountEqualsToZero() {
     StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
+      tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
     tuple.addParameter(RESOURCE_URL, "resourceUrl");
     tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return tuple;
@@ -129,8 +129,8 @@ class LinkCheckBoltTest {
 
   private StormTaskTuple prepareTupleWithDeletedRecord() {
     StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+      tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     tuple.setMarkedAsDeleted(true);
     return tuple;
   }

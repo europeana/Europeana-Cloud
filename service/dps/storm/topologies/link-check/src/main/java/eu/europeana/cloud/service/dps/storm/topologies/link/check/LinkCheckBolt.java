@@ -94,8 +94,8 @@ public class LinkCheckBolt extends AbstractDpsBolt {
   private ResourceInfo readResourceInfoFromTuple(StormTaskTuple tuple) {
     ResourceInfo resourceInfo = new ResourceInfo();
     resourceInfo.expectedSize = Integer.parseInt(tuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT));
-    resourceInfo.edmUrl = tuple.getFileUrl();
-    resourceInfo.linkUrl = tuple.getParameter(PluginParameterKeys.RESOURCE_URL);
+      resourceInfo.edmUrl = tuple.getRecordUri();
+      resourceInfo.linkUrl = tuple.getParameter(PluginParameterKeys.RESOURCE_URL);
     return resourceInfo;
   }
 

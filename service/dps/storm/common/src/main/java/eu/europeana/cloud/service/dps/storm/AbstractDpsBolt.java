@@ -82,7 +82,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
         outputCollector.fail(tuple);
         LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}",
-            stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+                stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri());
         return;
       }
 
@@ -213,7 +213,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString)
           throws MalformedURLException {
     stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
-    final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+    final UrlParser urlParser = new UrlParser(stormTaskTuple.getRecordUri());
     stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
     stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
     stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));

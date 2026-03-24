@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.FileMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
@@ -126,7 +126,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     StormTaskTuple stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setTaskId(message.getTaskId());
     stormTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
-    stormTaskTuple.setFileUrl(message.getRecordId());
+    stormTaskTuple.setRecordUri(message.getRecordId());
     stormTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
     return stormTaskTuple;
   }
@@ -196,12 +196,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
                                                   ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
       var stormTaskTuple = new StormTaskTuple(
-              new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),
-                      dpsTask.getTaskName(), dpsRecord.isMarkedAsDeleted()),
+              new TaskMetadata(dpsTask.getTaskId(), dpsTask.getTaskName(),
+                      DateHelper.format(taskInfo.getSentTimestamp())),
+              new RecordMetadata(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
               new StormProcessingMetadata(aRecord.getAttemptNumber(),
-                      DateHelper.format(taskInfo.getSentTimestamp()),
-                      new Date().getTime()),
-              new FileMetadata(aRecord.getRecordId(), null));
+                      new Date().getTime()));
       Map<String, String> parameters = dpsTask.getParameters();
       // for validation
       stormTaskTuple.addParameter(HARVESTING_DETAILS, dpsTask.getHarvestingDetails().toString());

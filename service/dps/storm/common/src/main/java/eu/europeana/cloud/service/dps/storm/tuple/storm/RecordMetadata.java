@@ -10,15 +10,22 @@ import java.io.*;
 @Setter
 @Getter
 @NoArgsConstructor
-public class FileMetadata implements Serializable {
+public class RecordMetadata implements Serializable {
 
     private static final int BATCH_MAX_SIZE = 1024 * 4;
-    String fileUrl;
     byte[] fileData;
+    String recordUri;
+    boolean markedAsDeleted;
 
-    public FileMetadata(String fileUrl, byte[] fileData) {
-        this.fileUrl = fileUrl;
+    public RecordMetadata(String recordUri, byte[] fileData) {
+        this.recordUri = recordUri;
         this.fileData = fileData;
+    }
+
+
+    public RecordMetadata(String recordUri, byte[] fileData, boolean markedAsDeleted) {
+        this(recordUri, fileData);
+        this.markedAsDeleted = markedAsDeleted;
     }
 
     public ByteArrayInputStream getFileByteDataAsStream() {

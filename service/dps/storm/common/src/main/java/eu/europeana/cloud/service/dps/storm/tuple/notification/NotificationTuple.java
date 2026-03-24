@@ -47,7 +47,7 @@ public class NotificationTuple {
 
   public static NotificationTuple prepareNotification(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation) {
     Map<String, Object> parameters = new HashMap<>();
-    parameters.put(NotificationParameterKeys.RESOURCE, stormTaskTuple.getFileUrl());
+    parameters.put(NotificationParameterKeys.RESOURCE, stormTaskTuple.getRecordUri());
     parameters.put(NotificationParameterKeys.STATE, state.toString());
     parameters.put(NotificationParameterKeys.INFO_TEXT, message);
     parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);

@@ -32,7 +32,7 @@ public class DepublicationBolt extends AbstractDpsBolt {
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    String recordEuropeanaId = stormTaskTuple.getFileUrl();
+    String recordEuropeanaId = stormTaskTuple.getRecordUri();
     LOGGER.debug("Depublishing the record: {} ...", recordEuropeanaId);
     try {
       String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);

@@ -78,7 +78,7 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
           LOGGER.error(e.getMessage());
       }
     } else {
-        stormTaskTuple.setFileUrl(DPS_TASK_INPUT_DATA);
+        stormTaskTuple.setRecordUri(DPS_TASK_INPUT_DATA);
       emitErrorNotification(anchorTuple, stormTaskTuple, "Invalid parameters");
     }
     LOGGER.info("Harvesting finished in: {}ms for {}", Clock.millisecondsSince(harvestingStartTime),

@@ -54,7 +54,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple t) {
     final String file = t.getRecordUri();
-    t.setFileUrl(file);
+    t.setRecordUri(file);
     try (InputStream is = getFileStreamByStormTuple(t)) {
       t.setFileData(is);
       if (FileDataChecker.isFileDataNullOrBlank(t.getFileData())) {
@@ -87,7 +87,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
     Instant processingStartTime = Instant.now();
     final String file = stormTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
-    stormTaskTuple.setFileUrl(file);
+    stormTaskTuple.setRecordUri(file);
     InputStream downloadedFile = getFile(fileClient, file);
     LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
     return downloadedFile;

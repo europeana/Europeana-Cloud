@@ -33,8 +33,8 @@ public class XsltBolt extends AbstractDpsBolt {
 
     StringWriter writer = null;
     try {
-      final String fileUrl = stormTaskTuple.getFileUrl();
-      final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
+      final String fileUrl = stormTaskTuple.getRecordUri();
+        final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
       LOGGER.info("Processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
       final XsltTransformer xsltTransformer = prepareXsltTransformer(stormTaskTuple);
       writer = xsltTransformer

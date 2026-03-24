@@ -80,7 +80,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
           outputCollector.ack(anchorTuple);
       }
     } else {
-      final String file = stormTaskTuple.getFileUrl();
+      final String file = stormTaskTuple.getRecordUri();
       TempEnrichedFile tempEnrichedFile = cache.get(file);
       try {
         if ((tempEnrichedFile == null) || (tempEnrichedFile.getTaskId() != stormTaskTuple.getTaskId())) {
@@ -184,7 +184,7 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
     stormTaskTuple.setFileData(serializeRdf(enrichedRdf));
-    final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
+    final UrlParser urlParser = new UrlParser(stormTaskTuple.getRecordUri());
     if (urlParser.isUrlToRepresentationVersionFile()) {
       stormTaskTuple
           .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));

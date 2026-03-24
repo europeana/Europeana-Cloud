@@ -6,6 +6,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -78,7 +79,7 @@ class ParseFileBoltTest {
   void prepareTuple() {
     stormTaskTuple = new StormTaskTuple();
     stormTaskTuple.setTaskId(TASK_ID);
-    stormTaskTuple.setFileUrl(FILE_URL);
+    stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setRecordUri(FILE_URL);
     stormTaskTuple.setMessageProcessingStartTimeInMs(1);
     stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
@@ -99,7 +100,8 @@ class ParseFileBoltTest {
       assertEquals(4, capturedValuesList.size());
       for (Values values : capturedValuesList) {
         assertEquals(6, values.size());
-        var val = (Map<String, String>) values.get(5);
+        assertTrue(values.get(3) instanceof TaskMetadata);
+        var val = ((TaskMetadata) values.get(3)).getParameters();
         assertNotNull(val);
         for (String parameterKey : val.keySet()) {
           assertTrue(expectedParametersKeysList.contains(parameterKey));
@@ -135,7 +137,8 @@ class ParseFileBoltTest {
       Values values = captor.getValue();
       assertNotNull(values);
       LOGGER.info("{}", values);
-      var map = (Map<String, String>) values.get(5);
+      assertTrue(values.get(3) instanceof TaskMetadata);
+      var map = ((TaskMetadata) values.get(3)).getParameters();
       LOGGER.info("{}", map);
       assertEquals(1, map.size());
       assertNotNull(map.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));

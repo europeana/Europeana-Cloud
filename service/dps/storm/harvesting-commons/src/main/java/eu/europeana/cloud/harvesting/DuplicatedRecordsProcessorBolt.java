@@ -65,7 +65,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   @Override
   public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
-    LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+    LOGGER.info("Checking duplicates for oai identifier '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
     try {
       Representation representation = extractRepresentationInfoFromTuple(tuple);
       Revision revision = tuple.getOutputRevision();
@@ -77,8 +77,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
         if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
           return;
       }
-      emitSuccessNotification(anchorTuple, tuple, "", "");
-      LOGGER.info("Checking duplicates finished for oai identifier '{}' and task '{}'", tuple.getFileUrl(), tuple.getTaskId());
+        emitSuccessNotification(anchorTuple, tuple, "", "");
+        LOGGER.info("Checking duplicates finished for oai identifier '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
     } catch (MalformedURLException | MCSException e) {
       LOGGER.error("Error while detecting duplicates", e);
       emitErrorNotification(
@@ -123,27 +123,27 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private void handleDuplicatedRepresentationRevision(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
           throws MCSException {
-    LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
-    removeRevision(tuple, representation);
-    removeRepresentation(representation);
-    emitErrorNotification(
-            anchorTuple,
-            tuple,
-            "Duplicate detected",
-            "Duplicate detected for " + tuple.getFileUrl());
-    outputCollector.ack(anchorTuple);
+      LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getRecordUri(), tuple.getTaskId());
+      removeRevision(tuple, representation);
+      removeRepresentation(representation);
+      emitErrorNotification(
+              anchorTuple,
+              tuple,
+              "Duplicate detected",
+              "Duplicate detected for " + tuple.getRecordUri());
+      outputCollector.ack(anchorTuple);
   }
 
   private void handleDuplicatedRepresentationVersion(Tuple anchorTuple, StormTaskTuple tuple, Representation representation)
           throws MCSException {
-    LOGGER.warn("Found same version for '{}' and '{}'", tuple.getFileUrl(), tuple.getTaskId());
-    removeRepresentation(representation);
-    emitErrorNotification(
-            anchorTuple,
-            tuple,
-            "Duplicate detected",
-            "Duplicate detected for " + tuple.getFileUrl());
-    outputCollector.ack(anchorTuple);
+      LOGGER.warn("Found same version for '{}' and '{}'", tuple.getRecordUri(), tuple.getTaskId());
+      removeRepresentation(representation);
+      emitErrorNotification(
+              anchorTuple,
+              tuple,
+              "Duplicate detected",
+              "Duplicate detected for " + tuple.getRecordUri());
+      outputCollector.ack(anchorTuple);
   }
 
   private void removeRepresentation(Representation representation) throws MCSException {

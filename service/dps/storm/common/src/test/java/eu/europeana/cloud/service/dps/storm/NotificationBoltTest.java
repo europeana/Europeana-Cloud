@@ -345,8 +345,8 @@ public class NotificationBoltTest extends CassandraTestBase {
     StormTaskTuple tuple = new StormTaskTuple();
     tuple.setTaskId(taskId);
     tuple.setMarkedAsDeleted(markAsDeleted);
-    tuple.setFileUrl(resource);
-    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
+      tuple.setRecordUri(resource);
+      tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
     tuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultResource);
     return tuple;
   }

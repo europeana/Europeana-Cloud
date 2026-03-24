@@ -5,7 +5,10 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.*;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -76,14 +79,12 @@ class HttpHarvestingBoltTest {
   void setup() {
     wireMockExtension.resetAll();
     fileUrl = "http://localhost:" + wireMockExtension.getPort() + "/http_harvest/task_-5964014235733572511/record.xml";
-    ProcessingMetadata processingMetadata = new ProcessingMetadata();
-    processingMetadata.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     tuple = new StormTaskTuple(
-            new TaskMetadata(TASK_ID, fileUrl, TASK_NAME),
-            new FileMetadata(fileUrl, null),
-            processingMetadata,
-            new StormProcessingMetadata(),
-            prepareStormTaskTupleParameters(), null);
+            new TaskMetadata(TASK_ID, TASK_NAME),
+            new RecordMetadata(fileUrl, null),
+            new StormProcessingMetadata());
+    tuple.setParameters(prepareStormTaskTupleParameters());
+    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     bolt.prepare();
   }
 
