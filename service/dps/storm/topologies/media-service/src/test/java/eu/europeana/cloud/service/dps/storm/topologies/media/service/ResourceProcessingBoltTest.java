@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
@@ -110,7 +111,7 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(thumbnailCount)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(5);
+    Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(2, parameters.size());
     assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -167,7 +168,7 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(3)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(5);
+    Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(4, parameters.size());
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -195,7 +196,7 @@ class ResourceProcessingBoltTest {
     verify(amazonClient, Mockito.times(0)).putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
 
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(5);
+    Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(3, parameters.size());
     assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -214,7 +215,7 @@ class ResourceProcessingBoltTest {
     assertEquals(expectedParametersSize, commonTaskTuple.getParameters().size());
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
-    Map<String, String> parameters = (Map) value.get(5);
+    Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(expectedParametersSize, parameters.size());
     assertNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));

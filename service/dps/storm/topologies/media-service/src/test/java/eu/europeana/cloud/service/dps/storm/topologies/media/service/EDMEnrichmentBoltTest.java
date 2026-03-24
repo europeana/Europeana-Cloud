@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -70,7 +71,7 @@ class EDMEnrichmentBoltTest {
       edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(5);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
       assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
@@ -100,7 +101,7 @@ class EDMEnrichmentBoltTest {
       }
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(5);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
       assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
@@ -122,7 +123,7 @@ class EDMEnrichmentBoltTest {
       assertEquals(expectedParametersSize, initialTupleParameters.size());
       verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
       Values value = captor.getValue();
-      Map<String, String> parametersAfterExecution = (Map) value.get(5);
+      Map<String, String> parametersAfterExecution = ((TaskData) value.get(3)).getParameters();
       assertNotNull(parametersAfterExecution);
       assertEquals(expectedParametersSize, parametersAfterExecution.size());
       for (String key : parametersAfterExecution.keySet()) {
@@ -145,7 +146,7 @@ class EDMEnrichmentBoltTest {
       edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(5);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
       assertEquals(6, parameters.size());
       assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));

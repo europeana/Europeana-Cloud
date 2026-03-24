@@ -5,8 +5,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -53,7 +53,7 @@ class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
-    assertEquals(new String(expected), new String(((RecordData) capturedValues.get(4)).getFileData()).replaceAll("\r", ""));
+    assertEquals(new String(expected), new String(((RecordData) capturedValues.get(5)).getFileData()).replaceAll("\r", ""));
   }
 
 
