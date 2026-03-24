@@ -6,7 +6,7 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 
 import java.net.MalformedURLException;
@@ -47,14 +47,14 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   }
 
   @Override
-  protected RecordWriteParams prepareWriteParameters(StormTaskTuple stormTaskTuple) throws CloudException, MalformedURLException {
-    String providerId = stormTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    String localId = stormTaskTuple.getRecordUri();
-    String additionalLocalIdentifier = stormTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
+  protected RecordWriteParams prepareWriteParameters(CommonTaskTuple commonTaskTuple) throws CloudException, MalformedURLException {
+    String providerId = commonTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
+    String localId = commonTaskTuple.getRecordUri();
+    String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
-    String representationName = stormTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-    if ((representationName == null || representationName.isEmpty()) && stormTaskTuple.ifParametersContainsKey(PluginParameterKeys.HARVESTING_DETAILS)) {
-      representationName = stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
+    String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+    if ((representationName == null || representationName.isEmpty()) && commonTaskTuple.ifParametersContainsKey(PluginParameterKeys.HARVESTING_DETAILS)) {
+      representationName = commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
       if (representationName == null) {
         representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
       }
@@ -63,9 +63,9 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       writeParams.setCloudId(cloudId);
       writeParams.setRepresentationName(representationName);
       writeParams.setProviderId(providerId);
-      writeParams.setNewVersion(generateNewVersionId(stormTaskTuple));
-      writeParams.setNewFileName(generateNewFileName(stormTaskTuple));
-      writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(stormTaskTuple));
+      writeParams.setNewVersion(generateNewVersionId(commonTaskTuple));
+      writeParams.setNewFileName(generateNewFileName(commonTaskTuple));
+      writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(commonTaskTuple));
       return writeParams;
   }
 

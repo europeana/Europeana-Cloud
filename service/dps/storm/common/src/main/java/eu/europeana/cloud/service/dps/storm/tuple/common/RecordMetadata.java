@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.tuple.storm;
+package eu.europeana.cloud.service.dps.storm.tuple.common;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

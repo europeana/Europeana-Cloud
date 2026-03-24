@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
@@ -40,7 +40,7 @@ class ResourceProcessingBoltTest {
   public static final String FILE_URL = "FILE_URL";
 
 
-  private StormTaskTuple stormTaskTuple;
+  private CommonTaskTuple commonTaskTuple;
 
 
   @Mock(name = "outputCollector")
@@ -72,10 +72,10 @@ class ResourceProcessingBoltTest {
     thumbnailField.set(resourceProcessingBolt, thumbnailUploader);
 
     resourceProcessingBolt.initGson();
-    stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setRecordUri(FILE_URL);
-    stormTaskTuple.setRecordUri(FILE_URL);
-    stormTaskTuple.setTaskId(TASK_ID);
+    commonTaskTuple = new CommonTaskTuple();
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setTaskId(TASK_ID);
 
     setStaticField(ResourceProcessingBolt.class.getSuperclass().getDeclaredField("taskStatusChecker"), taskStatusChecker);
   }
@@ -89,8 +89,8 @@ class ResourceProcessingBoltTest {
   @Test
   void shouldSuccessfullyProcessTheResource() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
             "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
@@ -105,7 +105,7 @@ class ResourceProcessingBoltTest {
     when(amazonClient.putObject(anyString(), any(InputStream.class), nullable(ObjectMetadata.class))).thenReturn(
             new PutObjectResult());
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
-    resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
+    resourceProcessingBolt.execute(anchorTuple, commonTaskTuple);
 
     verify(amazonClient, Mockito.times(thumbnailCount)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
@@ -120,8 +120,8 @@ class ResourceProcessingBoltTest {
   @Test
   void shouldDropTheTaskAndStopProcessing() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
             "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
@@ -138,7 +138,7 @@ class ResourceProcessingBoltTest {
 
     when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(true);
 
-    resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
+    resourceProcessingBolt.execute(anchorTuple, commonTaskTuple);
     verify(amazonClient, Mockito.times(1)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
   }
 
@@ -146,8 +146,8 @@ class ResourceProcessingBoltTest {
   @Test
   void shouldFormulateTheAggregateExceptionsWhenSavingToAmazonFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
             "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
 
     String resourceName = "RESOURCE_URL";
@@ -162,7 +162,7 @@ class ResourceProcessingBoltTest {
     when(mediaExtractor.performMediaExtraction(any(RdfResourceEntry.class), anyBoolean())).thenReturn(resourceExtractionResult);
     doThrow(new AmazonServiceException(errorMessage)).when(amazonClient)
             .putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
-    resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
+    resourceProcessingBolt.execute(anchorTuple, commonTaskTuple);
 
     verify(amazonClient, Mockito.times(3)).putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class));
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
@@ -183,13 +183,13 @@ class ResourceProcessingBoltTest {
   @Test
   void shouldSendExceptionsWhenProcessingFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, Integer.toString(5));
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY,
             "{\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"urlTypes\":[\"HAS_VIEW\"]}");
     doThrow(MediaExtractionException.class).when(mediaExtractor)
             .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
-    resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
+    resourceProcessingBolt.execute(anchorTuple, commonTaskTuple);
 
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     verify(amazonClient, Mockito.times(0)).putObject(anyString(), any(InputStream.class), isNull(ObjectMetadata.class));
@@ -209,9 +209,9 @@ class ResourceProcessingBoltTest {
   @Test
   void shouldForwardTheTupleWhenNoResourceLinkFound() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    resourceProcessingBolt.execute(anchorTuple, stormTaskTuple);
+    resourceProcessingBolt.execute(anchorTuple, commonTaskTuple);
     int expectedParametersSize = 0;
-    assertEquals(expectedParametersSize, stormTaskTuple.getParameters().size());
+    assertEquals(expectedParametersSize, commonTaskTuple.getParameters().size());
     verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
     Values value = captor.getValue();
     Map<String, String> parameters = (Map) value.get(5);

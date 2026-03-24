@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,37 +29,37 @@ public class XsltBolt extends AbstractDpsBolt {
 
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
 
     StringWriter writer = null;
     try {
-      final String fileUrl = stormTaskTuple.getRecordUri();
-        final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
+      final String fileUrl = commonTaskTuple.getRecordUri();
+        final String xsltUrl = commonTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
       LOGGER.info("Processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
-      final XsltTransformer xsltTransformer = prepareXsltTransformer(stormTaskTuple);
+      final XsltTransformer xsltTransformer = prepareXsltTransformer(commonTaskTuple);
       writer = xsltTransformer
-          .transform(stormTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(stormTaskTuple));
+          .transform(commonTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(commonTaskTuple));
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
-      stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
+      commonTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
 
       final UrlParser urlParser = new UrlParser(fileUrl);
       if (urlParser.isUrlToRepresentationVersionFile()) {
-        stormTaskTuple
+        commonTaskTuple
             .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
+        commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
             urlParser.getPart(UrlPart.REPRESENTATIONS));
-        stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
+        commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
             urlParser.getPart(UrlPart.VERSIONS));
       }
-      clearParametersStormTuple(stormTaskTuple);
+      clearParametersStormTuple(commonTaskTuple);
 
-      outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+      outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
       LOGGER.error("XsltBolt error:{}", e.getMessage());
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), ExceptionUtils.getStackTrace(e));
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), ExceptionUtils.getStackTrace(e));
         outputCollector.ack(anchorTuple);
     } finally {
       if (writer != null) {
@@ -72,27 +72,27 @@ public class XsltBolt extends AbstractDpsBolt {
     }
   }
 
-  private XsltTransformer prepareXsltTransformer(StormTaskTuple stormTaskTuple)
+  private XsltTransformer prepareXsltTransformer(CommonTaskTuple commonTaskTuple)
       throws TransformationException {
     //Get topology parameters
-    final String xsltUrl = stormTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
-    final String metisDatasetName = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_NAME);
-    final String metisDatasetCountry = stormTaskTuple
+    final String xsltUrl = commonTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
+    final String metisDatasetName = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_NAME);
+    final String metisDatasetCountry = commonTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_COUNTRY);
-    final String metisDatasetLanguage = stormTaskTuple
+    final String metisDatasetLanguage = commonTaskTuple
         .getParameter(PluginParameterKeys.METIS_DATASET_LANGUAGE);
 
     return new XsltTransformer(xsltUrl, metisDatasetName, metisDatasetCountry,
         metisDatasetLanguage);
   }
 
-  private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(StormTaskTuple stormTaskTuple)
+  private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(CommonTaskTuple commonTaskTuple)
       throws EuropeanaIdException {
-    String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+    String metisDatasetId = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
     //Prepare europeana identifiers
     EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
     if (!StringUtils.isBlank(metisDatasetId)) {
-      String fileDataString = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+      String fileDataString = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
       EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
       europeanaGeneratedIdsMap = europeanIdCreator
           .constructEuropeanaId(fileDataString, metisDatasetId);
@@ -100,12 +100,12 @@ public class XsltBolt extends AbstractDpsBolt {
     return europeanaGeneratedIdsMap;
   }
 
-  private void clearParametersStormTuple(StormTaskTuple stormTaskTuple) {
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.XSLT_URL);
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_ID);
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_NAME);
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_COUNTRY);
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_LANGUAGE);
+  private void clearParametersStormTuple(CommonTaskTuple commonTaskTuple) {
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.XSLT_URL);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_ID);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_NAME);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_COUNTRY);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.METIS_DATASET_LANGUAGE);
   }
 
   @Override

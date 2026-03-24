@@ -4,10 +4,10 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -62,7 +62,7 @@ class EnrichmentBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());
@@ -80,7 +80,7 @@ class EnrichmentBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());
@@ -113,7 +113,7 @@ class EnrichmentBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());
@@ -158,7 +158,7 @@ class EnrichmentBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());
@@ -207,7 +207,7 @@ class EnrichmentBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());

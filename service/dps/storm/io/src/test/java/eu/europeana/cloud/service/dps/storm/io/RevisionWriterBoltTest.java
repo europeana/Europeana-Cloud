@@ -6,10 +6,10 @@ import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -52,9 +52,9 @@ class RevisionWriterBoltTest {
     void nothingShouldBeAddedForEmptyRevisionsList() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        StormTaskTuple stormTaskTuple = new StormTaskTuple();
-        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        testMock.execute(anchorTuple, stormTaskTuple);
+        CommonTaskTuple commonTaskTuple = new CommonTaskTuple();
+        commonTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+        testMock.execute(anchorTuple, commonTaskTuple);
 
         Mockito.verify(revisionServiceClient, Mockito.times(0))
                 .addRevision(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), any(Revision.class));
@@ -76,10 +76,10 @@ class RevisionWriterBoltTest {
     void methodForAddingRevisionsShouldBeExecutedForDeletedRecord() throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
-        StormTaskTuple stormTaskTuple = prepareTuple();
-        stormTaskTuple.setMarkedAsDeleted(true);
+        CommonTaskTuple commonTaskTuple = prepareTuple();
+        commonTaskTuple.setMarkedAsDeleted(true);
 
-        testMock.execute(anchorTuple, stormTaskTuple);
+        testMock.execute(anchorTuple, commonTaskTuple);
 
         Mockito.verify(revisionServiceClient, Mockito.times(1)).addRevision(any(), any(), any(), captor.capture());
         assertTrue(captor.getValue().isDeleted());
@@ -112,8 +112,8 @@ class RevisionWriterBoltTest {
 
     }
 
-    private StormTaskTuple prepareTuple() {
-        StormTaskTuple tuple = new StormTaskTuple(
+    private CommonTaskTuple prepareTuple() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(123L, "sampleTaskName"),
                 new RecordMetadata("http://inputFileUrl", null),
                 new StormProcessingMetadata());
@@ -124,8 +124,8 @@ class RevisionWriterBoltTest {
         return tuple;
     }
 
-    private StormTaskTuple prepareTupleWithMalformedURL() {
-        StormTaskTuple tuple = new StormTaskTuple(
+    private CommonTaskTuple prepareTupleWithMalformedURL() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(123L, "sampleTaskName"),
                 new RecordMetadata("http://inputFileUrl", null),
                 new StormProcessingMetadata());

@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import eu.europeana.cloud.service.dps.DpsRecord;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -16,9 +16,9 @@ public final class DiagnosticContextWrapper {
   private DiagnosticContextWrapper() {
   }
 
-  public static void putValuesFrom(StormTaskTuple stormTaskTuple) {
-    MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(stormTaskTuple.getTaskId()));
-    MDC.put(RECORD_ID_CONTEXT_ATTR, String.valueOf(stormTaskTuple.getRecordUri()));
+  public static void putValuesFrom(CommonTaskTuple commonTaskTuple) {
+    MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(commonTaskTuple.getTaskId()));
+    MDC.put(RECORD_ID_CONTEXT_ATTR, String.valueOf(commonTaskTuple.getRecordUri()));
   }
 
   public static void putValuesFrom(NotificationTuple notificationTuple) {

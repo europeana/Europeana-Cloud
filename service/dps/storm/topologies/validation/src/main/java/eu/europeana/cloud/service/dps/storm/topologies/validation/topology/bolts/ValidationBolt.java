@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
@@ -34,38 +34,38 @@ public class ValidationBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     try {
-      reorderFileContent(stormTaskTuple);
-      validateFileAndEmit(anchorTuple, stormTaskTuple);
+      reorderFileContent(commonTaskTuple);
+      validateFileAndEmit(anchorTuple, commonTaskTuple);
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
       LOGGER.error("Validation Bolt error: {}", e.getMessage(), e);
-      emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+      emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(),
           "Error while validation. The full error :" + ExceptionUtils.getStackTrace(e));
       outputCollector.ack(anchorTuple);
     }
   }
 
-  private void reorderFileContent(StormTaskTuple stormTaskTuple) throws TransformationException {
+  private void reorderFileContent(CommonTaskTuple commonTaskTuple) throws TransformationException {
     LOGGER.info("Reordering the file");
-    StringWriter writer = transformer.transform(stormTaskTuple.getFileData(), null);
-    stormTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
+    StringWriter writer = transformer.transform(commonTaskTuple.getFileData(), null);
+    commonTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
   }
 
-  private void validateFileAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+  private void validateFileAndEmit(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    String document = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
     ValidationResult result =
         validationService.singleValidation(
-            getSchemaName(stormTaskTuple), getRootLocation(stormTaskTuple),
-            getSchematronLocation(stormTaskTuple), document
+            getSchemaName(commonTaskTuple), getRootLocation(commonTaskTuple),
+            getSchematronLocation(commonTaskTuple), document
         );
     if (result.isSuccess()) {
-      outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+      outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
     } else {
-      emitErrorNotification(anchorTuple, stormTaskTuple, result.getMessage(), getAdditionalInfo(result));
+      emitErrorNotification(anchorTuple, commonTaskTuple, result.getMessage(), getAdditionalInfo(result));
     }
   }
 
@@ -98,15 +98,15 @@ public class ValidationBolt extends AbstractDpsBolt {
     return !additionalInfo.isEmpty() ? additionalInfo : null;
   }
 
-  private String getSchemaName(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
+  private String getSchemaName(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
   }
 
-  private String getRootLocation(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(PluginParameterKeys.ROOT_LOCATION);
+  private String getRootLocation(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getParameter(PluginParameterKeys.ROOT_LOCATION);
   }
 
-  private String getSchematronLocation(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION);
+  private String getSchematronLocation(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getParameter(PluginParameterKeys.SCHEMATRON_LOCATION);
   }
 }

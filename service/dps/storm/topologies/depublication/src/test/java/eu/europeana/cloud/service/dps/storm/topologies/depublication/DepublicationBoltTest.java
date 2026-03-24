@@ -6,10 +6,10 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
@@ -50,7 +50,7 @@ class DepublicationBoltTest {
           PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
           PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
-  public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(
+  public static final CommonTaskTuple INPUT_TUPLE = new CommonTaskTuple(
           new TaskMetadata(TASK_ID, "taskName"),
           new RecordMetadata(RECORD_ID, null, true),
           new StormProcessingMetadata());

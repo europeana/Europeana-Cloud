@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.storm.tuple.Tuple;
 
 /**
@@ -17,7 +17,7 @@ public class RevisionWriterBoltForHarvesting extends RevisionWriterBolt {
   }
 
   @Override
-  protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+  protected void emitTuple(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
   }
 }

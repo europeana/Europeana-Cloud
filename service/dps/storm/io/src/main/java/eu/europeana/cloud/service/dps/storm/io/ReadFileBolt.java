@@ -6,7 +6,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -20,7 +20,7 @@ import java.time.Instant;
 
 
 /**
- * Read file/files from MCS and every file emits as separate {@link StormTaskTuple}.
+ * Read file/files from MCS and every file emits as separate {@link CommonTaskTuple}.
  *
  * @author Pavel Kefurt <Pavel.Kefurt@gmail.com>
  */
@@ -52,7 +52,7 @@ public class ReadFileBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple t) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple t) {
     final String file = t.getRecordUri();
     t.setRecordUri(file);
     try (InputStream is = getFileStreamByStormTuple(t)) {
@@ -83,11 +83,11 @@ public class ReadFileBolt extends AbstractDpsBolt {
         fileClient.getFile(file));
   }
 
-  protected InputStream getFileStreamByStormTuple(StormTaskTuple stormTaskTuple) throws Exception {
+  protected InputStream getFileStreamByStormTuple(CommonTaskTuple commonTaskTuple) throws Exception {
     Instant processingStartTime = Instant.now();
-    final String file = stormTaskTuple.getRecordUri();
+    final String file = commonTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
-    stormTaskTuple.setRecordUri(file);
+    commonTaskTuple.setRecordUri(file);
     InputStream downloadedFile = getFile(fileClient, file);
     LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
     return downloadedFile;

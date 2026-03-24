@@ -5,10 +5,10 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -55,7 +55,7 @@ class HttpHarvestingBoltTest {
 
   private final Optional<Integer> optOverriddenRetryAttemptsCount = Optional.ofNullable(
           RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT);
-  private StormTaskTuple tuple;
+  private CommonTaskTuple tuple;
 
   @InjectMocks
   private HttpHarvestingBolt bolt = new HttpHarvestingBolt(new CassandraProperties());
@@ -79,7 +79,7 @@ class HttpHarvestingBoltTest {
   void setup() {
     wireMockExtension.resetAll();
     fileUrl = "http://localhost:" + wireMockExtension.getPort() + "/http_harvest/task_-5964014235733572511/record.xml";
-    tuple = new StormTaskTuple(
+    tuple = new CommonTaskTuple(
             new TaskMetadata(TASK_ID, TASK_NAME),
             new RecordMetadata(fileUrl, null),
             new StormProcessingMetadata());
@@ -95,7 +95,7 @@ class HttpHarvestingBoltTest {
     bolt.execute(anchorTuple, tuple);
 
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
     assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
@@ -115,7 +115,7 @@ class HttpHarvestingBoltTest {
     bolt.execute(anchorTuple, tuple);
 
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
     assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
@@ -177,8 +177,8 @@ class HttpHarvestingBoltTest {
     return TASK_RELATIVE_URL + fileName;
   }
 
-  private StormTaskTuple getResultStormTaskTuple() {
-    return StormTaskTuple.fromValues(resultTupleCaptor.getValue());
+  private CommonTaskTuple getResultStormTaskTuple() {
+    return CommonTaskTuple.fromValues(resultTupleCaptor.getValue());
   }
 
   private HashMap<String, String> prepareStormTaskTupleParameters() {

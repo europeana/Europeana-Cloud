@@ -4,10 +4,10 @@ import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -62,7 +62,7 @@ class XsltBoltTest {
   void executeBolt() throws IOException {
     Tuple anchorTuple = mock(TupleImpl.class);
     String sampleXmlFileName = "/xmlForTesting.xml";
-    StormTaskTuple tuple = new StormTaskTuple(
+    CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskMetadata(TASK_ID, TASK_NAME),
             new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
             new StormProcessingMetadata());
@@ -86,7 +86,7 @@ class XsltBoltTest {
     parameters.put(PluginParameterKeys.METIS_DATASET_ID, EXAMPLE_METIS_DATASET_ID);
 
     String injectXmlFileName = "/xmlForTestingParamInjection.xml";
-    StormTaskTuple tuple = new StormTaskTuple(
+    CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskMetadata(TASK_ID, TASK_NAME),
             new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
             new StormProcessingMetadata());

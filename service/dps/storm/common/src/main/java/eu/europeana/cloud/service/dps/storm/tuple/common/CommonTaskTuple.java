@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.tuple.storm;
+package eu.europeana.cloud.service.dps.storm.tuple.common;
 
 
 import eu.europeana.cloud.service.commons.utils.DateHelper;
@@ -30,7 +30,7 @@ import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.*;
  */
 @Setter
 @Getter
-public class StormTaskTuple implements Serializable {
+public class CommonTaskTuple implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -42,22 +42,22 @@ public class StormTaskTuple implements Serializable {
   private TaskMetadata taskMetadata;
 
   @Builder
-  public StormTaskTuple(TaskMetadata taskMetadata,
-                        RecordMetadata recordMetadata,
-                        StormProcessingMetadata stormProcessingMetadata) {
+  public CommonTaskTuple(TaskMetadata taskMetadata,
+                         RecordMetadata recordMetadata,
+                         StormProcessingMetadata stormProcessingMetadata) {
     this.taskMetadata = taskMetadata;
     this.stormProcessingMetadata = stormProcessingMetadata;
     this.fileMetadata = recordMetadata;
   }
 
-  public StormTaskTuple() {
+  public CommonTaskTuple() {
     this.taskMetadata = new TaskMetadata();
     this.fileMetadata = new RecordMetadata();
     this.stormProcessingMetadata = new StormProcessingMetadata();
   }
 
-  public static StormTaskTuple fromStormTuple(Tuple tuple) {
-    return StormTaskTuple.builder()
+  public static CommonTaskTuple fromStormTuple(Tuple tuple) {
+    return CommonTaskTuple.builder()
             .taskMetadata(
                     (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_KEY))
             .stormProcessingMetadata(
@@ -85,8 +85,8 @@ public class StormTaskTuple implements Serializable {
 
 
 
-  public static StormTaskTuple fromValues(List<Object> list) {
-    return StormTaskTuple.builder()
+  public static CommonTaskTuple fromValues(List<Object> list) {
+    return CommonTaskTuple.builder()
             .taskMetadata((TaskMetadata) list.get(3))
             .stormProcessingMetadata((StormProcessingMetadata) list.get(4))
             .recordMetadata((RecordMetadata) list.get(5))

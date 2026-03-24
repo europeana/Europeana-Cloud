@@ -15,11 +15,11 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -114,7 +114,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(StormTaskTuple.getFields());
+    declarer.declare(CommonTaskTuple.getFields());
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
@@ -122,13 +122,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     super.ack(messageId);
   }
 
-  private StormTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
-    StormTaskTuple stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setTaskId(message.getTaskId());
-    stormTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
-    stormTaskTuple.setRecordUri(message.getRecordId());
-    stormTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
-    return stormTaskTuple;
+  private CommonTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
+    CommonTaskTuple commonTaskTuple = new CommonTaskTuple();
+    commonTaskTuple.setTaskId(message.getTaskId());
+    commonTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
+    commonTaskTuple.setRecordUri(message.getRecordId());
+    commonTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
+    return commonTaskTuple;
   }
 
   public class ECloudOutputCollector extends SpoutOutputCollector {
@@ -193,9 +193,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       return tasksCache.getTaskInfo(message);
     }
 
-    private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
-                                                  ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
-      var stormTaskTuple = new StormTaskTuple(
+    private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
+                                                   ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
+      var stormTaskTuple = new CommonTaskTuple(
               new TaskMetadata(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
               new RecordMetadata(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
@@ -283,7 +283,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     List<Integer> omitAlreadyProcessedRecord(Object messageId) {
       //Ignore records that is already preformed. It could take place after spout restart
       //if record was performed but was not acknowledged in kafka service. It is normal situation.
-      //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
+      //Kafka messages can be accepted in sequential order, but common performs record in parallel so some
       //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
       //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
       LOGGER.info("Dropping kafka message because record was already processed");
@@ -304,9 +304,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
       LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
-      StormTaskTuple stormTaskTuple = getStormTaskTupleFromMessage(message);
+      CommonTaskTuple commonTaskTuple = getStormTaskTupleFromMessage(message);
       var notificationTuple = NotificationTuple.prepareNotification(
-              stormTaskTuple,
+              commonTaskTuple,
               RecordState.ERROR,
               "Max retries reached",
               "Max retries reached"
@@ -409,7 +409,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
   }
 
-  protected void performThrottling(StormTaskTuple tuple) {
+  protected void performThrottling(CommonTaskTuple tuple) {
     maxTaskPending = tuple.readParallelizationParam();
   }
 

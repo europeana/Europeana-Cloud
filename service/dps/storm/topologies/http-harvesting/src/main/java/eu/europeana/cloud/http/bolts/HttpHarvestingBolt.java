@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple tuple) {
     try {
       LOGGER.info("Starting http harvesting for url: {}", tuple.getRecordUri());
       harvestRecord(tuple);
@@ -62,7 +62,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     }
   }
 
-  private void harvestRecord(StormTaskTuple tuple) throws Exception {
+  private void harvestRecord(CommonTaskTuple tuple) throws Exception {
     HttpResponse<byte[]> response = tryLoadHttpFileCoupleOfTimes(tuple);
     byte[] fileContent = response.body();
     tuple.setFileData(fileContent);
@@ -79,7 +79,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     return mimeType;
   }
 
-  private HttpResponse<byte[]> tryLoadHttpFileCoupleOfTimes(StormTaskTuple tuple) throws Exception {
+  private HttpResponse<byte[]> tryLoadHttpFileCoupleOfTimes(CommonTaskTuple tuple) throws Exception {
     //Because data are always loaded from the same given application server, relatively big retry count,
     //and time is used to assure some resistance for server, inaccessibility.
     return RetryableMethodExecutor.<HttpResponse<byte[]>, Exception>
@@ -87,7 +87,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
         () -> loadHttpFile(tuple));
   }
 
-  private HttpResponse<byte[]> loadHttpFile(StormTaskTuple tuple) throws IOException, InterruptedException {
+  private HttpResponse<byte[]> loadHttpFile(CommonTaskTuple tuple) throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getRecordUri())).GET().build();
     HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() != 200) {

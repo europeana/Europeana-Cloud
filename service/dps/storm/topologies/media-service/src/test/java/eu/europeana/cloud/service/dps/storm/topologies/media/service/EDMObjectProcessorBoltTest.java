@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -73,7 +73,7 @@ class EDMObjectProcessorBoltTest {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
-      StormTaskTuple tuple = new StormTaskTuple();
+      CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
@@ -103,7 +103,7 @@ class EDMObjectProcessorBoltTest {
       doThrow(MediaExtractionException.class).when(mediaExtractor)
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
-      StormTaskTuple tuple = new StormTaskTuple();
+      CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
@@ -133,7 +133,7 @@ class EDMObjectProcessorBoltTest {
       doThrow(MediaExtractionException.class).when(mediaExtractor)
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
-      StormTaskTuple tuple = new StormTaskTuple();
+      CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
@@ -163,7 +163,7 @@ class EDMObjectProcessorBoltTest {
 
       doReturn(null).when(rdfDeserializer).getMainThumbnailResourceForMediaExtraction(any(byte[].class));
 
-      StormTaskTuple tuple = new StormTaskTuple();
+      CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
@@ -191,7 +191,7 @@ class EDMObjectProcessorBoltTest {
       when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(
               new RuntimeException());
 
-      StormTaskTuple tuple = new StormTaskTuple();
+      CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);

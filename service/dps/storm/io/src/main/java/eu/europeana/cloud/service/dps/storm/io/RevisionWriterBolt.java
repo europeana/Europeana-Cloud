@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -49,30 +49,30 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    addRevisionAndEmit(anchorTuple, stormTaskTuple);
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    addRevisionAndEmit(anchorTuple, commonTaskTuple);
     outputCollector.ack(anchorTuple);
   }
 
-  protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  protected void addRevisionAndEmit(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.info("Adding revision to the file");
     Instant processingStartTime = Instant.now();
-    String resourceURL = getResourceUrl(stormTaskTuple);
+    String resourceURL = getResourceUrl(commonTaskTuple);
     try {
-      addRevisionToSpecificResource(stormTaskTuple, resourceURL);
-      emitTuple(anchorTuple, stormTaskTuple);
+      addRevisionToSpecificResource(commonTaskTuple, resourceURL);
+      emitTuple(anchorTuple, commonTaskTuple);
 
     } catch (MalformedURLException e) {
       LOGGER.error("URL is malformed: {} ", resourceURL);
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     } catch (MCSException | DriverException e) {
         LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     }
     LOGGER.info("Revision added in: {}ms", Clock.millisecondsSince(processingStartTime));
   }
 
-  protected void emitTuple(Tuple anchorTuple, StormTaskTuple tuple) {
+  protected void emitTuple(Tuple anchorTuple, CommonTaskTuple tuple) {
     if (tupleContainsErrors(tuple)) {
       emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
     } else {
@@ -80,11 +80,11 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
     }
   }
 
-  private boolean tupleContainsErrors(StormTaskTuple tuple) {
+  private boolean tupleContainsErrors(CommonTaskTuple tuple) {
     return tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null;
   }
 
-  private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, StormTaskTuple tuple) {
+  private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, CommonTaskTuple tuple) {
       emitSuccessNotification(anchorTuple, tuple, "", "",
               tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
               tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
@@ -96,25 +96,25 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   * - File Url if Output Url wasn't provided
   * (For example when record was marked as deleted in case previous bolt is instance of WriteRecordBolt)
    */
-  private String getResourceUrl(StormTaskTuple stormTaskTuple) {
-    String resourceURL = stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
+  private String getResourceUrl(CommonTaskTuple commonTaskTuple) {
+    String resourceURL = commonTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL);
     if (resourceURL == null) {
-      resourceURL = stormTaskTuple.getRecordUri();
+      resourceURL = commonTaskTuple.getRecordUri();
     }
     return resourceURL;
   }
 
-  protected void addRevisionToSpecificResource(StormTaskTuple stormTaskTuple, String affectedResourceURL)
+  protected void addRevisionToSpecificResource(CommonTaskTuple commonTaskTuple, String affectedResourceURL)
       throws MalformedURLException, MCSException {
-    if (stormTaskTuple.getOutputRevision() != null) {
-      LOGGER.info("The following revision will be added: {}", stormTaskTuple.getOutputRevision());
+    if (commonTaskTuple.getOutputRevision() != null) {
+      LOGGER.info("The following revision will be added: {}", commonTaskTuple.getOutputRevision());
       final UrlParser urlParser = new UrlParser(affectedResourceURL);
-      Revision outputRevision = stormTaskTuple.getOutputRevision();
+      Revision outputRevision = commonTaskTuple.getOutputRevision();
       if (outputRevision.getCreationTimeStamp() == null) {
         outputRevision.setCreationTimeStamp(new Date());
       }
 
-      if (stormTaskTuple.isMarkedAsDeleted()) {
+      if (commonTaskTuple.isMarkedAsDeleted()) {
         outputRevision = new Revision(outputRevision);
         outputRevision.setDeleted(true);
       }
@@ -144,7 +144,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
   }
 
   @Override
-  protected void cleanInvalidData(StormTaskTuple tuple) {
+  protected void cleanInvalidData(CommonTaskTuple tuple) {
     int attemptNumber = tuple.getRecordAttemptNumber();
     LOGGER.info("Attempt number {} to process this message. No cleaning needed here.", attemptNumber);
     // nothing to clean here when the message is reprocessed

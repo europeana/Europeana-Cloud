@@ -8,10 +8,10 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -71,7 +71,7 @@ class WriteRecordBoltTest {
     @Test
     void successfullyExecuteWriteBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new StormProcessingMetadata());
@@ -106,7 +106,7 @@ class WriteRecordBoltTest {
     @Test
     void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
                 new StormProcessingMetadata());
@@ -138,7 +138,7 @@ class WriteRecordBoltTest {
   @Test
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNewRevisionTopology() throws Exception {
       Tuple anchorTuple = mock(TupleImpl.class);
-      StormTaskTuple tuple = new StormTaskTuple(
+      CommonTaskTuple tuple = new CommonTaskTuple(
               new TaskMetadata(TASK_ID, TASK_NAME),
               new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
               new StormProcessingMetadata());
@@ -171,7 +171,7 @@ class WriteRecordBoltTest {
   @Test
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNotNewRevisionTopology() throws Exception {
       Tuple anchorTuple = mock(TupleImpl.class);
-      StormTaskTuple tuple = new StormTaskTuple(
+      CommonTaskTuple tuple = new CommonTaskTuple(
               new TaskMetadata(TASK_ID, TASK_NAME),
               new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
               new StormProcessingMetadata());
@@ -202,7 +202,7 @@ class WriteRecordBoltTest {
     void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new StormProcessingMetadata());
@@ -228,7 +228,7 @@ class WriteRecordBoltTest {
     void shouldRetryBeforeFailingWhenThrowingDriverException() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new StormProcessingMetadata());

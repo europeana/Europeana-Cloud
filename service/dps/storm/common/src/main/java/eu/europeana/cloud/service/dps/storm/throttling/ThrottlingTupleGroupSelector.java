@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.throttling;
 
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.MediaThrottlingFractionEvaluator;
 
 import java.util.Random;
@@ -17,12 +17,12 @@ public class ThrottlingTupleGroupSelector {
   @SuppressWarnings("java:S2245") //Random is used here only for distribute messages through many bolts. So the usage is secure.
   Random random = new Random();
 
-  public String generateForEdmObjectProcessingBolt(StormTaskTuple tuple) {
+  public String generateForEdmObjectProcessingBolt(CommonTaskTuple tuple) {
     return generate(tuple.getTaskId(),
         MediaThrottlingFractionEvaluator.evalForEdmObjectProcessing(tuple.readParallelizationParam()));
   }
 
-  public String generateForResourceProcessingBolt(StormTaskTuple tuple) {
+  public String generateForResourceProcessingBolt(CommonTaskTuple tuple) {
     return generate(tuple.getTaskId(),
         MediaThrottlingFractionEvaluator.evalForResourceProcessing(tuple.readParallelizationParam()));
   }

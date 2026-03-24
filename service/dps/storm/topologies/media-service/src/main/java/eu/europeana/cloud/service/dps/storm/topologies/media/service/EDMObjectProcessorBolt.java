@@ -7,7 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -62,11 +62,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     super.declareOutputFields(declarer);
 
     //notifications
-    declarer.declareStream(EDM_OBJECT_ENRICHMENT_STREAM_NAME, StormTaskTuple.getFields());
+    declarer.declareStream(EDM_OBJECT_ENRICHMENT_STREAM_NAME, CommonTaskTuple.getFields());
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.debug("Starting edm:object processing");
     // It is assigning time stamp to variable, so It has to be assigned there.
     @SuppressWarnings("java:S1941")
@@ -78,7 +78,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
     logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
 
     var resourcesToBeProcessed = 0;
-    try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
+    try (InputStream stream = getFileStreamByStormTuple(commonTaskTuple)) {
       byte[] fileContent = IOUtils.toByteArray(stream);
       if (FileDataChecker.isFileDataNullOrBlank(fileContent)) {
         LOGGER.warn("File data to be processed is null or blank!");
@@ -99,11 +99,11 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
             mainThumbnailAvailable);
 
         if (resourceExtractionResult != null) {
-          StormTaskTuple tuple = null;
+          CommonTaskTuple tuple = null;
           Set<String> thumbnailTargetNames = null;
           String metadataJson = null;
           if (resourceExtractionResult.getMetadata() != null) {
-            tuple = SerializationUtils.clone(stormTaskTuple);
+            tuple = SerializationUtils.clone(commonTaskTuple);
             metadataJson = gson.toJson(resourceExtractionResult.getMetadata());
             tuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, metadataJson);
             thumbnailTargetNames = resourceExtractionResult.getMetadata().getThumbnailTargetNames();
@@ -112,7 +112,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
           }
           LOGGER.debug("Extracted the following metadata: thumbnailTargetNames: {},  metadata: {}",
               thumbnailTargetNames, metadataJson);
-          storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+          storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
           if (tuple != null) {
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
           }
@@ -121,7 +121,7 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
           LOGGER.warn("Media extraction of main thumbnail return null.");
         }
       }
-      stormTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
+      commonTaskTuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE, gson.toJson(mainThumbnailAvailable));
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
       return;
@@ -129,13 +129,13 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
       LOGGER.error("Unable to deserialize the file it will be dropped. The full error is:{} ", ExceptionUtils.getStackTrace(e));
         emitErrorNotification(
                 anchorTuple,
-                stormTaskTuple,
+                commonTaskTuple,
                 "Unable to deserialize the file",
                 "The cause of the error is:" + e.getCause());
     } catch (Exception e) {
       LOGGER.error("Exception while reading and parsing file for processing the edm:object resource." +
           " The full error is:{} ", ExceptionUtils.getStackTrace(e));
-      StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
+      CommonTaskTuple tuple = SerializationUtils.clone(commonTaskTuple);
       tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
       buildErrorMessage(exception, "Exception while processing the edm:object resource." +
           " The full error is: " + e.getMessage() + " because of: " + e.getCause());
@@ -146,19 +146,19 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
       logStatistics(END, STATISTIC_OPERATION_NAME, opId);
     }
     if (exception.length() > 0) {
-      stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-      stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+      commonTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+      commonTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourcesToBeProcessed));
+    outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
     outputCollector.ack(anchorTuple);
 
     LOGGER.info("Processing edm:object finished in: {}ms", Clock.millisecondsSince(processingStartTime));
   }
 
-  private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception,
-      ResourceExtractionResult resourceExtractionResult) throws IOException {
-    thumbnailUploader.storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+  private void storeThumbnails(CommonTaskTuple commonTaskTuple, StringBuilder exception,
+                               ResourceExtractionResult resourceExtractionResult) throws IOException {
+    thumbnailUploader.storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
   }
 
   @Override

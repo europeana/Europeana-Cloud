@@ -13,7 +13,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemove
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.IndexingProperties;
 import eu.europeana.indexing.exception.IndexingException;
@@ -78,46 +78,46 @@ public class IndexingBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     // Get variables.
-    final var database = getDatabase(stormTaskTuple);
+    final var database = getDatabase(commonTaskTuple);
     final var preserveTimestampsString = Boolean
-        .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));
-    final var datasetIdsToRedirectFrom = stormTaskTuple
+        .parseBoolean(commonTaskTuple.getParameter(PluginParameterKeys.METIS_PRESERVE_TIMESTAMPS));
+    final var datasetIdsToRedirectFrom = commonTaskTuple
             .getParameter(PluginParameterKeys.DATASET_IDS_TO_REDIRECT_FROM);
     final var datasetIdsToRedirectFromList = datasetIdsToRedirectFrom == null ? null
             : Arrays.stream(datasetIdsToRedirectFrom.split(",")).map(String::trim).toList();
     final var performRedirects = Boolean
-            .parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
+            .parseBoolean(commonTaskTuple.getParameter(PluginParameterKeys.PERFORM_REDIRECTS));
     final Date recordDate;
     try {
-      recordDate = DateHelper.parseISODate(stormTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
-      validateHarvestDate(stormTaskTuple);
+      recordDate = DateHelper.parseISODate(commonTaskTuple.getParameter(PluginParameterKeys.METIS_RECORD_DATE));
+      validateHarvestDate(commonTaskTuple);
       final var properties = new IndexingProperties(recordDate,
           preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, TierCalculationMode.OVERWRITE);
-      String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
-      String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, stormTaskTuple.getRecordUri());
+      String metisDatasetId = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+      String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, commonTaskTuple.getRecordUri());
 
       boolean recordNotSuitableForPublication = false;
-      if (!stormTaskTuple.isMarkedAsDeleted()) {
-        recordNotSuitableForPublication = !indexRecord(stormTaskTuple, database, properties);
+      if (!commonTaskTuple.isMarkedAsDeleted()) {
+        recordNotSuitableForPublication = !indexRecord(commonTaskTuple, database, properties);
       }
-      boolean recordShouldBeDeleted = stormTaskTuple.isMarkedAsDeleted() || recordNotSuitableForPublication;
+      boolean recordShouldBeDeleted = commonTaskTuple.isMarkedAsDeleted() || recordNotSuitableForPublication;
 
       if (recordShouldBeDeleted) {
-        removeIndexedRecord(stormTaskTuple, database, europeanaId);
+        removeIndexedRecord(commonTaskTuple, database, europeanaId);
       } else{
         indexWrapper.getIndexer(database).removeTombstone(europeanaId);
       }
-      updateHarvestedRecord(stormTaskTuple, europeanaId, recordShouldBeDeleted);
+      updateHarvestedRecord(commonTaskTuple, europeanaId, recordShouldBeDeleted);
       if (recordNotSuitableForPublication) {
         String information = "Record deleted from database " + database + ", cause it was in media tier 0!" +
             " EuropeanaId: " + europeanaId;
-        emitErrorNotification(anchorTuple, stormTaskTuple, "Record not suitable for publication", information);
+        emitErrorNotification(anchorTuple, commonTaskTuple, "Record not suitable for publication", information);
         LOGGER.warn(information);
       } else {
-        prepareTuple(stormTaskTuple, europeanaId);
-        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        prepareTuple(commonTaskTuple, europeanaId);
+        outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
         LOGGER.info(
             "Indexing bolt executed for: {} (record date: {}, preserve timestamps: {}).",
             database, recordDate, preserveTimestampsString);
@@ -126,23 +126,23 @@ public class IndexingBolt extends AbstractDpsBolt {
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (DateTimeParseException e) {
-      logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, stormTaskTuple);
+      logAndEmitError(anchorTuple, e, PARSE_RECORD_DATE_ERROR_MESSAGE, commonTaskTuple);
       outputCollector.ack(anchorTuple);
     } catch (RuntimeException | MalformedURLException | CloudException e) {
-      logAndEmitError(anchorTuple, e, e.getMessage(), stormTaskTuple);
+      logAndEmitError(anchorTuple, e, e.getMessage(), commonTaskTuple);
       outputCollector.ack(anchorTuple);
     } catch (IndexingException e) {
-      logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, stormTaskTuple);
+      logAndEmitError(anchorTuple, e, INDEXING_FILE_ERROR_MESSAGE, commonTaskTuple);
       outputCollector.ack(anchorTuple);
     }
   }
 
-  private void removeIndexedRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database, String europeanaId)
+  private void removeIndexedRecord(CommonTaskTuple commonTaskTuple, TargetIndexingDatabase database, String europeanaId)
       throws IndexingException {
     boolean tombstoneIsCreated = recordRemover.removeRecord(database, europeanaId, DepublicationReason.REMOVED_DATA_AT_SOURCE);
     LOGGER.info("Finished removing indexed record: "
                     + "europeanaId: {}, database: {}, taskId: {}, recordId: {}, tombstone is created: {}",
-            europeanaId, database, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri(), tombstoneIsCreated);
+            europeanaId, database, commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri(), tombstoneIsCreated);
   }
 
   private void prepareDao() {
@@ -166,10 +166,10 @@ public class IndexingBolt extends AbstractDpsBolt {
     indexWrapper = IndexWrapper.getInstance(indexingProperties);
   }
 
-  private boolean indexRecord(StormTaskTuple stormTaskTuple, TargetIndexingDatabase database,
-      IndexingProperties properties) throws IndexingException {
+  private boolean indexRecord(CommonTaskTuple commonTaskTuple, TargetIndexingDatabase database,
+                              IndexingProperties properties) throws IndexingException {
     AtomicBoolean suitableForPublication = new AtomicBoolean();
-    final var document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+    final var document = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
     indexWrapper.getIndexer(database).index(document, properties, tier -> {
       suitableForPublication.set((database == TargetIndexingDatabase.PREVIEW) || (tier.getMediaTier() != MediaTier.T0));
       return suitableForPublication.get();
@@ -177,27 +177,27 @@ public class IndexingBolt extends AbstractDpsBolt {
     return suitableForPublication.get();
   }
 
-  private void prepareTuple(StormTaskTuple stormTaskTuple, String europeanaId) {
-    stormTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
+  private void prepareTuple(CommonTaskTuple commonTaskTuple, String europeanaId) {
+    commonTaskTuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaId);
   }
 
-  private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, StormTaskTuple stormTaskTuple) {
+  private void logAndEmitError(Tuple anchorTuple, Exception e, String errorMessage, CommonTaskTuple commonTaskTuple) {
     LOGGER.error(errorMessage, e);
-    emitErrorNotification(anchorTuple, stormTaskTuple, errorMessage,
+    emitErrorNotification(anchorTuple, commonTaskTuple, errorMessage,
             "Error while indexing. The full error is: " + ExceptionUtils.getStackTrace(e));
   }
 
-  private void updateHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, boolean recordDeleted) {
-    String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+  private void updateHarvestedRecord(CommonTaskTuple commonTaskTuple, String europeanaId, boolean recordDeleted) {
+    String metisDatasetId = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
 
     var harvestedRecord = harvestedRecordsDAO.findRecord(metisDatasetId, europeanaId)
                                              .orElseGet(
-                                                 () -> prepareNewHarvestedRecord(stormTaskTuple, europeanaId, metisDatasetId));
+                                                 () -> prepareNewHarvestedRecord(commonTaskTuple, europeanaId, metisDatasetId));
 
     Date latestHarvestDate = recordDeleted ? null : harvestedRecord.getLatestHarvestDate();
     UUID latestHarvestMd5 = recordDeleted ? null : harvestedRecord.getLatestHarvestMd5();
 
-    var database = getDatabase(stormTaskTuple);
+    var database = getDatabase(commonTaskTuple);
     switch (database) {
       case PREVIEW:
         harvestedRecord.setPreviewHarvestDate(latestHarvestDate);
@@ -213,26 +213,26 @@ public class IndexingBolt extends AbstractDpsBolt {
     }
 
     LOGGER.info("Saving harvested record for environment: {}, taskId: {}, recordId:{}, harvestedRecord: {}",
-            database, harvestedRecord, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri());
+            database, harvestedRecord, commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri());
     harvestedRecordsDAO.insertHarvestedRecord(harvestedRecord);
   }
 
-  private HarvestedRecord prepareNewHarvestedRecord(StormTaskTuple stormTaskTuple, String europeanaId, String metisDatasetId) {
+  private HarvestedRecord prepareNewHarvestedRecord(CommonTaskTuple commonTaskTuple, String europeanaId, String metisDatasetId) {
     LOGGER.warn(
             "Could not find harvested record for europeanaId: {} and metisDatasetId: {}, Creating new one! taskId: {}, recordId:{}",
-            europeanaId, metisDatasetId, stormTaskTuple.getTaskId(), stormTaskTuple.getRecordUri());
+            europeanaId, metisDatasetId, commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri());
     return HarvestedRecord.builder().metisDatasetId(metisDatasetId).recordLocalId(europeanaId)
-                          .latestHarvestDate(stormTaskTuple.getHarvestDate()).build();
+                          .latestHarvestDate(commonTaskTuple.getHarvestDate()).build();
   }
 
-  private TargetIndexingDatabase getDatabase(StormTaskTuple stormTaskTuple) {
+  private TargetIndexingDatabase getDatabase(CommonTaskTuple commonTaskTuple) {
     return TargetIndexingDatabase.valueOf(
-        stormTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
+        commonTaskTuple.getParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE));
   }
 
-  private void validateHarvestDate(StormTaskTuple stormTaskTuple) throws DateTimeParseException {
+  private void validateHarvestDate(CommonTaskTuple commonTaskTuple) throws DateTimeParseException {
     //throws DateTimeParseException if date could not be parsed
-    stormTaskTuple.getHarvestDate();
+    commonTaskTuple.getHarvestDate();
   }
 
 }

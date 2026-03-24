@@ -5,8 +5,8 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -59,7 +59,7 @@ class ParseFileBoltTest {
   static ParseFileForMediaBolt parseFileBolt =
           new ParseFileForMediaBolt(new CassandraProperties(), "localhost/mcs", "user", "password");
 
-  private StormTaskTuple stormTaskTuple;
+  private CommonTaskTuple commonTaskTuple;
   private static List<String> expectedParametersKeysList;
 
   @BeforeAll
@@ -77,12 +77,12 @@ class ParseFileBoltTest {
 
   @BeforeEach
   void prepareTuple() {
-    stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setTaskId(TASK_ID);
-    stormTaskTuple.setRecordUri(FILE_URL);
-    stormTaskTuple.setRecordUri(FILE_URL);
-    stormTaskTuple.setMessageProcessingStartTimeInMs(1);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
+    commonTaskTuple = new CommonTaskTuple();
+    commonTaskTuple.setTaskId(TASK_ID);
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setMessageProcessingStartTimeInMs(1);
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "3");
   }
 
   @Test
@@ -93,7 +93,7 @@ class ParseFileBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false);
-      parseFileBolt.execute(anchorTuple, stormTaskTuple);
+      parseFileBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, Mockito.times(4)).emit(any(Tuple.class), captor.capture()); // 4 hasView, 1 edm:object
 
       List<Values> capturedValuesList = captor.getAllValues();
@@ -118,7 +118,7 @@ class ParseFileBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(false).thenReturn(false).thenReturn(true);
-      parseFileBolt.execute(anchorTuple, stormTaskTuple);
+      parseFileBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, Mockito.times(2)).emit(any(Tuple.class),
               captor.capture()); // 4 hasView, 1 edm:object, dropped after 2 resources
     }
@@ -128,11 +128,11 @@ class ParseFileBoltTest {
   @SuppressWarnings("unchecked")
   void shouldParseFileWithEmptyResourcesAndForwardOneTuple() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
+    commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, "0");
 
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      parseFileBolt.execute(anchorTuple, stormTaskTuple);
+      parseFileBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
       Values values = captor.getValue();
       assertNotNull(values);
@@ -152,7 +152,7 @@ class ParseFileBoltTest {
   void shouldEmitErrorWhenDownloadFileFails() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     doThrow(MCSException.class).when(fileClient).getFile(FILE_URL);
-    parseFileBolt.execute(anchorTuple, stormTaskTuple);
+    parseFileBolt.execute(anchorTuple, commonTaskTuple);
     verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
     Values values = captor.getValue();
     assertNotNull(values);
@@ -172,7 +172,7 @@ class ParseFileBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/broken.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      parseFileBolt.execute(anchorTuple, stormTaskTuple);
+      parseFileBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, Mockito.times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
       Values values = captor.getValue();
       assertNotNull(values);

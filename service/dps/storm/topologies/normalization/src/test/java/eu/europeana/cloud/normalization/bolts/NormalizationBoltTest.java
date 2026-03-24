@@ -3,10 +3,10 @@ package eu.europeana.cloud.normalization.bolts;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -90,20 +90,20 @@ class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(Mockito.anyString(), any(Tuple.class), captor.capture());
     var val = (Map<String, String>) captor.getValue().get(1);
-    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Cannot prepare output storm tuple."));
+    assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("Cannot prepare output common tuple."));
     assertTrue(val.get(NotificationParameterKeys.STATE_DESCRIPTION).contains("malformed.url"));
   }
 
-  private StormTaskTuple getCorrectStormTuple(byte[] inputData) {
+  private CommonTaskTuple getCorrectStormTuple(byte[] inputData) {
     return getStormTuple(SOURCE_VERSION_URL, inputData);
   }
 
-  private StormTaskTuple getMalformedStormTuple(byte[] inputData) {
+  private CommonTaskTuple getMalformedStormTuple(byte[] inputData) {
     return getStormTuple("malformed.url", inputData);
   }
 
-  private StormTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
-    var tuple = new StormTaskTuple(
+  private CommonTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
+    var tuple = new CommonTaskTuple(
             new TaskMetadata(123, "TASK_NAME"),
             new RecordMetadata(fileUrl, inputData, true),
             new StormProcessingMetadata());

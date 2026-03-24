@@ -6,7 +6,7 @@ import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
@@ -45,59 +45,59 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
    * <li>metadata prefix</li>
    * </ul>
    * <p>
-   * record will be fetched from OAI endpoint. All need parameters should be provided in {@link StormTaskTuple}.
+   * record will be fetched from OAI endpoint. All need parameters should be provided in {@link CommonTaskTuple}.
    *
-   * @param stormTaskTuple
+   * @param commonTaskTuple
    */
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     Instant harvestingStartTime = Instant.now();
-    LOGGER.info("Starting harvesting for: {}", stormTaskTuple.getRecordUri());
-    String endpointLocation = readEndpointLocation(stormTaskTuple);
-    String recordId = readRecordId(stormTaskTuple);
-    String metadataPrefix = readMetadataPrefix(stormTaskTuple);
+    LOGGER.info("Starting harvesting for: {}", commonTaskTuple.getRecordUri());
+    String endpointLocation = readEndpointLocation(commonTaskTuple);
+    String recordId = readRecordId(commonTaskTuple);
+    String metadataPrefix = readMetadataPrefix(commonTaskTuple);
     if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
       LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
       try {
         var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
-        stormTaskTuple.setFileData(oaiRecord.getContent());
+        commonTaskTuple.setFileData(oaiRecord.getContent());
 
-        generateIdentifiers(stormTaskTuple);
-        addRecordTimestampToTuple(stormTaskTuple, oaiRecord);
+        generateIdentifiers(commonTaskTuple);
+        addRecordTimestampToTuple(commonTaskTuple, oaiRecord);
 
-        outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+        outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
 
         LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
       } catch (HarvesterException | IOException | EuropeanaIdException e) {
         LOGGER.error("Exception on harvesting", e);
           emitErrorNotification(
                   anchorTuple,
-                  stormTaskTuple,
+                  commonTaskTuple,
                   "Error while harvesting a record",
                   "The full error is: " + e.getMessage() + ". The cause of the error is: " + e.getCause());
           LOGGER.error(e.getMessage());
       }
     } else {
-        stormTaskTuple.setRecordUri(DPS_TASK_INPUT_DATA);
-      emitErrorNotification(anchorTuple, stormTaskTuple, "Invalid parameters");
+        commonTaskTuple.setRecordUri(DPS_TASK_INPUT_DATA);
+      emitErrorNotification(anchorTuple, commonTaskTuple, "Invalid parameters");
     }
     LOGGER.info("Harvesting finished in: {}ms for {}", Clock.millisecondsSince(harvestingStartTime),
-            stormTaskTuple.getRecordUri());
+            commonTaskTuple.getRecordUri());
     outputCollector.ack(anchorTuple);
   }
 
-  private void addRecordTimestampToTuple(StormTaskTuple stormTaskTuple, OaiRecord oaiRecord) {
-    stormTaskTuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, DateHelper.format(oaiRecord.getHeader().getDatestamp()));
+  private void addRecordTimestampToTuple(CommonTaskTuple commonTaskTuple, OaiRecord oaiRecord) {
+    commonTaskTuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, DateHelper.format(oaiRecord.getHeader().getDatestamp()));
   }
 
   @Override
-  protected void cleanInvalidData(StormTaskTuple tuple) {
+  protected void cleanInvalidData(CommonTaskTuple tuple) {
     int tries = tuple.getRecordAttemptNumber();
     LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
   }
 
-  private void generateIdentifiers(StormTaskTuple stormTaskTuple) throws EuropeanaIdException {
-    identifierSupplier.prepareIdentifiers(stormTaskTuple);
+  private void generateIdentifiers(CommonTaskTuple commonTaskTuple) throws EuropeanaIdException {
+    identifierSupplier.prepareIdentifiers(commonTaskTuple);
   }
 
 
@@ -111,16 +111,16 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     return endpointLocation != null && recordId != null && metadataPrefix != null;
   }
 
-  private String readEndpointLocation(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(DPS_TASK_INPUT_DATA);
+  private String readEndpointLocation(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getParameter(DPS_TASK_INPUT_DATA);
   }
 
-  private String readRecordId(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getRecordUri();
+  private String readRecordId(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getRecordUri();
   }
 
-  private String readMetadataPrefix(StormTaskTuple stormTaskTuple) {
-    return stormTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
+  private String readMetadataPrefix(CommonTaskTuple commonTaskTuple) {
+    return commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
   }
 
 }

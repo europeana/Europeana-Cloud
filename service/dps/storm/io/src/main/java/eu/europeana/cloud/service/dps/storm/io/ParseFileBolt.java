@@ -6,7 +6,7 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
 import eu.europeana.metis.mediaprocessing.RdfDeserializer;
@@ -39,8 +39,8 @@ public abstract class ParseFileBolt extends ReadFileBolt {
 
   protected abstract List<RdfResourceEntry> getResourcesFromRDF(byte[] bytes) throws RdfDeserializationException;
 
-  protected StormTaskTuple createStormTuple(StormTaskTuple stormTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
-    StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
+  protected CommonTaskTuple createStormTuple(CommonTaskTuple commonTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
+    CommonTaskTuple tuple = SerializationUtils.clone(commonTaskTuple);
     LOGGER.debug("Sending this resource link {} to be processed ", rdfResourceEntry.getResourceUrl());
     tuple.addParameter(PluginParameterKeys.RESOURCE_LINK_KEY, gson.toJson(rdfResourceEntry));
     tuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(linksCount));
@@ -48,33 +48,33 @@ public abstract class ParseFileBolt extends ReadFileBolt {
     return tuple;
   }
 
-  protected abstract int getLinksCount(StormTaskTuple tuple, int resourcesCount) throws RdfDeserializationException;
+  protected abstract int getLinksCount(CommonTaskTuple tuple, int resourcesCount) throws RdfDeserializationException;
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.debug("Starting file parsing");
     Instant processingStartTime = Instant.now();
-    try (InputStream stream = getFileStreamByStormTuple(stormTaskTuple)) {
+    try (InputStream stream = getFileStreamByStormTuple(commonTaskTuple)) {
       byte[] fileContent = IOUtils.toByteArray(stream);
       if (FileDataChecker.isFileDataNullOrBlank(fileContent)) {
         LOGGER.warn("File data to be parsed is null or blank!");
       }
       List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
-      int linksCount = getLinksCount(stormTaskTuple, rdfResourceEntries.size());
+      int linksCount = getLinksCount(commonTaskTuple, rdfResourceEntries.size());
       if (linksCount == 0) {
-        StormTaskTuple tuple = SerializationUtils.clone(stormTaskTuple);
+        CommonTaskTuple tuple = SerializationUtils.clone(commonTaskTuple);
         LOGGER.warn("The EDM file has no resource Links ");
         outputCollector.emit(anchorTuple, tuple.toStormTuple());
       } else {
         LOGGER.debug("Found {} resources for {} : {}", rdfResourceEntries.size(),
-                stormTaskTuple.getRecordUri(),
+                commonTaskTuple.getRecordUri(),
                 rdfResourceEntries);
         for (RdfResourceEntry rdfResourceEntry : rdfResourceEntries) {
-          if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
+          if (taskStatusChecker.hasDroppedStatus(commonTaskTuple.getTaskId())) {
             break;
           }
-          StormTaskTuple tuple = createStormTuple(stormTaskTuple, rdfResourceEntry,
-              Integer.parseInt(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)));
+          CommonTaskTuple tuple = createStormTuple(commonTaskTuple, rdfResourceEntry,
+              Integer.parseInt(commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT)));
           outputCollector.emit(anchorTuple, tuple.toStormTuple());
         }
       }
@@ -83,7 +83,7 @@ public abstract class ParseFileBolt extends ReadFileBolt {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
         LOGGER.error("Unable to read and parse file ", e);
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(),
                 "Error while reading and parsing the EDM file. The full error is: " + ExceptionUtils.getStackTrace(e));
         outputCollector.ack(anchorTuple);
     }

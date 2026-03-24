@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.exception.RdfDeserializationException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 
@@ -23,20 +23,20 @@ public class ParseFileForMediaBolt extends ParseFileBolt {
   }
 
   @Override
-  protected StormTaskTuple createStormTuple(StormTaskTuple stormTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
-    StormTaskTuple tuple = super.createStormTuple(stormTaskTuple, rdfResourceEntry, linksCount);
+  protected CommonTaskTuple createStormTuple(CommonTaskTuple commonTaskTuple, RdfResourceEntry rdfResourceEntry, int linksCount) {
+    CommonTaskTuple tuple = super.createStormTuple(commonTaskTuple, rdfResourceEntry, linksCount);
     tuple.addParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE,
-        stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE));
+        commonTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE));
     applyThrottling(tuple);
     return tuple;
   }
 
   @Override
-  protected int getLinksCount(StormTaskTuple tuple, int resourcesCount) {
+  protected int getLinksCount(CommonTaskTuple tuple, int resourcesCount) {
     return Integer.parseInt(tuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT));
   }
 
-  private void applyThrottling(StormTaskTuple tuple) {
+  private void applyThrottling(CommonTaskTuple tuple) {
     tuple.setThrottlingGroupingAttribute(generator.generateForResourceProcessingBolt(tuple));
   }
 

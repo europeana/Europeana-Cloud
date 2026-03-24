@@ -10,10 +10,10 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
@@ -101,7 +101,7 @@ class IndexingBoltTest {
                     .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -138,7 +138,7 @@ class IndexingBoltTest {
                     .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer(MediaTier.T0);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -178,7 +178,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -216,7 +216,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer(MediaTier.T0);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -254,7 +254,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     tuple.setMarkedAsDeleted(true);
     mockIndexer();
 
@@ -294,7 +294,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     tuple.setMarkedAsDeleted(true);
     mockIndexer();
 
@@ -330,7 +330,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -356,7 +356,7 @@ class IndexingBoltTest {
   void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     mockIndexer(IndexerRelatedIndexingException.class);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -377,7 +377,7 @@ class IndexingBoltTest {
   void shouldEmitErrorNotificationForIndexing() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
+    CommonTaskTuple tuple = mockStormTupleFor("PUBLISH");
     mockIndexer(IndexerRelatedIndexingException.class);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -399,7 +399,7 @@ class IndexingBoltTest {
   void shouldThrowExceptionWhenDateIsUnparsable() {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.getParameters().remove(PluginParameterKeys.METIS_RECORD_DATE);
     tuple.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "UN_PARSABLE_DATE");
     //when
@@ -421,7 +421,7 @@ class IndexingBoltTest {
   void shouldThrowExceptionForUnknownEnv() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
+    CommonTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
     mockIndexer(RuntimeException.class);
     //when
     assertThrows(IllegalArgumentException.class, () -> indexingBolt.execute(anchorTuple, tuple));
@@ -430,7 +430,7 @@ class IndexingBoltTest {
   @Test
   void shouldThrowExceptionWhenHarvestDateIsNull() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.getParameters().remove(PluginParameterKeys.HARVEST_DATE);
 
     indexingBolt.execute(anchorTuple, tuple);
@@ -444,7 +444,7 @@ class IndexingBoltTest {
   @Test
   void shouldThrowExceptionWhenHarvestDateIsUnparsable() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.addParameter(PluginParameterKeys.HARVEST_DATE, "UN_PARSABLE_DATE");
 
     indexingBolt.execute(anchorTuple, tuple);
@@ -459,8 +459,8 @@ class IndexingBoltTest {
     when(europeanaIdFinder.findForFileUrl(METIS_DATASET_ID, FILE_URL)).thenReturn(LOCAL_ID);
   }
 
-  private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
-    StormTaskTuple tuple = new StormTaskTuple(
+  private CommonTaskTuple mockStormTupleFor(final String targetDatabase) {
+    CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskMetadata(1, "taskName"),
             new RecordMetadata(FILE_URL, new byte[]{'a', 'b', 'c'}),
             processingMetadata,

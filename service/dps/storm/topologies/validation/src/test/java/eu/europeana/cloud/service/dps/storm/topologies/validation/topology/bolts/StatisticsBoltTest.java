@@ -10,10 +10,10 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -68,7 +68,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, fileData, true),
                 new StormProcessingMetadata());
@@ -91,7 +91,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple2 = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, fileData, true),
                 new StormProcessingMetadata());
@@ -101,7 +101,7 @@ class StatisticsBoltTest extends CassandraTestBase {
 
         byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
 
-        StormTaskTuple tuple2 = new StormTaskTuple(
+        CommonTaskTuple tuple2 = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL_CLOUD_ID2, fileData2, true),
                 new StormProcessingMetadata());
@@ -122,7 +122,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, fileData, true),
                 new StormProcessingMetadata());
@@ -142,7 +142,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, fileData, true),
                 new StormProcessingMetadata());
@@ -162,7 +162,7 @@ class StatisticsBoltTest extends CassandraTestBase {
         Tuple anchorTuple = mock(TupleImpl.class);
         byte[] fileData = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
         fileData[0] = 'X'; // will cause SAXException
-        StormTaskTuple tuple = new StormTaskTuple(
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, TASK_NAME),
                 new RecordMetadata(SOURCE_VERSION_URL, fileData, true),
                 new StormProcessingMetadata());

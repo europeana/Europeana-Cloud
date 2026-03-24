@@ -1,4 +1,4 @@
-package eu.europeana.cloud.service.dps.storm.tuple.storm;
+package eu.europeana.cloud.service.dps.storm.tuple.common;
 
 import eu.europeana.enrichment.rest.client.report.Report;
 import lombok.Getter;

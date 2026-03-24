@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.commons.io.FileUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -44,7 +44,7 @@ class OaiHarvestedRecordCategorizationBoltTest {
     void shouldForwardTupleToNextBoltInCaseOfNonIncrementalProcessing() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = prepareNonIncrementalTuple();
+        CommonTaskTuple tuple = prepareNonIncrementalTuple();
         when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
                 CategorizationResult
                         .builder()
@@ -61,7 +61,7 @@ class OaiHarvestedRecordCategorizationBoltTest {
     void shouldForwardTupleToNextBoltInCaseOfNonExistingIncrementalParameter() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = prepareTupleWithoutIncrementalParameter();
+        CommonTaskTuple tuple = prepareTupleWithoutIncrementalParameter();
         when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
                 CategorizationResult
                         .builder()
@@ -78,7 +78,7 @@ class OaiHarvestedRecordCategorizationBoltTest {
     void shouldCategorizeMessageAsEligibleForProcessing() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = prepareTupleWithIncrementalParameter();
+        CommonTaskTuple tuple = prepareTupleWithIncrementalParameter();
         when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
                 CategorizationResult
                         .builder()
@@ -95,7 +95,7 @@ class OaiHarvestedRecordCategorizationBoltTest {
     void shouldCategorizeMessageAlreadyProcessed() throws IOException {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple tuple = prepareTupleWithIncrementalParameter();
+        CommonTaskTuple tuple = prepareTupleWithIncrementalParameter();
         when(harvestedRecordCategorizationService.categorize(any())).thenReturn(
                 CategorizationResult
                         .builder()
@@ -113,8 +113,8 @@ class OaiHarvestedRecordCategorizationBoltTest {
         verify(outputCollector, never()).emit(any(Tuple.class), anyList());
     }
 
-    private StormTaskTuple prepareNonIncrementalTuple() throws IOException {
-        StormTaskTuple tuple = new StormTaskTuple();
+    private CommonTaskTuple prepareNonIncrementalTuple() throws IOException {
+        CommonTaskTuple tuple = new CommonTaskTuple();
         tuple.setTaskId(1);
         tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "false");
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
@@ -123,16 +123,16 @@ class OaiHarvestedRecordCategorizationBoltTest {
         return tuple;
     }
 
-    private StormTaskTuple prepareTupleWithoutIncrementalParameter() throws IOException {
-        StormTaskTuple tuple = new StormTaskTuple();
+    private CommonTaskTuple prepareTupleWithoutIncrementalParameter() throws IOException {
+        CommonTaskTuple tuple = new CommonTaskTuple();
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());
         tuple.addParameter(PluginParameterKeys.HARVEST_DATE, Instant.now().toString());
         tuple.setFileData(FileUtils.readFileToByteArray(new File(ClassLoader.getSystemResource("Lithuania_1.xml").getFile())));
         return tuple;
     }
 
-    private StormTaskTuple prepareTupleWithIncrementalParameter() throws IOException {
-        StormTaskTuple tuple = new StormTaskTuple();
+    private CommonTaskTuple prepareTupleWithIncrementalParameter() throws IOException {
+        CommonTaskTuple tuple = new CommonTaskTuple();
         tuple.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
         tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "10");
         tuple.addParameter(PluginParameterKeys.RECORD_DATESTAMP, Instant.now().toString());

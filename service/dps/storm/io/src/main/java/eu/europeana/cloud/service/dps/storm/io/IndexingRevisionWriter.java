@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
 
@@ -29,23 +29,23 @@ public class IndexingRevisionWriter extends RevisionWriterBolt {
   }
 
   @Override
-  protected void addRevisionAndEmit(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  protected void addRevisionAndEmit(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.info("{} executed", getClass().getSimpleName());
     try {
-      addRevisionToSpecificResource(stormTaskTuple, stormTaskTuple.getRecordUri());
-      emitSuccessNotificationForIndexing(anchorTuple, stormTaskTuple);
+      addRevisionToSpecificResource(commonTaskTuple, commonTaskTuple.getRecordUri());
+      emitSuccessNotificationForIndexing(anchorTuple, commonTaskTuple);
     } catch (MalformedURLException e) {
-      LOGGER.error("URL is malformed: {}", stormTaskTuple.getRecordUri());
-      emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
+      LOGGER.error("URL is malformed: {}", commonTaskTuple.getRecordUri());
+      emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     } catch (MCSException | DriverException e) {
         LOGGER.warn("Error while communicating with MCS {}", e.getMessage());
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), "The cause of the error is:" + e.getCause());
     }
   }
 
-  protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  protected void emitSuccessNotificationForIndexing(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
       NotificationTuple nt = NotificationTuple.prepareIndexingNotification(
-              stormTaskTuple,
+              commonTaskTuple,
               RecordState.SUCCESS,
               successNotificationMessage,
               "");

@@ -12,10 +12,10 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.StormTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.storm.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
@@ -87,8 +87,8 @@ class HarvestingWriteRecordBoltTest {
         oaipmhHarvestingDetails.setSchema(SOURCE + REPRESENTATION_NAME);
     }
 
-    private StormTaskTuple getStormTaskTuple() {
-        StormTaskTuple tuple = new StormTaskTuple(
+    private CommonTaskTuple getStormTaskTuple() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, "sampleTaskName"),
                 new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
                 new StormProcessingMetadata());
@@ -99,8 +99,8 @@ class HarvestingWriteRecordBoltTest {
         return tuple;
     }
 
-    private StormTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
-        StormTaskTuple tuple = new StormTaskTuple(
+    private CommonTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskMetadata(TASK_ID, "sampleTaskName"),
                 new RecordMetadata(SOURCE + LOCAL_ID, FILE_DATA),
                 new StormProcessingMetadata());
@@ -138,9 +138,9 @@ class HarvestingWriteRecordBoltTest {
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), anyString(), anyBoolean())).thenReturn(uri);
 
-        StormTaskTuple stormTaskTuple = getStormTaskTuple();
-        stormTaskTuple.setMarkedAsDeleted(true);
-        oaiWriteRecordBoltT.execute(anchorTuple, stormTaskTuple);
+        CommonTaskTuple commonTaskTuple = getStormTaskTuple();
+        commonTaskTuple.setMarkedAsDeleted(true);
+        oaiWriteRecordBoltT.execute(anchorTuple, commonTaskTuple);
 
         assertExecutionResults();
 
