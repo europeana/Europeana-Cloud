@@ -7,9 +7,9 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemove
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
@@ -51,9 +51,9 @@ class DepublicationBoltTest {
           PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
   public static final CommonTaskTuple INPUT_TUPLE = new CommonTaskTuple(
-          new TaskMetadata(TASK_ID, "taskName"),
-          new RecordMetadata(RECORD_ID, null, true),
-          new StormProcessingMetadata());
+          new TaskData(TASK_ID, "taskName"),
+          new RecordData(RECORD_ID, null, true),
+          new StormProcessingData());
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;

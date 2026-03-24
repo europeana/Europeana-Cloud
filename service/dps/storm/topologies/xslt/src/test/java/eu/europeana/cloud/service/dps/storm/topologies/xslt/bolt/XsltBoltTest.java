@@ -4,10 +4,10 @@ import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.commons.io.IOUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -63,9 +63,9 @@ class XsltBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     String sampleXmlFileName = "/xmlForTesting.xml";
     CommonTaskTuple tuple = new CommonTaskTuple(
-            new TaskMetadata(TASK_ID, TASK_NAME),
-            new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
-            new StormProcessingMetadata());
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
+            new StormProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
@@ -87,9 +87,9 @@ class XsltBoltTest {
 
     String injectXmlFileName = "/xmlForTestingParamInjection.xml";
     CommonTaskTuple tuple = new CommonTaskTuple(
-            new TaskMetadata(TASK_ID, TASK_NAME),
-            new RecordMetadata(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
-            new StormProcessingMetadata());
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
+            new StormProcessingData());
     tuple.setParameters(parameters);
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
@@ -99,7 +99,7 @@ class XsltBoltTest {
     List<Values> allValues = captor.getAllValues();
     assertEmittedTuple(allValues, 4);
 
-    String transformed = new String(((RecordMetadata) allValues.get(0).get(5)).getFileData());
+    String transformed = new String(((RecordData) allValues.get(0).get(5)).getFileData());
     assertNotNull(transformed);
     assertTrue(transformed.contains(EXAMPLE_METIS_DATASET_ID));
   }
@@ -121,8 +121,8 @@ class XsltBoltTest {
     assertEquals(1, allValues.size());
 
     //parameters assertion
-    assertTrue(allValues.get(0).get(3) instanceof TaskMetadata);
-    var parameters = ((TaskMetadata) allValues.get(0).get(3)).getParameters();
+    assertTrue(allValues.get(0).get(3) instanceof TaskData);
+    var parameters = ((TaskData) allValues.get(0).get(3)).getParameters();
     assertNotNull(parameters);
     assertEquals(parameters.size(), expectedParametersSize);
     String cloudId = parameters.get(PluginParameterKeys.CLOUD_ID);

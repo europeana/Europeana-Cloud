@@ -9,9 +9,9 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -72,9 +72,9 @@ class WriteRecordBoltTest {
     void successfullyExecuteWriteBolt() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -93,8 +93,8 @@ class WriteRecordBoltTest {
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskMetadata);
-        Map<String, String> parameters = ((TaskMetadata) value.get(3)).getParameters();
+        assertTrue(value.get(3) instanceof TaskData);
+        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), eq(DATASET_NAME),
@@ -107,9 +107,9 @@ class WriteRecordBoltTest {
     void successfullyExecuteWriteBoltOnDeletedRecord() throws Exception {
         Tuple anchorTuple = mock(TupleImpl.class);
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
@@ -128,8 +128,8 @@ class WriteRecordBoltTest {
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskMetadata);
-        Map<String, String> parameters = ((TaskMetadata) value.get(3)).getParameters();
+        assertTrue(value.get(3) instanceof TaskData);
+        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
@@ -139,9 +139,9 @@ class WriteRecordBoltTest {
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNewRevisionTopology() throws Exception {
       Tuple anchorTuple = mock(TupleImpl.class);
       CommonTaskTuple tuple = new CommonTaskTuple(
-              new TaskMetadata(TASK_ID, TASK_NAME),
-              new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-              new StormProcessingMetadata());
+              new TaskData(TASK_ID, TASK_NAME),
+              new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+              new StormProcessingData());
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setSentDate(SENT_DATE);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
@@ -161,8 +161,8 @@ class WriteRecordBoltTest {
       assertThat(captor.getAllValues().size(), is(1));
       Values value = captor.getAllValues().get(0);
       assertEquals(6, value.size());
-      assertTrue(value.get(3) instanceof TaskMetadata);
-      Map<String, String> parameters = ((TaskMetadata) value.get(3)).getParameters();
+      assertTrue(value.get(3) instanceof TaskData);
+      Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
       //Before it was wrong but worked due to revision being empty even though shouldnt be empty
       assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
       verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
@@ -172,9 +172,9 @@ class WriteRecordBoltTest {
   public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNotNewRevisionTopology() throws Exception {
       Tuple anchorTuple = mock(TupleImpl.class);
       CommonTaskTuple tuple = new CommonTaskTuple(
-              new TaskMetadata(TASK_ID, TASK_NAME),
-              new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-              new StormProcessingMetadata());
+              new TaskData(TASK_ID, TASK_NAME),
+              new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+              new StormProcessingData());
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setSentDate(SENT_DATE);
@@ -191,8 +191,8 @@ class WriteRecordBoltTest {
       assertThat(captor.getAllValues().size(), is(1));
       Values value = captor.getAllValues().get(0);
       assertEquals(6, value.size());
-      assertTrue(value.get(3) instanceof TaskMetadata);
-      Map<String, String> parameters = ((TaskMetadata) value.get(3)).getParameters();
+      assertTrue(value.get(3) instanceof TaskData);
+      Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
       //Before it was wrong but worked due to revision being empty even though shouldn't be empty
       assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
       verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
@@ -203,9 +203,9 @@ class WriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);
@@ -229,9 +229,9 @@ class WriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParametersForRevisionOrientedProcessing());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);

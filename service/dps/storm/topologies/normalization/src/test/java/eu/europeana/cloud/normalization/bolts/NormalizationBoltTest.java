@@ -4,9 +4,9 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -53,7 +53,7 @@ class NormalizationBoltTest {
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
-    assertEquals(new String(expected), new String(((RecordMetadata) capturedValues.get(4)).getFileData()).replaceAll("\r", ""));
+    assertEquals(new String(expected), new String(((RecordData) capturedValues.get(4)).getFileData()).replaceAll("\r", ""));
   }
 
 
@@ -104,9 +104,9 @@ class NormalizationBoltTest {
 
   private CommonTaskTuple getStormTuple(String fileUrl, byte[] inputData) {
     var tuple = new CommonTaskTuple(
-            new TaskMetadata(123, "TASK_NAME"),
-            new RecordMetadata(fileUrl, inputData, true),
-            new StormProcessingMetadata());
+            new TaskData(123, "TASK_NAME"),
+            new RecordData(fileUrl, inputData, true),
+            new StormProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
     return tuple;
   }

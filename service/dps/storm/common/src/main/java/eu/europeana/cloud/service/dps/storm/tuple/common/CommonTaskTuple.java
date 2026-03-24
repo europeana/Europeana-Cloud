@@ -35,35 +35,35 @@ public class CommonTaskTuple implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @Delegate
-  private StormProcessingMetadata stormProcessingMetadata;
+  private StormProcessingData stormProcessingData;
   @Delegate
-  private RecordMetadata fileMetadata;
+  private RecordData fileMetadata;
   @Delegate
-  private TaskMetadata taskMetadata;
+  private TaskData taskData;
 
   @Builder
-  public CommonTaskTuple(TaskMetadata taskMetadata,
-                         RecordMetadata recordMetadata,
-                         StormProcessingMetadata stormProcessingMetadata) {
-    this.taskMetadata = taskMetadata;
-    this.stormProcessingMetadata = stormProcessingMetadata;
-    this.fileMetadata = recordMetadata;
+  public CommonTaskTuple(TaskData taskData,
+                         RecordData recordData,
+                         StormProcessingData stormProcessingData) {
+    this.taskData = taskData;
+    this.stormProcessingData = stormProcessingData;
+    this.fileMetadata = recordData;
   }
 
   public CommonTaskTuple() {
-    this.taskMetadata = new TaskMetadata();
-    this.fileMetadata = new RecordMetadata();
-    this.stormProcessingMetadata = new StormProcessingMetadata();
+    this.taskData = new TaskData();
+    this.fileMetadata = new RecordData();
+    this.stormProcessingData = new StormProcessingData();
   }
 
   public static CommonTaskTuple fromStormTuple(Tuple tuple) {
     return CommonTaskTuple.builder()
-            .taskMetadata(
-                    (TaskMetadata) tuple.getValueByField(TASK_METADATA_TUPLE_FIELD))
-            .stormProcessingMetadata(
-                    (StormProcessingMetadata) tuple.getValueByField(STORM_PROCESSING_METADATA_TUPLE_FIELD))
-            .recordMetadata(
-                    (RecordMetadata) tuple.getValueByField(RECORD_METADATA_TUPLE_FIELD))
+            .taskData(
+                    (TaskData) tuple.getValueByField(TASK_DATA_TUPLE_FIELD))
+            .stormProcessingData(
+                    (StormProcessingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
+            .recordData(
+                    (RecordData) tuple.getValueByField(RECORD_DATA_TUPLE_FIELD))
             .build();
   }
 
@@ -87,9 +87,9 @@ public class CommonTaskTuple implements Serializable {
 
   public static CommonTaskTuple fromValues(List<Object> list) {
     return CommonTaskTuple.builder()
-            .taskMetadata((TaskMetadata) list.get(3))
-            .stormProcessingMetadata((StormProcessingMetadata) list.get(4))
-            .recordMetadata((RecordMetadata) list.get(5))
+            .taskData((TaskData) list.get(3))
+            .stormProcessingData((StormProcessingData) list.get(4))
+            .recordData((RecordData) list.get(5))
             .build();
   }
 
@@ -98,20 +98,20 @@ public class CommonTaskTuple implements Serializable {
             TASK_ID_TUPLE_FIELD,
             INPUT_FILES_TUPLE_FIELD,
             THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD,
-            TASK_METADATA_TUPLE_FIELD,
-            STORM_PROCESSING_METADATA_TUPLE_FIELD,
-            RECORD_METADATA_TUPLE_FIELD
+            TASK_DATA_TUPLE_FIELD,
+            STORM_PROCESSING_DATA_TUPLE_FIELD,
+            RECORD_DATA_TUPLE_FIELD
     );
   }
 
 
   public Values toStormTuple() {
     return new Values(
-            taskMetadata.getTaskId(),
+            taskData.getTaskId(),
             fileMetadata.getRecordUri(),
-            stormProcessingMetadata.getThrottlingGroupingAttribute(),
-            taskMetadata,
-            stormProcessingMetadata,
+            stormProcessingData.getThrottlingGroupingAttribute(),
+            taskData,
+            stormProcessingData,
             fileMetadata
 
     );

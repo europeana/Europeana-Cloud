@@ -18,7 +18,7 @@ import java.util.Map;
 @Setter
 @Getter
 @NoArgsConstructor
-public class TaskMetadata implements Serializable {
+public class TaskData implements Serializable {
 
     long taskId;
     String taskName;
@@ -30,12 +30,12 @@ public class TaskMetadata implements Serializable {
     DataSet outputDataset;
     DataSet inputDataset;
 
-    public TaskMetadata(long taskId, String taskName) {
+    public TaskData(long taskId, String taskName) {
         this.taskId = taskId;
         this.taskName = taskName;
     }
 
-    public TaskMetadata(long taskId, String taskName, String sentDate) {
+    public TaskData(long taskId, String taskName, String sentDate) {
         this(taskId, taskName);
         this.sentDate = sentDate;
     }

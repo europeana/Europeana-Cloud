@@ -6,9 +6,9 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -87,9 +87,9 @@ class ValidationBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get(resourcePath));
     CommonTaskTuple tuple = new CommonTaskTuple(
-            new TaskMetadata(TASK_ID, TASK_NAME),
-            new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-            new StormProcessingMetadata());
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+            new StormProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters(schemaName, schemaRootLocation));
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     validationBolt.execute(anchorTuple, tuple);
@@ -101,9 +101,9 @@ class ValidationBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
     CommonTaskTuple tuple = new CommonTaskTuple(
-            new TaskMetadata(TASK_ID, TASK_NAME),
-            new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-            new StormProcessingMetadata());
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+            new StormProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters("edm-external", null));
     tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     validationBolt.execute(anchorTuple, tuple);

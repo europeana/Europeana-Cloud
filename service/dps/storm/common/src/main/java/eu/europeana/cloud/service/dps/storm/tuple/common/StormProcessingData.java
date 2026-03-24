@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class StormProcessingMetadata implements Serializable {
+public class StormProcessingData implements Serializable {
     int recordAttemptNumber;
     long messageProcessingStartTimeInMs;
     private String throttlingGroupingAttribute;
@@ -24,12 +24,12 @@ public class StormProcessingMetadata implements Serializable {
         this.reportSet.addAll(reports);
     }
 
-    public StormProcessingMetadata(int recordAttemptNumber, long messageProcessingStartTimeInMs) {
+    public StormProcessingData(int recordAttemptNumber, long messageProcessingStartTimeInMs) {
         this.recordAttemptNumber = recordAttemptNumber;
         this.messageProcessingStartTimeInMs = messageProcessingStartTimeInMs;
     }
 
-    public StormProcessingMetadata(int recordAttemptNumber, long messageProcessingStartTimeInMs, Set<Report> reportSet) {
+    public StormProcessingData(int recordAttemptNumber, long messageProcessingStartTimeInMs, Set<Report> reportSet) {
         this(recordAttemptNumber, messageProcessingStartTimeInMs);
         this.reportSet = reportSet;
     }

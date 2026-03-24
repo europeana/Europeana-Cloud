@@ -5,9 +5,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -63,9 +63,9 @@ class EnrichmentBoltTest {
 
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/Item_35834473_test.xml"));
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         String fileContent = new String(tuple.getFileData());
         when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("enriched file content", new HashSet<>()));
         enrichmentBolt.execute(anchorTuple, tuple);
@@ -81,9 +81,9 @@ class EnrichmentBoltTest {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Error";
@@ -114,9 +114,9 @@ class EnrichmentBoltTest {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Error";
@@ -159,9 +159,9 @@ class EnrichmentBoltTest {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String ignoreMessage_0 = "Dereference or Enrichment Ignore_0";
@@ -192,7 +192,7 @@ class EnrichmentBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1))
                 .emit(Mockito.any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        HashSet<Report> capturedReports = (HashSet<Report>) ((StormProcessingMetadata) capturedValues.get(4)).getReportSet();
+        HashSet<Report> capturedReports = (HashSet<Report>) ((StormProcessingData) capturedValues.get(4)).getReportSet();
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_0));
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_1));
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_2));
@@ -208,9 +208,9 @@ class EnrichmentBoltTest {
         byte[] FILE_DATA = Files.readAllBytes(Paths.get("src/test/resources/example1.xml"));
 
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, TASK_NAME),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA, true),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, TASK_NAME),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String warnMessage = "Dereference or Enrichment Warning";
@@ -231,7 +231,7 @@ class EnrichmentBoltTest {
                 .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class), Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        HashSet<Report> capturedReports = (HashSet<Report>) ((StormProcessingMetadata) capturedValues.get(4)).getReportSet();
+        HashSet<Report> capturedReports = (HashSet<Report>) ((StormProcessingData) capturedValues.get(4)).getReportSet();
         assertTrue(capturedReports.contains(reportEnrichmentWarn));
         assertTrue(capturedReports.contains(reportDereferenceWarn));
         assertFalse(capturedReports.contains(reportDereferenceIgnore));

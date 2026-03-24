@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ECloudSpout.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">reports</a> &gt; <a href="../index.html" class="el_bundle">ecloud-service-dps-storm-common</a> &gt; <a href="index.source.html" class="el_package">eu.europeana.cloud.service.dps.storm.spout</a> &gt; <span class="el_source">ECloudSpout.java</span></div><h1>ECloudSpout.java</h1><pre class="source lang-java linenums">package eu.europeana.cloud.service.dps.storm.spout;
+
+import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.ProcessedRecord;
+import eu.europeana.cloud.common.model.dps.RecordState;
+import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
+import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.dps.DpsRecord;
+import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
+import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
+import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
+import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
+import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import org.apache.storm.kafka.spout.KafkaSpout;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.apache.storm.spout.ISpoutOutputCollector;
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.*;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.*;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
+public class ECloudSpout extends KafkaSpout&lt;String, DpsRecord&gt; {
+
+<span class="nc" id="L49">  private static final Logger LOGGER = LoggerFactory.getLogger(ECloudSpout.class);</span>
+  private static final int MAX_RETRIES = 3;
+  private final String topologyName;
+  private final String topic;
+  private final String hosts;
+  private final int port;
+  private final String keyspaceName;
+  private final String userName;
+  private final String password;
+  protected transient CassandraTaskInfoDAO taskInfoDAO;
+  protected transient TaskDiagnosticInfoDAO taskDiagnosticInfoDAO;
+  protected transient TaskStatusUpdater taskStatusUpdater;
+  protected transient TaskStatusChecker taskStatusChecker;
+  protected transient ProcessedRecordsDAO processedRecordsDAO;
+  protected transient TasksCache tasksCache;
+  protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
+  private transient ECloudOutputCollector eCloudOutputCollector;
+<span class="nc" id="L66">  protected long maxTaskPending = Long.MAX_VALUE;</span>
+
+  public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig&lt;String, DpsRecord&gt; kafkaSpoutConfig, CassandraProperties cassandraProperties) {
+<span class="nc" id="L69">    super(kafkaSpoutConfig);</span>
+<span class="nc" id="L70">    this.topologyName = topologyName;</span>
+<span class="nc" id="L71">    this.topic = topic;</span>
+<span class="nc" id="L72">    this.hosts = cassandraProperties.getHosts();</span>
+<span class="nc" id="L73">    this.port = cassandraProperties.getPort();</span>
+<span class="nc" id="L74">    this.keyspaceName = cassandraProperties.getKeyspace();</span>
+<span class="nc" id="L75">    this.userName = cassandraProperties.getUser();</span>
+<span class="nc" id="L76">    this.password = cassandraProperties.getPassword();</span>
+<span class="nc" id="L77">  }</span>
+
+
+  @Override
+  public void ack(Object messageId) {
+<span class="nc" id="L82">    eCloudSpoutSamplerMXBean.lastAckedMessageId = String.valueOf(messageId);</span>
+<span class="nc" id="L83">    LOGGER.info(&quot;Record acknowledged {}&quot;, messageId);</span>
+<span class="nc" id="L84">    super.ack(messageId);</span>
+<span class="nc" id="L85">  }</span>
+
+  @Override
+  public void fail(Object messageId) {
+<span class="nc" id="L89">    eCloudSpoutSamplerMXBean.lastFailedMessageId = String.valueOf(messageId);</span>
+<span class="nc" id="L90">    LOGGER.error(&quot;Record failed {}&quot;, messageId);</span>
+<span class="nc" id="L91">    super.fail(messageId);</span>
+<span class="nc" id="L92">  }</span>
+
+  @Override
+  public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+<span class="nc" id="L96">    eCloudSpoutSamplerMXBean = new ECloudSpoutSamplerMXBean();</span>
+<span class="nc" id="L97">    eCloudOutputCollector = new ECloudOutputCollector(collector);</span>
+<span class="nc" id="L98">    super.open(conf, context, eCloudOutputCollector);</span>
+
+<span class="nc" id="L100">    var cassandraConnectionProvider =</span>
+<span class="nc" id="L101">        CassandraConnectionProviderSingleton.getCassandraConnectionProvider(</span>
+            this.hosts,
+            this.port,
+            this.keyspaceName,
+            this.userName,
+            this.password);
+<span class="nc" id="L107">    taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);</span>
+<span class="nc" id="L108">    taskStatusUpdater = TaskStatusUpdater.getInstance(cassandraConnectionProvider);</span>
+<span class="nc" id="L109">    taskStatusChecker = TaskStatusChecker.getTaskStatusChecker(cassandraConnectionProvider);</span>
+<span class="nc" id="L110">    processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);</span>
+<span class="nc" id="L111">    taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);</span>
+<span class="nc" id="L112">    tasksCache = new TasksCache(cassandraConnectionProvider);</span>
+<span class="nc" id="L113">  }</span>
+
+  @Override
+  public void declareOutputFields(OutputFieldsDeclarer declarer) {
+<span class="nc" id="L117">    declarer.declare(StormTaskTuple.getFields());</span>
+<span class="nc" id="L118">    declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());</span>
+<span class="nc" id="L119">  }</span>
+
+  private void ackIgnoredMessage(Object messageId) {
+<span class="nc" id="L122">    super.ack(messageId);</span>
+<span class="nc" id="L123">  }</span>
+
+  private StormTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
+<span class="nc" id="L126">    StormTaskTuple commonTaskTuple = new StormTaskTuple();</span>
+<span class="nc" id="L127">    commonTaskTuple.setTaskId(message.getTaskId());</span>
+<span class="nc" id="L128">    commonTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());</span>
+<span class="nc" id="L129">    commonTaskTuple.setFileUrl(message.getRecordId());</span>
+<span class="nc" id="L130">    commonTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());</span>
+<span class="nc" id="L131">    return commonTaskTuple;</span>
+  }
+
+  public class ECloudOutputCollector extends SpoutOutputCollector {
+
+<span class="nc" id="L136">    public ECloudOutputCollector(ISpoutOutputCollector delegate) {</span>
+<span class="nc" id="L137">      super(delegate);</span>
+<span class="nc" id="L138">    }</span>
+
+    @Override
+    public List&lt;Integer&gt; emit(String streamId, List&lt;Object&gt; tuple, Object messageId) {
+<span class="nc" id="L142">      DpsRecord message = null;</span>
+      try {
+<span class="nc" id="L144">        message = readMessageFromTuple(tuple);</span>
+<span class="nc" id="L145">        eCloudSpoutSamplerMXBean.lastConsumedMessageId = String.valueOf(messageId);</span>
+<span class="nc" id="L146">        eCloudSpoutSamplerMXBean.lastConsumedMessage = String.valueOf(message);</span>
+<span class="nc" id="L147">        DiagnosticContextWrapper.putValuesFrom(message);</span>
+
+<span class="nc" id="L149">        LOGGER.info(&quot;Reading message from Queue&quot;);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (taskStatusChecker.hasDroppedStatus(message.getTaskId())) {</span>
+<span class="nc" id="L151">          eCloudSpoutSamplerMXBean.lastConsumedMessageCanceled = true;</span>
+<span class="nc" id="L152">          return omitMessageFromDroppedTask(messageId);</span>
+        }
+<span class="nc" id="L154">        eCloudSpoutSamplerMXBean.lastConsumedMessageCanceled = false;</span>
+
+<span class="nc" id="L156">        ProcessedRecord aRecord = prepareRecordForExecution(message);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (isFinished(aRecord)) {</span>
+<span class="nc" id="L158">          return omitAlreadyProcessedRecord(messageId);</span>
+        }
+
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (maxTriesReached(aRecord)) {</span>
+<span class="nc" id="L162">          return emitMaxTriesReachedNotification(message, messageId);</span>
+        } else {
+<span class="nc" id="L164">          return emitRecordForProcessing(streamId, message, aRecord, messageId);</span>
+        }
+<span class="nc" id="L166">      } catch (MalformedURLException | URISyntaxException e) {</span>
+<span class="nc" id="L167">        LOGGER.error(&quot;Unable to parse Uri&quot;, e);</span>
+<span class="nc" id="L168">        return Collections.emptyList();</span>
+<span class="nc" id="L169">      } catch (IOException | NullPointerException e) {</span>
+<span class="nc" id="L170">        LOGGER.error(&quot;Unable to read message&quot;, e);</span>
+<span class="nc" id="L171">        return Collections.emptyList();</span>
+<span class="nc" id="L172">      } catch (TaskInfoDoesNotExistException e) {</span>
+<span class="nc" id="L173">        LOGGER.error(&quot;Task definition not found in DB&quot;);</span>
+<span class="nc" id="L174">        return Collections.emptyList();</span>
+      } finally {
+<span class="nc" id="L176">        DiagnosticContextWrapper.clear();</span>
+      }
+    }
+
+    private boolean maxTriesReached(ProcessedRecord aRecord) {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">      return aRecord.getAttemptNumber() &gt; MAX_RETRIES;</span>
+    }
+
+    private boolean isFinished(ProcessedRecord aRecord) {
+<span class="nc bnc" id="L185" title="All 4 branches missed.">      return aRecord.getState() == RecordState.SUCCESS || aRecord.getState() == RecordState.ERROR;</span>
+    }
+
+    private DpsRecord readMessageFromTuple(List&lt;Object&gt; tuple) {
+<span class="nc" id="L189">      return (DpsRecord) tuple.get(4);</span>
+    }
+
+    private TaskInfo getTaskInfo(DpsRecord message) throws TaskInfoDoesNotExistException {
+<span class="nc" id="L193">      return tasksCache.getTaskInfo(message);</span>
+    }
+
+    private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
+                                                  ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
+<span class="nc" id="L198">      var commonTaskTuple = new StormTaskTuple(</span>
+<span class="nc" id="L199">              new TaskMetadata(dpsTask.getTaskId(), dpsRecord.getRecordId(),</span>
+<span class="nc" id="L200">                      dpsTask.getTaskName(), dpsRecord.isMarkedAsDeleted()),</span>
+<span class="nc" id="L201">              new StormProcessingMetadata(aRecord.getAttemptNumber(),</span>
+<span class="nc" id="L202">                      DateHelper.format(taskInfo.getSentTimestamp()),</span>
+<span class="nc" id="L203">                      new Date().getTime()),</span>
+<span class="nc" id="L204">              new FileMetadata(aRecord.getRecordId(), null));</span>
+<span class="nc" id="L205">      Map&lt;String, String&gt; parameters = dpsTask.getParameters();</span>
+      // for validation
+<span class="nc" id="L207">      commonTaskTuple.addParameter(HARVESTING_DETAILS, dpsTask.getHarvestingDetails().toString());</span>
+<span class="nc" id="L208">      commonTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());</span>
+
+
+<span class="nc" id="L211">      List&lt;String&gt; repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">      if (!isEmpty(repositoryUrlList)) {</span>
+<span class="nc" id="L213">        commonTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));</span>
+      }
+<span class="nc" id="L215">      List&lt;String&gt; datasetUrlList = dpsTask.getDataEntry(InputDataType.DATASET_URLS);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">      if (!isEmpty(datasetUrlList)) {</span>
+<span class="nc" id="L217">        commonTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));</span>
+      }
+<span class="nc bnc" id="L219" title="All 2 branches missed.">      if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {</span>
+<span class="nc" id="L220">        parameters.remove(OUTPUT_DATA_SETS);</span>
+<span class="nc" id="L221">        commonTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));</span>
+      }
+
+<span class="nc bnc" id="L224" title="All 2 branches missed.">      if (dpsTask.getOutputRevision() != null) {</span>
+<span class="nc" id="L225">        commonTaskTuple.setOutputRevision(dpsTask.getOutputRevision());</span>
+      }
+<span class="nc bnc" id="L227" title="All 2 branches missed.">      if (dpsTask.isParameterPresent(REVISION_TIMESTAMP) &amp;&amp;</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">              dpsTask.isParameterPresent(REVISION_NAME) &amp;&amp;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">              dpsTask.isParameterPresent(REPRESENTATION_VERSION)) {</span>
+<span class="nc" id="L230">        parameters.remove(REVISION_TIMESTAMP);</span>
+<span class="nc" id="L231">        parameters.remove(REVISION_NAME);</span>
+<span class="nc" id="L232">        parameters.remove(REPRESENTATION_VERSION);</span>
+<span class="nc" id="L233">        commonTaskTuple.setInputRevision(new Revision(</span>
+<span class="nc" id="L234">                dpsTask.getParameter(REVISION_NAME),</span>
+<span class="nc" id="L235">                dpsTask.getParameter(REVISION_PROVIDER),</span>
+<span class="nc" id="L236">                DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));</span>
+      }
+<span class="nc" id="L238">      commonTaskTuple.addParameters(parameters);</span>
+
+<span class="nc" id="L240">      return commonTaskTuple;</span>
+    }
+
+    private void updateDiagnosticCounters(ProcessedRecord aRecord) {
+<span class="nc" id="L244">      TaskDiagnosticInfo taskInfo = tasksCache.getDiagnosticInfo(aRecord.getTaskId());</span>
+
+<span class="nc bnc" id="L246" title="All 2 branches missed.">      if (taskInfo.getStartedRecordsCount() == 0) {</span>
+<span class="nc" id="L247">        taskInfo.setStartOnStormTime(Instant.now());</span>
+<span class="nc" id="L248">        taskDiagnosticInfoDAO.updateStartOnStormTime(taskInfo.getTaskId(), taskInfo.getStartOnStormTime());</span>
+<span class="nc" id="L249">        taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getTaskId(), 0);</span>
+      }
+
+<span class="nc bnc" id="L252" title="All 2 branches missed.">      if (aRecord.getAttemptNumber() &gt; 1) {</span>
+<span class="nc" id="L253">        LOGGER.info(&quot;Record is repeated - {} attempt!&quot;, aRecord.getAttemptNumber());</span>
+<span class="nc" id="L254">        int retryCount = taskInfo.getRecordsRetryCount();</span>
+<span class="nc" id="L255">        retryCount++;</span>
+<span class="nc" id="L256">        taskInfo.setRecordsRetryCount(retryCount);</span>
+<span class="nc" id="L257">        taskDiagnosticInfoDAO.updateRecordsRetryCount(taskInfo.getTaskId(), retryCount);</span>
+<span class="nc" id="L258">      } else {</span>
+<span class="nc" id="L259">        taskInfo.setStartedRecordsCount(taskInfo.getStartedRecordsCount() + 1);</span>
+<span class="nc" id="L260">        taskDiagnosticInfoDAO.updateStartedRecordsCount(taskInfo.getTaskId(), taskInfo.getStartedRecordsCount());</span>
+      }
+<span class="nc" id="L262">    }</span>
+
+    private ProcessedRecord prepareRecordForExecution(DpsRecord message) {
+      ProcessedRecord aRecord;
+<span class="nc" id="L266">      Optional&lt;ProcessedRecord&gt; recordInDb = processedRecordsDAO.selectByPrimaryKey(message.getTaskId(), message.getRecordId());</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">      if (recordInDb.isPresent()) {</span>
+<span class="nc" id="L268">        aRecord = recordInDb.get();</span>
+<span class="nc" id="L269">        aRecord.setAttemptNumber(aRecord.getAttemptNumber() + 1);</span>
+<span class="nc" id="L270">        processedRecordsDAO.updateAttempNumber(aRecord.getTaskId(), aRecord.getRecordId(), aRecord.getAttemptNumber());</span>
+      } else {
+<span class="nc" id="L272">        aRecord = ProcessedRecord.builder()</span>
+<span class="nc" id="L273">                                 .taskId(message.getTaskId())</span>
+<span class="nc" id="L274">                                 .recordId(message.getRecordId())</span>
+<span class="nc" id="L275">                                 .attemptNumber(1)</span>
+<span class="nc" id="L276">                                 .state(RecordState.QUEUED)</span>
+<span class="nc" id="L277">                                 .topologyName(topologyName)</span>
+<span class="nc" id="L278">                                 .build();</span>
+<span class="nc" id="L279">        processedRecordsDAO.insert(aRecord);</span>
+      }
+<span class="nc" id="L281">      return aRecord;</span>
+    }
+
+    List&lt;Integer&gt; omitAlreadyProcessedRecord(Object messageId) {
+      //Ignore records that is already preformed. It could take place after spout restart
+      //if record was performed but was not acknowledged in kafka service. It is normal situation.
+      //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
+      //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
+      //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
+<span class="nc" id="L290">      LOGGER.info(&quot;Dropping kafka message because record was already processed&quot;);</span>
+<span class="nc" id="L291">      ackIgnoredMessage(messageId);</span>
+<span class="nc" id="L292">      return Collections.emptyList();</span>
+    }
+
+    List&lt;Integer&gt; emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
+                                          Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException, URISyntaxException {
+<span class="nc" id="L297">      var taskInfo = getTaskInfo(message);</span>
+<span class="nc" id="L298">      var dpsTask = DpsTask.fromTaskInfo(taskInfo);</span>
+<span class="nc" id="L299">      updateDiagnosticCounters(aRecord);</span>
+<span class="nc" id="L300">      var commonTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);</span>
+<span class="nc" id="L301">      performThrottling(commonTaskTuple);</span>
+<span class="nc" id="L302">      LOGGER.info(&quot;Emitting a record to the subsequent bolt maxPending: {}&quot;, maxTaskPending);</span>
+<span class="nc" id="L303">      return super.emit(streamId, commonTaskTuple.toStormTuple(), compositeMessageId);</span>
+    }
+
+    List&lt;Integer&gt; emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
+<span class="nc" id="L307">      LOGGER.info(&quot;Emitting record to the notification bolt directly because of max_retries reached&quot;);</span>
+<span class="nc" id="L308">      StormTaskTuple commonTaskTuple = getStormTaskTupleFromMessage(message);</span>
+<span class="nc" id="L309">      var notificationTuple = NotificationTuple.prepareNotification(</span>
+              commonTaskTuple,
+              RecordState.ERROR,
+              &quot;Max retries reached&quot;,
+              &quot;Max retries reached&quot;
+      );
+<span class="nc" id="L315">      return super.emit(NOTIFICATION_STREAM_NAME, notificationTuple.toStormTuple(), compositeMessageId);</span>
+    }
+
+    List&lt;Integer&gt; omitMessageFromDroppedTask(Object messageId) {
+      // Ignores message from dropped tasks. Such message should not be emitted,
+      // but must be acknowledged to not remain in topic and to allow acknowledgement
+      // of any following messages.
+<span class="nc" id="L322">      ackIgnoredMessage(messageId);</span>
+<span class="nc" id="L323">      LOGGER.info(&quot;Dropping kafka message because task was dropped&quot;);</span>
+<span class="nc" id="L324">      return Collections.emptyList();</span>
+    }
+  }
+
+  /**
+   * MX bean responsible for sampling spout used by the topologies
+   */
+  private class ECloudSpoutSamplerMXBean implements ECloudSpoutMXBean {
+
+    protected transient String lastConsumedMessageId;
+    protected transient String lastConsumedMessage;
+    protected transient String lastAckedMessageId;
+    protected transient String lastFailedMessageId;
+    protected transient boolean lastConsumedMessageCanceled;
+
+<span class="nc" id="L339">    public ECloudSpoutSamplerMXBean() {</span>
+<span class="nc" id="L340">      register();</span>
+<span class="nc" id="L341">    }</span>
+
+    public void register() {
+      try {
+<span class="nc" id="L345">        ManagementFactory.getPlatformMBeanServer().registerMBean(this, new ObjectName(this.getName()));</span>
+<span class="nc" id="L346">      } catch (NotCompliantMBeanException | InstanceAlreadyExistsException | MalformedObjectNameException</span>
+               | MBeanRegistrationException e) {
+<span class="nc" id="L348">        throw new RuntimeException(e);</span>
+<span class="nc" id="L349">      }</span>
+<span class="nc" id="L350">    }</span>
+
+    public String getName() {
+<span class="nc" id="L353">      return &quot;eu.europeana.cloud:executor=spouts,topic=&quot; + topic;</span>
+    }
+
+    public String getLastConsumedMessageId() {
+<span class="nc" id="L357">      return lastConsumedMessageId;</span>
+    }
+
+    public String getLastConsumedMessage() {
+<span class="nc" id="L361">      return lastConsumedMessage;</span>
+    }
+
+    public String getLastAckedMessageId() {
+<span class="nc" id="L365">      return lastAckedMessageId;</span>
+    }
+
+    public String getLastFailedMessageId() {
+<span class="nc" id="L369">      return lastFailedMessageId;</span>
+    }
+
+    @Override
+    public long getMaxSpoutPending() {
+<span class="nc" id="L374">      return maxTaskPending;</span>
+    }
+
+    @Override
+    public String showSpoutToString() {
+<span class="nc" id="L379">      return getSpoutString();</span>
+    }
+
+    @Override
+    public String showOffsetManagers() {
+<span class="nc" id="L384">      String s = getSpoutString();</span>
+<span class="nc" id="L385">      int index = s.lastIndexOf(&quot;emitted=&quot;);</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">      if (index &gt; -1) {</span>
+<span class="nc" id="L387">        return s.substring(0, index)</span>
+<span class="nc" id="L388">                .replaceAll(&quot;ackedMsgs=&quot;, &quot;\nackedMsgs=\n&quot;)</span>
+<span class="nc" id="L389">                .replaceAll(&quot;},&quot;, &quot;},\n&quot;);</span>
+      } else {
+<span class="nc" id="L391">        return &quot;Could not find info in spout string!&quot;;</span>
+      }
+
+    }
+
+    @Override
+    public String showEmitted() {
+<span class="nc" id="L398">      String s = getSpoutString();</span>
+<span class="nc" id="L399">      int index = s.lastIndexOf(&quot;emitted=&quot;);</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">      if (index &gt; -1) {</span>
+<span class="nc" id="L401">        return s.substring(index)</span>
+<span class="nc" id="L402">                .replaceAll(&quot;},&quot;, &quot;},\n&quot;);</span>
+      } else {
+<span class="nc" id="L404">        return &quot;Could not find info in spout string!&quot;;</span>
+      }
+    }
+
+    private String getSpoutString() {
+<span class="nc" id="L409">      return ECloudSpout.this.toString();</span>
+    }
+  }
+
+  protected void performThrottling(StormTaskTuple tuple) {
+<span class="nc" id="L414">    maxTaskPending = tuple.readParallelizationParam();</span>
+<span class="nc" id="L415">  }</span>
+
+  @Override
+  public void nextTuple() {
+<span class="nc bnc" id="L419" title="All 2 branches missed.">    if (eCloudOutputCollector.getPendingCount() &lt; maxTaskPending) {</span>
+<span class="nc" id="L420">      super.nextTuple();</span>
+    }
+<span class="nc" id="L422">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

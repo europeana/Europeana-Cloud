@@ -16,10 +16,10 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -196,10 +196,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
                                                    ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
       var stormTaskTuple = new CommonTaskTuple(
-              new TaskMetadata(dpsTask.getTaskId(), dpsTask.getTaskName(),
+              new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
-              new RecordMetadata(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
-              new StormProcessingMetadata(aRecord.getAttemptNumber(),
+              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
+              new StormProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
       Map<String, String> parameters = dpsTask.getParameters();
       // for validation

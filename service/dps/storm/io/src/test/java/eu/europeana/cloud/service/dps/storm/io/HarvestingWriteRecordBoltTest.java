@@ -13,9 +13,9 @@ import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
@@ -89,9 +89,9 @@ class HarvestingWriteRecordBoltTest {
 
     private CommonTaskTuple getStormTaskTuple() {
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, "sampleTaskName"),
-                new RecordMetadata(SOURCE_VERSION_URL, FILE_DATA),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, "sampleTaskName"),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
@@ -101,9 +101,9 @@ class HarvestingWriteRecordBoltTest {
 
     private CommonTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(TASK_ID, "sampleTaskName"),
-                new RecordMetadata(SOURCE + LOCAL_ID, FILE_DATA),
-                new StormProcessingMetadata());
+                new TaskData(TASK_ID, "sampleTaskName"),
+                new RecordData(SOURCE + LOCAL_ID, FILE_DATA),
+                new StormProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
@@ -286,8 +286,8 @@ class HarvestingWriteRecordBoltTest {
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
         assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskMetadata);
-        var parameters = ((TaskMetadata) value.get(3)).getParameters();
+        assertTrue(value.get(3) instanceof TaskData);
+        var parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
     }

@@ -8,9 +8,9 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingMetadata;
-import eu.europeana.cloud.service.dps.storm.tuple.common.TaskMetadata;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.StormProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -127,9 +127,9 @@ class IndexingRevisionWriterTest {
 
     private CommonTaskTuple prepareTuple() {
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(123L, "sampleTaskName"),
-                new RecordMetadata("http://inputFileUrl", null),
-                new StormProcessingMetadata());
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("http://inputFileUrl", null),
+                new StormProcessingData());
         tuple.setParameters(prepareTaskParameters());
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -137,9 +137,9 @@ class IndexingRevisionWriterTest {
 
     private CommonTaskTuple prepareTupleWithMalformedURL() {
         CommonTaskTuple tuple = new CommonTaskTuple(
-                new TaskMetadata(123L, "sampleTaskName"),
-                new RecordMetadata("malformed", null),
-                new StormProcessingMetadata());
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("malformed", null),
+                new StormProcessingData());
         tuple.setParameters(prepareTaskParameters());
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -147,9 +147,9 @@ class IndexingRevisionWriterTest {
 
     private CommonTaskTuple prepareTupleWithEmptyRevisions() {
         var tuple = new CommonTaskTuple(
-                new TaskMetadata(123L, "sampleTaskName"),
-                new RecordMetadata("http://inputFileUrl", null),
-                new StormProcessingMetadata());
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("http://inputFileUrl", null),
+                new StormProcessingData());
         tuple.setParameters(prepareTaskParameters());
         return tuple;
     }
