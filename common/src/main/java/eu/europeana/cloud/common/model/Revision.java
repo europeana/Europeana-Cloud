@@ -3,6 +3,7 @@ package eu.europeana.cloud.common.model;
 import eu.europeana.cloud.common.utils.DateAdapter;
 import eu.europeana.cloud.common.utils.Tags;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,6 +35,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Revision implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -45,6 +48,21 @@ public class Revision implements Serializable {
   private Date creationTimeStamp;
 
   boolean deleted;
+
+  public static class RevisionBuilder {
+
+    private Date creationTimeStamp;
+
+    public RevisionBuilder creationTimeStamp(String creationTimeStamp) {
+      creationTimeStamp(Date.from(Instant.parse(creationTimeStamp)));
+      return this;
+    }
+
+    public RevisionBuilder creationTimeStamp(Date creationTimeStamp) {
+      this.creationTimeStamp = creationTimeStamp;
+      return this;
+    }
+  }
 
   /**
    * Creates new instance of the {@link Revision} class based on provided value

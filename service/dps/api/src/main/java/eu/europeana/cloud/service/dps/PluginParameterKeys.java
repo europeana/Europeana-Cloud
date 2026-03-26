@@ -33,16 +33,12 @@ public final class PluginParameterKeys {
   public static final String DEPUBLICATION_REASON = "DEPUBLICATION_REASON";
 
   // ---------  eCloud  -----------
-  public static final String PROVIDER_ID = "PROVIDER_ID";
   public static final String CLOUD_ID = "CLOUD_ID";
   public static final String EUROPEANA_ID = "EUROPEANA_ID";
 
-  public static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
-  public static final String NEW_REPRESENTATION_NAME = "NEW_REPRESENTATION_NAME";
   public static final String REPRESENTATION_VERSION = "REPRESENTATION_VERSION";
   public static final String MIME_TYPE = "MIME_TYPE";
   public static final String OUTPUT_MIME_TYPE = "OUTPUT_MIME_TYPE";
-  public static final String OUTPUT_DATA_SETS = "OUTPUT_DATA_SETS";
   public static final String MESSAGE_PROCESSING_START_TIME_IN_MS = "START_TIME";
 
   public static final String SAMPLE_SIZE = "SAMPLE_SIZE";
@@ -65,12 +61,6 @@ public final class PluginParameterKeys {
   public static final String SCHEMATRON_LOCATION = "SCHEMATRON_LOCATION";
 
   public static final String GENERATE_STATS = "GENERATE_STATS";
-
-  //----------Revision ---------------
-
-  public static final String REVISION_NAME = "REVISION_NAME";
-  public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
-  public static final String REVISION_TIMESTAMP = "REVISION_TIMESTAMP";
 
   // ---------- OAI-PMH ----------
   public static final String ADDITIONAL_LOCAL_IDENTIFIER = "ADDITIONAL_LOCAL_IDENTIFIER";
@@ -99,9 +89,6 @@ public final class PluginParameterKeys {
   static {
     //the default value for output mimeType
     PLUGIN_PARAMETERS.put(OUTPUT_MIME_TYPE, "text/plain");
-    PLUGIN_PARAMETERS.put(REPRESENTATION_NAME, REPRESENTATION_NAME);
-    PLUGIN_PARAMETERS.put(NEW_REPRESENTATION_NAME, NEW_REPRESENTATION_NAME);
-
     PLUGIN_PARAMETERS.put(MIME_TYPE, "text/xml");
   }
 
