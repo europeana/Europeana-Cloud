@@ -19,7 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static jakarta.ws.rs.core.HttpHeaders.LOCATION;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,19 +67,24 @@ class DPSClientTest {
             "/services/TopologyName/permit",
             200,
             null);
-    new WiremockHelper(wireMockExtension).stubPost(
-            "/services/TopologyName/tasks",
-            201,
-            "http://localhost:8080/services/TopologyName/tasks/-2561925310040723252",
-            null);
-
+    wireMockExtension.stubFor(post(urlEqualTo("/services/TopologyName/tasks"))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .withHeader(LOCATION, "http://localhost:8080/services/TopologyName/tasks/-2561925310040723252")
+            .withBody("{\"taskId\":-2561925310040723252}")));
+    new WiremockHelper(wireMockExtension).stubPut(
+        "/services/TopologyName/tasks/-2561925310040723252/started",
+        204);
     //when
     dpsClient.topologyPermit(TOPOLOGY_NAME, REGULAR_USER_NAME);
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-    long taskId = dpsClient.submitTask(task, TOPOLOGY_NAME);
+    DpsTask resultTask = dpsClient.createTask(task, TOPOLOGY_NAME);
 
     //then
-    assertEquals(-2561925310040723252L, taskId);
+    assertEquals(-2561925310040723252L, resultTask.getTaskId());
+
+    dpsClient.startTask(TOPOLOGY_NAME,resultTask.getTaskId());
   }
 
   @Test
@@ -90,26 +101,27 @@ class DPSClientTest {
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>Access is denied</details><errorCode>ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION</errorCode></errorInfo>");
     //
     Assertions.assertThrows(AccessDeniedOrObjectDoesNotExistException.class, () ->
-            dpsClient.submitTask(task, TOPOLOGY_NAME));
+            dpsClient.createTask(task, TOPOLOGY_NAME));
   }
 
   @Test
-  final void shouldThrowAnExceptionWhenReturnedTaskIdIsNotParsable() {
+  final void shouldThrowAnExceptionWhenReturnedTaskIsNotParsable() {
     //given
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
     DpsTask task = prepareDpsTask();
 
     //
-    new WiremockHelper(wireMockExtension).stubPost(
-            "/services/TopologyName/tasks",
-            201,
-            "http://localhost:8080/services/TopologyName/tasks/wrongTaskId",
-            null);
+    wireMockExtension.stubFor(post(urlEqualTo("/services/TopologyName/tasks"))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader(CONTENT_TYPE, APPLICATION_JSON)
+            .withHeader(LOCATION, "http://localhost:8080/services/TopologyName/tasks/-2561925310040723252")
+            .withBody("Broken task entity")));
     //
 
     //when
-    Assertions.assertThrows(RuntimeException.class, () ->
-            dpsClient.submitTask(task, TOPOLOGY_NAME));
+    Assertions.assertThrows(DpsException.class, () ->
+        dpsClient.createTask(task, TOPOLOGY_NAME));
 
     //then
     //throw an exception

@@ -149,7 +149,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     DpsTask t = new DpsTask("xsltTask");
     String topology = "xsltTopology";
 
-    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> topologyTasksResource.submitTask(request, t, topology));
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> topologyTasksResource.createTask(request, t, topology));
   }
 
   @Test
@@ -169,7 +169,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
-    topologyTasksResource.submitTask(request, task, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, task, XSLT_TOPOLOGY_NAME);
   }
 
   @Test
@@ -190,7 +190,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     grantUserToTopology(topologyName, user);
     login(user, VAN_PERSIE_PASSWORD);
     //then
-    topologyTasksResource.submitTask(request, task, topologyName);
+    topologyTasksResource.createTask(request, task, topologyName);
   }
 
   @Test
@@ -206,7 +206,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(user, VAN_PERSIE_PASSWORD);
     try {
       //when
-      topologyTasksResource.submitTask(request, task, topologyName);
+      topologyTasksResource.createTask(request, task, topologyName);
       fail();
     } catch (DpsTaskValidationException e) {
       //then
@@ -228,7 +228,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(user, VAN_PERSIE_PASSWORD);
     try {
       //when
-      topologyTasksResource.submitTask(request, task, topologyName);
+      topologyTasksResource.createTask(request, task, topologyName);
       fail();
     } catch (DpsTaskValidationException e) {
       //then
@@ -252,7 +252,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(RONALDO, RONALD_PASSWORD);
     DpsTask sampleTask = new DpsTask();
     Assertions.assertThrows(AuthorizationDeniedException.class,
-            () -> topologyTasksResource.submitTask(request, sampleTask, SAMPLE_TOPOLOGY_NAME));
+            () -> topologyTasksResource.createTask(request, sampleTask, SAMPLE_TOPOLOGY_NAME));
 
   }
 
@@ -267,7 +267,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, XSLT_TOPOLOGY_NAME);
 
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     topologyTasksResource.getTaskProgress(XSLT_TOPOLOGY_NAME, XSLT_TASK.getTaskId());
   }
 
@@ -288,7 +288,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
 
     login(RONALDO, RONALD_PASSWORD);
     Assertions.assertThrows(AuthorizationDeniedException.class,
-            () -> topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME));
+            () -> topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME));
   }
 
   @Test
@@ -314,7 +314,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, SAMPLE_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
-    assertThrows(AccessDeniedOrTopologyDoesNotExistException.class, () -> topologyTasksResource.submitTask(request, XSLT_TASK, SAMPLE_TOPOLOGY_NAME));
+    assertThrows(AccessDeniedOrTopologyDoesNotExistException.class, () -> topologyTasksResource.createTask(request, XSLT_TASK, SAMPLE_TOPOLOGY_NAME));
 
   }
 
@@ -329,7 +329,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     assertThrows(AccessDeniedOrTopologyDoesNotExistException.class, () -> topologyTasksResource.getTaskProgress(XSLT_TOPOLOGY_NAME, XSLT_TASK.getTaskId()));
 
   }
@@ -344,7 +344,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(RONALDO, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
 
     assertThrows(AccessDeniedOrTopologyDoesNotExistException.class, () -> topologyTasksResource.killTask(XSLT_TOPOLOGY_NAME, XSLT_TASK.getTaskId(), "Dropped by the user"));
   }
@@ -357,7 +357,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(ADMIN, XSLT_TOPOLOGY_NAME);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     login(RONALDO, RONALD_PASSWORD);
     long taskId = XSLT_TASK.getTaskId();
     assertThrows(AccessDeniedException.class, () -> topologyTasksResource.killTask(XSLT_TOPOLOGY_NAME, taskId, "Dropped by the user"));
@@ -371,7 +371,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     when(topologyManager.containsTopology(XSLT_TOPOLOGY_NAME)).thenReturn(true, true, true);
     login(ADMIN, ADMIN_PASSWORD);
     topologiesResource.grantPermissionsToTopology(ADMIN, XSLT_TOPOLOGY_NAME);
-    topologyTasksResource.submitTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
+    topologyTasksResource.createTask(request, XSLT_TASK, XSLT_TOPOLOGY_NAME);
     ResponseEntity<String> response = topologyTasksResource.killTask(XSLT_TOPOLOGY_NAME, XSLT_TASK.getTaskId(),
             "Dropped by the user");
     assertNotNull(response);
