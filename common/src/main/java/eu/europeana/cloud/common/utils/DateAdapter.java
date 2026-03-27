@@ -2,7 +2,9 @@ package eu.europeana.cloud.common.utils;
 
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
+import java.time.Instant;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * Created by Tarek on 11/30/2017. Class uses number of ms from year 1970 as date representation. It is caused by the fact, that
@@ -10,6 +12,8 @@ import java.util.Date;
  * used by REST applications based on spring MVC: AAS, UIS, MCS, DPS.
  */
 public class DateAdapter extends XmlAdapter<String, Date> {
+
+  private static final Pattern EPOCH_MILLISECONDS_PATTERN = Pattern.compile("-?\\d+");
 
   @Override
   public String marshal(Date date) {
@@ -24,6 +28,11 @@ public class DateAdapter extends XmlAdapter<String, Date> {
     if (stringDate == null || stringDate.isEmpty()) {
       return null;
     }
-    return new Date(Long.parseLong(stringDate));
+
+    if (EPOCH_MILLISECONDS_PATTERN.matcher(stringDate).matches()) {
+      return new Date(Long.parseLong(stringDate));
+    }
+
+    return Date.from(Instant.parse(stringDate));
   }
 }

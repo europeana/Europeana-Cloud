@@ -26,7 +26,7 @@ public enum EngineTaskState {
    */
   QUEUED("All task's records pushed to Kafka queue"),
 
-  SENT("Sent"),
+  CREATED("Created, but not started"),
   CURRENTLY_PROCESSING("Currently processed by the topology"),
   DROPPED("Task was dropped"),
   PROCESSED("Completely processed"),

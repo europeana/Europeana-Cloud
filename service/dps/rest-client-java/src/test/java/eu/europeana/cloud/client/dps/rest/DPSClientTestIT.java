@@ -13,7 +13,7 @@ import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * This class was made with intention to have easy way to run rest requests to DPS application.<br/> This is intentionally
@@ -37,8 +37,9 @@ class DPSClientTestIT {
     details.setSchema("edm");
     details.setSet("ZFMK");
     task.setInput(details);
-    long id = client.submitTask(task, "oai_topology");
-    assertTrue(id != 0);
+    DpsTask resultTask = client.createTask(task, "oai_topology");
+    long id = resultTask.getTaskId();
+    assertNotEquals(0, id);
 
     TaskInfo taskProgress = client.getTaskProgress("oai_topology", id);
     assertThat(taskProgress.getId(), is(id));
@@ -70,8 +71,9 @@ class DPSClientTestIT {
                                .build());
     task.setOutput(output);
     //
-    long id = client.submitTask(task, "validation_topology");
-    assertTrue(id != 0);
+    DpsTask resultTask = client.createTask(task, "validation_topology");
+    long id = resultTask.getTaskId();
+    assertNotEquals(0, id);
 
     TaskInfo taskProgress = client.getTaskProgress("validation_topology", id);
     assertThat(taskProgress.getId(), is(id));

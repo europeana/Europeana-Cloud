@@ -30,9 +30,9 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Instant;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +64,7 @@ import static org.mockito.Mockito.isA;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,6 +79,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     /* Endpoints */
     private static final String WEB_TARGET = TopologyTasksResource.class.getAnnotation(RequestMapping.class).value()[0];
+    private static final String START_WEB_TARGET = WEB_TARGET + "/{taskId}/started";
     private static final String PROGRESS_REPORT_WEB_TARGET = WEB_TARGET + "/{taskId}/progress";
     private static final String KILL_TASK_WEB_TARGET = WEB_TARGET + "/{taskId}/kill";
 
@@ -103,6 +105,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   /* Beans (or mocked beans) */
   private ApplicationContext context;
+  private CassandraTaskInfoDAO taskDAO;
   private DataSetServiceClient dataSetServiceClient;
   private FileServiceClient fileServiceClient;
   private FilesCounter filesCounter;
@@ -126,7 +129,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         super.init();
 
         context = applicationContext.getBean(ApplicationContext.class);
-        var taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
+        taskDAO = applicationContext.getBean(CassandraTaskInfoDAO.class);
         dataSetServiceClient = applicationContext.getBean(DataSetServiceClient.class);
         fileServiceClient = applicationContext.getBean(FileServiceClient.class);
         filesCounter = applicationContext.getBean(FilesCounter.class);
@@ -430,6 +433,10 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     assertNotNull(response);
     response.andExpect(status().isCreated());
+
+    mockTaskDAOFindById(task, OAI_TOPOLOGY);
+    startTask(task, OAI_TOPOLOGY);
+
     verify(harvestsExecutor).execute(any(OaiHarvest.class), any(SubmitTaskParameters.class));
     verifyNoInteractions(recordKafkaSubmitService);
   }
@@ -880,6 +887,9 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
 
+        mockTaskDAOFindById(task, DEPUBLICATION_TOPOLOGY);
+        startTask(task, DEPUBLICATION_TOPOLOGY);
+
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
     verify(depublicationTaskSubmitter).submitTask(captor.capture());
     assertEquals(SAMPLE_DATASET_METIS_ID, captor.getValue().getTask().getParameter(PluginParameterKeys.METIS_DATASET_ID));
@@ -895,6 +905,9 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
+
+        mockTaskDAOFindById(task, DEPUBLICATION_TOPOLOGY);
+        startTask(task, DEPUBLICATION_TOPOLOGY);
 
         ArgumentCaptor<SubmitTaskParameters> captor = ArgumentCaptor.forClass(SubmitTaskParameters.class);
         verify(depublicationTaskSubmitter).submitTask(captor.capture());
@@ -952,6 +965,23 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     );
   }
 
+  private ResultActions startTask(DpsTask task, String topologyName) throws Exception {
+    return mockMvc.perform(
+        put(START_WEB_TARGET, topologyName, TASK_ID)
+                              .with(httpBasic("any string", "any string"))
+                              .content("")
+                              .contentType(MediaType.APPLICATION_JSON)
+    );
+  }
+
+  private void mockTaskDAOFindById(DpsTask task, String topology) throws IOException {
+    TaskInfo taskInfo = mock(TaskInfo.class);
+    when(taskInfo.getState()).thenReturn(TaskState.CREATED);
+    when(taskInfo.getDefinition()).thenReturn(task.toJSON());
+    when(taskInfo.getTopologyName()).thenReturn(topology);
+    when(taskDAO.findById(anyLong())).thenReturn(Optional.of(taskInfo));
+  }
+
   public static String asJsonString(final Object obj) {
     try {
       return new ObjectMapper().writeValueAsString(obj);
@@ -984,7 +1014,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   private void setCorrectlyFormulatedOutputBatch(DpsTask task) {
     task.setOutput(BatchInfo.builder()
                                       .representationName(REPRESENTATION_NAME)
-                                      .batchId(BATCH_ID)
                                       .providerId(PROVIDER_ID)
                                       .build());
   }
