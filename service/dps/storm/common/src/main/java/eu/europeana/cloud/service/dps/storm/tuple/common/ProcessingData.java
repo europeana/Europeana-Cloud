@@ -12,7 +12,7 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class processingData {
+public class ProcessingData {
     int recordAttemptNumber;
     long messageProcessingStartTimeInMs;
     private String throttlingGroupingAttribute;
@@ -23,12 +23,12 @@ public class processingData {
         this.reportSet.addAll(reports);
     }
 
-    public processingData(int recordAttemptNumber, long messageProcessingStartTimeInMs) {
+    public ProcessingData(int recordAttemptNumber, long messageProcessingStartTimeInMs) {
         this.recordAttemptNumber = recordAttemptNumber;
         this.messageProcessingStartTimeInMs = messageProcessingStartTimeInMs;
     }
 
-    public processingData(int recordAttemptNumber, long messageProcessingStartTimeInMs, Set<Report> reportSet) {
+    public ProcessingData(int recordAttemptNumber, long messageProcessingStartTimeInMs, Set<Report> reportSet) {
         this(recordAttemptNumber, messageProcessingStartTimeInMs);
         this.reportSet = reportSet;
     }

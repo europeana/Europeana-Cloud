@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
@@ -65,7 +65,7 @@ class EnrichmentBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         String fileContent = new String(tuple.getFileData());
         when(enrichmentWorker.process(fileContent)).thenReturn(new ProcessedResult<>("enriched file content", new HashSet<>()));
         enrichmentBolt.execute(anchorTuple, tuple);
@@ -83,7 +83,7 @@ class EnrichmentBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Error";
@@ -116,7 +116,7 @@ class EnrichmentBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String errorMessage = "Dereference or Enrichment Error";
@@ -161,7 +161,7 @@ class EnrichmentBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String ignoreMessage_0 = "Dereference or Enrichment Ignore_0";
@@ -192,7 +192,7 @@ class EnrichmentBoltTest {
         Mockito.verify(outputCollector, Mockito.times(1))
                 .emit(Mockito.any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        HashSet<Report> capturedReports = (HashSet<Report>) ((processingData) capturedValues.get(4)).getReportSet();
+        HashSet<Report> capturedReports = (HashSet<Report>) ((ProcessingData) capturedValues.get(4)).getReportSet();
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_0));
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_1));
         assertFalse(capturedReports.contains(reportEnrichmentIgnore_2));
@@ -210,7 +210,7 @@ class EnrichmentBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         String fileContent = new String(tuple.getFileData());
         String warnMessage = "Dereference or Enrichment Warning";
@@ -231,7 +231,7 @@ class EnrichmentBoltTest {
                 .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), Mockito.any(List.class), Mockito.any(List.class));
         Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
         Values capturedValues = captor.getValue();
-        HashSet<Report> capturedReports = (HashSet<Report>) ((processingData) capturedValues.get(4)).getReportSet();
+        HashSet<Report> capturedReports = (HashSet<Report>) ((ProcessingData) capturedValues.get(4)).getReportSet();
         assertTrue(capturedReports.contains(reportEnrichmentWarn));
         assertTrue(capturedReports.contains(reportDereferenceWarn));
         assertFalse(capturedReports.contains(reportDereferenceIgnore));

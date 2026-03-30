@@ -14,7 +14,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
@@ -91,7 +91,7 @@ class HarvestingWriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, "sampleTaskName"),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
@@ -103,7 +103,7 @@ class HarvestingWriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, "sampleTaskName"),
                 new RecordData(SOURCE + LOCAL_ID, FILE_DATA),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
@@ -118,7 +118,7 @@ class HarvestingWriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-        when(uisClient.createCloudId(eq(SOURCE + DATA_PROVIDER), anyString())).thenReturn(cloudId);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(), any(), any(InputStream.class),
                 any(), anyString())).thenReturn(uri);
@@ -134,7 +134,7 @@ class HarvestingWriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-        when(uisClient.createCloudId(eq(SOURCE + DATA_PROVIDER), anyString())).thenReturn(cloudId);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), anyString(), anyBoolean())).thenReturn(uri);
 
@@ -151,7 +151,7 @@ class HarvestingWriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-        when(uisClient.createCloudId(eq(SOURCE + DATA_PROVIDER), anyString())).thenReturn(cloudId);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         doThrow(MCSException.class).when(recordServiceClient)
                 .createRepresentation(anyString(), anyString(), anyString(), any(), any(), any(InputStream.class),
                         any(), anyString());
@@ -164,7 +164,7 @@ class HarvestingWriteRecordBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
-        when(uisClient.createCloudId(eq(SOURCE + DATA_PROVIDER), anyString())).thenReturn(cloudId);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         doThrow(DriverException.class).when(recordServiceClient)
                 .createRepresentation(anyString(), anyString(), anyString(), any(), any(),
                         any(InputStream.class), anyString(), anyString());
@@ -199,7 +199,7 @@ class HarvestingWriteRecordBoltTest {
         CloudId cloudId = mock(CloudId.class);
         when(cloudId.getId()).thenReturn(SOURCE + CLOUD_ID);
         when(uisClient.getCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenThrow(exception);
-        when(uisClient.createCloudId(eq(SOURCE + DATA_PROVIDER), anyString())).thenReturn(cloudId);
+        when(uisClient.createCloudId(SOURCE + DATA_PROVIDER, SOURCE + LOCAL_ID)).thenReturn(cloudId);
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(), any(), any(InputStream.class),
                 any(), anyString())).thenReturn(uri);

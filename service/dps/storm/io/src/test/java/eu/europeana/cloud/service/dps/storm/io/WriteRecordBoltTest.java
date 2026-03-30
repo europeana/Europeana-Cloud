@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -74,7 +74,7 @@ class WriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -109,7 +109,7 @@ class WriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
@@ -141,7 +141,7 @@ class WriteRecordBoltTest {
       CommonTaskTuple tuple = new CommonTaskTuple(
               new TaskData(TASK_ID, TASK_NAME),
               new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-              new processingData());
+              new ProcessingData());
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setSentDate(SENT_DATE);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
@@ -174,7 +174,7 @@ class WriteRecordBoltTest {
       CommonTaskTuple tuple = new CommonTaskTuple(
               new TaskData(TASK_ID, TASK_NAME),
               new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-              new processingData());
+              new ProcessingData());
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setSentDate(SENT_DATE);
@@ -205,7 +205,7 @@ class WriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);
@@ -231,7 +231,7 @@ class WriteRecordBoltTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParametersForRevisionOrientedProcessing());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setSentDate(SENT_DATE);

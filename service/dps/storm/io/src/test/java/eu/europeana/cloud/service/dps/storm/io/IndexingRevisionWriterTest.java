@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -129,7 +129,7 @@ class IndexingRevisionWriterTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(123L, "sampleTaskName"),
                 new RecordData("http://inputFileUrl", null),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareTaskParameters());
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -139,7 +139,7 @@ class IndexingRevisionWriterTest {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(123L, "sampleTaskName"),
                 new RecordData("malformed", null),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareTaskParameters());
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -149,7 +149,7 @@ class IndexingRevisionWriterTest {
         var tuple = new CommonTaskTuple(
                 new TaskData(123L, "sampleTaskName"),
                 new RecordData("http://inputFileUrl", null),
-                new processingData());
+                new ProcessingData());
         tuple.setParameters(prepareTaskParameters());
         return tuple;
     }

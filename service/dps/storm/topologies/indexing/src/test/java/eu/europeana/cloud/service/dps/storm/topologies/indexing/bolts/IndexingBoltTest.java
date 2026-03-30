@@ -11,7 +11,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemove
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
@@ -468,7 +468,7 @@ class IndexingBoltTest {
     CommonTaskTuple tuple = new CommonTaskTuple(
             new TaskData(1, "taskName"),
             new RecordData(FILE_URL, new byte[]{'a', 'b', 'c'}),
-            new processingData());
+            new ProcessingData());
     tuple.setParameters(new HashMap<>() {
       {
         put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);

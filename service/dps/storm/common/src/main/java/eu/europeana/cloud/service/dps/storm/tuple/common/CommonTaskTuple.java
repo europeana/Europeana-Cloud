@@ -35,7 +35,7 @@ public class CommonTaskTuple implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @Delegate
-  private processingData processingData;
+  private ProcessingData processingData;
   @Delegate
   private RecordData recordData;
   @Delegate
@@ -44,7 +44,7 @@ public class CommonTaskTuple implements Serializable {
   @Builder
   public CommonTaskTuple(TaskData taskData,
                          RecordData recordData,
-                         processingData processingData) {
+                         ProcessingData processingData) {
     this.taskData = taskData;
     this.processingData = processingData;
     this.recordData = recordData;
@@ -53,7 +53,7 @@ public class CommonTaskTuple implements Serializable {
   public CommonTaskTuple() {
     this.taskData = new TaskData();
     this.recordData = new RecordData();
-    this.processingData = new processingData();
+    this.processingData = new ProcessingData();
   }
 
   public static CommonTaskTuple fromStormTuple(Tuple tuple) {
@@ -61,7 +61,7 @@ public class CommonTaskTuple implements Serializable {
             .taskData(
                     (TaskData) tuple.getValueByField(TASK_DATA_TUPLE_FIELD))
             .processingData(
-                    (processingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
+                    (ProcessingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
             .recordData(
                     (RecordData) tuple.getValueByField(RECORD_DATA_TUPLE_FIELD))
             .build();
@@ -88,7 +88,7 @@ public class CommonTaskTuple implements Serializable {
   public static CommonTaskTuple fromValues(List<Object> list) {
     return CommonTaskTuple.builder()
             .taskData((TaskData) list.get(3))
-            .processingData((processingData) list.get(4))
+            .processingData((ProcessingData) list.get(4))
             .recordData((RecordData) list.get(5))
             .build();
   }

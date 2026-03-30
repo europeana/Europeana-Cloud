@@ -19,7 +19,7 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.processingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -199,7 +199,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
               new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
               new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
-              new processingData(aRecord.getAttemptNumber(),
+              new ProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
       Map<String, String> parameters = dpsTask.getParameters();
       // for validation
