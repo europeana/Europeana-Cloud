@@ -179,7 +179,6 @@ class RecordHarvestingBoltTest {
   private CommonTaskTuple taskWithAllNeededParameters() {
     CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
     task.setRecordUri("oaiIdentifier");
@@ -192,14 +191,12 @@ class RecordHarvestingBoltTest {
     CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     return task;
   }
 
   private CommonTaskTuple taskWithoutRecordId() {
     CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
     task.setMessageProcessingStartTimeInMs(0);
@@ -212,7 +209,6 @@ class RecordHarvestingBoltTest {
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.setRecordUri("oaiIdentifier");
     task.setMessageProcessingStartTimeInMs(0);
-    task.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(details));
     return task;
   }
 

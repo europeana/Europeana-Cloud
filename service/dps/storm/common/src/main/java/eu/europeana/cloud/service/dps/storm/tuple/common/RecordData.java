@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.tuple.common;
 
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +14,8 @@ import java.io.InputStream;
 @Setter
 @Getter
 @NoArgsConstructor
-public class RecordData {
+public class RecordData implements Serializable {
+    // Serializable needed for SerializationUtils.clone(commonTaskTuple)
 
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     byte[] fileData;

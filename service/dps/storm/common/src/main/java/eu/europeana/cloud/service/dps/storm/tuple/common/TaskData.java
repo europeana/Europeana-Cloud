@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,8 @@ import java.util.Map;
 @Setter
 @Getter
 @NoArgsConstructor
-public class TaskData {
+public class TaskData implements Serializable {
+    // Serializable needed for SerializationUtils.clone(commonTaskTuple)
 
     long taskId;
     String taskName;

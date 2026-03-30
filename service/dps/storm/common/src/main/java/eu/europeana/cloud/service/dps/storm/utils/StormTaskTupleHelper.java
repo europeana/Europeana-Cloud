@@ -20,10 +20,4 @@ public final class StormTaskTupleHelper {
     String parameter = tuple.getParameter(PluginParameterKeys.GENERATE_STATS);
     return parameter == null || "true".equalsIgnoreCase(parameter);
   }
-
-  public static String extractDatasetId(CommonTaskTuple tuple) throws MalformedURLException {
-    DataSet dataset = DataSetUrlParser.parse(tuple.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS));
-    return dataset.getId();
-  }
-
 }

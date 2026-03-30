@@ -193,8 +193,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       return tasksCache.getTaskInfo(message);
     }
 
-    private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
-                                                   ProcessedRecord aRecord) throws MalformedURLException, URISyntaxException {
+    private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord aRecord)
+        throws IOException, URISyntaxException {
+      var dpsTask = DpsTask.fromTaskInfo(taskInfo);
       var stormTaskTuple = new CommonTaskTuple(
               new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
@@ -202,8 +203,6 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
               new ProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
       Map<String, String> parameters = dpsTask.getParameters();
-      // for validation
-      stormTaskTuple.addParameter(HARVESTING_DETAILS, dpsTask.getHarvestingDetails().toString());
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
 
@@ -216,8 +215,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         stormTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));
       }
       if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {
-        parameters.remove(OUTPUT_DATA_SETS);
         stormTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));
+        parameters.remove(OUTPUT_DATA_SETS);
       }
 
       if (dpsTask.getOutputRevision() != null) {
@@ -294,9 +293,8 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
                                           Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException, URISyntaxException {
       var taskInfo = getTaskInfo(message);
-      var dpsTask = DpsTask.fromTaskInfo(taskInfo);
       updateDiagnosticCounters(aRecord);
-      var stormTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);
+      var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
       performThrottling(stormTaskTuple);
       LOGGER.info("Emitting a record to the subsequent bolt maxPending: {}", maxTaskPending);
       return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);

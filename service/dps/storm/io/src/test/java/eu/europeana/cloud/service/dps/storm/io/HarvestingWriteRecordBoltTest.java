@@ -94,7 +94,6 @@ class HarvestingWriteRecordBoltTest {
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
-        tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
         tuple.setOutputRevision(new Revision());
         return tuple;
     }
@@ -107,7 +106,6 @@ class HarvestingWriteRecordBoltTest {
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
-        tuple.addParameter(PluginParameterKeys.HARVESTING_DETAILS, String.valueOf(oaipmhHarvestingDetails));
         tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
         return tuple;
     }

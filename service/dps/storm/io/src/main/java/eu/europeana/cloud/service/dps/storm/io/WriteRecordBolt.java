@@ -166,7 +166,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     writeParams.setProviderId(providerId);
     writeParams.setNewVersion(generateNewVersionId(tuple));
     writeParams.setNewFileName(generateNewFileName(tuple));
-    writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(tuple));
+    writeParams.setDataSetId(tuple.getOutputDataset().getId());
     return writeParams;
   }
 

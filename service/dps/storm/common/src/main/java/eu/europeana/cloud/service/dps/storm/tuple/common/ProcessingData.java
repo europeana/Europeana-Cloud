@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.tuple.common;
 
 import eu.europeana.enrichment.rest.client.report.Report;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,7 +13,8 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class ProcessingData {
+public class ProcessingData implements Serializable {
+    // Serializable needed for SerializationUtils.clone(commonTaskTuple)
     int recordAttemptNumber;
     long messageProcessingStartTimeInMs;
     private String throttlingGroupingAttribute;

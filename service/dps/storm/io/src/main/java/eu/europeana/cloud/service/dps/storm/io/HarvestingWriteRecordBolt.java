@@ -53,7 +53,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
     String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-    if ((representationName == null || representationName.isEmpty()) && commonTaskTuple.ifParametersContainsKey(PluginParameterKeys.HARVESTING_DETAILS)) {
+    if ((representationName == null || representationName.isEmpty())) {
       representationName = commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
       if (representationName == null) {
         representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
@@ -65,7 +65,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       writeParams.setProviderId(providerId);
       writeParams.setNewVersion(generateNewVersionId(commonTaskTuple));
       writeParams.setNewFileName(generateNewFileName(commonTaskTuple));
-      writeParams.setDataSetId(StormTaskTupleHelper.extractDatasetId(commonTaskTuple));
+      writeParams.setDataSetId(commonTaskTuple.getOutputDataset().getId());
       return writeParams;
   }
 
