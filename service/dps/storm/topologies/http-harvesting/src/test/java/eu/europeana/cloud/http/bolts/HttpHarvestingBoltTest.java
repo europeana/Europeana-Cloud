@@ -97,7 +97,7 @@ class HttpHarvestingBoltTest {
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
     CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
-    assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
+    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.EUROPEANA_ID));
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
             resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
@@ -117,7 +117,7 @@ class HttpHarvestingBoltTest {
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
     CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
-    assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
+    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.EUROPEANA_ID));
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
             resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.

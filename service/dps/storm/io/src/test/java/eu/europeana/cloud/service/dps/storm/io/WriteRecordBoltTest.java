@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
@@ -51,6 +52,12 @@ class WriteRecordBoltTest {
     private final String TASK_NAME = "TASK_NAME";
     private final byte[] FILE_DATA = "Data".getBytes();
     private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
+    private static final DataSet OUTPUT_DATASET =new DataSet();
+    static {
+        OUTPUT_DATASET.setProviderId(SOURCE+DATA_PROVIDER);
+        OUTPUT_DATASET.setUri(URI.create("https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet"));
+        OUTPUT_DATASET.setId("dataSet");
+    }
 
     @Captor
     ArgumentCaptor<Values> captor = ArgumentCaptor.forClass(Values.class);
@@ -78,6 +85,7 @@ class WriteRecordBoltTest {
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
+        tuple.setOutputDataset(OUTPUT_DATASET);
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -114,6 +122,7 @@ class WriteRecordBoltTest {
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
         tuple.setMessageProcessingStartTimeInMs(1);
+        tuple.setOutputDataset(OUTPUT_DATASET);
         when(outputCollector.emit(anyList())).thenReturn(null);
         Representation representation = mock(Representation.class);
         when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -145,6 +154,7 @@ class WriteRecordBoltTest {
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setSentDate(SENT_DATE);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+      tuple.setOutputDataset(OUTPUT_DATASET);
       tuple.setMessageProcessingStartTimeInMs(1);
       tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
       when(outputCollector.emit(anyList())).thenReturn(null);
@@ -177,6 +187,7 @@ class WriteRecordBoltTest {
               new ProcessingData());
       tuple.setParameters(prepareStormTaskTupleParameters());
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+      tuple.setOutputDataset(OUTPUT_DATASET);
       tuple.setSentDate(SENT_DATE);
       tuple.setMessageProcessingStartTimeInMs(1);
       tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
@@ -208,6 +219,7 @@ class WriteRecordBoltTest {
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
 
@@ -234,6 +246,7 @@ class WriteRecordBoltTest {
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParametersForRevisionOrientedProcessing());
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
         Representation representation = mock(Representation.class);
@@ -254,8 +267,6 @@ class WriteRecordBoltTest {
         parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
         parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
         parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-        parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
         return parameters;
     }
 
@@ -264,8 +275,6 @@ class WriteRecordBoltTest {
     parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
     parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
     parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-    parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
-            "https://127.0.0.1:8080/mcs/data-providers/exampleProvider/data-sets/dataSet");
     return parameters;
   }
 

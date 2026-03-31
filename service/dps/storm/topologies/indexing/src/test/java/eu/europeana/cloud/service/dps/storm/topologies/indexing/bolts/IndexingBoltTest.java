@@ -124,7 +124,7 @@ class IndexingBoltTest {
             ((RecordData) capturedValues.get(5)).getRecordUri());
     assertEquals(6, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
   @Test
@@ -162,7 +162,7 @@ class IndexingBoltTest {
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
 
@@ -202,7 +202,7 @@ class IndexingBoltTest {
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
   @Test
@@ -282,7 +282,7 @@ class IndexingBoltTest {
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
   @Test
@@ -322,7 +322,7 @@ class IndexingBoltTest {
             ((RecordData) capturedValues.get(5)).getRecordUri());
     assertEquals(6, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
   @Test
@@ -353,7 +353,7 @@ class IndexingBoltTest {
             ((RecordData) capturedValues.get(5)).getRecordUri());
     assertEquals(6, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
-    assertEquals(7, parameters.size());
+    assertEquals(6, parameters.size());
   }
 
   @Test
@@ -476,8 +476,6 @@ class IndexingBoltTest {
         put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
         put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
         put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-        put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
       }
     });
     tuple.setOutputRevision(new Revision("NAME", "PROVIDER", new Date()));

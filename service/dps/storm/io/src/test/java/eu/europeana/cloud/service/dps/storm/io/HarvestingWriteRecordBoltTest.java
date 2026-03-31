@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
@@ -56,6 +57,13 @@ class HarvestingWriteRecordBoltTest {
     private final byte[] FILE_DATA = "Data".getBytes();
     private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
     private OAIPMHHarvestingDetails oaipmhHarvestingDetails;
+    private static final DataSet OUTPUT_DATASET =new DataSet();
+    static {
+        OUTPUT_DATASET.setProviderId(SOURCE+DATA_PROVIDER);
+        OUTPUT_DATASET.setUri(URI.create("https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/sampleDataset"));
+        OUTPUT_DATASET.setId("sampleDataset");
+    }
+
 
     private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
 
@@ -93,6 +101,7 @@ class HarvestingWriteRecordBoltTest {
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
+        tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -106,6 +115,7 @@ class HarvestingWriteRecordBoltTest {
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
+        tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
         return tuple;
     }
@@ -272,10 +282,9 @@ class HarvestingWriteRecordBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.EUROPEANA_ID, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
-        parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/sampleDataset");
         return parameters;
     }
 

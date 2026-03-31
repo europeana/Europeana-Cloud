@@ -89,7 +89,7 @@ class RecordHarvestingBoltTest {
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
             spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017",
-            spiedTask.getRecordUri());
+        spiedTask.getParameter(PluginParameterKeys.EUROPEANA_ID));
   }
 
   private Supplier<byte[]> fileContent(String fileName) {
