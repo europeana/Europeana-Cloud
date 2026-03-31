@@ -69,7 +69,7 @@ public class ValidationBolt extends AbstractDpsBolt {
     }
   }
 
-  private void emitRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  private void emitRecord(Tuple anchorTuple, CommonTaskTuple stormTaskTuple) {
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
   }
 

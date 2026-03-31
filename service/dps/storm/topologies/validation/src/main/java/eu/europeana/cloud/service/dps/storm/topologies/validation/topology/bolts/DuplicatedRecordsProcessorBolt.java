@@ -182,8 +182,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     Representation representation = new Representation();
     // If new representation was added in writeRecordBolt and put into OUTPUT_URL then use it,
     // otherwise go with fileUrl
-    String Uri = (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_URL) ? tuple.getParameter(PluginParameterKeys.OUTPUT_URL) : tuple.getFileUrl());
-    UrlParser parser = new UrlParser(Uri);
+    String uri = (tuple.ifParametersContainsKey(PluginParameterKeys.OUTPUT_URL) ? tuple.getParameter(PluginParameterKeys.OUTPUT_URL) : tuple.getRecordUri());
+    UrlParser parser = new UrlParser(uri);
     if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
       representation.setCloudId(parser.getPart(UrlPart.RECORDS));
       representation.setRepresentationName(parser.getPart(UrlPart.REPRESENTATIONS));

@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.io.RevisionWriterBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.enums.ValidationTypes;
 import org.apache.storm.tuple.Tuple;
@@ -20,14 +20,14 @@ public class RevisionWriterBoltForValidation extends RevisionWriterBolt {
     super(cassandraProperties, ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
-  private static boolean detectDuplicates(StormTaskTuple stormTaskTuple) {
+  private static boolean detectDuplicates(CommonTaskTuple stormTaskTuple) {
     return stormTaskTuple.ifParametersContainsKey(PluginParameterKeys.JOB_NAME) &&
             stormTaskTuple.getParameter(PluginParameterKeys.JOB_NAME)
                     .equals(ValidationTypes.VALIDATE_EXTERNAL.toString());
   }
 
   @Override
-  protected void emitTuple(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  protected void emitTuple(Tuple anchorTuple, CommonTaskTuple stormTaskTuple) {
     if (detectDuplicates(stormTaskTuple)) {
       outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
     } else {
