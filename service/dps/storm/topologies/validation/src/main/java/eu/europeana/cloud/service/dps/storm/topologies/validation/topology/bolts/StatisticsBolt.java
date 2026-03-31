@@ -7,10 +7,10 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -58,47 +58,47 @@ public class StatisticsBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     try {
-      if (statsShouldBeGenerated(stormTaskTuple)) {
-        LOGGER.info("Calculating file statistics for {}", stormTaskTuple);
-        countStatistics(stormTaskTuple);
-        markRecordStatsAsCalculated(stormTaskTuple);
+      if (statsShouldBeGenerated(commonTaskTuple)) {
+        LOGGER.info("Calculating file statistics for {}", commonTaskTuple);
+        countStatistics(commonTaskTuple);
+        markRecordStatsAsCalculated(commonTaskTuple);
       } else {
-        LOGGER.info("File stats will NOT be calculated for: {}", stormTaskTuple.getFileUrl());
+        LOGGER.info("File stats will NOT be calculated for: {}", commonTaskTuple.getRecordUri());
       }
-      outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+      outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(), "Statistics for the given file could not be prepared.");
+      emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(), "Statistics for the given file could not be prepared.");
         outputCollector.ack(anchorTuple);
     }
   }
 
-  private boolean statsShouldBeGenerated(StormTaskTuple stormTaskTuple) {
-    return StormTaskTupleHelper.statisticsShouldBeGenerated(stormTaskTuple) && !statsAlreadyCalculated(stormTaskTuple);
+  private boolean statsShouldBeGenerated(CommonTaskTuple commonTaskTuple) {
+    return StormTaskTupleHelper.statisticsShouldBeGenerated(commonTaskTuple) && !statsAlreadyCalculated(commonTaskTuple);
   }
 
-  private boolean statsAlreadyCalculated(StormTaskTuple stormTaskTuple) {
-    Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(stormTaskTuple.getTaskId(),
-        stormTaskTuple.getFileUrl());
+  private boolean statsAlreadyCalculated(CommonTaskTuple commonTaskTuple) {
+      Optional<ProcessedRecord> processingRecordStage = processedRecordsDAO.selectByPrimaryKey(commonTaskTuple.getTaskId(),
+              commonTaskTuple.getRecordUri());
     return processingRecordStage.isPresent() &&
         EnumSet.of(RecordState.STATS_GENERATED, RecordState.ERROR, RecordState.SUCCESS)
                .contains(processingRecordStage.get().getState());
   }
 
-  private void countStatistics(StormTaskTuple stormTaskTuple) throws ParserConfigurationException, SAXException, IOException {
-    String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+  private void countStatistics(CommonTaskTuple commonTaskTuple) throws ParserConfigurationException, SAXException, IOException {
+    String document = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
     RecordStatisticsGenerator statisticsGenerator = new RecordStatisticsGenerator(document);
-    statisticsService.insertNodeStatistics(stormTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
+    statisticsService.insertNodeStatistics(commonTaskTuple.getTaskId(), statisticsGenerator.getStatistics());
   }
 
-  private void markRecordStatsAsCalculated(StormTaskTuple stormTaskTuple) {
-    if (!statsAlreadyCalculated(stormTaskTuple)) {
-      processedRecordsDAO.updateProcessedRecordState(stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl(),
-          RecordState.STATS_GENERATED);
+  private void markRecordStatsAsCalculated(CommonTaskTuple commonTaskTuple) {
+    if (!statsAlreadyCalculated(commonTaskTuple)) {
+        processedRecordsDAO.updateProcessedRecordState(commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri(),
+                RecordState.STATS_GENERATED);
     }
   }
 }

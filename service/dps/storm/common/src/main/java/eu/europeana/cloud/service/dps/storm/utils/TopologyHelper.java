@@ -6,9 +6,12 @@ import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.enrichment.rest.client.report.Report;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -116,7 +119,8 @@ public final class TopologyHelper {
             .collect(Collectors.toList());
     kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
             OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
-        DataSetCleanerParameters.class.getName(), Report.class.getName(), CassandraProperties.class.getName()));
+            DataSetCleanerParameters.class.getName(), Report.class.getName(), CassandraProperties.class.getName(),
+            RecordData.class.getName(), ProcessingData.class.getName(), TaskData.class.getName()));
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);
 
     config.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, FastCancelingSpoutWaitStrategy.class.getName());

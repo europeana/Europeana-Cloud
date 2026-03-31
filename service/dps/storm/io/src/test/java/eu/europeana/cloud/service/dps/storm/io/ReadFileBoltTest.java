@@ -4,9 +4,8 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -39,12 +38,12 @@ class ReadFileBoltTest {
     @InjectMocks
     private ReadFileBolt readFileBolt = new ReadFileBolt(new CassandraProperties(), "MCS_URL", "user", "password");
 
-    private StormTaskTuple stormTaskTuple;
+    private CommonTaskTuple commonTaskTuple;
     private static final String FILE_URL = "http://127.0.0.1:8080/mcs/records/BSJD6UWHYITSUPWUSYOVQVA4N4SJUKVSDK2X63NLYCVB4L3OXKOA/representations/NEW_REPRESENTATION_NAME/versions/c73694c0-030d-11e6-a5cb-0050568c62b8/files/dad60a17-deaa-4bb5-bfb8-9a1bbf6ba0b2";
 
     @BeforeEach
     void init() {
-        stormTaskTuple = prepareTuple();
+        commonTaskTuple = prepareTuple();
     }
 
     @Test
@@ -71,17 +70,17 @@ class ReadFileBoltTest {
     private void verifyMethodExecutionNumber(int expectedCalls, int expectedEmitCallTimes, String file) throws MCSException {
         Tuple anchorTuple = mock(TupleImpl.class);
         when(outputCollector.emit(anyList())).thenReturn(null);
-        readFileBolt.execute(anchorTuple, stormTaskTuple);
+        readFileBolt.execute(anchorTuple, commonTaskTuple);
         verify(fileServiceClient, times(expectedCalls)).getFile(file);
         verify(outputCollector, times(expectedEmitCallTimes)).emit(eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class),
                 anyList());
 
     }
 
-    private StormTaskTuple prepareTuple() {
-        stormTaskTuple = new StormTaskTuple();
-        stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-        stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-        return stormTaskTuple;
+    private CommonTaskTuple prepareTuple() {
+        commonTaskTuple = new CommonTaskTuple();
+        commonTaskTuple.setRecordUri(FILE_URL);
+        commonTaskTuple.setMessageProcessingStartTimeInMs(1);
+        return commonTaskTuple;
     }
 }

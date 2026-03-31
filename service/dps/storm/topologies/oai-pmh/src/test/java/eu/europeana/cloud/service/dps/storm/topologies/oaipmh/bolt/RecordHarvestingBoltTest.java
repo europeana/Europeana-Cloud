@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
@@ -58,8 +58,8 @@ class RecordHarvestingBoltTest {
 
     OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
     when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-    StormTaskTuple task = taskWithAllNeededParameters();
-    StormTaskTuple spiedTask = spy(task);
+    CommonTaskTuple task = taskWithAllNeededParameters();
+    CommonTaskTuple spiedTask = spy(task);
 
     //when
     recordHarvestingBolt.execute(anchorTuple, spiedTask);
@@ -76,8 +76,8 @@ class RecordHarvestingBoltTest {
 
     OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/sampleEDMRecord.xml"));
     when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-    StormTaskTuple task = taskWithAllNeededParameters();
-    StormTaskTuple spiedTask = spy(task);
+    CommonTaskTuple task = taskWithAllNeededParameters();
+    CommonTaskTuple spiedTask = spy(task);
 
     //when
     recordHarvestingBolt.execute(anchorTuple, spiedTask);
@@ -87,9 +87,9 @@ class RecordHarvestingBoltTest {
 
     verify(spiedTask).setFileData(Mockito.any(InputStream.class));
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
-        spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+            spiedTask.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     assertEquals("/2020739_Ag_EU_CARARE_2Cultur/object_DCU_24927017",
-        spiedTask.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+            spiedTask.getRecordUri());
   }
 
   private Supplier<byte[]> fileContent(String fileName) {
@@ -111,8 +111,8 @@ class RecordHarvestingBoltTest {
 
         OaiRecord oaiRecord = new OaiRecord(new OaiRecordHeader("id", false, Instant.now()), fileContent("/corruptedEDMRecord.xml"));
         when(harvester.harvestRecord(any(), anyString())).thenReturn(oaiRecord);
-        StormTaskTuple task = taskWithAllNeededParameters();
-        StormTaskTuple spiedTask = spy(task);
+        CommonTaskTuple task = taskWithAllNeededParameters();
+        CommonTaskTuple spiedTask = spy(task);
 
         //when
         recordHarvestingBolt.execute(anchorTuple, spiedTask);
@@ -127,8 +127,8 @@ class RecordHarvestingBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
 
         when(harvester.harvestRecord(any(), anyString())).thenThrow(new HarvesterException("Some!"));
-        StormTaskTuple task = taskWithAllNeededParameters();
-        StormTaskTuple spiedTask = spy(task);
+        CommonTaskTuple task = taskWithAllNeededParameters();
+        CommonTaskTuple spiedTask = spy(task);
 
         //when
         recordHarvestingBolt.execute(anchorTuple, spiedTask);
@@ -141,7 +141,7 @@ class RecordHarvestingBoltTest {
     void harvestingForEmptyUrl() {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple task = taskWithoutResourceUrl();
+        CommonTaskTuple task = taskWithoutResourceUrl();
 
         //when
         recordHarvestingBolt.execute(anchorTuple, task);
@@ -154,7 +154,7 @@ class RecordHarvestingBoltTest {
     void harvestingForEmptyRecordId() {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple task = taskWithoutRecordId();
+        CommonTaskTuple task = taskWithoutRecordId();
 
         //when
         recordHarvestingBolt.execute(anchorTuple, task);
@@ -167,7 +167,7 @@ class RecordHarvestingBoltTest {
     void harvestForEmptyPrefix() {
         //given
         Tuple anchorTuple = mock(TupleImpl.class);
-        StormTaskTuple task = taskWithoutPrefix();
+        CommonTaskTuple task = taskWithoutPrefix();
 
         //when
         recordHarvestingBolt.execute(anchorTuple, task);
@@ -176,43 +176,39 @@ class RecordHarvestingBoltTest {
         verifyErrorEmit();
     }
 
-  private StormTaskTuple taskWithAllNeededParameters() {
-    StormTaskTuple task = new StormTaskTuple();
+  private CommonTaskTuple taskWithAllNeededParameters() {
+    CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.setSourceDetails(details);
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
+    task.setRecordUri("oaiIdentifier");
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, "2020739_Ag_EU_CARARE_2Culture");
     return task;
   }
 
-  private StormTaskTuple taskWithoutResourceUrl() {
-    StormTaskTuple task = new StormTaskTuple();
+  private CommonTaskTuple taskWithoutResourceUrl() {
+    CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails("schema");
     task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.setSourceDetails(details);
     return task;
   }
 
-  private StormTaskTuple taskWithoutRecordId() {
-    StormTaskTuple task = new StormTaskTuple();
+  private CommonTaskTuple taskWithoutRecordId() {
+    CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
-    task.setSourceDetails(details);
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, "schema");
-    task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+    task.setMessageProcessingStartTimeInMs(0);
     return task;
   }
 
-  private StormTaskTuple taskWithoutPrefix() {
-    StormTaskTuple task = new StormTaskTuple();
+  private CommonTaskTuple taskWithoutPrefix() {
+    CommonTaskTuple task = new CommonTaskTuple();
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
     task.addParameter(PluginParameterKeys.DPS_TASK_INPUT_DATA, "urlToOAIEndpoint");
-    task.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "oaiIdentifier");
-    task.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-    task.setSourceDetails(details);
+    task.setRecordUri("oaiIdentifier");
+    task.setMessageProcessingStartTimeInMs(0);
     return task;
   }
 

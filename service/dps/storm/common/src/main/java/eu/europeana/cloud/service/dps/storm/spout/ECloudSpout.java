@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
@@ -10,13 +11,15 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.InputDataType;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -32,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import javax.management.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
@@ -109,7 +114,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(StormTaskTuple.getFields());
+    declarer.declare(CommonTaskTuple.getFields());
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
@@ -117,13 +122,13 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     super.ack(messageId);
   }
 
-  private StormTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
-    StormTaskTuple stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setTaskId(message.getTaskId());
-    stormTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
-    stormTaskTuple.setFileUrl(message.getRecordId());
-    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, String.valueOf(System.currentTimeMillis()));
-    return stormTaskTuple;
+  private CommonTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
+    CommonTaskTuple commonTaskTuple = new CommonTaskTuple();
+    commonTaskTuple.setTaskId(message.getTaskId());
+    commonTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
+    commonTaskTuple.setRecordUri(message.getRecordId());
+    commonTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
+    return commonTaskTuple;
   }
 
   public class ECloudOutputCollector extends SpoutOutputCollector {
@@ -158,6 +163,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         } else {
           return emitRecordForProcessing(streamId, message, aRecord, messageId);
         }
+      } catch (MalformedURLException | URISyntaxException e) {
+        LOGGER.error("Unable to parse Uri", e);
+        return Collections.emptyList();
       } catch (IOException | NullPointerException e) {
         LOGGER.error("Unable to read message", e);
         return Collections.emptyList();
@@ -185,32 +193,47 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       return tasksCache.getTaskInfo(message);
     }
 
-    private StormTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsTask dpsTask, DpsRecord dpsRecord,
-        ProcessedRecord aRecord) {
-      //
-      var stormTaskTuple = new StormTaskTuple(
-          dpsTask.getTaskId(),
-          dpsTask.getTaskName(),
-          dpsRecord.getRecordId(),
-          null,
-          dpsTask.getParameters(),
-          dpsTask.getOutputRevision(),
-          dpsTask.getHarvestingDetails());
-      //
-      stormTaskTuple.addParameter(CLOUD_LOCAL_IDENTIFIER, dpsRecord.getRecordId());
+    private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord aRecord)
+        throws IOException, URISyntaxException {
+      var dpsTask = DpsTask.fromTaskInfo(taskInfo);
+      var stormTaskTuple = new CommonTaskTuple(
+              new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
+                      DateHelper.format(taskInfo.getSentTimestamp())),
+              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
+              new ProcessingData(aRecord.getAttemptNumber(),
+                      new Date().getTime()));
+      Map<String, String> parameters = dpsTask.getParameters();
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
-      stormTaskTuple.addParameter(SENT_DATE, DateHelper.format(taskInfo.getSentTimestamp()));
-      stormTaskTuple.addParameter(MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
+
 
       List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
       if (!isEmpty(repositoryUrlList)) {
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
       }
+      List<String> datasetUrlList = dpsTask.getDataEntry(InputDataType.DATASET_URLS);
+      if (!isEmpty(datasetUrlList)) {
+        stormTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));
+      }
+      if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {
+        stormTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));
+        parameters.remove(OUTPUT_DATA_SETS);
+      }
 
-      //Implementation of re-try mechanism after topology broken down
-      stormTaskTuple.setRecordAttemptNumber(aRecord.getAttemptNumber());
-
-      stormTaskTuple.setMarkedAsDeleted(dpsRecord.isMarkedAsDeleted());
+      if (dpsTask.getOutputRevision() != null) {
+        stormTaskTuple.setOutputRevision(dpsTask.getOutputRevision());
+      }
+      if (dpsTask.isParameterPresent(REVISION_TIMESTAMP) &&
+              dpsTask.isParameterPresent(REVISION_NAME) &&
+              dpsTask.isParameterPresent(REPRESENTATION_VERSION)) {
+        parameters.remove(REVISION_TIMESTAMP);
+        parameters.remove(REVISION_NAME);
+        parameters.remove(REPRESENTATION_VERSION);
+        stormTaskTuple.setInputRevision(new Revision(
+                dpsTask.getParameter(REVISION_NAME),
+                dpsTask.getParameter(REVISION_PROVIDER),
+                DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
+      }
+      stormTaskTuple.addParameters(parameters);
 
       return stormTaskTuple;
     }
@@ -259,7 +282,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     List<Integer> omitAlreadyProcessedRecord(Object messageId) {
       //Ignore records that is already preformed. It could take place after spout restart
       //if record was performed but was not acknowledged in kafka service. It is normal situation.
-      //Kafka messages can be accepted in sequential order, but storm performs record in parallel so some
+      //Kafka messages can be accepted in sequential order, but common performs record in parallel so some
       //records must wait for ack before previous records will be confirmed. If spout is stopped in meantime,
       //unconfirmed but completed records would be unnecessary repeated when spout will start next time.
       LOGGER.info("Dropping kafka message because record was already processed");
@@ -268,11 +291,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
-        Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
+                                          Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException, URISyntaxException {
       var taskInfo = getTaskInfo(message);
-      var dpsTask = DpsTask.fromTaskInfo(taskInfo);
       updateDiagnosticCounters(aRecord);
-      var stormTaskTuple = prepareTaskForEmission(taskInfo, dpsTask, message, aRecord);
+      var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);
       performThrottling(stormTaskTuple);
       LOGGER.info("Emitting a record to the subsequent bolt maxPending: {}", maxTaskPending);
       return super.emit(streamId, stormTaskTuple.toStormTuple(), compositeMessageId);
@@ -280,9 +302,9 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     List<Integer> emitMaxTriesReachedNotification(DpsRecord message, Object compositeMessageId) {
       LOGGER.info("Emitting record to the notification bolt directly because of max_retries reached");
-      StormTaskTuple stormTaskTuple = getStormTaskTupleFromMessage(message);
+      CommonTaskTuple commonTaskTuple = getStormTaskTupleFromMessage(message);
       var notificationTuple = NotificationTuple.prepareNotification(
-              stormTaskTuple,
+              commonTaskTuple,
               RecordState.ERROR,
               "Max retries reached",
               "Max retries reached"
@@ -385,7 +407,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
   }
 
-  protected void performThrottling(StormTaskTuple tuple) {
+  protected void performThrottling(CommonTaskTuple tuple) {
     maxTaskPending = tuple.readParallelizationParam();
   }
 

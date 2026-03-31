@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -53,7 +55,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected transient OutputCollector outputCollector;
   protected String topologyName;
 
-  public abstract void execute(Tuple anchorTuple, StormTaskTuple t);
+  public abstract void execute(Tuple anchorTuple, CommonTaskTuple t);
 
   public abstract void prepare();
 
@@ -67,34 +69,34 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
-    StormTaskTuple stormTaskTuple = null;
+    CommonTaskTuple commonTaskTuple = null;
     try {
-      stormTaskTuple = StormTaskTuple.fromStormTuple(tuple);
-      LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), stormTaskTuple);
-      prepareDiagnosticContext(stormTaskTuple);
+      commonTaskTuple = CommonTaskTuple.fromStormTuple(tuple);
+      LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), commonTaskTuple);
+      prepareDiagnosticContext(commonTaskTuple);
 
-      if (stormTaskTuple.getRecordAttemptNumber() > 1) {
-        cleanInvalidData(stormTaskTuple);
+      if (commonTaskTuple.getRecordAttemptNumber() > 1) {
+        cleanInvalidData(commonTaskTuple);
       }
 
-      if (taskStatusChecker.hasDroppedStatus(stormTaskTuple.getTaskId())) {
+      if (taskStatusChecker.hasDroppedStatus(commonTaskTuple.getTaskId())) {
         outputCollector.fail(tuple);
         LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}",
-            stormTaskTuple.getTaskId(), stormTaskTuple.getFileUrl());
+                commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri());
         return;
       }
 
-      if (ignoreDeleted() && stormTaskTuple.isMarkedAsDeleted()) {
+      if (ignoreDeleted() && commonTaskTuple.isMarkedAsDeleted()) {
         LOGGER.debug("Ignoring and passing further delete record with taskId {} and parameters list : {}",
-            stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
-        outputCollector.emit(tuple, stormTaskTuple.toStormTuple());
+            commonTaskTuple.getTaskId(), commonTaskTuple.getParameters());
+        outputCollector.emit(tuple, commonTaskTuple.toStormTuple());
         outputCollector.ack(tuple);
         return;
       }
 
-      LOGGER.debug("{} Mapped to StormTaskTuple with taskId {} and parameters list : {}",
-          getClass().getName(), stormTaskTuple.getTaskId(), stormTaskTuple.getParameters());
-      execute(tuple, stormTaskTuple);
+      LOGGER.debug("{} Mapped to CommonTaskTuple with taskId {} and parameters list : {}",
+          getClass().getName(), commonTaskTuple.getTaskId(), commonTaskTuple.getParameters());
+      execute(tuple, commonTaskTuple);
 
     } catch (RetryInterruptedException e) {
       handleInterruption(e, tuple);
@@ -102,7 +104,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       if (Thread.currentThread().isInterrupted()) {
         handleInterruptedFlag(e, tuple);
       } else {
-        handleException(tuple, stormTaskTuple, e);
+        handleException(tuple, commonTaskTuple, e);
       }
     } finally {
       LOGGER.debug("{} Ended execution.", getClass().getName());
@@ -110,12 +112,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     }
   }
 
-  private void handleException(Tuple tuple, StormTaskTuple stormTaskTuple, Exception e) {
+  private void handleException(Tuple tuple, CommonTaskTuple commonTaskTuple, Exception e) {
     LOGGER.warn("{} error: {}", boltName(), e.getMessage(), e);
-    if (stormTaskTuple != null) {
+    if (commonTaskTuple != null) {
       var stack = new StringWriter();
       e.printStackTrace(new PrintWriter(stack));
-      emitErrorNotification(tuple, stormTaskTuple, e.getMessage(), stack.toString());
+      emitErrorNotification(tuple, commonTaskTuple, e.getMessage(), stack.toString());
       outputCollector.ack(tuple);
     }
   }
@@ -131,8 +133,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   }
 
 
-  private void prepareDiagnosticContext(StormTaskTuple stormTaskTuple) {
-    DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
+  private void prepareDiagnosticContext(CommonTaskTuple commonTaskTuple) {
+    DiagnosticContextWrapper.putValuesFrom(commonTaskTuple);
   }
 
   private void clearDiagnosticContext() {
@@ -164,60 +166,60 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
     //default stream
-    declarer.declare(StormTaskTuple.getFields());
+    declarer.declare(CommonTaskTuple.getFields());
 
     //notifications
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
-  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, Throwable e) {
-    emitErrorNotification(anchorTuple, stormTaskTuple, message,
+  protected void emitErrorNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message, Throwable e) {
+    emitErrorNotification(anchorTuple, commonTaskTuple, message,
         e.getMessage() + ":\n" + ExceptionUtils.getStackTrace(e));
   }
 
-  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message) {
-    emitErrorNotification(anchorTuple, stormTaskTuple, message, (String) null);
+  protected void emitErrorNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message) {
+    emitErrorNotification(anchorTuple, commonTaskTuple, message, (String) null);
   }
 
-  protected void emitErrorNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
-    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.ERROR,
+  protected void emitErrorNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message, String additionalInformation) {
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.ERROR,
             message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
+  protected void emitSuccessNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
                                          String message, String additionalInformation,
                                          String unifiedErrorMessage, String detailedErrorMessage) {
-    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResourceAndErrorMessage(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation, unifiedErrorMessage, detailedErrorMessage);
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResourceAndErrorMessage(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation, unifiedErrorMessage, detailedErrorMessage);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String message, String additionalInformation) {
-    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation);
+  protected void emitSuccessNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message, String additionalInformation) {
+    NotificationTuple nt = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, nt.toStormTuple());
   }
 
-  protected void emitSuccessNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    emitSuccessNotification(anchorTuple, stormTaskTuple, "", "");
+  protected void emitSuccessNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    emitSuccessNotification(anchorTuple, commonTaskTuple, "", "");
   }
 
-  protected void emitIgnoredNotification(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
+  protected void emitIgnoredNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
                                          String message, String additionalInformation) {
-    NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(stormTaskTuple, RecordState.SUCCESS, message, additionalInformation);
+    NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     tuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 
-  protected void prepareStormTaskTupleForEmission(StormTaskTuple stormTaskTuple, String resultString)
+  protected void prepareStormTaskTupleForEmission(CommonTaskTuple commonTaskTuple, String resultString)
           throws MalformedURLException {
-    stormTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
-    final UrlParser urlParser = new UrlParser(stormTaskTuple.getFileUrl());
-    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-    stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
-    stormTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
+    commonTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
+    final UrlParser urlParser = new UrlParser(commonTaskTuple.getRecordUri());
+    commonTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
+    commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
+    commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
   }
 
-  protected void cleanInvalidData(StormTaskTuple tuple) {
+  protected void cleanInvalidData(CommonTaskTuple tuple) {
     int attemptNumber = tuple.getRecordAttemptNumber();
     LOGGER.info("Attempt number {} to process this message. No cleaning done here.", attemptNumber);
     // nothing to clean here when the message is reprocessed

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.exception.LinkCheckingException;
 import org.apache.storm.task.OutputCollector;
@@ -47,7 +47,7 @@ class LinkCheckBoltTest {
   @Test
   void shouldEmitSameTupleWhenNoResourcesHasToBeChecked() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
+    CommonTaskTuple tuple = prepareTupleWithLinksCountEqualsToZero();
     linkCheckBolt.execute(anchorTuple, tuple);
     verify(outputCollector, times(1)).emit(eq("NotificationStream"), eq(anchorTuple), captor.capture());
     validateCapturedValues(captor, false);
@@ -56,7 +56,7 @@ class LinkCheckBoltTest {
   @Test
   void shouldEmitSameTupleWhenRecordIsDeleted() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = prepareTupleWithDeletedRecord();
+    CommonTaskTuple tuple = prepareTupleWithDeletedRecord();
 
     linkCheckBolt.execute(anchorTuple, tuple);
 
@@ -67,7 +67,7 @@ class LinkCheckBoltTest {
   @Test
   void shouldCheckOneLinkWithoutEmittingTuple() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = prepareRandomTuple();
+    CommonTaskTuple tuple = prepareRandomTuple();
     linkCheckBolt.execute(anchorTuple, tuple);
     verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
@@ -76,7 +76,7 @@ class LinkCheckBoltTest {
   @Test
   void shouldEmitTupleAfterCheckingAllResourcesFromFile() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = prepareRandomTuple();
+    CommonTaskTuple tuple = prepareRandomTuple();
     linkCheckBolt.execute(anchorTuple, tuple);
     verify(outputCollector, times(0)).emit(eq("NotificationStream"), any(Tuple.class), Mockito.anyList());
     verify(linkChecker, times(1)).performLinkChecking(tuple.getParameter(PluginParameterKeys.RESOURCE_URL));
@@ -98,7 +98,7 @@ class LinkCheckBoltTest {
   void shouldEmitTupleWithErrorIncluded() throws Exception {
     Tuple anchorTuple = mock(TupleImpl.class);
     doThrow(new LinkCheckingException(new Throwable())).when(linkChecker).performLinkChecking(Mockito.anyString());
-    StormTaskTuple tuple = prepareRandomTuple();
+    CommonTaskTuple tuple = prepareRandomTuple();
     linkCheckBolt.execute(anchorTuple, tuple);
     linkCheckBolt.execute(anchorTuple, tuple);
     linkCheckBolt.execute(anchorTuple, tuple);
@@ -109,28 +109,28 @@ class LinkCheckBoltTest {
   }
 
 
-  private StormTaskTuple prepareRandomTuple() {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(RESOURCE_LINKS_COUNT, 5 + "");
+  private CommonTaskTuple prepareRandomTuple() {
+    CommonTaskTuple tuple = new CommonTaskTuple();
+    tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(RESOURCE_LINKS_COUNT, 5 + "");
     tuple.addParameter(RESOURCE_URL, "resourceUrl");
     tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return tuple;
   }
 
-  private StormTaskTuple prepareTupleWithLinksCountEqualsToZero() {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
+  private CommonTaskTuple prepareTupleWithLinksCountEqualsToZero() {
+    CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(RESOURCE_LINKS_COUNT, 0 + "");
     tuple.addParameter(RESOURCE_URL, "resourceUrl");
     tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return tuple;
   }
 
-  private StormTaskTuple prepareTupleWithDeletedRecord() {
-    StormTaskTuple tuple = new StormTaskTuple();
-    tuple.setFileUrl("ecloudFileUrl");
-    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+  private CommonTaskTuple prepareTupleWithDeletedRecord() {
+    CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("ecloudFileUrl");
+      tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     tuple.setMarkedAsDeleted(true);
     return tuple;
   }

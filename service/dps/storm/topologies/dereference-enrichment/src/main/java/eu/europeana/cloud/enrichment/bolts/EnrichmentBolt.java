@@ -5,7 +5,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltFinalizationException;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.Dereferencer;
@@ -18,13 +18,14 @@ import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult.RecordStatus;
 import eu.europeana.enrichment.rest.client.report.Report;
 import eu.europeana.enrichment.rest.client.report.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Call the remote enrichment service in order to dereference and enrich a file.
@@ -56,23 +57,23 @@ public class EnrichmentBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     try {
-      LOGGER.info("starting enrichment on {} .....", stormTaskTuple.getFileUrl());
-      String fileContent = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+      LOGGER.info("starting enrichment on {} .....", commonTaskTuple.getRecordUri());
+      String fileContent = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
       ProcessedResult<String> result = enrichmentWorker.process(fileContent);
       Set<Report> reports = filterOutIgnoredReports(result.getReport());
       if (shouldRecordBeFurtherProcessed(result)) {
-        processRecord(anchorTuple, stormTaskTuple, result, reports);
+        processRecord(anchorTuple, commonTaskTuple, result, reports);
       } else {
-        dropRecord(anchorTuple, stormTaskTuple, reports);
+        dropRecord(anchorTuple, commonTaskTuple, reports);
       }
       outputCollector.ack(anchorTuple);
       LOGGER.info("Completed enrichment.");
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
-      handleProcessingError(anchorTuple, stormTaskTuple, e);
+      handleProcessingError(anchorTuple, commonTaskTuple, e);
     }
   }
 
@@ -83,34 +84,34 @@ public class EnrichmentBolt extends AbstractDpsBolt {
             .collect(Collectors.toSet());
   }
 
-  private void handleProcessingError(Tuple anchorTuple, StormTaskTuple stormTaskTuple, Exception e) {
+  private void handleProcessingError(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, Exception e) {
     LOGGER.error("Exception while Enriching/dereference", e);
     emitErrorNotification(anchorTuple,
-            stormTaskTuple,
+            commonTaskTuple,
         e.getMessage(),
         "Remote Enrichment/dereference service caused the problem!. The full error: "
             + ExceptionUtils.getStackTrace(e));
     outputCollector.ack(anchorTuple);
   }
 
-  private void dropRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, Set<Report> reports) {
+  private void dropRecord(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, Set<Report> reports) {
     LOGGER.error("Error occurred during process of enrichment");
-    stormTaskTuple.addReports(reports);
+    commonTaskTuple.addReports(reports);
     Integer errorReportCount = reports
             .stream().filter(
                     rm -> rm.getMessageType() == Type.ERROR
             ).collect(Collectors.toSet()).size();
     String errorAdditionalInformation = String.format("Number of errors that occurred during enrichment: %d", errorReportCount);
     emitErrorNotification(anchorTuple,
-            stormTaskTuple,
+            commonTaskTuple,
             "Error occurred during enrichment/dereference process",
             errorAdditionalInformation);
   }
 
-  private void processRecord(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> filteredReports) throws Exception {
-    LOGGER.info("Finishing enrichment on {} .....", stormTaskTuple.getFileUrl());
-    emitEnrichedContent(anchorTuple, stormTaskTuple, result, filteredReports);
-    LOGGER.info("Emitted enriched record on {}", stormTaskTuple.getFileUrl());
+  private void processRecord(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, ProcessedResult<String> result, Set<Report> filteredReports) throws Exception {
+      LOGGER.info("Finishing enrichment on {} .....", commonTaskTuple.getRecordUri());
+      emitEnrichedContent(anchorTuple, commonTaskTuple, result, filteredReports);
+      LOGGER.info("Emitted enriched record on {}", commonTaskTuple.getRecordUri());
   }
 
   private boolean shouldRecordBeFurtherProcessed(ProcessedResult<String> result) {
@@ -144,10 +145,10 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     }
   }
 
-  private void emitEnrichedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, ProcessedResult<String> result, Set<Report> reports)
+  private void emitEnrichedContent(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, ProcessedResult<String> result, Set<Report> reports)
           throws Exception {
-    prepareStormTaskTupleForEmission(stormTaskTuple, result.getProcessedRecord());
-    stormTaskTuple.addReports(reports);
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    prepareStormTaskTupleForEmission(commonTaskTuple, result.getProcessedRecord());
+    commonTaskTuple.addReports(reports);
+    outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
   }
 }

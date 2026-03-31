@@ -3,7 +3,8 @@ package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -27,7 +28,7 @@ class EDMEnrichmentBoltTest {
   private static final String MEDIA_RESOURCE_EXCEPTION = "media resource exception";
   public static final String FILE_URL = "http://localhost:8080/mcs/records/sourceCloudId/representations/sourceRepresentationName/versions/sourceVersion/files/sourceFileName";
 
-  private StormTaskTuple stormTaskTuple;
+  private CommonTaskTuple commonTaskTuple;
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -50,10 +51,10 @@ class EDMEnrichmentBoltTest {
   @BeforeEach
   void initTuple() {
     edmEnrichmentBolt.cache.clear();
-    stormTaskTuple = new StormTaskTuple();
-    stormTaskTuple.setFileUrl(FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, FILE_URL);
-    stormTaskTuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    commonTaskTuple = new CommonTaskTuple();
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setRecordUri(FILE_URL);
+    commonTaskTuple.setMessageProcessingStartTimeInMs(1);
 
   }
 
@@ -63,16 +64,16 @@ class EDMEnrichmentBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
               "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
-      assertEquals(4, stormTaskTuple.getParameters().size());
-      edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
+      assertEquals(2, commonTaskTuple.getParameters().size());
+      edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
-      assertEquals(6, parameters.size());
+      assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
       assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
@@ -86,23 +87,23 @@ class EDMEnrichmentBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
               "{\"textResourceMetadata\":{\"containsText\":false,\"resolution\":10,\"mimeType\":\"text/xml\",\"resourceUrl\":\"http://contribute.europeana.eu/media/d2136d50-5b4c-0136-9258-16256f71c4b1\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}");
 
       int resourceLinksCount = 10;
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourceLinksCount));
-      assertEquals(4, stormTaskTuple.getParameters().size());
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(resourceLinksCount));
+      assertEquals(2, commonTaskTuple.getParameters().size());
       for (int i = 1; i <= resourceLinksCount; i++) {
-        edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
+        edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
         if (i < resourceLinksCount) {
           assertEquals(i, edmEnrichmentBolt.cache.get(FILE_URL).getCount());
         }
       }
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
-      assertEquals(6, parameters.size());
+      assertEquals(4, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
       assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
@@ -116,13 +117,13 @@ class EDMEnrichmentBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
-      edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
-      int expectedParametersSize = 7;
-      Map<String, String> initialTupleParameters = stormTaskTuple.getParameters();
+      edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
+      int expectedParametersSize = 5;
+      Map<String, String> initialTupleParameters = commonTaskTuple.getParameters();
       assertEquals(expectedParametersSize, initialTupleParameters.size());
       verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
       Values value = captor.getValue();
-      Map<String, String> parametersAfterExecution = (Map) value.get(4);
+      Map<String, String> parametersAfterExecution = ((TaskData) value.get(3)).getParameters();
       assertNotNull(parametersAfterExecution);
       assertEquals(expectedParametersSize, parametersAfterExecution.size());
       for (String key : parametersAfterExecution.keySet()) {
@@ -139,15 +140,15 @@ class EDMEnrichmentBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/Item_35834473.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       String brokenMetaData = "{\"textResourceMetadata\":{\"containsTe/xml\",\"resourceUrl\":\"RESOURCE_URL\",\"contentSize\":100,\"thumbnailTargetNames\":[\"TargetName1\",\"TargetName0\",\"TargetName2\"]}}";
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
-      stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
-      assertEquals(4, stormTaskTuple.getParameters().size());
-      edmEnrichmentBolt.execute(anchorTuple, stormTaskTuple);
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA, brokenMetaData);
+      commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT, String.valueOf(1));
+      assertEquals(2, commonTaskTuple.getParameters().size());
+      edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = (Map) values.get(4);
+      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
       assertNotNull(parameters);
-      assertEquals(8, parameters.size());
+      assertEquals(6, parameters.size());
       assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
       assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));

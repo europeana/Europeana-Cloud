@@ -5,14 +5,18 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.TupleImpl;
 import org.apache.storm.tuple.Values;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,8 +50,10 @@ class DepublicationBoltTest {
           PluginParameterKeys.DEPUBLICATION_REASON, REASON.name(),
           PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
 
-  public static final StormTaskTuple INPUT_TUPLE = new StormTaskTuple(TASK_ID, "taskName",
-          RECORD_ID, null, INPUT_TUPLE_PARAMETERS, null);
+  public static final CommonTaskTuple INPUT_TUPLE = new CommonTaskTuple(
+          new TaskData(TASK_ID, "taskName"),
+          new RecordData(RECORD_ID, null, true),
+          new ProcessingData());
 
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
@@ -66,6 +72,11 @@ class DepublicationBoltTest {
 
   @Captor
   private ArgumentCaptor<Values> captor;
+
+  @BeforeAll
+  static void initAll() {
+    INPUT_TUPLE.setParameters(INPUT_TUPLE_PARAMETERS);
+  }
 
   @BeforeEach
   void init() {

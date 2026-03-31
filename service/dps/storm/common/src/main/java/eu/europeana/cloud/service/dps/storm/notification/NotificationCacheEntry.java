@@ -3,13 +3,14 @@ package eu.europeana.cloud.service.dps.storm.notification;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
-import java.util.Map;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 @Getter
 @Builder

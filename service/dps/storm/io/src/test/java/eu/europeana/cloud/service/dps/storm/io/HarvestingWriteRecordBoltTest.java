@@ -12,7 +12,10 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
 import org.apache.storm.task.OutputCollector;
@@ -33,7 +36,10 @@ import org.mockito.quality.Strictness;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
 
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -81,16 +87,27 @@ class HarvestingWriteRecordBoltTest {
         oaipmhHarvestingDetails.setSchema(SOURCE + REPRESENTATION_NAME);
     }
 
-    private StormTaskTuple getStormTaskTuple() {
-        return new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, prepareStormTaskTupleParameters(),
-                new Revision(), oaipmhHarvestingDetails);
+    private CommonTaskTuple getStormTaskTuple() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
+                new TaskData(TASK_ID, "sampleTaskName"),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
+                new ProcessingData());
+        tuple.setParameters(prepareStormTaskTupleParameters());
+        tuple.setSentDate(SENT_DATE);
+        tuple.setOutputRevision(new Revision());
+        return tuple;
     }
 
-    private StormTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
-        HashMap<String, String> parameters = prepareStormTaskTupleParameters();
-        parameters.put(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
-        return new StormTaskTuple(TASK_ID, TASK_NAME, SOURCE_VERSION_URL, FILE_DATA, parameters, new Revision(),
-                oaipmhHarvestingDetails);
+    private CommonTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
+                new TaskData(TASK_ID, "sampleTaskName"),
+                new RecordData(SOURCE + LOCAL_ID, FILE_DATA),
+                new ProcessingData());
+        tuple.setParameters(prepareStormTaskTupleParameters());
+        tuple.setSentDate(SENT_DATE);
+        tuple.setOutputRevision(new Revision());
+        tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
+        return tuple;
     }
 
 
@@ -119,9 +136,9 @@ class HarvestingWriteRecordBoltTest {
         URI uri = new URI(SOURCE_VERSION_URL);
         when(recordServiceClient.createRepresentation(anyString(), anyString(), anyString(), any(UUID.class), anyString(), anyBoolean())).thenReturn(uri);
 
-        StormTaskTuple stormTaskTuple = getStormTaskTuple();
-        stormTaskTuple.setMarkedAsDeleted(true);
-        oaiWriteRecordBoltT.execute(anchorTuple, stormTaskTuple);
+        CommonTaskTuple commonTaskTuple = getStormTaskTuple();
+        commonTaskTuple.setMarkedAsDeleted(true);
+        oaiWriteRecordBoltT.execute(anchorTuple, commonTaskTuple);
 
         assertExecutionResults();
 
@@ -255,12 +272,10 @@ class HarvestingWriteRecordBoltTest {
 
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, SOURCE + LOCAL_ID);
         parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         parameters.put(PluginParameterKeys.OUTPUT_DATA_SETS,
                 "https://127.0.0.1:8080/mcs/data-providers/stormTestTopologyProvider/data-sets/sampleDataset");
-        parameters.put(PluginParameterKeys.SENT_DATE, SENT_DATE);
         return parameters;
     }
 
@@ -268,9 +283,9 @@ class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(10, value.size());
-        assertTrue(value.get(4) instanceof Map);
-        var parameters = (Map<?, ?>) value.get(4);
+        assertEquals(6, value.size());
+        assertTrue(value.get(3) instanceof TaskData);
+        var parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
         assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
     }

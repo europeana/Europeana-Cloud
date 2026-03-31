@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationParameters;
 import eu.europeana.cloud.service.dps.storm.incremental.CategorizationResult;
 import eu.europeana.cloud.service.dps.storm.service.HarvestedRecordCategorizationService;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple t) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple t) {
     var categorizationParameters = prepareCategorizationParameters(t);
     LOGGER.info("Starting categorization for {}", categorizationParameters);
     //
@@ -39,11 +40,11 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
     outputCollector.ack(anchorTuple);
   }
 
-  private CategorizationParameters prepareCategorizationParameters(StormTaskTuple tuple) {
+  private CategorizationParameters prepareCategorizationParameters(CommonTaskTuple tuple) {
     return CategorizationParameters.builder()
-                                   .fullHarvest(!isIncrementalHarvesting(tuple))
-                                   .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
-                                   .recordId(tuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER))
+            .fullHarvest(!isIncrementalHarvesting(tuple))
+            .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
+            .recordId(tuple.getRecordUri())
                                    .recordMd5(FileMd5GenerationService.generateUUID(tuple.getFileData()))
                                    .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                                    .recordDateStamp(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP) != null ?
@@ -52,7 +53,7 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
                                    .build();
   }
 
-  private boolean isIncrementalHarvesting(StormTaskTuple tuple) {
+  private boolean isIncrementalHarvesting(CommonTaskTuple tuple) {
     return "true".equals(tuple.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
   }
 
@@ -60,15 +61,15 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
     return harvestedRecordCategorizationService.categorize(categorizationParameters);
   }
 
-  private void pushRecordToNextBolt(Tuple anchorTuple, StormTaskTuple t) {
+  private void pushRecordToNextBolt(Tuple anchorTuple, CommonTaskTuple t) {
     outputCollector.emit(anchorTuple, t.toStormTuple());
   }
 
-  private void ignoreRecordAsNotChanged(Tuple anchorTuple, StormTaskTuple stormTaskTuple,
+  private void ignoreRecordAsNotChanged(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
       CategorizationResult categorizationResult) {
     emitIgnoredNotification(
             anchorTuple,
-            stormTaskTuple,
+            commonTaskTuple,
             "Record ignored.",
             "Record ignored in this incremental processing because it was already processed. Record datestamp: "
                     + categorizationResult.getCategorizationParameters().getRecordDateStamp()

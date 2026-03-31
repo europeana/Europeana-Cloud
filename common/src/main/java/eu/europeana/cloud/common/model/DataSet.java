@@ -3,6 +3,7 @@ package eu.europeana.cloud.common.model;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 
 import java.net.URI;
@@ -13,7 +14,8 @@ import java.net.URI;
 @XmlRootElement
 @JsonRootName(DataSet.XSI_TYPE)
 @EqualsAndHashCode
-public class DataSet {
+public class DataSet implements Serializable {
+  // Serializable needed for SerializationUtils.clone(commonTaskTuple)
 
   static final String XSI_TYPE = "dataSet";
 

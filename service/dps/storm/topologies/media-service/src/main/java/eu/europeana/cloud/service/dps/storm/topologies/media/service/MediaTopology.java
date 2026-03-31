@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.INPUT_FILES_TUPLE_KEY;
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.INPUT_FILES_TUPLE_FIELD;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
@@ -63,14 +63,14 @@ public class MediaTopology {
 
     return new ECloudTopologyPipeline(TopologiesNames.MEDIA_TOPOLOGY, topologyProperties)
             .addBolt(EDM_OBJECT_PROCESSOR_BOLT, edmObjectProcessorBolt, EDM_OBJECT_PROCESSOR_BOLT_PARALLEL,
-                    EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
+                    EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD)
             .addBolt(PARSE_FILE_BOLT, parseFileBolt, PARSE_FILE_BOLT_PARALLEL, PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
             .addBolt(RESOURCE_PROCESSING_BOLT, resourceProcessingBolt, RESOURCE_PROCESSING_BOLT_PARALLEL,
-                    RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE)
+                    RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS, THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD)
             .addBolt(EDM_ENRICHMENT_BOLT, edmEnrichmentBolt, EDM_ENRICHMENT_BOLT_PARALLEL, EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS,
-                    INPUT_FILES_TUPLE_KEY)
+                    INPUT_FILES_TUPLE_FIELD)
             .withAdditionalFieldGrouping(EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME,
-                    INPUT_FILES_TUPLE_KEY)
+                    INPUT_FILES_TUPLE_FIELD)
             .addWriteRecordBolt(true)
         .addRevisionWriterBolt()
         .buildTopology();

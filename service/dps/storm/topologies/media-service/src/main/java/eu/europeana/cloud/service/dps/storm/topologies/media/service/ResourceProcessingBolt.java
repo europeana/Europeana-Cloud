@@ -1,28 +1,29 @@
 package eu.europeana.cloud.service.dps.storm.topologies.media.service;
 
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
-import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
-
 import com.google.gson.Gson;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
-import java.io.IOException;
-import java.time.Instant;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.Instant;
+
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.BEGIN;
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.LogStatisticsPosition.END;
 
 public class ResourceProcessingBolt extends AbstractDpsBolt {
 
@@ -45,7 +46,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.info("Starting resource processing");
     // It is assigning time stamp to variable, so It has to be assigned there.
     @SuppressWarnings("java:S1941")
@@ -56,7 +57,7 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
     var opId = RandomStringUtils.random(12, "0123456789abcdef");
     logStatistics(BEGIN, STATISTIC_OPERATION_NAME, opId);
     try {
-      RdfResourceEntry rdfResourceEntry = gson.fromJson(stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY),
+      RdfResourceEntry rdfResourceEntry = gson.fromJson(commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_LINK_KEY),
           RdfResourceEntry.class);
       LOGGER.info("The following resource will be processed: {}", rdfResourceEntry);
       if (rdfResourceEntry != null) {
@@ -65,16 +66,16 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
         ResourceExtractionResult resourceExtractionResult =
             mediaExtractor.performMediaExtraction(
                 rdfResourceEntry,
-                Boolean.parseBoolean(stormTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE))
+                Boolean.parseBoolean(commonTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE))
             );
 
         if (resourceExtractionResult != null) {
           LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
           if (resourceExtractionResult.getMetadata() != null) {
-            stormTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
+            commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
                 gson.toJson(resourceExtractionResult.getMetadata()));
           }
-          storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+          storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
         }
       }
     } catch (RetryInterruptedException e) {
@@ -82,28 +83,28 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
       return;
     } catch (Exception e) {
       LOGGER.error("Exception while processing the resource {}. The full error is:{} ",
-          stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
+          commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL), ExceptionUtils.getStackTrace(e));
       buildErrorMessage(exception, "Exception while processing the resource: "
-          + stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: "
+          + commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL) + ". The full error is: "
           + e.getMessage() + " because of: " + e.getCause());
     } finally {
       logStatistics(END, STATISTIC_OPERATION_NAME, opId);
     }
-    stormTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.RESOURCE_LINK_KEY);
     if (exception.length() > 0) {
-      stormTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
-      stormTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
+      commonTaskTuple.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, exception.toString());
+      commonTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
     outputCollector.ack(anchorTuple);
     LOGGER.info("Resource processing finished in: {}ms for {}",
         Clock.millisecondsSince(processingStartTime),
-        stormTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL));
+        commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_URL));
   }
 
-  private void storeThumbnails(StormTaskTuple stormTaskTuple, StringBuilder exception,
-      ResourceExtractionResult resourceExtractionResult) throws IOException {
-    thumbnailUploader.storeThumbnails(stormTaskTuple, exception, resourceExtractionResult);
+  private void storeThumbnails(CommonTaskTuple commonTaskTuple, StringBuilder exception,
+                               ResourceExtractionResult resourceExtractionResult) throws IOException {
+    thumbnailUploader.storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
   }
 
   @Override

@@ -15,7 +15,7 @@ public final class BucketUtils {
   //WARNING: This hashcode is used as partition key in Cassandra, so after any change in method behaviour data in
   // Cassandra would be corrupted!
   // It also could be in case of updating library apache commons-codecs. So change log of library should be verified.
-  // In any case test: eu.europeana.cloud.service.dps.storm.utils.BucketUtilsTest.testHashFuctionUnchanged()
+  // In any case test: eu.europeana.cloud.service.dps.common.utils.BucketUtilsTest.testHashFuctionUnchanged()
   // could be used to check if function works properly.
   public static int hash(String key) {
     return MurmurHash3.hash32x86(key.getBytes(StandardCharsets.UTF_8));

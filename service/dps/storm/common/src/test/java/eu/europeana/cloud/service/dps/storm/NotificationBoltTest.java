@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import eu.europeana.enrichment.rest.client.report.Report;
@@ -331,20 +333,20 @@ public class NotificationBoltTest extends CassandraTestBase {
     return createNotificationTuple(taskId, state, resource);
   }
 
-  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted) {
+  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted) {
     return createStormTaskTuple(taskId, resource, markAsDeleted, "", "0");
   }
 
-  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String processingTime) {
+  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String processingTime) {
     return createStormTaskTuple(taskId, resource, markAsDeleted, "", processingTime);
   }
 
-  private StormTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String resultResource, String processingTime) {
-    StormTaskTuple tuple = new StormTaskTuple();
+  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String resultResource, String processingTime) {
+    CommonTaskTuple tuple = new CommonTaskTuple();
     tuple.setTaskId(taskId);
     tuple.setMarkedAsDeleted(markAsDeleted);
-    tuple.setFileUrl(resource);
-    tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
+      tuple.setRecordUri(resource);
+      tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
     tuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultResource);
     return tuple;
   }

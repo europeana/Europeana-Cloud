@@ -5,7 +5,10 @@ import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -20,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +32,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_NAME;
+import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_PROVIDER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.core.Is.is;
@@ -49,7 +55,7 @@ class HttpHarvestingBoltTest {
 
   private final Optional<Integer> optOverriddenRetryAttemptsCount = Optional.ofNullable(
           RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT);
-  private StormTaskTuple tuple;
+  private CommonTaskTuple tuple;
 
   @InjectMocks
   private HttpHarvestingBolt bolt = new HttpHarvestingBolt(new CassandraProperties());
@@ -73,7 +79,12 @@ class HttpHarvestingBoltTest {
   void setup() {
     wireMockExtension.resetAll();
     fileUrl = "http://localhost:" + wireMockExtension.getPort() + "/http_harvest/task_-5964014235733572511/record.xml";
-    tuple = new StormTaskTuple(TASK_ID, TASK_NAME, fileUrl, null, prepareStormTaskTupleParameters(), new Revision());
+    tuple = new CommonTaskTuple(
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(fileUrl, null),
+            new ProcessingData());
+    tuple.setParameters(prepareStormTaskTupleParameters());
+    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     bolt.prepare();
   }
 
@@ -84,9 +95,9 @@ class HttpHarvestingBoltTest {
     bolt.execute(anchorTuple, tuple);
 
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
-    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+    assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
             resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
@@ -104,11 +115,11 @@ class HttpHarvestingBoltTest {
     bolt.execute(anchorTuple, tuple);
 
     verify(outputCollector).emit(eq(anchorTuple), resultTupleCaptor.capture());
-    StormTaskTuple resultTuple = getResultStormTaskTuple();
+    CommonTaskTuple resultTuple = getResultStormTaskTuple();
     assertArrayEquals(readTestFile("record.xml"), resultTuple.getFileData());
-    assertEquals("/100/object_DCU_24927017", resultTuple.getParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER));
+    assertEquals("/100/object_DCU_24927017", resultTuple.getRecordUri());
     assertEquals("http://more.locloud.eu/object/DCU/24927017",
-        resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
+            resultTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER));
     //Allow two possible values cause detected MIME type is OS (and even distribution) dependent.
     assertThat(resultTuple.getParameter(PluginParameterKeys.OUTPUT_MIME_TYPE),
         anyOf(is(MediaType.TEXT_XML), is(MediaType.APPLICATION_XML)));
@@ -166,8 +177,8 @@ class HttpHarvestingBoltTest {
     return TASK_RELATIVE_URL + fileName;
   }
 
-  private StormTaskTuple getResultStormTaskTuple() {
-    return StormTaskTuple.fromValues(resultTupleCaptor.getValue());
+  private CommonTaskTuple getResultStormTaskTuple() {
+    return CommonTaskTuple.fromValues(resultTupleCaptor.getValue());
   }
 
   private HashMap<String, String> prepareStormTaskTupleParameters() {

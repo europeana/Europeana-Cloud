@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.storm.notification.handler;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 
 public final class NotificationHandlerConfigBuilder {
 

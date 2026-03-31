@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import lombok.ToString;
@@ -57,7 +57,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
    * @param tuple tuple that will be used for link checking
    */
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple tuple) {
     if (tuple.isMarkedAsDeleted()) {
         emitSuccessNotification(anchorTuple, tuple, "",
                 "Record deleted - no links were checked.");
@@ -91,11 +91,11 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
   }
 
-  private ResourceInfo readResourceInfoFromTuple(StormTaskTuple tuple) {
+  private ResourceInfo readResourceInfoFromTuple(CommonTaskTuple tuple) {
     ResourceInfo resourceInfo = new ResourceInfo();
     resourceInfo.expectedSize = Integer.parseInt(tuple.getParameter(PluginParameterKeys.RESOURCE_LINKS_COUNT));
-    resourceInfo.edmUrl = tuple.getFileUrl();
-    resourceInfo.linkUrl = tuple.getParameter(PluginParameterKeys.RESOURCE_URL);
+      resourceInfo.edmUrl = tuple.getRecordUri();
+      resourceInfo.linkUrl = tuple.getParameter(PluginParameterKeys.RESOURCE_URL);
     return resourceInfo;
   }
 
@@ -103,7 +103,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     return resourceInfo.expectedSize > 0;
   }
 
-  private FileInfo checkProvidedLink(StormTaskTuple tuple, ResourceInfo resourceInfo) {
+  private FileInfo checkProvidedLink(CommonTaskTuple tuple, ResourceInfo resourceInfo) {
     FileInfo edmFile = takeFileFromCache(resourceInfo);
     if (edmFile == null || (edmFile.taskId != tuple.getTaskId())) {
       edmFile = new FileInfo(tuple.getTaskId(), resourceInfo.edmUrl, resourceInfo.expectedSize, 0,
@@ -145,7 +145,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
     }
   }
 
-  protected void cleanInvalidData(StormTaskTuple tuple) {
+  protected void cleanInvalidData(CommonTaskTuple tuple) {
     ResourceInfo resourceInfo = readResourceInfoFromTuple(tuple);
     FileInfo cachedEdmFile = takeFileFromCache(resourceInfo);
 
@@ -156,7 +156,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
 
   }
 
-  private boolean cachedFileIsFromPreviousAttempt(StormTaskTuple tuple, FileInfo cachedEdmFile) {
+  private boolean cachedFileIsFromPreviousAttempt(CommonTaskTuple tuple, FileInfo cachedEdmFile) {
     return cachedEdmFile.attemptNumber < tuple.getRecordAttemptNumber();
   }
 }

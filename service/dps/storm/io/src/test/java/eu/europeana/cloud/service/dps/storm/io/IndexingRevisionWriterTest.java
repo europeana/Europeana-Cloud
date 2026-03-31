@@ -7,7 +7,10 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
@@ -122,16 +125,33 @@ class IndexingRevisionWriterTest {
                 .emit(Mockito.eq(AbstractDpsBolt.NOTIFICATION_STREAM_NAME), any(Tuple.class), Mockito.any(List.class));
     }
 
-    private StormTaskTuple prepareTuple() {
-        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), new Revision());
+    private CommonTaskTuple prepareTuple() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("http://inputFileUrl", null),
+                new ProcessingData());
+        tuple.setParameters(prepareTaskParameters());
+        tuple.setOutputRevision(new Revision());
+        return tuple;
     }
 
-    private StormTaskTuple prepareTupleWithMalformedURL() {
-        return new StormTaskTuple(123L, "sampleTaskName", "malformed", null, prepareTaskParameters(), new Revision());
+    private CommonTaskTuple prepareTupleWithMalformedURL() {
+        CommonTaskTuple tuple = new CommonTaskTuple(
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("malformed", null),
+                new ProcessingData());
+        tuple.setParameters(prepareTaskParameters());
+        tuple.setOutputRevision(new Revision());
+        return tuple;
     }
 
-    private StormTaskTuple prepareTupleWithEmptyRevisions() {
-        return new StormTaskTuple(123L, "sampleTaskName", "http://inputFileUrl", null, prepareTaskParameters(), null);
+    private CommonTaskTuple prepareTupleWithEmptyRevisions() {
+        var tuple = new CommonTaskTuple(
+                new TaskData(123L, "sampleTaskName"),
+                new RecordData("http://inputFileUrl", null),
+                new ProcessingData());
+        tuple.setParameters(prepareTaskParameters());
+        return tuple;
     }
 
     Map<String, String> prepareTaskParameters() {

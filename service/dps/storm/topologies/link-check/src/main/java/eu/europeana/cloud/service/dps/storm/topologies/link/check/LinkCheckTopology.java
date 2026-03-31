@@ -1,18 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.topologies.link.check;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.LINK_CHECK_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.LINK_CHECK_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.MCS_URL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.PARSE_FILE_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_NAME;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_USER_PASSWORD;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.LINK_CHECK_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.PARSE_FILE_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.service.dps.storm.StormTupleKeys;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.io.ParseFileForLinkCheckBolt;
@@ -20,11 +7,15 @@ import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLo
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 /**
  * Created by Tarek on 12/14/2018.
@@ -47,7 +38,7 @@ public class LinkCheckTopology {
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), PARSE_FILE_BOLT_PARALLEL,
             PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
         .addBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),
-            LINK_CHECK_BOLT_PARALLEL, LINK_CHECK_BOLT_NUMBER_OF_TASKS, StormTupleKeys.INPUT_FILES_TUPLE_KEY)
+                LINK_CHECK_BOLT_PARALLEL, LINK_CHECK_BOLT_NUMBER_OF_TASKS, StormTupleKeys.INPUT_FILES_TUPLE_FIELD)
         .buildTopology();
   }
 

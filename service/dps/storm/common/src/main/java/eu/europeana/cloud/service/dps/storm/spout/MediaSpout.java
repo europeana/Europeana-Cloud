@@ -3,13 +3,14 @@ package eu.europeana.cloud.service.dps.storm.spout;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.throttling.ThrottlingTupleGroupSelector;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.SpoutProperties;
-import java.util.Map;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
+
+import java.util.Map;
 
 public class MediaSpout extends ECloudSpout {
 
@@ -24,7 +25,7 @@ public class MediaSpout extends ECloudSpout {
   }
 
   @Override
-  protected void performThrottling(StormTaskTuple tuple) {
+  protected void performThrottling(CommonTaskTuple tuple) {
     applyDefaultMaximumParallelizationIfNotSet(tuple);
 
     int parallelizationParam = tuple.readParallelizationParam();
@@ -36,7 +37,7 @@ public class MediaSpout extends ECloudSpout {
     tuple.setThrottlingGroupingAttribute(generator.generateForEdmObjectProcessingBolt(tuple));
   }
 
-  private void applyDefaultMaximumParallelizationIfNotSet(StormTaskTuple tuple) {
+  private void applyDefaultMaximumParallelizationIfNotSet(CommonTaskTuple tuple) {
     if (tuple.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION) == null) {
       tuple.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, defaultMaximumParallelization);
     }

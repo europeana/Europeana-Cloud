@@ -7,15 +7,16 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.metis.utils.DepublicationReason;
-import java.util.Properties;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
 
 public class DepublicationBolt extends AbstractDpsBolt {
 
@@ -30,30 +31,30 @@ public class DepublicationBolt extends AbstractDpsBolt {
   }
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
-    String recordEuropeanaId = stormTaskTuple.getFileUrl();
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    String recordEuropeanaId = commonTaskTuple.getRecordUri();
     LOGGER.debug("Depublishing the record: {} ...", recordEuropeanaId);
     try {
-      String metisDatasetId = stormTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+      String metisDatasetId = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
       DepublicationReason depublicationReason = DepublicationReason.valueOf(
-          stormTaskTuple.getParameter(PluginParameterKeys.DEPUBLICATION_REASON));
+          commonTaskTuple.getParameter(PluginParameterKeys.DEPUBLICATION_REASON));
 
       boolean removedSuccessfully =
           recordRemover.removeRecord(TargetIndexingDatabase.PUBLISH, recordEuropeanaId, depublicationReason);
 
       if (removedSuccessfully) {
         cleanRecordInHarvestedRecordsTable(metisDatasetId, recordEuropeanaId);
-        emitSuccessNotification(anchorTuple, stormTaskTuple);
+        emitSuccessNotification(anchorTuple, commonTaskTuple);
         LOGGER.info("The the record: {} successfully depublished, because of: {}.", recordEuropeanaId, depublicationReason);
       } else {
-        emitErrorNotification(anchorTuple, stormTaskTuple, "Record could not be depublished!",
+        emitErrorNotification(anchorTuple, commonTaskTuple, "Record could not be depublished!",
             "Could not find the record: " + recordEuropeanaId);
         LOGGER.warn("The the record: {} did not depublished, cause it was not found!", recordEuropeanaId);
 
       }
 
     } catch (IndexingException e) {
-      emitErrorNotification(anchorTuple, stormTaskTuple, "Exception during record depublishing", e);
+      emitErrorNotification(anchorTuple, commonTaskTuple, "Exception during record depublishing", e);
     }
 
     outputCollector.ack(anchorTuple);

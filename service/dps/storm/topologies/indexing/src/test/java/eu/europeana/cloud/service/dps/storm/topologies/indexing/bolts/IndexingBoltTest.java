@@ -9,8 +9,11 @@ import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
@@ -98,7 +101,7 @@ class IndexingBoltTest {
                     .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -116,11 +119,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(EARLIER_HARVEST_DATE)
             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -136,7 +139,7 @@ class IndexingBoltTest {
                     .publishedHarvestDate(EARLIER_HARVEST_DATE).publishedHarvestMd5(EARLIER_HARVEST_MD5).build()));
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer(MediaTier.T0);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -154,11 +157,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(EARLIER_HARVEST_DATE)
             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -176,7 +179,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -194,11 +197,11 @@ class IndexingBoltTest {
             .publishedHarvestDate(LATEST_HARVEST_DATE)
             .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -215,7 +218,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer(MediaTier.T0);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -253,7 +256,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     tuple.setMarkedAsDeleted(true);
     mockIndexer();
 
@@ -274,12 +277,12 @@ class IndexingBoltTest {
             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
             .build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
+    assertEquals(6, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-    assertEquals(8, parameters.size());
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
+    assertEquals(7, parameters.size());
   }
 
   @Test
@@ -294,7 +297,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     tuple.setMarkedAsDeleted(true);
     mockIndexer();
 
@@ -314,12 +317,12 @@ class IndexingBoltTest {
             .publishedHarvestDate(null).publishedHarvestMd5(null)
             .build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
-    assertEquals(8, parameters.size());
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
+    assertEquals(7, parameters.size());
   }
 
   @Test
@@ -331,7 +334,7 @@ class IndexingBoltTest {
 
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
-    StormTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
+    CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
     mockIndexer();
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -345,11 +348,11 @@ class IndexingBoltTest {
             .latestHarvestDate(HARVEST_DATE)
             .publishedHarvestDate(HARVEST_DATE).build());
     Values capturedValues = captor.getValue();
-    assertEquals(10, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
-            capturedValues.get(2));
-    Map<String, String> parameters = (Map<String, String>) capturedValues.get(4);
+            ((RecordData) capturedValues.get(5)).getRecordUri());
+    assertEquals(6, capturedValues.size());
+    Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(7, parameters.size());
   }
 
@@ -358,7 +361,7 @@ class IndexingBoltTest {
   void shouldEmitErrorNotificationForIndexerConfiguration() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     mockIndexer(IndexerRelatedIndexingException.class);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -379,7 +382,7 @@ class IndexingBoltTest {
   void shouldEmitErrorNotificationForIndexing() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PUBLISH");
+    CommonTaskTuple tuple = mockStormTupleFor("PUBLISH");
     mockIndexer(IndexerRelatedIndexingException.class);
     //when
     indexingBolt.execute(anchorTuple, tuple);
@@ -401,7 +404,7 @@ class IndexingBoltTest {
   void shouldThrowExceptionWhenDateIsUnparsable() {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.getParameters().remove(PluginParameterKeys.METIS_RECORD_DATE);
     tuple.addParameter(PluginParameterKeys.METIS_RECORD_DATE, "UN_PARSABLE_DATE");
     //when
@@ -423,7 +426,7 @@ class IndexingBoltTest {
   void shouldThrowExceptionForUnknownEnv() throws IndexingException {
     //given
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
+    CommonTaskTuple tuple = mockStormTupleFor("UNKNOWN_ENVIRONMENT");
     mockIndexer(RuntimeException.class);
     //when
     assertThrows(IllegalArgumentException.class, () -> indexingBolt.execute(anchorTuple, tuple));
@@ -432,7 +435,7 @@ class IndexingBoltTest {
   @Test
   void shouldThrowExceptionWhenHarvestDateIsNull() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.getParameters().remove(PluginParameterKeys.HARVEST_DATE);
 
     indexingBolt.execute(anchorTuple, tuple);
@@ -446,7 +449,7 @@ class IndexingBoltTest {
   @Test
   void shouldThrowExceptionWhenHarvestDateIsUnparsable() {
     Tuple anchorTuple = mock(TupleImpl.class);
-    StormTaskTuple tuple = mockStormTupleFor("PREVIEW");
+    CommonTaskTuple tuple = mockStormTupleFor("PREVIEW");
     tuple.addParameter(PluginParameterKeys.HARVEST_DATE, "UN_PARSABLE_DATE");
 
     indexingBolt.execute(anchorTuple, tuple);
@@ -461,24 +464,24 @@ class IndexingBoltTest {
     when(europeanaIdFinder.findForFileUrl(METIS_DATASET_ID, FILE_URL)).thenReturn(LOCAL_ID);
   }
 
-  private StormTaskTuple mockStormTupleFor(final String targetDatabase) {
-    //
-    return new StormTaskTuple(
-            1,
-            "taskName",
-            FILE_URL,
-            new byte[]{'a', 'b', 'c'},
-            new HashMap<>() {
-              {
-                put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
-                put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
-                put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
-                put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-                put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
-                put(PluginParameterKeys.OUTPUT_DATA_SETS,
-                        "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
-              }
-            }, new Revision());
+  private CommonTaskTuple mockStormTupleFor(final String targetDatabase) {
+    CommonTaskTuple tuple = new CommonTaskTuple(
+            new TaskData(1, "taskName"),
+            new RecordData(FILE_URL, new byte[]{'a', 'b', 'c'}),
+            new ProcessingData());
+    tuple.setParameters(new HashMap<>() {
+      {
+        put(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, targetDatabase);
+        put(PluginParameterKeys.METIS_RECORD_DATE, DateHelper.getISODateString(new Date()));
+        put(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_TASK_PARAM);
+        put(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
+        put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
+        put(PluginParameterKeys.OUTPUT_DATA_SETS,
+                "https://test.ecloud.psnc.pl/api/data-providers/metis_test5/data-sets/4979eb22-3824-4f9a-b239-edad6c4b0bb9");
+      }
+    });
+    tuple.setOutputRevision(new Revision("NAME", "PROVIDER", new Date()));
+    return tuple;
   }
 
   private void mockIndexer(Class<? extends Throwable> throwingExceptionClass) throws IndexingException {

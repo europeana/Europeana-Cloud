@@ -1,18 +1,16 @@
-package eu.europeana.cloud.service.dps.storm;
+package eu.europeana.cloud.service.dps.storm.tuple.notification;
 
 
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.enrichment.rest.client.report.Report;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+
+import java.util.*;
 
 /**
  * Tuple for notifications utilities.
@@ -47,39 +45,39 @@ public class NotificationTuple {
         (Set<Report>) tuple.getValueByField(REPORT_SET_FIELD_NAME));
   }
 
-  public static NotificationTuple prepareNotification(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation) {
+  public static NotificationTuple prepareNotification(CommonTaskTuple commonTaskTuple, RecordState state, String message, String additionalInformation) {
     Map<String, Object> parameters = new HashMap<>();
-    parameters.put(NotificationParameterKeys.RESOURCE, stormTaskTuple.getFileUrl());
+    parameters.put(NotificationParameterKeys.RESOURCE, commonTaskTuple.getRecordUri());
     parameters.put(NotificationParameterKeys.STATE, state.toString());
     parameters.put(NotificationParameterKeys.INFO_TEXT, message);
     parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
-    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, StormTaskTupleHelper.getRecordProcessingStartTime(stormTaskTuple));
-    if (stormTaskTuple.isMarkedAsDeleted()) {
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, commonTaskTuple.getMessageProcessingStartTimeInMs());
+    if (commonTaskTuple.isMarkedAsDeleted()) {
       parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
     }
-    return new NotificationTuple(stormTaskTuple.getTaskId(), parameters, stormTaskTuple.getReportSet());
+    return new NotificationTuple(commonTaskTuple.getTaskId(), parameters, commonTaskTuple.getReportSet());
   }
 
 
-  public static NotificationTuple prepareNotificationWithResultResource(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation) {
-    NotificationTuple nt = prepareNotification(stormTaskTuple, state, message, additionalInformation);
-    nt.addParameter(NotificationParameterKeys.RESULT_RESOURCE, stormTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
+  public static NotificationTuple prepareNotificationWithResultResource(CommonTaskTuple commonTaskTuple, RecordState state, String message, String additionalInformation) {
+    NotificationTuple nt = prepareNotification(commonTaskTuple, state, message, additionalInformation);
+    nt.addParameter(NotificationParameterKeys.RESULT_RESOURCE, commonTaskTuple.getParameter(PluginParameterKeys.OUTPUT_URL));
     return nt;
   }
 
-  public static NotificationTuple prepareNotificationWithResultResourceAndErrorMessage(StormTaskTuple stormTaskTuple, RecordState state, String message, String additionalInformation, String unifiedErrorMessage, String detailedErrorMessage) {
-    NotificationTuple nt = prepareNotificationWithResultResource(stormTaskTuple, state, message, additionalInformation);
+  public static NotificationTuple prepareNotificationWithResultResourceAndErrorMessage(CommonTaskTuple commonTaskTuple, RecordState state, String message, String additionalInformation, String unifiedErrorMessage, String detailedErrorMessage) {
+    NotificationTuple nt = prepareNotificationWithResultResource(commonTaskTuple, state, message, additionalInformation);
     nt.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, unifiedErrorMessage);
     nt.addParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE, detailedErrorMessage);
     return nt;
   }
 
 
-  public static NotificationTuple prepareIndexingNotification(StormTaskTuple stormTaskTuple,
+  public static NotificationTuple prepareIndexingNotification(CommonTaskTuple commonTaskTuple,
                                                               RecordState state, String message,
                                                               String additionalInformation) {
-    NotificationTuple nt = prepareNotification(stormTaskTuple, state, message, additionalInformation);
-    nt.addParameter(NotificationParameterKeys.EUROPEANA_ID, stormTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID));
+    NotificationTuple nt = prepareNotification(commonTaskTuple, state, message, additionalInformation);
+    nt.addParameter(NotificationParameterKeys.EUROPEANA_ID, commonTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID));
     return nt;
   }
 

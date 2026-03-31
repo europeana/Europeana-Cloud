@@ -2,7 +2,7 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
@@ -42,46 +42,46 @@ public class NormalizationBolt extends AbstractDpsBolt {
   }
 
   /**
-   * Retrieves the edm record from stormTaskTuple. Executes normalization using Metis Normalization library and receives a
+   * Retrieves the edm record from commonTaskTuple. Executes normalization using Metis Normalization library and receives a
    * normalized and cleaned EDM record as the result. The result is emitted as a tuple. In case of an exception error notification
    * is emitted.
    *
-   * @param stormTaskTuple tuple containing input data
+   * @param commonTaskTuple tuple containing input data
    */
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple stormTaskTuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     try {
       final Normalizer normalizer = normalizerFactory.getNormalizer();
-      String document = new String(stormTaskTuple.getFileData(), StandardCharsets.UTF_8);
+      String document = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
 
       NormalizationResult normalizationResult = normalizer.normalize(document);
 
       if (normalizationResult.getErrorMessage() != null) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());
-          emitErrorNotification(anchorTuple, stormTaskTuple, normalizationResult.getErrorMessage(), "Error during normalization.");
+          emitErrorNotification(anchorTuple, commonTaskTuple, normalizationResult.getErrorMessage(), "Error during normalization.");
       } else {
         String output = normalizationResult.getNormalizedRecordInEdmXml();
-        emitNormalizedContent(anchorTuple, stormTaskTuple, output);
+        emitNormalizedContent(anchorTuple, commonTaskTuple, output);
       }
     } catch (NormalizationConfigurationException e) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(),
                 "Error in normalizer configuration. The full error is: " + ExceptionUtils.getStackTrace(e));
     } catch (NormalizationException e) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(),
                 "Error during normalization. The full error is: " + ExceptionUtils.getStackTrace(e));
     } catch (MalformedURLException e) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, e);
-        emitErrorNotification(anchorTuple, stormTaskTuple, e.getMessage(),
-                "Cannot prepare output storm tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
+        emitErrorNotification(anchorTuple, commonTaskTuple, e.getMessage(),
+                "Cannot prepare output common tuple. The full error is: " + ExceptionUtils.getStackTrace(e));
     }
     outputCollector.ack(anchorTuple);
   }
 
-  private void emitNormalizedContent(Tuple anchorTuple, StormTaskTuple stormTaskTuple, String output)
+  private void emitNormalizedContent(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String output)
       throws MalformedURLException {
-    prepareStormTaskTupleForEmission(stormTaskTuple, output);
-    outputCollector.emit(anchorTuple, stormTaskTuple.toStormTuple());
+    prepareStormTaskTupleForEmission(commonTaskTuple, output);
+    outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
   }
 }

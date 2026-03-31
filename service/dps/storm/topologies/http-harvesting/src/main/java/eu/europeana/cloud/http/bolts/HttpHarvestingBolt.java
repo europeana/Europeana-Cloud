@@ -1,14 +1,12 @@
 package eu.europeana.cloud.http.bolts;
 
-import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
-
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -21,6 +19,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static eu.europeana.metis.utils.TempFileUtils.createSecureTempFile;
 
 public class HttpHarvestingBolt extends AbstractDpsBolt {
 
@@ -41,9 +41,9 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
 
 
   @Override
-  public void execute(Tuple anchorTuple, StormTaskTuple tuple) {
+  public void execute(Tuple anchorTuple, CommonTaskTuple tuple) {
     try {
-      LOGGER.info("Starting http harvesting for url: {}", tuple.getFileUrl());
+      LOGGER.info("Starting http harvesting for url: {}", tuple.getRecordUri());
       harvestRecord(tuple);
 
       outputCollector.emit(anchorTuple, tuple.toStormTuple());
@@ -57,16 +57,16 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
       emitErrorNotification(anchorTuple, tuple, "Error while reading a file",
-              "Can't read file: " + tuple.getFileUrl() + " because of " + e.getMessage());
+              "Can't read file: " + tuple.getRecordUri() + " because of " + e.getMessage());
       outputCollector.ack(anchorTuple);
     }
   }
 
-  private void harvestRecord(StormTaskTuple tuple) throws Exception {
+  private void harvestRecord(CommonTaskTuple tuple) throws Exception {
     HttpResponse<byte[]> response = tryLoadHttpFileCoupleOfTimes(tuple);
     byte[] fileContent = response.body();
     tuple.setFileData(fileContent);
-    tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, probeMimeType(tuple.getFileUrl(), fileContent));
+    tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, probeMimeType(tuple.getRecordUri(), fileContent));
     identifierSupplier.prepareIdentifiers(tuple);
   }
 
@@ -79,7 +79,7 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
     return mimeType;
   }
 
-  private HttpResponse<byte[]> tryLoadHttpFileCoupleOfTimes(StormTaskTuple tuple) throws Exception {
+  private HttpResponse<byte[]> tryLoadHttpFileCoupleOfTimes(CommonTaskTuple tuple) throws Exception {
     //Because data are always loaded from the same given application server, relatively big retry count,
     //and time is used to assure some resistance for server, inaccessibility.
     return RetryableMethodExecutor.<HttpResponse<byte[]>, Exception>
@@ -87,8 +87,8 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
         () -> loadHttpFile(tuple));
   }
 
-  private HttpResponse<byte[]> loadHttpFile(StormTaskTuple tuple) throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getFileUrl())).GET().build();
+  private HttpResponse<byte[]> loadHttpFile(CommonTaskTuple tuple) throws IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getRecordUri())).GET().build();
     HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() != 200) {
       throw new IOException("Bad return status code: " + response.statusCode());

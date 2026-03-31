@@ -1,25 +1,18 @@
 package eu.europeana.cloud.service.dps.storm;
 
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
-
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
 import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.util.LRUCache;
-import java.util.Map;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -28,6 +21,10 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.

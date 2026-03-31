@@ -5,7 +5,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.StormTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -14,6 +15,7 @@ import eu.europeana.metis.mediaprocessing.RdfDeserializer;
 import eu.europeana.metis.mediaprocessing.exception.MediaExtractionException;
 import eu.europeana.metis.mediaprocessing.exception.MediaProcessorException;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -73,23 +75,29 @@ class EDMObjectProcessorBoltTest {
     //given
     try (InputStream stream = this.getClass().getResourceAsStream("/files/fileWithSingleResource.xml")) {
       when(fileClient.getFile(anyString())).thenReturn(stream);
-      StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
       //when
-      edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      }
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
       //
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = ((TaskData) valuesForEnrichmentBolt.get(3)).getParameters();
+      Map<String, String> parametersForParseFileBolt = ((TaskData) valuesForParseFileBolt.get(3)).getParameters();
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -103,23 +111,29 @@ class EDMObjectProcessorBoltTest {
       doThrow(MediaExtractionException.class).when(mediaExtractor)
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
-      StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
       //when
-      edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      }
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = ((TaskData) valuesForEnrichmentBolt.get(3)).getParameters();
+      Map<String, String> parametersForParseFileBolt = ((TaskData) valuesForParseFileBolt.get(3)).getParameters();
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("1", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -133,23 +147,29 @@ class EDMObjectProcessorBoltTest {
       doThrow(MediaExtractionException.class).when(mediaExtractor)
               .performMediaExtraction(any(RdfResourceEntry.class), anyBoolean());
 
-      StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
       //when
-      edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      }
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForEnrichmentBolt = captor.getValue();
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForEnrichmentBolt = (Map) valuesForEnrichmentBolt.get(4);
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForEnrichmentBolt = ((TaskData) valuesForEnrichmentBolt.get(3)).getParameters();
+      Map<String, String> parametersForParseFileBolt = ((TaskData) valuesForParseFileBolt.get(3)).getParameters();
       assertEquals("2", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("2", parametersForEnrichmentBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
@@ -163,8 +183,8 @@ class EDMObjectProcessorBoltTest {
 
       doReturn(null).when(rdfDeserializer).getMainThumbnailResourceForMediaExtraction(any(byte[].class));
 
-      StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
@@ -177,7 +197,7 @@ class EDMObjectProcessorBoltTest {
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForParseFileBolt = ((TaskData) valuesForParseFileBolt.get(3)).getParameters();
       assertEquals("1", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
     }
   }
@@ -191,21 +211,27 @@ class EDMObjectProcessorBoltTest {
       when(amazonClient.putObject(anyString(), any(InputStream.class), any(ObjectMetadata.class))).thenThrow(
               new RuntimeException());
 
-      StormTaskTuple tuple = new StormTaskTuple();
-      tuple.addParameter(PluginParameterKeys.CLOUD_LOCAL_IDENTIFIER, "example");
+      CommonTaskTuple tuple = new CommonTaskTuple();
+      tuple.setRecordUri("example");
       //
       Tuple anchorTuple = mock(TupleImpl.class);
 
       //when
-      edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      try (MockedStatic<SerializationUtils> mocked = Mockito.mockStatic(SerializationUtils.class)) {
+
+        mocked.when(() -> SerializationUtils.clone(Mockito.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // just return the same object
+
+        edmObjectProcessorBolt.execute(anchorTuple, tuple);
+      }
       //then
       verify(outputCollector, times(1)).emit(eq(EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME), any(Tuple.class),
-          captor.capture());
+              captor.capture());
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       verify(outputCollector, times(1)).ack(any(Tuple.class));
       Values valuesForParseFileBolt = captor.getValue();
 
-      Map<String, String> parametersForParseFileBolt = (Map) valuesForParseFileBolt.get(4);
+      Map<String, String> parametersForParseFileBolt = ((TaskData) valuesForParseFileBolt.get(3)).getParameters();
       assertEquals("2", parametersForParseFileBolt.get(PluginParameterKeys.RESOURCE_LINKS_COUNT));
       assertEquals("media resource exception", parametersForParseFileBolt.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertTrue(parametersForParseFileBolt.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE).contains("Error while uploading"));
