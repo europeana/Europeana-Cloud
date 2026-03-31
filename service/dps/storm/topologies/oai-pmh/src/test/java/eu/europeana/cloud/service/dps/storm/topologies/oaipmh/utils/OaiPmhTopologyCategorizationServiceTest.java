@@ -38,7 +38,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -83,7 +83,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(dateOfHarvesting)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -121,7 +121,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -159,7 +159,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -198,7 +198,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -238,7 +238,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -278,7 +278,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -315,7 +315,7 @@ class OaiPmhTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordDateStamp(recordDateStamp)
                                 .currentHarvestDate(dateOfHarvesting)
                                 .fullHarvest(true)

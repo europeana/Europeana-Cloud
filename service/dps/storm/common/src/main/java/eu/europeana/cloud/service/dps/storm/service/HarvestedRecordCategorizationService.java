@@ -37,14 +37,14 @@ public abstract class HarvestedRecordCategorizationService {
   private Optional<HarvestedRecord> readRecordFromDB(CategorizationParameters categorizationParameters) {
     return harvestedRecordsDAO.findRecord(
         categorizationParameters.getDatasetId(),
-        categorizationParameters.getRecordId());
+        categorizationParameters.getEuropeanaId());
   }
 
   private HarvestedRecord prepareHarvestedRecordDefinition(CategorizationParameters categorizationParameters) {
     return HarvestedRecord
         .builder()
         .metisDatasetId(categorizationParameters.getDatasetId())
-        .recordLocalId(categorizationParameters.getRecordId())
+        .recordLocalId(categorizationParameters.getEuropeanaId())
         .latestHarvestDate(Date.from(categorizationParameters.getCurrentHarvestDate()))
         .latestHarvestMd5(categorizationParameters.getRecordMd5())
         .build();

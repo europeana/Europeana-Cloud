@@ -54,7 +54,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple t) {
     final String file = t.getRecordUri();
-    t.setRecordUri(file);
     try (InputStream is = getFileStreamByStormTuple(t)) {
       t.setFileData(is);
       if (FileDataChecker.isFileDataNullOrBlank(t.getFileData())) {

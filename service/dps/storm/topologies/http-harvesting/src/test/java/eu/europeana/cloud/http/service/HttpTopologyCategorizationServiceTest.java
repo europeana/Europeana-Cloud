@@ -40,7 +40,7 @@ class HttpTopologyCategorizationServiceTest {
     CategorizationResult categorizationResult = harvestedRecordCategorizationService.categorize(
         CategorizationParameters.builder()
                                 .datasetId("exampleDatasetId")
-                                .recordId("exampleRecordId")
+                                .europeanaId("exampleRecordId")
                                 .recordMd5(UUID.fromString("50554d6e-29bb-11e5-b345-feff819cdc9f"))
                                 .currentHarvestDate(dateOfHarvesting)
                                 .build());
@@ -108,7 +108,7 @@ class HttpTopologyCategorizationServiceTest {
     CategorizationResult result = service.categorize(
             CategorizationParameters.builder()
                     .datasetId("exampleDatasetId")
-                    .recordId("exampleRecordId")
+                    .europeanaId("exampleRecordId")
                     .recordMd5(incomingMd5)
                     .currentHarvestDate(dateOfHarvesting)
                     .build()

@@ -21,7 +21,7 @@ public class IdentifierSupplier {
 
     EuropeanaGeneratedIdsMap europeanaIdentifier = getEuropeanaIdentifier(tuple, metisDatasetId);
     tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, europeanaIdentifier.getSourceProvidedChoAbout());
-    tuple.setRecordUri(europeanaIdentifier.getEuropeanaGeneratedId());
+    tuple.addParameter(PluginParameterKeys.EUROPEANA_ID, europeanaIdentifier.getEuropeanaGeneratedId());
   }
 
   private EuropeanaGeneratedIdsMap getEuropeanaIdentifier(CommonTaskTuple commonTaskTuple, String datasetId)

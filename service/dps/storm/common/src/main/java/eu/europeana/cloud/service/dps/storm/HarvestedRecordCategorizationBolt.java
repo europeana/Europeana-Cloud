@@ -44,7 +44,7 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
     return CategorizationParameters.builder()
             .fullHarvest(!isIncrementalHarvesting(tuple))
             .datasetId(tuple.getParameter(PluginParameterKeys.METIS_DATASET_ID))
-            .recordId(tuple.getRecordUri())
+            .europeanaId(tuple.getParameter(PluginParameterKeys.EUROPEANA_ID))
                                    .recordMd5(FileMd5GenerationService.generateUUID(tuple.getFileData()))
                                    .currentHarvestDate(DateHelper.parse(tuple.getParameter(PluginParameterKeys.HARVEST_DATE)))
                                    .recordDateStamp(tuple.getParameter(PluginParameterKeys.RECORD_DATESTAMP) != null ?

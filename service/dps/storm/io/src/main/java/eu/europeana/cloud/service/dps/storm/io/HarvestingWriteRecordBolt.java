@@ -49,9 +49,9 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   @Override
   protected RecordWriteParams prepareWriteParameters(CommonTaskTuple commonTaskTuple) throws CloudException, MalformedURLException {
     String providerId = commonTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    String localId = commonTaskTuple.getRecordUri();
+    String europeanaId = commonTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID);
     String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
-    String cloudId = getCloudId(providerId, localId, additionalLocalIdentifier);
+    String cloudId = getCloudId(providerId, europeanaId, additionalLocalIdentifier);
     String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
     if ((representationName == null || representationName.isEmpty())) {
       representationName = commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
@@ -69,8 +69,8 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       return writeParams;
   }
 
-    protected String getCloudId(String providerId, String localId, String additionalLocalIdentifier) throws CloudException {
-        String result = createCloudId(providerId, localId);
+    protected String getCloudId(String providerId, String europeanaId, String additionalLocalIdentifier) throws CloudException {
+        String result = createCloudId(providerId, europeanaId);
 
         if (additionalLocalIdentifier != null) {
             attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId);
@@ -87,9 +87,9 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
         );
     }
 
-    private String createCloudId(String providerId, String localId) throws CloudException {
+    private String createCloudId(String providerId, String europeanaId) throws CloudException {
         return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
-                uisClient.createCloudId(providerId, localId).getId());
+                uisClient.createCloudId(providerId, europeanaId).getId());
     }
 
 }
