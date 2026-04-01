@@ -191,14 +191,9 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     } else {
       throw new MCSException("Output URL is not URL to the representation version file");
     }
-    if (tuple.getOutputDataset() != null) {
-      parser = new UrlParser(tuple.getOutputDataset().getUri().toString());
-      if (parser.isUrlToDataset()) {
-        representation.setDatasetId(parser.getPart(UrlPart.DATA_SETS));
-        representation.setDataProvider(parser.getPart(UrlPart.DATA_PROVIDERS));
-      } else {
-        throw new MCSException("Output dataset is set but it is not URL to the dataset resource");
-      }
+    if (tuple.getOutputDatasetId() != null) {
+      representation.setDatasetId(tuple.getOutputDatasetId());
+      representation.setDataProvider(tuple.getOutputDatasetProvider());
     }
 
     return representation;

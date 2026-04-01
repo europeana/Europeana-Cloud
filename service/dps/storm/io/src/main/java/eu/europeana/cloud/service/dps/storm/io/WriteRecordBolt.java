@@ -166,7 +166,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     writeParams.setProviderId(providerId);
     writeParams.setNewVersion(generateNewVersionId(tuple));
     writeParams.setNewFileName(generateNewFileName(tuple));
-    writeParams.setDataSetId(tuple.getOutputDataset().getId());
+    writeParams.setDataSetId(tuple.getOutputDatasetId());
     return writeParams;
   }
 
@@ -191,11 +191,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     String providerId = null;
     if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
       providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    } else if (tuple.getOutputDataset() != null) {
-      UrlParser parser = new UrlParser(tuple.getOutputDataset().getUri().toString());
-      if (parser.isUrlToDataset()) {
-        providerId = parser.getPart(UrlPart.DATA_PROVIDERS);
-      }
+    } else if (tuple.getOutputDatasetProvider() != null) {
+      providerId = tuple.getOutputDatasetProvider();
     } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
       providerId = getProviderId(tuple);
     }

@@ -28,8 +28,12 @@ public class TaskData implements Serializable {
 
     Revision outputRevision;
     Revision inputRevision;
-    DataSet outputDataset;
-    DataSet inputDataset;
+    // Datasets could not be stored as DataSet object because of problems with serialization of java.net.URI field by Kryo library
+    // used by Storm on current version of java and storm library
+    String outputDatasetProvider;
+    String outputDatasetId;
+    String inputDatasetProvider;
+    String inputDatasetId;
 
     public TaskData(long taskId, String taskName) {
         this.taskId = taskId;
@@ -42,11 +46,18 @@ public class TaskData implements Serializable {
     }
 
     public void setInputDatasetFromUri(String uri) throws MalformedURLException, URISyntaxException {
-        this.inputDataset = parseDatasetUrl(uri);
+        DataSet dataset = parseDatasetUrl(uri);
+        inputDatasetProvider = dataset.getProviderId();
+        inputDatasetId = dataset.getId();
     }
 
     public void setOutputDatasetFromUri(String uri) throws MalformedURLException, URISyntaxException {
-        this.outputDataset = parseDatasetUrl(uri);
+        setOutputDataset(parseDatasetUrl(uri));
+    }
+
+    public void setOutputDataset(DataSet outputDataset) {
+        outputDatasetProvider = outputDataset.getProviderId();
+        outputDatasetId = outputDataset.getId();
     }
 
     private DataSet parseDatasetUrl(String uri) throws MalformedURLException, URISyntaxException {

@@ -65,7 +65,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       writeParams.setProviderId(providerId);
       writeParams.setNewVersion(generateNewVersionId(commonTaskTuple));
       writeParams.setNewFileName(generateNewFileName(commonTaskTuple));
-      writeParams.setDataSetId(commonTaskTuple.getOutputDataset().getId());
+      writeParams.setDataSetId(commonTaskTuple.getOutputDatasetId());
       return writeParams;
   }
 
