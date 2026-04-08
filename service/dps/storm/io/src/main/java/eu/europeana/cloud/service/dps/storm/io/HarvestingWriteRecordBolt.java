@@ -48,16 +48,13 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
 
   @Override
   protected RecordWriteParams prepareWriteParameters(CommonTaskTuple commonTaskTuple) throws CloudException, MalformedURLException {
-    String providerId = commonTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
+    String providerId = commonTaskTuple.getOutputDatasetProvider();
     String europeanaId = commonTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID);
     String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, europeanaId, additionalLocalIdentifier);
-    String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
+    String representationName = commonTaskTuple.getOutputRepresentationName();
     if ((representationName == null || representationName.isEmpty())) {
       representationName = commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);
-      if (representationName == null) {
-        representationName = PluginParameterKeys.PLUGIN_PARAMETERS.get(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-      }
     }
       var writeParams = new RecordWriteParams();
       writeParams.setCloudId(cloudId);

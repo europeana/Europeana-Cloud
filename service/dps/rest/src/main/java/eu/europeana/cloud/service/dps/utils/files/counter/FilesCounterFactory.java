@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
-
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.DpsTask.TaskInput;
+import eu.europeana.cloud.service.dps.FilesUrls;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -35,23 +35,18 @@ public class FilesCounterFactory {
       return new DepublicationFilesCounter(indexWrapper);
     }
 
-    String taskType = getTaskType(task);
-    if (FILE_URLS.name().equals(taskType)) {
+    TaskInput input = task.getInput();
+    if (input instanceof FilesUrls) {
       return new RecordFilesCounter();
     }
-    if (DATASET_URLS.name().equals(taskType)) {
+    if (input instanceof DatasetRevisionInfo || input instanceof BatchInfo) {
       return new DatasetFilesCounter(taskInfoDAO);
     }
-    if (REPOSITORY_URLS.name().equals(taskType)) {
+    if (input instanceof OAIPMHHarvestingDetails) {
       return new OaiPmhFilesCounter();
     } else {
       return new UnknownFilesNumberCounter();
     }
   }
 
-  private String getTaskType(DpsTask task) {
-    //TODO should be done in more error prone way
-    final InputDataType first = task.getInputData().keySet().iterator().next();
-    return first.name();
-  }
 }

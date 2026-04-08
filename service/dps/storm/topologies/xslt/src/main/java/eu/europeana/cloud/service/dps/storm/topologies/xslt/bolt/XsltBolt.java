@@ -46,8 +46,6 @@ public class XsltBolt extends AbstractDpsBolt {
       if (urlParser.isUrlToRepresentationVersionFile()) {
         commonTaskTuple
             .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-        commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
-            urlParser.getPart(UrlPart.REPRESENTATIONS));
         commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
             urlParser.getPart(UrlPart.VERSIONS));
       }

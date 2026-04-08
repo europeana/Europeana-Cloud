@@ -7,17 +7,17 @@ import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 
 public class MCSTaskSubmitter {
 
@@ -66,10 +64,10 @@ public class MCSTaskSubmitter {
 
       logProgress(submitParameters, 0);
       ExpectedCounters expectedCounters;
-      if (taskContainsFileUrls(task)) {
-        expectedCounters = executeForFilesList(submitParameters);
+      if (task.getInput() instanceof FilesUrls input) {
+        expectedCounters = executeForFilesList(input, submitParameters);
       } else {
-        expectedCounters = executeForDatasetList(submitParameters);
+        expectedCounters = executeForMCSInput(submitParameters);
       }
 
       checkIfTaskIsKilled(task);
@@ -98,46 +96,29 @@ public class MCSTaskSubmitter {
     return new MCSReader(mcsClientURL, userName, password);
   }
 
-  private ExpectedCounters executeForFilesList(SubmitTaskParameters submitParameters) {
-    List<String> fileUrlsList = submitParameters.getTask().getDataEntry(FILE_URLS);
-    return submitRecordsForFileUrlsList(fileUrlsList, submitParameters);
+  private ExpectedCounters executeForFilesList(FilesUrls input, SubmitTaskParameters submitParameters) {
+    return submitRecordsForFileUrlsList(input.getFileUrls(), submitParameters);
   }
 
-  private ExpectedCounters executeForDatasetList(SubmitTaskParameters submitParameters)
-      throws InterruptedException, MCSException, ExecutionException {
-    var counter = ExpectedCounters.expectZeroRecords();
-    for (String dataSetUrl : submitParameters.getTask().getDataEntry(InputDataType.DATASET_URLS)) {
-      counter.add(executeForOneDataSet(dataSetUrl, submitParameters));
-    }
-    return counter;
-  }
-
-  private ExpectedCounters executeForOneDataSet(String dataSetUrl, SubmitTaskParameters submitParameters)
+  private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters)
       throws InterruptedException, MCSException, ExecutionException {
     try (var reader = createMcsReader()) {
-      ExpectedCounters counter;
-      var urlParser = new UrlParser(dataSetUrl);
-      if (!urlParser.isUrlToDataset()) {
-        throw new TaskSubmitException("DataSet URL is not formulated correctly: " + dataSetUrl);
-      }
-
-      if (submitParameters.hasInputRevision()) {
-        counter = executeForRevision(urlParser.getPart(UrlPart.DATA_SETS), urlParser.getPart(UrlPart.DATA_PROVIDERS),
-                submitParameters, reader);
+      var expectedSize = ExpectedCounters.expectZeroRecords();;
+      if (submitParameters.getTask().getInput() instanceof DatasetRevisionInfo input) {
+        expectedSize.add(executeForRevision(input,
+                submitParameters, reader));
       } else {
-        counter = executeForEntireDataset(urlParser, submitParameters, reader);
-
+        BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
+        expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
       }
       return counter;
 
-    } catch (MalformedURLException e) {
-      throw new TaskSubmitException("MCSTaskSubmitter error, Error while parsing DataSet URL : \"" + dataSetUrl + "\"", e);
     }
   }
 
-  private ExpectedCounters executeForEntireDataset(UrlParser urlParser, SubmitTaskParameters submitParameters, MCSReader reader) {
-    var counter = ExpectedCounters.expectZeroRecords();
-    RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(urlParser);
+  private ExpectedCounters executeForEntireDataset(BatchInfo input, SubmitTaskParameters submitParameters, MCSReader reader) {
+    var expectedSize = ExpectedCounters.expectZeroRecords();
+    RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(input);
     while (iterator.hasNext()) {
       checkIfTaskIsKilled(submitParameters.getTask());
       Representation representation = iterator.next();
@@ -146,7 +127,7 @@ public class MCSTaskSubmitter {
     return counter;
   }
 
-  private ExpectedCounters executeForRevision(String datasetName, String datasetProvider, SubmitTaskParameters submitParameters,
+  private ExpectedCounters executeForRevision(DatasetRevisionInfo input, SubmitTaskParameters submitParameters,
                                               MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
     ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     try {
@@ -158,7 +139,7 @@ public class MCSTaskSubmitter {
       var total = 0;
       do {
         checkIfTaskIsKilled(task);
-        ResultSlice<CloudTagsResponse> slice = getCloudIdsChunk(datasetName, datasetProvider, startFrom, submitParameters,
+        ResultSlice<CloudTagsResponse> slice = getCloudIdsChunk(input, startFrom,
             reader);
         List<CloudTagsResponse> cloudTagsResponseList = slice.getResults();
 
@@ -170,7 +151,7 @@ public class MCSTaskSubmitter {
 
         final List<CloudTagsResponse> finalCloudTagsResponseList = cloudTagsResponseList;
         futures.add(
-            executor.submit(() -> executeGettingFileUrlsForCloudIdList(finalCloudTagsResponseList, submitParameters, reader)));
+            executor.submit(() -> executeGettingFileUrlsForCloudIdList(input, finalCloudTagsResponseList, submitParameters, reader)));
 
         if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
           counter.add(getCountAndWait(futures));
@@ -197,36 +178,36 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private ResultSlice<CloudTagsResponse> getCloudIdsChunk(String datasetName, String datasetProvider,
-      String startFrom, SubmitTaskParameters submitTaskParameters,
+  private ResultSlice<CloudTagsResponse> getCloudIdsChunk(DatasetRevisionInfo input,
+      String startFrom,
       MCSReader reader) throws MCSException {
     return reader.getDataSetRevisionsChunk(
-        submitTaskParameters.getRepresentationName(),
-        submitTaskParameters.getInputRevision(),
-        datasetProvider, datasetName, startFrom);
+        input.getRepresentationName(),
+        input.getRevision(),
+        input.getProviderId(), input.getDatasetId(), startFrom);
   }
 
-  private ExpectedCounters executeGettingFileUrlsForCloudIdList(List<CloudTagsResponse> responseList,
+  private ExpectedCounters executeGettingFileUrlsForCloudIdList(DatasetRevisionInfo input, List<CloudTagsResponse> responseList,
                                                                 SubmitTaskParameters submitParameters,
                                                                 MCSReader reader) throws MCSException {
     ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
     for (CloudTagsResponse response : responseList) {
-      counter.add(executeGettingFileUrlsForOneCloudId(response, submitParameters, reader));
+      counter.add(executeGettingFileUrlsForOneCloudId(input, response, submitParameters, reader));
     }
 
     return counter;
   }
 
-  private ExpectedCounters executeGettingFileUrlsForOneCloudId(CloudTagsResponse response, SubmitTaskParameters submitParameters,
+  private int executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
                                                                MCSReader reader) throws MCSException {
 
     ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
     checkIfTaskIsKilled(submitParameters.getTask());
     List<RepresentationRevisionResponse> representationRevisions = reader.getRevisionsForTheRepresentation(
-        submitParameters.getRepresentationName(),
-        submitParameters.getInputRevision().getRevisionName(),
-        submitParameters.getInputRevision().getRevisionProviderId(),
-        submitParameters.getInputRevision().getCreationTimeStamp(),
+        input.getRepresentationName(),
+        input.getRevision().getRevisionName(),
+        input.getRevision().getRevisionProviderId(),
+        input.getRevision().getCreationTimeStamp(),
         response.getCloudId());
     for (RepresentationRevisionResponse representationRevision : representationRevisions) {
       counter.add(submitRecordsForRepresentationRevision(representationRevision, submitParameters, response.isDeleted()));
@@ -308,9 +289,9 @@ public class MCSTaskSubmitter {
     return task.getInputData().get(FILE_URLS) != null;
   }
 
-  private ExpectedCounters getCountAndWait(Set<Future<ExpectedCounters>> futures) throws InterruptedException, ExecutionException {
-    ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
-    for (Future<ExpectedCounters> future : futures) {
+  private ExpectedCounters getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
+    var count = ExpectedCounters.expectZeroRecords();
+    for (Future<Integer> future : futures) {
       counter.add(future.get());
     }
     futures.clear();

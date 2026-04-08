@@ -1,8 +1,7 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
-
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.FilesUrls;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,7 @@ public class RecordFilesCounter extends FilesCounter {
 
   public int getFilesCount(DpsTask task) {
     try {
-      List<String> fileUrls = task.getInputData().get(FILE_URLS);
+      List<String> fileUrls = ((FilesUrls) task.getInput()).getFileUrls();
       return fileUrls.size();
     } catch (Exception ex) {
       LOGGER.error("An error occurred while reading the file counts of the task{} ", task.getTaskId());

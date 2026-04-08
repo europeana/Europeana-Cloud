@@ -125,22 +125,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
   }
 
-  private String getProviderId(CommonTaskTuple commonTaskTuple) throws MCSException {
-    Representation rep = getRepresentation(commonTaskTuple);
-    return rep.getDataProvider();
-  }
-
-  private Representation getRepresentation(CommonTaskTuple commonTaskTuple) throws MCSException {
-    return RetryableMethodExecutor.executeOnRest("Error while getting provider id", () ->
-            recordServiceClient.getRepresentation(commonTaskTuple.getParameter(CLOUD_ID),
-            commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
-            commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION)));
-  }
-
   private void prepareEmittedTuple(CommonTaskTuple commonTaskTuple) {
     commonTaskTuple.setFileData((byte[]) null);
-    commonTaskTuple.getParameters().remove(CLOUD_ID);
-    commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
     commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
   }
 
@@ -156,13 +143,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   }
 
   protected RecordWriteParams prepareWriteParameters(CommonTaskTuple tuple)
-      throws CloudException, MCSException, MalformedURLException {
+      throws CloudException, MalformedURLException {
     var writeParams = new RecordWriteParams();
     String cloudId = obtainCloudId(tuple);
-    String providerId = obtainProviderId(tuple);
     writeParams.setCloudId(cloudId);
-    writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
-    writeParams.setProviderId(providerId);
+    writeParams.setRepresentationName(tuple.getOutputRepresentationName());
+    writeParams.setProviderId(tuple.getOutputDatasetProvider());
     writeParams.setNewVersion(generateNewVersionId(tuple));
     writeParams.setNewFileName(generateNewFileName(tuple));
     writeParams.setDataSetId(tuple.getOutputDatasetId());
@@ -184,21 +170,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
     tuple.addParameter(cloudId, CLOUD_ID);
     return cloudId;
-  }
-
-  private String obtainProviderId(CommonTaskTuple tuple) throws MCSException, CloudException, MalformedURLException {
-    String providerId = null;
-    if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
-      providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    } else if (tuple.getOutputDatasetProvider() != null) {
-      providerId = tuple.getOutputDatasetProvider();
-    } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
-      providerId = getProviderId(tuple);
-    }
-    if (providerId == null) {
-      throw new CloudException("Couldn't obtain provider Id!", new RuntimeException());
-    }
-    return providerId;
   }
 
   protected URI uploadFileInNewRepresentation(CommonTaskTuple commonTaskTuple, RecordWriteParams writeParams) throws Exception {

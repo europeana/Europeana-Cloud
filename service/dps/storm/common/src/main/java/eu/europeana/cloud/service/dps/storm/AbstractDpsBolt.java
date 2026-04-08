@@ -215,7 +215,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     commonTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
     final UrlParser urlParser = new UrlParser(commonTaskTuple.getRecordUri());
     commonTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-    commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
     commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
   }
 

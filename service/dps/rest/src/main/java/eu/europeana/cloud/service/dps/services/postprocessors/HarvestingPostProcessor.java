@@ -15,7 +15,9 @@ import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.RepresentationParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask.TaskOutput;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -32,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
@@ -168,8 +171,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
       var representation = createRepresentationVersion(dpsTask, cloudId);
       LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-      if (dpsTask.getOutputRevision() != null) {
-         addRevisionToRepresentation(dpsTask, representation);
+      if (dpsTask.getOutput() instanceof DatasetRevisionInfo output) {
+         addRevisionToRepresentation(output, representation);
       }
     } catch (CloudException | MCSException | MalformedURLException e) {
       throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
@@ -190,22 +193,21 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   }
 
   private String findOrCreateCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
-    String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
+    String providerId = dpsTask.getOutput().getProviderId();
     //We support the situation when the records are not in the eCloud at all, so we need to create cloudId if it does not exist.
     return uisClient.createCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
   }
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
-    String providerId = dpsTask.getParameter(PluginParameterKeys.PROVIDER_ID);
-    String representationName = dpsTask.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
-    var datasetId = DataSetUrlParser.parse(dpsTask.getParameter(PluginParameterKeys.OUTPUT_DATA_SETS)).getId();
-    var representationUri = recordServiceClient.createRepresentation(cloudId, representationName, providerId,
-        null, datasetId, true);
-    return RepresentationParser.parseResultUrl(representationUri);
+    TaskOutput output = dpsTask.getOutput();
+    var representationUri = recordServiceClient.createRepresentation(cloudId, output.getRepresentationName(), output.getProviderId(),
+        null, output.getDatasetId(), true);
+    return RepresentationParser.parseResultUrl(
+        representationUri);
   }
 
-  private void addRevisionToRepresentation(DpsTask dpsTask, Representation representation) throws MCSException {
-    var revision = new Revision(dpsTask.getOutputRevision());
+  private void addRevisionToRepresentation(DatasetRevisionInfo output, Representation representation) throws MCSException {
+    var revision = new Revision(output.getRevision());
     revision.setDeleted(true);
     revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
         representation.getVersion(), revision);
