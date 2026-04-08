@@ -9,9 +9,8 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.storm.utils.RevisionIdentifier;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.util.Date;
@@ -33,7 +32,7 @@ public class MCSReader implements AutoCloseable {
 
   public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
       String representationName,
-      RevisionIdentifier revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
+      Revision revision, String datasetProvider, String datasetName, String startFrom) throws MCSException {
     return RetryableMethodExecutor.executeOnRest("Error while getting Revisions from data set.", () -> {
       ResultSlice<CloudTagsResponse> resultSlice = dataSetServiceClient.getDataSetRevisionsChunk(
           datasetProvider,
@@ -59,9 +58,9 @@ public class MCSReader implements AutoCloseable {
             new Revision(revisionName, revisionProvider, revisionTimestamp)));
   }
 
-  public RepresentationIterator getRepresentationsOfEntireDataset(UrlParser urlParser) {
+  public RepresentationIterator getRepresentationsOfEntireDataset(BatchInfo batch) {
     return dataSetServiceClient.getRepresentationIterator(
-        urlParser.getPart(UrlPart.DATA_PROVIDERS), urlParser.getPart(UrlPart.DATA_SETS)
+         batch.getProviderId(), batch.getDatasetId()
     );
   }
 

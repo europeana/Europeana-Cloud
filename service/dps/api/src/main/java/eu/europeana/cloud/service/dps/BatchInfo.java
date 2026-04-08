@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class BatchInfo implements MCSInputOutput, DpsTask.TaskInput, DpsTask.Tas
   private String batchId;   //It internally in eCloud resolves into dedicated datasetId
   private String representationName;
 
+  @JsonIgnore
   @Override
   public String getDatasetId() {
     return batchId;

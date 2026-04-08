@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.controller;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -232,7 +233,10 @@ public class TopologyTasksResource {
       LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
 
       Date sentTime = new Date();
-
+      task.setTaskId((long)(Math.random()*Long.MAX_VALUE));
+      if(task.getOutput() instanceof BatchInfo output){
+        output.setBatchId(""+task.getTaskId());
+      }
       var taskJSON = task.toJSON();
       SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                                                             .taskInfo(
@@ -283,7 +287,7 @@ public class TopologyTasksResource {
 
   private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage,
       SubmitTaskParameters parameters) {
-    LOGGER.error(loggedMessage);
+    LOGGER.error(loggedMessage, exception);
     taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
   }

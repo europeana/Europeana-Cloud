@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.converters.GenericOneToOneConverter;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import java.util.Date;
@@ -11,12 +11,13 @@ public class DpsTaskToOaiHarvestConverter implements GenericOneToOneConverter<Dp
 
   @Override
   public OaiHarvest from(DpsTask dpsTask) {
+    OAIPMHHarvestingDetails harvestingDetails = (OAIPMHHarvestingDetails) dpsTask.getInput();
     return new OaiHarvest(
-        dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS).get(0),
-        dpsTask.getHarvestingDetails().getSchema(),
-        dpsTask.getHarvestingDetails().getSet(),
-        Optional.ofNullable(dpsTask.getHarvestingDetails().getDateFrom()).map(Date::toInstant).orElse(null),
-        Optional.ofNullable(dpsTask.getHarvestingDetails().getDateUntil()).map(Date::toInstant).orElse(null));
+        harvestingDetails.getRepositoryUrl(),
+        harvestingDetails.getSchema(),
+        harvestingDetails.getSet(),
+        Optional.ofNullable(harvestingDetails.getDateFrom()).map(Date::toInstant).orElse(null),
+        Optional.ofNullable(harvestingDetails.getDateUntil()).map(Date::toInstant).orElse(null));
   }
 
   @Override

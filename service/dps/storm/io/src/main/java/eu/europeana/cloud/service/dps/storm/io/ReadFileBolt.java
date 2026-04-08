@@ -86,7 +86,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
     Instant processingStartTime = Instant.now();
     final String file = commonTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
-    commonTaskTuple.setRecordUri(file);
     InputStream downloadedFile = getFile(fileClient, file);
     LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
     return downloadedFile;

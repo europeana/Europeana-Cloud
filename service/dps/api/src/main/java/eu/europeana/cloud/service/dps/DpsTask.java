@@ -29,7 +29,6 @@ public class DpsTask implements Serializable {
   private TaskOutput output;
 
   /* List of parameters (specific for each dps-topology) */
-  @Builder.Default
   private Map<String, String> parameters = new HashMap<>();
 
   /* Unique id for this task */
@@ -58,6 +57,9 @@ public class DpsTask implements Serializable {
   }
 
   public static DpsTask fromJSON(String json) throws IOException {
+    if (json == null) {
+      throw new IllegalArgumentException("Task definition json is null");
+    }
     return new ObjectMapper().readValue(json, DpsTask.class);
   }
 
