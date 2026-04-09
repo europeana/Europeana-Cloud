@@ -213,6 +213,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected void prepareStormTaskTupleForEmission(CommonTaskTuple commonTaskTuple, String resultString)
           throws MalformedURLException {
     commonTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
+    //TODO Not to do it every time on every bolt
     final UrlParser urlParser = new UrlParser(commonTaskTuple.getRecordUri());
     commonTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
     commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
