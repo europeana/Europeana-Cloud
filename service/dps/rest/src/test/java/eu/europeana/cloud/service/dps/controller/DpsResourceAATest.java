@@ -1,9 +1,13 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo.DatasetRevisionInfoBuilder;
 import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -31,10 +35,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
@@ -99,24 +101,23 @@ class DpsResourceAATest extends AbstractSecurityTest {
   @BeforeEach
   void mockUp() throws Exception {
     XSLT_TASK = new DpsTask("xsltTask");
-    XSLT_TASK.addDataEntry(FILE_URLS, List.of(
+    XSLT_TASK.setInput(new FilesUrls(
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-
-    XSLT_TASK.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
-    XSLT_TASK.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
-    XSLT_TASK.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
+    XSLT_TASK.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     XSLT_TASK2 = new DpsTask("xsltTask");
-    XSLT_TASK2.addDataEntry(FILE_URLS, List.of(
+    XSLT_TASK2.setInput(new FilesUrls(
         "http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
+    XSLT_TASK2.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     XSLT_TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
-    XSLT_TASK_WITH_MALFORMED_URL.addDataEntry(FILE_URLS, List.of(
+    XSLT_TASK_WITH_MALFORMED_URL.setInput(new FilesUrls(
         "httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
+    XSLT_TASK_WITH_MALFORMED_URL.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(TASK_ID)
@@ -160,15 +161,13 @@ class DpsResourceAATest extends AbstractSecurityTest {
     logoutEveryone();
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     DpsTask task = new DpsTask();
-    task.addDataEntry(FILE_URLS, List.of(
+    task.setInput(new FilesUrls(
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
-    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
-    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
+    task.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     topologyTasksResource.submitTask(request, task, XSLT_TOPOLOGY_NAME);
   }
@@ -178,15 +177,14 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
-    task.addDataEntry(FILE_URLS, List.of(
+    task.setInput(new FilesUrls(
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.addParameter(PluginParameterKeys.REVISION_NAME, "sampleRevisionNAme");
-    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, "sampleRevisionProvider");
-    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, "2021-07-12T16:50:00.000Z");
+    task.setOutput(prepareCompleteDatasetRevisionInfo().build());
+
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;
     grantUserToTopology(topologyName, user);
@@ -221,7 +219,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
-    task.addDataEntry(FILE_URLS, List.of(
+    task.setInput(new FilesUrls(
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
@@ -380,5 +378,10 @@ class DpsResourceAATest extends AbstractSecurityTest {
     assertEquals(200, response.getStatusCode().value());
   }
 
+  public static DatasetRevisionInfoBuilder prepareCompleteDatasetRevisionInfo() {
+    return DatasetRevisionInfo.builder().providerId("providerId").datasetId("datasetId").
+                              representationName("representationName")
+                              .revision(new Revision("sampleRevisionName", "sampleRevisionProvider", new Date()));
+  }
 }
 

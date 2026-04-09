@@ -101,7 +101,9 @@ class HarvestingWriteRecordBoltTest {
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
+        tuple.setOutputDatasetProvider(DATA_PROVIDER);
         tuple.setOutputDataset(OUTPUT_DATASET);
+        tuple.setOutputRepresentationName(REPRESENTATION_NAME);
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
         return tuple;
@@ -115,7 +117,9 @@ class HarvestingWriteRecordBoltTest {
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
         tuple.setOutputRevision(new Revision());
+        tuple.setOutputDatasetProvider(DATA_PROVIDER);
         tuple.setOutputDataset(OUTPUT_DATASET);
+        tuple.setOutputRepresentationName(REPRESENTATION_NAME);
         tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
         return tuple;
     }
@@ -283,7 +287,6 @@ class HarvestingWriteRecordBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.EUROPEANA_ID, SOURCE + LOCAL_ID);
-        parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return parameters;
     }

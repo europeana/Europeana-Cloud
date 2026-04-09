@@ -21,7 +21,6 @@ import java.util.Date;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -492,9 +491,11 @@ class DPSClientTest {
   }
 
   private DpsTask prepareDpsTask() {
-    DpsTask task = new DpsTask("oaiPmhHarvestingTask");
-    task.addDataEntry(REPOSITORY_URLS, List.of("http://example.com/oai-pmh-repository.xml"));
-    task.setHarvestingDetails(new OAIPMHHarvestingDetails("Schema"));
+    DpsTask task = new DpsTask();
+    task.setTaskName("oaiPmhHarvestingTask");
+    task.setInput(
+        OAIPMHHarvestingDetails.builder().repositoryUrl("http://example.com/oai-pmh-repository.xml")
+                               .schema("Schema").build());
     return task;
   }
 

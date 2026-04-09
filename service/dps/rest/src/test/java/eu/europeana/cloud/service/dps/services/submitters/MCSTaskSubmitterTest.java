@@ -177,7 +177,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() throws Exception {
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
+      task.setInput(new FilesUrls(FILE_URL_1));
       doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
       submitter.execute(submitParameters);
@@ -189,7 +189,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() throws Exception {
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
+      task.setInput(new FilesUrls(FILE_URL_1));
 
       submitter.execute(submitParameters);
 
@@ -207,7 +207,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_errorInExecution_verifyTaskDropped() throws Exception {
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
+      task.setInput(new FilesUrls(FILE_URL_1));
       doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService)
               .submitRecord(any(DpsRecord.class), anyString());
 
@@ -220,7 +220,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_oneFileUrl() throws Exception {
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, Collections.singletonList(FILE_URL_1));
+      task.setInput(new FilesUrls(FILE_URL_1));
 
       submitter.execute(submitParameters);
 
@@ -232,7 +232,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_threeFileUrls() throws Exception {
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, Arrays.asList(FILE_URL_1, FILE_URL_2, FILE_URL_3));
+      task.setInput(new FilesUrls(FILE_URL_1, FILE_URL_2, FILE_URL_3));
 
       submitter.execute(submitParameters);
 
@@ -247,7 +247,7 @@ class MCSTaskSubmitterTest {
       fileUrls.add(FILE_URL_1);
     }
     withClientMocks(() -> {
-      task.addDataEntry(InputDataType.FILE_URLS, fileUrls);
+      task.setInput(new FilesUrls( fileUrls));
 
       submitter.execute(submitParameters);
 
@@ -265,8 +265,11 @@ class MCSTaskSubmitterTest {
             null,
 
             () -> {
-              task.addDataEntry(InputDataType.DATASET_URLS,
-                      Collections.singletonList(DATASET_URL_1));
+              task.setInput(BatchInfo.builder()
+                                               .providerId(DATASET_PROVIDER_1)
+                                               .batchId(DATASET_ID_1)
+                                               .representationName(REPRESENTATION_NAME)
+                                               .build());
 
               when(representationIterator.hasNext()).thenReturn(true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
@@ -288,7 +291,11 @@ class MCSTaskSubmitterTest {
             null,
 
             () -> {
-              task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
+              task.setInput(BatchInfo.builder()
+                                               .providerId(DATASET_PROVIDER_1)
+                                               .batchId(DATASET_ID_1)
+                                               .representationName(REPRESENTATION_NAME)
+                                               .build());
               when(representationIterator.hasNext()).thenReturn(true, true, true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
@@ -320,11 +327,15 @@ class MCSTaskSubmitterTest {
 
             () -> {
 
-              task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-              task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-              task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-              task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, FILE_CREATION_DATE_STRING_1);
-              task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
+              task.setInput(DatasetRevisionInfo.builder()
+                                               .providerId(DATASET_PROVIDER_1)
+                                               .datasetId(DATASET_ID_1)
+                                               .representationName(REPRESENTATION_NAME)
+                                               .revision(Revision.builder().revisionName(REVISION_NAME)
+                                                                 .revisionProviderId(REVISION_PROVIDER_1)
+                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
+                                                                 .build())
+                                               .build());
               when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
               cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
 
@@ -473,11 +484,15 @@ class MCSTaskSubmitterTest {
                     new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
-              task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-              task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-              task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-              task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, FILE_CREATION_DATE_STRING_1);
-              task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
+              task.setInput(DatasetRevisionInfo.builder()
+                                               .providerId(DATASET_PROVIDER_1)
+                                               .datasetId(DATASET_ID_1)
+                                               .representationName(REPRESENTATION_NAME)
+                                               .revision(Revision.builder().revisionName(REVISION_NAME)
+                                                                 .revisionProviderId(REVISION_PROVIDER_1)
+                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
+                                                                 .build())
+                                               .build());
               when(dataChunk.getResults()).thenReturn(dataList);
               dataList.add(new CloudTagsResponse(CLOUD_ID1, false));
 
@@ -504,11 +519,15 @@ class MCSTaskSubmitterTest {
                     new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
             )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
             () -> {
-              task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-              task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-              task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-              task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, FILE_CREATION_DATE_STRING_1);
-              task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
+              task.setInput(DatasetRevisionInfo.builder()
+                                               .providerId(DATASET_PROVIDER_1)
+                                               .datasetId(DATASET_ID_1)
+                                               .representationName(REPRESENTATION_NAME)
+                                               .revision(Revision.builder().revisionName(REVISION_NAME)
+                                                                 .revisionProviderId(REVISION_PROVIDER_1)
+                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
+                                                                 .build())
+                                               .build());
 
               when(dataChunk.getResults()).thenReturn(dataList);
               dataList.add(new CloudTagsResponse(CLOUD_ID1, true));
@@ -521,22 +540,32 @@ class MCSTaskSubmitterTest {
   }
 
   private void prepareInvocationForLastRevisionOfTwoObjects() {
-    task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-    task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, FILE_CREATION_DATE_STRING_1);
-    task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
+    task.setInput(DatasetRevisionInfo.builder()
+                                     .providerId(DATASET_PROVIDER_1)
+                                     .datasetId(DATASET_ID_1)
+                                     .representationName(REPRESENTATION_NAME)
+                                     .revision(Revision.builder().revisionName(REVISION_NAME)
+                                                       .revisionProviderId(REVISION_PROVIDER_1)
+                                                       .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
+                                                       .build())
+                                     .build());
+
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID2, false));
   }
 
   private void prepareInvocationForLastRevisionForThreeObjectsInThreeChunks() {
-    task.addDataEntry(InputDataType.DATASET_URLS, Collections.singletonList(DATASET_URL_1));
-    task.addParameter(PluginParameterKeys.REVISION_NAME, REVISION_NAME);
-    task.addParameter(PluginParameterKeys.REVISION_PROVIDER, REVISION_PROVIDER_1);
-    task.addParameter(PluginParameterKeys.REPRESENTATION_NAME, REPRESENTATION_NAME);
-    task.addParameter(PluginParameterKeys.REVISION_TIMESTAMP, FILE_CREATION_DATE_STRING_1);
+    task.setInput(DatasetRevisionInfo.builder()
+                                     .providerId(DATASET_PROVIDER_1)
+                                     .datasetId(DATASET_ID_1)
+                                     .representationName(REPRESENTATION_NAME)
+                                     .revision(Revision.builder().revisionName(REVISION_NAME)
+                                                       .revisionProviderId(REVISION_PROVIDER_1)
+                                                       .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
+                                                       .build())
+                                     .build());
+
     when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
     when(cloudTagsResponseResultSlice.getNextSlice()).thenReturn(EXAMPLE_DATE, EXAMPLE_DATE, null);
     cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
