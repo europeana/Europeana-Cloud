@@ -1,19 +1,16 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
+import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.FILE_URLS;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorTest.prepareCompleteDatasetRevisionInfo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DpsTaskValidatorForIndexingTopologyTest {
@@ -22,15 +19,12 @@ class DpsTaskValidatorForIndexingTopologyTest {
   private static final String FILE_01 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-01.txt";
   private static final String FILE_02 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-02.txt";
   private static final String FILE_03 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-03.txt";
-  private static final String DATASET_01 = "http://test-app1:8080/mcs/data-providers/metis_test5/data-sets/wbc_1";
+  private static final String DATASET_01_PROVIDER = "metis_test5";
+  private static final String DATASET_01_ID = "wbc_1";
 
   @Test
   void shouldValidateIndexingTopologyTask() throws DpsTaskValidationException {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            true,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(true, false);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -40,11 +34,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWithBadTargetIndexingDatabaseCase01() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            true,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(           true,            false    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, "publish");
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -54,12 +44,8 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWithBadTargetIndexingDatabaseCase02() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(METIS_TARGET_INDEXING_DATABASE, REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME,
-                    REVISION_PROVIDER, REVISION_TIMESTAMP),
-            true,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(true,            false    );
+    dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, "sample_"+METIS_TARGET_INDEXING_DATABASE);
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
 
@@ -68,11 +54,8 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWhenNoHarvestDate() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            true,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(            true,            false    );
+    dpsTask.removeParameter(HARVEST_DATE);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PUBLISH.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -82,11 +65,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWithoutRevisionData() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE),
-            false,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(            false,            false    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -96,11 +75,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldValidateIndexingTopologyTaskWithFilesUrls() throws DpsTaskValidationException {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            false,
-            true
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(            false,            true    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
@@ -110,11 +85,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailsWithoutDataCase01() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            false,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(false,            false    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -124,11 +95,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailsWithoutDataCase02() {
-    DpsTask dpsTask = prepareDpsTaskForTests(
-            Arrays.asList(REPRESENTATION_NAME, METIS_DATASET_ID, HARVEST_DATE, REVISION_NAME, REVISION_PROVIDER, REVISION_TIMESTAMP),
-            false,
-            false
-    );
+    DpsTask dpsTask = prepareDpsTaskForTests(            false,            false    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
@@ -137,20 +104,31 @@ class DpsTaskValidatorForIndexingTopologyTest {
   }
 
 
-  private DpsTask prepareDpsTaskForTests(List<String> parameters, boolean addDatasetUrls, boolean addFilesUrls) {
+  private DpsTask prepareDpsTaskForTests(boolean addDatasetUrls, boolean addFilesUrls) {
     DpsTask dpsTask = new DpsTask(TASK_NAME);
-    parameters.forEach(parameter -> dpsTask.addParameter(parameter, "sample_" + parameter));
 
-    final HashMap<InputDataType, List<String>> inputData = new HashMap<>();
+     dpsTask.addParameter(METIS_DATASET_ID,"sample_");
+         dpsTask.addParameter(HARVEST_DATE,"sample_"+HARVEST_DATE);
+
+
+
     if (addDatasetUrls) {
-      inputData.put(DATASET_URLS, Collections.singletonList(DATASET_01));
+      dpsTask.setInput(DatasetRevisionInfo.builder()
+                 .providerId(DATASET_01_PROVIDER)
+                 .datasetId(DATASET_01_ID)
+                                          .representationName("sample_REPRESENTATION_NAME")
+                                          .revision(Revision.builder()
+                                                            .revisionName("sample_REVISION_NAME").revisionProviderId("sample_REVISION_PROVIDER")
+                                                            .creationTimeStamp(new Date())
+                                                            .build()).build());
+
+
+
     } else if (addFilesUrls) {
-      inputData.put(FILE_URLS, Arrays.asList(FILE_01, FILE_02, FILE_03));
+      dpsTask.setInput(new FilesUrls(FILE_01, FILE_02, FILE_03));
     }
 
-    if (!inputData.isEmpty()) {
-      dpsTask.setInputData(inputData);
-    }
+    dpsTask.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     return dpsTask;
   }

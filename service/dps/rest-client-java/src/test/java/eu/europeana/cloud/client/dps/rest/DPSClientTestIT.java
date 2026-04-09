@@ -2,8 +2,8 @@ package eu.europeana.cloud.client.dps.rest;
 
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import org.junit.jupiter.api.Disabled;
@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,14 +31,12 @@ class DPSClientTestIT {
   void submitOaiTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
     DpsTask task = new DpsTask();
-    Map<InputDataType, List<String>> inputData = new HashMap<>();
-    inputData.put(REPOSITORY_URLS, Collections.singletonList("http://test117.ait.co.at/oai-provider-edm/oai/"));
-    task.setInputData(inputData);
     task.addParameter("PROVIDER_ID", "metis_test5");
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
+    details.setRepositoryUrl("http://test117.ait.co.at/oai-provider-edm/oai/");
     details.setSchema("edm");
     details.setSet("ZFMK");
-    task.setHarvestingDetails(details);
+    task.setInput(details);
     long id = client.submitTask(task, "oai_topology");
     assertTrue(id != 0);
 
@@ -52,22 +48,27 @@ class DPSClientTestIT {
   void submitValidationTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
     DpsTask task = new DpsTask();
-    Map<InputDataType, List<String>> inputData = new HashMap<>();
-    inputData.put(DATASET_URLS, Collections.singletonList(
-            "https://test-cloud.europeana.eu/api/data-providers/metis_test5/data-sets/f1ffd107-bf85-4a4f-948f-2a8e70ba6b82"));
-    task.setInputData(inputData);
-    task.addParameter("REPRESENTATION_NAME", "metadataRecord");
+    DatasetRevisionInfo inputData = DatasetRevisionInfo.builder().providerId("metis_test5")
+                                                       .datasetId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
+                                                       .representationName("metadataRecord")
+                                                       .build();
+
+    task.setInput(inputData);
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
-    task.addParameter("NEW_REPRESENTATION_NAME", "metadataRecord");
-    task.addParameter("REVISION_NAME", "OAIPMH_HARVEST");
-    task.addParameter("REVISION_PROVIDER", "metis_test5");
-    task.addParameter("REVISION_TIMESTAMP", "2018-01-31T11:33:30.842+01:00");
+    DatasetRevisionInfo output = new DatasetRevisionInfo();
+    output.setRepresentationName("metadataRecord");
+    inputData.setRevision(Revision.builder().
+                                  revisionName("OAIPMH_HARVEST")
+                                  .revisionProviderId("metis_test5")
+                                  .creationTimeStamp("2018-01-31T11:33:30.842+01:00")
+                                  .build());
     //
-    Revision outputRevision = new Revision();
-    outputRevision.setRevisionName("VALIDATION_EXTERNAL_TEST");
-    outputRevision.setRevisionProviderId("metis_test5");
-    outputRevision.setCreationTimeStamp(new Date());
-    task.setOutputRevision(outputRevision);
+    output.setRevision(Revision.builder().
+                               revisionName("VALIDATION_EXTERNAL_TEST")
+                               .revisionProviderId("metis_test5")
+                               .creationTimeStamp(new Date())
+                               .build());
+    task.setOutput(output);
     //
     long id = client.submitTask(task, "validation_topology");
     assertTrue(id != 0);

@@ -82,7 +82,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
+        prepareStormTaskTupleParameters(tuple);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
         tuple.setOutputDataset(OUTPUT_DATASET);
@@ -118,7 +118,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
+        prepareStormTaskTupleParameters(tuple);
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -151,7 +151,7 @@ class WriteRecordBoltTest {
               new TaskData(TASK_ID, TASK_NAME),
               new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
               new ProcessingData());
-      tuple.setParameters(prepareStormTaskTupleParameters());
+      prepareStormTaskTupleParameters(tuple);
       tuple.setSentDate(SENT_DATE);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setOutputDataset(OUTPUT_DATASET);
@@ -185,7 +185,7 @@ class WriteRecordBoltTest {
               new TaskData(TASK_ID, TASK_NAME),
               new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
               new ProcessingData());
-      tuple.setParameters(prepareStormTaskTupleParameters());
+      prepareStormTaskTupleParameters(tuple);
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setOutputDataset(OUTPUT_DATASET);
       tuple.setSentDate(SENT_DATE);
@@ -217,7 +217,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
+        prepareStormTaskTupleParameters(tuple);
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
@@ -244,7 +244,10 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParametersForRevisionOrientedProcessing());
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
+        parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        tuple.setParameters(parameters);
         tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
@@ -262,20 +265,11 @@ class WriteRecordBoltTest {
                 any());
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters() {
+    private HashMap<String, String> prepareStormTaskTupleParameters(CommonTaskTuple tuple) {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
-        parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
-        parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        tuple.addParameter(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
+        tuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
         return parameters;
     }
-
-  private HashMap<String, String> prepareStormTaskTupleParametersForRevisionOrientedProcessing() {
-    HashMap<String, String> parameters = new HashMap<>();
-    parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
-    parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
-    parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-    return parameters;
-  }
 
 }

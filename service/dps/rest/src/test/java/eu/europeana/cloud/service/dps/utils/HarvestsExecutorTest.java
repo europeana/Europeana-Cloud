@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
@@ -43,7 +44,8 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 @ContextConfiguration(classes = {CassandraHarvestExecutorContext.class})
 class HarvestsExecutorTest {
 
-    public static final String DATASET_URL = "https://xyx.abc/mcs/data-providers/prov/data-sets/dat";
+    public static final String PROVIDER_ID = "prov";
+    public static final String DATASET_ID = "dat";
     public static final String METIS_DATASET_ID = "114411";
     private static final String TOPIC = "topic_1";
     private static final Instant DATE_AFTER_FULL = Instant.ofEpochMilli(2000);
@@ -168,7 +170,10 @@ class HarvestsExecutorTest {
 
   private void createNewTask() {
     task = new DpsTask();
-    task.addParameter(PluginParameterKeys.OUTPUT_DATA_SETS, DATASET_URL);
+    task.setOutput(DatasetRevisionInfo.builder()
+                                      .providerId(PROVIDER_ID)
+                                      .datasetId(DATASET_ID)
+                                      .build());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     parameters = SubmitTaskParameters.builder().task(task).topicName(TOPIC).build();
   }
