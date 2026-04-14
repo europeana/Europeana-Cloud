@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -86,7 +86,7 @@ class DepublicationTaskSubmitterTest {
         when(kafkaTopicSelector.findPreferredTopicNameFor(any())).thenReturn(TOPIC_NAME);
 
         TaskInfo taskInfo = new TaskInfo();
-        taskInfo.setExpectedRecordsNumber(UNKNOWN_EXPECTED_RECORDS_NUMBER);
+        taskInfo.setExpectedRecords(UNKNOWN_EXPECTED_RECORDS_NUMBER);
 
     dpsTask = new DpsTask("taskName5");
     dpsTask.setTaskId(TASK_ID);
@@ -107,10 +107,10 @@ class DepublicationTaskSubmitterTest {
         verify(taskStatusUpdater).updateSubmitParameters(captore.capture());
         SubmitTaskParameters updatedParameters = captore.getValue();
         assertEquals(TOPIC_NAME, updatedParameters.getTopicName());
-        assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecordsNumber());
+        assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecords());
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_1)), eq(parameters));
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_2)), eq(parameters));
-    verify(taskStatusUpdater).updateState(TASK_ID, TaskState.QUEUED);
+        verify(taskStatusUpdater).updateState(TASK_ID, EngineTaskState.QUEUED);
   }
 
     @Test
@@ -125,10 +125,10 @@ class DepublicationTaskSubmitterTest {
         verify(taskStatusUpdater).updateSubmitParameters(captore.capture());
         SubmitTaskParameters updatedParameters = captore.getValue();
         assertEquals(TOPIC_NAME, updatedParameters.getTopicName());
-    assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecordsNumber());
+        assertEquals(2, updatedParameters.getTaskInfo().getExpectedRecords());
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_1)), eq(parameters));
     verify(recordSubmitService).submitRecord(argThat(samePropertyValuesAs(RECORD_2)), eq(parameters));
-    verify(taskStatusUpdater).updateState(TASK_ID, TaskState.QUEUED);
+        verify(taskStatusUpdater).updateState(TASK_ID, EngineTaskState.QUEUED);
   }
 
     @Test

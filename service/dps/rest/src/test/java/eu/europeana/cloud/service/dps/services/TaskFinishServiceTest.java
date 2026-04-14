@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
-import static eu.europeana.cloud.common.model.dps.TaskState.QUEUED;
-import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.QUEUED;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.READY_FOR_POST_PROCESSING;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;

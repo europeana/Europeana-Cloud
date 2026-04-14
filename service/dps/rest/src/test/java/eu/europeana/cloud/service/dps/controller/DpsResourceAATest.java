@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -121,7 +121,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(TASK_ID)
                                 .topologyName(SAMPLE_TOPOLOGY_NAME)
-                                .state(TaskState.PROCESSED)
+            .state(EngineTaskState.PROCESSED)
                                 .stateDescription("")
                                 .expectedRecordsNumber(100)
                                 .processedRecordsCount(100)

@@ -1,9 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.common.model.dps.RecordState;
-import eu.europeana.cloud.common.model.dps.SubTaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
@@ -48,8 +45,9 @@ public class ServiceAndDAOTestUtils {
 
   public static void createAndStoreTaskInfo(CassandraTaskInfoDAO taskInfoDAO) {
     TaskInfo exampleTaskInfo = new TaskInfo();
+      exampleTaskInfo.setEngineTaskProgress(new EngineTaskProgress());
     exampleTaskInfo.setId(TASK_ID);
-    exampleTaskInfo.setState(TaskState.QUEUED);
+      exampleTaskInfo.setEngineTaskState(EngineTaskState.QUEUED);
     exampleTaskInfo.setTopologyName(TOPOLOGY_NAME);
     taskInfoDAO.insert(exampleTaskInfo);
   }

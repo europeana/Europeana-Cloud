@@ -144,7 +144,7 @@ class DPSClientTest {
     TaskInfo taskInfo = TaskInfo.builder()
             .id(TASK_ID)
             .topologyName(TOPOLOGY_NAME)
-            .state(TaskState.PROCESSED)
+            .state(EngineTaskState.PROCESSED)
             .expectedRecordsNumber(0)
             .processedRecordsCount(0)
             .processedErrorsCount(0)
@@ -154,9 +154,9 @@ class DPSClientTest {
     new WiremockHelper(wireMockExtension).stubGet(
             "/services/TopologyName/tasks/12345/progress",
             200,
-            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><taskInfo><expectedSize>1</expectedSize><id>12345</id><info></info><processedElementCount>0</processedElementCount><state>PROCESSED</state><topologyName>TopologyName</topologyName></taskInfo>");
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><taskInfo><id>12345</id><topologyName>TopologyName</topologyName><engineTaskProgress><expectedRecords>0</expectedRecords><processedRecords>0</processedRecords><ignoredRecords>0</ignoredRecords><deletedRecords>0</deletedRecords><postProcessedRecordsCount>0</postProcessedRecordsCount><processedErrors>0</processedErrors><deletedErrors>0</deletedErrors><engineTaskState>PROCESSED</engineTaskState></engineTaskProgress><expectedPostProcessedRecordsNumber>0</expectedPostProcessedRecordsNumber></taskInfo>");
     //
-    assertThat(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), is(taskInfo));
+    assertEquals(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), taskInfo);
 
   }
 

@@ -5,10 +5,10 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
@@ -210,7 +210,7 @@ class HarvestingPostProcessorTest {
     verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
-        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -227,7 +227,7 @@ class HarvestingPostProcessorTest {
     verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
-            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -263,7 +263,7 @@ class HarvestingPostProcessorTest {
     //task
     verify(processedRecordsDAO, times(2)).insert(any());
     verify(taskStatusUpdater, times(2))
-        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
@@ -288,7 +288,7 @@ class HarvestingPostProcessorTest {
     //task
     verify(processedRecordsDAO, times(2)).insert(any());
     verify(taskStatusUpdater, times(2))
-            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
@@ -306,7 +306,7 @@ class HarvestingPostProcessorTest {
     verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any());
     verify(taskStatusUpdater, times(2))
-            .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
@@ -364,7 +364,7 @@ class HarvestingPostProcessorTest {
             eq(TargetIndexingDatabase.PREVIEW), any(Date.class), any(UUID.class));
     verify(harvestedRecordsDAO).executeBatch(notNull());
     verify(taskStatusUpdater, times(2))
-        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
   }
 
@@ -380,7 +380,7 @@ class HarvestingPostProcessorTest {
             eq(TargetIndexingDatabase.PUBLISH), any(Date.class), any(UUID.class));
     verify(harvestedRecordsDAO).executeBatch(notNull());
     verify(taskStatusUpdater, times(2))
-        .updateState(eq(TASK_ID), eq(TaskState.IN_POST_PROCESSING), anyString());
+            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
   }
 

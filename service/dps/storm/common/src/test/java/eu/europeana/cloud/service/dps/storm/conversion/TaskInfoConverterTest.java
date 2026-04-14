@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.conversion;
 
 import com.datastax.driver.core.Row;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class TaskInfoConverterTest {
     public static final int PROCESSED_RECORDS_COUNT = 2;
     public static final int DELETED_RECORDS_COUNT = 3;
     public static final int IGNORED_RECORDS_COUNT = 4;
-    public static final TaskState STATE = TaskState.QUEUED;
+    public static final EngineTaskState STATE = EngineTaskState.QUEUED;
     public static final String DESCRIPTION = "some_state_description";
     public static final Date SENT = Date.from(Instant.now());
     public static final Date START = Date.from(Instant.now());
@@ -62,17 +62,17 @@ class TaskInfoConverterTest {
         TaskInfo taskInfo = TaskInfoConverter.fromDBRow(row);
         assertEquals(TASK_ID, taskInfo.getId());
         assertEquals(TOPOLOGY_NAME, taskInfo.getTopologyName());
-        assertEquals(EXPECTED_RECORDS_NUMBER, taskInfo.getExpectedRecordsNumber());
-        assertEquals(PROCESSED_RECORDS_COUNT, taskInfo.getProcessedRecordsCount());
-        assertEquals(DELETED_RECORDS_COUNT, taskInfo.getDeletedRecordsCount());
-        assertEquals(IGNORED_RECORDS_COUNT, taskInfo.getIgnoredRecordsCount());
-        assertEquals(STATE, taskInfo.getState());
-        assertEquals(DESCRIPTION, taskInfo.getStateDescription());
+        assertEquals(EXPECTED_RECORDS_NUMBER, taskInfo.getExpectedRecords());
+        assertEquals(PROCESSED_RECORDS_COUNT, taskInfo.getProcessedRecords());
+        assertEquals(DELETED_RECORDS_COUNT, taskInfo.getDeletedRecords());
+        assertEquals(IGNORED_RECORDS_COUNT, taskInfo.getIgnoredRecords());
+        assertEquals(STATE, taskInfo.getEngineTaskState());
+        assertEquals(DESCRIPTION, taskInfo.getEngineTaskStateInfo());
         assertEquals(SENT, taskInfo.getSentTimestamp());
     assertEquals(START, taskInfo.getStartTimestamp());
     assertEquals(FINISH, taskInfo.getFinishTimestamp());
-    assertEquals(PROCESSED_ERRORS_COUNT, taskInfo.getProcessedErrorsCount());
-    assertEquals(DELETED_ERRORS_COUNT, taskInfo.getDeletedErrorsCount());
+        assertEquals(PROCESSED_ERRORS_COUNT, taskInfo.getProcessedErrors());
+        assertEquals(DELETED_ERRORS_COUNT, taskInfo.getDeletedErrors());
     assertEquals(EXPECTED_POST_PROCESSED_RECORD_NUMBER, taskInfo.getExpectedPostProcessedRecordsNumber());
     assertEquals(POST_PROCESSED_RECORDS_COUNT, taskInfo.getPostProcessedRecordsCount());
     assertEquals(DEFINITION, taskInfo.getDefinition());
