@@ -1,15 +1,11 @@
 package eu.europeana.cloud.service.dps.controller;
 
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.DatasetRevisionInfo.DatasetRevisionInfoBuilder;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
@@ -122,7 +118,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(TASK_ID)
                                 .topologyName(SAMPLE_TOPOLOGY_NAME)
-                                .state(TaskState.PROCESSED)
+            .state(EngineTaskState.PROCESSED)
                                 .stateDescription("")
                                 .expectedRecordsNumber(100)
                                 .processedRecordsCount(100)

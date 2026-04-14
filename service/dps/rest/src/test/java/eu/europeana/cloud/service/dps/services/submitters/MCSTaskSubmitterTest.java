@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -30,7 +30,10 @@ import org.mockito.quality.Strictness;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -193,7 +196,7 @@ class MCSTaskSubmitterTest {
 
       submitter.execute(submitParameters);
 
-      verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, 1);
+      verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, EngineTaskState.QUEUED, 1);
     });
   }
 
@@ -580,6 +583,6 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, fileUrls.length);
+    verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, EngineTaskState.QUEUED, fileUrls.length);
   }
 }

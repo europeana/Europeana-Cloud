@@ -1,11 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
-import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.HarvestResult;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -143,7 +139,7 @@ class HarvestsExecutorTest {
         HarvestResult harvestResult = executor.execute(harvest, parameters);
 
         //then
-        assertEquals(TaskState.DROPPED, harvestResult.getTaskState());
+        assertEquals(EngineTaskState.DROPPED, harvestResult.getTaskState());
         verify(recordSubmitService, never()).submitRecord(any(), any());
   }
 

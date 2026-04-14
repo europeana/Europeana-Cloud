@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,7 +83,7 @@ class NotificationsDAOTest extends CassandraTestBase {
 
   private void insertNotifications(int count) {
     for (int i = 1; i <= count; i++) {
-      subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, TaskState.QUEUED.toString(),
+        subtaskInfoDao.insert(i, 111, "topologyName", "resource" + i, EngineTaskState.QUEUED.toString(),
           "infoTxt", Map.of(NotificationsDAO.STATE_DESCRIPTION_KEY, "additionalInformation"), "resultResource" + i);
     }
   }

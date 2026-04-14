@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -41,7 +41,7 @@ class DatasetFilesCounterTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription("")
                 .expectedRecordsNumber(EXPECTED_SIZE)
                 .processedRecordsCount(EXPECTED_SIZE)
@@ -61,7 +61,7 @@ class DatasetFilesCounterTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription("")
                 .expectedRecordsNumber(EXPECTED_SIZE)
                 .processedRecordsCount(EXPECTED_SIZE)

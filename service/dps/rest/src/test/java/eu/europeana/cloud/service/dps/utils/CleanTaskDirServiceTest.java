@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.CleanTaskDirServiceTestContext;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import org.apache.commons.io.FileUtils;
@@ -79,7 +79,7 @@ class CleanTaskDirServiceTest {
     FileUtils.forceMkdir(baseDir);
     baseDir.deleteOnExit();
 
-    when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(createTaskInfo(anyLong(), TaskState.PENDING)));
+    when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(createTaskInfo(anyLong(), EngineTaskState.PENDING)));
 
     for (int index = 0; index < TEST_COUNTER; index++) {
       long taskId = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, Long.MAX_VALUE);
@@ -90,18 +90,18 @@ class CleanTaskDirServiceTest {
       FileUtils.forceMkdir(taskDir);
       createDirContents(taskDir);
 
-      TaskState state;
+      EngineTaskState state;
       if (index % 4 == 0) {
-        state = TaskState.PROCESSED;
+        state = EngineTaskState.PROCESSED;
         processedDroppedTasksCounter++;
       } else if (index % 4 == 1) {
-        state = TaskState.DROPPED;
+        state = EngineTaskState.DROPPED;
         processedDroppedTasksCounter++;
       } else if (index % 4 == 2) {
         state = null;
         processedDroppedTasksCounter++;
       } else {
-        state = TaskState.PENDING;   //other than PROCESSED & DROPPED & null
+        state = EngineTaskState.PENDING;   //other than PROCESSED & DROPPED & null
       }
 
       TaskInfo taskInfo = createTaskInfo(taskId, state);
@@ -122,10 +122,10 @@ class CleanTaskDirServiceTest {
     assertEquals(allFilesInDirCounter, afterServiceCounter + processedDroppedTasksCounter);
   }
 
-  private TaskInfo createTaskInfo(long id, TaskState state) {
+  private TaskInfo createTaskInfo(long id, EngineTaskState state) {
     TaskInfo result = TaskInfo.builder().build();
     result.setId(id);
-    result.setState(state);
+    result.setEngineTaskState(state);
     return result;
   }
 

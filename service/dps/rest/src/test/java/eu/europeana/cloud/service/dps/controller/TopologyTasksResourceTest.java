@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -30,9 +30,6 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +44,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -57,14 +57,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.isA;
-import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -426,7 +424,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         harvestingDetails.setSchema("oai_dc");
         task.setInput(harvestingDetails);
         when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(
-                new HarvestResult(1, TaskState.PROCESSED));
+                new HarvestResult(1, EngineTaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
     ResultActions response = sendTask(task, OAI_TOPOLOGY);
@@ -676,7 +674,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription(EMPTY_STRING)
                 .expectedRecordsNumber(100)
                 .processedRecordsCount(100)
@@ -976,7 +974,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   private void mockTaskDAOFindById(DpsTask task, String topology) throws IOException {
     TaskInfo taskInfo = mock(TaskInfo.class);
-    when(taskInfo.getState()).thenReturn(TaskState.CREATED);
+      when(taskInfo.getEngineTaskState()).thenReturn(EngineTaskState.CREATED);
     when(taskInfo.getDefinition()).thenReturn(task.toJSON());
     when(taskInfo.getTopologyName()).thenReturn(topology);
     when(taskDAO.findById(anyLong())).thenReturn(Optional.of(taskInfo));

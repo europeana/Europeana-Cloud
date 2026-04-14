@@ -1,9 +1,9 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.GhostTaskServiceTestContext;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
@@ -30,8 +30,8 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {GhostTaskService.class, GhostTaskServiceTestContext.class})
 class GhostTaskServiceTest {
 
-  private static final List<TaskState> ACTIVE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION,
-          TaskState.QUEUED);
+  private static final List<EngineTaskState> ACTIVE_TASK_STATES = Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION,
+          EngineTaskState.QUEUED);
   public static final long TASK_ID = 1L;
   private static final TaskByTaskState TOPIC_INFO_1 = createTopicInfo("oai_topology_2");
   private static final TaskByTaskState TOPIC_INFO_1_UNKNOWN_TOPIC = createTopicInfo("unknown_topic");
