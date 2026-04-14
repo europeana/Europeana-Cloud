@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -54,9 +54,9 @@ public class OaiTopologyTaskSubmitter extends AbstractTaskSubmitter implements T
     createDateSetIfNeeded(parameters.getTask());
     String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
     parameters.setTopicName(preferredTopicName);
-    parameters.getTaskInfo().setStateDescription("Task submitted successfully and processed by REST app");
-    parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
-    parameters.getTaskInfo().setState(TaskState.PROCESSING_BY_REST_APPLICATION);
+      parameters.getTaskInfo().setEngineTaskStateInfo("Task submitted successfully and processed by REST app");
+      parameters.getTaskInfo().setExpectedRecords(expectedCount);
+      parameters.getTaskInfo().setEngineTaskState(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
     LOGGER.info("Selected topic name: {} for {}", preferredTopicName, parameters.getTask().getTaskId());
     taskStatusUpdater.updateSubmitParameters(parameters);
 
@@ -76,7 +76,7 @@ public class OaiTopologyTaskSubmitter extends AbstractTaskSubmitter implements T
   }
 
   private void updateTaskStatus(long taskId, HarvestResult harvesterResult) {
-    if (harvesterResult.getTaskState() != TaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
+      if (harvesterResult.getTaskState() != EngineTaskState.DROPPED && harvesterResult.getResultCounter() == 0) {
       LOGGER.info("Task dropped. No data harvested");
       taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
     } else {

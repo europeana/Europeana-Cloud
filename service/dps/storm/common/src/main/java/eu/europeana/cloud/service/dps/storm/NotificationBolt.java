@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.storm;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
@@ -86,7 +86,7 @@ public class NotificationBolt extends BaseRichBolt {
       batchExecutor.executeAll(
           notificationTupleHandler.prepareStatementsForTupleContainingLastRecord(
               notificationTuple,
-              TaskState.DROPPED,
+                  EngineTaskState.DROPPED,
               ex.getMessage()));
       outputCollector.ack(tuple);
     } finally {

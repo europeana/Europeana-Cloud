@@ -1,17 +1,17 @@
 package eu.europeana.cloud.common.model.dps;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Date;
-
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Delegate;
+
+import java.util.Date;
 
 @XmlRootElement
-@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,26 +20,40 @@ public class TaskInfo {
   public static final int UNKNOWN_EXPECTED_RECORDS_NUMBER = -1;
   private long id;
   private String topologyName;
-  private TaskState state;
-  private String stateDescription;
   private Date sentTimestamp;
   private Date startTimestamp;
   private Date finishTimestamp;
-  private int expectedRecordsNumber;
-  private int processedRecordsCount;
-  /**
-   * Number of records that was already processed by the topology that was ignored by this execution.<br/> For now only OAI and
-   * HTTP topologies can ignore the records in HarvestedRecordCategorizationBolt
-   */
-  private int ignoredRecordsCount;
-  /**
-   * Number of records that was already processed by the topology that have 'deleted' flag on the revision
-   */
-  private int deletedRecordsCount;
-  private int processedErrorsCount;
-  private int deletedErrorsCount;
+  @Delegate
+  private EngineTaskProgress engineTaskProgress = new EngineTaskProgress();
   private int expectedPostProcessedRecordsNumber;
-  private int postProcessedRecordsCount;
+
+  private TaskInfo(long id, String topologyName, Date sentTimestamp, Date startTimestamp, Date finishTimestamp, String definition) {
+    this.id = id;
+    this.topologyName = topologyName;
+    this.sentTimestamp = sentTimestamp;
+    this.startTimestamp = startTimestamp;
+    this.finishTimestamp = finishTimestamp;
+    this.definition = definition;
+  }
+
+  @Builder
+  public TaskInfo(long id, String topologyName, Date sentTimestamp, Date startTimestamp, Date finishTimestamp, String definition, int expectedRecordsNumber,
+                  int processedRecordsCount, int ignoredRecordsCount, int deletedRecordsCount, int processedErrorsCount,
+                  int deletedErrorsCount, int expectedPostProcessedRecordsNumber, int postProcessedRecordsCount, EngineTaskState state, String stateDescription) {
+    this(id, topologyName, sentTimestamp, startTimestamp, finishTimestamp, definition);
+    setExpectedRecords(expectedRecordsNumber);
+    setProcessedRecords(processedRecordsCount);
+    setIgnoredRecords(ignoredRecordsCount);
+    setDeletedRecords(deletedRecordsCount);
+    setPostProcessedRecordsCount(postProcessedRecordsCount);
+    setProcessedErrors(processedErrorsCount);
+    setDeletedErrors(deletedErrorsCount);
+    setEngineTaskState(state);
+    setEngineTaskStateInfo(stateDescription);
+    this.expectedPostProcessedRecordsNumber = expectedPostProcessedRecordsNumber;
+  }
+
+
   /**
    * Full definition of the task stored in Json format
    */
@@ -48,7 +62,7 @@ public class TaskInfo {
   @JsonIgnore
   @XmlTransient
   public boolean isProcessedOnStorm() {
-    return (getProcessedRecordsCount() + getIgnoredRecordsCount() + getDeletedRecordsCount())
-        == getExpectedRecordsNumber();
+    return (getProcessedRecords() + getIgnoredRecords() + getDeletedRecords())
+            == getExpectedRecords();
   }
 }

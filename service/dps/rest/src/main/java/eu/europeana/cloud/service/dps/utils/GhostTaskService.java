@@ -1,14 +1,20 @@
 package eu.europeana.cloud.service.dps.utils;
 
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -17,11 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 @Service
 public class GhostTaskService {
@@ -61,11 +62,11 @@ public class GhostTaskService {
   }
 
   public List<TaskInfo> findGhostTasks() {
-    return findTasksInGivenStates(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED).
+      return findTasksInGivenStates(EngineTaskState.PROCESSING_BY_REST_APPLICATION, EngineTaskState.QUEUED).
         filter(this::isGhost).toList();
   }
 
-  private Stream<TaskInfo> findTasksInGivenStates(TaskState... states) {
+    private Stream<TaskInfo> findTasksInGivenStates(EngineTaskState... states) {
     return tasksByStateDAO.findTasksByState(Arrays.asList(states)).stream()
                           .filter(info -> availableTopic.contains(info.getTopicName())).map(TaskByTaskState::getId)
                           .map(taskInfoDAO::findById).flatMap(Optional::stream);

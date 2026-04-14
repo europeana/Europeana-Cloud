@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -59,7 +59,7 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
     LOGGER.info("HTTP task submission for {} started.", parameters.getTask().getTaskId());
 
     int expectedCount = -1;
-    parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
+      parameters.getTaskInfo().setExpectedRecords(expectedCount);
     LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
     try {
@@ -128,7 +128,7 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
       if (expectedCount == 0) {
         taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
       } else {
-        taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), TaskState.QUEUED, expectedCount);
+          taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), EngineTaskState.QUEUED, expectedCount);
       }
     }
   }

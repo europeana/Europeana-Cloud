@@ -1,20 +1,21 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.exceptions.CleanTaskDirException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import jakarta.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CleanTaskDirService {
@@ -68,11 +69,11 @@ public class CleanTaskDirService {
       LOGGER.debug("Checking if http task owning directory: {} is finished", dir);
       long taskId = getTaskId(dir);
 
-      TaskState taskState = taskInfoDAO.findById(taskId)
-                                       .map(TaskInfo::getState)
-                                       .orElse(TaskState.DROPPED);
+        EngineTaskState taskState = taskInfoDAO.findById(taskId)
+                .map(TaskInfo::getEngineTaskState)
+                .orElse(EngineTaskState.DROPPED);
 
-      if (taskState == TaskState.PROCESSED || taskState == TaskState.DROPPED) {
+        if (taskState == EngineTaskState.PROCESSED || taskState == EngineTaskState.DROPPED) {
         try {
           LOGGER.debug("Deleting http task directory: {}", dir);
           FileUtils.deleteDirectory(dir);
