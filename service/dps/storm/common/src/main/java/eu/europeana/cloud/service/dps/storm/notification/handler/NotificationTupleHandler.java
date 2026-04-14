@@ -229,12 +229,12 @@ public class NotificationTupleHandler {
   }
 
   public List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple,
-      TaskState newState, String message) {
+                                                                            EngineTaskState newState, String message) {
     List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
 
     taskInfoDAO.findById(notificationTuple.getTaskId()).flatMap(
         task ->
-            tasksByStateDAO.findTask(task.getState(), topologyName, notificationTuple.getTaskId())).ifPresent(
+                tasksByStateDAO.findTask(task.getEngineTaskState(), topologyName, notificationTuple.getTaskId())).ifPresent(
         oldTaskState -> {
           statementsToBeExecuted.add(tasksByStateDAO.deleteStatement(
               oldTaskState.getState(), topologyName, notificationTuple.getTaskId()

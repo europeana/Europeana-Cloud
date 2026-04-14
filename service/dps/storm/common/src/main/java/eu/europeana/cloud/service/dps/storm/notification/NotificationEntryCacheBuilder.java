@@ -1,19 +1,20 @@
 package eu.europeana.cloud.service.dps.storm.notification;
 
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
-
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 public class NotificationEntryCacheBuilder {
 
@@ -35,17 +36,17 @@ public class NotificationEntryCacheBuilder {
 
   public NotificationCacheEntry build(long taskId) {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
-    int processed = taskInfo.getProcessedRecordsCount() + taskInfo.getIgnoredRecordsCount() + taskInfo.getDeletedRecordsCount();
+    int processed = taskInfo.getProcessedRecords() + taskInfo.getIgnoredRecords() + taskInfo.getDeletedRecords();
     NotificationCacheEntry.NotificationCacheEntryBuilder builder = NotificationCacheEntry.builder();
     builder.processed(processed);
     builder.errorTypes(new HashMap<>());
     builder.expectedRecordsNumber(evaluateCredibleExpectedRecordNumber(taskInfo));
     if (processed > 0) {
-      builder.processedRecordsCount(taskInfo.getProcessedRecordsCount());
-      builder.ignoredRecordsCount(taskInfo.getIgnoredRecordsCount());
-      builder.deletedRecordsCount(taskInfo.getDeletedRecordsCount());
-      builder.processedErrorsCount(taskInfo.getProcessedErrorsCount());
-      builder.deletedErrorsCount(taskInfo.getDeletedErrorsCount());
+      builder.processedRecordsCount(taskInfo.getProcessedRecords());
+      builder.ignoredRecordsCount(taskInfo.getIgnoredRecords());
+      builder.deletedRecordsCount(taskInfo.getDeletedRecords());
+      builder.processedErrorsCount(taskInfo.getProcessedErrors());
+      builder.deletedErrorsCount(taskInfo.getDeletedErrors());
       builder.errorTypes(getMessagesUUIDsMap(taskId));
     }
     NotificationCacheEntry result = builder.build();
@@ -55,7 +56,7 @@ public class NotificationEntryCacheBuilder {
   }
 
   private int evaluateCredibleExpectedRecordNumber(TaskInfo taskInfo) {
-    return taskInfo.getState() == TaskState.QUEUED ? taskInfo.getExpectedRecordsNumber() : UNKNOWN_EXPECTED_RECORDS_NUMBER;
+    return taskInfo.getEngineTaskState() == EngineTaskState.QUEUED ? taskInfo.getExpectedRecords() : UNKNOWN_EXPECTED_RECORDS_NUMBER;
   }
 
   private Map<String, ErrorType> getMessagesUUIDsMap(long taskId) {

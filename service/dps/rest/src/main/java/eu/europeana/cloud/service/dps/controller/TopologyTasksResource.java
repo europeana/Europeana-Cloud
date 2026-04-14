@@ -1,9 +1,7 @@
 package eu.europeana.cloud.service.dps.controller;
 
-import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
-
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -36,6 +34,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
+
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 
 /**
  * Resource to fetch / submit Tasks to the DPS service
@@ -207,7 +207,7 @@ public class TopologyTasksResource {
                                                               TaskInfo.builder()
                                                                       .id(task.getTaskId())
                                                                       .topologyName(topologyName)
-                                                                      .state(TaskState.CREATED)
+                                                                      .state(EngineTaskState.CREATED)
                                                                       .stateDescription(
                                                                           "The task has been created, but not started yet")
                                                                       .sentTimestamp(new Date())
@@ -219,8 +219,6 @@ public class TopologyTasksResource {
                                                                       .deletedRecordsCount(0)
                                                                       .processedErrorsCount(0)
                                                                       .deletedErrorsCount(0)
-                                                                      .expectedPostProcessedRecordsNumber(
-                                                                          TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
                                                                       .postProcessedRecordsCount(0)
                                                                       .definition(taskJSON)
                                                                       .build()
@@ -282,15 +280,15 @@ public class TopologyTasksResource {
   ) throws TaskInfoDoesNotExistException, IOException {
 
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-    if (taskInfo.getState() != TaskState.CREATED) {
+    if (taskInfo.getEngineTaskState() != EngineTaskState.CREATED) {
       LOGGER.info("Topology: {} task: {} is already started.", topologyName, taskId);
       return;
     }
 
     var dpsTask = DpsTask.fromTaskInfo(taskInfo);
     taskInfo.setStartTimestamp(new Date());
-    taskInfo.setState(TaskState.PROCESSING_BY_REST_APPLICATION);
-    taskInfo.setStateDescription("The task is in a pending mode, it is being processed before submission");
+    taskInfo.setEngineTaskState(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
+    taskInfo.setEngineTaskStateInfo("The task is in a pending mode, it is being processed before submission");
     SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                                                           .taskInfo(taskInfo)
                                                           .task(dpsTask)

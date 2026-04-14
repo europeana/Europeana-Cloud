@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -17,10 +17,11 @@ import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
-import java.util.Set;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class IndexingPostProcessor extends TaskPostProcessor {
 
@@ -39,8 +40,8 @@ public class IndexingPostProcessor extends TaskPostProcessor {
   @Override
   public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
     try {
-      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
-          TaskState.IN_POST_PROCESSING.getDefaultMessage());
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
+              EngineTaskState.IN_POST_PROCESSING.getDefaultMessage());
       LOGGER.info("Started postprocessing for {}", dpsTask);
       DataSetCleanerParameters cleanerParameters = prepareParameters(dpsTask);
       LOGGER.info("Parameters that will be used in postprocessing: {}", cleanerParameters);

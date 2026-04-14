@@ -1,23 +1,16 @@
 package eu.europeana.cloud.service.dps.utils;
 
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.properties.KafkaProperties;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusSynchronizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class KafkaTopicSelector {
@@ -73,7 +66,7 @@ public class KafkaTopicSelector {
 
   private Set<String> findTopicsCurrentlyInUse(String topologyName) {
     return tasksByStateDAO.findTasksByStateAndTopology(
-                              Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), topologyName)
+                    Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION, EngineTaskState.QUEUED), topologyName)
                           .stream()
                           .map(TaskByTaskState::getTopicName)
                           .filter(Objects::nonNull)

@@ -3,7 +3,7 @@ package eu.europeana.cloud.common.model.dps;
 /**
  * Created by Tarek on 4/4/2016.
  */
-public enum TaskState {
+public enum EngineTaskState {
   /**
    * Task is being prepared by the REST application.
    * <ol>
@@ -38,7 +38,7 @@ public enum TaskState {
 
   private final String defaultMessage;
 
-  TaskState(String s) {
+  EngineTaskState(String s) {
     this.defaultMessage = s;
   }
 

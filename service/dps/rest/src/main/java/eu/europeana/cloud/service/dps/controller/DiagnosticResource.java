@@ -6,10 +6,10 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.services.postprocessors.PostProcessingService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
@@ -17,14 +17,6 @@ import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.cloud.service.dps.utils.GhostTaskService;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,21 +24,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @Scope("request")
 @RequestMapping("/diag")
 public class DiagnosticResource {
 
-  private static final List<TaskState> ACTIVE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION,
-      TaskState.QUEUED, TaskState.READY_FOR_POST_PROCESSING, TaskState.IN_POST_PROCESSING);
+  private static final List<EngineTaskState> ACTIVE_TASK_STATES = Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION,
+          EngineTaskState.QUEUED, EngineTaskState.READY_FOR_POST_PROCESSING, EngineTaskState.IN_POST_PROCESSING);
 
   @Autowired
   private GhostTaskService ghostTaskService;
@@ -103,14 +93,14 @@ public class DiagnosticResource {
   }
 
   private void callPostProcess(TaskInfo taskInfo) {
-    tasksByStateDAO.findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
+    tasksByStateDAO.findTask(taskInfo.getEngineTaskState(), taskInfo.getTopologyName(), taskInfo.getId())
                    .ifPresent(taskByTaskState -> postProcessingService.postProcess(taskByTaskState));
   }
 
 
   @GetMapping(value = "/activeTasks", produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ROLE_ADMIN') OR hasRole('ROLE_MONITORING')")
-  public String acticeTasks() throws JsonProcessingException {
+  public String activeTasks() throws JsonProcessingException {
     List<JoinedTaskInfo> taskInfoList = tasksByStateDAO.findTasksByState(ACTIVE_TASK_STATES).stream()
                                                        .map(TaskByTaskState::getId).map(taskInfoDAO::findById)
                                                        .flatMap(Optional::stream)
@@ -131,7 +121,7 @@ public class DiagnosticResource {
                                                              orElse(
                                                                  TaskDiagnosticInfo.builder().taskId(taskInfo.getId()).build());
     TaskByTaskState tasksByState = tasksByStateDAO
-        .findTask(taskInfo.getState(), taskInfo.getTopologyName(), taskInfo.getId())
+            .findTask(taskInfo.getEngineTaskState(), taskInfo.getTopologyName(), taskInfo.getId())
         .orElse(TaskByTaskState.builder().id(taskInfo.getId()).build());
     return new JoinedTaskInfo(tasksByState, taskInfo, diagnosticInfo);
   }

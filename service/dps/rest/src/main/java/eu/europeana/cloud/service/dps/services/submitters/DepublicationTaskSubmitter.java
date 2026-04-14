@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -68,7 +68,7 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
   @Override
   public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
     long taskId = parameters.getTask().getTaskId();
-    if (parameters.getTaskInfo().getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
+    if (parameters.getTaskInfo().getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
       int expectedCount = evaluateTaskSize(parameters);
       if (expectedCount == 0) {
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
@@ -77,7 +77,7 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
 
     } else {
       LOGGER.info("The task: {} already have estimated expected size: {}",
-              taskId, parameters.getTaskInfo().getExpectedRecordsNumber());
+              taskId, parameters.getTaskInfo().getExpectedRecords());
       //This means that the task was restarted, we could not evaluate size again because some of the records,
       // coudl be already depublished and therefore not present in the Metis, so the size would be estimated smaller.
     }
@@ -92,7 +92,7 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
     Stream<String> recordsForDepublication = fetchRecordIdentifiers(parameters);
     int sentRecordCount = submitRecords(recordsForDepublication, parameters);
 
-    taskStatusUpdater.updateState(taskId, TaskState.QUEUED);
+    taskStatusUpdater.updateState(taskId, EngineTaskState.QUEUED);
     LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", sentRecordCount, taskId);
   }
 
@@ -135,7 +135,7 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
     LOGGER.info("Evaluating size of depublication task for task_id {} ", parameters.getTask().getTaskId());
     DpsTask task = parameters.getTask();
     int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
-    parameters.getTaskInfo().setExpectedRecordsNumber(expectedSize);
+    parameters.getTaskInfo().setExpectedRecords(expectedSize);
     LOGGER.info("Evaluated size: {} for task id: {}", expectedSize, task.getTaskId());
     return expectedSize;
   }

@@ -5,13 +5,12 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.RepresentationParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
@@ -30,17 +29,13 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.indexing.exception.IndexingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Set;
-
-import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import java.net.MalformedURLException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
@@ -106,12 +101,12 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   @Override
   public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
     try {
-      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - synchronizing existing records from Metis.");
       updateHarvestedRecordsTableWithRecordsExistingInMetis(dpsTask);
       taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
-      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - adding removed records to result revision.");
       addDeletedRecordsToTaskResultRevision(dpsTask);
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");

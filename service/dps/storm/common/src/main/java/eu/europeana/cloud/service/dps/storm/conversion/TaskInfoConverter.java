@@ -1,9 +1,10 @@
 package eu.europeana.cloud.service.dps.storm.conversion;
 
 import com.datastax.driver.core.Row;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
+
 /**
  * Class converting from DB rows or other class instances to TaskInfo class instance
  */
@@ -27,7 +28,7 @@ public final class TaskInfoConverter {
                    .processedRecordsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT))
                    .deletedRecordsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
                    .ignoredRecordsCount(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT))
-                   .state(TaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE)))
+            .state(EngineTaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE)))
                    .stateDescription(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION))
                    .sentTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIMESTAMP))
                    .startTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP))
