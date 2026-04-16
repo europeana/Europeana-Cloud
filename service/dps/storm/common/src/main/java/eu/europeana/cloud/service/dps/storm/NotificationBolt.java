@@ -140,7 +140,7 @@ public class NotificationBolt extends BaseRichBolt {
   }
 
   private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
-    if (cachedCounters.getExpectedRecordsNumber() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
+    if (cachedCounters.getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
       return notificationEntryCacheBuilder.build(taskId);
     }
     return cachedCounters;

@@ -36,17 +36,24 @@ public class NotificationEntryCacheBuilder {
 
   public NotificationCacheEntry build(long taskId) {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow();
-      int processed = taskInfo.getProcessedRecords() + taskInfo.getIgnoredRecords() + taskInfo.getDeletedRecords();
+    // Now success records doesn't contain unchanged or duplicated or marked as deleted records
+    // So total number of processed records should add up to: success + duplicate + unchanged + fail + deleted
+    int processed = taskInfo.getProcessedRecords() + taskInfo.getProcessedDepublishRecords();
     NotificationCacheEntry.NotificationCacheEntryBuilder builder = NotificationCacheEntry.builder();
     builder.processed(processed);
     builder.errorTypes(new HashMap<>());
-    builder.expectedRecordsNumber(evaluateCredibleExpectedRecordNumber(taskInfo));
+    builder.expectedRecords(evaluateCredibleExpectedRecordNumber(taskInfo));
     if (processed > 0) {
-        builder.processedRecordsCount(taskInfo.getProcessedRecords());
-        builder.ignoredRecordsCount(taskInfo.getIgnoredRecords());
-        builder.deletedRecordsCount(taskInfo.getDeletedRecords());
-        builder.processedErrorsCount(taskInfo.getProcessedErrors());
-        builder.deletedErrorsCount(taskInfo.getDeletedErrors());
+      builder.successRecords(taskInfo.getSuccessRecords());
+      builder.warningRecords(taskInfo.getWarningRecords());
+      builder.failRecords(taskInfo.getFailRecords());
+      builder.depublishedSuccessRecords(taskInfo.getSuccessDepublishRecords());
+      builder.depublishedFailRecords(taskInfo.getFailDepublishRecords());
+      builder.depublishedProcessedRecords(taskInfo.getProcessedDepublishRecords());
+      builder.duplicateRecords(taskInfo.getDuplicateRecords());
+      builder.unchangedRecords(taskInfo.getUnchangedRecords());
+      builder.processedRecords(taskInfo.getProcessedRecords());
+      builder.expectedRecords(taskInfo.getExpectedRecords());
       builder.errorTypes(getMessagesUUIDsMap(taskId));
     }
     NotificationCacheEntry result = builder.build();
@@ -56,7 +63,7 @@ public class NotificationEntryCacheBuilder {
   }
 
   private int evaluateCredibleExpectedRecordNumber(TaskInfo taskInfo) {
-      return taskInfo.getEngineTaskState() == EngineTaskState.QUEUED ? taskInfo.getExpectedRecords() : UNKNOWN_EXPECTED_RECORDS_NUMBER;
+    return taskInfo.getEngineTaskState() == EngineTaskState.QUEUED ? taskInfo.getExpectedRecords() : UNKNOWN_EXPECTED_RECORDS_NUMBER;
   }
 
   private Map<String, ErrorType> getMessagesUUIDsMap(long taskId) {

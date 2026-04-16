@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -141,23 +142,79 @@ class DPSClientTest {
   @Test
   final void shouldReturnedProgressReport() throws DpsException {
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_NAME);
-    TaskInfo taskInfo = TaskInfo.builder()
+
+    Date sent = new Date(1000);
+    Date start = new Date(2000);
+    Date finish = new Date(3000);
+
+    TaskInfo expected = TaskInfo.builder()
             .id(TASK_ID)
             .topologyName(TOPOLOGY_NAME)
             .state(EngineTaskState.PROCESSED)
-            .expectedRecordsNumber(0)
-            .processedRecordsCount(0)
-            .processedErrorsCount(0)
+            .stateDescription("done")
+
+            .sentTimestamp(sent)
+            .startTimestamp(start)
+            .finishTimestamp(finish)
+
+            .expectedRecords(10)
+            .successRecords(5)
+            .warningRecords(1)
+            .failRecords(2)
+            .duplicateRecords(1)
+            .unchangedRecords(1)
+            .processedRecords(10)
+
+            .postProcessedRecords(8)
+            .expectedPostProcessedRecords(9)
+
+            .expectedDepublishRecords(4)
+            .successDepublishRecords(2)
+            .failDepublishRecords(1)
+            .processedDepublishRecords(3)
+
+            .definition("definition-json")
             .build();
 
-    //
     new WiremockHelper(wireMockExtension).stubGet(
             "/services/TopologyName/tasks/12345/progress",
             200,
-            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><taskInfo><id>12345</id><topologyName>TopologyName</topologyName><engineTaskProgress><expectedRecords>0</expectedRecords><processedRecords>0</processedRecords><ignoredRecords>0</ignoredRecords><deletedRecords>0</deletedRecords><postProcessedRecordsCount>0</postProcessedRecordsCount><processedErrors>0</processedErrors><deletedErrors>0</deletedErrors><engineTaskState>PROCESSED</engineTaskState></engineTaskProgress><expectedPostProcessedRecordsNumber>0</expectedPostProcessedRecordsNumber></taskInfo>");
-    //
-    assertEquals(dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID), taskInfo);
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+                    + "<taskInfo>"
+                    + "<id>12345</id>"
+                    + "<topologyName>TopologyName</topologyName>"
+                    + "<sentTimestamp>1970-01-01T00:00:01.000Z</sentTimestamp>"
+                    + "<startTimestamp>1970-01-01T00:00:02.000Z</startTimestamp>"
+                    + "<finishTimestamp>1970-01-01T00:00:03.000Z</finishTimestamp>"
 
+                    + "<engineTaskProgress>"
+                    + "<expectedRecords>10</expectedRecords>"
+                    + "<successRecords>5</successRecords>"
+                    + "<warningRecords>1</warningRecords>"
+                    + "<failRecords>2</failRecords>"
+                    + "<duplicateRecords>1</duplicateRecords>"
+                    + "<unchangedRecords>1</unchangedRecords>"
+                    + "<processedRecords>10</processedRecords>"
+
+                    + "<postProcessedRecords>8</postProcessedRecords>"
+                    + "<expectedPostProcessedRecords>9</expectedPostProcessedRecords>"
+
+                    + "<expectedDepublishRecords>4</expectedDepublishRecords>"
+                    + "<successDepublishRecords>2</successDepublishRecords>"
+                    + "<failDepublishRecords>1</failDepublishRecords>"
+                    + "<processedDepublishRecords>3</processedDepublishRecords>"
+
+                    + "<engineTaskState>PROCESSED</engineTaskState>"
+                    + "<engineTaskStateInfo>done</engineTaskStateInfo>"
+                    + "</engineTaskProgress>"
+
+                    + "<definition>definition-json</definition>"
+                    + "</taskInfo>"
+    );
+
+    TaskInfo actual = dpsClient.getTaskProgress(TOPOLOGY_NAME, TASK_ID);
+
+    assertEquals(expected, actual);
   }
 
   @Test

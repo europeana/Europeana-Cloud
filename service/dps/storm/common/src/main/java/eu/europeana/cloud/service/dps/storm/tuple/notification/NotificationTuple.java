@@ -117,9 +117,14 @@ public class NotificationTuple {
     return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DELETED));
   }
 
-  public boolean isIgnoredRecord() {
-    return "true".equals(parameters.get(PluginParameterKeys.IGNORED_RECORD));
+  public boolean isUnchangedRecord() {
+    return "true".equals(parameters.get(PluginParameterKeys.UNCHANGED_RECORD));
   }
+
+  public boolean isDuplicatedRecord() {
+    return "true".equals(parameters.get(PluginParameterKeys.DUPLICATED_RECORD));
+  }
+
 
   public String getResource() {
     return String.valueOf(parameters.get(NotificationParameterKeys.RESOURCE));

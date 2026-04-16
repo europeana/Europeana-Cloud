@@ -81,7 +81,7 @@ public class OaiTopologyTaskSubmitter extends AbstractTaskSubmitter implements T
       taskStatusUpdater.setTaskDropped(taskId, "The task with the submitted parameters is empty");
     } else {
       LOGGER.info("Updating task {} expected size to: {}", taskId, harvesterResult.getResultCounter());
-      taskStatusUpdater.updateStatusExpectedSize(taskId, harvesterResult.getTaskState(),
+        taskStatusUpdater.updateStatusExpectedRecords(taskId, harvesterResult.getTaskState(),
           harvesterResult.getResultCounter());
     }
   }

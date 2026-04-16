@@ -98,18 +98,42 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(1, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(0, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
-  }
+        assertEquals(1, taskProgress.getSuccessRecords());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
+    }
+
+    @Test
+    void shouldProperlyExecuteRegularTupleWithWarning() throws Exception {
+        insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, EngineTaskState.QUEUED, "");
+        CommonTaskTuple stormTuple = createStormTaskTuple(TASK_ID, RESOURCE_1, false);
+        Set<Report> reportSet = new HashSet<>();
+        reportSet.add(Report.buildEnrichmentWarn().withMessage("test-warn-message"));
+        stormTuple.addReports(reportSet);
+        Tuple tuple = createTestTuple(NotificationTuple.prepareNotification(stormTuple,
+                RecordState.SUCCESS, "", ""));
+
+        testedBolt.execute(tuple);
+
+        TaskInfo taskProgress = reportService.getTaskProgress(TASK_ID);
+        List<SubTaskInfo> notifications = reportService.getDetailedTaskReport(TASK_ID, 0, 100);
+        assertThat(notifications, hasSize(1));
+        assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
+        assertEquals(1, taskProgress.getProcessedRecords());
+        assertEquals(1, taskProgress.getSuccessRecords());
+        assertEquals(1, taskProgress.getWarningRecords());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
+    }
 
     @Test
     void shouldProperlyExecuteIgnoredRecordTuple() throws Exception {
         insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, EngineTaskState.QUEUED, "");
         NotificationTuple notificationTuple = NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
                 RecordState.SUCCESS, "", "");
-        notificationTuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
+        notificationTuple.addParameter(PluginParameterKeys.UNCHANGED_RECORD, "true");
         Tuple tuple = createTestTuple(notificationTuple);
 
         testedBolt.execute(tuple);
@@ -118,11 +142,12 @@ public class NotificationBoltTest extends CassandraTestBase {
         List<SubTaskInfo> notifications = reportService.getDetailedTaskReport(TASK_ID, 0, 100);
     assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
-        assertEquals(0, taskProgress.getProcessedRecords());
-        assertEquals(1, taskProgress.getIgnoredRecords());
-        assertEquals(0, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
+        assertEquals(1, taskProgress.getProcessedRecords());
+        assertEquals(0, taskProgress.getSuccessRecords());
+        assertEquals(0, taskProgress.getWarningRecords());
+        assertEquals(1, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
   }
 
     @Test
@@ -138,10 +163,13 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(0, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(1, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
+        assertEquals(0, taskProgress.getSuccessRecords());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getWarningRecords());
+        assertEquals(1, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailDepublishRecords());
+        assertEquals(1, taskProgress.getProcessedDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
   }
 
     @Test
@@ -157,10 +185,11 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(1, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(0, taskProgress.getDeletedRecords());
-        assertEquals(1, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
+        assertEquals(0, taskProgress.getSuccessRecords());
+        assertEquals(0, taskProgress.getWarningRecords());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(1, taskProgress.getFailRecords());
   }
 
     @Test
@@ -176,10 +205,13 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(0, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(1, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(1, taskProgress.getDeletedErrors());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessRecords());
+        assertEquals(0, taskProgress.getWarningRecords());
+        assertEquals(1, taskProgress.getFailDepublishRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(1, taskProgress.getProcessedDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
   }
 
     @Test
@@ -305,7 +337,7 @@ public class NotificationBoltTest extends CassandraTestBase {
                 RecordState.SUCCESS, "", "")));
         NotificationTuple notificationTuple = NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_2, false),
                 RecordState.SUCCESS, "", "");
-        notificationTuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
+        notificationTuple.addParameter(PluginParameterKeys.UNCHANGED_RECORD, "true");
         testedBolt.execute(createTestTuple(notificationTuple));
         testedBolt.execute(createTestTuple(NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_3, true),
                 RecordState.SUCCESS, "", "")));
@@ -321,11 +353,12 @@ public class NotificationBoltTest extends CassandraTestBase {
     List<SubTaskInfo> notifications = reportService.getDetailedTaskReport(TASK_ID, 0, 100);
     assertThat(notifications, hasSize(6));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
-        assertEquals(3, taskProgress.getProcessedRecords());
-        assertEquals(1, taskProgress.getIgnoredRecords());
-        assertEquals(2, taskProgress.getDeletedRecords());
-        assertEquals(1, taskProgress.getProcessedErrors());
-        assertEquals(1, taskProgress.getDeletedErrors());
+        assertEquals(4, taskProgress.getProcessedRecords());
+        assertEquals(1, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getWarningRecords());
+        assertEquals(1, taskProgress.getSuccessDepublishRecords());
+        assertEquals(1, taskProgress.getFailRecords());
+        assertEquals(2, taskProgress.getProcessedDepublishRecords());
   }
 
   private Tuple createNotificationTuple(long taskId, RecordState state) {
@@ -436,7 +469,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     //then
         assertEquals(0, beforeExecute.getProcessedRecords());
         assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
-        assertEquals(0, beforeExecute.getProcessedErrors());
+        assertEquals(0, beforeExecute.getFailRecords());
 
     assertEquals(1, errorsInfo.getErrors().size());
     assertEquals(errorsInfo.getErrors().get(0).getOccurrences(), errors);
@@ -461,7 +494,7 @@ public class NotificationBoltTest extends CassandraTestBase {
 
         assertEquals(0, beforeExecute.getProcessedRecords());
         assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
-        assertEquals(0, beforeExecute.getProcessedErrors());
+        assertEquals(0, beforeExecute.getFailRecords());
 
     List<TaskErrorInfo> errors = errorsInfo.getErrors();
     assertEquals(3, errors.size());
@@ -474,7 +507,7 @@ public class NotificationBoltTest extends CassandraTestBase {
             throws AccessDeniedOrObjectDoesNotExistException {
         insertTaskToDB(TASK_ID, TOPOLOGY_NAME, -1, EngineTaskState.PROCESSING_BY_REST_APPLICATION, "");
         testedBolt.execute(createNotificationTuple(1L, RecordState.SUCCESS));
-        taskInfoDAO.updateStatusExpectedSize(TASK_ID, EngineTaskState.QUEUED, 2);
+        taskInfoDAO.updateStatusExpectedRecords(TASK_ID, EngineTaskState.QUEUED, 2);
         testedBolt.execute(createNotificationTuple(1L, RecordState.SUCCESS));
 
         TaskInfo taskProgress = reportService.getTaskProgress(TASK_ID);
@@ -482,10 +515,10 @@ public class NotificationBoltTest extends CassandraTestBase {
         assertThat(notifications, hasSize(2));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(2, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(0, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
         assertEquals(2, taskProgress.getExpectedRecords());
   }
 
@@ -508,10 +541,10 @@ public class NotificationBoltTest extends CassandraTestBase {
     assertThat(notifications, hasSize(1));
         assertEquals(EngineTaskState.QUEUED, taskProgress.getEngineTaskState());
         assertEquals(1, taskProgress.getProcessedRecords());
-        assertEquals(0, taskProgress.getIgnoredRecords());
-        assertEquals(0, taskProgress.getDeletedRecords());
-        assertEquals(0, taskProgress.getProcessedErrors());
-        assertEquals(0, taskProgress.getDeletedErrors());
+        assertEquals(0, taskProgress.getUnchangedRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
+        assertEquals(0, taskProgress.getFailRecords());
+        assertEquals(0, taskProgress.getSuccessDepublishRecords());
     TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(1, 1000);
     errorsInfo.getErrors().forEach(
         taskErrorInfo -> taskErrorInfo.getErrorDetails().forEach(
@@ -526,7 +559,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         TaskInfo.builder()
                 .id(taskId)
                 .topologyName(topologyName)
-                .expectedRecordsNumber(expectedSize)
+                .expectedRecords(expectedSize)
                 .state(state)
                 .stateDescription(info)
                 .build());

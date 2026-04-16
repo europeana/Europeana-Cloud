@@ -73,12 +73,6 @@ public class TaskStatusUpdater {
     taskInfoDAO.setTaskDropped(taskId, info);
   }
 
-  public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
-      int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
-      throws NoHostAvailableException, QueryExecutionException {
-    taskInfoDAO.setUpdateProcessedFiles(taskId, processedRecordsCount, ignoredRecordsCount, deletedRecordsCount,
-        processedErrorsCount, deletedErrorsCount);
-  }
 
     public void updateState(long taskId, EngineTaskState state)
       throws NoHostAvailableException, QueryExecutionException {
@@ -91,11 +85,24 @@ public class TaskStatusUpdater {
     taskInfoDAO.updateState(taskId, state, info);
   }
 
-    public void updateStatusExpectedSize(long taskId, EngineTaskState state, int expectedSize)
+  public void updateStatusExpectedRecords(long taskId, EngineTaskState state, int expectedRecords)
       throws NoHostAvailableException, QueryExecutionException {
-    LOGGER.info("Updating task {} expected size to: {}", taskId, expectedSize);
+    LOGGER.info("Updating task {} expected records to: {}", taskId, expectedRecords);
     updateTasksByTaskStateTable(taskId, state);
-    taskInfoDAO.updateStatusExpectedSize(taskId, state, expectedSize);
+    taskInfoDAO.updateStatusExpectedRecords(taskId, state, expectedRecords);
+  }
+
+  public void updateStatusExpectedRecordsAndExpectedDepublishRecords(long taskId, EngineTaskState state, int expectedRecords, int expectedDepublishSize)
+          throws NoHostAvailableException, QueryExecutionException {
+    LOGGER.info("Updating task {} expected records to: {}, expected depublish records to: {}", taskId, expectedRecords, expectedDepublishSize);
+    updateTasksByTaskStateTable(taskId, state);
+    taskInfoDAO.updateStatusExpectedRecordsAndExpectedDepublishSize(taskId, state, expectedRecords, expectedDepublishSize);
+  }
+
+  public void updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(long taskId, int expectedPostProcessedRecords, int expectedDepublishRecords) {
+    LOGGER.info("Updating task {} expected postprocessed records to: {}, expected depublish records to: {}", taskId, expectedPostProcessedRecords, expectedDepublishRecords);
+    taskInfoDAO.updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(taskId, expectedPostProcessedRecords, expectedDepublishRecords);
+
   }
 
     private void updateTasksByTaskStateTable(long taskId, EngineTaskState newState) {

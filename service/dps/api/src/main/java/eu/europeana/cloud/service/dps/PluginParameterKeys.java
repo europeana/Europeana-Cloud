@@ -92,7 +92,8 @@ public final class PluginParameterKeys {
 
   public static final Map<String, String> PLUGIN_PARAMETERS = new HashMap<>();
   public static final String MARKED_AS_DELETED = "DELETED_RECORD";
-  public static final String IGNORED_RECORD = "IGNORED_RECORD";
+    public static final String UNCHANGED_RECORD = "UNCHANGED_RECORD";
+    public static final String DUPLICATED_RECORD = "DUPLICATED_RECORD";
   public static final String MAXIMUM_PARALLELIZATION = "MAXIMUM_PARALLELIZATION";
 
   static {

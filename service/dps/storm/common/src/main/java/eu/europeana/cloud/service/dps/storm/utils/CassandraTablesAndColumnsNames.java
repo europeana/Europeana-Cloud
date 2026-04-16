@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.utils;
 public final class CassandraTablesAndColumnsNames {
 
   //------- TABLES -------
-  public static final String TASK_INFO_TABLE = "task_info";
+  public static final String TASK_INFO_TABLE = "task_info_v2";
   public static final String NOTIFICATIONS_TABLE = "notifications";
   public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
   public static final String ERROR_TYPES_TABLE = "error_types";
@@ -23,14 +23,20 @@ public final class CassandraTablesAndColumnsNames {
   public static final String TASK_INFO_SENT_TIMESTAMP = "sent_timestamp";
   public static final String TASK_INFO_START_TIMESTAMP = "start_timestamp";
   public static final String TASK_INFO_FINISH_TIMESTAMP = "finish_timestamp";
-  public static final String TASK_INFO_EXPECTED_RECORDS_NUMBER = "expected_records_number";
-  public static final String TASK_INFO_PROCESSED_RECORDS_COUNT = "processed_records_count";
-  public static final String TASK_INFO_IGNORED_RECORDS_COUNT = "ignored_records_count";
-  public static final String TASK_INFO_DELETED_RECORDS_COUNT = "deleted_records_count";
-  public static final String TASK_INFO_PROCESSED_ERRORS_COUNT = "processed_errors_count";
-  public static final String TASK_INFO_DELETED_ERRORS_COUNT = "deleted_errors_count";
-  public static final String TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER = "expected_post_processed_records_number";
-  public static final String TASK_INFO_POST_PROCESSED_RECORDS_COUNT = "post_processed_records_count";
+  public static final String TASK_INFO_EXPECTED_RECORDS = "expected_records";
+  public static final String TASK_INFO_SUCCESS_RECORDS = "processed_records";
+  public static final String TASK_INFO_WARNING_RECORDS = "warning_records";
+  public static final String TASK_INFO_FAIL_RECORDS = "fail_records";
+  public static final String TASK_INFO_DELETED_RECORDS = "deleted_records";
+  public static final String TASK_INFO_DUPLICATE_RECORDS = "duplicate_records";
+  public static final String TASK_INFO_UNCHANGED_RECORDS = "unchanged_records";
+  public static final String TASK_INFO_PROCESSED_RECORDS = "success_records";
+  public static final String TASK_INFO_POST_PROCESSED_RECORDS = "post_processed_records";
+  public static final String TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS = "expected_post_processed_records";
+  public static final String TASK_INFO_EXPECTED_DEPUBLISH_RECORDS = "expected_depublish_records";
+  public static final String TASK_INFO_SUCCESS_DEPUBLISH_RECORDS = "success_depublish_records";
+  public static final String TASK_INFO_FAIL_DEPUBLISH_RECORDS = "fail_depublish_records";
+  public static final String TASK_INFO_PROCESSED_DEPUBLISH_RECORDS = "processed_depublish_records";
   public static final String TASK_INFO_DEFINITION = "definition";
 
 

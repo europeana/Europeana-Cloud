@@ -120,6 +120,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
+    int expectedDepublishRecordCount = 0;
     while (it.hasNext()) {
       taskStatusChecker.checkNotDropped(dpsTask);
       var harvestedRecord = it.next();
@@ -127,11 +128,13 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
         LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
             , harvestedRecord, dpsTask.getTaskId());
+        postProcessedRecordsCount++;
       } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
         createPostProcessedRecord(dpsTask, harvestedRecord);
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
-        taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
+        expectedDepublishRecordCount++;
+        taskStatusUpdater.updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(dpsTask.getTaskId(), postProcessedRecordsCount, expectedDepublishRecordCount);
         LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
         LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,

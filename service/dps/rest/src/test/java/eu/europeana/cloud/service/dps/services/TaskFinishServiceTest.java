@@ -51,8 +51,8 @@ class TaskFinishServiceTest {
     void shouldMarkQueuedTaskAsCompletedWhenAllRecordsProcessedAndTaskDoesNotNeedPostprocessing() {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecordsNumber(60).
-                processedRecordsCount(30).ignoredRecordsCount(20).deletedRecordsCount(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(60).
+                successRecords(30).unchangedRecords(20).failRecords(10).build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
 
         service.execute();
@@ -65,8 +65,8 @@ class TaskFinishServiceTest {
             throws IOException {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecordsNumber(60).
-                processedRecordsCount(30).ignoredRecordsCount(20).deletedRecordsCount(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(60).
+                successRecords(30).unchangedRecords(20).failRecords(10).build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         when(postProcessingService.needsPostprocessing(any(), any())).thenReturn(true);
 
@@ -80,8 +80,8 @@ class TaskFinishServiceTest {
     void shouldIgnoreQueuedTaskIfNotAllRecordsProcessed() {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecordsNumber(61).
-                processedRecordsCount(30).ignoredRecordsCount(20).deletedRecordsCount(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(61).
+                successRecords(30).unchangedRecords(20).failRecords(10).build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
 
         service.execute();

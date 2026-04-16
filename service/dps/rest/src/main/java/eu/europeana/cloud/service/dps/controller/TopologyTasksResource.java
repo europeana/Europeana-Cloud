@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -235,28 +235,31 @@ public class TopologyTasksResource {
 
       var taskJSON = task.toJSON();
       SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-                                                            .taskInfo(
-                                                                TaskInfo.builder()
-                                                                        .id(task.getTaskId())
-                                                                        .topologyName(topologyName)
-                                                                        .state(TaskState.PROCESSING_BY_REST_APPLICATION)
-                                                                        .stateDescription(
-                                                                            "The task is in a pending mode, it is being processed before submission")
-                                                                        .sentTimestamp(sentTime)
-                                                                        .startTimestamp(new Date())
-                                                                        .finishTimestamp(null)
-                                                                        .expectedRecordsNumber(
-                                                                            TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
-                                                                        .processedRecordsCount(0)
-                                                                        .ignoredRecordsCount(0)
-                                                                        .deletedRecordsCount(0)
-                                                                        .processedErrorsCount(0)
-                                                                        .deletedErrorsCount(0)
-                                                                        .expectedPostProcessedRecordsNumber(
-                                                                            TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
-                                                                        .postProcessedRecordsCount(0)
-                                                                        .definition(taskJSON)
-                                                                        .build()
+              .taskInfo(
+                      TaskInfo.builder()
+                              .id(task.getTaskId())
+                              .topologyName(topologyName)
+                              .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
+                              .stateDescription(
+                                      "The task has been created, but not started yet")
+                              .sentTimestamp(new Date())
+                              .finishTimestamp(null)
+                              .expectedRecords(
+                                      TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
+                              .successRecords(0)
+                              .warningRecords(0)
+                              .failRecords(0)
+                              .duplicateRecords(0)
+                              .duplicateRecords(0)
+                              .unchangedRecords(0)
+                              .processedRecords(0)
+                              .postProcessedRecords(0)
+                              .expectedPostProcessedRecords(0)
+                              .successDepublishRecords(0)
+                              .failDepublishRecords(0)
+                              .processedDepublishRecords(0)
+                              .definition(taskJSON)
+                              .build()
                                                             )
                                                             .task(task)
                                                             .restarted(restart).build();

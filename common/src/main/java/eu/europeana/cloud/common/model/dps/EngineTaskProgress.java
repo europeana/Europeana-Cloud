@@ -1,7 +1,7 @@
 package eu.europeana.cloud.common.model.dps;
 
 //TODO
-//Directly copied from metis core.
+//Directly copied from metis core with modification for task.
 //Should be moved from metis core to metis common in order to have one common class for all processing engines
 //For development purposes only
 //NOTE: we kinda need those annotations - so in end solution we either add those to child class inheriting from this class in metis common
@@ -23,28 +23,72 @@ public class EngineTaskProgress {
 
     // The total number of expected records excluding deleted records.
     private int expectedRecords;
-
     // The total number of records processed so far excluding deleted records and including ignored records if applicable.
-    private int processedRecords;
-
+    private int successRecords;
+    // The total number of records processed that resulted in at least one report containing WARN type message
+    private int warningRecords;
+    // The number of records containing errors encountered so far.
+    private int failRecords;
+    // The number of duplicated records processed so far.
+    private int duplicateRecords;
     // The number of processed records so far that are to be ignored for follow-up tasks.
-    private int ignoredRecords = 0;
-
-    // The number of deleted records processed so far.
-    private int deletedRecords = 0;
-
+    // Mostly unchanged records recognized during OAI/HTTP HARVEST
+    private int unchangedRecords;
+    // Total number of processed records so far.
+    // Should be equal to successRecords + failRecords + unchangedRecords + duplicateRecords
+    private int processedRecords;
+    // Total number of post processed records so far
+    private int postProcessedRecords;
     // The number of post processed records.
-    private int postProcessedRecordsCount = 0;
+    private int expectedPostProcessedRecords;
+    // The number of depublish records.
+    private int expectedDepublishRecords;
+    // The number of successfully depublished records so far.
+    private int successDepublishRecords;
+    // The number of unsuccessfully depublished records so far.
+    private int failDepublishRecords;
+    // The number of depublished records so far.
+    private int processedDepublishRecords;
 
-    // The number of errors encountered so far.
-    private int processedErrors;
 
-    private int deletedErrors;
+
 
     // The current state of the task.
     private EngineTaskState engineTaskState;
 
     private String engineTaskStateInfo;
+
+    public int getDuplicateRecords() {
+        return duplicateRecords;
+    }
+
+    public void setDuplicateRecords(int duplicateRecords) {
+        this.duplicateRecords = duplicateRecords;
+    }
+
+    public int getWarningRecords() {
+        return warningRecords;
+    }
+
+    public void setWarningRecords(int warningRecords) {
+        this.warningRecords = warningRecords;
+    }
+
+    public int getExpectedDepublishRecords() {
+        return expectedDepublishRecords;
+    }
+
+    public void setExpectedDepublishRecords(int expectedDepublishRecords) {
+        this.expectedDepublishRecords = expectedDepublishRecords;
+    }
+
+    public int getFailDepublishRecords() {
+        return failDepublishRecords;
+    }
+
+    public void setFailDepublishRecords(int failDepublishRecords) {
+        this.failDepublishRecords = failDepublishRecords;
+    }
 
     public int getExpectedRecords() {
         return expectedRecords;
@@ -54,45 +98,38 @@ public class EngineTaskProgress {
         this.expectedRecords = expectedRecords;
     }
 
-    public int getProcessedRecords() {
-        return processedRecords;
+    public int getSuccessRecords() {
+        return successRecords;
     }
 
-    public void setProcessedRecords(int processedRecords) {
-        this.processedRecords = processedRecords;
+    public void setSuccessRecords(int successRecords) {
+        this.successRecords = successRecords;
     }
 
-    public int getIgnoredRecords() {
-        return ignoredRecords;
+    public int getUnchangedRecords() {
+        return unchangedRecords;
     }
 
-    public void setIgnoredRecords(int ignoredRecords) {
-        this.ignoredRecords = ignoredRecords;
+    public void setUnchangedRecords(int unchangedRecords) {
+        this.unchangedRecords = unchangedRecords;
     }
 
-    public int getDeletedRecords() {
-        return deletedRecords;
+    public int getSuccessDepublishRecords() {
+        return successDepublishRecords;
     }
 
-    public void setDeletedRecords(int deletedRecords) {
-        this.deletedRecords = deletedRecords;
+    public void setSuccessDepublishRecords(int successDepublishRecords) {
+        this.successDepublishRecords = successDepublishRecords;
     }
 
-    public int getProcessedErrors() {
-        return processedErrors;
+    public int getFailRecords() {
+        return failRecords;
     }
 
-    public void setProcessedErrors(int processedErrors) {
-        this.processedErrors = processedErrors;
+    public void setFailRecords(int failRecords) {
+        this.failRecords = failRecords;
     }
 
-    public int getDeletedErrors() {
-        return deletedErrors;
-    }
-
-    public void setDeletedErrors(int deletedErrors) {
-        this.deletedErrors = deletedErrors;
-    }
 
     public EngineTaskState getEngineTaskState() {
         return engineTaskState;
@@ -110,11 +147,11 @@ public class EngineTaskProgress {
         this.engineTaskStateInfo = engineTaskStateInfo;
     }
 
-    public int getPostProcessedRecordsCount() {
-        return postProcessedRecordsCount;
+    public int getPostProcessedRecords() {
+        return postProcessedRecords;
     }
 
-    public void setPostProcessedRecordsCount(int postProcessedRecordsCount) {
-        this.postProcessedRecordsCount = postProcessedRecordsCount;
+    public void setPostProcessedRecords(int postProcessedRecords) {
+        this.postProcessedRecords = postProcessedRecords;
     }
 }
