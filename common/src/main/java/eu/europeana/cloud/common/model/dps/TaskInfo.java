@@ -25,7 +25,6 @@ public class TaskInfo {
   private Date finishTimestamp;
   @Delegate
   private EngineTaskProgress engineTaskProgress = new EngineTaskProgress();
-  private int expectedPostProcessedRecordsNumber;
 
   private TaskInfo(long id, String topologyName, Date sentTimestamp, Date startTimestamp, Date finishTimestamp, String definition) {
     this.id = id;
@@ -37,20 +36,28 @@ public class TaskInfo {
   }
 
   @Builder
-  public TaskInfo(long id, String topologyName, Date sentTimestamp, Date startTimestamp, Date finishTimestamp, String definition, int expectedRecordsNumber,
-                  int processedRecordsCount, int ignoredRecordsCount, int deletedRecordsCount, int processedErrorsCount,
-                  int deletedErrorsCount, int expectedPostProcessedRecordsNumber, int postProcessedRecordsCount, EngineTaskState state, String stateDescription) {
+  public TaskInfo(long id, String topologyName, EngineTaskState state, String stateDescription,
+                  Date sentTimestamp, Date startTimestamp, Date finishTimestamp,
+                  int expectedRecords, int successRecords, int warningRecords, int failRecords,
+                  int duplicateRecords, int unchangedRecords, int processedRecords,
+                  int postProcessedRecords, int expectedPostProcessedRecords, int expectedDepublishRecords,
+                  int successDepublishRecords, int failDepublishRecords, int processedDepublishRecords, String definition) {
     this(id, topologyName, sentTimestamp, startTimestamp, finishTimestamp, definition);
-    setExpectedRecords(expectedRecordsNumber);
-    setProcessedRecords(processedRecordsCount);
-    setIgnoredRecords(ignoredRecordsCount);
-    setDeletedRecords(deletedRecordsCount);
-    setPostProcessedRecordsCount(postProcessedRecordsCount);
-    setProcessedErrors(processedErrorsCount);
-    setDeletedErrors(deletedErrorsCount);
+    setExpectedRecords(expectedRecords);
+    setSuccessRecords(successRecords);
+    setWarningRecords(warningRecords);
+    setFailRecords(failRecords);
+    setDuplicateRecords(duplicateRecords);
+    setUnchangedRecords(unchangedRecords);
+    setProcessedRecords(processedRecords);
+    setPostProcessedRecords(postProcessedRecords);
+    setExpectedPostProcessedRecords(expectedPostProcessedRecords);
+    setExpectedDepublishRecords(expectedDepublishRecords);
+    setSuccessDepublishRecords(successDepublishRecords);
+    setFailDepublishRecords(failDepublishRecords);
+    setProcessedDepublishRecords(processedDepublishRecords);
     setEngineTaskState(state);
     setEngineTaskStateInfo(stateDescription);
-    this.expectedPostProcessedRecordsNumber = expectedPostProcessedRecordsNumber;
   }
 
 
@@ -62,7 +69,7 @@ public class TaskInfo {
   @JsonIgnore
   @XmlTransient
   public boolean isProcessedOnStorm() {
-    return (getProcessedRecords() + getIgnoredRecords() + getDeletedRecords())
+    return (getSuccessRecords() + getUnchangedRecords() + getFailRecords() + getDuplicateRecords())
             == getExpectedRecords();
   }
 }

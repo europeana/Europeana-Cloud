@@ -98,11 +98,15 @@ public class NotificationTupleHandler {
 
     statementsToBeExecuted.add(subTaskInfoDAO.insertNotificationStatement(notification));
     statementsToBeExecuted.add(taskInfoDAO.updateProcessedFilesStatement(notification.getTaskId(),
-        nCache.getProcessedRecordsCount(),
-        nCache.getIgnoredRecordsCount(),
-        nCache.getDeletedRecordsCount(),
-        nCache.getProcessedErrorsCount(),
-        nCache.getDeletedErrorsCount()));
+            nCache.getSuccessRecords(),
+            nCache.getWarningRecords(),
+            nCache.getFailRecords(),
+            nCache.getDuplicateRecords(),
+            nCache.getUnchangedRecords(),
+            nCache.getProcessedRecords(),
+            nCache.getDepublishedProcessedRecords(),
+            nCache.getDepublishedSuccessRecords(),
+            nCache.getDepublishedFailRecords()));
     statementsToBeExecuted.add(taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTimeStatement(
         notification.getTaskId(), Instant.now()
     ));

@@ -214,7 +214,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 1, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater);
   }
@@ -231,7 +231,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 1, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater);
   }
@@ -268,8 +268,8 @@ class HarvestingPostProcessorTest {
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 2);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 1, 1);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 2, 2);
     verifyNoMoreInteractions(taskStatusUpdater);
   }
 
@@ -293,8 +293,8 @@ class HarvestingPostProcessorTest {
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 2);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 1, 1);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(TASK_ID, 2, 2);
     verifyNoMoreInteractions(taskStatusUpdater);
   }
 
@@ -310,7 +310,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessedRecordsCount(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(eq(TASK_ID), eq(1), anyInt());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
   }

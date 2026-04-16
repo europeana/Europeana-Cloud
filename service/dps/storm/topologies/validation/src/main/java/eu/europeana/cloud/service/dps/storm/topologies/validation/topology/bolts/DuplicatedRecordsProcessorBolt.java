@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DUPLICATED_RECORD;
+
 /**
  * Bolt that will check if there are duplicates in harvested records.</br> Duplicates, in this context, are representation
  * versions that have the same cloud_id, representation name and revision</br>
@@ -72,11 +74,13 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       Revision revision = tuple.getOutputRevision();
         // Based on processing mode we either look for representation with same revisions or representations with same versions
         if (revision != null) {
-          if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision))
+          if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision)) {
             return;
+          }
         } else {
-          if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation))
+          if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation)) {
             return;
+          }
         }
         emitSuccessNotification(anchorTuple, tuple, "", "");
         LOGGER.info("Checking duplicates finished for record url '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
@@ -95,6 +99,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                                                                            Representation representation) throws MCSException {
     List<Representation> representations = findAllRepresentationWithSameCloudId(representation);
     if (representationsWithSameCloudIdExist(representations)) {
+      tuple.addParameter(DUPLICATED_RECORD, "true");
       handleDuplicatedRepresentationVersion(anchorTuple, tuple, representation);
       return true;
     }
@@ -112,6 +117,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                                                                      Representation representation, Revision revision) throws MCSException {
     List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(representation, revision);
     if (representationsWithSameRevisionExists(representationRevisions)) {
+      tuple.addParameter(DUPLICATED_RECORD, "true");
       handleDuplicatedRepresentationRevision(anchorTuple, tuple, representation);
       return true;
     }

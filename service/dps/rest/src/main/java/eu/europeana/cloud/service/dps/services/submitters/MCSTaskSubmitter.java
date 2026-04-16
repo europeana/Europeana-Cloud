@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,17 +62,17 @@ public class MCSTaskSubmitter {
       checkIfTaskIsKilled(task);
 
       logProgress(submitParameters, 0);
-      int expectedSize;
+      TaskRecordCounters taskRecordCounters = TaskRecordCounters.expectNoRecord();
       if (task.getInput() instanceof FilesUrls input) {
-        expectedSize = executeForFilesList(input, submitParameters);
+        taskRecordCounters.merge(executeForFilesList(input, submitParameters));
       } else {
-        expectedSize = executeForMCSInput(submitParameters);
+        taskRecordCounters.merge(executeForMCSInput(submitParameters));
       }
 
       checkIfTaskIsKilled(task);
-      if (expectedSize != 0) {
-        taskStatusUpdater.updateStatusExpectedSize(task.getTaskId(), EngineTaskState.QUEUED, expectedSize);
-        LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", expectedSize, task.getTaskId());
+      if (taskRecordCounters.expectedRecords != 0 || taskRecordCounters.expectedDepublishRecords != 0) {
+        taskStatusUpdater.updateStatusExpectedRecordsAndExpectedDepublishRecords(task.getTaskId(), EngineTaskState.QUEUED, taskRecordCounters.expectedRecords, taskRecordCounters.expectedDepublishRecords);
+        LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", taskRecordCounters.expectedRecords, task.getTaskId());
       } else {
         taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because it is empty");
         LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
@@ -94,47 +95,47 @@ public class MCSTaskSubmitter {
     return new MCSReader(mcsClientURL, userName, password);
   }
 
-  private int executeForFilesList(FilesUrls input, SubmitTaskParameters submitParameters) {
+  private TaskRecordCounters executeForFilesList(FilesUrls input, SubmitTaskParameters submitParameters) {
     return submitRecordsForFileUrlsList(input.getFileUrls(), submitParameters);
   }
 
-  private int executeForMCSInput(SubmitTaskParameters submitParameters)
+  private TaskRecordCounters executeForMCSInput(SubmitTaskParameters submitParameters)
       throws InterruptedException, MCSException, ExecutionException {
     try (var reader = createMcsReader()) {
-      var expectedSize = 0;
+      var counter = TaskRecordCounters.expectNoRecord();
       if (submitParameters.getTask().getInput() instanceof DatasetRevisionInfo input) {
-        expectedSize += executeForRevision(input,
-            submitParameters, reader);
+        counter.merge(executeForRevision(input,
+                submitParameters, reader));
       } else {
         BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
-        expectedSize += executeForEntireDataset(input, submitParameters, reader);
+        counter.merge(executeForEntireDataset(input, submitParameters, reader));
       }
-      return expectedSize;
+      return counter;
 
     }
   }
 
-  private int executeForEntireDataset(BatchInfo input, SubmitTaskParameters submitParameters, MCSReader reader) {
-    var expectedSize = 0;
+  private TaskRecordCounters executeForEntireDataset(BatchInfo input, SubmitTaskParameters submitParameters, MCSReader reader) {
+    var counter = TaskRecordCounters.expectNoRecord();
     RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(input);
     while (iterator.hasNext()) {
       checkIfTaskIsKilled(submitParameters.getTask());
 
       Representation representation = iterator.next();
-      expectedSize += submitRecordsForRepresentation(representation, submitParameters);
+      counter.merge(submitRecordsForRepresentation(representation, submitParameters));
     }
-    return expectedSize;
+    return counter;
   }
 
-  private int executeForRevision(DatasetRevisionInfo input, SubmitTaskParameters submitParameters,
+  private TaskRecordCounters executeForRevision(DatasetRevisionInfo input, SubmitTaskParameters submitParameters,
       MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
     ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
     try {
       DpsTask task = submitParameters.getTask();
       var maxRecordsCount = submitParameters.getMaxRecordsCount();
-      var count = 0;
+      var counter = TaskRecordCounters.expectNoRecord();
       String startFrom = null;
-      Set<Future<Integer>> futures = HashSet.newHashSet(INTERNAL_THREADS_NUMBER);
+      Set<Future<TaskRecordCounters>> futures = HashSet.newHashSet(INTERNAL_THREADS_NUMBER);
       var total = 0;
       do {
         checkIfTaskIsKilled(task);
@@ -153,17 +154,17 @@ public class MCSTaskSubmitter {
             executor.submit(() -> executeGettingFileUrlsForCloudIdList(input, finalCloudTagsResponseList, submitParameters, reader)));
 
         if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
-          count += getCountAndWait(futures);
+          counter.merge(getCountAndWait(futures));
         }
         startFrom = slice.getNextSlice();
       }
       while ((startFrom != null) && (total < maxRecordsCount));
 
       if (!futures.isEmpty()) {
-        count += getCountAndWait(futures);
+        counter.merge(getCountAndWait(futures));
       }
 
-      return count;
+      return counter;
     } catch (ExecutionException e) {
       if (e.getCause() instanceof TaskDroppedException) {
         LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
@@ -186,21 +187,21 @@ public class MCSTaskSubmitter {
         input.getProviderId(), input.getDatasetId(), startFrom);
   }
 
-  private Integer executeGettingFileUrlsForCloudIdList(DatasetRevisionInfo input, List<CloudTagsResponse> responseList,
+  private TaskRecordCounters executeGettingFileUrlsForCloudIdList(DatasetRevisionInfo input, List<CloudTagsResponse> responseList,
       SubmitTaskParameters submitParameters,
       MCSReader reader) throws MCSException {
-    var count = 0;
+    TaskRecordCounters counter = TaskRecordCounters.expectNoRecord();
     for (CloudTagsResponse response : responseList) {
-      count += executeGettingFileUrlsForOneCloudId(input, response, submitParameters, reader);
+      counter.merge(executeGettingFileUrlsForOneCloudId(input, response, submitParameters, reader));
     }
 
-    return count;
+    return counter;
   }
 
-  private int executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
+  private TaskRecordCounters executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
       MCSReader reader) throws MCSException {
 
-    var count = 0;
+    TaskRecordCounters counter = TaskRecordCounters.expectNoRecord();
     checkIfTaskIsKilled(submitParameters.getTask());
     List<RepresentationRevisionResponse> representationRevisions = reader.getRevisionsForTheRepresentation(
         input.getRepresentationName(),
@@ -209,58 +210,58 @@ public class MCSTaskSubmitter {
         input.getRevision().getCreationTimeStamp(),
         response.getCloudId());
     for (RepresentationRevisionResponse representationRevision : representationRevisions) {
-      count += submitRecordsForRepresentationRevision(representationRevision, submitParameters, response.isDeleted());
+      counter.merge(submitRecordsForRepresentationRevision(representationRevision, submitParameters, response.isDeleted()));
     }
-    return count;
+    return counter;
   }
 
-  private int submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
+  private TaskRecordCounters submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
                                                      SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
     if (markedAsDeleted) {
       return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
     } else {
-      return this.submitRecordsForFileObjects(representationRevision.getFiles(), submitParameters);
+      return submitRecordsForFileObjects(representationRevision.getFiles(), submitParameters);
     }
   }
 
-  private int submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+  private TaskRecordCounters submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
     if (representation.isMarkDeleted()){
       return submitRecordForDeletedRepresentation(representation.getUri(), submitParameters);
     } else {
-      return this.submitRecordsForFileObjects(representation.getFiles(), submitParameters);
+      return submitRecordsForFileObjects(representation.getFiles(), submitParameters);
     }
   }
 
-  private int submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
+  private TaskRecordCounters submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
     checkIfTaskIsKilled(submitParameters.getTask());
 
     if (submitRecord(representationVersionUri.toString(), submitParameters, true)) {
-      return 1;
+      return TaskRecordCounters.expectDepublishRecord();
     } else {
-      return 0;
+      return TaskRecordCounters.expectNoRecord();
     }
   }
 
-  private int submitRecordsForFileObjects(List<File> files, SubmitTaskParameters submitParameters) {
+  private TaskRecordCounters submitRecordsForFileObjects(List<File> files, SubmitTaskParameters submitParameters) {
     return submitRecordsForFileUrlsList(files.stream().map(file -> file.getContentUri().toString()).collect(Collectors.toList()), submitParameters);
   }
 
-  private int submitRecordsForFileUrlsList(List<String> fileUrls, SubmitTaskParameters submitParameters) {
-    var count = 0;
+  private TaskRecordCounters submitRecordsForFileUrlsList(List<String> fileUrls, SubmitTaskParameters submitParameters) {
+    TaskRecordCounters baseCounter = TaskRecordCounters.expectNoRecord();
 
     for (String fileUrl : fileUrls) {
       checkIfTaskIsKilled(submitParameters.getTask());
       ;
       if (submitRecord(fileUrl, submitParameters, false)) {
-        count++;
+        baseCounter.merge(TaskRecordCounters.expectRecord());
       }
 
     }
 
-    return count;
+    return baseCounter;
   }
 
 
@@ -285,16 +286,53 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private int getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
-    var count = 0;
-    for (Future<Integer> future : futures) {
-      count += future.get();
+  private TaskRecordCounters getCountAndWait(Set<Future<TaskRecordCounters>> futures) throws InterruptedException, ExecutionException {
+    TaskRecordCounters counter = TaskRecordCounters.expectNoRecord();
+    for (Future<TaskRecordCounters> future : futures) {
+      counter.merge(future.get());
     }
     futures.clear();
-    return count;
+    return counter;
   }
 
   private void checkIfTaskIsKilled(DpsTask task) {
     taskStatusChecker.checkNotDropped(task);
+  }
+
+  /**
+   * Private helper class to track expected record counts.
+   */
+  @Getter
+  private static class TaskRecordCounters {
+    private int expectedRecords;
+    private int expectedDepublishRecords;
+
+    public TaskRecordCounters(int expectedRecords, int expectedDepublishRecords) {
+      this.expectedRecords = expectedRecords;
+      this.expectedDepublishRecords = expectedDepublishRecords;
+    }
+
+    public static TaskRecordCounters expectRecord() {
+      return new TaskRecordCounters(1, 0);
+    }
+
+    public static TaskRecordCounters expectDepublishRecord() {
+      return new TaskRecordCounters(0, 1);
+    }
+
+    public static TaskRecordCounters expectNoRecord() {
+      return new TaskRecordCounters(0, 0);
+    }
+
+    /**
+     * Merges another Counters instance into this one.
+     */
+    public void merge(TaskRecordCounters other) {
+      if (other == null) {
+        return;
+      }
+      this.expectedRecords += other.expectedRecords;
+      this.expectedDepublishRecords += other.expectedDepublishRecords;
+    }
   }
 }
