@@ -131,7 +131,7 @@ class LinkCheckBoltTest {
     CommonTaskTuple tuple = new CommonTaskTuple();
       tuple.setRecordUri("ecloudFileUrl");
       tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
-    tuple.setMarkedAsDeleted(true);
+      tuple.setMarkedAsDepublished(true);
     return tuple;
   }
 

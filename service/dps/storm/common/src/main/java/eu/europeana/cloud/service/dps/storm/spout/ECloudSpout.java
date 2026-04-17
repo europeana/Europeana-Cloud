@@ -1,28 +1,22 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
-import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
-import eu.europeana.cloud.service.dps.MCSInputOutput;
-import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
+import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -43,9 +37,9 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.DPS_TASK_INPUT_DATA;
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.SCHEMA_NAME;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
@@ -128,7 +122,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
   private CommonTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
     CommonTaskTuple commonTaskTuple = new CommonTaskTuple();
     commonTaskTuple.setTaskId(message.getTaskId());
-    commonTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
+    commonTaskTuple.setMarkedAsDepublished(message.isMarkedAsDepublished());
     commonTaskTuple.setRecordUri(message.getRecordId());
     commonTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
     return commonTaskTuple;
@@ -202,7 +196,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       var stormTaskTuple = new CommonTaskTuple(
               new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
-              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
+              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDepublished()),
               new ProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());

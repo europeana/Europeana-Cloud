@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
@@ -126,11 +126,11 @@ public class CassandraRecordService implements RecordService {
   }
 
   @Override
-  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDeleted)
+  public Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDepublished)
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException {
 
-    return createRepresentation(globalId, schema, providerId, null, dataSetId, markDeleted);
+    return createRepresentation(globalId, schema, providerId, null, dataSetId, markDepublished);
   }
 
   @Override
@@ -145,7 +145,7 @@ public class CassandraRecordService implements RecordService {
    */
   @Override
   public Representation createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-      String dataSetId, boolean markDeleted)
+                                             String dataSetId, boolean markDepublished)
       throws ProviderNotExistsException, RecordNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException {
 
@@ -172,14 +172,14 @@ public class CassandraRecordService implements RecordService {
       LOGGER.debug("Confirmed cloudId={} exists.", cloudId);
       Date now = Calendar.getInstance().getTime();
       Representation representation =
-          recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId, markDeleted);
+              recordDAO.createRepresentation(cloudId, representationName, providerId, now, version, dataSetId, markDepublished);
       dataSetService.addAssignmentToMainTables(
           providerId,
           dataSetId,
           representation.getCloudId(),
           representation.getRepresentationName(),
           representation.getVersion(),
-          markDeleted);
+              markDepublished);
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Created representation cloudid={}, representationName={}, providerId={}, version={}",
             LogMessageCleaner.clean(cloudId),

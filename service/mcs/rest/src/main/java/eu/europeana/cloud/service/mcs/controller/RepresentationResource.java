@@ -1,30 +1,19 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-import java.util.UUID;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
 
 /**
  * Resource to manage representations.
@@ -91,7 +80,7 @@ public class RepresentationResource {
    * @param providerId provider id of this representation version.
    * @param dataSetId dataset where newly created representation will be assigned
    * @param version version of representation that will be used. If empty, then random version will be selected
-   * @param markDeleted flag that will decide whether representation will be treated as deleted.
+   * @param markDepublished flag that will decide whether representation will be treated as deleted.
    *                   If empty, then false will be used by default.
    * @return The url of the created representation.
    * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
@@ -108,11 +97,11 @@ public class RepresentationResource {
       @RequestParam("providerId") String providerId,
       @RequestParam("dataSetId") String dataSetId,
       @RequestParam(value = "version", required = false) UUID version,
-      @RequestParam(value = "markDeleted", required = false, defaultValue = "false") boolean markDeleted
+      @RequestParam(value = "markDepublished", required = false, defaultValue = "false") boolean markDepublished
   )
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
-    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId, markDeleted);
+    var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId, markDepublished);
     EnrichUriUtil.enrich(httpServletRequest, representation);
     return ResponseEntity.created(representation.getUri()).build();
   }

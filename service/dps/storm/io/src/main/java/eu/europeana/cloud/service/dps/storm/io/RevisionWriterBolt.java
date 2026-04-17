@@ -114,7 +114,7 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         outputRevision.setCreationTimeStamp(new Date());
       }
 
-      if (commonTaskTuple.isMarkedAsDeleted()) {
+      if (commonTaskTuple.isMarkedAsDepublished()) {
         outputRevision = new Revision(outputRevision);
         outputRevision.setDeleted(true);
       }

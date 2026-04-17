@@ -52,8 +52,8 @@ public class NotificationTuple {
     parameters.put(NotificationParameterKeys.INFO_TEXT, message);
     parameters.put(NotificationParameterKeys.STATE_DESCRIPTION, additionalInformation);
     parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, commonTaskTuple.getMessageProcessingStartTimeInMs());
-    if (commonTaskTuple.isMarkedAsDeleted()) {
-      parameters.put(PluginParameterKeys.MARKED_AS_DELETED, "true");
+    if (commonTaskTuple.isMarkedAsDepublished()) {
+      parameters.put(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
     }
     return new NotificationTuple(commonTaskTuple.getTaskId(), parameters, commonTaskTuple.getReportSet());
   }
@@ -113,8 +113,8 @@ public class NotificationTuple {
     return new Values(taskId, parameters, reportSet);
   }
 
-  public boolean isMarkedAsDeleted() {
-    return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DELETED));
+  public boolean isMarkedAsDepublished() {
+    return "true".equals(parameters.get(PluginParameterKeys.MARKED_AS_DEPUBLISHED));
   }
 
   public boolean isUnchangedRecord() {

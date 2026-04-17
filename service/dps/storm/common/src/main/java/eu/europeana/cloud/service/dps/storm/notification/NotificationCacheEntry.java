@@ -36,7 +36,7 @@ public class NotificationCacheEntry {
   public void incrementCounters(NotificationTuple notificationTuple) {
     processed++;
 
-    if (notificationTuple.isMarkedAsDeleted()) {
+    if (notificationTuple.isMarkedAsDepublished()) {
       if (isErrorTuple(notificationTuple)) {
         LOGGER.error("Tuple is marked as deleted and error in the same time! It should not occur. Tuple: {}"
                 , notificationTuple);

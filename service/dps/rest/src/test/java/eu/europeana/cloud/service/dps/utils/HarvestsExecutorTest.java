@@ -115,7 +115,7 @@ class HarvestsExecutorTest {
                         argThat(samePropertyValuesAs(DpsRecord.builder()
                                 .taskId(task.getTaskId())
                                 .recordId(OAI_ID_1)
-                                .markedAsDeleted(false)
+                                .markedAsDepublished(false)
                                 .build())),
                         any()
                 );

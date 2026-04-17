@@ -5,17 +5,8 @@ import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -124,17 +115,17 @@ public interface RecordService {
    * @param schema schema of the representation
    * @param providerId provider who created this representation version.
    * @param version version id - must conform version 1 UUID spec. Parameter is optional if null is passed new uuid based on
-   * @param markDeleted whether representation is marked as already deleted
+     * @param markDepublished whether representation is marked as already deleted
    * current time would be created.
    * @return newly created representation.
    * @throws RecordNotExistsException provided id of a record is not registered in eCloud system.
    * @throws ProviderNotExistsException there is no such provider
    */
-  Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId, boolean markDeleted)
+    Representation createRepresentation(String globalId, String schema, String providerId, UUID version, String dataSetId, boolean markDepublished)
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException;
 
-  Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDeleted)
+  Representation createRepresentation(String globalId, String schema, String providerId, String dataSetId, boolean markDepublished)
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException,
       RepresentationNotExistsException, DataSetNotExistsException;
 

@@ -531,7 +531,7 @@ class MCSTaskSubmitterTest {
               submitter.execute(submitParameters);
 
               verifyValidTaskSentDeleted(REPRESENTATION_URI_STRING_1);
-              assertTrue(recordCaptor.getValue().isMarkedAsDeleted());
+              assertTrue(recordCaptor.getValue().isMarkedAsDepublished());
             });
   }
 

@@ -366,18 +366,18 @@ public class NotificationBoltTest extends CassandraTestBase {
     return createNotificationTuple(taskId, state, resource);
   }
 
-  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted) {
-    return createStormTaskTuple(taskId, resource, markAsDeleted, "", "0");
+    private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDepublished) {
+        return createStormTaskTuple(taskId, resource, markAsDepublished, "", "0");
   }
 
-  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String processingTime) {
-    return createStormTaskTuple(taskId, resource, markAsDeleted, "", processingTime);
+    private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDepublished, String processingTime) {
+        return createStormTaskTuple(taskId, resource, markAsDepublished, "", processingTime);
   }
 
-  private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDeleted, String resultResource, String processingTime) {
+    private CommonTaskTuple createStormTaskTuple(long taskId, String resource, boolean markAsDepublished, String resultResource, String processingTime) {
     CommonTaskTuple tuple = new CommonTaskTuple();
     tuple.setTaskId(taskId);
-    tuple.setMarkedAsDeleted(markAsDeleted);
+        tuple.setMarkedAsDepublished(markAsDepublished);
       tuple.setRecordUri(resource);
       tuple.addParameter(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, processingTime);
     tuple.addParameter(PluginParameterKeys.OUTPUT_URL, resultResource);

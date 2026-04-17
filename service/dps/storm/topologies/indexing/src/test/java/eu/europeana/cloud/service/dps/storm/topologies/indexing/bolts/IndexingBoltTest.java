@@ -10,9 +10,9 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
-import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
@@ -257,7 +257,7 @@ class IndexingBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PREVIEW";
     CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
-    tuple.setMarkedAsDeleted(true);
+    tuple.setMarkedAsDepublished(true);
     mockIndexer();
 
     indexingBolt.execute(anchorTuple, tuple);
@@ -298,7 +298,7 @@ class IndexingBoltTest {
     Tuple anchorTuple = mock(TupleImpl.class);
     String targetIndexingEnv = "PUBLISH";
     CommonTaskTuple tuple = mockStormTupleFor(targetIndexingEnv);
-    tuple.setMarkedAsDeleted(true);
+    tuple.setMarkedAsDepublished(true);
     mockIndexer();
 
     indexingBolt.execute(anchorTuple, tuple);
