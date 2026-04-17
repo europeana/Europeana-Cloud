@@ -45,4 +45,40 @@ public final class TaskInfoConverter {
             .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION))
             .build();
   }
+
+    /**
+     * Converts database row to the {@link TaskInfo} class instance.
+     *
+     * @param row database row that will be converted
+     * @return {@link TaskInfo} class instance generated based on the provided row.
+     */
+    public static TaskInfo fromDBRowBackwardCompatible(Row row) {
+        return TaskInfo.builder()
+                .id(row.getLong(CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID))
+                .topologyName(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_TOPOLOGY_NAME))
+                .state(EngineTaskState.valueOf(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE)))
+                .stateDescription(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_STATE_DESCRIPTION))
+                .sentTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_SENT_TIMESTAMP))
+                .startTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP))
+                .finishTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP))
+                .expectedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER))
+                .successRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT))
+                .warningRecords(-1)
+                .failRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
+                .duplicateRecords(-1)
+                .unchangedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT))
+                .processedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT)
+                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT)
+                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT)
+                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
+                .postProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT))
+                .expectedPostProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER))
+                .expectedDepublishRecords(-1)
+                .successDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                .failDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT))
+                .processedDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT)
+                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION))
+                .build();
+    }
 }

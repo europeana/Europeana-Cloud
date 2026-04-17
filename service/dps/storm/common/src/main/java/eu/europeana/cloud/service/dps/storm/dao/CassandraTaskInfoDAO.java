@@ -29,6 +29,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
 
   private static CassandraTaskInfoDAO instance = null;
   private PreparedStatement taskSearchStatement;
+    private PreparedStatement taskSearchBackwardCompatibleStatement;
   private PreparedStatement taskInsertStatement;
   private PreparedStatement updateCounters;
   private PreparedStatement finishTask;
@@ -72,6 +73,12 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
             + "FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
             + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
     );
+
+      taskSearchBackwardCompatibleStatement = dbService.getSession().prepare(
+              "SELECT * "
+                      + "FROM " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE_BACKWARD_COMPATIBLE
+                      + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+      );
 
 
     updateCounters = dbService.getSession().prepare(
@@ -181,8 +188,14 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
    */
   public Optional<TaskInfo> findById(long taskId)
       throws NoHostAvailableException, QueryExecutionException {
-    return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one())
+      Optional<TaskInfo> taskInfoOptional = Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one())
                    .map(TaskInfoConverter::fromDBRow);
+      //If result present in new table then return, otherwise check old table
+      if (taskInfoOptional.isPresent()) {
+          return taskInfoOptional;
+      }
+      return Optional.ofNullable(dbService.getSession().execute(taskSearchBackwardCompatibleStatement.bind(taskId)).one())
+              .map(TaskInfoConverter::fromDBRowBackwardCompatible);
   }
 
 
