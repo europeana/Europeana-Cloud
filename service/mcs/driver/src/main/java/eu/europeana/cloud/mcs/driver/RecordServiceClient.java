@@ -1,35 +1,12 @@
 package eu.europeana.cloud.mcs.driver;
 
-import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
-import static eu.europeana.cloud.common.web.ParamConstants.*;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_UPLOAD_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
-
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
-import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-
+import eu.europeana.cloud.service.mcs.exception.*;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.GenericType;
@@ -41,6 +18,16 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
+
+import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
+import static eu.europeana.cloud.common.web.ParamConstants.*;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 
 /**
  * Exposes API related for records.
@@ -191,14 +178,14 @@ public class RecordServiceClient extends MCSClient {
    * @param providerId provider of this representation version (required)
    * @param version representation's version
    * @param datasetId id of dataset that representation belongs to
-   * @param markDeleted whether or no should set representation version deleted flag
+   * @param markDepublished whether or no should set representation version deleted flag
    * @return URI to the created representation
    * @throws ProviderNotExistsException when no provider with given id exists
    * @throws RecordNotExistsException when cloud id is not known to UIS Service
    * @throws MCSException on unexpected situations
    */
   public URI createRepresentation(String cloudId, String representationName, String providerId, UUID version,
-      String datasetId, boolean markDeleted) throws MCSException {
+                                  String datasetId, boolean markDepublished) throws MCSException {
     var form = new Form();
     form.param(PROVIDER_ID, providerId);
     form.param(DATA_SET_ID, datasetId);
@@ -210,7 +197,7 @@ public class RecordServiceClient extends MCSClient {
                     .path(REPRESENTATION_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .queryParam(MARK_DELETED, markDeleted)
+                .queryParam(MARK_DEPUBLISHED, markDepublished)
                     .request())
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
@@ -243,7 +230,7 @@ public class RecordServiceClient extends MCSClient {
                     .path(REPRESENTATION_RESOURCE)
                     .resolveTemplate(CLOUD_ID, cloudId)
                     .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .queryParam(MARK_DELETED)
+                    .queryParam(MARK_DEPUBLISHED)
                     .request())
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );

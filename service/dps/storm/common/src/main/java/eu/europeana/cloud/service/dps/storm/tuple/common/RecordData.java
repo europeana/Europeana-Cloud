@@ -1,15 +1,11 @@
 package eu.europeana.cloud.service.dps.storm.tuple.common;
 
-import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 @Setter
 @Getter
@@ -20,7 +16,7 @@ public class RecordData implements Serializable {
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     byte[] fileData;
     String recordUri;
-    boolean markedAsDeleted;
+    boolean markedAsDepublished;
 
     public RecordData(String recordUri, byte[] fileData) {
         this.recordUri = recordUri;
@@ -28,9 +24,9 @@ public class RecordData implements Serializable {
     }
 
 
-    public RecordData(String recordUri, byte[] fileData, boolean markedAsDeleted) {
+    public RecordData(String recordUri, byte[] fileData, boolean markedAsDepublished) {
         this(recordUri, fileData);
-        this.markedAsDeleted = markedAsDeleted;
+        this.markedAsDepublished = markedAsDepublished;
     }
 
     public ByteArrayInputStream getFileByteDataAsStream() {

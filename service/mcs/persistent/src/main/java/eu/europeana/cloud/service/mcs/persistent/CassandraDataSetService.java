@@ -81,7 +81,7 @@ public class CassandraDataSetService implements DataSetService {
    * @param schema representation schema
    * @param version representation version (might be null if newest version is to be assigned)
    */
-  public void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDeleted)
+  public void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDepublished)
       throws NoHostAvailableException, QueryExecutionException {
 
     Date now = Calendar.getInstance().getTime();
@@ -98,7 +98,7 @@ public class CassandraDataSetService implements DataSetService {
     }
     bucketsHandler.increaseBucketCount(DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS, bucket);
 
-    dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId, markDeleted);
+      dataSetDAO.addAssignment(providerId, dataSetId, bucket.getBucketId(), recordId, schema, now, versionId, markDepublished);
   }
 
   public void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName,

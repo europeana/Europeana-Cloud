@@ -239,8 +239,8 @@ public class MCSTaskSubmitter {
   }
 
   private TaskRecordCounters submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
-                                                     SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
-    if (markedAsDeleted) {
+                                                                    SubmitTaskParameters submitParameters, boolean markedAsDepublished) {
+    if (markedAsDepublished) {
       return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
     } else {
       return submitRecordsForFileObjects(representationRevision.getFiles(), submitParameters);
@@ -251,7 +251,7 @@ public class MCSTaskSubmitter {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
-    if (representation.isMarkDeleted()){
+    if (representation.isMarkDepublished()) {
       return submitRecordForDeletedRepresentation(representation.getUri(), submitParameters);
     } else {
       return submitRecordsForFileObjects(representation.getFiles(), submitParameters);
@@ -288,13 +288,13 @@ public class MCSTaskSubmitter {
   }
 
 
-  private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDeleted) {
+  private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDepublished) {
     DpsTask task = submitParameters.getTask();
     DpsRecord aRecord = DpsRecord.builder()
                                  .taskId(task.getTaskId())
                                  .metadataPrefix(submitParameters.getSchemaName())
                                  .recordId(fileUrl)
-                                 .markedAsDeleted(markedAsDeleted)
+            .markedAsDepublished(markedAsDepublished)
                                  .build();
 
     boolean increaseCounter = recordSubmitService.submitRecord(aRecord, submitParameters);

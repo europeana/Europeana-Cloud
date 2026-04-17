@@ -1,11 +1,8 @@
 package eu.europeana.cloud.service.dps;
 
+import lombok.*;
+
 import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Builder
 @Getter
@@ -19,5 +16,5 @@ public class DpsRecord implements Serializable {
   private long taskId;
   private String recordId;
   private String metadataPrefix;
-  private boolean markedAsDeleted;
+    private boolean markedAsDepublished;
 }

@@ -511,8 +511,8 @@ class MCSTaskSubmitterTest {
 
               submitter.execute(submitParameters);
 
-              verifyValidTaskSent(REPRESENTATION_URI_STRING_1);
-              assertTrue(recordCaptor.getValue().isMarkedAsDeleted());
+              verifyValidTaskSentDeleted(REPRESENTATION_URI_STRING_1);
+              assertTrue(recordCaptor.getValue().isMarkedAsDepublished());
             });
   }
 
@@ -543,6 +543,12 @@ class MCSTaskSubmitterTest {
     verifyValidStateAndExpectedSizeSavedInCassandra(fileUrls);
   }
 
+  private void verifyValidTaskSentDeleted(String... fileUrls) {
+    verifyValidRecordsSentToKafka(fileUrls);
+    verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(fileUrls);
+  }
+
+
   private void verifyValidRecordsSentToKafka(String[] fileUrls) {
     verify(recordKafkaSubmitService, times(fileUrls.length)).submitRecord(recordCaptor.capture(), anyString());
     for (int i = 0; i < fileUrls.length; i++) {
@@ -554,6 +560,10 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-      verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, EngineTaskState.QUEUED, fileUrls.length);
+    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, fileUrls.length, 0);
+  }
+
+  private void verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(String[] fileUrls) {
+    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, 0, fileUrls.length);
   }
 }

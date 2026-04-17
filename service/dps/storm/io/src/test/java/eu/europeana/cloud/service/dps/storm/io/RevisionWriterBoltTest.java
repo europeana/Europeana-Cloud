@@ -7,8 +7,8 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -77,7 +77,7 @@ class RevisionWriterBoltTest {
         Tuple anchorTuple = mock(TupleImpl.class);
         RevisionWriterBolt testMock = Mockito.spy(revisionWriterBolt);
         CommonTaskTuple commonTaskTuple = prepareTuple();
-        commonTaskTuple.setMarkedAsDeleted(true);
+        commonTaskTuple.setMarkedAsDepublished(true);
 
         testMock.execute(anchorTuple, commonTaskTuple);
 

@@ -29,7 +29,7 @@ public final class DiagnosticContextWrapper {
   public static void putValuesFrom(DpsRecord dpsRecord) {
     MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(dpsRecord.getTaskId()));
     MDC.put(RECORD_ID_CONTEXT_ATTR, String.valueOf(dpsRecord.getRecordId()));
-    MDC.put(RECORD_DELETED_CONTEXT_ATTR, Boolean.toString(dpsRecord.isMarkedAsDeleted()));
+      MDC.put(RECORD_DELETED_CONTEXT_ATTR, Boolean.toString(dpsRecord.isMarkedAsDepublished()));
   }
 
   public static void clear() {

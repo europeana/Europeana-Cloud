@@ -46,7 +46,7 @@ public interface DataSetService {
    */
   void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
 
-  void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDeleted);
+    void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDepublished);
 
   /**
    * Removes representation assignment from data set.

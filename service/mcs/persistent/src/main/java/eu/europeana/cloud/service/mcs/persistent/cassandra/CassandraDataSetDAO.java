@@ -119,10 +119,10 @@ public class CassandraDataSetDAO {
    * @param versionId representation version
    */
   public void addAssignment(String providerId, String dataSetId, String bucketId, String recordId, String schema, Date now,
-      UUID versionId, boolean markDeleted) {
+                            UUID versionId, boolean markDepublished) {
     String providerDataSetId = createProviderDataSetId(providerId, dataSetId);
     BoundStatement boundStatement = addAssignmentStatement.bind(
-        providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now, markDeleted);
+            providerDataSetId, UUID.fromString(bucketId), schema, recordId, versionId, now, markDepublished);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }

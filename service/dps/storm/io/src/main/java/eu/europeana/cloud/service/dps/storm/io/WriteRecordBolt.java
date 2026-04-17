@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
@@ -17,10 +16,8 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -32,8 +29,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
 
 /**
  * Stores a Record on the cloud.
@@ -81,7 +76,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private boolean shouldNewRepresentationBeCreated(CommonTaskTuple tuple) {
     if (!isRevisionProvided(tuple.getOutputRevision())) return true;
 
-    if (tuple.isMarkedAsDeleted()) {
+      if (tuple.isMarkedAsDepublished()) {
       return false;
     }
 
@@ -203,7 +198,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   }
 
   protected URI uploadFileInNewRepresentation(CommonTaskTuple commonTaskTuple, RecordWriteParams writeParams) throws Exception {
-    if (commonTaskTuple.isMarkedAsDeleted()) {
+      if (commonTaskTuple.isMarkedAsDepublished()) {
       return createRepresentation(writeParams);
     } else {
       return createRepresentationAndUploadFile(commonTaskTuple, writeParams);

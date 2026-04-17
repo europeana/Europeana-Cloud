@@ -10,8 +10,8 @@ import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.task.OutputCollector;
@@ -120,7 +120,7 @@ class WriteRecordBoltTest {
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
-        tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+        tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
         tuple.setMessageProcessingStartTimeInMs(1);
         tuple.setOutputDataset(OUTPUT_DATASET);
         when(outputCollector.emit(anyList())).thenReturn(null);
@@ -156,7 +156,7 @@ class WriteRecordBoltTest {
       tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
       tuple.setOutputDataset(OUTPUT_DATASET);
       tuple.setMessageProcessingStartTimeInMs(1);
-      tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+      tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
       when(outputCollector.emit(anyList())).thenReturn(null);
       Representation representation = mock(Representation.class);
       when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
@@ -190,7 +190,7 @@ class WriteRecordBoltTest {
       tuple.setOutputDataset(OUTPUT_DATASET);
       tuple.setSentDate(SENT_DATE);
       tuple.setMessageProcessingStartTimeInMs(1);
-      tuple.addParameter(PluginParameterKeys.MARKED_AS_DELETED, "true");
+      tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
       when(outputCollector.emit(anyList())).thenReturn(null);
       Representation representation = mock(Representation.class);
       when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
