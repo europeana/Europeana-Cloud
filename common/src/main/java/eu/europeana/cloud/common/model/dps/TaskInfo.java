@@ -24,7 +24,7 @@ public class TaskInfo {
   private Date startTimestamp;
   private Date finishTimestamp;
   @Delegate
-  private EngineTaskProgress engineTaskProgress = new EngineTaskProgress();
+  private EcloudTaskProgress ecloudTaskProgress = new EcloudTaskProgress();
 
   private TaskInfo(long id, String topologyName, Date sentTimestamp, Date startTimestamp, Date finishTimestamp, String definition) {
     this.id = id;
