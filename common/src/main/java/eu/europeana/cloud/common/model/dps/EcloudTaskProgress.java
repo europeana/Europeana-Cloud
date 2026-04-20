@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class EngineTaskProgress {
+public class EcloudTaskProgress {
 
     // The total number of expected records excluding deleted records.
     private int expectedRecords;

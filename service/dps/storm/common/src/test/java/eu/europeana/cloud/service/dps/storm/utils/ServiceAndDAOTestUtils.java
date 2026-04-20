@@ -45,7 +45,7 @@ public class ServiceAndDAOTestUtils {
 
   public static void createAndStoreTaskInfo(CassandraTaskInfoDAO taskInfoDAO) {
     TaskInfo exampleTaskInfo = new TaskInfo();
-    exampleTaskInfo.setEngineTaskProgress(new EngineTaskProgress());
+    exampleTaskInfo.setEcloudTaskProgress(new EcloudTaskProgress());
     exampleTaskInfo.setId(TASK_ID);
     exampleTaskInfo.setEngineTaskState(EngineTaskState.QUEUED);
     exampleTaskInfo.setTopologyName(TOPOLOGY_NAME);

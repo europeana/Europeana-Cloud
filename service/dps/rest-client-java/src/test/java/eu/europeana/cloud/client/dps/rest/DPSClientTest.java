@@ -196,7 +196,7 @@ class DPSClientTest {
                     + "<startTimestamp>1970-01-01T00:00:02.000Z</startTimestamp>"
                     + "<finishTimestamp>1970-01-01T00:00:03.000Z</finishTimestamp>"
 
-                    + "<engineTaskProgress>"
+                    + "<ecloudTaskProgress>"
                     + "<expectedRecords>10</expectedRecords>"
                     + "<successRecords>5</successRecords>"
                     + "<warningRecords>1</warningRecords>"
@@ -215,7 +215,7 @@ class DPSClientTest {
 
                     + "<engineTaskState>PROCESSED</engineTaskState>"
                     + "<engineTaskStateInfo>done</engineTaskStateInfo>"
-                    + "</engineTaskProgress>"
+                    + "</ecloudTaskProgress>"
 
                     + "<definition>definition-json</definition>"
                     + "</taskInfo>"
