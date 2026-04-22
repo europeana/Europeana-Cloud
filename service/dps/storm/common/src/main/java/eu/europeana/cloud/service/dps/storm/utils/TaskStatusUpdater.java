@@ -99,9 +99,9 @@ public class TaskStatusUpdater {
     taskInfoDAO.updateStatusExpectedRecordsAndExpectedDepublishSize(taskId, state, expectedRecords, expectedDepublishSize);
   }
 
-  public void updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(long taskId, int expectedPostProcessedRecords, int expectedDepublishRecords) {
+  public void updatePostProcessedRecordsAndExpectedDepublishRecords(long taskId, int expectedPostProcessedRecords, int expectedDepublishRecords) {
     LOGGER.info("Updating task {} expected postprocessed records to: {}, expected depublish records to: {}", taskId, expectedPostProcessedRecords, expectedDepublishRecords);
-    taskInfoDAO.updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(taskId, expectedPostProcessedRecords, expectedDepublishRecords);
+    taskInfoDAO.updatePostProcessedRecordsAndExpectedDepublishRecords(taskId, expectedPostProcessedRecords, expectedDepublishRecords);
 
   }
 

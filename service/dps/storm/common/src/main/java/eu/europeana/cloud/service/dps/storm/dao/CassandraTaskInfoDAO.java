@@ -35,7 +35,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
   private PreparedStatement finishTask;
   private PreparedStatement updateStatusExpectedRecordsStatement;
   private PreparedStatement updateStatusExpectedRecordsAndExpectedDepublishRecordsStatement;
-  private PreparedStatement updateExpectedPostProcessedRecordsAndExpectedDepublishRecordsStatement;
+  private PreparedStatement updatePostProcessedRecordsAndExpectedDepublishRecordsStatement;
   private PreparedStatement updateStateStatement;
   private PreparedStatement updateSubmitParameters;
   private PreparedStatement updatePostProcessedRecordsCount;
@@ -137,9 +137,9 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                     + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
     );
 
-    updateExpectedPostProcessedRecordsAndExpectedDepublishRecordsStatement = dbService.getSession().prepare(
+    updatePostProcessedRecordsAndExpectedDepublishRecordsStatement = dbService.getSession().prepare(
             "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
-                    + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS + " = ? ,"
+                    + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS + " = ? ,"
                     + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_DEPUBLISH_RECORDS + " = ? "
                     + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
     );
@@ -290,10 +290,10 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
             .bind(String.valueOf(state), expectedSize, expectedDepublishSize, taskId));
   }
 
-  public void updateExpectedPostProcessedRecordsAndExpectedDepublishRecords(long taskId, int expectedPostProcessedRecords, int expectedDepublishSize)
+  public void updatePostProcessedRecordsAndExpectedDepublishRecords(long taskId, int postProcessedRecords, int expectedDepublishSize)
           throws NoHostAvailableException, QueryExecutionException {
-    dbService.getSession().execute(updateExpectedPostProcessedRecordsAndExpectedDepublishRecordsStatement
-            .bind(expectedPostProcessedRecords, expectedDepublishSize, taskId));
+    dbService.getSession().execute(updatePostProcessedRecordsAndExpectedDepublishRecordsStatement
+            .bind(postProcessedRecords, expectedDepublishSize, taskId));
   }
 
   public void updateState(long taskId, EngineTaskState state, String info) {
