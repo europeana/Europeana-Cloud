@@ -30,10 +30,7 @@ import org.mockito.quality.Strictness;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -196,7 +193,7 @@ class MCSTaskSubmitterTest {
 
       submitter.execute(submitParameters);
 
-        verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, EngineTaskState.QUEUED, 1);
+      verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, 1, 0);
     });
   }
 

@@ -277,7 +277,6 @@ public class MCSTaskSubmitter {
 
     for (String fileUrl : fileUrls) {
       checkIfTaskIsKilled(submitParameters.getTask());
-      ;
       if (submitRecord(fileUrl, submitParameters, false)) {
         baseCounter.merge(TaskRecordCounters.expectRecord());
       }

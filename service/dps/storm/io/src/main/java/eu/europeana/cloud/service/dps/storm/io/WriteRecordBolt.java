@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
+import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
@@ -18,6 +19,7 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
+import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
+
+import static eu.europeana.cloud.service.dps.PluginParameterKeys.CLOUD_ID;
 
 /**
  * Stores a Record on the cloud.
@@ -128,14 +132,14 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
   private Representation getRepresentation(CommonTaskTuple commonTaskTuple) throws MCSException {
     return RetryableMethodExecutor.executeOnRest("Error while getting provider id", () ->
-        recordServiceClient.getRepresentation(commonTaskTuple.getParameter(PluginParameterKeys.CLOUD_ID),
+            recordServiceClient.getRepresentation(commonTaskTuple.getParameter(CLOUD_ID),
             commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
             commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION)));
   }
 
   private void prepareEmittedTuple(CommonTaskTuple commonTaskTuple) {
     commonTaskTuple.setFileData((byte[]) null);
-    commonTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
+    commonTaskTuple.getParameters().remove(CLOUD_ID);
     commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
     commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
   }
@@ -167,8 +171,8 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
   private String obtainCloudId(CommonTaskTuple tuple) throws MalformedURLException {
     String cloudId;
-    if (tuple.ifParametersContainsKey(PluginParameterKeys.CLOUD_ID)) {
-      cloudId = tuple.getParameter(PluginParameterKeys.CLOUD_ID);
+    if (tuple.ifParametersContainsKey(CLOUD_ID)) {
+      cloudId = tuple.getParameter(CLOUD_ID);
     } else {
       String fileUrl = tuple.getRecordUri();
       UrlParser urlParser = new UrlParser(fileUrl);
@@ -178,7 +182,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         throw new MalformedURLException("URI doesn't contain cloud Id!");
       }
     }
-    tuple.addParameter(cloudId, PluginParameterKeys.CLOUD_ID);
+    tuple.addParameter(cloudId, CLOUD_ID);
     return cloudId;
   }
 

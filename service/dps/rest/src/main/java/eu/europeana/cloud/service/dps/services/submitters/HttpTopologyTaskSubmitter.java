@@ -128,7 +128,7 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
       if (expectedCount == 0) {
         taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
       } else {
-          taskStatusUpdater.updateStatusExpectedSize(dpsTask.getTaskId(), EngineTaskState.QUEUED, expectedCount);
+        taskStatusUpdater.updateStatusExpectedRecords(dpsTask.getTaskId(), EngineTaskState.QUEUED, expectedCount);
       }
     }
   }
