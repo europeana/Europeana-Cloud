@@ -28,7 +28,6 @@ public final class CassandraTablesAndColumnsNames {
   public static final String TASK_INFO_SUCCESS_RECORDS = "processed_records";
   public static final String TASK_INFO_WARNING_RECORDS = "warning_records";
   public static final String TASK_INFO_FAIL_RECORDS = "fail_records";
-  public static final String TASK_INFO_DELETED_RECORDS = "deleted_records";
   public static final String TASK_INFO_DUPLICATE_RECORDS = "duplicate_records";
   public static final String TASK_INFO_UNCHANGED_RECORDS = "unchanged_records";
   public static final String TASK_INFO_PROCESSED_RECORDS = "success_records";
