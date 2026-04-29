@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ecloud-parent</artifactId>
         <groupId>eu.europeana.cloud</groupId>
-        <version>16-SNAPSHOT</version>
+        <version>16</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>test-common</artifactId>
