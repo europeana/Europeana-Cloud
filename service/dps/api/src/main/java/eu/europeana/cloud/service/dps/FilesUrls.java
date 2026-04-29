@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Definition of the DpsTask direct file list input
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

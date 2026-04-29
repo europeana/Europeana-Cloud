@@ -1,5 +1,7 @@
 package eu.europeana.cloud.common.model.dps;
 
+import lombok.Getter;
+
 /**
  * Created by Tarek on 4/4/2016.
  */
@@ -36,13 +38,10 @@ public enum EngineTaskState {
   READY_FOR_POST_PROCESSING("Ready for post-processing after topology stage is finished"),
   IN_POST_PROCESSING("Task in post-processing");
 
+  @Getter
   private final String defaultMessage;
 
     EngineTaskState(String s) {
     this.defaultMessage = s;
-  }
-
-  public String getDefaultMessage() {
-    return defaultMessage;
   }
 }

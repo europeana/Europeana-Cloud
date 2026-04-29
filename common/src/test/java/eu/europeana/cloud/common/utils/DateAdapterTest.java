@@ -32,7 +32,7 @@ class DateAdapterTest {
 
     @Test
     void shouldDeSerializeTheDateSuccessfully() {
-        assertEquals(dateAdapter.marshal(DATE), DATE_STRING);
+        assertEquals(DATE_STRING, dateAdapter.marshal(DATE));
     }
 
     @Test
