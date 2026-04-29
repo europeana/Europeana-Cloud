@@ -2,6 +2,7 @@ package eu.europeana.cloud.common.model;
 
 import eu.europeana.cloud.common.utils.DateAdapter;
 import eu.europeana.cloud.common.utils.Tags;
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Date;
@@ -38,6 +39,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Revision implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = 1L;
 
   private String revisionName;
@@ -49,15 +51,29 @@ public class Revision implements Serializable {
 
   boolean deleted;
 
+  /**
+   * Customization of lombok builder
+   */
   public static class RevisionBuilder {
 
+    @SuppressWarnings("java:1068")
     private Date creationTimeStamp;
 
+    /**
+     * Set revision creation timestamp
+     * @param creationTimeStamp - date String in ISO format
+     * @return this builder
+     */
     public RevisionBuilder creationTimeStamp(String creationTimeStamp) {
       creationTimeStamp(Date.from(Instant.parse(creationTimeStamp)));
       return this;
     }
 
+    /**
+     * Set revision creation timestamp
+     * @param creationTimeStamp - date
+     * @return this builder
+     */
     public RevisionBuilder creationTimeStamp(Date creationTimeStamp) {
       this.creationTimeStamp = creationTimeStamp;
       return this;

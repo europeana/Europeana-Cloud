@@ -244,7 +244,7 @@ public class TopologyTasksResource {
     return result;
   }
 
-  private static void validateAndCompleteParametersSetByServer(DpsTask task) {
+  private void validateAndCompleteParametersSetByServer(DpsTask task) {
     if (task.getTaskId() != 0) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Sent task entity with already set task id. Id should be empty and is set by server!");
