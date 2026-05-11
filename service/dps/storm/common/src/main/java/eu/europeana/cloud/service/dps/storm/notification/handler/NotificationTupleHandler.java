@@ -58,7 +58,7 @@ public class NotificationTupleHandler {
     //
     if (tupleShouldBeProcessed(taskId, resource)) {
       config.getNotificationCacheEntry().incrementCounters(notificationTuple);
-      Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getProcessed());
+      Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getTotalProcessed());
       List<BoundStatement> statementsToBeExecutedInBatch = new ArrayList<>();
 
       statementsToBeExecutedInBatch.addAll(prepareCommonStatementsForAllTuples(notification, config.getNotificationCacheEntry()));
@@ -104,9 +104,9 @@ public class NotificationTupleHandler {
             nCache.getDuplicateRecords(),
             nCache.getUnchangedRecords(),
             nCache.getProcessedRecords(),
-            nCache.getDepublishedProcessedRecords(),
-            nCache.getDepublishedSuccessRecords(),
-            nCache.getDepublishedFailRecords()));
+            nCache.getProcessedDepublishRecords(),
+            nCache.getSuccessDepublishRecords(),
+            nCache.getFailDepublishRecords()));
     statementsToBeExecuted.add(taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTimeStatement(
         notification.getTaskId(), Instant.now()
     ));

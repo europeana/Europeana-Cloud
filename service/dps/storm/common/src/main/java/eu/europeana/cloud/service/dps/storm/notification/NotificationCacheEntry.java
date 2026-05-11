@@ -20,28 +20,28 @@ public class NotificationCacheEntry {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NotificationCacheEntry.class);
 
-  private int processed;
+  private int totalProcessed;
   private int successRecords;
   private int warningRecords;
   private int failRecords;
-  private int depublishedSuccessRecords;
-  private int depublishedFailRecords;
-  private int depublishedProcessedRecords;
   private int duplicateRecords;
   private int unchangedRecords;
   private int processedRecords;
-  private int expectedRecords;
+
+  private int successDepublishRecords;
+  private int failDepublishRecords;
+  private int processedDepublishRecords;
   Map<String, ErrorType> errorTypes;
 
   public void incrementCounters(NotificationTuple notificationTuple) {
-    processed++;
+    totalProcessed++;
 
     boolean depublished = notificationTuple.isMarkedAsDepublished();
 
     if (isErrorTuple(notificationTuple)) {
       if (depublished) {
-        depublishedProcessedRecords++;
-        depublishedFailRecords++;
+        processedDepublishRecords++;
+        failDepublishRecords++;
       } else {
         processedRecords++;
         failRecords++;
@@ -52,8 +52,8 @@ public class NotificationCacheEntry {
     }
 
     if (depublished) {
-      depublishedProcessedRecords++;
-      depublishedSuccessRecords++;
+      processedDepublishRecords++;
+      successDepublishRecords++;
       return;
     }
 
@@ -90,5 +90,9 @@ public class NotificationCacheEntry {
         key -> ErrorType.builder()
                         .uuid(new com.eaio.uuid.UUID().toString())
                         .build());
+  }
+
+  public boolean isCacheEmpty() {
+    return totalProcessed == 0;
   }
 }

@@ -6,7 +6,7 @@ import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
-import eu.europeana.cloud.service.dps.storm.notification.NotificationEntryCacheBuilder;
+import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntryBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfigBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationTupleHandler;
@@ -23,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 
 /**
  * This bolt is responsible for store notifications to Cassandra.
@@ -45,7 +43,7 @@ public class NotificationBolt extends BaseRichBolt {
 
   protected String topologyName;
   private transient NotificationTupleHandler notificationTupleHandler;
-  private transient NotificationEntryCacheBuilder notificationEntryCacheBuilder;
+  private transient NotificationCacheEntryBuilder notificationCacheEntryBuilder;
   private transient BatchExecutor batchExecutor;
 
   /**
@@ -107,7 +105,7 @@ public class NotificationBolt extends BaseRichBolt {
     ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
     TasksByStateDAO tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
-    notificationEntryCacheBuilder = new NotificationEntryCacheBuilder(subTaskInfoDAO, taskInfoDAO, taskErrorDAO);
+    notificationCacheEntryBuilder = new NotificationCacheEntryBuilder(subTaskInfoDAO, taskInfoDAO, taskErrorDAO);
     batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
     topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
     notificationTupleHandler = new NotificationTupleHandler(
@@ -130,21 +128,17 @@ public class NotificationBolt extends BaseRichBolt {
   private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {
     var cachedCounters = cache.get(notificationTuple.getTaskId());
     if (cachedCounters == null) {
-      cachedCounters = notificationEntryCacheBuilder.build(notificationTuple.getTaskId());
+      cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
       cache.put(notificationTuple.getTaskId(), cachedCounters);
     } else {
-      cachedCounters = updateExpectedRecordsNumberIfNeeded(cachedCounters, notificationTuple.getTaskId());
-      cache.put(notificationTuple.getTaskId(), cachedCounters);
+      if (cachedCounters.isCacheEmpty()) {
+        cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
+        cache.put(notificationTuple.getTaskId(), cachedCounters);
+      }
     }
     return cachedCounters;
   }
 
-  private NotificationCacheEntry updateExpectedRecordsNumberIfNeeded(NotificationCacheEntry cachedCounters, long taskId) {
-    if (cachedCounters.getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
-      return notificationEntryCacheBuilder.build(taskId);
-    }
-    return cachedCounters;
-  }
 
   private void prepareDiagnosticContext(NotificationTuple stormTaskTuple) {
     DiagnosticContextWrapper.putValuesFrom(stormTaskTuple);
