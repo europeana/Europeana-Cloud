@@ -120,6 +120,7 @@ public class UnfinishedTasksExecutor {
                                                      "The task is in a pending mode, it is being processed before submission")
                                                  .definition(taskInfo.getDefinition())
                                        .expectedRecords(taskInfo.getExpectedRecords())
+                                       .expectedDepublishRecords(taskInfo.getExpectedDepublishRecords())
                                                  .build())
                                .task(dpsTask)
                                .restarted(true).build();
