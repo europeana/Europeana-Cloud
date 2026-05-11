@@ -241,7 +241,7 @@ public class TopologyTasksResource {
                               .topologyName(topologyName)
                               .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
                               .stateDescription(
-                                      "The task has been created, but not started yet")
+                                      "The task is in a pending mode, it is being processed before submission")
                               .sentTimestamp(new Date())
                               .finishTimestamp(null)
                               .expectedRecords(
