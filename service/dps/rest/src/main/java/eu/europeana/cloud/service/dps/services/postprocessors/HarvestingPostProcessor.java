@@ -121,7 +121,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
-    int expectedDepublishRecordCount = 0;
+    int expectedAndSuccessDepublishRecordCount = 0;
     while (it.hasNext()) {
       taskStatusChecker.checkNotDropped(dpsTask);
       var harvestedRecord = it.next();
@@ -134,8 +134,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         createPostProcessedRecord(dpsTask, harvestedRecord);
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
-        expectedDepublishRecordCount++;
-        taskStatusUpdater.updatePostProcessedRecordsAndExpectedDepublishRecords(dpsTask.getTaskId(), postProcessedRecordsCount, expectedDepublishRecordCount);
+        expectedAndSuccessDepublishRecordCount++;
+        taskStatusUpdater.updatePostProcessedRecordsAndExpectedAndSuccessDepublishRecords(dpsTask.getTaskId(), postProcessedRecordsCount, expectedAndSuccessDepublishRecordCount);
         LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
         LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
