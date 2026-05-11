@@ -21,11 +21,14 @@ import lombok.NoArgsConstructor;
 @Data
 public class EcloudTaskProgress {
 
-    // The total number of expected records excluding deleted records.
+    // --- Regular processing related record counters ---
+
+    // The total number of expected records to be processed excluding deleted records.
     private int expectedRecords;
-    // The total number of records processed so far excluding deleted records and including ignored records if applicable.
+    // The total number of records processed so far excluding depublish related records.
+    // Note: Depublish record numbers are contained in different counter group.
     private int successRecords;
-    // The total number of records processed that resulted in at least one report containing WARN type message
+    // The total number of records processed that resulted in at least one report containing WARN type message.
     private int warningRecords;
     // The number of records containing errors encountered so far.
     private int failRecords;
@@ -37,18 +40,28 @@ public class EcloudTaskProgress {
     // Total number of processed records so far.
     // Should be equal to successRecords + failRecords + unchangedRecords + duplicateRecords
     private int processedRecords;
-    // Total number of post processed records so far
-    private int postProcessedRecords;
-    // The number of post processed records.
-    private int expectedPostProcessedRecords;
-    // The number of depublish records.
+
+    // --- Depublish related record counters ---
+    // Be aware those counters were previously deleted!
+    // Old name could be still used somewhere in code!
+
+    // The total number of expected depublish records.
     private int expectedDepublishRecords;
     // The number of successfully depublished records so far.
     private int successDepublishRecords;
     // The number of unsuccessfully depublished records so far.
     private int failDepublishRecords;
     // The number of depublished records so far.
+    // Should be equal to successDepublishRecords + failDepublishRecords
     private int processedDepublishRecords;
+
+    // --- Postprocessing related record counters ---
+    // Those are currently for technical side of ecloud and are not used in Metis UI!
+
+    // The number of expected post processed records.
+    private int expectedPostProcessedRecords;
+    // Total number of post processed records so far
+    private int postProcessedRecords;
 
 
 
