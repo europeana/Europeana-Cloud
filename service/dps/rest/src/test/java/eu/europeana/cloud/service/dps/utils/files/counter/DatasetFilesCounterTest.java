@@ -67,8 +67,7 @@ class DatasetFilesCounterTest {
                 .expectedRecords(EXPECTED_SIZE)
                 .processedRecords(EXPECTED_SIZE)
                 .successRecords(EXPECTED_SIZE)
-                .successDepublishRecords(10)
-                .postProcessedRecords(10)
+                .successDepublishRecords(20)
                 .failRecords(0)
                                 .sentTimestamp(new Date())
                                 .startTimestamp(new Date())
@@ -77,7 +76,7 @@ class DatasetFilesCounterTest {
     when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
     dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
     int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
-    assertEquals(EXPECTED_SIZE + 10 + 10, expectedFilesCount);
+        assertEquals(EXPECTED_SIZE + 20, expectedFilesCount);
   }
 
     @Test
