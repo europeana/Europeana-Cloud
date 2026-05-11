@@ -9,9 +9,7 @@ package eu.europeana.cloud.common.model.dps;
 //NOTE2: expectedPostProcessedRecordsNumber is missing from there? Is that intentional?
 //NOTE3: postProcessedRecordsCount got suffix Count in it, it is not aligned with other variable names
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * Contains execution progress information of a task.
@@ -19,6 +17,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Getter
+@Setter
 public class EcloudTaskProgress {
 
     // --- Regular processing related record counters ---
@@ -70,101 +70,4 @@ public class EcloudTaskProgress {
     private EngineTaskState engineTaskState;
 
     private String engineTaskStateInfo;
-
-    public int getDuplicateRecords() {
-        return duplicateRecords;
-    }
-
-    public void setDuplicateRecords(int duplicateRecords) {
-        this.duplicateRecords = duplicateRecords;
-    }
-
-    public int getWarningRecords() {
-        return warningRecords;
-    }
-
-    public void setWarningRecords(int warningRecords) {
-        this.warningRecords = warningRecords;
-    }
-
-    public int getExpectedDepublishRecords() {
-        return expectedDepublishRecords;
-    }
-
-    public void setExpectedDepublishRecords(int expectedDepublishRecords) {
-        this.expectedDepublishRecords = expectedDepublishRecords;
-    }
-
-    public int getFailDepublishRecords() {
-        return failDepublishRecords;
-    }
-
-    public void setFailDepublishRecords(int failDepublishRecords) {
-        this.failDepublishRecords = failDepublishRecords;
-    }
-
-    public int getExpectedRecords() {
-        return expectedRecords;
-    }
-
-    public void setExpectedRecords(int expectedRecords) {
-        this.expectedRecords = expectedRecords;
-    }
-
-    public int getSuccessRecords() {
-        return successRecords;
-    }
-
-    public void setSuccessRecords(int successRecords) {
-        this.successRecords = successRecords;
-    }
-
-    public int getUnchangedRecords() {
-        return unchangedRecords;
-    }
-
-    public void setUnchangedRecords(int unchangedRecords) {
-        this.unchangedRecords = unchangedRecords;
-    }
-
-    public int getSuccessDepublishRecords() {
-        return successDepublishRecords;
-    }
-
-    public void setSuccessDepublishRecords(int successDepublishRecords) {
-        this.successDepublishRecords = successDepublishRecords;
-    }
-
-    public int getFailRecords() {
-        return failRecords;
-    }
-
-    public void setFailRecords(int failRecords) {
-        this.failRecords = failRecords;
-    }
-
-
-    public EngineTaskState getEngineTaskState() {
-        return engineTaskState;
-    }
-
-    public void setEngineTaskState(EngineTaskState engineTaskState) {
-        this.engineTaskState = engineTaskState;
-    }
-
-    public String getEngineTaskStateInfo() {
-        return engineTaskStateInfo;
-    }
-
-    public void setEngineTaskStateInfo(String engineTaskStateInfo) {
-        this.engineTaskStateInfo = engineTaskStateInfo;
-    }
-
-    public int getPostProcessedRecords() {
-        return postProcessedRecords;
-    }
-
-    public void setPostProcessedRecords(int postProcessedRecords) {
-        this.postProcessedRecords = postProcessedRecords;
-    }
 }
