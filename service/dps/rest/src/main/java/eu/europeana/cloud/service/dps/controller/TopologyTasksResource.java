@@ -254,7 +254,7 @@ public class TopologyTasksResource {
                               .unchangedRecords(0)
                               .processedRecords(0)
                               .postProcessedRecords(0)
-                              .expectedPostProcessedRecords(0)
+                              .expectedPostProcessedRecords(TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
                               .successDepublishRecords(0)
                               .failDepublishRecords(0)
                               .processedDepublishRecords(0)
