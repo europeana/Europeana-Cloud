@@ -175,7 +175,6 @@
         <version.metis>17-SNAPSHOT</version.metis>
         <version.metis.normalization>17-SNAPSHOT</version.metis.normalization>
         <version.metis.common>19-SNAPSHOT</version.metis.common>
-        <version.metis.core>15-SNAPSHOT</version.metis.core>
 
         <!-- -->
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
