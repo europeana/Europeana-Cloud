@@ -4,7 +4,7 @@ public final class CassandraTablesAndColumnsNames {
 
   //------- TABLES -------
   public static final String TASK_INFO_TABLE = "task_info_v2";
-    public static final String TASK_INFO_TABLE_BACKWARD_COMPATIBLE = "task_info_v2";
+  public static final String TASK_INFO_TABLE_BACKWARD_COMPATIBLE = "task_info";
   public static final String NOTIFICATIONS_TABLE = "notifications";
   public static final String ERROR_NOTIFICATIONS_TABLE = "error_notifications";
   public static final String ERROR_TYPES_TABLE = "error_types";
@@ -25,12 +25,12 @@ public final class CassandraTablesAndColumnsNames {
   public static final String TASK_INFO_START_TIMESTAMP = "start_timestamp";
   public static final String TASK_INFO_FINISH_TIMESTAMP = "finish_timestamp";
   public static final String TASK_INFO_EXPECTED_RECORDS = "expected_records";
-  public static final String TASK_INFO_SUCCESS_RECORDS = "processed_records";
+  public static final String TASK_INFO_SUCCESS_RECORDS = "success_records";
   public static final String TASK_INFO_WARNING_RECORDS = "warning_records";
   public static final String TASK_INFO_FAIL_RECORDS = "fail_records";
   public static final String TASK_INFO_DUPLICATE_RECORDS = "duplicate_records";
   public static final String TASK_INFO_UNCHANGED_RECORDS = "unchanged_records";
-  public static final String TASK_INFO_PROCESSED_RECORDS = "success_records";
+  public static final String TASK_INFO_PROCESSED_RECORDS = "processed_records";
   public static final String TASK_INFO_POST_PROCESSED_RECORDS = "post_processed_records";
   public static final String TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS = "expected_post_processed_records";
   public static final String TASK_INFO_EXPECTED_DEPUBLISH_RECORDS = "expected_depublish_records";
