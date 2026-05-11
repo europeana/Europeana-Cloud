@@ -92,11 +92,11 @@ public class TaskStatusUpdater {
     taskInfoDAO.updateStatusExpectedRecords(taskId, state, expectedRecords);
   }
 
-  public void updateStatusExpectedRecordsAndExpectedDepublishRecords(long taskId, EngineTaskState state, int expectedRecords, int expectedDepublishSize)
+  public void updateStatusExpectedRecordsAndExpectedDepublishRecords(long taskId, EngineTaskState state, ExpectedCounters expectedCounters)
           throws NoHostAvailableException, QueryExecutionException {
-    LOGGER.info("Updating task {} expected records to: {}, expected depublish records to: {}", taskId, expectedRecords, expectedDepublishSize);
+    LOGGER.info("Updating task {} expected records to: {}, expected depublish records to: {}", taskId, expectedCounters.getExpectedRecords(), expectedCounters.getExpectedDepublishRecords());
     updateTasksByTaskStateTable(taskId, state);
-    taskInfoDAO.updateStatusExpectedRecordsAndExpectedDepublishSize(taskId, state, expectedRecords, expectedDepublishSize);
+    taskInfoDAO.updateStatusExpectedRecordsAndExpectedDepublishSize(taskId, state, expectedCounters.getExpectedRecords(), expectedCounters.getExpectedDepublishRecords());
   }
 
   public void updatePostProcessedRecordsAndExpectedDepublishRecords(long taskId, int expectedPostProcessedRecords, int expectedDepublishRecords) {

@@ -15,10 +15,7 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
-import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
-import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
+import eu.europeana.cloud.service.dps.storm.utils.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -193,7 +190,7 @@ class MCSTaskSubmitterTest {
 
       submitter.execute(submitParameters);
 
-      verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, 1, 0);
+      verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, new ExpectedCounters(1, 0));
     });
   }
 
@@ -557,10 +554,10 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, fileUrls.length, 0);
+    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, new ExpectedCounters(fileUrls.length, 0));
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, 0, fileUrls.length);
+    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(TASK_ID, EngineTaskState.QUEUED, new ExpectedCounters(0, fileUrls.length));
   }
 }
