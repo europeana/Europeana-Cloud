@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.conversion.TaskInfoConverter;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Date;
 import java.util.Optional;
@@ -188,14 +189,17 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
    */
   public Optional<TaskInfo> findById(long taskId)
       throws NoHostAvailableException, QueryExecutionException {
-      Optional<TaskInfo> taskInfoOptional = Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one())
-                   .map(TaskInfoConverter::fromDBRow);
-      //If result present in new table then return, otherwise check old table
-      if (taskInfoOptional.isPresent()) {
-          return taskInfoOptional;
-      }
-      return Optional.ofNullable(dbService.getSession().execute(taskSearchBackwardCompatibleStatement.bind(taskId)).one())
-              .map(TaskInfoConverter::fromDBRowBackwardCompatible);
+    return getTaskInfoFromNewTable(taskId).or(() -> getTaskInfoFromOldTable(taskId));
+  }
+
+  private @NonNull Optional<TaskInfo> getTaskInfoFromOldTable(long taskId) {
+    return Optional.ofNullable(dbService.getSession().execute(taskSearchBackwardCompatibleStatement.bind(taskId)).one())
+            .map(TaskInfoConverter::fromDBRowBackwardCompatible);
+  }
+
+  private @NonNull Optional<TaskInfo> getTaskInfoFromNewTable(long taskId) {
+    return Optional.ofNullable(dbService.getSession().execute(taskSearchStatement.bind(taskId)).one())
+            .map(TaskInfoConverter::fromDBRow);
   }
 
 
