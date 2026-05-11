@@ -15,6 +15,6 @@ public final class TaskCountersAggregator {
    * @return 'expected_records_number' for the next topology
    */
   public static int recordsDesignedForTheFurtherProcessing(TaskInfo taskInfo) {
-      return taskInfo.getSuccessRecords() + taskInfo.getSuccessDepublishRecords() + taskInfo.getPostProcessedRecords();
+    return taskInfo.getSuccessRecords() + taskInfo.getSuccessDepublishRecords();
   }
 }
