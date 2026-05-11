@@ -70,6 +70,8 @@ public class TaskInfo {
   @XmlTransient
   public boolean isProcessedOnStorm() {
     return (getSuccessRecords() + getUnchangedRecords() + getFailRecords() + getDuplicateRecords())
-            == getExpectedRecords();
+            == getExpectedRecords()
+            && (getSuccessDepublishRecords() + getFailDepublishRecords()
+            == getExpectedDepublishRecords());
   }
 }

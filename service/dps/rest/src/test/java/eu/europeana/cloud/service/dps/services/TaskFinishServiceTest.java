@@ -51,8 +51,10 @@ class TaskFinishServiceTest {
     void shouldMarkQueuedTaskAsCompletedWhenAllRecordsProcessedAndTaskDoesNotNeedPostprocessing() {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(60).
-                successRecords(30).unchangedRecords(20).failRecords(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED)
+                .expectedRecords(60).successRecords(30).unchangedRecords(20).failRecords(10)
+                .expectedDepublishRecords(30).successDepublishRecords(20).failDepublishRecords(10)
+                .build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
 
         service.execute();
@@ -65,8 +67,10 @@ class TaskFinishServiceTest {
             throws IOException {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(60).
-                successRecords(30).unchangedRecords(20).failRecords(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED)
+                .expectedRecords(60).successRecords(30).unchangedRecords(20).failRecords(10)
+                .expectedDepublishRecords(30).successDepublishRecords(20).failDepublishRecords(10)
+                .build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
         when(postProcessingService.needsPostprocessing(any(), any())).thenReturn(true);
 
@@ -80,8 +84,10 @@ class TaskFinishServiceTest {
     void shouldIgnoreQueuedTaskIfNotAllRecordsProcessed() {
         TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
         when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
-        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED).expectedRecords(61).
-                successRecords(30).unchangedRecords(20).failRecords(10).build();
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED)
+                .expectedRecords(61).successRecords(30).unchangedRecords(20).failRecords(10)
+                .expectedDepublishRecords(30).successDepublishRecords(20).failDepublishRecords(10)
+                .build();
         when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
 
         service.execute();
@@ -89,5 +95,22 @@ class TaskFinishServiceTest {
         verifyNoInteractions(taskStatusUpdater);
         verifyNoInteractions(postProcessingService);
   }
+
+    @Test
+    void shouldIgnoreQueuedTaskIfNotAllRecordsDepublished() {
+        TaskByTaskState taskByState = TaskByTaskState.builder().id(TASK_ID).state(QUEUED).applicationId(APPLICATION_ID).build();
+        when(tasksByStateDAO.findTasksByState(Collections.singletonList(QUEUED))).thenReturn(Collections.singletonList(taskByState));
+        TaskInfo taskInfo = TaskInfo.builder().id(TASK_ID).state(QUEUED)
+                .expectedDepublishRecords(30).successDepublishRecords(20).failDepublishRecords(10)
+                .expectedRecords(60).successRecords(30).unchangedRecords(20).failRecords(10)
+                .expectedDepublishRecords(31).successDepublishRecords(20).failDepublishRecords(10)
+                .build();
+        when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
+
+        service.execute();
+
+        verifyNoInteractions(taskStatusUpdater);
+        verifyNoInteractions(postProcessingService);
+    }
 
 }
