@@ -67,7 +67,7 @@ public abstract class HarvestedRecordCategorizationBolt extends AbstractDpsBolt 
 
   private void ignoreRecordAsNotChanged(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
       CategorizationResult categorizationResult) {
-    emitIgnoredNotification(
+    emitUnchangedNotification(
             anchorTuple,
             commonTaskTuple,
             "Record ignored.",

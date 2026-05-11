@@ -129,7 +129,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     }
 
     @Test
-    void shouldProperlyExecuteIgnoredRecordTuple() throws Exception {
+    void shouldProperlyExecuteUnchangedRecordTuple() throws Exception {
         insertTaskToDB(TASK_ID, TOPOLOGY_NAME, 1, EngineTaskState.QUEUED, "");
         NotificationTuple notificationTuple = NotificationTuple.prepareNotification(createStormTaskTuple(TASK_ID, RESOURCE_1, false),
                 RecordState.SUCCESS, "", "");

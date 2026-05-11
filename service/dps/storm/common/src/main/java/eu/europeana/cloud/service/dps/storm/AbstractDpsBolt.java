@@ -203,8 +203,8 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     emitSuccessNotification(anchorTuple, commonTaskTuple, "", "");
   }
 
-  protected void emitIgnoredNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
-                                         String message, String additionalInformation) {
+  protected void emitUnchangedNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
+                                           String message, String additionalInformation) {
     NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     tuple.addParameter(PluginParameterKeys.UNCHANGED_RECORD, "true");
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
