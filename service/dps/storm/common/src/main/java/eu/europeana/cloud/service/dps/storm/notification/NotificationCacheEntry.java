@@ -36,44 +36,48 @@ public class NotificationCacheEntry {
   public void incrementCounters(NotificationTuple notificationTuple) {
     processed++;
 
-    if (notificationTuple.isMarkedAsDepublished()) {
-      if (isErrorTuple(notificationTuple)) {
-        LOGGER.error("Tuple is marked as deleted and error in the same time! It should not occur. Tuple: {}"
-                , notificationTuple);
+    boolean depublished = notificationTuple.isMarkedAsDepublished();
+
+    if (isErrorTuple(notificationTuple)) {
+      if (depublished) {
+        depublishedProcessedRecords++;
         depublishedFailRecords++;
       } else {
-        depublishedSuccessRecords++;
-      }
-      depublishedProcessedRecords++;
-    } else if (notificationTuple.isUnchangedRecord()) {
-      if (isErrorTuple(notificationTuple)) {
-        LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
-                , notificationTuple);
-      } else {
-        unchangedRecords++;
         processedRecords++;
-      }
-    } else if (notificationTuple.isDuplicatedRecord()) {
-      if (isErrorTuple(notificationTuple)) {
-        LOGGER.error("Tuple is marked as duplicate and error in the same time! It should not occur. Tuple: {}"
-                , notificationTuple);
-      } else {
-        duplicateRecords++;
-        processedRecords++;
-      }
-    } else {
-      processedRecords++;
-      if (isErrorTuple(notificationTuple)) {
         failRecords++;
-      } else {
-        if (notificationTuple.getReportSet()
-                .stream().anyMatch(report ->
-                        report.getMessageType() == Type.WARN)) {
-          warningRecords++;
-        }
-        successRecords++;
       }
+
+      LOGGER.error("Tuple is marked as error!");
+      return;
     }
+
+    if (depublished) {
+      depublishedProcessedRecords++;
+      depublishedSuccessRecords++;
+      return;
+    }
+
+    processedRecords++;
+
+    if (notificationTuple.isUnchangedRecord()) {
+      unchangedRecords++;
+      return;
+    }
+
+    if (notificationTuple.isDuplicatedRecord()) {
+      duplicateRecords++;
+      return;
+    }
+
+    boolean hasWarnings = notificationTuple.getReportSet()
+            .stream()
+            .anyMatch(report -> report.getMessageType() == Type.WARN);
+
+    if (hasWarnings) {
+      warningRecords++;
+    }
+
+    successRecords++;
   }
 
   private boolean isErrorTuple(NotificationTuple notificationTuple) {
