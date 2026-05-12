@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.notification;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskErrorsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
-import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,6 @@ public class NotificationCacheEntryBuilder {
   private final CassandraTaskErrorsDAO taskErrorDAO;
 
   public NotificationCacheEntryBuilder(
-      NotificationsDAO subTaskInfoDAO,
       CassandraTaskInfoDAO taskInfoDAO,
       CassandraTaskErrorsDAO taskErrorDAO) {
 

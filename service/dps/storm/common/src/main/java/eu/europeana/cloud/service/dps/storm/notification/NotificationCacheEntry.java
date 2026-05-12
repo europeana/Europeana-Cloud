@@ -91,8 +91,4 @@ public class NotificationCacheEntry {
                         .uuid(new com.eaio.uuid.UUID().toString())
                         .build());
   }
-
-  public boolean isCacheEmpty() {
-    return totalProcessed == 0;
-  }
 }

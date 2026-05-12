@@ -135,7 +135,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
         expectedAndSuccessDepublishRecordCount++;
-        taskStatusUpdater.updatePostProcessedRecordsAndExpectedAndSuccessDepublishRecords(dpsTask.getTaskId(), postProcessedRecordsCount, expectedAndSuccessDepublishRecordCount);
+        taskStatusUpdater.updatePostProcessingAndDepublishCounters(dpsTask.getTaskId(), postProcessedRecordsCount, expectedAndSuccessDepublishRecordCount);
         LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
         LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,

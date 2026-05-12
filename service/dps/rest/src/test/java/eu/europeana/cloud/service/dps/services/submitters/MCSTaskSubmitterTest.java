@@ -193,7 +193,7 @@ class MCSTaskSubmitterTest {
 
       submitter.execute(submitParameters);
 
-      verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(
+      verify(taskStatusUpdater).updateStatusAndExpected(
               eq(TASK_ID),
               eq(EngineTaskState.QUEUED),
               argThat(counters ->
@@ -564,7 +564,7 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(
+    verify(taskStatusUpdater).updateStatusAndExpected(
             eq(TASK_ID),
             eq(EngineTaskState.QUEUED),
             argThat(counters ->
@@ -575,7 +575,7 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedRecordsAndExpectedDepublishRecords(
+    verify(taskStatusUpdater).updateStatusAndExpected(
             eq(TASK_ID),
             eq(EngineTaskState.QUEUED),
             argThat(counters ->

@@ -74,7 +74,7 @@ public class MCSTaskSubmitter {
 
       checkIfTaskIsKilled(task);
       if (!expectedCounters.areEmpty()) {
-        taskStatusUpdater.updateStatusExpectedRecordsAndExpectedDepublishRecords(task.getTaskId(), EngineTaskState.QUEUED, expectedCounters);
+        taskStatusUpdater.updateStatusAndExpected(task.getTaskId(), EngineTaskState.QUEUED, expectedCounters);
         LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", expectedCounters.getExpectedRecords(), task.getTaskId());
       } else {
         taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because it is empty");

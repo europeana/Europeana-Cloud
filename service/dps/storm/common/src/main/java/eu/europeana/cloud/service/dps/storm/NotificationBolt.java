@@ -101,11 +101,10 @@ public class NotificationBolt extends BaseRichBolt {
             hosts, port, keyspaceName, userName, password);
 
     CassandraTaskInfoDAO taskInfoDAO = CassandraTaskInfoDAO.getInstance(cassandraConnectionProvider);
-    NotificationsDAO subTaskInfoDAO = NotificationsDAO.getInstance(cassandraConnectionProvider);
     ProcessedRecordsDAO processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     CassandraTaskErrorsDAO taskErrorDAO = CassandraTaskErrorsDAO.getInstance(cassandraConnectionProvider);
     TasksByStateDAO tasksByStateDAO = TasksByStateDAO.getInstance(cassandraConnectionProvider);
-    notificationCacheEntryBuilder = new NotificationCacheEntryBuilder(subTaskInfoDAO, taskInfoDAO, taskErrorDAO);
+    notificationCacheEntryBuilder = new NotificationCacheEntryBuilder(taskInfoDAO, taskErrorDAO);
     batchExecutor = BatchExecutor.getInstance(cassandraConnectionProvider);
     topologyName = (String) stormConf.get(Config.TOPOLOGY_NAME);
     notificationTupleHandler = new NotificationTupleHandler(
@@ -126,16 +125,8 @@ public class NotificationBolt extends BaseRichBolt {
   }
 
   private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {
-    var cachedCounters = cache.get(notificationTuple.getTaskId());
-    if (cachedCounters == null) {
-      cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
-      cache.put(notificationTuple.getTaskId(), cachedCounters);
-    } else {
-      if (cachedCounters.isCacheEmpty()) {
-        cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
-        cache.put(notificationTuple.getTaskId(), cachedCounters);
-      }
-    }
+    var cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
+    cache.put(notificationTuple.getTaskId(), cachedCounters);
     return cachedCounters;
   }
 
