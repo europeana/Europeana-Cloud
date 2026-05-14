@@ -41,6 +41,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
   private PreparedStatement updateSubmitParameters;
   private PreparedStatement updatePostProcessedRecordsCount;
   private PreparedStatement updateExpectedPostProcessedRecordsNumber;
+  private PreparedStatement updateExpectedDepublishAndPostprocessedRecordsNumber;
 
   /**
    * @param dbService The service exposing the connection and session
@@ -141,7 +142,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
     updatePostProcessingAndDepublishCounters = dbService.getSession().prepare(
             "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
                     + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS + " = ? ,"
-                    + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_DEPUBLISH_RECORDS + " = ? ,"
+                    + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_DEPUBLISH_RECORDS + " = ? ,"
                     + CassandraTablesAndColumnsNames.TASK_INFO_SUCCESS_DEPUBLISH_RECORDS + " = ? "
                     + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
     );
@@ -179,6 +180,13 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
         "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
                 + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS + " = ?"
                 + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
+    );
+
+    updateExpectedDepublishAndPostprocessedRecordsNumber = prepare(
+            "UPDATE " + CassandraTablesAndColumnsNames.TASK_INFO_TABLE
+                    + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_DEPUBLISH_RECORDS + " = ?,"
+                    + " SET " + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS + " = ?"
+                    + " WHERE " + CassandraTablesAndColumnsNames.TASK_INFO_TASK_ID + " = ?"
     );
   }
 
@@ -280,6 +288,11 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
   public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber)
       throws NoHostAvailableException, QueryExecutionException {
     dbService.getSession().execute(updateExpectedPostProcessedRecordsNumber.bind(expectedPostProcessedRecordsNumber, taskId));
+  }
+
+  public void updateExpectedDepublishAndPostprocessedRecordsNumber(long taskId, int expectedDepublishAndPostProcessedRecordsNumber)
+          throws NoHostAvailableException, QueryExecutionException {
+    dbService.getSession().execute(updateExpectedDepublishAndPostprocessedRecordsNumber.bind(expectedDepublishAndPostProcessedRecordsNumber, expectedDepublishAndPostProcessedRecordsNumber, taskId));
   }
 
 

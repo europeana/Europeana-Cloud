@@ -99,9 +99,9 @@ public class TaskStatusUpdater {
     taskInfoDAO.updateStatusAndExpected(taskId, state, expectedCounters.getExpectedRecords(), expectedCounters.getExpectedDepublishRecords());
   }
 
-  public void updatePostProcessingAndDepublishCounters(long taskId, int expectedPostProcessedRecords, int expectedAndSuccessDepublishRecords) {
-    LOGGER.info("Updating task {} expected postprocessed records to: {}, expected depublish records to: {}", taskId, expectedPostProcessedRecords, expectedAndSuccessDepublishRecords);
-    taskInfoDAO.updatePostProcessingAndDepublishCounters(taskId, expectedPostProcessedRecords, expectedAndSuccessDepublishRecords);
+  public void updatePostProcessingAndDepublishCounters(long taskId, int expectedPostProcessedRecords, int processedAndSuccessDepublishRecords) {
+    LOGGER.info("Updating task {} expected postprocessed records to: {}, expected depublish records to: {}", taskId, expectedPostProcessedRecords, processedAndSuccessDepublishRecords);
+    taskInfoDAO.updatePostProcessingAndDepublishCounters(taskId, expectedPostProcessedRecords, processedAndSuccessDepublishRecords);
 
   }
 
@@ -140,6 +140,10 @@ public class TaskStatusUpdater {
 
   public void updateExpectedPostProcessedRecordsNumber(long taskId, int expectedPostProcessedRecordsNumber) {
     taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
+  }
+
+  public void updateExpectedDepublishAndPostprocessedRecordsNumber(long taskId, int expectedDepublishAndPostProcessedRecordsNumber) {
+    taskInfoDAO.updateExpectedDepublishAndPostprocessedRecordsNumber(taskId, expectedDepublishAndPostProcessedRecordsNumber);
   }
 
   public void updateSubmitParameters(SubmitTaskParameters parameters) {
