@@ -80,7 +80,7 @@ public class Representation {
     /**
      * Indicator whether this is deleted representation version or no.
      */
-    private boolean markDeleted;
+    private boolean markDepublished;
     /**
      * A list of revisions which constitute this representation.
      */
@@ -110,7 +110,7 @@ public class Representation {
      * @param datasetId          dataset identifier
      */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId, boolean markDeleted) {
+                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -123,7 +123,7 @@ public class Representation {
         this.persistent = persistent;
         this.creationDate = creationDate;
         this.datasetId = datasetId;
-        this.markDeleted = markDeleted;
+        this.markDepublished = markDepublished;
     }
 
 
@@ -136,7 +136,7 @@ public class Representation {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
                 cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(),
-                representation.getCreationDate(), representation.getDatasetId(), representation.isMarkDeleted());
+                representation.getCreationDate(), representation.getDatasetId(), representation.isMarkDepublished());
     }
 
     private static List<File> cloneFiles(Representation representation) {
@@ -281,13 +281,12 @@ public class Representation {
     }
 
 
-
-    public boolean isMarkDeleted() {
-        return markDeleted;
+    public boolean isMarkDepublished() {
+        return markDepublished;
     }
 
-    public void setMarkDeleted(boolean markDeleted) {
-        this.markDeleted = markDeleted;
+    public void setMarkDepublished(boolean markDepublished) {
+        this.markDepublished = markDepublished;
     }
 
     /**

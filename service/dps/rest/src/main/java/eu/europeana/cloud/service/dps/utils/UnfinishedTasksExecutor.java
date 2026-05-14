@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -12,25 +12,26 @@ import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
 /**
- * This component will check all tasks with status TaskState.PROCESSING_BY_REST_APPLICATION
- * ({@link eu.europeana.cloud.common.model.dps.TaskState}) and start harvesting again for them.
+ * This component will check all tasks with status EngineTaskState.PROCESSING_BY_REST_APPLICATION
+ * ({@link EngineTaskState}) and start harvesting again for them.
  */
 @Service
 public class UnfinishedTasksExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UnfinishedTasksExecutor.class);
-  protected static final List<TaskState> RESUMABLE_TASK_STATES = Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION);
+    protected static final List<EngineTaskState> RESUMABLE_TASK_STATES = Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
 
   private final TasksByStateDAO tasksDAO;
   private final CassandraTaskInfoDAO taskInfoDAO;
@@ -114,11 +115,12 @@ public class UnfinishedTasksExecutor {
                                                  .sentTimestamp(taskInfo.getSentTimestamp())
                                                  .startTimestamp(new Date())
                                                  .topologyName(taskInfo.getTopologyName())
-                                                 .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+                                       .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
                                                  .stateDescription(
                                                      "The task is in a pending mode, it is being processed before submission")
                                                  .definition(taskInfo.getDefinition())
-                                                 .expectedRecordsNumber(taskInfo.getExpectedRecordsNumber())
+                                       .expectedRecords(taskInfo.getExpectedRecords())
+                                       .expectedDepublishRecords(taskInfo.getExpectedDepublishRecords())
                                                  .build())
                                .task(dpsTask)
                                .restarted(true).build();

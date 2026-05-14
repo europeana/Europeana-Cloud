@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.dps.storm.ErrorType;
 import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
+import eu.europeana.enrichment.rest.client.report.Type;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -19,38 +20,64 @@ public class NotificationCacheEntry {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NotificationCacheEntry.class);
 
-  private int processed;
-  private int processedRecordsCount;
-  private int ignoredRecordsCount;
-  private int deletedRecordsCount;
-  private int processedErrorsCount;
-  private int deletedErrorsCount;
-  private int expectedRecordsNumber;
+  private int totalProcessed;
+  private int successRecords;
+  private int warningRecords;
+  private int failRecords;
+  private int duplicateRecords;
+  private int unchangedRecords;
+  private int processedRecords;
+
+  private int successDepublishRecords;
+  private int failDepublishRecords;
+  private int processedDepublishRecords;
   Map<String, ErrorType> errorTypes;
 
   public void incrementCounters(NotificationTuple notificationTuple) {
-    processed++;
+    totalProcessed++;
 
-    if (notificationTuple.isMarkedAsDeleted()) {
-      deletedRecordsCount++;
-      if (isErrorTuple(notificationTuple)) {
-        deletedErrorsCount++;
-      }
-    } else if (notificationTuple.isIgnoredRecord()) {
-      if (isErrorTuple(notificationTuple)) {
-        LOGGER.error("Tuple is marked as ignored and error in the same time! It should not occur. Tuple: {}"
-            , notificationTuple);
-        processedRecordsCount++;
-        processedErrorsCount++;
+    boolean depublished = notificationTuple.isMarkedAsDepublished();
+
+    if (isErrorTuple(notificationTuple)) {
+      if (depublished) {
+        processedDepublishRecords++;
+        failDepublishRecords++;
       } else {
-        ignoredRecordsCount++;
+        processedRecords++;
+        failRecords++;
       }
-    } else {
-      processedRecordsCount++;
-      if (isErrorTuple(notificationTuple)) {
-        processedErrorsCount++;
-      }
+
+      LOGGER.error("Tuple is marked as error!");
+      return;
     }
+
+    if (depublished) {
+      processedDepublishRecords++;
+      successDepublishRecords++;
+      return;
+    }
+
+    processedRecords++;
+
+    if (notificationTuple.isUnchangedRecord()) {
+      unchangedRecords++;
+      return;
+    }
+
+    if (notificationTuple.isDuplicatedRecord()) {
+      duplicateRecords++;
+      return;
+    }
+
+    boolean hasWarnings = notificationTuple.getReportSet()
+            .stream()
+            .anyMatch(report -> report.getMessageType() == Type.WARN);
+
+    if (hasWarnings) {
+      warningRecords++;
+    }
+
+    successRecords++;
   }
 
   private boolean isErrorTuple(NotificationTuple notificationTuple) {

@@ -58,7 +58,7 @@ public class NotificationTupleHandler {
     //
     if (tupleShouldBeProcessed(taskId, resource)) {
       config.getNotificationCacheEntry().incrementCounters(notificationTuple);
-      Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getProcessed());
+      Notification notification = prepareNotification(notificationTuple, config.getNotificationCacheEntry().getTotalProcessed());
       List<BoundStatement> statementsToBeExecutedInBatch = new ArrayList<>();
 
       statementsToBeExecutedInBatch.addAll(prepareCommonStatementsForAllTuples(notification, config.getNotificationCacheEntry()));
@@ -98,11 +98,15 @@ public class NotificationTupleHandler {
 
     statementsToBeExecuted.add(subTaskInfoDAO.insertNotificationStatement(notification));
     statementsToBeExecuted.add(taskInfoDAO.updateProcessedFilesStatement(notification.getTaskId(),
-        nCache.getProcessedRecordsCount(),
-        nCache.getIgnoredRecordsCount(),
-        nCache.getDeletedRecordsCount(),
-        nCache.getProcessedErrorsCount(),
-        nCache.getDeletedErrorsCount()));
+            nCache.getSuccessRecords(),
+            nCache.getWarningRecords(),
+            nCache.getFailRecords(),
+            nCache.getDuplicateRecords(),
+            nCache.getUnchangedRecords(),
+            nCache.getProcessedRecords(),
+            nCache.getProcessedDepublishRecords(),
+            nCache.getSuccessDepublishRecords(),
+            nCache.getFailDepublishRecords()));
     statementsToBeExecuted.add(taskDiagnosticInfoDAO.updateLastRecordFinishedOnStormTimeStatement(
         notification.getTaskId(), Instant.now()
     ));
@@ -229,12 +233,12 @@ public class NotificationTupleHandler {
   }
 
   public List<BoundStatement> prepareStatementsForTupleContainingLastRecord(NotificationTuple notificationTuple,
-      TaskState newState, String message) {
+                                                                            EngineTaskState newState, String message) {
     List<BoundStatement> statementsToBeExecuted = new ArrayList<>();
 
     taskInfoDAO.findById(notificationTuple.getTaskId()).flatMap(
         task ->
-            tasksByStateDAO.findTask(task.getState(), topologyName, notificationTuple.getTaskId())).ifPresent(
+                tasksByStateDAO.findTask(task.getEngineTaskState(), topologyName, notificationTuple.getTaskId())).ifPresent(
         oldTaskState -> {
           statementsToBeExecuted.add(tasksByStateDAO.deleteStatement(
               oldTaskState.getState(), topologyName, notificationTuple.getTaskId()

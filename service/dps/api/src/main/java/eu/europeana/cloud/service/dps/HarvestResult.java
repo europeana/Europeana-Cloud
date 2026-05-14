@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +13,6 @@ import lombok.ToString;
 public class HarvestResult {
 
   private int resultCounter;
-  private TaskState taskState;
+    private EngineTaskState taskState;
 
 }

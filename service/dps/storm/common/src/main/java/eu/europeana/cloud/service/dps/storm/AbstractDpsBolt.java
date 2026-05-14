@@ -8,8 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
-import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -86,7 +86,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
         return;
       }
 
-      if (ignoreDeleted() && commonTaskTuple.isMarkedAsDeleted()) {
+      if (ignoreDeleted() && commonTaskTuple.isMarkedAsDepublished()) {
         LOGGER.debug("Ignoring and passing further delete record with taskId {} and parameters list : {}",
             commonTaskTuple.getTaskId(), commonTaskTuple.getParameters());
         outputCollector.emit(tuple, commonTaskTuple.toStormTuple());
@@ -203,10 +203,10 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     emitSuccessNotification(anchorTuple, commonTaskTuple, "", "");
   }
 
-  protected void emitIgnoredNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
-                                         String message, String additionalInformation) {
+  protected void emitUnchangedNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
+                                           String message, String additionalInformation) {
     NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
-    tuple.addParameter(PluginParameterKeys.IGNORED_RECORD, "true");
+    tuple.addParameter(PluginParameterKeys.UNCHANGED_RECORD, "true");
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 

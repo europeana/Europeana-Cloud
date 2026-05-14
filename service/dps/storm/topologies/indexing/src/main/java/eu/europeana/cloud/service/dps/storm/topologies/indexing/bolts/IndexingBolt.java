@@ -99,10 +99,10 @@ public class IndexingBolt extends AbstractDpsBolt {
       String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, commonTaskTuple.getRecordUri());
 
       boolean recordNotSuitableForPublication = false;
-      if (!commonTaskTuple.isMarkedAsDeleted()) {
+        if (!commonTaskTuple.isMarkedAsDepublished()) {
         recordNotSuitableForPublication = !indexRecord(commonTaskTuple, database, properties);
       }
-      boolean recordShouldBeDeleted = commonTaskTuple.isMarkedAsDeleted() || recordNotSuitableForPublication;
+        boolean recordShouldBeDeleted = commonTaskTuple.isMarkedAsDepublished() || recordNotSuitableForPublication;
 
       if (recordShouldBeDeleted) {
         removeIndexedRecord(commonTaskTuple, database, europeanaId);

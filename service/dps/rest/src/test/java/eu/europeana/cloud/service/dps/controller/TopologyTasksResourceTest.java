@@ -2,8 +2,8 @@ package eu.europeana.cloud.service.dps.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -53,10 +53,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.isA;
-import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -467,7 +467,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         harvestingDetails.setSchema("oai_dc");
         task.setHarvestingDetails(harvestingDetails);
         when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(
-                new HarvestResult(1, TaskState.PROCESSED));
+                new HarvestResult(1, EngineTaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
     ResultActions response = sendTask(task, OAI_TOPOLOGY);
@@ -727,11 +727,11 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription(EMPTY_STRING)
-                .expectedRecordsNumber(100)
-                .processedRecordsCount(100)
-                .processedErrorsCount(50)
+                .expectedRecords(100)
+                .processedRecords(100)
+                .failRecords(50)
                 .sentTimestamp(new Date())
                                 .startTimestamp(new Date())
                                 .finishTimestamp(new Date())

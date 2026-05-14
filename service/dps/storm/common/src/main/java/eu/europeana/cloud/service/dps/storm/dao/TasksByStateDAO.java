@@ -1,27 +1,21 @@
 package eu.europeana.cloud.service.dps.storm.dao;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_APP_ID_COL_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_START_TIME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_STATE_COL_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TABLE;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TASK_ID_COL_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TOPIC_NAME_COL_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASKS_BY_STATE_TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.TASK_INFO_STATE;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
+import org.apache.commons.lang3.EnumUtils;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.EnumUtils;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyDefaultsConstants.DPS_DEFAULT_MAX_ATTEMPTS;
+import static eu.europeana.cloud.service.dps.storm.utils.CassandraTablesAndColumnsNames.*;
 
 @Retryable(maxAttempts = DPS_DEFAULT_MAX_ATTEMPTS)
 public class TasksByStateDAO extends CassandraDAO {
@@ -105,38 +99,38 @@ public class TasksByStateDAO extends CassandraDAO {
 
   }
 
-  public void insert(TaskState state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
+    public void insert(EngineTaskState state, String topologyName, long taskId, String applicationId, String topicName, Date startTime) {
     dbService.getSession().execute(insertStatement(state, topologyName, taskId, applicationId, topicName, startTime));
   }
 
-  public BoundStatement insertStatement(TaskState state, String topologyName, long taskId, String applicationId, String topicName,
-      Date startTime) {
+    public BoundStatement insertStatement(EngineTaskState state, String topologyName, long taskId, String applicationId, String topicName,
+                                          Date startTime) {
     return insertStatement.bind(state.toString(), topologyName, taskId, applicationId, topicName, startTime);
   }
 
-  public void delete(TaskState state, String topologyName, long taskId) {
+    public void delete(EngineTaskState state, String topologyName, long taskId) {
     dbService.getSession().execute(deleteStatement(state, topologyName, taskId));
   }
 
-  public BoundStatement deleteStatement(TaskState state, String topologyName, long taskId) {
+    public BoundStatement deleteStatement(EngineTaskState state, String topologyName, long taskId) {
     return deleteStatement.bind(state.toString(), topologyName, taskId);
   }
 
-  public Optional<TaskByTaskState> findTask(TaskState state, String topologyName, long taskId) {
+    public Optional<TaskByTaskState> findTask(EngineTaskState state, String topologyName, long taskId) {
     var rs = dbService.getSession().execute(
         findTaskStatement.bind(state.toString(), topologyName, taskId)
     );
     return Optional.ofNullable(rs.one()).map(this::createTaskByTaskState);
   }
 
-  public List<TaskByTaskState> findTasksByState(List<TaskState> taskStates) {
+    public List<TaskByTaskState> findTasksByState(List<EngineTaskState> taskStates) {
     var rs = dbService.getSession().execute(
         findTasksByStateStatement.bind(taskStates.stream().map(Enum::toString).toList()
         ));
     return rs.all().stream().map(this::createTaskByTaskState).toList();
   }
 
-  public List<TaskByTaskState> findTasksByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+    public List<TaskByTaskState> findTasksByStateAndTopology(List<EngineTaskState> taskStates, String topologyName) {
     var rs = dbService.getSession().execute(
         findTasksByStateAndTopologyStatement.bind(
             taskStates.stream().map(Enum::toString).toList(),
@@ -146,7 +140,7 @@ public class TasksByStateDAO extends CassandraDAO {
     return rs.all().stream().map(this::createTaskByTaskState).toList();
   }
 
-  public Optional<TaskByTaskState> findTaskByState(List<TaskState> taskStates) {
+    public Optional<TaskByTaskState> findTaskByState(List<EngineTaskState> taskStates) {
     var rs = dbService.getSession().execute(
         findTaskByStateStatement.bind(
             taskStates.stream().map(Enum::toString).toList()
@@ -155,7 +149,7 @@ public class TasksByStateDAO extends CassandraDAO {
     return Optional.ofNullable(rs.one()).map(this::createTaskByTaskState);
   }
 
-  public Optional<TaskByTaskState> findTaskByStateAndTopology(List<TaskState> taskStates, String topologyName) {
+    public Optional<TaskByTaskState> findTaskByStateAndTopology(List<EngineTaskState> taskStates, String topologyName) {
     var rs = dbService.getSession().execute(
         findTaskByStateAndTopologyStatement.bind(
             taskStates.stream().map(Enum::toString).toList(),
@@ -168,7 +162,7 @@ public class TasksByStateDAO extends CassandraDAO {
 
   private TaskByTaskState createTaskByTaskState(Row row) {
     return TaskByTaskState.builder()
-                          .state(EnumUtils.getEnum(TaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)))
+            .state(EnumUtils.getEnum(EngineTaskState.class, row.getString(TASKS_BY_STATE_STATE_COL_NAME)))
                           .topologyName(row.getString(TASKS_BY_STATE_TOPOLOGY_NAME))
                           .id(row.getLong(TASKS_BY_STATE_TASK_ID_COL_NAME))
                           .applicationId(row.getString(TASKS_BY_STATE_APP_ID_COL_NAME))

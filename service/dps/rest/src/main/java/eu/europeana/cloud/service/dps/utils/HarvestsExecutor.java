@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
@@ -15,11 +15,12 @@ import eu.europeana.metis.harvesting.file.CloseableIterator;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import java.io.IOException;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Optional;
 
 @Service
 public class HarvestsExecutor {
@@ -85,11 +86,11 @@ public class HarvestsExecutor {
     if (taskDropped) {
       return HarvestResult.builder()
                           .resultCounter(resultCounter)
-                          .taskState(TaskState.DROPPED).build();
+              .taskState(EngineTaskState.DROPPED).build();
     }
     LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvestToBeExecuted, resultCounter);
 
-    return new HarvestResult(resultCounter, TaskState.QUEUED);
+      return new HarvestResult(resultCounter, EngineTaskState.QUEUED);
   }
 
   private int getMaxRecordsCount(SubmitTaskParameters parameters) {

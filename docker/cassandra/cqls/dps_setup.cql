@@ -1,6 +1,7 @@
 USE ecloud_dps;
 
-CREATE TABLE task_info (
+CREATE TABLE task_info
+(
     task_id                                bigint,
     topology_name                          varchar,
     state                                  varchar,
@@ -19,6 +20,33 @@ CREATE TABLE task_info (
     definition                             text,
     PRIMARY KEY (task_id)
 );
+
+CREATE TABLE task_info_v2
+(
+    task_id                         bigint,
+    topology_name                   varchar,
+    state                           varchar,
+    state_description               varchar,
+    sent_timestamp                  timestamp,
+    start_timestamp                 timestamp,
+    finish_timestamp                timestamp,
+    expected_records                int,
+    success_records                 int,
+    warning_records                 int,
+    fail_records                    int,
+    duplicate_records               int,
+    unchanged_records               int,
+    processed_records               int,
+    post_processed_records          int,
+    expected_post_processed_records int,
+    expected_depublish_records      int,
+    success_depublish_records       int,
+    fail_depublish_records          int,
+    processed_depublish_records     int,
+    definition                      text,
+    PRIMARY KEY (task_id)
+);
+
 
 CREATE TABLE task_diagnostic_info (
     task_id                            bigint,

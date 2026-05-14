@@ -16,10 +16,10 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
+import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -125,7 +125,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
   private CommonTaskTuple getStormTaskTupleFromMessage(DpsRecord message) {
     CommonTaskTuple commonTaskTuple = new CommonTaskTuple();
     commonTaskTuple.setTaskId(message.getTaskId());
-    commonTaskTuple.setMarkedAsDeleted(message.isMarkedAsDeleted());
+    commonTaskTuple.setMarkedAsDepublished(message.isMarkedAsDepublished());
     commonTaskTuple.setRecordUri(message.getRecordId());
     commonTaskTuple.setMessageProcessingStartTimeInMs(System.currentTimeMillis());
     return commonTaskTuple;
@@ -199,7 +199,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       var stormTaskTuple = new CommonTaskTuple(
               new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
                       DateHelper.format(taskInfo.getSentTimestamp())),
-              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDeleted()),
+              new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDepublished()),
               new ProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
       Map<String, String> parameters = dpsTask.getParameters();

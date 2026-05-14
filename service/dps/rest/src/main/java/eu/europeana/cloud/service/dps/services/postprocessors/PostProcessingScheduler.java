@@ -1,19 +1,20 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
-import static eu.europeana.cloud.common.log.AttributePassingUtils.runWithTaskIdLogAttr;
-import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
-import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
-
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import jakarta.annotation.PostConstruct;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import java.util.List;
+
+import static eu.europeana.cloud.common.log.AttributePassingUtils.runWithTaskIdLogAttr;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.IN_POST_PROCESSING;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.READY_FOR_POST_PROCESSING;
 
 /**
  * Component responsible for executing postprocessing for the tasks. It uses Scheduler for that.
@@ -71,7 +72,7 @@ public class PostProcessingScheduler {
     findTasksIn(List.of(IN_POST_PROCESSING)).forEach(this::resetTaskState);
   }
 
-  private List<TaskByTaskState> findTasksIn(List<TaskState> states) {
+    private List<TaskByTaskState> findTasksIn(List<EngineTaskState> states) {
     LOGGER.debug("Looking for tasks in {} state(s)...", states);
     List<TaskByTaskState> tasks = tasksByStateDAO.findTasksByState(states)
                                                  .stream().filter(task -> applicationId.equals(task.getApplicationId()))

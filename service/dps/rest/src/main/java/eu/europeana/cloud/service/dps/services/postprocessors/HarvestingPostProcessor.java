@@ -5,10 +5,10 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
@@ -28,16 +28,13 @@ import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.indexing.exception.IndexingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
-
-import eu.europeana.indexing.exception.IndexingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 
 /**
  * Service responsible for executing postprocessing for the OAI and HTTP tasks. It will be done in the following way: <br/>
@@ -103,12 +100,12 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   @Override
   public void executePostprocessing(TaskInfo taskInfo, DpsTask dpsTask) {
     try {
-      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - synchronizing existing records from Metis.");
       updateHarvestedRecordsTableWithRecordsExistingInMetis(dpsTask);
-      taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
+      taskStatusUpdater.updateExpectedDepublishAndPostprocessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
-      taskStatusUpdater.updateState(dpsTask.getTaskId(), TaskState.IN_POST_PROCESSING,
+      taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - adding removed records to result revision.");
       addDeletedRecordsToTaskResultRevision(dpsTask);
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
@@ -124,6 +121,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
+    int processedAndSuccessDepublishRecordCount = 0;
     while (it.hasNext()) {
       taskStatusChecker.checkNotDropped(dpsTask);
       var harvestedRecord = it.next();
@@ -131,11 +129,13 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         harvestedRecordsDAO.deleteRecord(harvestedRecord.getMetisDatasetId(), harvestedRecord.getRecordLocalId());
         LOGGER.info("Deleted: {}, cause it is not present in source and also it is not indexed in any environment, taskId={}"
             , harvestedRecord, dpsTask.getTaskId());
+        postProcessedRecordsCount++;
       } else if (!isRecordProcessed(dpsTask, harvestedRecord)) {
         createPostProcessedRecord(dpsTask, harvestedRecord);
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
-        taskStatusUpdater.updatePostProcessedRecordsCount(dpsTask.getTaskId(), postProcessedRecordsCount);
+        processedAndSuccessDepublishRecordCount++;
+        taskStatusUpdater.updatePostProcessingAndDepublishCounters(dpsTask.getTaskId(), postProcessedRecordsCount, processedAndSuccessDepublishRecordCount);
         LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
         LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,

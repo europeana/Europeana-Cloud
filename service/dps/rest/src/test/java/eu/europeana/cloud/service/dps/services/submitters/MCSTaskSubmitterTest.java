@@ -3,8 +3,8 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -193,7 +193,14 @@ class MCSTaskSubmitterTest {
 
       submitter.execute(submitParameters);
 
-      verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, 1);
+      verify(taskStatusUpdater).updateStatusAndExpected(
+              eq(TASK_ID),
+              eq(EngineTaskState.QUEUED),
+              argThat(counters ->
+                      counters.getExpectedRecords() == 1
+                              && counters.getExpectedDepublishRecords() == 0
+              )
+      );
     });
   }
 
@@ -508,8 +515,8 @@ class MCSTaskSubmitterTest {
 
               submitter.execute(submitParameters);
 
-              verifyValidTaskSent(REPRESENTATION_URI_STRING_1);
-              assertTrue(recordCaptor.getValue().isMarkedAsDeleted());
+              verifyValidTaskSentDeleted(REPRESENTATION_URI_STRING_1);
+              assertTrue(recordCaptor.getValue().isMarkedAsDepublished());
             });
   }
 
@@ -540,6 +547,12 @@ class MCSTaskSubmitterTest {
     verifyValidStateAndExpectedSizeSavedInCassandra(fileUrls);
   }
 
+  private void verifyValidTaskSentDeleted(String... fileUrls) {
+    verifyValidRecordsSentToKafka(fileUrls);
+    verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(fileUrls);
+  }
+
+
   private void verifyValidRecordsSentToKafka(String[] fileUrls) {
     verify(recordKafkaSubmitService, times(fileUrls.length)).submitRecord(recordCaptor.capture(), anyString());
     for (int i = 0; i < fileUrls.length; i++) {
@@ -551,6 +564,24 @@ class MCSTaskSubmitterTest {
   }
 
   private void verifyValidStateAndExpectedSizeSavedInCassandra(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusExpectedSize(TASK_ID, TaskState.QUEUED, fileUrls.length);
+    verify(taskStatusUpdater).updateStatusAndExpected(
+            eq(TASK_ID),
+            eq(EngineTaskState.QUEUED),
+            argThat(counters ->
+                    counters.getExpectedRecords() == fileUrls.length
+                            && counters.getExpectedDepublishRecords() == 0
+            )
+    );
+  }
+
+  private void verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(String[] fileUrls) {
+    verify(taskStatusUpdater).updateStatusAndExpected(
+            eq(TASK_ID),
+            eq(EngineTaskState.QUEUED),
+            argThat(counters ->
+                    counters.getExpectedRecords() == 0
+                            && counters.getExpectedDepublishRecords() == fileUrls.length
+            )
+    );
   }
 }

@@ -3,16 +3,17 @@ package eu.europeana.cloud.service.dps.storm.utils;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Inserts/update given task in db. Two tables are modified {@link CassandraTablesAndColumnsNames#TASK_INFO_TABLE} and
@@ -52,8 +53,8 @@ public class TaskStatusUpdater {
   public void insertTask(SubmitTaskParameters parameters) {
     long taskId = parameters.getTask().getTaskId();
     String topologyName = parameters.getTaskInfo().getTopologyName();
-    TaskState newState = parameters.getTaskInfo().getState();
-    TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
+      EngineTaskState newState = parameters.getTaskInfo().getEngineTaskState();
+      EngineTaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getEngineTaskState).orElse(null);
 
     updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
         parameters.getTopicName(), Calendar.getInstance().getTime());
@@ -62,47 +63,54 @@ public class TaskStatusUpdater {
 
   public void setTaskCompletelyProcessed(long taskId, String info)
       throws NoHostAvailableException, QueryExecutionException {
-    updateTasksByTaskStateTable(taskId, TaskState.PROCESSED);
+      updateTasksByTaskStateTable(taskId, EngineTaskState.PROCESSED);
     taskInfoDAO.setTaskCompletelyProcessed(taskId, info);
   }
 
   public void setTaskDropped(long taskId, String info)
       throws NoHostAvailableException, QueryExecutionException {
-    updateTasksByTaskStateTable(taskId, TaskState.DROPPED);
+      updateTasksByTaskStateTable(taskId, EngineTaskState.DROPPED);
     taskInfoDAO.setTaskDropped(taskId, info);
   }
 
-  public void setUpdateProcessedFiles(long taskId, int processedRecordsCount, int ignoredRecordsCount,
-      int deletedRecordsCount, int processedErrorsCount, int deletedErrorsCount)
-      throws NoHostAvailableException, QueryExecutionException {
-    taskInfoDAO.setUpdateProcessedFiles(taskId, processedRecordsCount, ignoredRecordsCount, deletedRecordsCount,
-        processedErrorsCount, deletedErrorsCount);
-  }
 
-  public void updateState(long taskId, TaskState state)
+    public void updateState(long taskId, EngineTaskState state)
       throws NoHostAvailableException, QueryExecutionException {
     updateState(taskId, state, state.getDefaultMessage());
   }
 
-  public void updateState(long taskId, TaskState state, String info)
+    public void updateState(long taskId, EngineTaskState state, String info)
       throws NoHostAvailableException, QueryExecutionException {
     updateTasksByTaskStateTable(taskId, state);
     taskInfoDAO.updateState(taskId, state, info);
   }
 
-  public void updateStatusExpectedSize(long taskId, TaskState state, int expectedSize)
+  public void updateStatusExpectedRecords(long taskId, EngineTaskState state, int expectedRecords)
       throws NoHostAvailableException, QueryExecutionException {
-    LOGGER.info("Updating task {} expected size to: {}", taskId, expectedSize);
+    LOGGER.info("Updating task {} expected records to: {}", taskId, expectedRecords);
     updateTasksByTaskStateTable(taskId, state);
-    taskInfoDAO.updateStatusExpectedSize(taskId, state, expectedSize);
+    taskInfoDAO.updateStatusExpectedRecords(taskId, state, expectedRecords);
   }
 
-  private void updateTasksByTaskStateTable(long taskId, TaskState newState) {
+  public void updateStatusAndExpected(long taskId, EngineTaskState state, ExpectedCounters expectedCounters)
+          throws NoHostAvailableException, QueryExecutionException {
+    LOGGER.info("Updating task {} expected records to: {}, expected depublish records to: {}", taskId, expectedCounters.getExpectedRecords(), expectedCounters.getExpectedDepublishRecords());
+    updateTasksByTaskStateTable(taskId, state);
+    taskInfoDAO.updateStatusAndExpected(taskId, state, expectedCounters.getExpectedRecords(), expectedCounters.getExpectedDepublishRecords());
+  }
+
+  public void updatePostProcessingAndDepublishCounters(long taskId, int expectedPostProcessedRecords, int processedAndSuccessDepublishRecords) {
+    LOGGER.info("Updating task {} expected postprocessed records to: {}, expected depublish records to: {}", taskId, expectedPostProcessedRecords, processedAndSuccessDepublishRecords);
+    taskInfoDAO.updatePostProcessingAndDepublishCounters(taskId, expectedPostProcessedRecords, processedAndSuccessDepublishRecords);
+
+  }
+
+    private void updateTasksByTaskStateTable(long taskId, EngineTaskState newState) {
     taskInfoDAO.findById(taskId).ifPresent(taskInfo ->
-        updateTask(taskInfo.getTopologyName(), taskId, taskInfo.getState(), newState));
+            updateTask(taskInfo.getTopologyName(), taskId, taskInfo.getEngineTaskState(), newState));
   }
 
-  public void updateTask(String topologyName, long taskId, TaskState oldState, TaskState newState) {
+    public void updateTask(String topologyName, long taskId, EngineTaskState oldState, EngineTaskState newState) {
     if (oldState == newState) {
       return;
     }
@@ -116,8 +124,8 @@ public class TaskStatusUpdater {
     updateTaskState(oldState, newState, topologyName, taskId, applicationId, topicName, startTime);
   }
 
-  private void updateTaskState(TaskState oldState, TaskState newState, String topologyName,
-      long taskId, String applicationId, String topicName, Date startTime)
+    private void updateTaskState(EngineTaskState oldState, EngineTaskState newState, String topologyName,
+                                 long taskId, String applicationId, String topicName, Date startTime)
       throws NoHostAvailableException, QueryExecutionException {
 
     if (oldState != null && oldState != newState) {
@@ -134,11 +142,15 @@ public class TaskStatusUpdater {
     taskInfoDAO.updateExpectedPostProcessedRecordsNumber(taskId, expectedPostProcessedRecordsNumber);
   }
 
+  public void updateExpectedDepublishAndPostprocessedRecordsNumber(long taskId, int expectedDepublishAndPostProcessedRecordsNumber) {
+    taskInfoDAO.updateExpectedDepublishAndPostprocessedRecordsNumber(taskId, expectedDepublishAndPostProcessedRecordsNumber);
+  }
+
   public void updateSubmitParameters(SubmitTaskParameters parameters) {
     long taskId = parameters.getTask().getTaskId();
     String topologyName = parameters.getTaskInfo().getTopologyName();
-    TaskState newState = parameters.getTaskInfo().getState();
-    TaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getState).orElse(null);
+      EngineTaskState newState = parameters.getTaskInfo().getEngineTaskState();
+      EngineTaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getEngineTaskState).orElse(null);
     updateTaskState(oldState, newState, topologyName, taskId, applicationIdentifier,
         parameters.getTopicName(), Calendar.getInstance().getTime());
 

@@ -1,0 +1,73 @@
+package eu.europeana.cloud.common.model.dps;
+
+//TODO
+//Directly copied from metis core with modification for task.
+//Should be moved from metis core to metis common in order to have one common class for all processing engines
+//For development purposes only
+//NOTE: we kinda need those annotations - so in end solution we either add those to child class inheriting from this class in metis common
+//or we add this directly into metis common, or we just add equal method and those constructors
+//NOTE2: expectedPostProcessedRecordsNumber is missing from there? Is that intentional?
+//NOTE3: postProcessedRecordsCount got suffix Count in it, it is not aligned with other variable names
+
+import lombok.*;
+
+/**
+ * Contains execution progress information of a task.
+ */
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Getter
+@Setter
+public class EcloudTaskProgress {
+
+    // --- Regular processing related record counters ---
+
+    // The total number of expected records to be processed excluding deleted records.
+    private int expectedRecords;
+    // The total number of records processed so far excluding depublish related records.
+    // Note: Depublish record numbers are contained in different counter group.
+    private int successRecords;
+    // The total number of records processed that resulted in at least one report containing WARN type message.
+    private int warningRecords;
+    // The number of records containing errors encountered so far.
+    private int failRecords;
+    // The number of duplicated records processed so far.
+    private int duplicateRecords;
+    // The number of processed records so far that are to be ignored for follow-up tasks.
+    // Mostly unchanged records recognized during OAI/HTTP HARVEST
+    private int unchangedRecords;
+    // Total number of processed records so far.
+    // Should be equal to successRecords + failRecords + unchangedRecords + duplicateRecords
+    private int processedRecords;
+
+    // --- Depublish related record counters ---
+    // Be aware those counters were previously deleted!
+    // Old name could be still used somewhere in code!
+
+    // The total number of expected depublish records.
+    private int expectedDepublishRecords;
+    // The number of successfully depublished records so far.
+    private int successDepublishRecords;
+    // The number of unsuccessfully depublished records so far.
+    private int failDepublishRecords;
+    // The number of depublished records so far.
+    // Should be equal to successDepublishRecords + failDepublishRecords
+    private int processedDepublishRecords;
+
+    // --- Postprocessing related record counters ---
+    // Those are currently for technical side of ecloud and are not used in Metis UI!
+
+    // The number of expected post processed records.
+    private int expectedPostProcessedRecords;
+    // Total number of post processed records so far
+    private int postProcessedRecords;
+
+
+
+
+    // The current state of the task.
+    private EngineTaskState engineTaskState;
+
+    private String engineTaskStateInfo;
+}

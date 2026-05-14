@@ -47,7 +47,7 @@ public class OtherTopologiesTaskSubmitter extends AbstractTaskSubmitter implemen
     createDateSetIfNeeded(parameters.getTask());
     String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
     parameters.setTopicName(preferredTopicName);
-    parameters.getTaskInfo().setExpectedRecordsNumber(expectedCount);
+      parameters.getTaskInfo().setExpectedRecords(expectedCount);
     taskStatusUpdater.updateSubmitParameters(parameters);
 
     mcsTaskSubmitter.execute(parameters);

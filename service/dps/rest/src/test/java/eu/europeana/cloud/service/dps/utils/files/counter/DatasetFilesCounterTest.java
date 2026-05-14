@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -41,11 +41,12 @@ class DatasetFilesCounterTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription("")
-                .expectedRecordsNumber(EXPECTED_SIZE)
-                .processedRecordsCount(EXPECTED_SIZE)
-                .processedErrorsCount(0)
+                .expectedRecords(EXPECTED_SIZE)
+                .processedRecords(EXPECTED_SIZE)
+                .successRecords(EXPECTED_SIZE)
+                .failRecords(0)
                 .sentTimestamp(new Date())
                 .startTimestamp(new Date())
                                 .finishTimestamp(new Date())
@@ -61,13 +62,13 @@ class DatasetFilesCounterTest {
         TaskInfo taskInfo = TaskInfo.builder()
                 .id(TASK_ID)
                 .topologyName(TOPOLOGY_NAME)
-                .state(TaskState.PROCESSED)
+                .state(EngineTaskState.PROCESSED)
                 .stateDescription("")
-                .expectedRecordsNumber(EXPECTED_SIZE)
-                .processedRecordsCount(EXPECTED_SIZE)
-                .deletedRecordsCount(10)
-                .postProcessedRecordsCount(10)
-                .processedErrorsCount(0)
+                .expectedRecords(EXPECTED_SIZE)
+                .processedRecords(EXPECTED_SIZE)
+                .successRecords(EXPECTED_SIZE)
+                .successDepublishRecords(20)
+                .failRecords(0)
                                 .sentTimestamp(new Date())
                                 .startTimestamp(new Date())
                                 .finishTimestamp(new Date())
@@ -75,7 +76,7 @@ class DatasetFilesCounterTest {
     when(taskInfoDAO.findById(TASK_ID)).thenReturn(Optional.of(taskInfo));
     dpsTask.addParameter(PluginParameterKeys.PREVIOUS_TASK_ID, String.valueOf(TASK_ID));
     int expectedFilesCount = datasetFilesCounter.getFilesCount(dpsTask);
-    assertEquals(EXPECTED_SIZE + 10 + 10, expectedFilesCount);
+        assertEquals(EXPECTED_SIZE + 20, expectedFilesCount);
   }
 
     @Test

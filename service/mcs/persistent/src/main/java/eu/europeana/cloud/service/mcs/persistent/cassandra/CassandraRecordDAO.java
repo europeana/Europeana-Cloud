@@ -7,8 +7,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
-import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
@@ -150,7 +150,7 @@ public class CassandraRecordDAO {
    * @throws QueryExecutionException if error occured while executing a query.
    * @throws NoHostAvailableException if no Cassandra host are available.
    */
-  public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version, String datasetId, boolean markDeleted)
+  public Representation createRepresentation(String cloudId, String schema, String providerId, Date creationTime, UUID version, String datasetId, boolean markDepublished)
       throws NoHostAvailableException, QueryExecutionException {
     if (cloudId == null || schema == null || providerId == null) {
       throw new IllegalArgumentException(MSG_PARAMETERS_CANNOT_BE_NULL);
@@ -158,12 +158,12 @@ public class CassandraRecordDAO {
 
     // insert representation into representation table.
     BoundStatement boundStatement = insertRepresentationStatement.bind(
-        cloudId, schema, version, providerId, false, creationTime, datasetId, markDeleted);
+            cloudId, schema, version, providerId, false, creationTime, datasetId, markDepublished);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
     return new Representation(cloudId, schema, version.toString(), null,
         null, providerId, new ArrayList<>(0),
-        new ArrayList<>(0), false, creationTime, datasetId, markDeleted);
+            new ArrayList<>(0), false, creationTime, datasetId, markDepublished);
   }
 
   /**
@@ -744,7 +744,7 @@ public class CassandraRecordDAO {
     representation.setPersistent(row.getBool(PERSISTENT));
     representation.setCreationDate(row.getTimestamp(CREATION_DATE));
     representation.setDatasetId(row.getString(DATASET_ID));
-    representation.setMarkDeleted(row.getBool(MARK_DELETED));
+      representation.setMarkDepublished(row.getBool(MARK_DELETED));
     return representation;
   }
 

@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import org.junit.jupiter.api.Test;
@@ -26,11 +26,11 @@ class TaskStatusSynchronizerTest {
     private static final List<String> TOPICS = Arrays.asList(TOPIC_1, "topic_2", "topic_3");
 
     private static final String TOPOLOGY_NAME = "test_topology";
-    private static final TaskByTaskState TASK_TOPIC_INFO_1 = createTaskTopicInfo(1L, TaskState.QUEUED, TOPIC_1);
-    private static final TaskByTaskState TASK_TOPIC_INFO_1_UNKNOWN_TOPIC = createTaskTopicInfo(1L, TaskState.QUEUED,
+    private static final TaskByTaskState TASK_TOPIC_INFO_1 = createTaskTopicInfo(1L, EngineTaskState.QUEUED, TOPIC_1);
+    private static final TaskByTaskState TASK_TOPIC_INFO_1_UNKNOWN_TOPIC = createTaskTopicInfo(1L, EngineTaskState.QUEUED,
             "topic_unknown");
-    private static final TaskInfo INFO_1 = createTaskTopicInfo(TaskState.QUEUED);
-    private static final TaskInfo INFO_1_OF_UNSYNCED = createTaskTopicInfo(TaskState.PROCESSED);
+    private static final TaskInfo INFO_1 = createTaskTopicInfo(EngineTaskState.QUEUED);
+    private static final TaskInfo INFO_1_OF_UNSYNCED = createTaskTopicInfo(EngineTaskState.PROCESSED);
 
   @Mock
   private CassandraTaskInfoDAO taskInfoDAO;
@@ -54,20 +54,20 @@ class TaskStatusSynchronizerTest {
     @Test
     void synchronizedShouldRepairInconsistentData() {
         when(tasksByStateDAO.findTasksByStateAndTopology(
-                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), TOPOLOGY_NAME))
+                Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION, EngineTaskState.QUEUED), TOPOLOGY_NAME))
                 .thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
 
         when(taskInfoDAO.findById(1L)).thenReturn(Optional.of(INFO_1_OF_UNSYNCED));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
 
-        verify(taskStatusUpdater).updateTask(TOPOLOGY_NAME, 1L, TaskState.QUEUED, TaskState.PROCESSED);
+        verify(taskStatusUpdater).updateTask(TOPOLOGY_NAME, 1L, EngineTaskState.QUEUED, EngineTaskState.PROCESSED);
     }
 
     @Test
     void synchronizedShouldNotTouchTasksWithConsistentData() {
         when(tasksByStateDAO.findTasksByStateAndTopology(
-                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), TOPOLOGY_NAME))
+                Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION, EngineTaskState.QUEUED), TOPOLOGY_NAME))
                 .thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1));
         when(taskInfoDAO.findById(1L)).thenReturn(Optional.of(INFO_1));
 
@@ -80,7 +80,7 @@ class TaskStatusSynchronizerTest {
     @Test
     void synchronizedShouldOnlyConcernTasksWithTopicReservedForTopology() {
         when(tasksByStateDAO.findTasksByStateAndTopology(
-                Arrays.asList(TaskState.PROCESSING_BY_REST_APPLICATION, TaskState.QUEUED), TOPOLOGY_NAME))
+                Arrays.asList(EngineTaskState.PROCESSING_BY_REST_APPLICATION, EngineTaskState.QUEUED), TOPOLOGY_NAME))
                 .thenReturn(Collections.singletonList(TASK_TOPIC_INFO_1_UNKNOWN_TOPIC));
 
         synchronizer.synchronizeTasksByTaskStateFromBasicInfo(TOPOLOGY_NAME, TOPICS);
@@ -89,7 +89,7 @@ class TaskStatusSynchronizerTest {
         verify(taskStatusUpdater, never()).updateTask(any(), anyLong(), any(), any());
     }
 
-  private static TaskByTaskState createTaskTopicInfo(Long id, TaskState state, String topic) {
+    private static TaskByTaskState createTaskTopicInfo(Long id, EngineTaskState state, String topic) {
     return TaskByTaskState.builder()
                           .id(id)
                           .state(state)
@@ -97,11 +97,11 @@ class TaskStatusSynchronizerTest {
                           .build();
   }
 
-  private static TaskInfo createTaskTopicInfo(TaskState state) {
+    private static TaskInfo createTaskTopicInfo(EngineTaskState state) {
     TaskInfo info = TaskInfo.builder().build();
     info.setId(1L);
     info.setTopologyName(TOPOLOGY_NAME);
-    info.setState(state);
+        info.setEngineTaskState(state);
     return info;
   }
 

@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.utils;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.config.UnfinishedTasksContext;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
@@ -95,7 +95,7 @@ class UnfinishedTasksExecutorTest {
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(1)
                                 .topologyName("topoName")
-                                .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+            .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
                                 .stateDescription("info")
                                 .sentTimestamp(new Date())
                                 .startTimestamp(new Date())
@@ -110,7 +110,7 @@ class UnfinishedTasksExecutorTest {
     return TaskByTaskState.builder()
                           .id(1L)
                           .topologyName("topoName")
-                          .state(TaskState.PROCESSING_BY_REST_APPLICATION)
+            .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
                           .applicationId("exampleAppIdentifier")
                           .startTime(GregorianCalendar.getInstance().getTime())
                           .topicName("topicName")

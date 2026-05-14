@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
@@ -117,7 +117,7 @@ class HarvestsExecutorTest {
                         argThat(samePropertyValuesAs(DpsRecord.builder()
                                 .taskId(task.getTaskId())
                                 .recordId(OAI_ID_1)
-                                .markedAsDeleted(false)
+                                .markedAsDepublished(false)
                                 .build())),
                         any()
                 );
@@ -141,7 +141,7 @@ class HarvestsExecutorTest {
         HarvestResult harvestResult = executor.execute(harvest, parameters);
 
         //then
-        assertEquals(TaskState.DROPPED, harvestResult.getTaskState());
+        assertEquals(EngineTaskState.DROPPED, harvestResult.getTaskState());
         verify(recordSubmitService, never()).submitRecord(any(), any());
   }
 

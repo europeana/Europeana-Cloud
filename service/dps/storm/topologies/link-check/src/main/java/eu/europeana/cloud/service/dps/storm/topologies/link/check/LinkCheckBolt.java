@@ -58,7 +58,7 @@ public class LinkCheckBolt extends AbstractDpsBolt {
    */
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple tuple) {
-    if (tuple.isMarkedAsDeleted()) {
+      if (tuple.isMarkedAsDepublished()) {
         emitSuccessNotification(anchorTuple, tuple, "",
                 "Record deleted - no links were checked.");
         outputCollector.ack(anchorTuple);

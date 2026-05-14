@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 
-import static eu.europeana.cloud.common.model.dps.TaskState.IN_POST_PROCESSING;
-import static eu.europeana.cloud.common.model.dps.TaskState.READY_FOR_POST_PROCESSING;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.IN_POST_PROCESSING;
+import static eu.europeana.cloud.common.model.dps.EngineTaskState.READY_FOR_POST_PROCESSING;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -51,7 +51,7 @@ class PostProcessingSchedulerTest {
 
         scheduler.init();
 
-        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(TaskState.READY_FOR_POST_PROCESSING), anyString());
+        verify(taskStatusUpdater).updateState(eq(TASK_ID), eq(EngineTaskState.READY_FOR_POST_PROCESSING), anyString());
     }
 
     //Scheduled activities - execute method()

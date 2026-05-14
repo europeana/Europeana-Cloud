@@ -46,7 +46,7 @@ class TaskExecutionReportServiceImplTest extends CassandraTestBase {
     void shouldReturnTaskProgressWhenTaskExists() throws AccessDeniedOrObjectDoesNotExistException {
         createAndStoreTaskInfo(taskInfoDAO);
         TaskInfo taskInfo = service.getTaskProgress(TASK_ID);
-        assertEquals(TaskState.QUEUED, taskInfo.getState());
+        assertEquals(EngineTaskState.QUEUED, taskInfo.getEngineTaskState());
         assertEquals(ServiceAndDAOTestUtils.TASK_ID, taskInfo.getId());
     }
 
