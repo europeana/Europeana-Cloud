@@ -195,7 +195,7 @@ class HarvestingPostProcessorTest {
     service.execute(taskInfo, task);
 
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 0);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 0);
     verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
     verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
   }
@@ -211,7 +211,7 @@ class HarvestingPostProcessorTest {
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater);
@@ -228,7 +228,7 @@ class HarvestingPostProcessorTest {
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater);
@@ -244,7 +244,7 @@ class HarvestingPostProcessorTest {
 
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(processedRecordsDAO, never()).insert(any());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
     verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
   }
@@ -265,7 +265,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 2, 2);
     verifyNoMoreInteractions(taskStatusUpdater);
@@ -290,7 +290,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 2);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 2);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 2, 2);
     verifyNoMoreInteractions(taskStatusUpdater);
@@ -307,7 +307,7 @@ class HarvestingPostProcessorTest {
     verify(processedRecordsDAO).insert(any());
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
-    verify(taskStatusUpdater).updateExpectedPostProcessedRecordsNumber(TASK_ID, 1);
+    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(eq(TASK_ID), eq(1), anyInt());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
