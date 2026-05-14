@@ -125,8 +125,11 @@ public class NotificationBolt extends BaseRichBolt {
   }
 
   private NotificationCacheEntry readCachedCounters(NotificationTuple notificationTuple) {
-    var cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
-    cache.put(notificationTuple.getTaskId(), cachedCounters);
+    var cachedCounters = cache.get(notificationTuple.getTaskId());
+    if (cachedCounters == null) {
+      cachedCounters = notificationCacheEntryBuilder.build(notificationTuple.getTaskId());
+      cache.put(notificationTuple.getTaskId(), cachedCounters);
+    }
     return cachedCounters;
   }
 
