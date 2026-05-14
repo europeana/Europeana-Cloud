@@ -103,7 +103,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - synchronizing existing records from Metis.");
       updateHarvestedRecordsTableWithRecordsExistingInMetis(dpsTask);
-      taskStatusUpdater.updateExpectedPostProcessedRecordsNumber(dpsTask.getTaskId(),
+      taskStatusUpdater.updateExpectedDepublishAndPostprocessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
       taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
           "Postprocessing - adding removed records to result revision.");
@@ -121,7 +121,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
-    int expectedAndSuccessDepublishRecordCount = 0;
+    int processedAndSuccessDepublishRecordCount = 0;
     while (it.hasNext()) {
       taskStatusChecker.checkNotDropped(dpsTask);
       var harvestedRecord = it.next();
@@ -134,8 +134,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         createPostProcessedRecord(dpsTask, harvestedRecord);
         markHarvestedRecordAsProcessed(dpsTask, harvestedRecord);
         postProcessedRecordsCount++;
-        expectedAndSuccessDepublishRecordCount++;
-        taskStatusUpdater.updatePostProcessingAndDepublishCounters(dpsTask.getTaskId(), postProcessedRecordsCount, expectedAndSuccessDepublishRecordCount);
+        processedAndSuccessDepublishRecordCount++;
+        taskStatusUpdater.updatePostProcessingAndDepublishCounters(dpsTask.getTaskId(), postProcessedRecordsCount, processedAndSuccessDepublishRecordCount);
         LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
         LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
