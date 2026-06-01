@@ -20,7 +20,7 @@ import eu.europeana.indexing.exception.IndexingException;
 import eu.europeana.indexing.tiers.TierCalculationMode;
 import eu.europeana.indexing.tiers.model.MediaTier;
 import eu.europeana.metis.utils.DepublicationReason;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
