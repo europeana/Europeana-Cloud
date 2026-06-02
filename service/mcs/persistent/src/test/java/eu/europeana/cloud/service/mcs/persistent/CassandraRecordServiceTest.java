@@ -1056,4 +1056,25 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
   }
 
+  @Test
+  void shouldAddAnnotationToRepresentationVersion() throws Exception {
+
+    mockUISProvider1Success();
+    makeUISSuccess();
+
+    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME, DATA_SET_DESCRIPTION);
+
+    Representation r = cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID, VERSION_2,
+            DATA_SET_NAME);
+
+    Annotation annotation = new Annotation(Annotation.AnnotationKey.INVALID, "");
+
+    cassandraRecordService.addAnnotationsToRepresentationVersion(r, Set.of(annotation));
+
+    Representation representation = cassandraRecordService.getRepresentation("globalId", "dc", r.getVersion());
+    assertThat(representation.getAnnotations().size(), is(1));
+    assertThat(representation.getAnnotations().contains(annotation), is(true));
+
+  }
+
 }
