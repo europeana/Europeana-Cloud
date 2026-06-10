@@ -93,9 +93,9 @@ public class Representation {
     @Setter
     @JacksonXmlElementWrapper(localName = "annotations")
     @JacksonXmlProperty(localName = "annotation")
-    private List<Annotation> annotations = new ArrayList<>(0);
+    private List<RepresentationVersionAnnotation> annotations = new ArrayList<>(0);
 
-    public void addAnnotation(Annotation annotations) {
+    public void addAnnotation(RepresentationVersionAnnotation annotations) {
         this.annotations.add(annotations);
     }
 

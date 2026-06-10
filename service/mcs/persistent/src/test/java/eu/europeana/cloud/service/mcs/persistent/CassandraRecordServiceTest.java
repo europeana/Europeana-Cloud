@@ -1064,9 +1064,9 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation r = cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID, VERSION_2,
             DATA_SET_NAME);
 
-    Annotation annotation = new Annotation(Annotation.AnnotationKey.INVALID, "");
+    RepresentationVersionAnnotation annotation = new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.INVALID, "");
 
-    cassandraRecordService.addAnnotationsToRepresentationVersion(r, Set.of(annotation));
+    cassandraRecordService.addAnnotationToRepresentationVersion(r, annotation);
 
     Representation representation = cassandraRecordService.getRepresentation("globalId", "dc", r.getVersion());
     assertThat(representation.getAnnotations().size(), is(1));

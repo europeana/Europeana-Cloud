@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -285,10 +284,10 @@ public interface RecordService {
       String versionId, Date revisionTimestamp);
 
   /**
-   * Adds {@link Annotation} to {@link Representation}
+   * Adds {@link RepresentationVersionAnnotation} to {@link Representation}
    * @param representation representation that will be modified
    * @param annotation annotation that will be added
    * @throws RepresentationNotExistsException thrown in case of non-existing representation
    */
-  void addAnnotationsToRepresentationVersion(Representation representation, Set<Annotation> annotation) throws RepresentationNotExistsException;
+  void addAnnotationToRepresentationVersion(Representation representation, RepresentationVersionAnnotation annotation) throws RepresentationNotExistsException;
 }

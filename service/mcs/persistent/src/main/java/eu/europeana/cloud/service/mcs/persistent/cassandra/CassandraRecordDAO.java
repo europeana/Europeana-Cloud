@@ -53,7 +53,7 @@ public class CassandraRecordDAO {
   private PreparedStatement insertRepresentationRevisionStatement;
   private PreparedStatement insertRepresentationRevisionFileStatement;
   private PreparedStatement deleteRepresentationRevisionStatement;
-  private PreparedStatement addAnnotationTpRepresentationStatement;
+  private PreparedStatement addAnnotationToRepresentationStatement;
 
   public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
@@ -563,12 +563,12 @@ public class CassandraRecordDAO {
   }
 
   /**
-   * Adds {@link Annotation} to {@link Representation}
-   * @param representation {@link Representation} that will get new {@link Annotation}
-   * @param annotation {@link Annotation} that will be added to the {@link Representation}
+   * Adds {@link RepresentationVersionAnnotation} to {@link Representation}
+   * @param representation {@link Representation} that will get new {@link RepresentationVersionAnnotation}
+   * @param annotation {@link RepresentationVersionAnnotation} that will be added to the {@link Representation}
    */
-  public void addAnnotationToRepresentation(Representation representation, Annotation annotation) {
-    BoundStatement boundStatement = addAnnotationTpRepresentationStatement.bind(annotation.getKey().toString(),
+  public void addAnnotationToRepresentation(Representation representation, RepresentationVersionAnnotation annotation) {
+    BoundStatement boundStatement = addAnnotationToRepresentationStatement.bind(annotation.getKey().toString(),
             annotation.getValue(), representation.getCloudId(), representation.getRepresentationName(),
             UUID.fromString(representation.getVersion()));
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
@@ -604,7 +604,7 @@ public class CassandraRecordDAO {
     );
 
     listRepresentationVersionsStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted, annotations, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted, annotations " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
@@ -739,7 +739,7 @@ public class CassandraRecordDAO {
             "version_id = ?"
     );
 
-      addAnnotationTpRepresentationStatement = session.prepare(
+      addAnnotationToRepresentationStatement = session.prepare(
               "UPDATE representation_versions " +
                       "SET annotations[?] = ? " +
                       "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
@@ -767,7 +767,7 @@ public class CassandraRecordDAO {
     representation.setMarkDepublished(row.getBool(MARK_DELETED));
 
     Map<String, String> annotations = row.getMap("annotations", String.class, String.class);
-    annotations.keySet().forEach(s -> representation.addAnnotation(new Annotation(Annotation.AnnotationKey.valueOf(s)
+    annotations.keySet().forEach(s -> representation.addAnnotation(new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.valueOf(s)
             , annotations.get(s))));
 
     return representation;

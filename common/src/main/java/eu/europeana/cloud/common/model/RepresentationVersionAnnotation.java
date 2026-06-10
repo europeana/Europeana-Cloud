@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlRootElement(name = "annotation")
-public class Annotation {
+public class RepresentationVersionAnnotation {
 
   private AnnotationKey key;
   private String value;
@@ -21,7 +21,7 @@ public class Annotation {
    * All possible annotation keys to be used
    */
   public enum AnnotationKey {
-    VALID, INVALID, INDEXED
+    VALID, INVALID, PUBLISHED, PREVIEWING
   }
 }
 

@@ -1,14 +1,13 @@
 package eu.europeana.cloud.service.mcs.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.cloud.common.model.RepresentationVersionAnnotation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.dto.AnnotationsDto;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-
-import java.util.Map;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.getBaseUri;
 import static org.mockito.Mockito.verify;
@@ -29,10 +28,7 @@ class RepresentationVersionAnnotationResourceTest extends AbstractResourceTest {
     ObjectMapper mapper = new ObjectMapper();
     AnnotationsDto annotationsDto = new AnnotationsDto();
 
-    annotationsDto.setAnnotations(Map.of(
-            "INVALID","",
-            "VALID",""
-    ));
+    annotationsDto.setAnnotation(new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.INVALID,""));
 
     mockMvc.perform(post(URITools.getRepresentationVersionAnnotationUri(getBaseUri(),"cloudId","schema","version"))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -51,7 +47,7 @@ class RepresentationVersionAnnotationResourceTest extends AbstractResourceTest {
     ObjectMapper mapper = new ObjectMapper();
     AnnotationsDto annotationsDto = new AnnotationsDto();
 
-    annotationsDto.setAnnotations(Map.of("INVALID", "", "VALID", ""));
+    annotationsDto.setAnnotation(new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.INVALID,""));
 
     mockMvc.perform(
             post(
@@ -60,7 +56,7 @@ class RepresentationVersionAnnotationResourceTest extends AbstractResourceTest {
                     .content(mapper.writeValueAsString(annotationsDto)))
             .andExpect(status().isOk());
 
-    verify(recordService, times(1)).addAnnotationsToRepresentationVersion(any(), any());
+    verify(recordService, times(1)).addAnnotationToRepresentationVersion(any(), any());
   }
 
 }
