@@ -62,28 +62,29 @@ public final class TaskInfoConverter {
                 .startTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_START_TIMESTAMP))
                 .finishTimestamp(row.getTimestamp(CassandraTablesAndColumnsNames.TASK_INFO_FINISH_TIMESTAMP))
                 .expectedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS_NUMBER)
-                        - row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT)
-                        - row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                        - getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT)
+                        - getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
                 .successRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT)
-                        - row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT)
-                        - row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
+                        - getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
                 .warningRecords(-1)
                 .failRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
                 .duplicateRecords(-1)
                 .unchangedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT))
                 .processedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_RECORDS_COUNT)
-                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT)
-                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT)
-                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_ERRORS_COUNT))
+                        + getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT))
                 .postProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT))
                 .expectedPostProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER))
                 .expectedDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT)
-                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
-                .successDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                        + getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                .successDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT)
+                        - getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT))
                 .failDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT))
-                .processedDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT)
-                        + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
+                .processedDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT))
                 .definition(row.getString(CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION))
                 .build();
     }
+
+  private static int getValue(Row row, String columnName) {
+    return Math.max(0, row.getInt(columnName));
+  }
 }
