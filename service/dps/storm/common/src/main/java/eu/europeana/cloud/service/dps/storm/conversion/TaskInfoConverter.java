@@ -74,10 +74,8 @@ public final class TaskInfoConverter {
                         + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_IGNORED_RECORDS_COUNT))
                 .postProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT))
                 .expectedPostProcessedRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER))
-                .expectedDepublishRecords(
-                        calculateExpectedDepublish(
-                                row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT),
-                                row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER)))
+                .expectedDepublishRecords(getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT)
+                        + getValue(row, CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS_NUMBER))
                 .successDepublishRecords(row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_RECORDS_COUNT)
                         - row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_DELETED_ERRORS_COUNT)
                         + row.getInt(CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS_COUNT))
@@ -87,11 +85,9 @@ public final class TaskInfoConverter {
                 .build();
     }
 
-    private static int calculateExpectedDepublish(int deletedRecordCount, int expectedPostProcessedCount) {
-        if (deletedRecordCount < 0 || expectedPostProcessedCount < 0) {
-            return -1;
-        }
-        return deletedRecordCount + expectedPostProcessedCount;
+
+    private static int getValue(Row row, String columnName) {
+        return Math.max(0, row.getInt(columnName));
     }
 }
 
