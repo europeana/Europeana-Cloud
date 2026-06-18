@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.uis;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.uis.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
+import eu.europeana.cloud.service.uis.metric.UisMetricService;
 import eu.europeana.cloud.service.uis.rest.DataProviderActivationResource;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
@@ -31,8 +32,8 @@ public class TestConfiguration {
   }
 
   @Bean
-  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService) {
-    return new UniqueIdentifierResource(uniqueIdentifierService);
+  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService, UisMetricService uisMetricService) {
+    return new UniqueIdentifierResource(uniqueIdentifierService, uisMetricService);
   }
 
   @Bean

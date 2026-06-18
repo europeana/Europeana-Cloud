@@ -5,20 +5,12 @@ import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.exception.CloudIdAlreadyExistException;
-import eu.europeana.cloud.service.uis.exception.CloudIdDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.DatabaseConnectionException;
-import eu.europeana.cloud.service.uis.exception.RecordDatasetEmptyException;
-import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
-import eu.europeana.cloud.service.uis.exception.RecordExistsException;
+import eu.europeana.cloud.service.uis.exception.*;
+import eu.europeana.cloud.service.uis.metric.UisMetricService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Implementation of the Unique Identifier Service.
@@ -30,10 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UniqueIdentifierResource {
 
   private final UniqueIdentifierService uniqueIdentifierService;
-
+  private final UisMetricService metricService;
   public UniqueIdentifierResource(
-      UniqueIdentifierService uniqueIdentifierService) {
+          UniqueIdentifierService uniqueIdentifierService,
+          UisMetricService metricService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
+    this.metricService = metricService;
   }
 
   /**
@@ -68,7 +62,7 @@ public class UniqueIdentifierResource {
 
     final CloudId cId = (recordId != null) ? (uniqueIdentifierService.createCloudId(providerId, recordId))
         : (uniqueIdentifierService.createCloudId(providerId));
-
+    metricService.incrementCloudIdsCreatedCounter();
     return ResponseEntity.ok(cId);
   }
 
@@ -89,6 +83,7 @@ public class UniqueIdentifierResource {
       @RequestParam("recordId") String recordId)
       throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
+    metricService.incrementCloudIdsRetrievedCounter();
     return ResponseEntity.ok(uniqueIdentifierService.getCloudId(providerId, recordId));
   }
 
@@ -111,6 +106,7 @@ public class UniqueIdentifierResource {
       RecordDatasetEmptyException {
     ResultSlice<CloudId> pList = new ResultSlice<>();
     pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
+    metricService.incrementLocalIdsRetrievedCounter();
     return ResponseEntity.ok(pList);
   }
 
