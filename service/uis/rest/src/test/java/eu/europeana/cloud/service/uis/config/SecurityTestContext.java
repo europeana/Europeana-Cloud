@@ -53,8 +53,8 @@ public class SecurityTestContext {
     }
 
     @Bean
-    public UniqueIdentifierResource uniqueIdResource(UniqueIdentifierService uniqueIdentifierService, UisMetricService uisMetricService) {
-        return new UniqueIdentifierResource(uniqueIdentifierService, uisMetricService);
+    public UniqueIdentifierResource uniqueIdResource(UniqueIdentifierService uniqueIdentifierService) {
+        return new UniqueIdentifierResource(uniqueIdentifierService, Mockito.mock(UisMetricService.class));
     }
 
     @Bean

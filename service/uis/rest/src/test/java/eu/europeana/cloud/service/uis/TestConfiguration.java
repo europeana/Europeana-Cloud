@@ -32,8 +32,8 @@ public class TestConfiguration {
   }
 
   @Bean
-  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService, UisMetricService uisMetricService) {
-    return new UniqueIdentifierResource(uniqueIdentifierService, uisMetricService);
+  public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService) {
+    return new UniqueIdentifierResource(uniqueIdentifierService, Mockito.mock(UisMetricService.class));
   }
 
   @Bean

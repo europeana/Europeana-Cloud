@@ -13,9 +13,11 @@ import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
 import org.springframework.context.annotation.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -146,5 +148,14 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider uisCassandraProvider) {
     return new CassandraHealthIndicator(uisCassandraProvider);
+  }
+
+  @Bean
+  public MeterRegistryCustomizer<MeterRegistry> commonTags() {
+    return registry -> registry.config().commonTags(
+            "app", "uis",
+            "namespace", System.getenv("Namespace"),
+            "instance", System.getenv("AppId")
+    );
   }
 }

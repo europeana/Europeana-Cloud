@@ -1,24 +1,19 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
-
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 
 /**
  * Resource representing records.
@@ -28,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecordsResource {
 
   private final RecordService recordService;
+  private final McsMetricService mcsMetricService;
 
-  public RecordsResource(RecordService recordService) {
+  public RecordsResource(RecordService recordService, McsMetricService mcsMetricService) {
     this.recordService = recordService;
+    this.mcsMetricService = mcsMetricService;
   }
 
   /**
@@ -46,6 +43,7 @@ public class RecordsResource {
           @PathVariable("cloudId") String cloudId) throws RecordNotExistsException {
 
     Record record = recordService.getRecord(cloudId);
+    mcsMetricService.incrementGetRecordCounter();
     prepare(httpServletRequest, record);
     return record;
   }
@@ -66,7 +64,7 @@ public class RecordsResource {
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public void deleteRecord(
       @PathVariable("cloudId") String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
-
+    mcsMetricService.incrementDeleteRecordCounter();
     recordService.deleteRecord(cloudId);
   }
 

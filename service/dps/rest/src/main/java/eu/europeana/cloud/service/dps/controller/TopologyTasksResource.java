@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext;
+import eu.europeana.cloud.service.dps.metric.DpsMetricService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -63,6 +64,9 @@ public class TopologyTasksResource {
   @Autowired
   private TaskSubmissionValidator taskSubmissionValidator;
 
+  @Autowired
+  private DpsMetricService dpsMetricService;
+
   /**
    * Retrieves the current progress for the requested task.
    * <p/>
@@ -93,6 +97,7 @@ public class TopologyTasksResource {
     reportService.checkIfTaskExists(taskId, topologyName);
     TaskInfo taskProgress = reportService.getTaskProgress(taskId);
     LOGGER.info("Following task progress will be sent to user: {}", taskProgress);
+    dpsMetricService.incrementTaskProgressCounter();
     return taskProgress;
   }
 
@@ -115,6 +120,7 @@ public class TopologyTasksResource {
       @RequestBody @AddTaskIdToLoggingContext final DpsTask task,
       @PathVariable("topologyName") final String topologyName
   ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
+    dpsMetricService.incrementSubmittedTaskCounter();
     return doSubmitTask(request, task, topologyName, false);
   }
 
@@ -138,6 +144,7 @@ public class TopologyTasksResource {
   ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
     var task = DpsTask.fromTaskInfo(taskInfo);
+    dpsMetricService.incrementRestartedTaskCounter();
     return doSubmitTask(request, task, topologyName, true);
   }
 
@@ -206,6 +213,7 @@ public class TopologyTasksResource {
     taskSubmissionValidator.assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
     taskStatusUpdater.setTaskDropped(taskId, info);
+    dpsMetricService.incrementKilledTaskCounter();
     return ResponseEntity.ok("The task was killed because of " + info);
   }
 

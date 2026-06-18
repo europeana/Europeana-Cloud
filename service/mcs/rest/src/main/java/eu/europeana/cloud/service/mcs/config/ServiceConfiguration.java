@@ -10,7 +10,9 @@ import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -91,4 +93,12 @@ public class ServiceConfiguration implements WebMvcConfigurer {
     return new CassandraHealthIndicator(mcsCassandraConnectionProvider);
   }
 
+  @Bean
+  public MeterRegistryCustomizer<MeterRegistry> commonTags() {
+    return registry -> registry.config().commonTags(
+            "app", "mcs",
+            "namespace", System.getenv("Namespace"),
+            "instance", System.getenv("AppId")
+    );
+  }
 }
