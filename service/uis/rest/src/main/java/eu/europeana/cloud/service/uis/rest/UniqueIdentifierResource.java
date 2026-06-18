@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
 import eu.europeana.cloud.service.uis.metric.UisMetricService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,12 +23,11 @@ import org.springframework.web.bind.annotation.*;
 public class UniqueIdentifierResource {
 
   private final UniqueIdentifierService uniqueIdentifierService;
-  private final UisMetricService metricService;
+  @Autowired
+  private UisMetricService metricService;
   public UniqueIdentifierResource(
-          UniqueIdentifierService uniqueIdentifierService,
-          UisMetricService metricService) {
+          UniqueIdentifierService uniqueIdentifierService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
-    this.metricService = metricService;
   }
 
   /**

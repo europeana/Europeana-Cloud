@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
@@ -148,5 +149,10 @@ public class CassandraBasedTestContext {
             uisHandler())
     );
 
+  }
+
+  @Bean
+  public McsMetricService mcsMetricService() {
+    return Mockito.mock(McsMetricService.class);
   }
 }

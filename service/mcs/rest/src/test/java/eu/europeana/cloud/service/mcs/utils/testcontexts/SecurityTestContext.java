@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
@@ -64,5 +65,10 @@ public class SecurityTestContext {
   public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
       PermissionEvaluator permissionEvaluator) {
     return Mockito.mock(DataSetPermissionsVerifier.class);
+  }
+
+  @Bean
+  public McsMetricService mcsMetricService() {
+    return Mockito.mock(McsMetricService.class);
   }
 }

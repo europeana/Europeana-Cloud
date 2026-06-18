@@ -8,6 +8,7 @@ import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
@@ -103,5 +104,10 @@ public class BasicResourceTestContext {
             new CassandraRecordDAO(dbService()),
             mock(UISClientHandler.class),
             new BucketsHandler(dbService().getSession()));
+  }
+
+  @Bean
+  public McsMetricService metricsRegistry() {
+    return Mockito.mock(McsMetricService.class);
   }
 }

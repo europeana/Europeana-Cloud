@@ -39,7 +39,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   protected static final Logger STATISTICS_LOGGER = LoggerFactory.getLogger("STATISTICS_LOGGER");
   protected static final String STATISTICS_LOGGER_MESSAGE_PATTERN = "[{}],{},{}";
-
   public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
   // default number of retries

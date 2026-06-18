@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,11 +24,11 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESO
 public class RecordsResource {
 
   private final RecordService recordService;
-  private final McsMetricService mcsMetricService;
+  @Autowired
+  private McsMetricService mcsMetricService;
 
-  public RecordsResource(RecordService recordService, McsMetricService mcsMetricService) {
+  public RecordsResource(RecordService recordService) {
     this.recordService = recordService;
-    this.mcsMetricService = mcsMetricService;
   }
 
   /**
