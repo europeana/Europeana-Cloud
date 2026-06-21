@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
+import eu.europeana.cloud.service.dps.storm.metric.MetricServer;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
@@ -22,11 +24,14 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static eu.europeana.cloud.service.dps.storm.metric.MetricRegistry.*;
 
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
@@ -53,6 +58,9 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected transient TopologyContext topologyContext;
   protected transient OutputCollector outputCollector;
   protected String topologyName;
+  protected String component;
+  protected long taskId;
+
 
   public abstract void execute(Tuple anchorTuple, CommonTaskTuple t);
 
@@ -68,9 +76,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    long startProcessing = System.nanoTime();
     CommonTaskTuple commonTaskTuple = null;
     try {
       commonTaskTuple = CommonTaskTuple.fromStormTuple(tuple);
+      this.taskId = commonTaskTuple.getTaskId();
+      PROCESSED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
       LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), commonTaskTuple);
       prepareDiagnosticContext(commonTaskTuple);
 
@@ -99,15 +110,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     } catch (RetryInterruptedException e) {
       handleInterruption(e, tuple);
+      FAILED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
     } catch (Exception e) {
       if (Thread.currentThread().isInterrupted()) {
         handleInterruptedFlag(e, tuple);
       } else {
         handleException(tuple, commonTaskTuple, e);
+        FAILED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
       }
     } finally {
       LOGGER.debug("{} Ended execution.", getClass().getName());
       clearDiagnosticContext();
+      PROCESSING_LATENCY.labelValues(topologyName, component, String.valueOf(taskId)).observe((System.nanoTime() - startProcessing) / 1e9);
     }
   }
 
@@ -146,8 +160,25 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     this.topologyContext = tc;
     this.outputCollector = oc;
     this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
+    this.component = tc.getThisComponentId();
     initTaskStatusChecker();
+    try {
+      MetricServer.start(tc.getThisWorkerPort());
+      MetricRegistry.init();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     prepare();
+  }
+
+  @Override
+  public void cleanup() {
+    try {
+      MetricServer.stop();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    super.cleanup();
   }
 
   private void initTaskStatusChecker() {
