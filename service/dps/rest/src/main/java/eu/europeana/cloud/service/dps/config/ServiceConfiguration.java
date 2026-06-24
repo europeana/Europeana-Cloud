@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.properties.IndexingProperties;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.CassandraHealthIndicator;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
@@ -282,7 +281,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public HarvestingPostProcessor harvestingPostProcessor() {
     return new HarvestingPostProcessor(harvestedRecordsDAO(), processedRecordsDAO(),
-        recordServiceClient(), revisionServiceClient(), uisClient(), taskStatusUpdater(),
+        recordServiceClient(), uisClient(), taskStatusUpdater(),
         taskStatusChecker(), indexWrapper());
   }
 
@@ -310,14 +309,6 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public RecordServiceClient recordServiceClient() {
     return new RecordServiceClient(
-        mcsLocation(),
-        topologyProperties().getUser(),
-        topologyProperties().getPassword());
-  }
-
-  @Bean
-  public RevisionServiceClient revisionServiceClient() {
-    return new RevisionServiceClient(
         mcsLocation(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());

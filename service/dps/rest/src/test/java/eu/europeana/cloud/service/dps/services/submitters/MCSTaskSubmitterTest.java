@@ -2,17 +2,12 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.*;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -32,9 +27,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.*;
 
-import static eu.europeana.cloud.service.commons.utils.DateHelper.parseISODate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,10 +40,6 @@ class MCSTaskSubmitterTest {
   private static final long TASK_ID = 10L;
   private static final String DATASET_PROVIDER_1 = "providerId1";
   private static final String DATASET_ID_1 = "datasetId1";
-  private static final String REVISION_PROVIDER_1 = "revisionProviderId1";
-  private static final String REVISION_NAME = "revisionName1";
-  private static final String EXAMPLE_DATE = "2020-03-30T10:00:00.000Z";
-  private static final String DATASET_URL_1 = "http://localhost:8080/mcs/data-providers/providerId1/data-sets/datasetId1";
   private static final String TOPIC = "topic1";
   private static final String TOPOLOGY = "validation_topology";
   private static final String SCHEMA_NAME = "schema1";
@@ -66,8 +55,6 @@ class MCSTaskSubmitterTest {
       FILE_CREATION_DATE_STRING_1, 3403L, FILE_URI_1);
   private static final String VERSION_1 = "ec3c18b0-7354-11ea-b16e-04922659f621";
   private static final URI REPRESENTATON_URI_1 = URI.create(REPRESENTATION_URI_STRING_1);
-  private static final Revision REVISION_1 = new Revision(REVISION_NAME, REVISION_PROVIDER_1,
-      parseISODate(FILE_CREATION_DATE_STRING_1), false);
   private static final Representation REPRESENTATION_1 = new Representation(
       CLOUD_ID1,
       REPRESENTATION_NAME,
@@ -76,23 +63,11 @@ class MCSTaskSubmitterTest {
       REPRESENTATON_URI_1,
       DATASET_PROVIDER_1,
       Collections.singletonList(FILE_1),
-      Collections.singletonList(REVISION_1),
       false,
       FILE_CREATION_DATE_1,
       DATASET_ID_1, false);
 
-  private static final RepresentationRevisionResponse REPRESENTATION_REVISION_1 = new RepresentationRevisionResponse(
-      CLOUD_ID1,
-      REPRESENTATION_NAME,
-      VERSION_1,
-      REPRESENTATON_URI_1,
-      Collections.singletonList(FILE_1),
-      REVISION_NAME,
-      REVISION_PROVIDER_1,
-      FILE_CREATION_DATE_1);
-
   private static final String FILE_URL_2 = "http://localhost:8080/mcs/records/YI3S73BZBO2ZPINWZ62RBLAJSATKUG3O2YF4UWYC23BM6CDVBTMA/representations/mcsReaderRepresentation/versions/ec64af50-7354-11ea-b16e-04922659f621/files/0b936b8f-1e43-47ca-986b-7d2cce366c33";
-  private static final String CLOUD_ID2 = "Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA";
 
   private static final String FILE_URL_3 = "http://localhost:8080/mcs/records/YGF5ZH7GCHRSMJPVQKXOYULUCVJATJ3FOZE2KWV7MXYNZEITSJ5Q/representations/mcsReaderRepresentation/versions/ebe93dc0-7354-11ea-b16e-04922659f621/files/8a9db572-5217-486f-9a96-6dd3c4f149dd";
 
@@ -115,18 +90,8 @@ class MCSTaskSubmitterTest {
   @Mock
   private RepresentationIterator representationIterator;
 
-  @Mock
-  private ResultSlice<CloudTagsResponse> cloudTagsResponseResultSlice;
-
-  private final List<CloudTagsResponse> cloudTagsResponse = new ArrayList<>();
-
-  @Mock
-  private ResultSlice<CloudTagsResponse> dataChunk;
-
   @Captor
   private ArgumentCaptor<DpsRecord> recordCaptor;
-
-  private final List<CloudTagsResponse> dataList = new ArrayList<>();
 
   private SubmitTaskParameters submitParameters;
 
@@ -307,280 +272,10 @@ class MCSTaskSubmitterTest {
 
   }
 
-  @Test
-  void executeMcsBasedTask_oneLastRevisionWithOneFile() throws Exception {
-
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))), isNull(),
-                    isNull()
-            )).thenReturn(cloudTagsResponseResultSlice),
-
-            rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    CLOUD_ID1,
-                    REPRESENTATION_NAME,
-                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-            )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
-
-            () -> {
-
-              task.setInput(DatasetRevisionInfo.builder()
-                                               .providerId(DATASET_PROVIDER_1)
-                                               .datasetId(DATASET_ID_1)
-                                               .representationName(REPRESENTATION_NAME)
-                                               .revision(Revision.builder().revisionName(REVISION_NAME)
-                                                                 .revisionProviderId(REVISION_PROVIDER_1)
-                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
-                                                                 .build())
-                                               .build());
-              when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-              cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
-
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1);
-            }
-    );
-  }
-
-  @Test
-  void executeMcsBasedTask_lastRevisionsForTwoObject_verifyTwoRecordsSentToKafka()
-          throws Exception {
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    isNull(),
-                    isNull()
-            )).thenReturn(cloudTagsResponseResultSlice),
-            rsClient -> {
-              when(rsClient.getRepresentationRawRevisions(
-                      CLOUD_ID1,
-                      REPRESENTATION_NAME,
-                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-              )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
-              when(rsClient.getRepresentationRawRevisions(
-                      CLOUD_ID2,
-                      REPRESENTATION_NAME,
-                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-              )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
-            },
-            () -> {
-              prepareInvocationForLastRevisionOfTwoObjects();
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1, FILE_URL_1);
-            });
-  }
-
-  @Test
-  void executeMcsBasedTask_lastRevisionsForTwoObjectAndLimitTo1_verifyOnlyOneRecordSentToKafka()
-          throws Exception {
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    isNull(),
-                    isNull()
-            )).thenReturn(cloudTagsResponseResultSlice),
-            rsClient -> {
-              when(rsClient.getRepresentationRawRevisions(
-                      CLOUD_ID1,
-                      REPRESENTATION_NAME,
-                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-              )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
-              when(rsClient.getRepresentationRawRevisions(
-                      CLOUD_ID2,
-                      REPRESENTATION_NAME,
-                      new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-              )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1));
-            },
-            () -> {
-              prepareInvocationForLastRevisionOfTwoObjects();
-              task.addParameter(PluginParameterKeys.SAMPLE_SIZE, "1");
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1);
-            });
-  }
-
-  @Test
-  void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyThreeRecordsSentToKafka()
-          throws Exception {
-
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    any(),
-                    eq(null))).thenReturn(cloudTagsResponseResultSlice),
-            rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    CLOUD_ID1,
-                    REPRESENTATION_NAME,
-                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-            )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
-            () -> {
-              prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1, FILE_URL_1, FILE_URL_1);
-            });
-  }
-
-  @Test
-  void executeMcsBasedTask_lastRevisionsForThreeObjectsInThreeChunks_verifyOnlyTwoRecordSentToKafka()
-          throws Exception {
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    any(),
-                    eq(null))).thenReturn(cloudTagsResponseResultSlice),
-            rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    CLOUD_ID1,
-                    REPRESENTATION_NAME,
-                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-            )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
-            () -> {
-              prepareInvocationForLastRevisionForThreeObjectsInThreeChunks();
-              task.addParameter(PluginParameterKeys.SAMPLE_SIZE, "2");
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1, FILE_URL_1);
-            });
-  }
-
-  @Test
-  void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneFile() throws Exception {
-
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    isNull(),
-                    isNull()
-            )).thenReturn(dataChunk),
-            rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    CLOUD_ID1,
-                    REPRESENTATION_NAME,
-                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-            )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
-            () -> {
-              task.setInput(DatasetRevisionInfo.builder()
-                                               .providerId(DATASET_PROVIDER_1)
-                                               .datasetId(DATASET_ID_1)
-                                               .representationName(REPRESENTATION_NAME)
-                                               .revision(Revision.builder().revisionName(REVISION_NAME)
-                                                                 .revisionProviderId(REVISION_PROVIDER_1)
-                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
-                                                                 .build())
-                                               .build());
-              when(dataChunk.getResults()).thenReturn(dataList);
-              dataList.add(new CloudTagsResponse(CLOUD_ID1, false));
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSent(FILE_URL_1);
-            });
-  }
-
-  @Test
-  void executeMcsBasedTask_oneRevisionForGivenTimestampWithOneDeletedRecord() throws Exception {
-    withClientMocks(
-            dsClient -> when(dsClient.getDataSetRevisionsChunk(
-                    eq(DATASET_PROVIDER_1),
-                    eq(DATASET_ID_1),
-                    eq(REPRESENTATION_NAME),
-                    eq(new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))),
-                    isNull(),
-                    isNull()
-            )).thenReturn(dataChunk),
-            rsClient -> when(rsClient.getRepresentationRawRevisions(
-                    CLOUD_ID1,
-                    REPRESENTATION_NAME,
-                    new Revision(REVISION_NAME, REVISION_PROVIDER_1, DateHelper.parseISODate(FILE_CREATION_DATE_STRING_1))
-            )).thenReturn(Collections.singletonList(REPRESENTATION_REVISION_1)),
-            () -> {
-              task.setInput(DatasetRevisionInfo.builder()
-                                               .providerId(DATASET_PROVIDER_1)
-                                               .datasetId(DATASET_ID_1)
-                                               .representationName(REPRESENTATION_NAME)
-                                               .revision(Revision.builder().revisionName(REVISION_NAME)
-                                                                 .revisionProviderId(REVISION_PROVIDER_1)
-                                                                 .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
-                                                                 .build())
-                                               .build());
-
-              when(dataChunk.getResults()).thenReturn(dataList);
-              dataList.add(new CloudTagsResponse(CLOUD_ID1, true));
-
-              submitter.execute(submitParameters);
-
-              verifyValidTaskSentDeleted(REPRESENTATION_URI_STRING_1);
-              assertTrue(recordCaptor.getValue().isMarkedAsDepublished());
-            });
-  }
-
-  private void prepareInvocationForLastRevisionOfTwoObjects() {
-    task.setInput(DatasetRevisionInfo.builder()
-                                     .providerId(DATASET_PROVIDER_1)
-                                     .datasetId(DATASET_ID_1)
-                                     .representationName(REPRESENTATION_NAME)
-                                     .revision(Revision.builder().revisionName(REVISION_NAME)
-                                                       .revisionProviderId(REVISION_PROVIDER_1)
-                                                       .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
-                                                       .build())
-                                     .build());
-
-    when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID2, false));
-  }
-
-  private void prepareInvocationForLastRevisionForThreeObjectsInThreeChunks() {
-    task.setInput(DatasetRevisionInfo.builder()
-                                     .providerId(DATASET_PROVIDER_1)
-                                     .datasetId(DATASET_ID_1)
-                                     .representationName(REPRESENTATION_NAME)
-                                     .revision(Revision.builder().revisionName(REVISION_NAME)
-                                                       .revisionProviderId(REVISION_PROVIDER_1)
-                                                       .creationTimeStamp(FILE_CREATION_DATE_STRING_1)
-                                                       .build())
-                                     .build());
-
-    when(cloudTagsResponseResultSlice.getResults()).thenReturn(cloudTagsResponse);
-    when(cloudTagsResponseResultSlice.getNextSlice()).thenReturn(EXAMPLE_DATE, EXAMPLE_DATE, null);
-    cloudTagsResponse.add(new CloudTagsResponse(CLOUD_ID1, false));
-  }
-
   private void verifyValidTaskSent(String... fileUrls) {
     verifyValidRecordsSentToKafka(fileUrls);
     verifyValidStateAndExpectedSizeSavedInCassandra(fileUrls);
   }
-
-  private void verifyValidTaskSentDeleted(String... fileUrls) {
-    verifyValidRecordsSentToKafka(fileUrls);
-    verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(fileUrls);
-  }
-
 
   private void verifyValidRecordsSentToKafka(String[] fileUrls) {
     verify(recordKafkaSubmitService, times(fileUrls.length)).submitRecord(recordCaptor.capture(), anyString());

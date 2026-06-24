@@ -1,13 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo.DatasetRevisionInfoBuilder;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
-import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +34,7 @@ class DpsTaskValidatorForOaiTopologyTest {
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyTaskWithoutOutputDataset.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
-    oaiTopologyTaskWithoutOutputDataset.setOutput(prepareOutput().datasetId(null).build());
+    oaiTopologyTaskWithoutOutputDataset.setOutput(prepareOutput().batchId(null).build());
     //
     oaiTopologyTaskWithoutHarvestDate = new DpsTask();
     oaiTopologyTaskWithoutHarvestDate.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
@@ -106,17 +103,11 @@ class DpsTaskValidatorForOaiTopologyTest {
     validator.validate(oaiTopologyIncrementalTaskWithoutSampleSize);
   }
 
-  private DatasetRevisionInfoBuilder prepareOutput() {
-    return DatasetRevisionInfo.builder()
+  private BatchInfo.BatchInfoBuilder prepareOutput() {
+    return BatchInfo.builder()
                               .providerId("providerID")
-                              .datasetId("datasetId")
-                              .representationName("representationName")
-                              .revision(
-                                  Revision.builder()
-                                          .revisionName("revisionName")
-                                          .revisionProviderId("revisionProvider")
-                                          .creationTimeStamp(new Date())
-                                          .build()
-                              );
+                              .batchId("datasetId")
+                              .representationName("representationName");
+
   }
 }

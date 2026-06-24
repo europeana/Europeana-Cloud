@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -19,7 +17,6 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -73,28 +70,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
 
   /*
   * New representation should be created if:
-  * - We are using revision output,
-  * - We are using dataset output and record is not marked as deleted and is processed as part of specific topologies.
+  * We are using dataset output and record is not marked as deleted and is processed as part of specific topologies.
   * (xslt, enrichment, normalization, oai or media)
    */
   private boolean shouldNewRepresentationBeCreated(CommonTaskTuple tuple) {
-    if (!isRevisionProvided(tuple.getOutputRevision())) return true;
-
-      if (tuple.isMarkedAsDepublished()) {
-      return false;
-    }
-
-    return topologyCreatingNewData;
+     return true;
   }
-
-  private boolean isRevisionProvided(Revision revision) {
-    if (revision == null) return false;
-    if (revision.getRevisionName() == null) return false;
-    if (revision.getCreationTimeStamp() == null) return false;
-    if (revision.getRevisionProviderId() == null) return false;
-    return true;
-  }
-
 
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {

@@ -104,22 +104,6 @@ public class ECloudTopologyPipeline {
   }
 
   /**
-   * Adds RevisionWriterBolt to the pipeline
-   * @return this
-   */
-  public ECloudTopologyPipeline addRevisionWriterBolt() {
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
-        createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
-        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
-
-    addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
-    return this;
-  }
-
-
-  /**
    * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.
    *
    * @param boltName - bolt name used as key for grouping and for diagnostic

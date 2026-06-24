@@ -51,16 +51,6 @@ public class DataSetPermissionsVerifier {
     return isPrivilegedUser() || hasWritePermissionFor(representation);
   }
 
-  public boolean isUserAllowedToAddRevisionTo(Representation representation)
-      throws RepresentationNotExistsException {
-    return isPrivilegedUser() || hasWritePermissionFor(representation);
-  }
-
-  public boolean isUserAllowedToDeleteRevisionFor(Representation representation)
-      throws RepresentationNotExistsException {
-    return isPrivilegedUser() || hasDeletePermissionFor(representation);
-  }
-
   public boolean hasReadPermissionFor(Representation representation)
       throws RepresentationNotExistsException {
     return hasPermissionFor(representation, Permission.READ);

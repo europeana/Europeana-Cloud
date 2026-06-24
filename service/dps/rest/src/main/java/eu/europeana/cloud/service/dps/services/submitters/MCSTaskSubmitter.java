@@ -3,12 +3,8 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.FilesUrls;
@@ -19,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -100,16 +95,11 @@ public class MCSTaskSubmitter {
   }
 
   private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters)
-      throws InterruptedException, MCSException, ExecutionException {
+      throws InterruptedException {
     try (var reader = createMcsReader()) {
-      var expectedSize = ExpectedCounters.expectZeroRecords();;
-      if (submitParameters.getTask().getInput() instanceof DatasetRevisionInfo input) {
-        expectedSize.add(executeForRevision(input,
-                submitParameters, reader));
-      } else {
-        BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
-        expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
-      }
+      var expectedSize = ExpectedCounters.expectZeroRecords();
+      BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
+      expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
       return expectedSize;
 
     }
@@ -124,103 +114,6 @@ public class MCSTaskSubmitter {
       expectedSize.add(submitRecordsForRepresentation(representation, submitParameters));
     }
     return expectedSize;
-  }
-
-  private ExpectedCounters executeForRevision(DatasetRevisionInfo input, SubmitTaskParameters submitParameters,
-                                              MCSReader reader) throws InterruptedException, MCSException, ExecutionException {
-    ExecutorService executor = Executors.newFixedThreadPool(INTERNAL_THREADS_NUMBER);
-    try {
-      DpsTask task = submitParameters.getTask();
-      var maxRecordsCount = submitParameters.getMaxRecordsCount();
-      var counter = ExpectedCounters.expectZeroRecords();
-      String startFrom = null;
-      Set<Future<ExpectedCounters>> futures = HashSet.newHashSet(INTERNAL_THREADS_NUMBER);
-      var total = 0;
-      do {
-        checkIfTaskIsKilled(task);
-        ResultSlice<CloudTagsResponse> slice = getCloudIdsChunk(input, startFrom,
-            reader);
-        List<CloudTagsResponse> cloudTagsResponseList = slice.getResults();
-
-        int maxRecordsLeft = maxRecordsCount - total;
-        if (cloudTagsResponseList.size() > maxRecordsLeft) {
-          cloudTagsResponseList = cloudTagsResponseList.subList(0, maxRecordsLeft);
-        }
-        total += cloudTagsResponseList.size();
-
-        final List<CloudTagsResponse> finalCloudTagsResponseList = cloudTagsResponseList;
-        futures.add(
-            executor.submit(() -> executeGettingFileUrlsForCloudIdList(input, finalCloudTagsResponseList, submitParameters, reader)));
-
-        if (futures.size() >= INTERNAL_THREADS_NUMBER * MAX_BATCH_SIZE) {
-          counter.add(getCountAndWait(futures));
-        }
-        startFrom = slice.getNextSlice();
-      }
-      while ((startFrom != null) && (total < maxRecordsCount));
-
-      if (!futures.isEmpty()) {
-        counter.add(getCountAndWait(futures));
-      }
-
-      return counter;
-    } catch (ExecutionException e) {
-      if (e.getCause() instanceof TaskDroppedException) {
-        LOGGER.debug("Caught ExecutionException from Threads executor. Task was killed.");
-        throw new TaskDroppedException(submitParameters.getTask());
-      } else {
-        throw e;
-      }
-    } finally {
-      executor.shutdown();
-      executor.awaitTermination(1, TimeUnit.MINUTES);
-    }
-  }
-
-  private ResultSlice<CloudTagsResponse> getCloudIdsChunk(DatasetRevisionInfo input,
-      String startFrom,
-      MCSReader reader) throws MCSException {
-    return reader.getDataSetRevisionsChunk(
-        input.getRepresentationName(),
-        input.getRevision(),
-        input.getProviderId(), input.getDatasetId(), startFrom);
-  }
-
-  private ExpectedCounters executeGettingFileUrlsForCloudIdList(DatasetRevisionInfo input, List<CloudTagsResponse> responseList,
-                                                                SubmitTaskParameters submitParameters,
-                                                                MCSReader reader) throws MCSException {
-    ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
-    for (CloudTagsResponse response : responseList) {
-      counter.add(executeGettingFileUrlsForOneCloudId(input, response, submitParameters, reader));
-    }
-
-    return counter;
-  }
-
-  private ExpectedCounters executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
-                                                               MCSReader reader) throws MCSException {
-
-    ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
-    checkIfTaskIsKilled(submitParameters.getTask());
-    List<RepresentationRevisionResponse> representationRevisions = reader.getRevisionsForTheRepresentation(
-        input.getRepresentationName(),
-        input.getRevision().getRevisionName(),
-        input.getRevision().getRevisionProviderId(),
-        input.getRevision().getCreationTimeStamp(),
-        response.getCloudId());
-    for (RepresentationRevisionResponse representationRevision : representationRevisions) {
-      counter.add(submitRecordsForRepresentationRevision(representationRevision, submitParameters, response.isDeleted()));
-    }
-    return counter;
-  }
-
-  private ExpectedCounters submitRecordsForRepresentationRevision(RepresentationRevisionResponse representationRevision,
-                                                                  SubmitTaskParameters submitParameters, boolean markedAsDepublished) {
-    if (markedAsDepublished) {
-      return submitRecordForDeletedRepresentation(representationRevision.getRepresentationVersionUri(), submitParameters);
-    } else {
-      return submitRecordsForFileObjects(representationRevision.getFiles(), submitParameters);
-    }
   }
 
   private ExpectedCounters submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {

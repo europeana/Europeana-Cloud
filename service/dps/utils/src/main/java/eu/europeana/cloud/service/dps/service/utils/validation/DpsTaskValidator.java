@@ -319,6 +319,5 @@ class DpsTaskConstraint {
 enum DpsTaskFieldType {
   PARAMETER,
   ID,
-  NAME,
-  OUTPUT_REVISION
+  NAME
 }

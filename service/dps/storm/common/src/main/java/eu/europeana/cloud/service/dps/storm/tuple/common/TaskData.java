@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.tuple.common;
 
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +20,6 @@ public class TaskData implements Serializable {
     String sentDate;
     Map<String, String> parameters = new HashMap<>();
 
-    Revision outputRevision;
     // Datasets could not be stored as DataSet object because of problems with serialization of java.net.URI field by Kryo library
     // used by Storm on current version of java and storm library
     String outputDatasetProvider;

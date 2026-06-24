@@ -4,7 +4,6 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -105,7 +104,6 @@ class HarvestingWriteRecordBoltTest {
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setOutputRepresentationName(REPRESENTATION_NAME);
         tuple.setSentDate(SENT_DATE);
-        tuple.setOutputRevision(new Revision());
         return tuple;
     }
 
@@ -116,7 +114,6 @@ class HarvestingWriteRecordBoltTest {
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
-        tuple.setOutputRevision(new Revision());
         tuple.setOutputDatasetProvider(DATA_PROVIDER);
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setOutputRepresentationName(REPRESENTATION_NAME);

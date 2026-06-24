@@ -16,7 +16,6 @@ public final class TestConstants {
   public static final String CLOUD_ID2 = "CloudId2";
   public static final String REPRESENTATION_NAME = "RepresentationName";
   public static final String VERSION = "Version";
-  public static final String REVISIONS = "revisions";
   public static final String FILE = "FileName";
   public static final String FILE2 = "FileName2";
   public static final String DATASET_NAME = "dataSet";
@@ -63,12 +62,6 @@ public final class TestConstants {
       + RESULT + REPRESENTATION_NAME + VERSIONS_URI_PART
       + RESULT + VERSION + 2;
 
-
-  public static final String REVISION_URL = MCS_URL + RECORDS_URI_PART
-      + RESULT + CLOUD_ID + REPRESENTATIONS_URI_PART
-      + RESULT + REPRESENTATION_NAME + VERSIONS_URI_PART
-      + RESULT + REVISIONS;
-
   public static final String RESULT_FILE_URL = RESULT_VERSION_URL + FILES_URI_PART + FILE;
   public static final String RESULT_FILE_URL2 = RESULT_VERSION_URL2 + FILES_URI_PART + FILE2;
 
@@ -83,10 +76,6 @@ public final class TestConstants {
 
 
   public static final String TASK_NAME = "TASK_NAME";
-  public static final String REVISION_NAME = "REVISION_NAME";
-  public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
-  public static final String REVISION_TIMESTAMP = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-
   public static final String TEST_END_BOLT = "testEndBolt";
 
   private TestConstants() {

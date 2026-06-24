@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
@@ -170,10 +170,10 @@ class HarvestsExecutorTest {
 
   private void createNewTask() {
     task = new DpsTask();
-    task.setOutput(DatasetRevisionInfo.builder()
-                                      .providerId(PROVIDER_ID)
-                                      .datasetId(DATASET_ID)
-                                      .build());
+    task.setOutput(BatchInfo.builder()
+                            .providerId(PROVIDER_ID)
+                            .batchId(DATASET_ID)
+                            .build());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     parameters = SubmitTaskParameters.builder().task(task).topicName(TOPIC).build();
   }

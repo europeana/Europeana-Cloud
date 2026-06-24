@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -11,7 +10,6 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.dps.*;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo.DatasetRevisionInfoBuilder;
 import eu.europeana.cloud.service.dps.config.DPSServiceTestContext;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -32,7 +30,6 @@ import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,8 +84,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     private static final String DATASET_URL = "http://127.0.0.1:8080/mcs/data-providers/PROVIDER_ID/data-sets/s1";
     private static final String DATASET_ID = "s1";
   private static final String REPRESENTATION_NAME = "REPRESENTATION_NAME";
-  public static final String REVISION_NAME = "REVISION_NAME";
-  public static final String REVISION_PROVIDER = "REVISION_PROVIDER";
     private static final String PROVIDER_ID= "PROVIDER_ID";
     private static final String IMAGE_TIFF = "image/tiff";
   private static final String IMAGE_JP2 = "image/jp2";
@@ -157,7 +152,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         DpsTask task = getDpsTaskWithDataSetEntry();
 
         task.addParameter(SCHEMA_NAME, "edm-internal");
-        setCorrectlyFormulatedOutputRevision(task);
+        setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
 
@@ -166,17 +161,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   }
 
     @Test
-    void shouldProperlySendTaskWithDataSetEntryAndRevisionToEnrichmentTopology() throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setCorrectlyFormulatedOutputRevision(task);
-      prepareMocks(ENRICHMENT_TOPOLOGY);
-
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
-        assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
-    }
-
-    @Test
-    void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToEnrichmentTopology() throws Exception {
+    void shouldProperlySendTaskWithDataSetEntryToEnrichmentTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
         setCorrectlyFormulatedOutputBatch(task);
 
@@ -189,24 +174,11 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithNullDatasetId() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
-      task.setInput(DatasetRevisionInfo.builder()
+      task.setInput(BatchInfo.builder()
                                        .providerId(PROVIDER_ID)
-                                       .datasetId(null)
+                                       .batchId(null)
                                        .build());
         prepareMocks(ENRICHMENT_TOPOLOGY);
-
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
-
-        response.andExpect(status().isBadRequest());
-    }
-
-
-    @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToEnrichmentTopologyWithNotValidOutputRevision()
-            throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, null,null," ", REVISION_PROVIDER);
-      prepareMocks(ENRICHMENT_TOPOLOGY);
 
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
 
@@ -216,7 +188,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, DATASET_URL,null,REVISION_NAME, REVISION_PROVIDER);
+      setOutput(task, DATASET_URL,null);
         when(dataSetServiceClient.datasetExists(anyString(), anyString())).thenReturn(false);
         prepareMocks(TOPOLOGY_NAME);
 
@@ -229,7 +201,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, DATASET_URL,null,REVISION_NAME, REVISION_PROVIDER);
+      setOutput(task, DATASET_URL,null);
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString());
         prepareMocks(TOPOLOGY_NAME);
 
@@ -243,8 +215,8 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter()
             throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, DATASET_URL,null,REVISION_NAME, REVISION_PROVIDER);
-      ((DatasetRevisionInfo)task.getInput()).setProviderId("DIFFERENT_PROVIDER_ID");
+      setOutput(task, DATASET_URL,null);
+      ((BatchInfo)task.getInput()).setProviderId("DIFFERENT_PROVIDER_ID");
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
                 new ResultSlice<>());
         prepareMocks(TOPOLOGY_NAME);
@@ -258,7 +230,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldProperlySendTaskWithOutputDataSet() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry("");
-        setOutput(task,DATASET_URL,"exampleParamName",REVISION_NAME, REVISION_PROVIDER);
+        setOutput(task,DATASET_URL,"exampleParamName");
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
                 new ResultSlice<>());
         prepareMocks(ENRICHMENT_TOPOLOGY);
@@ -272,7 +244,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
-        setCorrectlyFormulatedOutputRevision(task);
+        setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
         ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
@@ -282,21 +254,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
 
     @Test
-    void shouldProperlySendTaskWithDataSetEntryAndRevisionToNormalizationTopology() throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-
-        setCorrectlyFormulatedOutputRevision(task);
-
-        prepareMocks(NORMALIZATION_TOPOLOGY);
-        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
-
-        assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
-    }
-
-
-    @Test
-    void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToNormalizationTopology() throws Exception {
+    void shouldProperlySendTaskWithDataSetEntryToNormalizationTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
         setCorrectlyFormulatedOutputBatch(task);
         prepareMocks(NORMALIZATION_TOPOLOGY);
@@ -306,23 +264,10 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
   @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToNormalizationTopologyWithNotValidOutputRevision()
-            throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, null,null,EMPTY_STRING, REVISION_PROVIDER);
-
-      prepareMocks(NORMALIZATION_TOPOLOGY);
-        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
-
-        response.andExpect(status().isBadRequest());
-  }
-
-  @Test
     void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
-        setCorrectlyFormulatedOutputRevision(task);
+        setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(NORMALIZATION_TOPOLOGY);
         ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
@@ -336,7 +281,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
-        setCorrectlyFormulatedOutputRevision(task);
+        setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(VALIDATION_TOPOLOGY);
         ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
@@ -350,10 +295,9 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
             throws Exception {
 
         DpsTask task = getDpsTaskWithDataSetEntry();
-      task.setOutput(DatasetRevisionInfo.builder()
+      task.setOutput(BatchInfo.builder()
                                         .representationName(null)
-                                        .revision(new Revision(REVISION_NAME, REVISION_PROVIDER))
-                                        .datasetId(DATASET_ID)
+                                        .batchId(DATASET_ID)
                                         .providerId(PROVIDER_ID)
                                         .build());
 
@@ -363,64 +307,12 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-    @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingOutputRevision() throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-
-        prepareMocks(VALIDATION_TOPOLOGY);
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
-
-        response.andExpect(status().isBadRequest());
-    }
-
-
-    @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision1()
-            throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, null,REPRESENTATION_NAME," ", REVISION_PROVIDER);
-      prepareMocks(VALIDATION_TOPOLOGY);
-
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-  }
-
-
-    @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision2()
-            throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task,null,REPRESENTATION_NAME,null, REVISION_PROVIDER);
-      prepareMocks(VALIDATION_TOPOLOGY);
-
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-  }
-
-  @Test
-    void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyWithNotValidOutputRevision3()
-            throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-
-    setOutput(task,null,REPRESENTATION_NAME,REVISION_NAME,null);
-
-    prepareMocks(VALIDATION_TOPOLOGY);
-
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
-    response.andExpect(status().isBadRequest());
-  }
-
   @Test
     void shouldProperlySendTaskWithOaiPmhRepository() throws Exception {
         DpsTask task = new DpsTask();
         task.setTaskName(TASK_NAME);
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-        setCorrectlyFormulatedOutputRevision(task);
+        setCorrectlyFormulatedOutputBatch(task);
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
         harvestingDetails.setRepositoryUrl(TEST_RESOURCE_URL);
         harvestingDetails.setSchema("oai_dc");
@@ -464,7 +356,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-      setCorrectlyFormulatedOutputRevision(task);
+      setCorrectlyFormulatedOutputBatch(task);
         prepareMocks(HTTP_TOPOLOGY);
     ResultActions response = sendTask(task, HTTP_TOPOLOGY);
 
@@ -487,25 +379,12 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
 
     @Test
-    void shouldThrowExceptionWhenSubmittingTaskToHttpServiceWithNotValidOutputRevision() throws Exception {
-      DpsTask task = new DpsTask();
-      task.setTaskName(TASK_NAME);
-      task.setInput(new HttpHarvestingDetails(HTTP_COMPRESSED_FILE_URL));
-
-      setOutput(task,null,null,REVISION_NAME,null);
-      prepareMocks(HTTP_TOPOLOGY);
-
-        ResultActions response = sendTask(task, HTTP_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-    }
-
-    @Test
     void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-      setOutput(task,DATASET_URL,REPRESENTATION_NAME, REVISION_NAME, REVISION_PROVIDER);
+      setOutput(task,DATASET_URL,REPRESENTATION_NAME);
 
       prepareMocks(INDEXING_TOPOLOGY);
     //when
@@ -522,7 +401,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-    setOutput(task, DATASET_URL ,REPRESENTATION_NAME,REVISION_NAME, REVISION_PROVIDER);
+    setOutput(task, DATASET_URL ,REPRESENTATION_NAME);
     prepareMocks(INDEXING_TOPOLOGY);
 
     //when
@@ -538,7 +417,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         //given
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-      setCorrectlyFormulatedOutputRevision(task);
+      setCorrectlyFormulatedOutputBatch(task);
       task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
       prepareMocks(INDEXING_TOPOLOGY);
 
@@ -554,7 +433,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws Exception {
         //given
         DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-      setOutput(task, null,null, REVISION_NAME, REVISION_PROVIDER);
+      setOutput(task, null,null);
       prepareMocks(INDEXING_TOPOLOGY);
 
         //when
@@ -569,14 +448,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws Exception {
         //given
         DpsTask task = new DpsTask("indexingTask");
-      task.setInput(DatasetRevisionInfo.builder()
+      task.setInput(BatchInfo.builder()
                                        .providerId(PROVIDER_ID)
-                                       .datasetId(DATASET_ID)
+                                       .batchId(DATASET_ID)
                                        .build());
         task.addParameter(OUTPUT_MIME_TYPE, "image/jp2");
         task.addParameter(MIME_TYPE, "image/tiff");
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "wrong-value");
-      setOutput(task,null,"REPRESENTATION_NAME", REVISION_NAME, REVISION_PROVIDER);
+      setOutput(task,null,"REPRESENTATION_NAME");
       String topologyName = "indexing_topology";
     prepareMocks(topologyName);
 
@@ -592,7 +471,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         DpsTask task = getDpsTaskWithFileDataEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
-    setCorrectlyFormulatedOutputRevision(task);
+    setCorrectlyFormulatedOutputBatch(task);
     prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
 
@@ -626,49 +505,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         ResultActions response = sendTask(task, IC_TOPOLOGY);
         response.andExpect(status().isBadRequest());
     }
-
-
-    @Test
-    void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision1() throws Exception {
-
-        DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-        prepareCompleteParametersForIcTask(task);
-      setOutput(task,null,null, EMPTY_STRING, REVISION_PROVIDER);
-
-      prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-    }
-
-
-
-
-  @Test
-    void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision2() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-        prepareCompleteParametersForIcTask(task);
-    setOutput(task,null,null, EMPTY_STRING, EMPTY_STRING);
-
-    prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-    }
-
-   @Test
-    void shouldThrowExceptionOnSendTaskWithMalformedOutputRevision3() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
-        prepareCompleteParametersForIcTask(task);
-     setOutput(task, null,null,null, null);
-
-     prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
-
-        response.andExpect(status().isBadRequest());
-    }
-
-
 
   @Test
     void shouldGetProgressReport() throws Exception {
@@ -761,19 +597,8 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isMethodNotAllowed());
     }
 
-
     @Test
-    void shouldProperlySendTaskWithDataSetEntryAndRevisionToLinkCheckTopology() throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
-        prepareMocks(LINK_CHECKING_TOPOLOGY);
-
-        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
-        assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
-    }
-
-
-    @Test
-    void shouldProperlySendTaskWithDataSetEntryWithoutRevisionToLinkCheckTopology() throws Exception {
+    void shouldProperlySendTaskWithDataSetEntryToLinkCheckTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
 
         prepareMocks(LINK_CHECKING_TOPOLOGY);
@@ -786,9 +611,9 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithNullDatasetProviderId() throws Exception {
         DpsTask task = new DpsTask(TASK_NAME);
-      task.setInput(DatasetRevisionInfo.builder()
+      task.setInput(BatchInfo.builder()
                                        .providerId(null)
-                                       .datasetId(DATASET_ID)
+                                       .batchId(DATASET_ID)
                                        .build());
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
@@ -798,25 +623,15 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
 
-    @Test
-    void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckTopologyWithNotValidOutputRevision() throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
-      setOutput(task, null,null," ", REVISION_PROVIDER);
-      prepareMocks(LINK_CHECKING_TOPOLOGY);
 
-        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
-        response.andExpect(status().isBadRequest());
-    }
+  private static void setOutput(DpsTask task,String datasetUrl, String representationName) {
+    BatchInfo.BatchInfoBuilder builder = BatchInfo.builder().representationName(representationName);
 
-  private static void setOutput(DpsTask task,String datasetUrl, String representationName, String revisionName, String revisionProvider) {
-    DatasetRevisionInfoBuilder builder = DatasetRevisionInfo.builder()
-                                                            .representationName(representationName)
-                                                            .revision(new Revision(revisionName, revisionProvider));
 
     if(datasetUrl!=null){
       try {
         DataSet set = DataSetUrlParser.parse(datasetUrl);
-        builder.datasetId(set.getId());
+        builder.batchId(set.getId());
         builder.providerId(set.getProviderId());
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);
@@ -934,25 +749,13 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   private DpsTask getDpsTaskWithDataSetEntry(String representationName) {
     DpsTask task = new DpsTask(TASK_NAME);
-    task.setInput(DatasetRevisionInfo.builder()
+    task.setInput(BatchInfo.builder()
                                      .providerId(PROVIDER_ID)
-                                     .datasetId(DATASET_ID)
+                                     .batchId(DATASET_ID)
                                      .representationName(representationName)
-                                     .revision(Revision.builder().revisionName("sampleRevisionNAme")
-                                                       .revisionProviderId("sampleRevisionProvider")
-                                                       .creationTimeStamp(Date.from(Instant.parse("2021-07-12T16:50:00.000Z")))
-                                                       .build())
                                      .build());
 
     task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-
-
-
-//    task.addParameter(REVISION_NAME, "OAIPMH_HARVEST");
-//    task.addParameter(REVISION_PROVIDER, "metis_test5");
-//    task.addParameter(REVISION_TIMESTAMP, "2018-01-31T11:33:30.842+01:00");
-
-
     return task;
   }
 
@@ -1000,15 +803,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   private void prepareCompleteParametersForIcTask(DpsTask task) {
     task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
     task.addParameter(MIME_TYPE, IMAGE_TIFF);
-  }
-
-  private void setCorrectlyFormulatedOutputRevision(DpsTask task) {
-    task.setOutput(DatasetRevisionInfo.builder()
-                                      .representationName(REPRESENTATION_NAME)
-                                      .revision(new Revision(REVISION_NAME, REVISION_PROVIDER))
-            .datasetId(DATASET_ID)
-            .providerId(PROVIDER_ID)
-                                      .build());
   }
 
   private void setCorrectlyFormulatedOutputBatch(DpsTask task) {

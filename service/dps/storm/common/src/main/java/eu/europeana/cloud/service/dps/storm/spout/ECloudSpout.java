@@ -1,18 +1,16 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
-import eu.europeana.cloud.service.dps.MCSInputOutput;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -214,14 +212,11 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, input.getRepositoryUrl());
       }
 
-      MCSInputOutput output = dpsTask.getOutput();
+      BatchInfo output = dpsTask.getOutput();
       if (output != null) {
         stormTaskTuple.setOutputDatasetProvider(output.getProviderId());
-        stormTaskTuple.setOutputDatasetId(output.getDatasetId());
+        stormTaskTuple.setOutputDatasetId(output.getBatchId());
         stormTaskTuple.setOutputRepresentationName(output.getRepresentationName());
-        if (output instanceof DatasetRevisionInfo revisionInfo) {
-          stormTaskTuple.setOutputRevision(revisionInfo.getRevision());
-        }
       }
 
       stormTaskTuple.addParameters(dpsTask.getParameters());

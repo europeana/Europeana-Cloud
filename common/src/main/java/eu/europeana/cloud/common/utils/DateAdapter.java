@@ -18,7 +18,7 @@ public class DateAdapter extends XmlAdapter<String, Date> {
   @Override
   public String marshal(Date date) {
     if (date == null) {
-      throw new RuntimeException("The revision creation Date shouldn't be null");
+      throw new RuntimeException("The representation version creation Date shouldn't be null");
     }
     return String.valueOf(date.getTime());
   }

@@ -1,11 +1,9 @@
 package eu.europeana.cloud.service.dps.controller;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo.DatasetRevisionInfoBuilder;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -105,19 +103,16 @@ class DpsResourceAATest extends AbstractSecurityTest {
             "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    XSLT_TASK.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     XSLT_TASK2 = new DpsTask("xsltTask");
     XSLT_TASK2.setInput(new FilesUrls(
         "http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
-    XSLT_TASK2.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     XSLT_TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
     XSLT_TASK_WITH_MALFORMED_URL.setInput(new FilesUrls(
         "httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
     XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
-    XSLT_TASK_WITH_MALFORMED_URL.setOutput(prepareCompleteDatasetRevisionInfo().build());
 
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(TASK_ID)
@@ -167,7 +162,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.setOutput(prepareCompleteDatasetRevisionInfo().build());
+    task.setOutput(prepareCompleteDatasetRevisionInfo());
 
     topologyTasksResource.createTask(request, task, XSLT_TOPOLOGY_NAME);
   }
@@ -183,7 +178,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.setOutput(prepareCompleteDatasetRevisionInfo().build());
+    task.setOutput(prepareCompleteDatasetRevisionInfo());
 
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;
@@ -378,10 +373,8 @@ class DpsResourceAATest extends AbstractSecurityTest {
     assertEquals(200, response.getStatusCode().value());
   }
 
-  public static DatasetRevisionInfoBuilder prepareCompleteDatasetRevisionInfo() {
-    return DatasetRevisionInfo.builder().providerId("providerId").datasetId("datasetId").
-                              representationName("representationName")
-                              .revision(new Revision("sampleRevisionName", "sampleRevisionProvider", new Date()));
+  public static BatchInfo prepareCompleteDatasetRevisionInfo() {
+    return BatchInfo.builder().providerId("providerId").batchId("datasetId").representationName("representationName").build();
   }
 }
 

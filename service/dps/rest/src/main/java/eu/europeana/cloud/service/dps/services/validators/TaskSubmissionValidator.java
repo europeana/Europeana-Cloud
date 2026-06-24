@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.services.validators;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
-import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
@@ -62,7 +60,7 @@ public class TaskSubmissionValidator {
     if (task.getInput() instanceof FilesUrls) {
       return topologyName + "_file_urls";
     }
-    if (task.getInput() instanceof DatasetRevisionInfo || task.getInput() instanceof BatchInfo) {
+    if (task.getInput() instanceof BatchInfo) {
       return topologyName + "_dataset_urls";
     }
     if (task.getInput() instanceof OAIPMHHarvestingDetails || task.getInput() instanceof HttpHarvestingDetails){

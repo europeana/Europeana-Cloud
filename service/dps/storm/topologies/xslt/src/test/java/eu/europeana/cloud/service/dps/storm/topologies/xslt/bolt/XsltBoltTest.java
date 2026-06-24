@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
 import com.google.common.base.Charsets;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
@@ -67,7 +66,6 @@ class XsltBoltTest {
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
             new ProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
@@ -91,7 +89,6 @@ class XsltBoltTest {
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
             new ProcessingData());
     tuple.setParameters(parameters);
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());

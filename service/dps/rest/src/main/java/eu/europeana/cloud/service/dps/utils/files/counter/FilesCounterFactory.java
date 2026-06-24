@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.DpsTask.TaskInput;
 import eu.europeana.cloud.service.dps.FilesUrls;
@@ -39,7 +38,7 @@ public class FilesCounterFactory {
     if (input instanceof FilesUrls) {
       return new RecordFilesCounter();
     }
-    if (input instanceof DatasetRevisionInfo || input instanceof BatchInfo) {
+    if (input instanceof BatchInfo) {
       return new DatasetFilesCounter(taskInfoDAO);
     }
     if (input instanceof OAIPMHHarvestingDetails) {

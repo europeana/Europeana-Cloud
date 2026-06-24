@@ -1,28 +1,8 @@
 package eu.europeana.cloud.service.dps;
 
-import eu.europeana.cloud.common.model.Revision;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 class DpsTaskTest {
-
-  @Test
-  void createHarvestingTaskWithOutputRevision() {
-    DpsTask task = new DpsTask();
-    OAIPMHHarvestingDetails input = new OAIPMHHarvestingDetails();
-    input.setRepositoryUrl("https://oai.source.com");
-    input.setSchema("edm");
-    input.setSet("dataset");
-    task.setInput(input);
-
-    DatasetRevisionInfo output = new DatasetRevisionInfo("metisProduction", "9cafe47c-1f42-4990-ba86-4f06a9ceb768",
-        "metadataRecord",
-        new Revision("OAIPMH_HARVEST", "metisProduction", new Date()));
-    task.setOutput(output);
-
-    task.addParameter(PluginParameterKeys.METIS_DATASET_ID, "12212");
-    task.addParameter(PluginParameterKeys.HARVEST_DATE, "2026-03-26T13:20:00.000Z");
-  }
 
   @Test
   void createHarvestingTaskWithOutputBatch() {

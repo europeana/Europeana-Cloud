@@ -15,11 +15,6 @@ public final class RestInterfaceConstants {
   public static final String DATA_SET_REPRESENTATIONS_NAMES =
       DATA_SET_RESOURCE + "/representationsNames";
 
-  //DataSetRevisionsResource
-  public static final String DATA_SET_REVISIONS_RESOURCE =
-      DATA_SET_RESOURCE + "/representations/{representationName}/revisions/{revisionName}" +
-          "/revisionProvider/{revisionProviderId}";
-
   //DataSetsResource
   public static final String DATA_SETS_RESOURCE =
       "/data-providers/{providerId}/data-sets";
@@ -67,28 +62,7 @@ public final class RestInterfaceConstants {
   public static final String FILE_UPLOAD_RESOURCE =
       "/records/{cloudId}/representations/{representationName}/files";
 
-  //RepresentationRevisionsResource
-  public static final String REPRESENTATION_REVISIONS_RESOURCE =
-      "/records/{cloudId}/representations/{representationName}/revisions/{revisionName}";
-
-  public static final String REPRESENTATION_RAW_REVISIONS_RESOURCE =
-      "/records/{cloudId}/representations/{representationName}/revisions/{revisionName}/raw";
-
-  //RevisionResource
-  public static final String REVISION_ADD
-      = "/records/{cloudId}/representations/{representationName}/versions/{version}/revisions";
-
-  public static final String REVISION_ADD_WITH_PROVIDER_TAG =
-      REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}/tag/{tag}";
-
-  public static final String REVISION_ADD_WITH_PROVIDER =
-      REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}/tags";
-
-  public static final String REVISION_DELETE =
-      REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}";
-
-
-  //SimplifiedRecordsResource
+   //SimplifiedRecordsResource
   public static final String SIMPLIFIED_RECORDS_RESOURCE =
       "/data-providers/{providerId}/records/{localId:.+}";
 

@@ -1,12 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
@@ -64,16 +62,6 @@ class DpsTaskValidatorForIndexingTopologyTest {
   }
 
   @Test
-  void shouldFailWithoutRevisionData() {
-    DpsTask dpsTask = prepareDpsTaskForTests(            false,            false    );
-    dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-    DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
-
-    assertThrows(DpsTaskValidationException.class, () -> validator.validate(dpsTask));
-  }
-
-  @Test
   void shouldValidateIndexingTopologyTaskWithFilesUrls() throws DpsTaskValidationException {
     DpsTask dpsTask = prepareDpsTaskForTests(            false,            true    );
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
@@ -113,17 +101,11 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
 
     if (addDatasetUrls) {
-      dpsTask.setInput(DatasetRevisionInfo.builder()
-                 .providerId(DATASET_01_PROVIDER)
-                 .datasetId(DATASET_01_ID)
-                                          .representationName("sample_REPRESENTATION_NAME")
-                                          .revision(Revision.builder()
-                                                            .revisionName("sample_REVISION_NAME").revisionProviderId("sample_REVISION_PROVIDER")
-                                                            .creationTimeStamp(new Date())
-                                                            .build()).build());
-
-
-
+      dpsTask.setInput(BatchInfo.builder()
+                                .providerId(DATASET_01_PROVIDER)
+                                .batchId(DATASET_01_ID)
+                                .representationName("sample_REPRESENTATION_NAME")
+                                .build());
     } else if (addFilesUrls) {
       dpsTask.setInput(new FilesUrls(FILE_01, FILE_02, FILE_03));
     }

@@ -4,19 +4,15 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.LocalId;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.DpsTask.TaskOutput;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -67,13 +63,6 @@ class HarvestingPostProcessorTest {
   private static final String VERSION = "v1";
   private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
   private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
-  private static final Date INPUT_REVISION_TIMESTAMP = new Date(0);
-  private static final String INPUT_REVISION_PROVIDER = "revisionProvider";
-  private static final String INPUT_REVISION_NAME = "revisionName";
-  private static final Date OUTPUT_REVISION_TIMESTAMP = new Date(0);
-  private static final String OUTPUT_REVISION_PROVIDER = "revisionProvider";
-  private static final String OUTPUT_REVISION_NAME = "revisionName";
-  private static final Revision RESULT_REVISION = new Revision(OUTPUT_REVISION_NAME, OUTPUT_REVISION_PROVIDER, OUTPUT_REVISION_TIMESTAMP, true);
   private static final String HARVEST_DATE_STRING = "2021-05-26T08:00:00.000Z";
   private static final Date HARVEST_DATE = DateHelper.parseISODate(HARVEST_DATE_STRING);
   private static final Date OLDER_DATE = DateHelper.parseISODate("2021-05-26T07:30:00.000Z");
@@ -90,9 +79,6 @@ class HarvestingPostProcessorTest {
 
   @Mock
   private RecordServiceClient recordServiceClient;
-
-  @Mock
-  private RevisionServiceClient revisionServiceClient;
 
   @Mock
   private DataSetServiceClient dataSetServiceClient;
@@ -164,24 +150,6 @@ class HarvestingPostProcessorTest {
                             .build());
   }
 
-  private void prepareTaskWithRevisionOrientedMode(){
-    task.setTaskId(TASK_ID);
-    task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
-    task.addParameter(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_STRING);
-
-    Revision revision = new Revision();
-    revision.setRevisionName(OUTPUT_REVISION_NAME);
-    revision.setRevisionProviderId(OUTPUT_REVISION_PROVIDER);
-    revision.setCreationTimeStamp(OUTPUT_REVISION_TIMESTAMP);
-    task.setOutput(DatasetRevisionInfo.builder()
-                                      .providerId(PROVIDER_ID)
-                                      .datasetId(DATASET_ID)
-                                      .representationName(REPRESENTATION_NAME)
-                                      .revision(revision)
-                                      .build());
-  }
-
-
   @Test
   void shouldNotFailWhenThereIsNoHarvestedRecords() {
 
@@ -200,29 +168,12 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
     verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 0);
     verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
-    verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
+    verifyNoInteractions(uisClient, recordServiceClient, dataSetServiceClient);
   }
 
 
   @Test
   void shouldAddOlderRecordAsDeleted() throws MCSException {
-    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
-
-    service.execute(taskInfo, task);
-
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
-    verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
-    verify(taskStatusUpdater, times(2))
-            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
-    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
-    verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verifyNoMoreInteractions(taskStatusUpdater);
-  }
-
-  @Test
-  public void shouldAddOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
-    prepareTaskWithRevisionOrientedMode();
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
 
     service.execute(taskInfo, task);
@@ -249,7 +200,7 @@ class HarvestingPostProcessorTest {
     verify(processedRecordsDAO, never()).insert(any());
     verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater, never()).updatePostProcessedRecordsCount(anyLong(), anyInt());
-    verifyNoInteractions(uisClient, recordServiceClient, revisionServiceClient, dataSetServiceClient);
+    verifyNoInteractions(uisClient, recordServiceClient, dataSetServiceClient);
   }
 
   @Test
@@ -275,31 +226,6 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  public void shouldAddAllOlderRecordAsDeletedWithRevisionOrientedProcessing() throws MCSException {
-    prepareTaskWithRevisionOrientedMode();
-    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
-    allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
-
-    service.execute(taskInfo, task);
-
-    //record1
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
-    verify(revisionServiceClient).addRevision(CLOUD_ID1, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
-    //record2
-    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
-    verify(revisionServiceClient).addRevision(CLOUD_ID2, REPRESENTATION_NAME, VERSION, RESULT_REVISION);
-    //task
-    verify(processedRecordsDAO, times(2)).insert(any());
-    verify(taskStatusUpdater, times(2))
-            .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
-    verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 2);
-    verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 1, 1);
-    verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(TASK_ID, 2, 2);
-    verifyNoMoreInteractions(taskStatusUpdater);
-  }
-
-  @Test
   void shouldNotAddRecordThatNotBelongsToCurrentHarvest() throws MCSException {
     allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
@@ -313,7 +239,7 @@ class HarvestingPostProcessorTest {
     verify(taskStatusUpdater).updateExpectedDepublishAndPostprocessedRecordsNumber(TASK_ID, 1);
     verify(taskStatusUpdater).updatePostProcessingAndDepublishCounters(eq(TASK_ID), eq(1), anyInt());
     verify(taskStatusUpdater).setTaskCompletelyProcessed(eq(TASK_ID), anyString());
-    verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, revisionServiceClient, dataSetServiceClient);
+    verifyNoMoreInteractions(taskStatusUpdater, recordServiceClient, dataSetServiceClient);
   }
 
   @Test

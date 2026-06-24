@@ -1,8 +1,7 @@
 package eu.europeana.cloud.client.dps.rest;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.*;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.DpsException;
@@ -49,26 +48,17 @@ class DPSClientTestIT {
   void submitValidationTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
     DpsTask task = new DpsTask();
-    DatasetRevisionInfo inputData = DatasetRevisionInfo.builder().providerId("metis_test5")
-                                                       .datasetId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
-                                                       .representationName("metadataRecord")
-                                                       .build();
+    BatchInfo inputData = BatchInfo.builder().providerId("metis_test5")
+                                             .batchId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
+                                             .representationName("metadataRecord")
+                                             .build();
 
     task.setInput(inputData);
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
-    DatasetRevisionInfo output = new DatasetRevisionInfo();
-    output.setRepresentationName("metadataRecord");
-    inputData.setRevision(Revision.builder().
-                                  revisionName("OAIPMH_HARVEST")
-                                  .revisionProviderId("metis_test5")
-                                  .creationTimeStamp("2018-01-31T11:33:30.842+01:00")
-                                  .build());
-    //
-    output.setRevision(Revision.builder().
-                               revisionName("VALIDATION_EXTERNAL_TEST")
-                               .revisionProviderId("metis_test5")
-                               .creationTimeStamp(new Date())
-                               .build());
+    BatchInfo output = BatchInfo.builder().providerId("metis_test5")
+                                   .batchId("f4afd107-bf85-4a4f-948f-2a8e70b16b82")
+                                   .representationName("metadataRecord")
+                                   .build();
     task.setOutput(output);
     //
     DpsTask resultTask = client.createTask(task, "validation_topology");

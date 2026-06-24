@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 public class DpsTask {
 
   private TaskInput input;
-  private TaskOutput output;
+  private BatchInfo output;
 
   /* List of parameters (specific for each dps-topology) */
   private Map<String, String> parameters = new HashMap<>();
@@ -111,24 +111,10 @@ public class DpsTask {
       @JsonSubTypes.Type(value = OAIPMHHarvestingDetails.class,name="oai"),
       @JsonSubTypes.Type(value = HttpHarvestingDetails.class,name="http"),
       @JsonSubTypes.Type(value = FilesUrls.class,name="files"),
-      @JsonSubTypes.Type(value = DatasetRevisionInfo.class,name="revision"),
       @JsonSubTypes.Type(value = BatchInfo.class,name="batch")
   })
   public interface TaskInput {
 
   }
-
-  /**
-   * Marker interface for task output definition
-   */
-  @JsonTypeInfo(use= Id.NAME)
-  @JsonSubTypes({
-      @JsonSubTypes.Type(value = DatasetRevisionInfo.class,name="revision"),
-      @JsonSubTypes.Type(value = BatchInfo.class,name="batch")
-  })
-  public interface TaskOutput extends MCSInputOutput {
-
-  }
-
 }
 

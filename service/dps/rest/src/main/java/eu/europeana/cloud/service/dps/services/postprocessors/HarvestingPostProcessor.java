@@ -4,20 +4,16 @@ import com.google.common.collect.Iterators;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
 import eu.europeana.cloud.service.commons.urls.RepresentationParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
-import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.DpsTask.TaskOutput;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -34,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
@@ -61,7 +56,6 @@ import java.util.Set;
  *      <ul>
  *          <li>find cloud_id</li>
  *          <li>create representation version</li>
- *          <li>add revision (taken from task definition (output_revision))</li>
  *          <li>add created representation version to dataset (dataset taken from task definition (output dataset))</li>
  *      </ul>
  *  <li>Change task status to PROCESSED;</li>
@@ -78,8 +72,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
   private final RecordServiceClient recordServiceClient;
 
-  private final RevisionServiceClient revisionServiceClient;
-
   private final UISClient uisClient;
   private final IndexWrapper indexWrapper;
 
@@ -87,7 +79,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   public HarvestingPostProcessor(HarvestedRecordsDAO harvestedRecordsDAO,
       ProcessedRecordsDAO processedRecordsDAO,
       RecordServiceClient recordServiceClient,
-      RevisionServiceClient revisionServiceClient,
       UISClient uisClient,
       TaskStatusUpdater taskStatusUpdater,
       TaskStatusChecker taskStatusChecker,
@@ -95,7 +86,6 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     super(taskStatusChecker, taskStatusUpdater, harvestedRecordsDAO);
     this.processedRecordsDAO = processedRecordsDAO;
     this.recordServiceClient = recordServiceClient;
-    this.revisionServiceClient = revisionServiceClient;
     this.uisClient = uisClient;
     this.indexWrapper = indexWrapper;
   }
@@ -109,8 +99,8 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
       taskStatusUpdater.updateExpectedDepublishAndPostprocessedRecordsNumber(dpsTask.getTaskId(),
           Iterators.size(fetchDeletedRecords(dpsTask)));
       taskStatusUpdater.updateState(dpsTask.getTaskId(), EngineTaskState.IN_POST_PROCESSING,
-          "Postprocessing - adding removed records to result revision.");
-      addDeletedRecordsToTaskResultRevision(dpsTask);
+          "Postprocessing - adding removed records to result batch.");
+      addDeletedRecordsToTaskResultBatch(dpsTask);
       taskStatusUpdater.setTaskCompletelyProcessed(dpsTask.getTaskId(), "PROCESSED");
     } catch (RetryInterruptedException e) {
       throw e;
@@ -121,7 +111,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     }
   }
 
-  private void addDeletedRecordsToTaskResultRevision(DpsTask dpsTask) {
+  private void addDeletedRecordsToTaskResultBatch(DpsTask dpsTask) {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
     int processedAndSuccessDepublishRecordCount = 0;
@@ -139,9 +129,9 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
         postProcessedRecordsCount++;
         processedAndSuccessDepublishRecordCount++;
         taskStatusUpdater.updatePostProcessingAndDepublishCounters(dpsTask.getTaskId(), postProcessedRecordsCount, processedAndSuccessDepublishRecordCount);
-        LOGGER.info("Added deleted record {} to revision, taskId={}", harvestedRecord, dpsTask.getTaskId());
+        LOGGER.info("Added deleted record {} to batch, taskId={}", harvestedRecord, dpsTask.getTaskId());
       } else {
-        LOGGER.info("Omitted record {} cause it was already added to revision, taskId={}", harvestedRecord,
+        LOGGER.info("Omitted record {} cause it was already added to batch, taskId={}", harvestedRecord,
             dpsTask.getTaskId());
       }
 
@@ -169,14 +159,11 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   private void createPostProcessedRecord(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
     try {
       String cloudId = findOrCreateCloudId(dpsTask, harvestedRecord);
-      var representation = createRepresentationVersion(dpsTask, cloudId);
-      LOGGER.info("Creating representation of deleted record found in postprocessing for: {}", harvestedRecord);
-      if (dpsTask.getOutput() instanceof DatasetRevisionInfo output) {
-         addRevisionToRepresentation(output, representation);
-      }
+      createRepresentationVersion(dpsTask, cloudId);
+      LOGGER.info("Created representation of deleted record found in postprocessing for: {}", harvestedRecord);
     } catch (CloudException | MCSException | MalformedURLException e) {
       throw new PostProcessingException("Could not add deleted record id=" + harvestedRecord.getRecordLocalId()
-          + " to task result revision! taskId=" + dpsTask.getTaskId(), e);
+          + " to task result batch! taskId=" + dpsTask.getTaskId(), e);
     }
   }
 
@@ -199,18 +186,11 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   }
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
-    TaskOutput output = dpsTask.getOutput();
+    BatchInfo output = dpsTask.getOutput();
     var representationUri = recordServiceClient.createRepresentation(cloudId, output.getRepresentationName(), output.getProviderId(),
-        null, output.getDatasetId(), true);
+        null, output.getBatchId(), true);
     return RepresentationParser.parseResultUrl(
         representationUri);
-  }
-
-  private void addRevisionToRepresentation(DatasetRevisionInfo output, Representation representation) throws MCSException {
-    var revision = new Revision(output.getRevision());
-    revision.setDeleted(true);
-    revisionServiceClient.addRevision(representation.getCloudId(), representation.getRepresentationName(),
-        representation.getVersion(), revision);
   }
 
   private void markHarvestedRecordAsProcessed(DpsTask dpsTask, HarvestedRecord harvestedRecord) {
