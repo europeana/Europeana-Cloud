@@ -10,6 +10,8 @@ import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import io.micrometer.core.aop.CountedAspect;
+import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
@@ -96,9 +98,19 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public MeterRegistryCustomizer<MeterRegistry> commonTags() {
     return registry -> registry.config().commonTags(
-            "app", "mcs",
             "namespace", System.getenv("Namespace"),
             "instance", System.getenv("AppId")
     );
   }
+
+  @Bean
+  public CountedAspect countedAspect(MeterRegistry registry) {
+    return new CountedAspect(registry);
+  }
+
+  @Bean
+  public TimedAspect timedAspect(MeterRegistry registry) {
+    return new TimedAspect(registry);
+  }
+
 }

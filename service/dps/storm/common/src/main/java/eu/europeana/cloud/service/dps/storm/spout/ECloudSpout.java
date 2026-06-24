@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
@@ -39,6 +40,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
@@ -63,7 +68,10 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
   protected transient TasksCache tasksCache;
   protected transient ECloudSpoutSamplerMXBean eCloudSpoutSamplerMXBean;
   private transient ECloudOutputCollector eCloudOutputCollector;
+  private transient ScheduledExecutorService cleanupExecutor;
   protected long maxTaskPending = Long.MAX_VALUE;
+  private final Map<String, Long> startTimeByMessageId = new ConcurrentHashMap<>();
+
 
   public ECloudSpout(String topologyName, String topic, KafkaSpoutConfig<String, DpsRecord> kafkaSpoutConfig, CassandraProperties cassandraProperties) {
     super(kafkaSpoutConfig);
@@ -76,18 +84,47 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     this.password = cassandraProperties.getPassword();
   }
 
+  private void clearMetricCache() {
+    cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
+    cleanupExecutor.scheduleAtFixedRate(() -> {
+      long now = System.nanoTime();
+      startTimeByMessageId.entrySet().removeIf(e ->
+              now - e.getValue() > TimeUnit.MINUTES.toNanos(10)
+      );
+    }, 10, 30, TimeUnit.MINUTES);
+  }
+
 
   @Override
   public void ack(Object messageId) {
-    eCloudSpoutSamplerMXBean.lastAckedMessageId = String.valueOf(messageId);
-    LOGGER.info("Record acknowledged {}", messageId);
-    super.ack(messageId);
+    try {
+      String id = String.valueOf(messageId);
+
+      Long start = startTimeByMessageId.remove(id);
+
+      if (start != null) {
+        double seconds = (System.nanoTime() - start) * 1e-9;
+
+        MetricRegistry.spoutEmitToAckLatency(topologyName, "spout", seconds);
+      }
+
+      eCloudSpoutSamplerMXBean.lastAckedMessageId = id;
+      LOGGER.info("Record acknowledged {}", id);
+
+    } finally {
+      super.ack(messageId);
+    }
   }
 
   @Override
   public void fail(Object messageId) {
-    eCloudSpoutSamplerMXBean.lastFailedMessageId = String.valueOf(messageId);
-    LOGGER.error("Record failed {}", messageId);
+    String id = String.valueOf(messageId);
+
+    startTimeByMessageId.remove(id); // avoid memory leak
+
+    eCloudSpoutSamplerMXBean.lastFailedMessageId = id;
+    LOGGER.error("Record failed {}", id);
+
     super.fail(messageId);
   }
 
@@ -110,6 +147,15 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     processedRecordsDAO = ProcessedRecordsDAO.getInstance(cassandraConnectionProvider);
     taskDiagnosticInfoDAO = TaskDiagnosticInfoDAO.getInstance(cassandraConnectionProvider);
     tasksCache = new TasksCache(cassandraConnectionProvider);
+    clearMetricCache();
+  }
+
+  @Override
+  public void close() {
+    if (cleanupExecutor != null) {
+      cleanupExecutor.shutdown();
+    }
+    super.close();
   }
 
   @Override
@@ -139,6 +185,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
+      startTimeByMessageId.put(String.valueOf(messageId), System.nanoTime());
       DpsRecord message = null;
       try {
         message = readMessageFromTuple(tuple);

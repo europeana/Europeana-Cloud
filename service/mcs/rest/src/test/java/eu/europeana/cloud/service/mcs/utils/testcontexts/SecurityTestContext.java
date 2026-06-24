@@ -3,13 +3,13 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +47,11 @@ public class SecurityTestContext {
   }
 
   @Bean
+  public MeterRegistry meterRegistry() {
+    return Mockito.mock(MeterRegistry.class);
+  }
+
+  @Bean
   public UISClientHandler uisHandler() {
     return mock(UISClientHandlerImpl.class);
   }
@@ -65,10 +70,5 @@ public class SecurityTestContext {
   public DataSetPermissionsVerifier dataSetPermissionsVerifier(DataSetService dataSetService,
       PermissionEvaluator permissionEvaluator) {
     return Mockito.mock(DataSetPermissionsVerifier.class);
-  }
-
-  @Bean
-  public McsMetricService mcsMetricService() {
-    return Mockito.mock(McsMetricService.class);
   }
 }

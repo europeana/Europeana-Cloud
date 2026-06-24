@@ -13,6 +13,8 @@ import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
+import io.micrometer.core.aop.CountedAspect;
+import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -153,9 +155,18 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public MeterRegistryCustomizer<MeterRegistry> commonTags() {
     return registry -> registry.config().commonTags(
-            "app", "uis",
             "namespace", System.getenv("Namespace"),
             "instance", System.getenv("AppId")
     );
+  }
+
+  @Bean
+  public CountedAspect countedAspect(MeterRegistry registry) {
+    return new CountedAspect(registry);
+  }
+
+  @Bean
+  public TimedAspect timedAspect(MeterRegistry registry) {
+    return new TimedAspect(registry);
   }
 }

@@ -9,13 +9,13 @@ import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExi
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.logging.AddTaskIdToLoggingContext;
-import eu.europeana.cloud.service.dps.metric.DpsMetricService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
+import io.micrometer.core.annotation.Counted;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +64,6 @@ public class TopologyTasksResource {
   @Autowired
   private TaskSubmissionValidator taskSubmissionValidator;
 
-  @Autowired
-  private DpsMetricService dpsMetricService;
-
   /**
    * Retrieves the current progress for the requested task.
    * <p/>
@@ -85,7 +82,7 @@ public class TopologyTasksResource {
    * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
    * user
    */
-
+  @Counted(value = "task_progress_counter", description = "Number of task progress requests")
   @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskInfo getTaskProgress(
@@ -97,7 +94,6 @@ public class TopologyTasksResource {
     reportService.checkIfTaskExists(taskId, topologyName);
     TaskInfo taskProgress = reportService.getTaskProgress(taskId);
     LOGGER.info("Following task progress will be sent to user: {}", taskProgress);
-    dpsMetricService.incrementTaskProgressCounter();
     return taskProgress;
   }
 
@@ -113,6 +109,7 @@ public class TopologyTasksResource {
    * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
    * user
    */
+  @Counted(value = "task_submit_counter", description = "Number of task submit requests")
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<Void> submitTask(
@@ -120,7 +117,6 @@ public class TopologyTasksResource {
       @RequestBody @AddTaskIdToLoggingContext final DpsTask task,
       @PathVariable("topologyName") final String topologyName
   ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-    dpsMetricService.incrementSubmittedTaskCounter();
     return doSubmitTask(request, task, topologyName, false);
   }
 
@@ -135,6 +131,7 @@ public class TopologyTasksResource {
    * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
    * user
    */
+  @Counted(value = "task_restart_counter", description = "Number of task restart requests")
   @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<Void> restartTask(
@@ -144,7 +141,6 @@ public class TopologyTasksResource {
   ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
     var task = DpsTask.fromTaskInfo(taskInfo);
-    dpsMetricService.incrementRestartedTaskCounter();
     return doSubmitTask(request, task, topologyName, true);
   }
 
@@ -167,6 +163,7 @@ public class TopologyTasksResource {
    * user
    */
 
+  @Counted(value = "task_permit_counter", description = "Number of task permit requests")
   @PostMapping(path = "{taskId}/permit")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<Void> grantPermissions(
@@ -202,7 +199,7 @@ public class TopologyTasksResource {
    * user
    * @throws AccessDeniedOrObjectDoesNotExistException if taskId does not belong to the specified topology
    */
-
+  @Counted(value = "task_kill_counter", description = "Number of task kill requests")
   @PostMapping(path = "{taskId}/kill")
   @PreAuthorize("hasRole('ROLE_ADMIN') OR  hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', write)")
   public ResponseEntity<String> killTask(
@@ -213,7 +210,6 @@ public class TopologyTasksResource {
     taskSubmissionValidator.assertContainTopology(topologyName);
     reportService.checkIfTaskExists(taskId, topologyName);
     taskStatusUpdater.setTaskDropped(taskId, info);
-    dpsMetricService.incrementKilledTaskCounter();
     return ResponseEntity.ok("The task was killed because of " + info);
   }
 

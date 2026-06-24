@@ -6,8 +6,7 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.exception.*;
-import eu.europeana.cloud.service.uis.metric.UisMetricService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.micrometer.core.annotation.Counted;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class UniqueIdentifierResource {
 
   private final UniqueIdentifierService uniqueIdentifierService;
-  @Autowired
-  private UisMetricService metricService;
   public UniqueIdentifierResource(
           UniqueIdentifierService uniqueIdentifierService) {
     this.uniqueIdentifierService = uniqueIdentifierService;
@@ -51,6 +48,7 @@ public class UniqueIdentifierResource {
    * @throws CloudIdDoesNotExistException cloud identifier does not exist
    * @throws CloudIdAlreadyExistException Cloud identifier was created previously
    */
+  @Counted(value = "cloud_id_create_counter", description = "Number of cloud id create requests")
   @PostMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("isAuthenticated()")
@@ -62,7 +60,6 @@ public class UniqueIdentifierResource {
 
     final CloudId cId = (recordId != null) ? (uniqueIdentifierService.createCloudId(providerId, recordId))
         : (uniqueIdentifierService.createCloudId(providerId));
-    metricService.incrementCloudIdsCreatedCounter();
     return ResponseEntity.ok(cId);
   }
 
@@ -77,13 +74,13 @@ public class UniqueIdentifierResource {
    * @throws ProviderDoesNotExistException provider does not exist
    * @throws RecordDatasetEmptyException dataset is empty
    */
+  @Counted(value = "cloud_id_get_counter", description = "Number of cloud id get requests")
   @GetMapping(value = RestInterfaceConstants.CLOUD_IDS, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<CloudId> getCloudId(@RequestParam("providerId") String providerId,
       @RequestParam("recordId") String recordId)
       throws DatabaseConnectionException, RecordDoesNotExistException, ProviderDoesNotExistException,
       RecordDatasetEmptyException {
-    metricService.incrementCloudIdsRetrievedCounter();
     return ResponseEntity.ok(uniqueIdentifierService.getCloudId(providerId, recordId));
   }
 
@@ -99,6 +96,7 @@ public class UniqueIdentifierResource {
    * @throws ProviderDoesNotExistException provider does not exist
    * @throws RecordDatasetEmptyException dataset is empty
    */
+  @Counted(value = "local_ids_get_counter", description = "Number of cloud id local ids get requests")
   @GetMapping(value = RestInterfaceConstants.CLOUD_ID, produces = {MediaType.APPLICATION_XML_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<ResultSlice<CloudId>> getLocalIds(@PathVariable("cloudId") String cloudId)
@@ -106,7 +104,6 @@ public class UniqueIdentifierResource {
       RecordDatasetEmptyException {
     ResultSlice<CloudId> pList = new ResultSlice<>();
     pList.setResults(uniqueIdentifierService.getLocalIdsByCloudId(cloudId));
-    metricService.incrementLocalIdsRetrievedCounter();
     return ResponseEntity.ok(pList);
   }
 

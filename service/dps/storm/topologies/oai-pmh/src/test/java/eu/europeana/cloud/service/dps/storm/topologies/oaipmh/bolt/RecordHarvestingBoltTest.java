@@ -12,6 +12,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -50,6 +51,10 @@ class RecordHarvestingBoltTest {
     return RecordHarvestingBoltTest.class.getResourceAsStream(name);
   }
 
+  @BeforeEach
+  void setUp() {
+
+  }
 
   @Test
   void harvestingForAllParametersSpecified() throws IOException, HarvesterException {

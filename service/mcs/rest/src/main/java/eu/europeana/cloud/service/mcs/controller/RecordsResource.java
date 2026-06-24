@@ -5,10 +5,9 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import io.micrometer.core.annotation.Counted;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,8 +23,6 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESO
 public class RecordsResource {
 
   private final RecordService recordService;
-  @Autowired
-  private McsMetricService mcsMetricService;
 
   public RecordsResource(RecordService recordService) {
     this.recordService = recordService;
@@ -38,13 +35,13 @@ public class RecordsResource {
    * @return record.
    * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
    */
+  @Counted(value = "record_get_counter", description = "Number of record get operations")
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public Record getRecord(
           HttpServletRequest httpServletRequest,
           @PathVariable("cloudId") String cloudId) throws RecordNotExistsException {
 
     Record record = recordService.getRecord(cloudId);
-    mcsMetricService.incrementGetRecordCounter();
     prepare(httpServletRequest, record);
     return record;
   }
@@ -60,12 +57,12 @@ public class RecordsResource {
    * such record.
    * @summary delete a record
    */
+  @Counted(value = "record_deletion_counter", description = "Number of record deletion operations")
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public void deleteRecord(
       @PathVariable("cloudId") String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
-    mcsMetricService.incrementDeleteRecordCounter();
     recordService.deleteRecord(cloudId);
   }
 

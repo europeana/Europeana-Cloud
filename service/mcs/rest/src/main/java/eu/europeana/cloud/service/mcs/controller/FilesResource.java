@@ -1,36 +1,29 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.FileAlreadyExistsException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
-import java.io.IOException;
-import java.net.URI;
-import java.util.UUID;
-
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.UUID;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILES_RESOURCE;
 
 /**
  * FilesResource
@@ -82,6 +75,8 @@ public class FilesResource {
    * @summary Add a new file to a representation version
    * @statuscode 201 object has been created.
    */
+  @Timed(value = "file_upload_duration", description = "Duration of file upload operations", histogram = true)
+  @Counted(value = "file_upload_counter", description = "Number of file upload operations")
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<URI> sendFile(
           HttpServletRequest httpServletRequest,

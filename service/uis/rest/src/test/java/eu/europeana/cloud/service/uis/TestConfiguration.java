@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.uis;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.uis.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.metric.UisMetricService;
 import eu.europeana.cloud.service.uis.rest.DataProviderActivationResource;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
@@ -35,12 +34,6 @@ public class TestConfiguration {
   public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService) {
     return new UniqueIdentifierResource(uniqueIdentifierService);
   }
-
-  @Bean
-  public UisMetricService uisMetricService() {
-    return Mockito.mock(UisMetricService.class);
-  }
-
   @Bean
   public UniqueIdentifierService uniqueIdentifierService() {
     return Mockito.mock(UniqueIdentifierService.class);

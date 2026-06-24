@@ -6,7 +6,6 @@ import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
-import eu.europeana.cloud.service.mcs.metric.McsMetricService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraDataSetService;
 import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.DynamicContentProxy;
@@ -19,6 +18,7 @@ import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.test.CassandraTestInstance;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -152,7 +152,7 @@ public class CassandraBasedTestContext {
   }
 
   @Bean
-  public McsMetricService mcsMetricService() {
-    return Mockito.mock(McsMetricService.class);
+  public MeterRegistry meterRegistry() {
+    return Mockito.mock(MeterRegistry.class);
   }
 }

@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.controller.TopologiesResource;
 import eu.europeana.cloud.service.dps.controller.TopologyTasksResource;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
-import eu.europeana.cloud.service.dps.metric.DpsMetricService;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.submitters.*;
 import eu.europeana.cloud.service.dps.services.validators.TaskSubmissionValidator;
@@ -113,10 +112,5 @@ public class AbstractSecurityTestContext {
   @Scope("prototype")
   public ThreadPoolTaskExecutor taskExecutor() {
     return new ThreadPoolTaskExecutor();
-  }
-
-  @Bean
-  public DpsMetricService metricService() {
-    return Mockito.mock(DpsMetricService.class);
   }
 }

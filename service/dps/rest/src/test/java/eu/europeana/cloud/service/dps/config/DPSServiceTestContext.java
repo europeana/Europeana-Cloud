@@ -4,7 +4,6 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.dps.metric.DpsMetricService;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.services.kafka.RecordKafkaSubmitService;
@@ -164,10 +163,5 @@ public class DPSServiceTestContext {
   @Bean
   public RecordSubmitService recordSubmitService() {
     return Mockito.mock(RecordSubmitService.class);
-  }
-
-  @Bean
-  public DpsMetricService metricService() {
-    return Mockito.mock(DpsMetricService.class);
   }
 }

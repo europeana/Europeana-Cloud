@@ -31,8 +31,6 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static eu.europeana.cloud.service.dps.storm.metric.MetricRegistry.*;
-
 /**
  * Abstract class for all Storm bolts used in Europeana Cloud.
  *
@@ -81,7 +79,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     try {
       commonTaskTuple = CommonTaskTuple.fromStormTuple(tuple);
       this.taskId = commonTaskTuple.getTaskId();
-      PROCESSED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
+      MetricRegistry.processed(topologyName, component);
       LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), commonTaskTuple);
       prepareDiagnosticContext(commonTaskTuple);
 
@@ -110,18 +108,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
     } catch (RetryInterruptedException e) {
       handleInterruption(e, tuple);
-      FAILED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
+      MetricRegistry.failed(topologyName, component);
     } catch (Exception e) {
       if (Thread.currentThread().isInterrupted()) {
         handleInterruptedFlag(e, tuple);
       } else {
         handleException(tuple, commonTaskTuple, e);
-        FAILED.labelValues(topologyName, component, String.valueOf(taskId)).inc();
+        MetricRegistry.failed(topologyName, component);
       }
     } finally {
       LOGGER.debug("{} Ended execution.", getClass().getName());
       clearDiagnosticContext();
-      PROCESSING_LATENCY.labelValues(topologyName, component, String.valueOf(taskId)).observe((System.nanoTime() - startProcessing) / 1e9);
+      MetricRegistry.processingLatency(topologyName, component, (System.nanoTime() - startProcessing) / 1e9);
     }
   }
 
@@ -162,13 +160,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
     this.component = tc.getThisComponentId();
     initTaskStatusChecker();
-    try {
-      MetricServer.start(tc.getThisWorkerPort());
-      MetricRegistry.init();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    initStormWorker(tc);
     prepare();
+  }
+
+  private static void initStormWorker(TopologyContext tc) {
+    if (tc != null && tc.getThisWorkerPort() > 0) {
+      try {
+        MetricServer.start(tc.getThisWorkerPort());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @Override

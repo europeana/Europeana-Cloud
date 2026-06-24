@@ -140,6 +140,7 @@
         <version.spring-framework>7.0.2</version.spring-framework>
         <version.spring-security>7.0.2</version.spring-security>
         <version.spring-boot>4.0.1</version.spring-boot>
+        <version.spring-boot-aop>4.0.0-M1</version.spring-boot-aop>
 
         <version.spring-doc>1.7.0</version.spring-doc>
         <version.git-commit-maven>5.0.1</version.git-commit-maven>

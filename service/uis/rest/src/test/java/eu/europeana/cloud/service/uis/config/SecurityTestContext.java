@@ -7,7 +7,6 @@ import eu.europeana.cloud.service.uis.ACLServiceWrapper;
 import eu.europeana.cloud.service.uis.ApplicationContextUtils;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
-import eu.europeana.cloud.service.uis.metric.UisMetricService;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
 import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
@@ -55,11 +54,6 @@ public class SecurityTestContext {
     @Bean
     public UniqueIdentifierResource uniqueIdResource(UniqueIdentifierService uniqueIdentifierService) {
         return new UniqueIdentifierResource(uniqueIdentifierService);
-    }
-
-    @Bean
-    public UisMetricService uisMetricService() {
-        return Mockito.mock(UisMetricService.class);
     }
 
     @Bean
