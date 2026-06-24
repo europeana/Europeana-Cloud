@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;

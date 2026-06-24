@@ -4,7 +4,6 @@ import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEX
 
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.common.model.dps.TaskState;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -287,15 +286,14 @@ public class TopologyTasksResource {
   ) throws TaskInfoDoesNotExistException, IOException {
 
     var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-    if (taskInfo.getState() != TaskState.CREATED) {
+    if (taskInfo.getEngineTaskState() != EngineTaskState.CREATED) {
       LOGGER.info("Topology: {} task: {} is already started.", topologyName, taskId);
       return;
     }
 
     var dpsTask = DpsTask.fromTaskInfo(taskInfo);
     taskInfo.setStartTimestamp(new Date());
-    taskInfo.setState(TaskState.PROCESSING_BY_REST_APPLICATION);
-    taskInfo.setStateDescription("The task is in a pending mode, it is being processed before submission");
+    taskInfo.setEngineTaskState(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
     SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                                                           .taskInfo(taskInfo)
                                                           .task(dpsTask)

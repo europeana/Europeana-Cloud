@@ -12,7 +12,6 @@ import eu.europeana.cloud.service.dps.DatasetRevisionInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.FilesUrls;
-import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.storm.utils.*;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
@@ -111,7 +110,7 @@ public class MCSTaskSubmitter {
         BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
         expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
       }
-      return counter;
+      return expectedSize;
 
     }
   }
@@ -122,9 +121,9 @@ public class MCSTaskSubmitter {
     while (iterator.hasNext()) {
       checkIfTaskIsKilled(submitParameters.getTask());
       Representation representation = iterator.next();
-      counter.add(submitRecordsForRepresentation(representation, submitParameters));
+      expectedSize.add(submitRecordsForRepresentation(representation, submitParameters));
     }
-    return counter;
+    return expectedSize;
   }
 
   private ExpectedCounters executeForRevision(DatasetRevisionInfo input, SubmitTaskParameters submitParameters,
@@ -198,7 +197,7 @@ public class MCSTaskSubmitter {
     return counter;
   }
 
-  private int executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
+  private ExpectedCounters executeGettingFileUrlsForOneCloudId(DatasetRevisionInfo input, CloudTagsResponse response, SubmitTaskParameters submitParameters,
                                                                MCSReader reader) throws MCSException {
 
     ExpectedCounters counter = ExpectedCounters.expectZeroRecords();
@@ -285,13 +284,9 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private boolean taskContainsFileUrls(DpsTask task) {
-    return task.getInputData().get(FILE_URLS) != null;
-  }
-
-  private ExpectedCounters getCountAndWait(Set<Future<Integer>> futures) throws InterruptedException, ExecutionException {
-    var count = ExpectedCounters.expectZeroRecords();
-    for (Future<Integer> future : futures) {
+  private ExpectedCounters getCountAndWait(Set<Future<ExpectedCounters>> futures) throws InterruptedException, ExecutionException {
+    var counter = ExpectedCounters.expectZeroRecords();
+    for (Future<ExpectedCounters> future : futures) {
       counter.add(future.get());
     }
     futures.clear();

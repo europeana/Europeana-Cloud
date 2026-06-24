@@ -976,7 +976,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   private void mockTaskDAOFindById(DpsTask task, String topology) throws IOException {
     TaskInfo taskInfo = mock(TaskInfo.class);
-    when(taskInfo.getState()).thenReturn(TaskState.CREATED);
+    when(taskInfo.getEngineTaskState()).thenReturn(EngineTaskState.CREATED);
     when(taskInfo.getDefinition()).thenReturn(task.toJSON());
     when(taskInfo.getTopologyName()).thenReturn(topology);
     when(taskDAO.findById(anyLong())).thenReturn(Optional.of(taskInfo));
