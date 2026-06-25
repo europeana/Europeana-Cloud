@@ -121,6 +121,12 @@
       <artifactId>spring-boot-starter-aop</artifactId>
       <version>${version.spring-boot-aop}</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -144,7 +150,7 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-logging</artifactId>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
     </dependency>
     <dependency>
       <artifactId>spring-boot-autoconfigure</artifactId>
