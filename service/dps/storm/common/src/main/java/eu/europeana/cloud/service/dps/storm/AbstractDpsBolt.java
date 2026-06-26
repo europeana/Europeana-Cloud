@@ -172,6 +172,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
+  protected void emitNotification(Tuple anchorTuple, CommonTaskTuple tuple) {
+    if (tupleContainsErrors(tuple)) {
+      emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
+    } else {
+      emitSuccessNotification(anchorTuple, tuple, "", "");
+    }
+  }
+
+  private boolean tupleContainsErrors(CommonTaskTuple tuple) {
+    return tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null;
+  }
+
   protected void emitErrorNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message, Throwable e) {
     emitErrorNotification(anchorTuple, commonTaskTuple, message,
         e.getMessage() + ":\n" + ExceptionUtils.getStackTrace(e));
@@ -208,6 +220,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
     tuple.addParameter(PluginParameterKeys.UNCHANGED_RECORD, "true");
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
+  }
+
+  private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, CommonTaskTuple tuple) {
+    emitSuccessNotification(anchorTuple, tuple, "", "",
+        tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+        tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
   }
 
   protected void prepareStormTaskTupleForEmission(CommonTaskTuple commonTaskTuple, String resultString)

@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 
 import java.net.MalformedURLException;
+import org.apache.storm.tuple.Tuple;
 
 /**
  * Stores a Record on the cloud for the harvesting topology.
@@ -89,6 +90,10 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                 uisClient.createCloudId(providerId, europeanaId).getId());
     }
 
+    protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+        outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
+        outputCollector.ack(anchorTuple);
+    }
 }
 
 

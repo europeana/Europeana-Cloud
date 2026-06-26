@@ -93,8 +93,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         LOGGER.info("WriteRecordBolt: For this record in this execution representation creation is not needed!");
       }
       prepareEmittedTuple(commonTaskTuple);
-      outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
-      outputCollector.ack(anchorTuple);
+      emitSuccessfulResult(anchorTuple, commonTaskTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
@@ -104,6 +103,10 @@ public class WriteRecordBolt extends AbstractDpsBolt {
         emitErrorNotification(anchorTuple, commonTaskTuple, "Cannot process data because: " + e.getMessage(), stack.toString());
         outputCollector.ack(anchorTuple);
     }
+  }
+
+  protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    emitNotification(anchorTuple, commonTaskTuple);
   }
 
   private void prepareEmittedTuple(CommonTaskTuple commonTaskTuple) {
