@@ -631,7 +631,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     if(datasetUrl!=null){
       try {
         DataSet set = DataSetUrlParser.parse(datasetUrl);
-        builder.batchId(set.getId());
         builder.providerId(set.getProviderId());
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);

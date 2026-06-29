@@ -22,7 +22,7 @@ class EnrichmentTopologyTest {
     EnrichmentTopology enrichmentTopology = new EnrichmentTopology("defaultEnrichmentTopologyConfig.properties", "");
     StormTopology topology = enrichmentTopology.buildTopology();
 
-    assertEquals(5, topology.get_bolts_size());
+    assertEquals(4, topology.get_bolts_size());
     assertEquals(4, topology.get_spouts_size());
     topology.get_spouts().values().forEach(spoutSpec -> {
       String jsonConf = spoutSpec.get_common().get_json_conf();
@@ -43,7 +43,7 @@ class EnrichmentTopologyTest {
     assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, writeRecordBoltCommon.get_parallelism_hint());
 
     ComponentCommon notificationBoltCommon = topology.get_bolts().get(TopologyHelper.NOTIFICATION_BOLT).get_common();
-    assertEquals(8, notificationBoltCommon.get_inputs_size());
+    assertEquals(7, notificationBoltCommon.get_inputs_size());
     assertEquals(0, notificationBoltCommon.get_streams_size());
     assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, notificationBoltCommon.get_parallelism_hint());
 

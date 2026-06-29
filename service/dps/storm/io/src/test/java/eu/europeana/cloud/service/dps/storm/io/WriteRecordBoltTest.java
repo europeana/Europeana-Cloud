@@ -8,11 +8,14 @@ import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.enrichment.rest.client.report.Report;
+import java.util.Set;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -34,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -47,7 +51,7 @@ class WriteRecordBoltTest {
     private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
     private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-8c50aca96d65");
     private static final String NEW_FILE_NAME = "0e7b8802-9720-379f-9abb-672abfa81076";
-    private final int TASK_ID = 1;
+    private final long TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final byte[] FILE_DATA = "Data".getBytes();
     private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
@@ -96,14 +100,17 @@ class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskData);
-        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(3, value.size());
+        assertEquals(TASK_ID, value.get(0));
+        Map<String, String> parameters = (Map<String, String>) value.get(1);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(NotificationParameterKeys.RESOURCE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
+        assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        Set<Report> reportSet= (Set<Report>) value.get(2);
+        assertTrue(reportSet.isEmpty());
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), eq(DATASET_NAME),
                 any(InputStream.class), eq(NEW_FILE_NAME), any());
 
@@ -132,14 +139,18 @@ class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskData);
-        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(3, value.size());
+        assertEquals(TASK_ID, value.get(0));
+        Map<String, String> parameters = (Map<String, String>) value.get(1);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(NotificationParameterKeys.RESOURCE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
+        assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals("true",parameters.get(PluginParameterKeys.MARKED_AS_DEPUBLISHED));
+        Set<Report> reportSet= (Set<Report>) value.get(2);
+        assertTrue(reportSet.isEmpty());
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
     }
 
