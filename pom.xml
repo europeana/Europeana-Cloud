@@ -138,6 +138,7 @@
         <version.slf4j>2.0.12</version.slf4j>
 
         <version.spring-framework>7.0.2</version.spring-framework>
+        <version.jetty>12.1.8</version.jetty>
         <version.spring-security>7.0.2</version.spring-security>
         <version.spring-boot>4.0.1</version.spring-boot>
 
@@ -364,6 +365,13 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
                 <version>${version.spring-framework}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${version.jetty}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
