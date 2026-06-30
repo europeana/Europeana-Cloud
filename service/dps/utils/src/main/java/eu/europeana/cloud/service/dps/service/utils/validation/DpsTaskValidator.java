@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
-import eu.europeana.cloud.service.dps.service.utils.validation.custom.DefinedFilesUrlsInputValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedMCSInputValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.HttpInputValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.NoOutputValidator;
@@ -156,10 +155,6 @@ public final class DpsTaskValidator {
 
   public DpsTaskValidator withDefinedMCSInput() {
     return withCustomValidator(new FullyDefinedMCSInputValidator());
-  }
-
-  public DpsTaskValidator withDefinedFilesUrlsInput() {
-    return withCustomValidator(new DefinedFilesUrlsInputValidator());
   }
 
   public DpsTaskValidator withDefinedOAIInput() {

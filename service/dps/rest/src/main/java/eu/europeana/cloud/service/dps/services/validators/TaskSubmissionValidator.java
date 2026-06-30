@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.services.validators;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -57,9 +56,6 @@ public class TaskSubmissionValidator {
   }
 
   private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
-    if (task.getInput() instanceof FilesUrls) {
-      return topologyName + "_file_urls";
-    }
     if (task.getInput() instanceof BatchInfo) {
       return topologyName + "_dataset_urls";
     }

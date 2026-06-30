@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
@@ -18,6 +17,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DpsTaskValidatorTest {
 
+  private static final String PROVIDER = "provider1" ;
+  private static final String BATCH = "batch1";
+  private static final String REPRESENTATION = "representation1";
   private DpsTask dpsTask;
   private DpsTask icTopologyTask;
   private DpsTask dpsTaskWithValidMaximumParallelization;
@@ -47,10 +49,7 @@ class DpsTaskValidatorTest {
       dpsTask.setOutput(prepareCompleteDatasetRevisionInfo().build());
       //
       icTopologyTask = new DpsTask();
-      icTopologyTask.setInput(new FilesUrls(
-            "https://iks-kbase.synat.pcss.pl:9090/mcs/records/JP46FLZLVI2UYV4JNHTPPAB4DGPESPY4SY4N5IUQK4SFWMQ3NUQQ/representations/tiff/versions/74c56880-7733-11e5-b38f-525400ea6731/files/f59753a5-6d75-4d48-9f4d-4690b671240c",
-            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
-        ));
+      icTopologyTask.setInput(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).representationName(REPRESENTATION).build());
     icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
     icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
     //
@@ -187,7 +186,7 @@ class DpsTaskValidatorTest {
     @Test
     void shouldValidateTaskForICTopology() throws DpsTaskValidationException {
         new DpsTaskValidator()
-                .withDefinedFilesUrlsInput()
+                .withDefinedMCSInput()
                 .withParameter("OUTPUT_MIME_TYPE")
                 .withParameter("SAMPLE_PARAMETER")
                 .validate(icTopologyTask);

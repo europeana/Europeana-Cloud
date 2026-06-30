@@ -7,24 +7,19 @@ import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.storm.utils.*;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class MCSTaskSubmitter {
 
   public static final int LOGGING_FREQUENCY = 1000;
-  private static final int INTERNAL_THREADS_NUMBER = 10;
-  private static final int MAX_BATCH_SIZE = 100;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MCSTaskSubmitter.class);
 
@@ -57,12 +52,7 @@ public class MCSTaskSubmitter {
       checkIfTaskIsKilled(task);
 
       logProgress(submitParameters, 0);
-      ExpectedCounters expectedCounters;
-      if (task.getInput() instanceof FilesUrls input) {
-        expectedCounters = executeForFilesList(input, submitParameters);
-      } else {
-        expectedCounters = executeForMCSInput(submitParameters);
-      }
+      ExpectedCounters expectedCounters = executeForMCSInput(submitParameters);
 
       checkIfTaskIsKilled(task);
       if (!expectedCounters.areEmpty()) {
@@ -88,10 +78,6 @@ public class MCSTaskSubmitter {
 
   private MCSReader createMcsReader() {
     return new MCSReader(mcsClientURL, userName, password);
-  }
-
-  private ExpectedCounters executeForFilesList(FilesUrls input, SubmitTaskParameters submitParameters) {
-    return submitRecordsForFileUrlsList(input.getFileUrls(), submitParameters);
   }
 
   private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters)
@@ -155,7 +141,6 @@ public class MCSTaskSubmitter {
     return baseCounter;
   }
 
-
   private boolean submitRecord(String fileUrl, SubmitTaskParameters submitParameters, boolean markedAsDepublished) {
     DpsTask task = submitParameters.getTask();
     DpsRecord aRecord = DpsRecord.builder()
@@ -175,15 +160,6 @@ public class MCSTaskSubmitter {
       LOGGER.info("Task id={} records submitting is progressing. Already submitted: {} records",
           submitParameters.getTask().getTaskId(), submittedCount);
     }
-  }
-
-  private ExpectedCounters getCountAndWait(Set<Future<ExpectedCounters>> futures) throws InterruptedException, ExecutionException {
-    var counter = ExpectedCounters.expectZeroRecords();
-    for (Future<ExpectedCounters> future : futures) {
-      counter.add(future.get());
-    }
-    futures.clear();
-    return counter;
   }
 
   private void checkIfTaskIsKilled(DpsTask task) {

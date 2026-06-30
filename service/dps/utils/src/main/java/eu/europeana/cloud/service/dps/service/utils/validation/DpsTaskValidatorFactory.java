@@ -17,28 +17,16 @@ public final class DpsTaskValidatorFactory {
               "parameterNameThatWillNeverHappen",
               Collections.singletonList("parameterValueThatWillNeverHappen"));
 
-  static final String XSLT_TOPOLOGY_TASK_WITH_FILE_URLS = "xslt_topology_file_urls";
   static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
-  static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS = "enrichment_topology_file_urls";
   static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
-  static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS = "validation_topology_file_urls";
   static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
-
-  static final String NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS = "normalization_topology_file_urls";
   static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
-
   static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
   static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
-  static final String INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS = "indexing_topology_file_urls";
   static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
-
-  static final String LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS = "linkcheck_topology_file_urls";
   static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
-
   static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
   static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
-
-  static final String MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS = "media_topology_file_urls";
   static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
 
   private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
@@ -53,11 +41,6 @@ public final class DpsTaskValidatorFactory {
 
   private static Map<String, DpsTaskValidator> buildTaskValidatorMap() {
     Map<String, DpsTaskValidator> taskValidatorMap = new HashMap<>();
-
-    taskValidatorMap.put(XSLT_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for XSLT Topology")
-        .withParameter(PluginParameterKeys.XSLT_URL)
-        .withDefinedFilesUrlsInput()
-        .withDefinedMCSOutput());
 
     taskValidatorMap.put(XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS, new DpsTaskValidator("DataSet validator for XSLT Topology")
         .withParameter(PluginParameterKeys.XSLT_URL)
@@ -77,12 +60,6 @@ public final class DpsTaskValidatorFactory {
         .withDefinedHttpInput()
         .withDefinedMCSOutput());
 
-    taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_URLS,
-        new DpsTaskValidator("FileUrl validator for Validation Topology")
-            .withDefinedFilesUrlsInput()
-            .withDefinedMCSOutput()
-            .withParameter(PluginParameterKeys.SCHEMA_NAME)            );
-
     taskValidatorMap.put(VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS,
         new DpsTaskValidator("DataSet validator for Validation Topology")
             .withDefinedMCSInput()
@@ -90,37 +67,16 @@ public final class DpsTaskValidatorFactory {
             .withParameter(PluginParameterKeys.SCHEMA_NAME)
             );
 
-    taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_FILE_URLS,
-        new DpsTaskValidator("FileUrl validator for Normalization Topology")
-            .withDefinedFilesUrlsInput()
-            .withDefinedMCSOutput()
-            );
-
     taskValidatorMap.put(NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS,
         new DpsTaskValidator("DataSet validator for Normalization Topology")
             .withDefinedMCSInput()
             .withDefinedMCSOutput());
-
-    taskValidatorMap.put(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_URLS,
-        new DpsTaskValidator("FileUrl validator for Enrichment Topology")
-            .withDefinedFilesUrlsInput()
-            .withDefinedMCSOutput()
-            );
 
     taskValidatorMap.put(ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS,
         new DpsTaskValidator("DataSet validator for Enrichment Topology")
             .withDefinedMCSInput()
             .withDefinedMCSOutput()
             );
-
-    taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Indexing Topology")
-        .withDefinedFilesUrlsInput()
-        .withDefinedMCSOutput()
-        .withParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE,
-            TargetIndexingDatabase.getTargetIndexingDatabaseValues())
-        .withParameter(PluginParameterKeys.METIS_DATASET_ID)
-        .withParameter(PluginParameterKeys.HARVEST_DATE)
-        );
 
     taskValidatorMap.put(INDEXING_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Indexing Topology")
         .withDefinedMCSInput()
@@ -129,11 +85,6 @@ public final class DpsTaskValidatorFactory {
             TargetIndexingDatabase.getTargetIndexingDatabaseValues())
         .withParameter(PluginParameterKeys.METIS_DATASET_ID)
         .withParameter(PluginParameterKeys.HARVEST_DATE));
-
-    taskValidatorMap.put(LINK_CHECKING_TOPOLOGY_TASK_WITH_FILE_URLS,
-        new DpsTaskValidator("FileUrl validator for Link checking Topology")
-            .withDefinedFilesUrlsInput()
-            .withNoOutput());
 
     taskValidatorMap.put(LINK_CHECKING_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Link checking Topology")
         .withDefinedMCSInput()
@@ -151,10 +102,6 @@ public final class DpsTaskValidatorFactory {
             .withParameter(PluginParameterKeys.METIS_DATASET_ID)
             .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH)
             .withParameter(PluginParameterKeys.DEPUBLICATION_REASON));
-
-    taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS, new DpsTaskValidator("FileUrl validator for Media Topology")
-        .withDefinedFilesUrlsInput()
-        .withDefinedMCSOutput()        );
 
     taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Media Topology")
         .withDefinedMCSInput()

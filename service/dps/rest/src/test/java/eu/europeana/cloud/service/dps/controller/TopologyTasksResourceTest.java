@@ -240,19 +240,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     assertSuccessfulRequest(response, OAI_TOPOLOGY);
   }
 
-  @Test
-    void shouldProperlySendTaskWithFileEntryToEnrichmentTopology() throws Exception {
-
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        setCorrectlyFormulatedOutputBatch(task);
-
-        prepareMocks(ENRICHMENT_TOPOLOGY);
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
-
-    assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
-  }
-
-
     @Test
     void shouldProperlySendTaskWithDataSetEntryToNormalizationTopology() throws Exception {
         DpsTask task = getDpsTaskWithDataSetEntry(REPRESENTATION_NAME);
@@ -262,33 +249,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
-
-  @Test
-    void shouldProperlySendTaskWithFileEntryToNormalizationTopology() throws Exception {
-
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        setCorrectlyFormulatedOutputBatch(task);
-
-        prepareMocks(NORMALIZATION_TOPOLOGY);
-        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
-
-    assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
-  }
-
-
-    @Test
-    void shouldProperlySendTaskWithFileEntryToValidationTopology() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        task.addParameter(SCHEMA_NAME, "edm-internal");
-        setCorrectlyFormulatedOutputBatch(task);
-
-        prepareMocks(VALIDATION_TOPOLOGY);
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
-
-    assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
-  }
-
 
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter()
@@ -411,24 +371,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     sendTaskResponse.andExpect(status().isCreated());
   }
 
-
-    @Test
-    void shouldProperlySendTaskWithTargetIndexingDatabaseAndFileUrls() throws Exception {
-        //given
-        DpsTask task = getDpsTaskWithFileDataEntry();
-        task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-      setCorrectlyFormulatedOutputBatch(task);
-      task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
-      prepareMocks(INDEXING_TOPOLOGY);
-
-    //when
-    ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
-
-    //then
-    sendTaskResponse.andExpect(status().isCreated());
-  }
-
-
     @Test
     void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws Exception {
         //given
@@ -469,7 +411,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   @Test
     void shouldNotSubmitEmptyTask() throws Exception {
 
-        DpsTask task = getDpsTaskWithFileDataEntry();
+        DpsTask task = getDpsTaskWithDataSetEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
     setCorrectlyFormulatedOutputBatch(task);
     prepareMocks(VALIDATION_TOPOLOGY);
@@ -498,7 +440,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionOnSendTask() throws Exception {
 
-        DpsTask task = getDpsTaskWithFileDataEntry();
+        DpsTask task = getDpsTaskWithDataSetEntry();
 
         prepareMocks(IC_TOPOLOGY);
 
@@ -662,15 +604,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldDepublicationThrowsValidationExceptionWhenTryingWithFileUrls() throws Exception {
-        prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = getDpsTaskWithFileDataEntry();
-
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void shouldDepublicationThrowsValidationExceptionWhenTryingWithRepositoryUrls() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
       DpsTask task = new DpsTask();
@@ -790,18 +723,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private DpsTask getDpsTaskWithFileDataEntry() {
-    DpsTask task = new DpsTask(TASK_NAME);
-    task.setInput(new FilesUrls(TEST_RESOURCE_URL));
-    task.addParameter(METIS_DATASET_ID, "sampleDS");
-    return task;
-  }
-
-  private void prepareCompleteParametersForIcTask(DpsTask task) {
-    task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
-    task.addParameter(MIME_TYPE, IMAGE_TIFF);
   }
 
   private void setCorrectlyFormulatedOutputBatch(DpsTask task) {

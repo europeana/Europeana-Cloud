@@ -5,7 +5,6 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -45,6 +44,7 @@ import static org.mockito.Mockito.*;
 @WebAppConfiguration
 class DpsResourceAATest extends AbstractSecurityTest {
 
+  public static final String PROVIDER_ID = "providerId";
   /* Constants */
   private static final String VAN_PERSIE = "Robin_Van_Persie";
   private static final String VAN_PERSIE_PASSWORD = "Feyenoord";
@@ -58,6 +58,8 @@ class DpsResourceAATest extends AbstractSecurityTest {
 
   private static final String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
   private static final String XSLT_TOPOLOGY_NAME = "xslt_topology";
+  public static final String REPRESENTATION_NAME = "representationName";
+  public static final String BATCH_ID = "batchId";
   private DpsTask XSLT_TASK;
   private DpsTask XSLT_TASK2;
   private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
@@ -99,21 +101,18 @@ class DpsResourceAATest extends AbstractSecurityTest {
   @BeforeEach
   void mockUp() throws Exception {
     XSLT_TASK = new DpsTask("xsltTask");
-    XSLT_TASK.setInput(new FilesUrls(
-            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    XSLT_TASK.setInput(prepateBatchInput());
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     XSLT_TASK.setOutput(prepareBatchOutput());
 
     XSLT_TASK2 = new DpsTask("xsltTask");
-    XSLT_TASK2.setInput(new FilesUrls(
-        "http://127.0.0.1:8080/mcs/records/sampleId/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    XSLT_TASK2.setInput(prepateBatchInput());
     XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK2.setOutput(prepareBatchOutput());
 
     XSLT_TASK_WITH_MALFORMED_URL = new DpsTask("taskWithMalformedUrl");
-    XSLT_TASK_WITH_MALFORMED_URL.setInput(new FilesUrls(
-        "httpz://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    XSLT_TASK_WITH_MALFORMED_URL.setInput(prepateBatchInput());
     XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK_WITH_MALFORMED_URL.setOutput(prepareBatchOutput());
 
@@ -159,8 +158,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     logoutEveryone();
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     DpsTask task = new DpsTask();
-    task.setInput(new FilesUrls(
-            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
 
@@ -175,8 +173,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
-    task.setInput(new FilesUrls(
-            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
@@ -217,8 +214,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
-    task.setInput(new FilesUrls(
-            "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"));
+    task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;
@@ -376,8 +372,17 @@ class DpsResourceAATest extends AbstractSecurityTest {
     assertEquals(200, response.getStatusCode().value());
   }
 
+
+  private static BatchInfo prepateBatchInput() {
+    return BatchInfo.builder()
+                    .providerId(PROVIDER_ID)
+                    .batchId(BATCH_ID)
+                    .representationName(REPRESENTATION_NAME)
+                    .build();
+  }
   public static BatchInfo prepareBatchOutput() {
-    return BatchInfo.builder().providerId("providerId").representationName("representationName").build();
+    return BatchInfo.builder().providerId(PROVIDER_ID).representationName(REPRESENTATION_NAME).build()
+        ;
   }
 }
 

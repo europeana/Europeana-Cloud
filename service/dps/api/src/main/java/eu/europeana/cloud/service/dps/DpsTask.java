@@ -110,7 +110,6 @@ public class DpsTask {
   @JsonSubTypes({
       @JsonSubTypes.Type(value = OAIPMHHarvestingDetails.class,name="oai"),
       @JsonSubTypes.Type(value = HttpHarvestingDetails.class,name="http"),
-      @JsonSubTypes.Type(value = FilesUrls.class,name="files"),
       @JsonSubTypes.Type(value = BatchInfo.class,name="batch")
   })
   public interface TaskInput {

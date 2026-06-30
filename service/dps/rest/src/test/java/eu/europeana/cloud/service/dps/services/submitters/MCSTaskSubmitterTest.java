@@ -142,7 +142,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() throws Exception {
     withClientMocks(() -> {
-      task.setInput(new FilesUrls(FILE_URL_1));
+      task.setInput(prepateBatchInput());
       doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
       submitter.execute(submitParameters);
@@ -154,7 +154,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() throws Exception {
     withClientMocks(() -> {
-      task.setInput(new FilesUrls(FILE_URL_1));
+      task.setInput(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -172,7 +172,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_errorInExecution_verifyTaskDropped() throws Exception {
     withClientMocks(() -> {
-      task.setInput(new FilesUrls(FILE_URL_1));
+      task.setInput(prepateBatchInput());
       doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService)
               .submitRecord(any(DpsRecord.class), anyString());
 
@@ -185,7 +185,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_oneFileUrl() throws Exception {
     withClientMocks(() -> {
-      task.setInput(new FilesUrls(FILE_URL_1));
+      task.setInput(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -197,7 +197,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_threeFileUrls() throws Exception {
     withClientMocks(() -> {
-      task.setInput(new FilesUrls(FILE_URL_1, FILE_URL_2, FILE_URL_3));
+      task.setInput(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -212,7 +212,7 @@ class MCSTaskSubmitterTest {
       fileUrls.add(FILE_URL_1);
     }
     withClientMocks(() -> {
-      task.setInput(new FilesUrls( fileUrls));
+      task.setInput(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -230,11 +230,7 @@ class MCSTaskSubmitterTest {
             null,
 
             () -> {
-              task.setInput(BatchInfo.builder()
-                                               .providerId(DATASET_PROVIDER_1)
-                                               .batchId(DATASET_ID_1)
-                                               .representationName(REPRESENTATION_NAME)
-                                               .build());
+              task.setInput(prepateBatchInput());
 
               when(representationIterator.hasNext()).thenReturn(true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
@@ -256,11 +252,7 @@ class MCSTaskSubmitterTest {
             null,
 
             () -> {
-              task.setInput(BatchInfo.builder()
-                                               .providerId(DATASET_PROVIDER_1)
-                                               .batchId(DATASET_ID_1)
-                                               .representationName(REPRESENTATION_NAME)
-                                               .build());
+              task.setInput(prepateBatchInput());
               when(representationIterator.hasNext()).thenReturn(true, true, true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
@@ -270,6 +262,14 @@ class MCSTaskSubmitterTest {
             }
     );
 
+  }
+
+  private static BatchInfo prepateBatchInput() {
+    return BatchInfo.builder()
+                    .providerId(DATASET_PROVIDER_1)
+                    .batchId(DATASET_ID_1)
+                    .representationName(REPRESENTATION_NAME)
+                    .build();
   }
 
   private void verifyValidTaskSent(String... fileUrls) {

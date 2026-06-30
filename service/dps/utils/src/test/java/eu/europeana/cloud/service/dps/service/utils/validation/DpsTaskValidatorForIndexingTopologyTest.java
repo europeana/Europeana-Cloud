@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.FilesUrls;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldValidateIndexingTopologyTask() throws DpsTaskValidationException {
-    DpsTask dpsTask = prepareDpsTaskForTests(true, false);
+    DpsTask dpsTask = prepareDpsTaskForTests(true);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -32,7 +31,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWithBadTargetIndexingDatabaseCase01() {
-    DpsTask dpsTask = prepareDpsTaskForTests(           true,            false    );
+    DpsTask dpsTask = prepareDpsTaskForTests(           true);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, "publish");
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -42,7 +41,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWithBadTargetIndexingDatabaseCase02() {
-    DpsTask dpsTask = prepareDpsTaskForTests(true,            false    );
+    DpsTask dpsTask = prepareDpsTaskForTests(true);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, "sample_"+METIS_TARGET_INDEXING_DATABASE);
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -52,7 +51,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
   @Test
   void shouldFailWhenNoHarvestDate() {
-    DpsTask dpsTask = prepareDpsTaskForTests(            true,            false    );
+    DpsTask dpsTask = prepareDpsTaskForTests(            true);
     dpsTask.removeParameter(HARVEST_DATE);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PUBLISH.toString());
     DpsTaskValidator validator =
@@ -62,18 +61,8 @@ class DpsTaskValidatorForIndexingTopologyTest {
   }
 
   @Test
-  void shouldValidateIndexingTopologyTaskWithFilesUrls() throws DpsTaskValidationException {
-    DpsTask dpsTask = prepareDpsTaskForTests(            false,            true    );
-    dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-    DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
-
-    validator.validate(dpsTask);
-  }
-
-  @Test
   void shouldFailsWithoutDataCase01() {
-    DpsTask dpsTask = prepareDpsTaskForTests(false,            false    );
+    DpsTask dpsTask = prepareDpsTaskForTests(false);
     dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_DATASETS);
@@ -81,18 +70,7 @@ class DpsTaskValidatorForIndexingTopologyTest {
     assertThrows(DpsTaskValidationException.class, () -> validator.validate(dpsTask));
   }
 
-  @Test
-  void shouldFailsWithoutDataCase02() {
-    DpsTask dpsTask = prepareDpsTaskForTests(            false,            false    );
-    dpsTask.addParameter(METIS_TARGET_INDEXING_DATABASE, TargetIndexingDatabase.PREVIEW.toString());
-    DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.INDEXING_TOPOLOGY_TASK_WITH_FILE_URLS);
-
-    assertThrows(DpsTaskValidationException.class, () -> validator.validate(dpsTask));
-  }
-
-
-  private DpsTask prepareDpsTaskForTests(boolean addDatasetUrls, boolean addFilesUrls) {
+  private DpsTask prepareDpsTaskForTests(boolean addDatasetUrls) {
     DpsTask dpsTask = new DpsTask(TASK_NAME);
 
      dpsTask.addParameter(METIS_DATASET_ID,"sample_");
@@ -106,8 +84,6 @@ class DpsTaskValidatorForIndexingTopologyTest {
                                 .batchId(DATASET_01_ID)
                                 .representationName("sample_REPRESENTATION_NAME")
                                 .build());
-    } else if (addFilesUrls) {
-      dpsTask.setInput(new FilesUrls(FILE_01, FILE_02, FILE_03));
     }
 
     dpsTask.setOutput(prepareCompleteDatasetRevisionInfo().build());
