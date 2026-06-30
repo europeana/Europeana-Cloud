@@ -57,43 +57,64 @@ public final class MetricRegistry {
         PROCESSING_LATENCY = Histogram.builder()
                 .name("storm_processing_latency")
                 .help("Storm processing latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         WR_UPLOAD_FILE_LATENCY = Histogram.builder()
                 .name("write_record_upload_file_latency")
                 .help("Write record - upload file latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         RF_READ_FILE_LATENCY = Histogram.builder()
                 .name("read_file_latency")
                 .help("Read file - read file latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         RW_ADD_REVISION_LATENCY = Histogram.builder()
                 .name("revision_writer_add_revision_latency")
                 .help("Revision writer - add revision latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         PF_GET_RESOURCES_FROM_RDF_LATENCY = Histogram.builder()
                 .name("parse_file_get_resources_from_rdf_latency")
                 .help("Parse file - get resources from RDF latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         OAI_FILE_DOWNLOAD_LATENCY = Histogram.builder()
                 .name("oai_file_download_latency")
                 .help("OAI file download latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         HTTP_FILE_DOWNLOAD_LATENCY = Histogram.builder()
                 .name("http_file_download_latency")
                 .help("HTTP file download latency")
+                .classicExponentialUpperBounds(
+                        0.005, 2, 15
+                )
                 .labelNames("topology", "component")
                 .register();
         XML_FILE_SIZE = Histogram.builder()
                 .name("xml_file_size")
                 .help("XML file size")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -101,7 +122,7 @@ public final class MetricRegistry {
                 .name("xslt_transform_latency")
                 .help("XSLT transform latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -109,7 +130,7 @@ public final class MetricRegistry {
                 .name("validation_latency")
                 .help("Validation latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -117,7 +138,7 @@ public final class MetricRegistry {
                 .name("duplicate_detection_latency")
                 .help("Duplicate detection latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -125,7 +146,7 @@ public final class MetricRegistry {
                 .name("normalization_latency")
                 .help("Normalization latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -133,7 +154,7 @@ public final class MetricRegistry {
                 .name("link_check_latency")
                 .help("Link check latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -141,7 +162,7 @@ public final class MetricRegistry {
                 .name("indexing_europeana_id_finder_latency")
                 .help("Indexing Europeana ID finder latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -149,7 +170,7 @@ public final class MetricRegistry {
                 .name("indexing_remove_tombstone_latency")
                 .help("Indexing remove tombstone latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -157,7 +178,7 @@ public final class MetricRegistry {
                 .name("indexing_remove_index_record_latency")
                 .help("Indexing remove index record latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -165,7 +186,7 @@ public final class MetricRegistry {
                 .name("indexing_latency")
                 .help("Indexing latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -174,7 +195,7 @@ public final class MetricRegistry {
                 .name("enrichment_latency")
                 .help("Enrichment latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -182,7 +203,7 @@ public final class MetricRegistry {
                 .name("spout_emit_to_ack_latency")
                 .help("End-to-end processing latency (spout emit → ack)")
                 .classicExponentialUpperBounds(
-                        0.025, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -190,7 +211,7 @@ public final class MetricRegistry {
                 .name("depublish_latency")
                 .help("Depublish latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -198,7 +219,7 @@ public final class MetricRegistry {
                 .name("media_edm_enrichment_latency")
                 .help("Media EDM enrichment latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -206,7 +227,7 @@ public final class MetricRegistry {
                 .name("media_edm_metadata_enrichment_latency")
                 .help("Media EDM metadata enrichment latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -214,7 +235,7 @@ public final class MetricRegistry {
                 .name("media_OP_main_thumbnail_extraction_latency")
                 .help("Media object processor main thumbnail extraction latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -222,7 +243,7 @@ public final class MetricRegistry {
                 .name("media_OP_remaining_resource_extraction_latency")
                 .help("Media remaining resource extraction latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -231,7 +252,7 @@ public final class MetricRegistry {
                 .name("media_OP_thumbnail_storing_latency")
                 .help("Media thumbnail storing latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -240,7 +261,7 @@ public final class MetricRegistry {
                 .name("media_RP_media_extraction_latency")
                 .help("Media resource processing media extraction latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
@@ -249,7 +270,7 @@ public final class MetricRegistry {
                 .name("media_RP_thumbnail_storing_latency")
                 .help("Media resource processing thumbnail storing latency")
                 .classicExponentialUpperBounds(
-                        0.005, 2, 12
+                        0.005, 2, 15
                 )
                 .labelNames("topology", "component")
                 .register();
