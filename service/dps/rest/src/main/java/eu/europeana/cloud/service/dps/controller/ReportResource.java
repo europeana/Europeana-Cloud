@@ -9,9 +9,10 @@ import eu.europeana.cloud.service.dps.ValidationStatisticsService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Scope("request")
@@ -70,6 +67,8 @@ public class ReportResource {
    * @param to The ending resource number should be bigger than 0
    * @return Notification messages for the specified task.
    */
+  @Counted(value = "task_detailed_report_counter", description = "Number of task detailed report requests")
+  @Timed(value = "task_detailed_report_duration", description = "Duration of task detailed report requests", histogram = true)
   @GetMapping(path = "{taskId}/reports/details", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public List<SubTaskInfo> getTaskDetailedReport(
@@ -106,6 +105,8 @@ public class ReportResource {
    * @param idsCount number of identifiers to retrieve
    * @return Errors that occurred for the specified task.
    */
+  @Counted(value = "task_error_report_counter", description = "Number of task error report requests")
+  @Timed(value = "task_error_report_duration", description = "Duration of task error report requests", histogram = true)
   @GetMapping(path = "{taskId}/reports/errors", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskErrorsInfo getTaskErrorReport(
@@ -144,6 +145,8 @@ public class ReportResource {
    * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
    * @return if the error report exists
    */
+  @Counted(value = "task_error_report_exists_counter", description = "Number of task error report exists requests")
+  @Timed(value = "task_error_report_exists_duration", description = "Duration of task error report exists requests", histogram = true)
   @RequestMapping(method = {RequestMethod.HEAD}, path = "{taskId}/reports/errors")
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public ResponseEntity checkIfErrorReportExists(
@@ -176,6 +179,8 @@ public class ReportResource {
    * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
    * @return Statistics report for the specified task.
    */
+  @Counted(value = "task_statistics_report_counter", description = "Number of task statistics report requests")
+  @Timed(value = "task_statistics_report_duration", description = "Duration of task statistics report requests", histogram = true)
   @GetMapping(path = "{taskId}/statistics", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public StatisticsReport getTaskStatisticsReport(
@@ -206,6 +211,8 @@ public class ReportResource {
    * @param elementPath <strong>REQUIRED</strong> Path for specific element.
    * @return List of distinct values and their occurrences.
    */
+  @Counted(value = "task_element_report_counter", description = "Number of task element report requests")
+  @Timed(value = "task_element_report_duration", description = "Duration of task element report requests", histogram = true)
   @GetMapping(path = "{taskId}/reports/element", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public List<NodeReport> getElementsValues(
@@ -224,3 +231,4 @@ public class ReportResource {
     }
   }
 }
+

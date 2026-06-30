@@ -16,6 +16,7 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,7 @@ public class TopologyTasksResource {
    * user
    */
   @Counted(value = "task_progress_counter", description = "Number of task progress requests")
+  @Timed(value = "task_progress_duration", description = "Duration of task progress requests", histogram = true)
   @GetMapping(value = "{taskId}/progress", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   @PreAuthorize("hasPermission(#taskId.toString(),'" + TASK_PREFIX + "', read)")
   public TaskInfo getTaskProgress(
@@ -110,6 +112,7 @@ public class TopologyTasksResource {
    * user
    */
   @Counted(value = "task_submit_counter", description = "Number of task submit requests")
+  @Timed(value = "task_submit_duration", description = "Duration of task submit requests", histogram = true)
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<Void> submitTask(
