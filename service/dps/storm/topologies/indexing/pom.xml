@@ -11,6 +11,17 @@
     <artifactId>ecloud-service-dps-storm-topologies-indexing</artifactId>
     <name>ecloud-service-dps-storm-topologies-indexing</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${version.jetty}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <artifactId>byte-buddy</artifactId>
@@ -30,7 +41,10 @@
             <artifactId>commons-codec</artifactId>
             <version>${version.commonscodec}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
