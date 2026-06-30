@@ -115,15 +115,17 @@ class MCSTaskSubmitterTest {
   }
 
   private void withClientMocks(ThrowingRunnable testCode) throws Exception {
-    withClientMocks(null, null, testCode);
+    withClientMocks(null, testCode);
   }
 
-  private void withClientMocks(ThrowingConsumer<DataSetServiceClient> dataSetClientSetup,
+  private void withClientMocks(
                                ThrowingConsumer<RecordServiceClient> recordClientSetup, ThrowingRunnable testCode) throws Exception {
     try (
             MockedConstruction<DataSetServiceClient> ignored1 = Mockito.mockConstruction(DataSetServiceClient.class,
                     (mock, context) -> {
-                      if (dataSetClientSetup != null) dataSetClientSetup.accept(mock);
+                      when(mock.getRepresentationIterator(
+                          DATASET_PROVIDER_1, DATASET_ID_1))
+                          .thenReturn(representationIterator);
                     });
             MockedConstruction<FileServiceClient> ignored2 = Mockito.mockConstruction(FileServiceClient.class,
                     (mock, context) -> {
@@ -153,6 +155,7 @@ class MCSTaskSubmitterTest {
 
   @Test
   void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() throws Exception {
+    mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1)));
     withClientMocks(() -> {
       task.setInput(prepateBatchInput());
 
@@ -184,6 +187,7 @@ class MCSTaskSubmitterTest {
 
   @Test
   void executeMcsBasedTask_oneFileUrl() throws Exception {
+    mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1)));
     withClientMocks(() -> {
       task.setInput(prepateBatchInput());
 
@@ -193,9 +197,10 @@ class MCSTaskSubmitterTest {
     });
   }
 
-
   @Test
   void executeMcsBasedTask_threeFileUrls() throws Exception {
+    mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1),
+        createRepresentation(FILE_URL_2),createRepresentation(FILE_URL_3)));
     withClientMocks(() -> {
       task.setInput(prepateBatchInput());
 
@@ -208,9 +213,12 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_3000FileUrls() throws Exception {
     List<String> fileUrls = new ArrayList<>();
+    List<Representation> representations=new ArrayList<>();
     for (int i = 0; i < 3000; i++) {
       fileUrls.add(FILE_URL_1);
+      representations.add(createRepresentation(FILE_URL_1));
     }
+    mockRepresentationIterator(representations);
     withClientMocks(() -> {
       task.setInput(prepateBatchInput());
 
@@ -223,10 +231,6 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_oneDatasetWithOneFile() throws Exception {
     withClientMocks(
-            dsClient -> when(dsClient.getRepresentationIterator(
-                    DATASET_PROVIDER_1, DATASET_ID_1))
-                    .thenReturn(representationIterator),
-
             null,
 
             () -> {
@@ -245,12 +249,7 @@ class MCSTaskSubmitterTest {
 
   @Test
   void executeMcsBasedTask_oneDatasetWithThreeFiles() throws Exception {
-    withClientMocks(
-            dsClient -> when(dsClient.getRepresentationIterator(DATASET_PROVIDER_1, DATASET_ID_1)).thenReturn(
-                    representationIterator),
-
-            null,
-
+    withClientMocks(null,
             () -> {
               task.setInput(prepateBatchInput());
               when(representationIterator.hasNext()).thenReturn(true, true, true, false);
@@ -307,5 +306,19 @@ class MCSTaskSubmitterTest {
                             && counters.getExpectedDepublishRecords() == fileUrls.length
             )
     );
+  }
+
+  private void mockRepresentationIterator(List<Representation> representations) {
+    Iterator<Representation> innerIterator = representations.iterator();
+    when(representationIterator.hasNext()).thenAnswer(invocation->innerIterator.hasNext());
+    when(representationIterator.next()).thenAnswer(invocation->innerIterator.next());
+  }
+
+  private static Representation createRepresentation(String fileUrl) {
+    Representation representation=new Representation();
+    File file=new File();
+    file.setContentUri(URI.create(fileUrl));
+    representation.setFiles(List.of(file));
+    return representation;
   }
 }
