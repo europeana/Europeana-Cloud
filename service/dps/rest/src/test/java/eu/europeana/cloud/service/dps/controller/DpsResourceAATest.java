@@ -44,8 +44,11 @@ import static org.mockito.Mockito.*;
 @WebAppConfiguration
 class DpsResourceAATest extends AbstractSecurityTest {
 
-  public static final String PROVIDER_ID = "providerId";
   /* Constants */
+  public static final String PROVIDER_ID = "providerId";
+  public static final String REPRESENTATION_NAME = "representationName";
+  public static final String BATCH_ID = "batchId";
+
   private static final String VAN_PERSIE = "Robin_Van_Persie";
   private static final String VAN_PERSIE_PASSWORD = "Feyenoord";
 
@@ -58,8 +61,6 @@ class DpsResourceAATest extends AbstractSecurityTest {
 
   private static final String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
   private static final String XSLT_TOPOLOGY_NAME = "xslt_topology";
-  public static final String REPRESENTATION_NAME = "representationName";
-  public static final String BATCH_ID = "batchId";
   private DpsTask XSLT_TASK;
   private DpsTask XSLT_TASK2;
   private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
@@ -189,7 +190,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
   }
 
   @Test
-  void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingFileUrls()
+  void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingInput()
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     DpsTask task = new DpsTask("xsltTask");
