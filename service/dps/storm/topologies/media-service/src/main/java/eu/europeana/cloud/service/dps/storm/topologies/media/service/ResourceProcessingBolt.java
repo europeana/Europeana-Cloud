@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -63,11 +64,13 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
       if (rdfResourceEntry != null) {
         LOGGER.debug("Performing media extraction for: {}", rdfResourceEntry);
 
+        long extractionStart = System.nanoTime();
         ResourceExtractionResult resourceExtractionResult =
             mediaExtractor.performMediaExtraction(
                 rdfResourceEntry,
                 Boolean.parseBoolean(commonTaskTuple.getParameter(PluginParameterKeys.MAIN_THUMBNAIL_AVAILABLE))
             );
+        MetricRegistry.mediaRpMediaExtractionLatency(topologyName, component, (System.nanoTime() - extractionStart) / 1e9);
 
         if (resourceExtractionResult != null) {
           LOGGER.debug("Extracted the following metadata {}", resourceExtractionResult);
@@ -75,7 +78,9 @@ public class ResourceProcessingBolt extends AbstractDpsBolt {
             commonTaskTuple.addParameter(PluginParameterKeys.RESOURCE_METADATA,
                 gson.toJson(resourceExtractionResult.getMetadata()));
           }
+          long storingStart = System.nanoTime();
           storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
+          MetricRegistry.mediaRpThumbnailStoringLatency(topologyName, component, (System.nanoTime() - storingStart) / 1e9);
         }
       }
     } catch (RetryInterruptedException e) {

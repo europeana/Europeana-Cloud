@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.ValidationTopologyPropertiesKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.transformation.service.TransformationException;
@@ -36,8 +37,10 @@ public class ValidationBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     try {
+      long startTime = System.nanoTime();
       reorderFileContent(commonTaskTuple);
       validateFileAndEmit(anchorTuple, commonTaskTuple);
+      MetricRegistry.validationLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
