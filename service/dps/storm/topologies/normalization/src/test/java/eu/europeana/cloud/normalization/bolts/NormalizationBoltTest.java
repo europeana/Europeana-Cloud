@@ -49,7 +49,7 @@ class NormalizationBoltTest {
 
     //when
     normalizationBolt.execute(anchorTuple, getCorrectStormTuple(inputData));
-
+  
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();

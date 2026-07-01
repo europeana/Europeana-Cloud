@@ -87,6 +87,9 @@ public final class RestInterfaceConstants {
   public static final String REVISION_DELETE =
       REVISION_ADD + "/{revisionName}/revisionProvider/{revisionProviderId}";
 
+  //Annotations
+  public static final String REPRESENTATION_VERSION_ANNOTATION_RESOURCE
+          = "/records/{cloudId}/representations/{representationName}/versions/{version}/annotations";
 
   //SimplifiedRecordsResource
   public static final String SIMPLIFIED_RECORDS_RESOURCE =

@@ -8,6 +8,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -86,6 +88,16 @@ public class Representation {
      */
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<Revision> revisions = new ArrayList<>(0);
+
+    @Getter
+    @Setter
+    @JacksonXmlElementWrapper(localName = "annotations")
+    @JacksonXmlProperty(localName = "annotation")
+    private List<RepresentationVersionAnnotation> annotations = new ArrayList<>(0);
+
+    public void addAnnotation(RepresentationVersionAnnotation annotations) {
+        this.annotations.add(annotations);
+    }
 
     /**
      * Creates a new instance of this class.
