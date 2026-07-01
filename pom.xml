@@ -138,6 +138,8 @@
         <version.slf4j>2.0.12</version.slf4j>
 
         <version.spring-framework>7.0.2</version.spring-framework>
+        <version.jetty>12.1.8</version.jetty>
+        <version.curator>5.9.0</version.curator>
         <version.spring-security>7.0.2</version.spring-security>
         <version.spring-boot>4.0.1</version.spring-boot>
         <version.spring-boot-aop>4.0.0-M1</version.spring-boot-aop>
@@ -367,6 +369,16 @@
                 <version>${version.spring-framework}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${version.curator}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${version.curator}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>

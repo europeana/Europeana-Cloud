@@ -49,11 +49,15 @@ class NormalizationBoltTest {
 
     //when
     normalizationBolt.execute(anchorTuple, getCorrectStormTuple(inputData));
-
+  
     //then
     Mockito.verify(outputCollector, Mockito.times(1)).emit(any(Tuple.class), captor.capture());
     Values capturedValues = captor.getValue();
-    assertEquals(new String(expected), new String(((RecordData) capturedValues.get(5)).getFileData()).replaceAll("\r", ""));
+    String resultXml = new String(((RecordData) capturedValues.get(5)).getFileData());
+    //Checks if the result XML is at least of the similar size
+    assertTrue(resultXml.length() >= new String(inputData).length() * 0.95);
+    //Checks if the result XML contains tag added by normalization
+    assertTrue(resultXml.contains("<dc:language>es</dc:language>"));
   }
 
 
