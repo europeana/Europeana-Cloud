@@ -90,10 +90,6 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
                 uisClient.createCloudId(providerId, europeanaId).getId());
     }
 
-    protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
-        outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
-        outputCollector.ack(anchorTuple);
-    }
 }
 
 

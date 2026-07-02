@@ -116,11 +116,12 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 + CassandraTablesAndColumnsNames.TASK_INFO_POST_PROCESSED_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_POST_PROCESSED_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_DEPUBLISH_RECORDS + ","
+                + CassandraTablesAndColumnsNames.TASK_INFO_EXPECTED_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_SUCCESS_DEPUBLISH_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_FAIL_DEPUBLISH_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_PROCESSED_DEPUBLISH_RECORDS + ","
                 + CassandraTablesAndColumnsNames.TASK_INFO_DEFINITION
-                + ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                + ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     );
 
     finishTask = dbService.getSession().prepare(
@@ -239,6 +240,7 @@ public class CassandraTaskInfoDAO extends CassandraDAO {
                 taskInfo.getPostProcessedRecords(),
                 taskInfo.getExpectedPostProcessedRecords(),
                 taskInfo.getExpectedDepublishRecords(),
+                taskInfo.getExpectedRecords(),
                 taskInfo.getSuccessDepublishRecords(),
                 taskInfo.getFailDepublishRecords(),
                 taskInfo.getProcessedDepublishRecords(),
