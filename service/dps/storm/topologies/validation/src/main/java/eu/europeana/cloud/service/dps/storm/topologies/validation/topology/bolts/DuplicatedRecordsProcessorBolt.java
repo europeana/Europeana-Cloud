@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.DUPLICATED_RECORD;
-
 /**
  * Bolt that will check if there are duplicates in harvested records.</br> Duplicates, in this context, are representation
  * versions that have the same cloud_id, representation name and revision</br>
@@ -104,7 +102,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                                                                            Representation representation) throws MCSException {
     List<Representation> representations = findAllRepresentationWithSameCloudId(representation);
     if (representationsWithSameCloudIdExist(representations)) {
-        tuple.addParameter(DUPLICATED_RECORD, "true");
       handleDuplicatedRepresentationVersion(anchorTuple, tuple, representation);
       return true;
     }
@@ -122,7 +119,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                                                                      Representation representation, Revision revision) throws MCSException {
     List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(representation, revision);
     if (representationsWithSameRevisionExists(representationRevisions)) {
-        tuple.addParameter(DUPLICATED_RECORD, "true");
       handleDuplicatedRepresentationRevision(anchorTuple, tuple, representation);
       return true;
     }
@@ -138,7 +134,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getRecordUri(), tuple.getTaskId());
       removeRevision(tuple, representation);
       removeRepresentation(representation);
-      emitErrorNotification(
+    emitDuplicatedNotification(
               anchorTuple,
               tuple,
               "Duplicate detected",
@@ -150,11 +146,11 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
           throws MCSException {
       LOGGER.warn("Found same version for '{}' and '{}'", tuple.getRecordUri(), tuple.getTaskId());
       removeRepresentation(representation);
-      emitErrorNotification(
-              anchorTuple,
-              tuple,
-              "Duplicate detected",
-              "Duplicate detected for " + tuple.getRecordUri());
+    emitDuplicatedNotification(
+            anchorTuple,
+            tuple,
+            "Duplicate detected",
+            "Duplicate detected for " + tuple.getRecordUri());
       outputCollector.ack(anchorTuple);
   }
 

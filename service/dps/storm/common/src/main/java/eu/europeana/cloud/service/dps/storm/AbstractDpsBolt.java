@@ -243,6 +243,13 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 
+  protected void emitDuplicatedNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple,
+                                            String message, String additionalInformation) {
+    NotificationTuple tuple = NotificationTuple.prepareNotificationWithResultResource(commonTaskTuple, RecordState.SUCCESS, message, additionalInformation);
+    tuple.addParameter(PluginParameterKeys.DUPLICATED_RECORD, "true");
+    outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
+  }
+
   protected void prepareStormTaskTupleForEmission(CommonTaskTuple commonTaskTuple, String resultString)
           throws MalformedURLException {
     commonTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
