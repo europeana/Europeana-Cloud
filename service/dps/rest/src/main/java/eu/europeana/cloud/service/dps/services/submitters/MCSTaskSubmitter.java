@@ -165,6 +165,4 @@ public class MCSTaskSubmitter {
   private void checkIfTaskIsKilled(DpsTask task) {
     taskStatusChecker.checkNotDropped(task);
   }
-
-
 }
