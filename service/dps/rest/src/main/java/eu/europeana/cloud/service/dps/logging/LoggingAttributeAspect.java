@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.logging;
 
 import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import org.aspectj.lang.JoinPoint;

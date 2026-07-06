@@ -184,28 +184,31 @@ public class TopologyTasksResource {
    */
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-  public ResponseEntity<DpsTask> createTask(
+  public ResponseEntity<eu.europeana.cloud.service.dps.internal.DpsTask> createTask(
       final HttpServletRequest request,
       @RequestBody final DpsTask task,
       @PathVariable("topologyName") final String topologyName
   ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     LOGGER.info("Creating task: {}", task);
-    validateAndCompleteParametersSetByServer(task);
-    MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(task.getTaskId()));
+    long taskId = (long) (Math.random() * Long.MAX_VALUE);
+    MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(taskId));
     try {
-      return createTaskInDB(request, task, topologyName);
-    } finally {
+      SubmitTaskParameters parameters = createTaskInDB(task, taskId, topologyName);
+      return validateTask(request,task,taskId, parameters);
+    }  catch (Exception e) {
+      return handleFailedSubmission(e, "Task submission failed. Internal server error.", taskId);
+    }finally {
       MDC.remove(TASK_ID_CONTEXT_ATTR);
     }
   }
 
-  private ResponseEntity<DpsTask> createTaskInDB(HttpServletRequest request, DpsTask task, String topologyName)
-      throws IOException, DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException {
+  private SubmitTaskParameters createTaskInDB(DpsTask task, long taskId, String topologyName)
+      throws IOException {
     var taskJSON = task.toJSON();
     SubmitTaskParameters parameters = SubmitTaskParameters.builder()
                                                           .taskInfo(
                                                               TaskInfo.builder()
-                                                                      .id(task.getTaskId())
+                                                                      .id(taskId)
                                                                       .topologyName(topologyName)
                                                                       .state(EngineTaskState.CREATED)
                                                                       .stateDescription(
@@ -229,41 +232,42 @@ public class TopologyTasksResource {
                                                                       .definition(taskJSON)
                                                                       .build()
                                                           )
-                                                          .task(task)
                                                           .build();
-    ResponseEntity<DpsTask> result;
-    try {
+
       taskStatusUpdater.insertTask(parameters);
-      taskSubmissionValidator.validateTaskSubmission(parameters);
-      permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-      var responseURI = buildTaskURI(request, task);
-      result = ResponseEntity.created(responseURI).body(task);
       LOGGER.info("Created task: {}", task);
+      return parameters;
+  }
+
+  private ResponseEntity<eu.europeana.cloud.service.dps.internal.DpsTask> validateTask(HttpServletRequest request, DpsTask task, long taskId, SubmitTaskParameters parameters)
+      throws IOException, DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException {
+    ResponseEntity<eu.europeana.cloud.service.dps.internal.DpsTask> result;
+    try {
+      taskSubmissionValidator.validateTaskSubmission(task, parameters.getTaskInfo().getTopologyName());
+      permissionManager.grantPermissionsForTask(String.valueOf(taskId));
+      parameters.setTask(createInterlTask(task, taskId));
+      taskStatusUpdater.insertTask(parameters);
+      var responseURI = buildTaskURI(request, taskId);
+      result = ResponseEntity.created(responseURI).body(parameters.getTask());
+      LOGGER.info("Created task: {}", parameters.getTask());
     } catch (DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
       taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
       throw e;
     } catch (Exception e) {
-      result = handleFailedSubmission(e, "Task submission failed. Internal server error.", parameters);
+      result = handleFailedSubmission(e, "Task submission failed. Internal server error.", taskId);
     }
     return result;
   }
 
-  private void validateAndCompleteParametersSetByServer(DpsTask task) {
-    if (task.getTaskId() != 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Sent task entity with already set task id. Id should be empty and is set by server!");
-    }
-
-    if ((task.getOutput() instanceof BatchInfo output) && output.getBatchId() != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Sent task entity with batchId set! It should be left empty and is completed by server!");
-    }
-
-    task.setTaskId((long) (Math.random() * Long.MAX_VALUE));
-    if(task.getOutput() instanceof BatchInfo output){
-      output.setBatchId(""+ task.getTaskId());
-    }
+  private eu.europeana.cloud.service.dps.internal.DpsTask createInterlTask(DpsTask task, long taskId) {
+    var internalTask = new eu.europeana.cloud.service.dps.internal.DpsTask();
+    internalTask.setInput(task.getInput());
+    internalTask.setOutput(BatchInfo.builder().providerId(task.getOutputProvider()).batchId(String.valueOf(taskId)).build());
+    internalTask.setParameters(task.getParameters());
+    internalTask.setTaskId(taskId);
+    return internalTask;
   }
+
 
   /**
    * Starts the task. The method is idempotent, could be run multiple times one by one, if task is already started it has no
@@ -291,7 +295,7 @@ public class TopologyTasksResource {
       return;
     }
 
-    var dpsTask = DpsTask.fromTaskInfo(taskInfo);
+    var dpsTask = eu.europeana.cloud.service.dps.internal.DpsTask.fromTaskInfo(taskInfo);
     taskInfo.setStartTimestamp(new Date());
     taskInfo.setEngineTaskState(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
     SubmitTaskParameters parameters = SubmitTaskParameters.builder()
@@ -303,15 +307,14 @@ public class TopologyTasksResource {
     LOGGER.info("Topology: {} task: {} started execution.", topologyName, taskId);
   }
 
-  private ResponseEntity<DpsTask> handleFailedSubmission(Exception exception, String loggedMessage,
-      SubmitTaskParameters parameters) {
+  private ResponseEntity<eu.europeana.cloud.service.dps.internal.DpsTask> handleFailedSubmission(Exception exception, String loggedMessage,long taskId) {
     LOGGER.error(loggedMessage, exception);
-    taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
+    taskStatusUpdater.setTaskDropped(taskId, exception.getMessage());
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
   }
 
-  private URI buildTaskURI(HttpServletRequest httpServletRequest, DpsTask task) {
+  private URI buildTaskURI(HttpServletRequest httpServletRequest, long taskId) {
     HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
-    return UriComponentsBuilder.fromUri(httpRequest.getURI()).pathSegment(String.valueOf(task.getTaskId())).build().toUri();
+    return UriComponentsBuilder.fromUri(httpRequest.getURI()).pathSegment(String.valueOf(taskId)).build().toUri();
   }
 }

@@ -16,6 +16,6 @@ public class NoOutputValidator extends CustomValidator {
 
   @Override
   public boolean test(DpsTask dpsTask) {
-    return dpsTask.getOutput() == null;
+    return dpsTask.getOutputProvider() == null;
   }
 }

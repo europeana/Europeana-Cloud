@@ -131,9 +131,9 @@ public class DpsClient implements AutoCloseable {
   /**
    * Creates a task for the specified topology on server.
    */
-  public DpsTask createTask(DpsTask task, String topologyName) throws DpsException {
+  public eu.europeana.cloud.service.dps.internal.DpsTask createTask(DpsTask task, String topologyName) throws DpsException {
     return manageResponse(
-        new ResponseParams<>(DpsTask.class, Response.Status.CREATED),
+        new ResponseParams<>(eu.europeana.cloud.service.dps.internal.DpsTask.class, Response.Status.CREATED),
         () -> client.target(dpsUrl)
                     .path(TASKS_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)

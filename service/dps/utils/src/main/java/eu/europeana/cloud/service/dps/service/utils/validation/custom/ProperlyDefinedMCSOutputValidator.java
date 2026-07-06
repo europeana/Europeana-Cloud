@@ -18,11 +18,6 @@ public class ProperlyDefinedMCSOutputValidator extends CustomValidator {
 
   @Override
   public boolean test(DpsTask dpsTask) {
-    if (dpsTask.getOutput() instanceof BatchInfo output) {
-      return output.getProviderId() != null &&
-          output.getRepresentationName() != null;
-    } else {
-      return false;
-    }
+    return dpsTask.getOutputProvider() != null;
   }
 }

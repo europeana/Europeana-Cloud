@@ -17,11 +17,8 @@ class DpsTaskTest {
     task.addParameter(PluginParameterKeys.HARVEST_DATE, "2026-03-26T13:20:00.000Z");
     task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
 
-    BatchInfo output = new BatchInfo();
-    output.setProviderId("metisProduction");
-    output.setRepresentationName("metadataRecord");
-    //we do not set batch id cause it will be set by eCloud
-    task.setOutput(output);
+    task.setOutputProvider("metisProduction");
+
   }
 
   @Test
@@ -30,13 +27,7 @@ class DpsTaskTest {
     BatchInfo input = new BatchInfo();
     input.setProviderId("metisProduction");
     input.setBatchId("9cafe47c-1f42-4990-ba86-4f06a9ceb768");
-    input.setRepresentationName("metadataRecord");
     task.setInput(input);
-
-    BatchInfo output = new BatchInfo();
-    output.setProviderId("metisProduction");
-    output.setRepresentationName("metadataRecord");
-    //we do not set batch id cause it will be set by eCloud
-    task.setOutput(output);
+    task.setOutputProvider("metisProduction");
   }
 }

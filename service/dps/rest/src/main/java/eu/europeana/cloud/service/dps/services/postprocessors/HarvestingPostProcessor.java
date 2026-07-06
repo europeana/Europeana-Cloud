@@ -1,5 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
+import static eu.europeana.cloud.service.dps.Constants.DPS_REPRESENTATION_NAME;
+
 import com.google.common.collect.Iterators;
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
@@ -13,7 +15,7 @@ import eu.europeana.cloud.service.commons.urls.RepresentationParser;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -187,7 +189,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
     BatchInfo output = dpsTask.getOutput();
-    var representationUri = recordServiceClient.createRepresentation(cloudId, output.getRepresentationName(), output.getProviderId(),
+    var representationUri = recordServiceClient.createRepresentation(cloudId, DPS_REPRESENTATION_NAME, output.getProviderId(),
         null, output.getBatchId(), true);
     return RepresentationParser.parseResultUrl(
         representationUri);

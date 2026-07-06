@@ -91,64 +91,6 @@ public final class DpsTaskValidator {
     return this;
   }
 
-  /**
-   * Will check if dps task contains selected name
-   *
-   * @param taskName name of the task that will be compared with the name of the validated task
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withName(String taskName) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.NAME)
-                                                    .expectedName(null)
-                                                    .expectedValue(taskName)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  /**
-   * Will check if dps task contains any name
-   *
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withAnyName() {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.NAME)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  /**
-   * Will check if dps task contains selected task id
-   *
-   * @param taskId task identifier that will be compared with the identifier of the validated task
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withId(long taskId) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.ID)
-                                                    .expectedName(null)
-                                                    .expectedValue(taskId + "")
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  /**
-   * Will check if dps task contains any task id
-   *
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withAnyId() {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.ID)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
   public DpsTaskValidator withDefinedMCSOutput() {
     return withCustomValidator(new ProperlyDefinedMCSOutputValidator());
   }
@@ -177,12 +119,8 @@ public final class DpsTaskValidator {
   public void validate(DpsTask task) throws DpsTaskValidationException {
     for (DpsTaskConstraint re : dpsTaskConstraints) {
       DpsTaskFieldType fieldType = re.getFieldType();
-      if (fieldType == DpsTaskFieldType.NAME) {
-        validateName(task, re);
-      } else if (fieldType == DpsTaskFieldType.PARAMETER) {
+      if (fieldType == DpsTaskFieldType.PARAMETER) {
         validateParameter(task, re);
-      } else if (fieldType == DpsTaskFieldType.ID) {
-        validateId(task, re);
       }
     }
     for (CustomValidator customValidator : customValidators) {
@@ -191,21 +129,6 @@ public final class DpsTaskValidator {
             "Dps Task doesn't meet the requirements of the custom validator. " + customValidator.errorMessage());
       }
     }
-  }
-
-  private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    String taskName = task.getTaskName();
-    if (constraint.getExpectedValue() == null && taskName != null) {  //any name
-      return;
-    }
-    if ("".equals(constraint.getExpectedValue()) && "".equals(taskName)) {//empty name
-      return;
-    }
-    if (constraint.getExpectedValue().equals(taskName)) {//exact name
-      return;
-    }
-
-    throw new DpsTaskValidationException("Task name is not valid.");
   }
 
   private void validateParameter(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
@@ -232,18 +155,6 @@ public final class DpsTaskValidator {
       }
     }
     throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
-  }
-
-  private void validateId(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    if (constraint.getExpectedValue() == null) {  //any id
-      return;
-    }
-
-    long taskId = task.getTaskId();
-    if (constraint.getExpectedValue().equals(taskId + "")) {//exacted id
-      return;
-    }
-    throw new DpsTaskValidationException("Task id is not valid.");
   }
 }
 /**
@@ -313,6 +224,4 @@ class DpsTaskConstraint {
 
 enum DpsTaskFieldType {
   PARAMETER,
-  ID,
-  NAME
 }

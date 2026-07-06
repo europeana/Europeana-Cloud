@@ -1,15 +1,13 @@
-package eu.europeana.cloud.service.dps;
+package eu.europeana.cloud.service.dps.internal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.TaskInput;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 import java.util.Map;
-
-import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,10 +24,25 @@ import lombok.NoArgsConstructor;
 public class DpsTask {
 
   private TaskInput input;
-  private String outputProvider;
+  private BatchInfo output;
 
   /* List of parameters (specific for each dps-topology) */
   private Map<String, String> parameters = new HashMap<>();
+
+  /* Unique id for this task */
+  private long taskId;
+
+  /* Name for the task */
+  private String taskName;
+
+  /**
+   * Constructor
+   * @param taskName - task name
+   */
+  public DpsTask(String taskName) {
+    this.taskName = taskName;
+  }
+
 
   /**
    * Adds task general parameter
@@ -87,5 +100,6 @@ public class DpsTask {
   public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws JsonProcessingException {
     return fromJSON(taskInfo.getDefinition());
   }
+
 }
 

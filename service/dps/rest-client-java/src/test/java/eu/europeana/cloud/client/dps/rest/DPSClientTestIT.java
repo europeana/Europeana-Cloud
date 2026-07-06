@@ -36,7 +36,7 @@ class DPSClientTestIT {
     details.setSchema("edm");
     details.setSet("ZFMK");
     task.setInput(details);
-    DpsTask resultTask = client.createTask(task, "oai_topology");
+    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = client.createTask(task, "oai_topology");
     long id = resultTask.getTaskId();
     assertNotEquals(0, id);
 
@@ -50,18 +50,13 @@ class DPSClientTestIT {
     DpsTask task = new DpsTask();
     BatchInfo inputData = BatchInfo.builder().providerId("metis_test5")
                                              .batchId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
-                                             .representationName("metadataRecord")
                                              .build();
 
     task.setInput(inputData);
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
-    BatchInfo output = BatchInfo.builder().providerId("metis_test5")
-                                   .batchId("f4afd107-bf85-4a4f-948f-2a8e70b16b82")
-                                   .representationName("metadataRecord")
-                                   .build();
-    task.setOutput(output);
+    task.setOutputProvider("metis_test5");
     //
-    DpsTask resultTask = client.createTask(task, "validation_topology");
+    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = client.createTask(task, "validation_topology");
     long id = resultTask.getTaskId();
     assertNotEquals(0, id);
 

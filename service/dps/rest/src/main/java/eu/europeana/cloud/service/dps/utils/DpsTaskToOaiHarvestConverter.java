@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.converters.GenericOneToOneConverter;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;

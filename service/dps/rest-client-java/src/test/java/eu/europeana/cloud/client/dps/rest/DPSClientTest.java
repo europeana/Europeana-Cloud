@@ -80,7 +80,7 @@ class DPSClientTest {
     //when
     dpsClient.topologyPermit(TOPOLOGY_NAME, REGULAR_USER_NAME);
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-    DpsTask resultTask = dpsClient.createTask(task, TOPOLOGY_NAME);
+    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = dpsClient.createTask(task, TOPOLOGY_NAME);
 
     //then
     assertEquals(-2561925310040723252L, resultTask.getTaskId());
@@ -504,7 +504,6 @@ class DPSClientTest {
 
   private DpsTask prepareDpsTask() {
     DpsTask task = new DpsTask();
-    task.setTaskName("oaiPmhHarvestingTask");
     task.setInput(
         OAIPMHHarvestingDetails.builder().repositoryUrl("http://example.com/oai-pmh-repository.xml")
                                .schema("Schema").build());

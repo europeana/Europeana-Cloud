@@ -19,7 +19,7 @@ class DpsTaskValidatorTest {
 
   private static final String PROVIDER = "provider1" ;
   private static final String BATCH = "batch1";
-  private static final String REPRESENTATION = "representation1";
+  public static final String OUTPUT_PROVIDER = "providerId";
   private DpsTask dpsTask;
   private DpsTask icTopologyTask;
   private DpsTask dpsTaskWithValidMaximumParallelization;
@@ -29,94 +29,54 @@ class DpsTaskValidatorTest {
   private DpsTask dpsTaskWithNegativeMaximumParallelization;
   private DpsTask dpsTaskWithMinimalValidMaximumParallelization;
 
-  private static final String TASK_NAME = "taskName";
   private static final String EXISTING_PARAMETER_NAME = "param_1";
   private static final String EXISTING_PARAMETER_VALUE = "param_1_value";
   private static final String EMPTY_PARAMETER_NAME = "empty_param";
 
-  private static final List<String> EXISTING_DATA_ENTRY_VALUE =
-      Collections.singletonList(
-          "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt");
-
     @BeforeEach
     void init() {
       dpsTask = new DpsTask();
-      dpsTask.setTaskName(TASK_NAME);
       dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
       dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
       dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
       dpsTask.setInput(prepareCompleteDatasetRevisionInfo().build());
-      dpsTask.setOutput(prepareCompleteDatasetRevisionInfo().build());
+      dpsTask.setOutputProvider(OUTPUT_PROVIDER);
       //
       icTopologyTask = new DpsTask();
-      icTopologyTask.setInput(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).representationName(REPRESENTATION).build());
+      icTopologyTask.setInput(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).build());
     icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
     icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
     //
 
 
-    dpsTaskWithMinimalValidMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithMinimalValidMaximumParallelization = new DpsTask();
     dpsTaskWithMinimalValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "1");
 
-    dpsTaskWithValidMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithValidMaximumParallelization = new DpsTask();
     dpsTaskWithValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "10");
 
-    dpsTaskWithNegativeMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithNegativeMaximumParallelization = new DpsTask();
     dpsTaskWithNegativeMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "-2");
 
-    dpsTaskWithZeroMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithZeroMaximumParallelization = new DpsTask();
     dpsTaskWithZeroMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "0");
 
-    dpsTaskWithTooBigPossibleMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithTooBigPossibleMaximumParallelization = new DpsTask();
     dpsTaskWithTooBigPossibleMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION,
         String.valueOf(1L + Integer.MAX_VALUE));
 
-    dpsTaskWithNotNumberMaximumParallelization = new DpsTask(TASK_NAME);
+    dpsTaskWithNotNumberMaximumParallelization = new DpsTask();
     dpsTaskWithNotNumberMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "a");
 
   }
 
   public static BatchInfo.BatchInfoBuilder prepareCompleteDatasetRevisionInfo() {
-    return BatchInfo.builder().providerId("providerId").batchId("datasetId").
-                              representationName("representationName");
+    return BatchInfo.builder().providerId("providerId").batchId("datasetId");
   }
 
   @Test
     void shouldValidateThatTaskIsCorrectWhenConstraintsListIsEmpty() throws DpsTaskValidationException {
         new DpsTaskValidator().validate(dpsTask);
-    }
-
-    ////
-    // Task id
-    ////
-    @Test
-    void anyIdShouldBeValidated() throws DpsTaskValidationException {
-        new DpsTaskValidator().withAnyId().validate(dpsTask);
-    }
-
-    @Test
-    void shouldThrowExceptionForWrongTaskId() {
-        assertThrows(DpsTaskValidationException.class,
-                () -> new DpsTaskValidator().withId(-1).validate(dpsTask));
-    }
-
-    ////
-    //Task name
-    ////
-    @Test
-    void validatorShouldValidateThatTaskHasSelectedName() throws DpsTaskValidationException {
-        new DpsTaskValidator().withName(TASK_NAME).validate(dpsTask);
-    }
-
-    @Test
-    void validatorShouldValidateThatTaskHasWrongName() {
-        assertThrows(DpsTaskValidationException.class,
-                () -> new DpsTaskValidator().withName("someWrongName").validate(dpsTask));
-    }
-
-    @Test
-    void validatorShouldValidateThatTaskHasAnyName() throws DpsTaskValidationException {
-        new DpsTaskValidator().withAnyName().validate(dpsTask);
     }
 
   ////
@@ -208,7 +168,7 @@ class DpsTaskValidatorTest {
     }
 
     private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
-        final DpsTask oaiPmhTask = new DpsTask("OaiPmhTopology");
+        final DpsTask oaiPmhTask = new DpsTask();
         final OAIPMHHarvestingDetails inputData = OAIPMHHarvestingDetails.builder()
             .repositoryUrl(url).build();
         oaiPmhTask.setInput(inputData);

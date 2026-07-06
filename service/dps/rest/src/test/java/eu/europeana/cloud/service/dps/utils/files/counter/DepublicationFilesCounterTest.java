@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;

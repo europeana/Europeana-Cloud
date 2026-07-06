@@ -9,7 +9,6 @@ import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.TopologyManager;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorFactory;
-import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import org.springframework.stereotype.Service;
 
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.METIS_DATASET_ID;
@@ -30,10 +29,10 @@ public class TaskSubmissionValidator {
     this.topologyManager = topologyManager;
   }
 
-  public void validateTaskSubmission(SubmitTaskParameters parameters)
+  public void validateTaskSubmission(DpsTask task, String topologyName)
       throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
-    assertContainTopology(parameters.getTaskInfo().getTopologyName());
-    validateTask(parameters.getTask(), parameters.getTaskInfo().getTopologyName());
+    assertContainTopology(topologyName);
+    validateTask(task, topologyName);
   }
 
   /**

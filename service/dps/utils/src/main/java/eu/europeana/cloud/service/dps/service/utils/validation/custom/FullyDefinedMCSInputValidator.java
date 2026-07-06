@@ -20,7 +20,6 @@ public class FullyDefinedMCSInputValidator extends CustomValidator {
   public boolean test(DpsTask dpsTask) {
     if (dpsTask.getInput() instanceof BatchInfo input) {
       return input.getProviderId() != null &&
-          input.getRepresentationName() != null &&
           input.getBatchId() != null;
     } else {
       return false;

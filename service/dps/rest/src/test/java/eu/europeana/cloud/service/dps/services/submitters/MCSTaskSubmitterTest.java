@@ -8,7 +8,11 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
-import eu.europeana.cloud.service.dps.*;
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.DpsRecord;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
@@ -27,6 +31,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.*;
 
+import static eu.europeana.cloud.service.dps.Constants.DPS_REPRESENTATION_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -43,7 +48,6 @@ class MCSTaskSubmitterTest {
   private static final String TOPIC = "topic1";
   private static final String TOPOLOGY = "validation_topology";
   private static final String SCHEMA_NAME = "schema1";
-  private static final String REPRESENTATION_NAME = "representationName1";
   //File 1
   private static final String FILE_URL_1 = "http://localhost:8080/mcs/records/Z5T3UYERNLKRLLII5EW42NNCCPPTVQV2MKNDF4VL7UBKBVI2JHRA/representations/mcsReaderRepresentation/versions/ec3c18b0-7354-11ea-b16e-04922659f621/files/9da076ce-f382-4bbf-8b6a-c80d943aa46a";
   private static final URI FILE_URI_1 = URI.create(FILE_URL_1);
@@ -57,7 +61,7 @@ class MCSTaskSubmitterTest {
   private static final URI REPRESENTATON_URI_1 = URI.create(REPRESENTATION_URI_STRING_1);
   private static final Representation REPRESENTATION_1 = new Representation(
       CLOUD_ID1,
-      REPRESENTATION_NAME,
+      DPS_REPRESENTATION_NAME,
       VERSION_1,
       REPRESENTATION_ALL_VERSION_URI_1,
       REPRESENTATON_URI_1,
@@ -129,7 +133,7 @@ class MCSTaskSubmitterTest {
                     });
             MockedConstruction<FileServiceClient> ignored2 = Mockito.mockConstruction(FileServiceClient.class,
                     (mock, context) -> {
-                      when(mock.getFileUri(CLOUD_ID1, REPRESENTATION_NAME, VERSION_1, FILE_NAME_1))
+                      when(mock.getFileUri(CLOUD_ID1, DPS_REPRESENTATION_NAME, VERSION_1, FILE_NAME_1))
                               .thenReturn(FILE_URI_1);
                     });
             MockedConstruction<RecordServiceClient> ignored3 = Mockito.mockConstruction(RecordServiceClient.class,
@@ -267,7 +271,6 @@ class MCSTaskSubmitterTest {
     return BatchInfo.builder()
                     .providerId(DATASET_PROVIDER_1)
                     .batchId(DATASET_ID_1)
-                    .representationName(REPRESENTATION_NAME)
                     .build();
   }
 

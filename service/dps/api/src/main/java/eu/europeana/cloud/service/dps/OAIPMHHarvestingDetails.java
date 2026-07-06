@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps;
 
-import eu.europeana.cloud.service.dps.DpsTask.TaskInput;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serial;

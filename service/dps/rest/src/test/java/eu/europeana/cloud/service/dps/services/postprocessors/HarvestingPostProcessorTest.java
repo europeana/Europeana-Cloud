@@ -12,7 +12,7 @@ import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static eu.europeana.cloud.service.dps.Constants.DPS_REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.INCREMENTAL_HARVEST;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,7 +60,6 @@ class HarvestingPostProcessorTest {
   private static final String RECORD_ID2 = "R2";
   private static final String CLOUD_ID1 = "a1";
   private static final String CLOUD_ID2 = "b2";
-  private static final String REPRESENTATION_NAME = "repr";
   private static final String VERSION = "v1";
   private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
   private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
@@ -120,9 +120,9 @@ class HarvestingPostProcessorTest {
   }
 
   private void mockRecordServiceClient() throws MCSException, URISyntaxException {
-    when(recordServiceClient.createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
+    when(recordServiceClient.createRepresentation(CLOUD_ID1, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
             .thenReturn(new URI(RECORD1_REPRESENTATION_URI));
-    when(recordServiceClient.createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
+    when(recordServiceClient.createRepresentation(CLOUD_ID2, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true))
             .thenReturn(new URI(RECORD2_REPRESENTATION_URI));
 
   }
@@ -146,7 +146,6 @@ class HarvestingPostProcessorTest {
     task.setOutput(BatchInfo.builder()
                             .providerId(PROVIDER_ID)
                             .batchId(DATASET_ID)
-                            .representationName(REPRESENTATION_NAME)
                             .build());
   }
 
@@ -178,7 +177,7 @@ class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any(ProcessedRecord.class));
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());
@@ -211,9 +210,9 @@ class HarvestingPostProcessorTest {
     service.execute(taskInfo, task);
 
     //record1
-    verify(recordServiceClient).createRepresentation(CLOUD_ID1, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID1, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     //record2
-    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     //task
     verify(processedRecordsDAO, times(2)).insert(any());
     verify(taskStatusUpdater, times(2))
@@ -232,7 +231,7 @@ class HarvestingPostProcessorTest {
 
     service.execute(taskInfo, task);
 
-    verify(recordServiceClient).createRepresentation(CLOUD_ID2, REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
+    verify(recordServiceClient).createRepresentation(CLOUD_ID2, DPS_REPRESENTATION_NAME, PROVIDER_ID, null, DATASET_ID, true);
     verify(processedRecordsDAO).insert(any());
     verify(taskStatusUpdater, times(2))
             .updateState(eq(TASK_ID), eq(EngineTaskState.IN_POST_PROCESSING), anyString());

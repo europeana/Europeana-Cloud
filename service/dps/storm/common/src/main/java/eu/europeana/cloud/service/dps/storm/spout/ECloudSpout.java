@@ -9,7 +9,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.internal.DpsTask;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
@@ -41,6 +41,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
+import static eu.europeana.cloud.service.dps.Constants.DPS_REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -216,7 +217,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       if (output != null) {
         stormTaskTuple.setOutputDatasetProvider(output.getProviderId());
         stormTaskTuple.setOutputDatasetId(output.getBatchId());
-        stormTaskTuple.setOutputRepresentationName(output.getRepresentationName());
+        stormTaskTuple.setOutputRepresentationName(DPS_REPRESENTATION_NAME);
       }
 
       stormTaskTuple.addParameters(dpsTask.getParameters());

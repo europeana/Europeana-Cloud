@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DpsTaskValidatorForOaiTopologyTest {
 
+  private static final String OUTPUT_PROVIDER = "providerID";
   private DpsTask oaiTopologyTask;
   private DpsTask oaiTopologyTaskWithoutOutputDataset;
   private DpsTask oaiTopologyTaskWithoutHarvestDate;
@@ -27,20 +28,20 @@ class DpsTaskValidatorForOaiTopologyTest {
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyTask.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
-    oaiTopologyTask.setOutput(prepareOutput().build());
+    oaiTopologyTask.setOutputProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyTaskWithoutOutputDataset = new DpsTask();
     oaiTopologyTaskWithoutOutputDataset.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyTaskWithoutOutputDataset.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
-    oaiTopologyTaskWithoutOutputDataset.setOutput(prepareOutput().batchId(null).build());
+    oaiTopologyTaskWithoutOutputDataset.setOutputProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyTaskWithoutHarvestDate = new DpsTask();
     oaiTopologyTaskWithoutHarvestDate.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
-    oaiTopologyTaskWithoutHarvestDate.setOutput(prepareOutput().build());
+    oaiTopologyTaskWithoutHarvestDate.setOutputProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyIncrementalTaskWithSampleSize = new DpsTask();
     oaiTopologyIncrementalTaskWithSampleSize.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
@@ -49,7 +50,7 @@ class DpsTaskValidatorForOaiTopologyTest {
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.SAMPLE_SIZE, "10");
-    oaiTopologyIncrementalTaskWithSampleSize.setOutput(prepareOutput().build());
+    oaiTopologyIncrementalTaskWithSampleSize.setOutputProvider(OUTPUT_PROVIDER);
 
     oaiTopologyIncrementalTaskWithoutSampleSize = new DpsTask();
     oaiTopologyIncrementalTaskWithoutSampleSize.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
@@ -57,7 +58,7 @@ class DpsTaskValidatorForOaiTopologyTest {
     ).build());
     oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
     oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
-    oaiTopologyIncrementalTaskWithoutSampleSize.setOutput(prepareOutput().build());
+    oaiTopologyIncrementalTaskWithoutSampleSize.setOutputProvider(OUTPUT_PROVIDER);
   }
 
   @Test
@@ -103,11 +104,4 @@ class DpsTaskValidatorForOaiTopologyTest {
     validator.validate(oaiTopologyIncrementalTaskWithoutSampleSize);
   }
 
-  private BatchInfo.BatchInfoBuilder prepareOutput() {
-    return BatchInfo.builder()
-                              .providerId("providerID")
-                              .batchId("datasetId")
-                              .representationName("representationName");
-
-  }
 }
