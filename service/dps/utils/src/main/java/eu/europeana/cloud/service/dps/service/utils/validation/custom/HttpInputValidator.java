@@ -18,7 +18,7 @@ public class HttpInputValidator extends CustomValidator {
 
   @Override
   public boolean test(CreateDpsTaskRequest dpsTask) {
-    if (dpsTask.getInput() instanceof HttpHarvestingDetails input) {
+    if (dpsTask.getSource() instanceof HttpHarvestingDetails input) {
       return input.getRepositoryUrl() != null &&
           new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS).isValid(input.getRepositoryUrl());
     } else {

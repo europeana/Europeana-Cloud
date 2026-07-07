@@ -148,7 +148,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_taskKilled_verifyNothingSentToKafka() throws Exception {
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
       doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
       submitter.execute(submitParameters);
@@ -161,7 +161,7 @@ class MCSTaskSubmitterTest {
   void executeMcsBasedTask_taskIsNotKilled_verifyUpdateTaskInfoInCassandra() throws Exception {
     mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1)));
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -179,7 +179,7 @@ class MCSTaskSubmitterTest {
   @Test
   void executeMcsBasedTask_errorInExecution_verifyTaskDropped() throws Exception {
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
       doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService)
               .submitRecord(any(DpsRecord.class), anyString());
 
@@ -193,7 +193,7 @@ class MCSTaskSubmitterTest {
   void executeMcsBasedTask_oneFileUrl() throws Exception {
     mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1)));
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -206,7 +206,7 @@ class MCSTaskSubmitterTest {
     mockRepresentationIterator(List.of(createRepresentation(FILE_URL_1),
         createRepresentation(FILE_URL_2),createRepresentation(FILE_URL_3)));
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -224,7 +224,7 @@ class MCSTaskSubmitterTest {
     }
     mockRepresentationIterator(representations);
     withClientMocks(() -> {
-      task.setInput(prepateBatchInput());
+      task.setSource(prepateBatchInput());
 
       submitter.execute(submitParameters);
 
@@ -238,7 +238,7 @@ class MCSTaskSubmitterTest {
             null,
 
             () -> {
-              task.setInput(prepateBatchInput());
+              task.setSource(prepateBatchInput());
 
               when(representationIterator.hasNext()).thenReturn(true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
@@ -255,7 +255,7 @@ class MCSTaskSubmitterTest {
   void executeMcsBasedTask_oneDatasetWithThreeFiles() throws Exception {
     withClientMocks(null,
             () -> {
-              task.setInput(prepateBatchInput());
+              task.setSource(prepateBatchInput());
               when(representationIterator.hasNext()).thenReturn(true, true, true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 

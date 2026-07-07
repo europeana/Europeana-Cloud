@@ -37,11 +37,11 @@ class DpsTaskValidatorTest {
       dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
       dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
       dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-      dpsTask.setInput(prepareCompleteDatasetRevisionInfo().build());
-      dpsTask.setOutputProvider(OUTPUT_PROVIDER);
+      dpsTask.setSource(prepareCompleteDatasetRevisionInfo().build());
+      dpsTask.setResultsProvider(OUTPUT_PROVIDER);
       //
       icTopologyTask = new CreateDpsTaskRequest();
-      icTopologyTask.setInput(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).build());
+      icTopologyTask.setSource(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).build());
     icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
     icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
     //
@@ -169,7 +169,7 @@ class DpsTaskValidatorTest {
         final CreateDpsTaskRequest oaiPmhTask = new CreateDpsTaskRequest();
         final OAIPMHHarvestingDetails inputData = OAIPMHHarvestingDetails.builder()
             .repositoryUrl(url).build();
-        oaiPmhTask.setInput(inputData);
+        oaiPmhTask.setSource(inputData);
 
     new DpsTaskValidator()
         .withDefinedOAIInput()

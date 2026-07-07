@@ -63,7 +63,7 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
     LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
     try {
-      HttpHarvestingDetails input = (HttpHarvestingDetails) parameters.getTask().getInput();
+      HttpHarvestingDetails input = (HttpHarvestingDetails) parameters.getTask().getSource();
       final String urlToZipFile = input.getRepositoryUrl();
       final HarvestingIterator<Path, Path> iterator = HarvesterFactory.createHttpHarvester()
               .harvestRecords(urlToZipFile,

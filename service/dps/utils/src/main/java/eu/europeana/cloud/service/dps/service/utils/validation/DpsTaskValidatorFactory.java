@@ -25,8 +25,7 @@ public final class DpsTaskValidatorFactory {
   static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
   static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
   static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
-  static final String DEPUBLICATION_TASK_FOR_DATASET = "depublication_topology_metis_dataset_id";
-  static final String DEPUBLICATION_TASK_FOR_RECORDS = "depublication_topology_record_ids_to_depublish";
+  public static final String DEPUBLICATION_TASK = "depublication_topology_input";
   static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
 
   private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
@@ -90,17 +89,11 @@ public final class DpsTaskValidatorFactory {
         .withDefinedMCSInput()
         .withNoOutput());
 
-    taskValidatorMap.put(DEPUBLICATION_TASK_FOR_DATASET,
-        new DpsTaskValidator("Task validator for Depublication Topology with dataset id")
-            .withNoOutput()
-            .withParameter(PluginParameterKeys.METIS_DATASET_ID)
-            .withParameter(PluginParameterKeys.DEPUBLICATION_REASON));
-
-    taskValidatorMap.put(DEPUBLICATION_TASK_FOR_RECORDS,
+    taskValidatorMap.put(DEPUBLICATION_TASK,
         new DpsTaskValidator("Task validator for Depublication Topology with records list")
             .withNoOutput()
+            .withDefinedDepublicationInput()
             .withParameter(PluginParameterKeys.METIS_DATASET_ID)
-            .withParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH)
             .withParameter(PluginParameterKeys.DEPUBLICATION_REASON));
 
     taskValidatorMap.put(MEDIA_TOPOLOGY_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Media Topology")

@@ -19,7 +19,7 @@ public abstract class AbstractTaskSubmitter implements TaskSubmitter {
 
     void createDateSetIfNeeded(DpsTask dpsTask) throws TaskSubmissionException {
         try {
-            if(dpsTask.getOutput() instanceof BatchInfo output){
+            if(dpsTask.getResultsBatch() instanceof BatchInfo output){
                 if (!dataSetServiceClient.datasetExists(output.getProviderId(), output.getBatchId())) {
                     dataSetServiceClient.createDataSet(output.getProviderId(), output.getBatchId(), createDescription(dpsTask));
                 }

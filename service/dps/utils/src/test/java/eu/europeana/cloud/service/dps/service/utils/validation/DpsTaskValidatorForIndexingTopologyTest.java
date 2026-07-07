@@ -78,13 +78,13 @@ class DpsTaskValidatorForIndexingTopologyTest {
 
 
     if (addDatasetUrls) {
-      dpsTask.setInput(BatchInfo.builder()
-                                .providerId(DATASET_01_PROVIDER)
-                                .batchId(DATASET_01_ID)
-                                .build());
+      dpsTask.setSource(BatchInfo.builder()
+                                 .providerId(DATASET_01_PROVIDER)
+                                 .batchId(DATASET_01_ID)
+                                 .build());
     }
 
-    dpsTask.setOutputProvider(OUTPUT_PROVIDER);
+    dpsTask.setResultsProvider(OUTPUT_PROVIDER);
 
     return dpsTask;
   }

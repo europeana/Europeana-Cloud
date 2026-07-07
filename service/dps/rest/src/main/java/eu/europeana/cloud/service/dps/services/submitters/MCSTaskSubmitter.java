@@ -83,7 +83,7 @@ public class MCSTaskSubmitter {
       throws InterruptedException {
     try (var reader = createMcsReader()) {
       var expectedSize = ExpectedCounters.expectZeroRecords();
-      BatchInfo input = (BatchInfo) submitParameters.getTask().getInput();
+      BatchInfo input = (BatchInfo) submitParameters.getTask().getSource();
       expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
       return expectedSize;
 

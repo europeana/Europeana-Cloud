@@ -170,10 +170,10 @@ class HarvestsExecutorTest {
 
   private void createNewTask() {
     task = new DpsTask();
-    task.setOutput(BatchInfo.builder()
-                            .providerId(PROVIDER_ID)
-                            .batchId(DATASET_ID)
-                            .build());
+    task.setResultsBatch(BatchInfo.builder()
+                                  .providerId(PROVIDER_ID)
+                                  .batchId(DATASET_ID)
+                                  .build());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     parameters = SubmitTaskParameters.builder().task(task).topicName(TOPIC).build();
   }

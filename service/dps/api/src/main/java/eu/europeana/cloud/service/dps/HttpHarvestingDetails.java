@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HttpHarvestingDetails implements TaskInput {
+public class HttpHarvestingDetails implements TaskSource {
 
   private String repositoryUrl;
 

@@ -29,7 +29,6 @@ public final class PluginParameterKeys {
   public static final String METIS_PRESERVE_TIMESTAMPS = "PRESERVE_TIMESTAMPS";
   public static final String DATASET_IDS_TO_REDIRECT_FROM = "DATASET_IDS_TO_REDIRECT_FROM";
   public static final String PERFORM_REDIRECTS = "PERFORM_REDIRECTS";
-  public static final String RECORD_IDS_TO_DEPUBLISH = "RECORD_IDS_TO_DEPUBLISH";
   public static final String DEPUBLICATION_REASON = "DEPUBLICATION_REASON";
 
   // ---------  eCloud  -----------

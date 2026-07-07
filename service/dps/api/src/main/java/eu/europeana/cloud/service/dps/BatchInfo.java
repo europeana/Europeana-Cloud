@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BatchInfo implements TaskInput {
+public class BatchInfo implements TaskSource {
 
   private String providerId;
   private String batchId;   //It internally in eCloud resolves into dedicated datasetId

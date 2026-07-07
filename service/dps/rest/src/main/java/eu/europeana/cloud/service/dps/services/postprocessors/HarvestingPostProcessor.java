@@ -182,13 +182,13 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
   }
 
   private String findOrCreateCloudId(DpsTask dpsTask, HarvestedRecord harvestedRecord) throws CloudException {
-    String providerId = dpsTask.getOutput().getProviderId();
+    String providerId = dpsTask.getResultsBatch().getProviderId();
     //We support the situation when the records are not in the eCloud at all, so we need to create cloudId if it does not exist.
     return uisClient.createCloudId(providerId, harvestedRecord.getRecordLocalId()).getId();
   }
 
   private Representation createRepresentationVersion(DpsTask dpsTask, String cloudId) throws MCSException, MalformedURLException {
-    BatchInfo output = dpsTask.getOutput();
+    BatchInfo output = dpsTask.getResultsBatch();
     var representationUri = recordServiceClient.createRepresentation(cloudId, DPS_REPRESENTATION_NAME, output.getProviderId(),
         null, output.getBatchId(), true);
     return RepresentationParser.parseResultUrl(

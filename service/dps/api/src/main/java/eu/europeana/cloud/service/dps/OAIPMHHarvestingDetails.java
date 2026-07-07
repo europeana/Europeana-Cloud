@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
-public class OAIPMHHarvestingDetails implements TaskInput, Serializable {
+public class OAIPMHHarvestingDetails implements TaskSource, Serializable {
 
   @Serial
   private static final long serialVersionUID = 1L;

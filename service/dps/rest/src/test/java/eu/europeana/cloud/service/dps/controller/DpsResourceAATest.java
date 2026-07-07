@@ -102,20 +102,20 @@ class DpsResourceAATest extends AbstractSecurityTest {
   @BeforeEach
   void mockUp() throws Exception {
     XSLT_TASK = new CreateDpsTaskRequest();
-    XSLT_TASK.setInput(prepateBatchInput());
+    XSLT_TASK.setSource(prepateBatchInput());
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    XSLT_TASK.setOutputProvider(PROVIDER_ID);
+    XSLT_TASK.setResultsProvider(PROVIDER_ID);
 
     XSLT_TASK2 = new CreateDpsTaskRequest();
-    XSLT_TASK2.setInput(prepateBatchInput());
+    XSLT_TASK2.setSource(prepateBatchInput());
     XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
-    XSLT_TASK2.setOutputProvider(PROVIDER_ID);
+    XSLT_TASK2.setResultsProvider(PROVIDER_ID);
 
     XSLT_TASK_WITH_MALFORMED_URL = new CreateDpsTaskRequest();
-    XSLT_TASK_WITH_MALFORMED_URL.setInput(prepateBatchInput());
+    XSLT_TASK_WITH_MALFORMED_URL.setSource(prepateBatchInput());
     XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
-    XSLT_TASK_WITH_MALFORMED_URL.setOutputProvider(PROVIDER_ID);
+    XSLT_TASK_WITH_MALFORMED_URL.setResultsProvider(PROVIDER_ID);
 
     TaskInfo taskInfo = TaskInfo.builder()
                                 .id(TASK_ID)
@@ -159,12 +159,12 @@ class DpsResourceAATest extends AbstractSecurityTest {
     logoutEveryone();
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
     CreateDpsTaskRequest task = new CreateDpsTaskRequest();
-    task.setInput(prepateBatchInput());
+    task.setSource(prepateBatchInput());
     task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.setOutputProvider(PROVIDER_ID);
+    task.setResultsProvider(PROVIDER_ID);
 
     topologyTasksResource.createTask(request, task, XSLT_TOPOLOGY_NAME);
   }
@@ -174,12 +174,12 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //when
     CreateDpsTaskRequest task = new CreateDpsTaskRequest();
-    task.setInput(prepateBatchInput());
+    task.setSource(prepateBatchInput());
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
 
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
-    task.setOutputProvider(PROVIDER_ID);
+    task.setResultsProvider(PROVIDER_ID);
 
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;
@@ -215,7 +215,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
     CreateDpsTaskRequest task = new CreateDpsTaskRequest();
-    task.setInput(prepateBatchInput());
+    task.setSource(prepateBatchInput());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
     String user = VAN_PERSIE;

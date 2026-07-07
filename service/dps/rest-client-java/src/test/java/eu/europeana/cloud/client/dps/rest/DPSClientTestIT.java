@@ -36,7 +36,7 @@ class DPSClientTestIT {
     details.setRepositoryUrl("http://test117.ait.co.at/oai-provider-edm/oai/");
     details.setSchema("edm");
     details.setSet("ZFMK");
-    task.setInput(details);
+    task.setSource(details);
     DpsTask resultTask = client.createTask(task, "oai_topology");
     long id = resultTask.getTaskId();
     assertNotEquals(0, id);
@@ -53,9 +53,9 @@ class DPSClientTestIT {
                                              .batchId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
                                              .build();
 
-    task.setInput(inputData);
+    task.setSource(inputData);
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
-    task.setOutputProvider("metis_test5");
+    task.setResultsProvider("metis_test5");
     //
     DpsTask resultTask = client.createTask(task, "validation_topology");
     long id = resultTask.getTaskId();

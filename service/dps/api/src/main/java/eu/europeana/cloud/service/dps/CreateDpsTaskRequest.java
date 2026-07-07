@@ -13,7 +13,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Definition of the task parameters which is sent to DPS service.
+ * Definition of the task parameters which is sent to DPS service. This is DTO class used to sent
+ * parameters of the executed task.
+ *
  */
 @XmlRootElement
 @Data
@@ -22,8 +24,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateDpsTaskRequest {
 
-  private TaskInput input;
-  private String outputProvider;
+  /**
+   * Task input could be different type: OAI, Http, MCS batch, list of Europeana ids for depublication
+   */
+  private TaskSource source;
+  private String resultsProvider;
 
   /* List of parameters (specific for each dps-topology) */
   private Map<String, String> parameters = new HashMap<>();

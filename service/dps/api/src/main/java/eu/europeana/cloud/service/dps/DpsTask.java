@@ -21,8 +21,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DpsTask {
 
-  private TaskInput input;
-  private BatchInfo output;
+  private TaskSource source;
+  private BatchInfo resultsBatch;
 
   /* List of parameters (specific for each dps-topology) */
   private Map<String, String> parameters = new HashMap<>();

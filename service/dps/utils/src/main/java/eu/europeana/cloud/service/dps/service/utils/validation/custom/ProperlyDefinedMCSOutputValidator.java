@@ -17,6 +17,6 @@ public class ProperlyDefinedMCSOutputValidator extends CustomValidator {
 
   @Override
   public boolean test(CreateDpsTaskRequest dpsTask) {
-    return dpsTask.getOutputProvider() != null;
+    return dpsTask.getResultsProvider() != null;
   }
 }

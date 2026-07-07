@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
+import eu.europeana.cloud.service.dps.DepublicationInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -68,7 +69,7 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
   @Override
   public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
     long taskId = parameters.getTask().getTaskId();
-      if (parameters.getTaskInfo().getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
+    if (parameters.getTaskInfo().getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
       int expectedCount = evaluateTaskSize(parameters);
       if (expectedCount == 0) {
         taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
@@ -120,11 +121,12 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
 
   private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) throws TaskSubmissionException {
     try {
-      if (isRecordsDepublication(parameters)) {
-        return Arrays.stream(parameters.getTask().getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(","));
-      } else {
+      DepublicationInfo info = (DepublicationInfo) parameters.getTask().getSource();
+      if (info.isDepublishWholeDataset()) {
         Indexer<FullBeanImpl> indexer = indexWrapper.getIndexer(TargetIndexingDatabase.PUBLISH);
         return indexer.getRecordIds(parameters.getTaskParameter(PluginParameterKeys.METIS_DATASET_ID), new Date(), 5000);
+      } else {
+        return info.getEuropeanaIdsToDepublish().stream();
       }
     } catch (IndexingException e) {
       throw new TaskSubmissionException("Fetching record identifiers failed", e);
@@ -138,10 +140,6 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
       parameters.getTaskInfo().setExpectedRecords(expectedSize);
     LOGGER.info("Evaluated size: {} for task id: {}", expectedSize, task.getTaskId());
     return expectedSize;
-  }
-
-  private boolean isRecordsDepublication(SubmitTaskParameters parameters) {
-    return parameters.getTask().getParameters().containsKey(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH);
   }
 
   private void checkIfTaskIsKilled(DpsTask task) {

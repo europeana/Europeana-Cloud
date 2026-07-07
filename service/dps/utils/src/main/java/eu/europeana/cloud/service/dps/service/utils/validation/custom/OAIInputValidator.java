@@ -18,7 +18,7 @@ public class OAIInputValidator extends CustomValidator {
 
   @Override
   public boolean test(CreateDpsTaskRequest dpsTask) {
-    if (dpsTask.getInput() instanceof OAIPMHHarvestingDetails input) {
+    if (dpsTask.getSource() instanceof OAIPMHHarvestingDetails input) {
       return input.getRepositoryUrl() != null &&
           new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS).isValid(input.getRepositoryUrl());
     } else {

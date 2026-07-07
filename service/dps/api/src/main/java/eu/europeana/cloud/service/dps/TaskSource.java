@@ -11,8 +11,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = OAIPMHHarvestingDetails.class, name = "oai"),
     @JsonSubTypes.Type(value = HttpHarvestingDetails.class, name = "http"),
-    @JsonSubTypes.Type(value = BatchInfo.class, name = "batch")
+    @JsonSubTypes.Type(value = BatchInfo.class, name = "batch"),
+    @JsonSubTypes.Type(value = DepublicationInfo.class, name = "depublication")
 })
-public interface TaskInput {
+public interface TaskSource {
 
 }

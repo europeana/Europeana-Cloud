@@ -505,7 +505,7 @@ class DPSClientTest {
 
   private CreateDpsTaskRequest prepareDpsTask() {
     CreateDpsTaskRequest task = new CreateDpsTaskRequest();
-    task.setInput(
+    task.setSource(
         OAIPMHHarvestingDetails.builder().repositoryUrl("http://example.com/oai-pmh-repository.xml")
                                .schema("Schema").build());
     return task;

@@ -23,41 +23,41 @@ class DpsTaskValidatorForOaiTopologyTest {
   void init() {
     //
     oaiTopologyTask = new CreateDpsTaskRequest();
-    oaiTopologyTask.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
+    oaiTopologyTask.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyTask.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
-    oaiTopologyTask.setOutputProvider(OUTPUT_PROVIDER);
+    oaiTopologyTask.setResultsProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyTaskWithoutOutputDataset = new CreateDpsTaskRequest();
-    oaiTopologyTaskWithoutOutputDataset.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
+    oaiTopologyTaskWithoutOutputDataset.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyTaskWithoutOutputDataset.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
-    oaiTopologyTaskWithoutOutputDataset.setOutputProvider(OUTPUT_PROVIDER);
+    oaiTopologyTaskWithoutOutputDataset.setResultsProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyTaskWithoutHarvestDate = new CreateDpsTaskRequest();
-    oaiTopologyTaskWithoutHarvestDate.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
+    oaiTopologyTaskWithoutHarvestDate.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
-    oaiTopologyTaskWithoutHarvestDate.setOutputProvider(OUTPUT_PROVIDER);
+    oaiTopologyTaskWithoutHarvestDate.setResultsProvider(OUTPUT_PROVIDER);
     //
     oaiTopologyIncrementalTaskWithSampleSize = new CreateDpsTaskRequest();
-    oaiTopologyIncrementalTaskWithSampleSize.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
+    oaiTopologyIncrementalTaskWithSampleSize.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
     oaiTopologyIncrementalTaskWithSampleSize.addParameter(PluginParameterKeys.SAMPLE_SIZE, "10");
-    oaiTopologyIncrementalTaskWithSampleSize.setOutputProvider(OUTPUT_PROVIDER);
+    oaiTopologyIncrementalTaskWithSampleSize.setResultsProvider(OUTPUT_PROVIDER);
 
     oaiTopologyIncrementalTaskWithoutSampleSize = new CreateDpsTaskRequest();
-    oaiTopologyIncrementalTaskWithoutSampleSize.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(
+    oaiTopologyIncrementalTaskWithoutSampleSize.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(
         "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName.txt"
     ).build());
     oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.HARVEST_DATE, "harvestDate");
     oaiTopologyIncrementalTaskWithoutSampleSize.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
-    oaiTopologyIncrementalTaskWithoutSampleSize.setOutputProvider(OUTPUT_PROVIDER);
+    oaiTopologyIncrementalTaskWithoutSampleSize.setResultsProvider(OUTPUT_PROVIDER);
   }
 
   @Test

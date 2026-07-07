@@ -11,7 +11,7 @@ public class DpsTaskToOaiHarvestConverter implements GenericOneToOneConverter<Dp
 
   @Override
   public OaiHarvest from(DpsTask dpsTask) {
-    OAIPMHHarvestingDetails harvestingDetails = (OAIPMHHarvestingDetails) dpsTask.getInput();
+    OAIPMHHarvestingDetails harvestingDetails = (OAIPMHHarvestingDetails) dpsTask.getSource();
     return new OaiHarvest(
         harvestingDetails.getRepositoryUrl(),
         harvestingDetails.getSchema(),

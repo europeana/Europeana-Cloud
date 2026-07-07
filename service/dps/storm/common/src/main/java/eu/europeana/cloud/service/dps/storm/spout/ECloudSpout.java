@@ -205,14 +205,14 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                       new Date().getTime()));
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
-      if(dpsTask.getInput() instanceof HttpHarvestingDetails input){
+      if(dpsTask.getSource() instanceof HttpHarvestingDetails input){
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, input.getRepositoryUrl());
       }
-      if(dpsTask.getInput() instanceof OAIPMHHarvestingDetails input){
+      if(dpsTask.getSource() instanceof OAIPMHHarvestingDetails input){
         stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, input.getRepositoryUrl());
       }
 
-      BatchInfo output = dpsTask.getOutput();
+      BatchInfo output = dpsTask.getResultsBatch();
       if (output != null) {
         stormTaskTuple.setOutputDatasetProvider(output.getProviderId());
         stormTaskTuple.setOutputDatasetId(output.getBatchId());

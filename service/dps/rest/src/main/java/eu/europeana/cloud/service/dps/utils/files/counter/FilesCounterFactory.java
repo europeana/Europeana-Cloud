@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.TaskInput;
+import eu.europeana.cloud.service.dps.TaskSource;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
@@ -33,7 +33,7 @@ public class FilesCounterFactory {
       return new DepublicationFilesCounter(indexWrapper);
     }
 
-    TaskInput input = task.getInput();
+    TaskSource input = task.getSource();
     if (input instanceof BatchInfo) {
       return new DatasetFilesCounter(taskInfoDAO);
     }

@@ -143,10 +143,10 @@ class HarvestingPostProcessorTest {
     task.setTaskId(TASK_ID);
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     task.addParameter(PluginParameterKeys.HARVEST_DATE, HARVEST_DATE_STRING);
-    task.setOutput(BatchInfo.builder()
-                            .providerId(PROVIDER_ID)
-                            .batchId(DATASET_ID)
-                            .build());
+    task.setResultsBatch(BatchInfo.builder()
+                                  .providerId(PROVIDER_ID)
+                                  .batchId(DATASET_ID)
+                                  .build());
   }
 
   @Test

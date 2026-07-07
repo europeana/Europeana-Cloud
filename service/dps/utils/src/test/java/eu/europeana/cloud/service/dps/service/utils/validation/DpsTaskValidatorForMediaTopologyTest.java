@@ -20,13 +20,13 @@ class DpsTaskValidatorForMediaTopologyTest {
 
     @BeforeEach
     void init() {
-        dpsTaskForMediaTopologyWithDataset = new CreateDpsTaskRequest();
-        dpsTaskForMediaTopologyWithDataset.setOutputProvider(OUTPUT_PROVIDER);
-        dpsTaskForMediaTopologyWithDataset.setInput(prepareCompleteDatasetRevisionInfo().build());
+      dpsTaskForMediaTopologyWithDataset = new CreateDpsTaskRequest();
+      dpsTaskForMediaTopologyWithDataset.setResultsProvider(OUTPUT_PROVIDER);
+      dpsTaskForMediaTopologyWithDataset.setSource(prepareCompleteDatasetRevisionInfo().build());
 
-    dpsTaskForMediaTopologyWithoutInputData = new CreateDpsTaskRequest();
-    dpsTaskForMediaTopologyWithoutInputData.setOutputProvider(OUTPUT_PROVIDER);
-  }
+      dpsTaskForMediaTopologyWithoutInputData = new CreateDpsTaskRequest();
+      dpsTaskForMediaTopologyWithoutInputData.setResultsProvider(OUTPUT_PROVIDER);
+    }
 
     @Test
     void shouldValidateMediaTopologyTask() throws DpsTaskValidationException {

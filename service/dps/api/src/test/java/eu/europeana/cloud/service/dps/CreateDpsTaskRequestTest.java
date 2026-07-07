@@ -11,13 +11,13 @@ class CreateDpsTaskRequestTest {
     input.setRepositoryUrl("https://oai.source.com");
     input.setSchema("edm");
     input.setSet("dataset");
-    task.setInput(input);
+    task.setSource(input);
 
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, "12212");
     task.addParameter(PluginParameterKeys.HARVEST_DATE, "2026-03-26T13:20:00.000Z");
     task.addParameter(PluginParameterKeys.INCREMENTAL_HARVEST, "true");
 
-    task.setOutputProvider("metisProduction");
+    task.setResultsProvider("metisProduction");
 
   }
 
@@ -27,7 +27,7 @@ class CreateDpsTaskRequestTest {
     BatchInfo input = new BatchInfo();
     input.setProviderId("metisProduction");
     input.setBatchId("9cafe47c-1f42-4990-ba86-4f06a9ceb768");
-    task.setInput(input);
-    task.setOutputProvider("metisProduction");
+    task.setSource(input);
+    task.setResultsProvider("metisProduction");
   }
 }
