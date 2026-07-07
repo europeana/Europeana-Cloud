@@ -66,6 +66,6 @@ public class TaskSubmissionValidator {
       return DEPUBLICATION_TASK;
     }
 
-    throw new DpsTaskValidationException("Validation failed. Missing required input");
+    throw new DpsTaskValidationException("Validation failed, missing source");
   }
 }

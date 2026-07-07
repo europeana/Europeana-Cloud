@@ -51,7 +51,7 @@ public class TaskStatusUpdater {
   }
 
   public void insertTask(SubmitTaskParameters parameters) {
-    long taskId = parameters.getTask().getTaskId();
+    long taskId = parameters.getTaskInfo().getId();
     String topologyName = parameters.getTaskInfo().getTopologyName();
       EngineTaskState newState = parameters.getTaskInfo().getEngineTaskState();
       EngineTaskState oldState = taskInfoDAO.findById(taskId).map(TaskInfo::getEngineTaskState).orElse(null);

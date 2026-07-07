@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
@@ -29,6 +30,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +98,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   private static final String LINK_CHECKING_TOPOLOGY = "linkcheck_topology";
   public static final String SAMPLE_DATASET_METIS_ID = "sampleDS";
   public static final Set<String> SAMPLE_RECORD_LIST = Set.of("/1/item1","/1/item2");
+  private ObjectMapper mapper=new ObjectMapper();
 
   /* Beans (or mocked beans) */
   private ApplicationContext context;
@@ -155,7 +158,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         prepareMocks(VALIDATION_TOPOLOGY);
 
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = createTask(task, VALIDATION_TOPOLOGY);
         assertSuccessfulRequest(response, VALIDATION_TOPOLOGY);
   }
 
@@ -172,7 +175,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = createTask(task, ENRICHMENT_TOPOLOGY);
 
         assertSuccessfulRequest(response, ENRICHMENT_TOPOLOGY);
     }
@@ -186,7 +189,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
                               .build());
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = createTask(task, ENRICHMENT_TOPOLOGY);
 
         response.andExpect(status().isBadRequest());
     }
@@ -198,7 +201,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         when(dataSetServiceClient.datasetExists(anyString(), anyString())).thenReturn(false);
         prepareMocks(TOPOLOGY_NAME);
 
-        ResultActions response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = createTask(task, TOPOLOGY_NAME);
 
         response.andExpect(status().isBadRequest());
   }
@@ -211,7 +214,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString());
         prepareMocks(TOPOLOGY_NAME);
 
-        ResultActions response = sendTask(task, TOPOLOGY_NAME);
+        ResultActions response = createTask(task, TOPOLOGY_NAME);
 
         response.andExpect(status().isBadRequest());
   }
@@ -227,7 +230,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
                 new ResultSlice<>());
         prepareMocks(TOPOLOGY_NAME);
 
-    ResultActions response = sendTask(task, TOPOLOGY_NAME);
+    ResultActions response = createTask(task, TOPOLOGY_NAME);
 
     response.andExpect(status().isBadRequest());
   }
@@ -248,7 +251,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
                 new ResultSlice<>());
         prepareMocks(ENRICHMENT_TOPOLOGY);
 
-        ResultActions response = sendTask(task, ENRICHMENT_TOPOLOGY);
+        ResultActions response = createTask(task, ENRICHMENT_TOPOLOGY);
 
     assertSuccessfulRequest(response, OAI_TOPOLOGY);
   }
@@ -265,7 +268,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       CreateDpsTaskRequest task = task1;
         setCorrectlyFormulatedOutputBatch(task);
         prepareMocks(NORMALIZATION_TOPOLOGY);
-        ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
+        ResultActions response = createTask(task, NORMALIZATION_TOPOLOGY);
 
         assertSuccessfulRequest(response, NORMALIZATION_TOPOLOGY);
     }
@@ -278,7 +281,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       task.setResultsProvider(PROVIDER_ID);
 
       prepareMocks(VALIDATION_TOPOLOGY);
-        ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+        ResultActions response = createTask(task, VALIDATION_TOPOLOGY);
 
         response.andExpect(status().isBadRequest());
     }
@@ -296,7 +299,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
                 new HarvestResult(1, EngineTaskState.PROCESSED));
         prepareMocks(OAI_TOPOLOGY);
 
-    ResultActions response = sendTask(task, OAI_TOPOLOGY);
+    ResultActions response = createTask(task, OAI_TOPOLOGY);
 
     assertNotNull(response);
     response.andExpect(status().isCreated());
@@ -308,15 +311,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     verifyNoInteractions(recordKafkaSubmitService);
   }
 
-
-    @Test
+  @Test
     void shouldThrowExceptionWhenMissingRequiredProviderId() throws Exception {
       CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setSource(OAIPMHHarvestingDetails.builder().repositoryUrl(OAI_PMH_REPOSITORY_END_POINT).build());
 
 
       prepareMocks(OAI_TOPOLOGY);
-        ResultActions response = sendTask(task, OAI_TOPOLOGY);
+        ResultActions response = createTask(task, OAI_TOPOLOGY);
 
         response.andExpect(status().isBadRequest());
     }
@@ -331,7 +333,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
       setCorrectlyFormulatedOutputBatch(task);
         prepareMocks(HTTP_TOPOLOGY);
-    ResultActions response = sendTask(task, HTTP_TOPOLOGY);
+    ResultActions response = createTask(task, HTTP_TOPOLOGY);
 
     assertSuccessfulHttpTopologyRequest(response);
   }
@@ -344,7 +346,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       task.setSource(new HttpHarvestingDetails(HTTP_COMPRESSED_FILE_URL));
 
       prepareMocks(HTTP_TOPOLOGY);
-        ResultActions response = sendTask(task, HTTP_TOPOLOGY);
+        ResultActions response = createTask(task, HTTP_TOPOLOGY);
 
         response.andExpect(status().isBadRequest());
     }
@@ -360,7 +362,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
       prepareMocks(INDEXING_TOPOLOGY);
     //when
-    ResultActions response = sendTask(task, INDEXING_TOPOLOGY);
+    ResultActions response = createTask(task, INDEXING_TOPOLOGY);
 
     //then
     assertSuccessfulRequest(response, INDEXING_TOPOLOGY);
@@ -377,7 +379,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     prepareMocks(INDEXING_TOPOLOGY);
 
     //when
-    ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
+    ResultActions sendTaskResponse = createTask(task, INDEXING_TOPOLOGY);
 
     //then
     sendTaskResponse.andExpect(status().isCreated());
@@ -398,7 +400,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       prepareMocks(INDEXING_TOPOLOGY);
 
         //when
-        ResultActions sendTaskResponse = sendTask(task, INDEXING_TOPOLOGY);
+        ResultActions sendTaskResponse = createTask(task, INDEXING_TOPOLOGY);
 
         //then
     sendTaskResponse.andExpect(status().isBadRequest());
@@ -420,7 +422,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       String topologyName = "indexing_topology";
     prepareMocks(topologyName);
 
-    ResultActions response = sendTask(task, topologyName);
+    ResultActions response = createTask(task, topologyName);
 
     //then
     response.andExpect(status().isBadRequest());
@@ -436,7 +438,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     prepareMocks(VALIDATION_TOPOLOGY);
         when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
 
-    ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
+    ResultActions response = createTask(task, VALIDATION_TOPOLOGY);
 
     response.andExpect(status().isCreated());
     verifyNoInteractions(recordKafkaSubmitService);
@@ -451,7 +453,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
 
         prepareMocks(IC_TOPOLOGY);
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = createTask(task, IC_TOPOLOGY);
         response.andExpect(status().isBadRequest());
     }
 
@@ -463,7 +465,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
         prepareMocks(IC_TOPOLOGY);
 
-        ResultActions response = sendTask(task, IC_TOPOLOGY);
+        ResultActions response = createTask(task, IC_TOPOLOGY);
         response.andExpect(status().isBadRequest());
     }
 
@@ -570,7 +572,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       CreateDpsTaskRequest task = task1;
 
         prepareMocks(LINK_CHECKING_TOPOLOGY);
-        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = createTask(task, LINK_CHECKING_TOPOLOGY);
 
         assertSuccessfulRequest(response, LINK_CHECKING_TOPOLOGY);
     }
@@ -585,7 +587,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
                               .build());
         prepareMocks(LINK_CHECKING_TOPOLOGY);
 
-        ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
+        ResultActions response = createTask(task, LINK_CHECKING_TOPOLOGY);
 
         response.andExpect(status().isBadRequest());
     }
@@ -614,8 +616,9 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(DEPUBLICATION_REASON, "reason");
+        task.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
+        createTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
     }
 
@@ -624,7 +627,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
+        createTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isBadRequest());
     }
 
@@ -634,7 +637,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setSource(new HttpHarvestingDetails("http://xxx.yy"));
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
+        createTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isBadRequest());
     }
 
@@ -643,7 +646,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
         CreateDpsTaskRequest task = new CreateDpsTaskRequest();
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
+        createTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isBadRequest());
     }
 
@@ -655,7 +658,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         task.setSource(DepublicationInfo.builder().europeanaIdsToDepublish( SAMPLE_RECORD_LIST).build());
         task.addParameter(DEPUBLICATION_REASON, "reason");
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
+        createTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isCreated());
 
         mockTaskDAOFindById(task, DEPUBLICATION_TOPOLOGY);
@@ -675,9 +678,10 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(DEPUBLICATION_REASON, "reason");
+        task.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
-        sendTask(task, DEPUBLICATION_TOPOLOGY)
-                .andExpect(status().isCreated());
+        createTask(task, DEPUBLICATION_TOPOLOGY)
+          .andExpect(status().isCreated());
 
         mockTaskDAOFindById(task, DEPUBLICATION_TOPOLOGY);
         startTask(task, DEPUBLICATION_TOPOLOGY);
@@ -713,7 +717,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     return task;
   }
 
-  private ResultActions sendTask(CreateDpsTaskRequest task, String topologyName) throws Exception {
+  private ResultActions createTask(CreateDpsTaskRequest task, String topologyName) throws Exception {
     return mockMvc.perform(
         post(WEB_TARGET, topologyName)
             .with(httpBasic("any string", "any string"))
@@ -733,8 +737,12 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   private void mockTaskDAOFindById(CreateDpsTaskRequest task, String topology) throws IOException {
     TaskInfo taskInfo = mock(TaskInfo.class);
+    DpsTask dpsTask = new DpsTask();
+    dpsTask.setParameters(task.getParameters());
+    dpsTask.setSource(task.getSource());
+    dpsTask.setResultsBatch(BatchInfo.builder().providerId(task.getResultsProvider()).batchId("" + TASK_ID).build());
     when(taskInfo.getEngineTaskState()).thenReturn(EngineTaskState.CREATED);
-    when(taskInfo.getDefinition()).thenReturn(task.toJSON());
+    when(taskInfo.getDefinition()).thenReturn(dpsTask.toJSON());
     when(taskInfo.getTopologyName()).thenReturn(topology);
     when(taskDAO.findById(anyLong())).thenReturn(Optional.of(taskInfo));
   }

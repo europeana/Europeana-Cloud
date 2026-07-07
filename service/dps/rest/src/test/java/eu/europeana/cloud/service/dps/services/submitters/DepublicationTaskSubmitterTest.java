@@ -120,6 +120,7 @@ class DepublicationTaskSubmitterTest {
         when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
         when(indexer.getRecordIds(eq(DATASET_ID), any(), anyInt())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
+        dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
         when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
 
         submitter.submitTask(parameters);
@@ -137,6 +138,7 @@ class DepublicationTaskSubmitterTest {
     void shouldDropTaskWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException {
         when(indexer.countRecords(DATASET_ID)).thenReturn(0L);
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
+        dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
         submitter.submitTask(parameters);
 

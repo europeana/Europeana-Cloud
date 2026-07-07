@@ -35,9 +35,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -206,7 +206,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
       fail();
     } catch (DpsTaskValidationException e) {
       //then
-      assertThat(e.getMessage(), startsWith("Expected parameter"));
+      assertThat(e.getMessage(), containsString("source"));
     }
   }
 
