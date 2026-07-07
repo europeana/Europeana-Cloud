@@ -10,7 +10,7 @@ import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.RecordExecutionSubmitService;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;

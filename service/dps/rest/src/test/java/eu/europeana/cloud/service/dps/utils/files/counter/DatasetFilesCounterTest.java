@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.utils.files.counter;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;

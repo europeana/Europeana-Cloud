@@ -4,7 +4,7 @@ import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECO
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.utils.TaskCountersAggregator;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;

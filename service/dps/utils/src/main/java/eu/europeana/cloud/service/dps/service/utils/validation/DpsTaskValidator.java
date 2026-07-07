@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedMCSInputValidator;
@@ -116,7 +116,7 @@ public final class DpsTaskValidator {
     return this;
   }
 
-  public void validate(DpsTask task) throws DpsTaskValidationException {
+  public void validate(CreateDpsTaskRequest task) throws DpsTaskValidationException {
     for (DpsTaskConstraint re : dpsTaskConstraints) {
       DpsTaskFieldType fieldType = re.getFieldType();
       if (fieldType == DpsTaskFieldType.PARAMETER) {
@@ -131,7 +131,7 @@ public final class DpsTaskValidator {
     }
   }
 
-  private void validateParameter(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+  private void validateParameter(CreateDpsTaskRequest task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     String parameterValue = task.getParameter(constraint.getExpectedName());
     if (parameterValue == null) {
       throw new DpsTaskValidationException(

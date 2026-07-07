@@ -1,10 +1,9 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
-import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 
 /**
- * Verifies if provided {@link DpsTask} has MCS output properly defined
+ * Verifies if provided {@link CreateDpsTaskRequest} has MCS output properly defined
  *
  */
 public class ProperlyDefinedMCSOutputValidator extends CustomValidator {
@@ -17,7 +16,7 @@ public class ProperlyDefinedMCSOutputValidator extends CustomValidator {
   }
 
   @Override
-  public boolean test(DpsTask dpsTask) {
+  public boolean test(CreateDpsTaskRequest dpsTask) {
     return dpsTask.getOutputProvider() != null;
   }
 }

@@ -25,6 +25,7 @@ import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.RestInterfaceConstants;
 import eu.europeana.cloud.service.dps.exception.DPSClientException;
@@ -131,9 +132,9 @@ public class DpsClient implements AutoCloseable {
   /**
    * Creates a task for the specified topology on server.
    */
-  public eu.europeana.cloud.service.dps.internal.DpsTask createTask(DpsTask task, String topologyName) throws DpsException {
+  public DpsTask createTask(CreateDpsTaskRequest task, String topologyName) throws DpsException {
     return manageResponse(
-        new ResponseParams<>(eu.europeana.cloud.service.dps.internal.DpsTask.class, Response.Status.CREATED),
+        new ResponseParams<>(DpsTask.class, Response.Status.CREATED),
         () -> client.target(dpsUrl)
                     .path(TASKS_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)

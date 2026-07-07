@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services.postprocessors;
 
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.DatasetCleaner;

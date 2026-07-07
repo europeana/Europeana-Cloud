@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -62,7 +63,7 @@ class DPSClientTest {
           throws Exception {
     //given
     dpsClient = new DpsClient(BASE_URL, USERNAME_ADMIN, ADMIN_PASSWORD);
-    DpsTask task = prepareDpsTask();
+    CreateDpsTaskRequest task = prepareDpsTask();
 
     new WiremockHelper(wireMockExtension).stubPost(
             "/services/TopologyName/permit",
@@ -80,7 +81,7 @@ class DPSClientTest {
     //when
     dpsClient.topologyPermit(TOPOLOGY_NAME, REGULAR_USER_NAME);
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = dpsClient.createTask(task, TOPOLOGY_NAME);
+    DpsTask resultTask = dpsClient.createTask(task, TOPOLOGY_NAME);
 
     //then
     assertEquals(-2561925310040723252L, resultTask.getTaskId());
@@ -92,7 +93,7 @@ class DPSClientTest {
   final void shouldThrowAnExceptionWhenCannotSubmitATask() {
     //given
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-    DpsTask task = prepareDpsTask();
+    CreateDpsTaskRequest task = prepareDpsTask();
 
     //
     new WiremockHelper(wireMockExtension).stubPost(
@@ -109,7 +110,7 @@ class DPSClientTest {
   final void shouldThrowAnExceptionWhenReturnedTaskIsNotParsable() {
     //given
     dpsClient = new DpsClient(BASE_URL, REGULAR_USER_NAME, REGULAR_USER_PASSWORD);
-    DpsTask task = prepareDpsTask();
+    CreateDpsTaskRequest task = prepareDpsTask();
 
     //
     wireMockExtension.stubFor(post(urlEqualTo("/services/TopologyName/tasks"))
@@ -502,8 +503,8 @@ class DPSClientTest {
     new WiremockHelper(wireMockExtension).stubPost(urlString, requestBody, (requestBodyAsNull ? 500 : 200), responseBody);
   }
 
-  private DpsTask prepareDpsTask() {
-    DpsTask task = new DpsTask();
+  private CreateDpsTaskRequest prepareDpsTask() {
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.setInput(
         OAIPMHHarvestingDetails.builder().repositoryUrl("http://example.com/oai-pmh-repository.xml")
                                .schema("Schema").build());

@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.services.validators;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrTopologyDoesNotExistException;
@@ -29,7 +29,7 @@ public class TaskSubmissionValidator {
     this.topologyManager = topologyManager;
   }
 
-  public void validateTaskSubmission(DpsTask task, String topologyName)
+  public void validateTaskSubmission(CreateDpsTaskRequest task, String topologyName)
       throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException {
     assertContainTopology(topologyName);
     validateTask(task, topologyName);
@@ -48,13 +48,13 @@ public class TaskSubmissionValidator {
     }
   }
 
-  private void validateTask(DpsTask task, String topologyName) throws DpsTaskValidationException {
+  private void validateTask(CreateDpsTaskRequest task, String topologyName) throws DpsTaskValidationException {
     String taskType = specifyTaskType(task, topologyName);
     DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
     validator.validate(task);
   }
 
-  private String specifyTaskType(DpsTask task, String topologyName) throws DpsTaskValidationException {
+  private String specifyTaskType(CreateDpsTaskRequest task, String topologyName) throws DpsTaskValidationException {
     if (task.getInput() instanceof BatchInfo) {
       return topologyName + "_dataset_urls";
     }

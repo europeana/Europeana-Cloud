@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,18 +13,18 @@ class DpsTaskValidatorForMediaTopologyTest {
 
     private static final String TASK_NAME = "taskName";
 
-    private DpsTask dpsTaskForMediaTopologyWithDataset;
-    private DpsTask dpsTaskForMediaTopologyWithoutInputData;
-//    private DpsTask dpsTaskForMediaTopologyWithoutNewRepresentationParam;
+    private CreateDpsTaskRequest dpsTaskForMediaTopologyWithDataset;
+    private CreateDpsTaskRequest dpsTaskForMediaTopologyWithoutInputData;
+//    private CreateDpsTaskRequest dpsTaskForMediaTopologyWithoutNewRepresentationParam;
 
 
     @BeforeEach
     void init() {
-        dpsTaskForMediaTopologyWithDataset = new DpsTask();
+        dpsTaskForMediaTopologyWithDataset = new CreateDpsTaskRequest();
         dpsTaskForMediaTopologyWithDataset.setOutputProvider(OUTPUT_PROVIDER);
         dpsTaskForMediaTopologyWithDataset.setInput(prepareCompleteDatasetRevisionInfo().build());
 
-    dpsTaskForMediaTopologyWithoutInputData = new DpsTask();
+    dpsTaskForMediaTopologyWithoutInputData = new CreateDpsTaskRequest();
     dpsTaskForMediaTopologyWithoutInputData.setOutputProvider(OUTPUT_PROVIDER);
   }
 

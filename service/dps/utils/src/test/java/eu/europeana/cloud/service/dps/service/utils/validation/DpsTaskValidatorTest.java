@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class DpsTaskValidatorTest {
@@ -20,14 +18,14 @@ class DpsTaskValidatorTest {
   private static final String PROVIDER = "provider1" ;
   private static final String BATCH = "batch1";
   public static final String OUTPUT_PROVIDER = "providerId";
-  private DpsTask dpsTask;
-  private DpsTask icTopologyTask;
-  private DpsTask dpsTaskWithValidMaximumParallelization;
-  private DpsTask dpsTaskWithNotNumberMaximumParallelization;
-  private DpsTask dpsTaskWithTooBigPossibleMaximumParallelization;
-  private DpsTask dpsTaskWithZeroMaximumParallelization;
-  private DpsTask dpsTaskWithNegativeMaximumParallelization;
-  private DpsTask dpsTaskWithMinimalValidMaximumParallelization;
+  private CreateDpsTaskRequest dpsTask;
+  private CreateDpsTaskRequest icTopologyTask;
+  private CreateDpsTaskRequest dpsTaskWithValidMaximumParallelization;
+  private CreateDpsTaskRequest dpsTaskWithNotNumberMaximumParallelization;
+  private CreateDpsTaskRequest dpsTaskWithTooBigPossibleMaximumParallelization;
+  private CreateDpsTaskRequest dpsTaskWithZeroMaximumParallelization;
+  private CreateDpsTaskRequest dpsTaskWithNegativeMaximumParallelization;
+  private CreateDpsTaskRequest dpsTaskWithMinimalValidMaximumParallelization;
 
   private static final String EXISTING_PARAMETER_NAME = "param_1";
   private static final String EXISTING_PARAMETER_VALUE = "param_1_value";
@@ -35,37 +33,37 @@ class DpsTaskValidatorTest {
 
     @BeforeEach
     void init() {
-      dpsTask = new DpsTask();
+      dpsTask = new CreateDpsTaskRequest();
       dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
       dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
       dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
       dpsTask.setInput(prepareCompleteDatasetRevisionInfo().build());
       dpsTask.setOutputProvider(OUTPUT_PROVIDER);
       //
-      icTopologyTask = new DpsTask();
+      icTopologyTask = new CreateDpsTaskRequest();
       icTopologyTask.setInput(BatchInfo.builder().providerId(PROVIDER).batchId(BATCH).build());
     icTopologyTask.addParameter("OUTPUT_MIME_TYPE", "image/jp2");
     icTopologyTask.addParameter("SAMPLE_PARAMETER", "sampleParameterValue");
     //
 
 
-    dpsTaskWithMinimalValidMaximumParallelization = new DpsTask();
+    dpsTaskWithMinimalValidMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithMinimalValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "1");
 
-    dpsTaskWithValidMaximumParallelization = new DpsTask();
+    dpsTaskWithValidMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithValidMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "10");
 
-    dpsTaskWithNegativeMaximumParallelization = new DpsTask();
+    dpsTaskWithNegativeMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithNegativeMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "-2");
 
-    dpsTaskWithZeroMaximumParallelization = new DpsTask();
+    dpsTaskWithZeroMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithZeroMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "0");
 
-    dpsTaskWithTooBigPossibleMaximumParallelization = new DpsTask();
+    dpsTaskWithTooBigPossibleMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithTooBigPossibleMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION,
         String.valueOf(1L + Integer.MAX_VALUE));
 
-    dpsTaskWithNotNumberMaximumParallelization = new DpsTask();
+    dpsTaskWithNotNumberMaximumParallelization = new CreateDpsTaskRequest();
     dpsTaskWithNotNumberMaximumParallelization.addParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION, "a");
 
   }
@@ -168,7 +166,7 @@ class DpsTaskValidatorTest {
     }
 
     private void commonOaiPmhValidation(String url) throws DpsTaskValidationException {
-        final DpsTask oaiPmhTask = new DpsTask();
+        final CreateDpsTaskRequest oaiPmhTask = new CreateDpsTaskRequest();
         final OAIPMHHarvestingDetails inputData = OAIPMHHarvestingDetails.builder()
             .repositoryUrl(url).build();
         oaiPmhTask.setInput(inputData);

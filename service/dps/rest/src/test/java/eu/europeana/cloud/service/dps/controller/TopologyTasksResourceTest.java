@@ -147,7 +147,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldProperlySendTaskWithDataSetEntryToValidationTopology() throws Exception {
         //given
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
 
         task.addParameter(SCHEMA_NAME, "edm-internal");
         setCorrectlyFormulatedOutputBatch(task);
@@ -160,14 +160,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldProperlySendTaskWithDataSetEntryToEnrichmentTopology() throws Exception {
-      DpsTask task1 = new DpsTask();
+      CreateDpsTaskRequest task1 = new CreateDpsTaskRequest();
       task1.setInput(BatchInfo.builder()
                               .providerId(PROVIDER_ID)
                               .batchId(DATASET_ID)
                               .build());
 
       task1.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-      DpsTask task = task1;
+      CreateDpsTaskRequest task = task1;
         setCorrectlyFormulatedOutputBatch(task);
 
         prepareMocks(ENRICHMENT_TOPOLOGY);
@@ -178,7 +178,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldThrowDpsWhenSendingTaskToEnrichmentTopologyWithNullDatasetId() throws Exception {
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(BatchInfo.builder()
                                        .providerId(PROVIDER_ID)
                                        .batchId(null)
@@ -192,7 +192,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetDoesNotExist() throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
       setOutputProvider(task, DATASET_URL,null);
         when(dataSetServiceClient.datasetExists(anyString(), anyString())).thenReturn(false);
         prepareMocks(TOPOLOGY_NAME);
@@ -205,7 +205,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenUnexpectedExceptionHappens() throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
       setOutputProvider(task, DATASET_URL,null);
         doThrow(MCSException.class).when(dataSetServiceClient).getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString());
         prepareMocks(TOPOLOGY_NAME);
@@ -219,7 +219,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenOutputDataSetProviderIsNotEqualToTheProviderIdParameter()
             throws Exception {
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
       setOutputProvider(task, DATASET_URL,null);
       ((BatchInfo)task.getInput()).setProviderId("DIFFERENT_PROVIDER_ID");
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
@@ -234,14 +234,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldProperlySendTaskWithOutputDataSet() throws Exception {
-      DpsTask task1 = new DpsTask();
+      CreateDpsTaskRequest task1 = new CreateDpsTaskRequest();
       task1.setInput(BatchInfo.builder()
                               .providerId(PROVIDER_ID)
                               .batchId(DATASET_ID)
                               .build());
 
       task1.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-      DpsTask task = task1;
+      CreateDpsTaskRequest task = task1;
         setOutputProvider(task,DATASET_URL,"exampleParamName");
         when(dataSetServiceClient.getDataSetRepresentationsChunk(anyString(), anyString(), anyBoolean(), anyString())).thenReturn(
                 new ResultSlice<>());
@@ -254,14 +254,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldProperlySendTaskWithDataSetEntryToNormalizationTopology() throws Exception {
-      DpsTask task1 = new DpsTask();
+      CreateDpsTaskRequest task1 = new CreateDpsTaskRequest();
       task1.setInput(BatchInfo.builder()
                               .providerId(PROVIDER_ID)
                               .batchId(DATASET_ID)
                               .build());
 
       task1.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-      DpsTask task = task1;
+      CreateDpsTaskRequest task = task1;
         setCorrectlyFormulatedOutputBatch(task);
         prepareMocks(NORMALIZATION_TOPOLOGY);
         ResultActions response = sendTask(task, NORMALIZATION_TOPOLOGY);
@@ -273,7 +273,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     void shouldThrowDpsTaskValidationExceptionWhenSendingTaskToValidationTopologyMissingRequiredParameter()
             throws Exception {
 
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
       task.setOutputProvider(PROVIDER_ID);
 
       prepareMocks(VALIDATION_TOPOLOGY);
@@ -284,7 +284,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
   @Test
     void shouldProperlySendTaskWithOaiPmhRepository() throws Exception {
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
         setCorrectlyFormulatedOutputBatch(task);
         OAIPMHHarvestingDetails harvestingDetails = new OAIPMHHarvestingDetails();
@@ -310,7 +310,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldThrowExceptionWhenMissingRequiredProviderId() throws Exception {
-      DpsTask task = new DpsTask();
+      CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(OAIPMHHarvestingDetails.builder().repositoryUrl(OAI_PMH_REPOSITORY_END_POINT).build());
 
 
@@ -323,7 +323,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldProperlySendTaskWithHTTPRepository() throws Exception {
-      DpsTask task = new DpsTask();
+      CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(new HttpHarvestingDetails(HTTP_COMPRESSED_FILE_URL));
 
         task.addParameter(PROVIDER_ID, PROVIDER_ID);
@@ -339,7 +339,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowExceptionWhenMissingRequiredProviderIdForHttpService() throws Exception {
 
-      DpsTask task = new DpsTask();
+      CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(new HttpHarvestingDetails(HTTP_COMPRESSED_FILE_URL));
 
       prepareMocks(HTTP_TOPOLOGY);
@@ -352,7 +352,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldProperlySendTaskWithPreviewAsTargetIndexingDatabase() throws Exception {
         //given
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
       setOutputProvider(task,DATASET_URL,REPRESENTATION_NAME);
@@ -368,7 +368,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   @Test
     void shouldProperlySendTaskWithPublishAsTargetIndexingDatabase() throws Exception {
         //given
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
 
         task.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PUBLISH");
         task.addParameter(HARVEST_DATE, "2021-07-12T16:50:00.000Z");
@@ -385,14 +385,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowExceptionWhenTargetIndexingDatabaseIsMissing() throws Exception {
         //given
-      DpsTask task1 = new DpsTask();
+      CreateDpsTaskRequest task1 = new CreateDpsTaskRequest();
       task1.setInput(BatchInfo.builder()
                               .providerId(PROVIDER_ID)
                               .batchId(DATASET_ID)
                               .build());
 
       task1.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-      DpsTask task = task1;
+      CreateDpsTaskRequest task = task1;
       setOutputProvider(task, null,null);
       prepareMocks(INDEXING_TOPOLOGY);
 
@@ -407,7 +407,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowExceptionWhenTargetIndexingDatabaseIsNotProper() throws Exception {
         //given
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(BatchInfo.builder()
                                        .providerId(PROVIDER_ID)
                                        .batchId(DATASET_ID)
@@ -429,11 +429,11 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   @Test
     void shouldNotSubmitEmptyTask() throws Exception {
 
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
         task.addParameter(SCHEMA_NAME, "edm-internal");
     setCorrectlyFormulatedOutputBatch(task);
     prepareMocks(VALIDATION_TOPOLOGY);
-        when(filesCounter.getFilesCount(isA(eu.europeana.cloud.service.dps.internal.DpsTask.class))).thenReturn(0);
+        when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(0);
 
     ResultActions response = sendTask(task, VALIDATION_TOPOLOGY);
 
@@ -445,7 +445,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionWhenMissingRepresentationName() throws Exception {
 
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
         task.addParameter(OUTPUT_MIME_TYPE, IMAGE_JP2);
         task.addParameter(MIME_TYPE, IMAGE_TIFF);
 
@@ -458,7 +458,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldThrowDpsTaskValidationExceptionOnSendTask() throws Exception {
 
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
 
         prepareMocks(IC_TOPOLOGY);
 
@@ -559,14 +559,14 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldProperlySendTaskWithDataSetEntryToLinkCheckTopology() throws Exception {
-      DpsTask task1 = new DpsTask();
+      CreateDpsTaskRequest task1 = new CreateDpsTaskRequest();
       task1.setInput(BatchInfo.builder()
                               .providerId(PROVIDER_ID)
                               .batchId(DATASET_ID)
                               .build());
 
       task1.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
-      DpsTask task = task1;
+      CreateDpsTaskRequest task = task1;
 
         prepareMocks(LINK_CHECKING_TOPOLOGY);
         ResultActions response = sendTask(task, LINK_CHECKING_TOPOLOGY);
@@ -577,7 +577,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldThrowValidationExceptionWhenSendingTaskToLinkCheckWithNullDatasetProviderId() throws Exception {
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(BatchInfo.builder()
                                        .providerId(null)
                                        .batchId(DATASET_ID)
@@ -591,7 +591,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
 
 
 
-  private static void setOutputProvider(DpsTask task,String datasetUrl, String representationName) {
+  private static void setOutputProvider(CreateDpsTaskRequest task,String datasetUrl, String representationName) {
 
 
     if(datasetUrl!=null){
@@ -610,7 +610,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldSupportDepublication() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(DEPUBLICATION_REASON, "reason");
 
@@ -621,7 +621,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldDepublicationThrowsValidationExceptionWhenTryingWithDatasetUrls() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = getDpsTaskWithDataSetEntry();
+        CreateDpsTaskRequest task = getDpsTaskWithDataSetEntry();
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isBadRequest());
@@ -630,7 +630,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldDepublicationThrowsValidationExceptionWhenTryingWithRepositoryUrls() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-      DpsTask task = new DpsTask();
+      CreateDpsTaskRequest task = new CreateDpsTaskRequest();
       task.setInput(new HttpHarvestingDetails("http://xxx.yy"));
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
@@ -640,7 +640,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldDepublicationThrowsValidationExceptionWhenMissingMetisDatasetParameter() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
 
         sendTask(task, DEPUBLICATION_TOPOLOGY)
                 .andExpect(status().isBadRequest());
@@ -649,7 +649,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldPassValidParametersToDepublicationService() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(RECORD_IDS_TO_DEPUBLISH, SAMPLE_RECORD_LIST);
         task.addParameter(DEPUBLICATION_REASON, "reason");
@@ -669,7 +669,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     @Test
     void shouldPassParametersWhenNoRecordsSelected() throws Exception {
         prepareMocks(DEPUBLICATION_TOPOLOGY);
-        DpsTask task = new DpsTask();
+        CreateDpsTaskRequest task = new CreateDpsTaskRequest();
         task.addParameter(METIS_DATASET_ID, SAMPLE_DATASET_METIS_ID);
         task.addParameter(DEPUBLICATION_REASON, "reason");
 
@@ -698,8 +698,8 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     response.andExpect(status().isCreated());
   }
 
-  private DpsTask getDpsTaskWithDataSetEntry() {
-    DpsTask task = new DpsTask();
+  private CreateDpsTaskRequest getDpsTaskWithDataSetEntry() {
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.setInput(BatchInfo.builder()
                                      .providerId(PROVIDER_ID)
                                      .batchId(DATASET_ID)
@@ -709,7 +709,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     return task;
   }
 
-  private ResultActions sendTask(DpsTask task, String topologyName) throws Exception {
+  private ResultActions sendTask(CreateDpsTaskRequest task, String topologyName) throws Exception {
     return mockMvc.perform(
         post(WEB_TARGET, topologyName)
             .with(httpBasic("any string", "any string"))
@@ -718,7 +718,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     );
   }
 
-  private ResultActions startTask(DpsTask task, String topologyName) throws Exception {
+  private ResultActions startTask(CreateDpsTaskRequest task, String topologyName) throws Exception {
     return mockMvc.perform(
         put(START_WEB_TARGET, topologyName, TASK_ID)
                               .with(httpBasic("any string", "any string"))
@@ -727,7 +727,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     );
   }
 
-  private void mockTaskDAOFindById(DpsTask task, String topology) throws IOException {
+  private void mockTaskDAOFindById(CreateDpsTaskRequest task, String topology) throws IOException {
     TaskInfo taskInfo = mock(TaskInfo.class);
     when(taskInfo.getEngineTaskState()).thenReturn(EngineTaskState.CREATED);
     when(taskInfo.getDefinition()).thenReturn(task.toJSON());
@@ -743,7 +743,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
     }
   }
 
-  private void setCorrectlyFormulatedOutputBatch(DpsTask task) {
+  private void setCorrectlyFormulatedOutputBatch(CreateDpsTaskRequest task) {
     task.setOutputProvider(PROVIDER_ID);
   }
 
@@ -768,8 +768,8 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
   private void mockECloudClients() throws TaskSubmissionException {
     when(context.getBean(FileServiceClient.class)).thenReturn(fileServiceClient);
     when(context.getBean(DataSetServiceClient.class)).thenReturn(dataSetServiceClient);
-    when(filesCounterFactory.createFilesCounter(any(eu.europeana.cloud.service.dps.internal.DpsTask.class), anyString())).thenReturn(filesCounter);
-    when(filesCounter.getFilesCount(isA(eu.europeana.cloud.service.dps.internal.DpsTask.class))).thenReturn(1);
+    when(filesCounterFactory.createFilesCounter(any(DpsTask.class), anyString())).thenReturn(filesCounter);
+    when(filesCounter.getFilesCount(isA(DpsTask.class))).thenReturn(1);
   }
 
 }

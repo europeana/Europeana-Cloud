@@ -2,11 +2,11 @@ package eu.europeana.cloud.service.dps;
 
 import org.junit.jupiter.api.Test;
 
-class DpsTaskTest {
+class CreateDpsTaskRequestTest {
 
   @Test
   void createHarvestingTaskWithOutputBatch() {
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     OAIPMHHarvestingDetails input = new OAIPMHHarvestingDetails();
     input.setRepositoryUrl("https://oai.source.com");
     input.setSchema("edm");
@@ -23,7 +23,7 @@ class DpsTaskTest {
 
   @Test
   void createNormalizationTaskWithInputBatch() {
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     BatchInfo input = new BatchInfo();
     input.setProviderId("metisProduction");
     input.setBatchId("9cafe47c-1f42-4990-ba86-4f06a9ceb768");

@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -60,9 +61,9 @@ class DpsResourceAATest extends AbstractSecurityTest {
 
   private static final String SAMPLE_TOPOLOGY_NAME = "sampleTopology";
   private static final String XSLT_TOPOLOGY_NAME = "xslt_topology";
-  private DpsTask XSLT_TASK;
-  private DpsTask XSLT_TASK2;
-  private DpsTask XSLT_TASK_WITH_MALFORMED_URL;
+  private CreateDpsTaskRequest XSLT_TASK;
+  private CreateDpsTaskRequest XSLT_TASK2;
+  private CreateDpsTaskRequest XSLT_TASK_WITH_MALFORMED_URL;
 
   /* Beans and mocked beans */
   @Autowired
@@ -100,18 +101,18 @@ class DpsResourceAATest extends AbstractSecurityTest {
 
   @BeforeEach
   void mockUp() throws Exception {
-    XSLT_TASK = new DpsTask();
+    XSLT_TASK = new CreateDpsTaskRequest();
     XSLT_TASK.setInput(prepateBatchInput());
     XSLT_TASK.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     XSLT_TASK.setOutputProvider(PROVIDER_ID);
 
-    XSLT_TASK2 = new DpsTask();
+    XSLT_TASK2 = new CreateDpsTaskRequest();
     XSLT_TASK2.setInput(prepateBatchInput());
     XSLT_TASK2.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK2.setOutputProvider(PROVIDER_ID);
 
-    XSLT_TASK_WITH_MALFORMED_URL = new DpsTask();
+    XSLT_TASK_WITH_MALFORMED_URL = new CreateDpsTaskRequest();
     XSLT_TASK_WITH_MALFORMED_URL.setInput(prepateBatchInput());
     XSLT_TASK_WITH_MALFORMED_URL.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     XSLT_TASK_WITH_MALFORMED_URL.setOutputProvider(PROVIDER_ID);
@@ -132,7 +133,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     when(taskDAO.findById(anyLong())).thenReturn(Optional.empty());
     Mockito.doReturn(taskInfo).when(reportService).getTaskProgress(Mockito.anyLong());
     when(topologyManager.containsTopology(SAMPLE_TOPOLOGY_NAME)).thenReturn(true);
-    when(filesCounterFactory.createFilesCounter(any(eu.europeana.cloud.service.dps.internal.DpsTask.class), anyString())).thenReturn(filesCounter);
+    when(filesCounterFactory.createFilesCounter(any(DpsTask.class), anyString())).thenReturn(filesCounter);
     request = new MockHttpServletRequest();
 
   }
@@ -143,7 +144,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
   @Test
   void shouldThrowExceptionWhenNonAuthenticatedUserTriesToSubmitTask() {
 
-    DpsTask t = new DpsTask();
+    CreateDpsTaskRequest t = new CreateDpsTaskRequest();
     String topology = "xsltTopology";
 
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> topologyTasksResource.createTask(request, t, topology));
@@ -157,7 +158,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, XSLT_TOPOLOGY_NAME);
     logoutEveryone();
     login(VAN_PERSIE, VAN_PERSIE_PASSWORD);
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.MIME_TYPE, "image/tiff");
     task.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, "image/jp2");
@@ -172,7 +173,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
   void shouldBeAbleToSubmitTaskToXsltTopology()
           throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
     //when
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
@@ -192,7 +193,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
   void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingInput()
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.addParameter(PluginParameterKeys.XSLT_URL, "http://test.xslt");
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
@@ -213,7 +214,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
   void shouldThrowDpsTaskValidationExceptionOnSubmitTaskToXsltTopologyWithMissingXsltUrl()
           throws AccessDeniedOrTopologyDoesNotExistException, IOException {
     //when
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.setInput(prepateBatchInput());
     task.addParameter(PluginParameterKeys.METIS_DATASET_ID, SAMPLE_METIS_DATASET_ID);
     String topologyName = "xslt_topology";
@@ -244,7 +245,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
     topologiesResource.grantPermissionsToTopology(VAN_PERSIE, SAMPLE_TOPOLOGY_NAME);
     logoutEveryone();
     login(RONALDO, RONALD_PASSWORD);
-    DpsTask sampleTask = new DpsTask();
+    CreateDpsTaskRequest sampleTask = new CreateDpsTaskRequest();
     Assertions.assertThrows(AuthorizationDeniedException.class,
             () -> topologyTasksResource.createTask(request, sampleTask, SAMPLE_TOPOLOGY_NAME));
 

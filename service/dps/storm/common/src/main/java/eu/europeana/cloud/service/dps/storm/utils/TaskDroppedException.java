@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import lombok.Getter;
 
 /**

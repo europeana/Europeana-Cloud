@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.dps.utils;
 
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;

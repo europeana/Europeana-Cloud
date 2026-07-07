@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.DpsRecord;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;

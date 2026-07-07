@@ -2,6 +2,7 @@ package eu.europeana.cloud.client.dps.rest;
 
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.DpsException;
@@ -29,14 +30,14 @@ class DPSClientTestIT {
   @Test
   void submitOaiTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.addParameter("PROVIDER_ID", "metis_test5");
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
     details.setRepositoryUrl("http://test117.ait.co.at/oai-provider-edm/oai/");
     details.setSchema("edm");
     details.setSet("ZFMK");
     task.setInput(details);
-    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = client.createTask(task, "oai_topology");
+    DpsTask resultTask = client.createTask(task, "oai_topology");
     long id = resultTask.getTaskId();
     assertNotEquals(0, id);
 
@@ -47,7 +48,7 @@ class DPSClientTestIT {
   @Test
   void submitValidationTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
-    DpsTask task = new DpsTask();
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     BatchInfo inputData = BatchInfo.builder().providerId("metis_test5")
                                              .batchId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
                                              .build();
@@ -56,7 +57,7 @@ class DPSClientTestIT {
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
     task.setOutputProvider("metis_test5");
     //
-    eu.europeana.cloud.service.dps.internal.DpsTask resultTask = client.createTask(task, "validation_topology");
+    DpsTask resultTask = client.createTask(task, "validation_topology");
     long id = resultTask.getTaskId();
     assertNotEquals(0, id);
 

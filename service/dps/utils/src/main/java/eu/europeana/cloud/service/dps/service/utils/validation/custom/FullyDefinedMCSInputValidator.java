@@ -1,10 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 
 /**
- * Verifies if provided {@link DpsTask} has input that is fully defined. Fully defined BatchInput means that all its
+ * Verifies if provided {@link CreateDpsTaskRequest} has input that is fully defined. Fully defined BatchInput means that all its
  * properties are provided.
  */
 public class FullyDefinedMCSInputValidator extends CustomValidator {
@@ -17,7 +17,7 @@ public class FullyDefinedMCSInputValidator extends CustomValidator {
   }
 
   @Override
-  public boolean test(DpsTask dpsTask) {
+  public boolean test(CreateDpsTaskRequest dpsTask) {
     if (dpsTask.getInput() instanceof BatchInfo input) {
       return input.getProviderId() != null &&
           input.getBatchId() != null;

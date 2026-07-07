@@ -1,7 +1,7 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
 import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskInput;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;

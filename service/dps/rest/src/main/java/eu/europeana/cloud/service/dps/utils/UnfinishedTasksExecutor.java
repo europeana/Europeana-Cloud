@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
-import eu.europeana.cloud.service.dps.internal.DpsTask;
+import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;

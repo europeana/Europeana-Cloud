@@ -1,11 +1,11 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import org.apache.commons.validator.routines.UrlValidator;
 
 /**
- * Verifies if provided {@link DpsTask} has defined OAI input
+ * Verifies if provided {@link CreateDpsTaskRequest} has defined OAI input
  */
 public class OAIInputValidator extends CustomValidator {
 
@@ -17,7 +17,7 @@ public class OAIInputValidator extends CustomValidator {
   }
 
   @Override
-  public boolean test(DpsTask dpsTask) {
+  public boolean test(CreateDpsTaskRequest dpsTask) {
     if (dpsTask.getInput() instanceof OAIPMHHarvestingDetails input) {
       return input.getRepositoryUrl() != null &&
           new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS).isValid(input.getRepositoryUrl());

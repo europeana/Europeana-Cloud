@@ -1,13 +1,12 @@
-package eu.europeana.cloud.service.dps.internal;
+package eu.europeana.cloud.service.dps;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.BatchInfo;
-import eu.europeana.cloud.service.dps.TaskInput;
-import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,28 +20,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DpsTask {
+public class CreateDpsTaskRequest {
 
   private TaskInput input;
-  private BatchInfo output;
+  private String outputProvider;
 
   /* List of parameters (specific for each dps-topology) */
   private Map<String, String> parameters = new HashMap<>();
-
-  /* Unique id for this task */
-  private long taskId;
-
-  /* Name for the task */
-  private String taskName;
-
-  /**
-   * Constructor
-   * @param taskName - task name
-   */
-  public DpsTask(String taskName) {
-    this.taskName = taskName;
-  }
-
 
   /**
    * Adds task general parameter
@@ -71,7 +55,7 @@ public class DpsTask {
   }
 
   /**
-   * @return string representation of the DpsTask in JSON format
+   * @return string representation of the CreateDpsTaskRequest in JSON format
    * @throws JsonProcessingException when some of the parameters could not be serialized as JSON
    */
   public String toJSON() throws JsonProcessingException {
@@ -80,26 +64,25 @@ public class DpsTask {
 
   /**
    * Deserializes task
-   * @param json - string containing the DpsTask in JSON format
+   * @param json - string containing the CreateDpsTaskRequest in JSON format
    * @return DPS task instance
-   * @throws JsonProcessingException when string could not be properly parsed as DpsTask
+   * @throws JsonProcessingException when string could not be properly parsed as CreateDpsTaskRequest
    */
-  public static DpsTask fromJSON(String json) throws JsonProcessingException {
+  public static CreateDpsTaskRequest fromJSON(String json) throws JsonProcessingException {
     if (json == null) {
       throw new IllegalArgumentException("Task definition json is null");
     }
-    return new ObjectMapper().readValue(json, DpsTask.class);
+    return new ObjectMapper().readValue(json, CreateDpsTaskRequest.class);
   }
 
   /**
    * Deserializes task
    * @param taskInfo - task database entity
    * @return DPS task instance
-   * @throws JsonProcessingException when task definition stored in entity could not be properly parsed as DpsTask
+   * @throws JsonProcessingException when task definition stored in entity could not be properly parsed as CreateDpsTaskRequest
    */
-  public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws JsonProcessingException {
+  public static CreateDpsTaskRequest fromTaskInfo(TaskInfo taskInfo) throws JsonProcessingException {
     return fromJSON(taskInfo.getDefinition());
   }
-
 }
 
