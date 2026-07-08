@@ -33,11 +33,11 @@ public class FilesCounterFactory {
       return new DepublicationFilesCounter(indexWrapper);
     }
 
-    TaskSource input = task.getSource();
-    if (input instanceof BatchInfo) {
+    TaskSource source = task.getSource();
+    if (source instanceof BatchInfo) {
       return new DatasetFilesCounter(taskInfoDAO);
     }
-    if (input instanceof OAIPMHHarvestingDetails) {
+    if (source instanceof OAIPMHHarvestingDetails) {
       return new OaiPmhFilesCounter();
     } else {
       return new UnknownFilesNumberCounter();

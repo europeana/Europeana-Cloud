@@ -19,13 +19,14 @@ public abstract class AbstractTaskSubmitter implements TaskSubmitter {
 
     void createDateSetIfNeeded(DpsTask dpsTask) throws TaskSubmissionException {
         try {
-            if(dpsTask.getResultsBatch() instanceof BatchInfo output){
-                if (!dataSetServiceClient.datasetExists(output.getProviderId(), output.getBatchId())) {
-                    dataSetServiceClient.createDataSet(output.getProviderId(), output.getBatchId(), createDescription(dpsTask));
-                }
+            BatchInfo results = dpsTask.getResultsBatch();
+            if ((results != null) && !dataSetServiceClient.datasetExists(results.getProviderId(), results.getBatchId())) {
+                dataSetServiceClient.createDataSet(results.getProviderId(), results.getBatchId(), createDescription(dpsTask));
             }
+
         } catch (MCSException e) {
-            throw new TaskSubmissionException("Couldn't connect to mcs to verify dataSet exists for task with id %s!".formatted(dpsTask.getTaskId()), e);
+            throw new TaskSubmissionException(
+                "Couldn't connect to mcs to verify dataSet exists for task with id %s!".formatted(dpsTask.getTaskId()), e);
         }
     }
 

@@ -64,7 +64,7 @@ class DepublicationFilesCounterTest {
     void shouldCountEntireDataset() throws Exception {
         DpsTask dpsTask = new DpsTask();
         dpsTask.addParameter(METIS_DATASET_ID, "");
-
+        dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
         DepublicationFilesCounter depublicationFilesCounter = new DepublicationFilesCounter(indexWrapper);
         int count = depublicationFilesCounter.getFilesCount(dpsTask);
 

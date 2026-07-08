@@ -592,23 +592,6 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         response.andExpect(status().isBadRequest());
     }
 
-
-
-  private static void setOutputProvider(CreateDpsTaskRequest task,String datasetUrl, String representationName) {
-
-
-    if(datasetUrl!=null){
-      try {
-        DataSet set = DataSetUrlParser.parse(datasetUrl);
-        task.setResultsProvider(set.getProviderId());
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-
-  }
-
   /* Depublication */
     @Test
     void shouldSupportDepublication() throws Exception {
@@ -693,6 +676,17 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
       assertNull(((DepublicationInfo) captor.getValue().getTask().getSource()).getEuropeanaIdsToDepublish());
   }
   /* Utilities */
+
+  private static void setOutputProvider(CreateDpsTaskRequest task,String datasetUrl, String representationName) {
+    if(datasetUrl!=null){
+      try {
+        DataSet set = DataSetUrlParser.parse(datasetUrl);
+        task.setResultsProvider(set.getProviderId());
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
 
   private void assertSuccessfulHttpTopologyRequest(ResultActions response) throws Exception {
     assertNotNull(response);

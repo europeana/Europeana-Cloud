@@ -62,14 +62,14 @@ class DpsTaskValidatorForOaiTopologyTest {
 
   @Test
   void shouldValidateTaskForOAITopology() throws DpsTaskValidationException {
-    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology");
     validator.validate(oaiTopologyTask);
   }
 
   @Test
   void shouldValidateTaskForOAITopologyWithZeroOutputDatasets() {
     try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology");
       validator.validate(oaiTopologyTaskWithoutOutputDataset);
 
     } catch (Exception e) {
@@ -80,7 +80,7 @@ class DpsTaskValidatorForOaiTopologyTest {
 
   @Test
   void shouldValidateTasksWithoutHarvestDate() {
-    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology");
     assertThrows(DpsTaskValidationException.class, () -> validator.validate(oaiTopologyTaskWithoutHarvestDate));
   }
 
@@ -88,7 +88,7 @@ class DpsTaskValidatorForOaiTopologyTest {
   @Test
   void shouldValidateIncrementalTaskForOAITopologyWithSampleSize() {
     try {
-      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+      DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology");
       validator.validate(oaiTopologyIncrementalTaskWithSampleSize);
 
     } catch (Exception e) {
@@ -99,7 +99,7 @@ class DpsTaskValidatorForOaiTopologyTest {
 
   @Test
   void shouldValidateIncrementalTaskForOAITopologyWithoutSampleSize() throws DpsTaskValidationException {
-    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology_repository_urls");
+    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType("oai_topology");
     validator.validate(oaiTopologyIncrementalTaskWithoutSampleSize);
   }
 

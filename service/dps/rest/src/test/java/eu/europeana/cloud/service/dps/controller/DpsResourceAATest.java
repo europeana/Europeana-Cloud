@@ -206,7 +206,7 @@ class DpsResourceAATest extends AbstractSecurityTest {
       fail();
     } catch (DpsTaskValidationException e) {
       //then
-      assertThat(e.getMessage(), containsString("source"));
+      assertThat(e.getMessage().toLowerCase(), containsString("source"));
     }
   }
 

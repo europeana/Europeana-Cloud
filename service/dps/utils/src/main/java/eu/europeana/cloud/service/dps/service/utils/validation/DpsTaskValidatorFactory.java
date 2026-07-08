@@ -1,32 +1,23 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.NO_DATA;
-
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.SampleSizeForIncrementalHarvestingValidator;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public final class DpsTaskValidatorFactory {
 
-  private static final DpsTaskValidator ALWAYS_FAIL_VALIDATOR =
-      new DpsTaskValidator()
-          .withParameter(
-              "parameterNameThatWillNeverHappen",
-              Collections.singletonList("parameterValueThatWillNeverHappen"));
-
-  static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology_dataset_urls";
-  static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology_dataset_urls";
-  static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology_dataset_urls";
-  static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology_dataset_urls";
-  static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology_repository_urls";
-  static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology_repository_urls";
-  static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology_dataset_urls";
-  static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology_dataset_urls";
-  public static final String DEPUBLICATION_TASK = "depublication_topology_input";
-  static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
+  static final String XSLT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "xslt_topology";
+  static final String ENRICHMENT_TOPOLOGY_TASK_WITH_FILE_DATASETS = "enrichment_topology";
+  static final String VALIDATION_TOPOLOGY_TASK_WITH_FILE_DATASETS = "validation_topology";
+  static final String NORMALIZATION_TOPOLOGY_TASK_WITH_DATASETS = "normalization_topology";
+  static final String OAIPMH_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "oai_topology";
+  static final String HTTP_TOPOLOGY_TASK_WITH_REPOSITORY_URL = "http_topology";
+  static final String INDEXING_TOPOLOGY_TASK_WITH_DATASETS = "indexing_topology";
+  static final String LINK_CHECKING_TASK_WITH_DATASETS = "linkcheck_topology";
+  public static final String DEPUBLICATION_TASK = "depublication_topology";
+  static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology";
 
   private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
@@ -34,8 +25,7 @@ public final class DpsTaskValidatorFactory {
   }
 
   public static DpsTaskValidator createValidatorForTaskType(String taskType) {
-    DpsTaskValidator taskValidator = taskValidatorMap.get(taskType);
-    return (taskValidator != null ? taskValidator : ALWAYS_FAIL_VALIDATOR);
+    return taskValidatorMap.get(taskType);
   }
 
   private static Map<String, DpsTaskValidator> buildTaskValidatorMap() {

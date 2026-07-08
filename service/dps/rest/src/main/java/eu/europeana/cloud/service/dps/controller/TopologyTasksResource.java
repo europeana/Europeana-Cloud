@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -51,23 +52,28 @@ public class TopologyTasksResource {
 
   public static final String TASK_PREFIX = "DPS_Task";
 
-  @Autowired
-  private TaskExecutionReportService reportService;
+  private final TaskExecutionReportService reportService;
 
-  @Autowired
-  private PermissionManager permissionManager;
+  private final PermissionManager permissionManager;
 
-  @Autowired
-  private CassandraTaskInfoDAO taskInfoDAO;
+  private final CassandraTaskInfoDAO taskInfoDAO;
 
-  @Autowired
-  private TaskStatusUpdater taskStatusUpdater;
+  private final TaskStatusUpdater taskStatusUpdater;
 
-  @Autowired
-  private SubmitTaskService submitTaskService;
+  private final SubmitTaskService submitTaskService;
 
-  @Autowired
-  private TaskSubmissionValidator taskSubmissionValidator;
+  private final TaskSubmissionValidator taskSubmissionValidator;
+
+  public TopologyTasksResource(TaskExecutionReportService reportService, PermissionManager permissionManager,
+      CassandraTaskInfoDAO taskInfoDAO, TaskStatusUpdater taskStatusUpdater, SubmitTaskService submitTaskService,
+      TaskSubmissionValidator taskSubmissionValidator) {
+    this.reportService = reportService;
+    this.permissionManager = permissionManager;
+    this.taskInfoDAO = taskInfoDAO;
+    this.taskStatusUpdater = taskStatusUpdater;
+    this.submitTaskService = submitTaskService;
+    this.taskSubmissionValidator = taskSubmissionValidator;
+  }
 
   /**
    * Retrieves the current progress for the requested task.
@@ -195,9 +201,9 @@ public class TopologyTasksResource {
     MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(taskId));
     try {
       SubmitTaskParameters parameters = createTaskInDB(task, taskId, topologyName);
-      return validateTask(request,task,taskId, parameters);
+      return validateTask(request, task, taskId, parameters);
     } catch (DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
-      LOGGER.error("Error validating task: {}",task, e);
+      LOGGER.error("Error validating task: {}", task, e);
       taskStatusUpdater.updateState(taskId, EngineTaskState.INVALID, e.getMessage());
       throw e;
     } catch (Exception e) {
@@ -265,8 +271,10 @@ public class TopologyTasksResource {
   private DpsTask createDpsTask(CreateDpsTaskRequest createTaskRequest, long taskId) {
     var dpsTask = new DpsTask();
     dpsTask.setSource(createTaskRequest.getSource());
-    dpsTask.setResultsBatch(
-        BatchInfo.builder().providerId(createTaskRequest.getResultsProvider()).batchId(String.valueOf(taskId)).build());
+    if (createTaskRequest.getResultsProvider() != null) {
+      dpsTask.setResultsBatch(
+          BatchInfo.builder().providerId(createTaskRequest.getResultsProvider()).batchId(String.valueOf(taskId)).build());
+    }
     dpsTask.setParameters(createTaskRequest.getParameters());
     dpsTask.setTaskId(taskId);
     return dpsTask;
@@ -297,12 +305,11 @@ public class TopologyTasksResource {
     if (taskInfo.getEngineTaskState().wasNotProperlyCreated()) {
       LOGGER.warn("Topology: {} task: {} could not be started because it was not created properly!",
           topologyName, taskId);
-      return;
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Task could not be started because it was not created properly");
     } else if (taskInfo.getEngineTaskState() != EngineTaskState.CREATED) {
       LOGGER.info("Topology: {} task: {} is already started.", topologyName, taskId);
       return;
     }
-
 
     var dpsTask = DpsTask.fromTaskInfo(taskInfo);
     taskInfo.setStartTimestamp(new Date());
@@ -320,7 +327,7 @@ public class TopologyTasksResource {
     return (long) (Math.random() * Long.MAX_VALUE);
   }
 
-  private ResponseEntity<DpsTask> handleFailedSubmission(Exception exception, String loggedMessage,long taskId) {
+  private ResponseEntity<DpsTask> handleFailedSubmission(Exception exception, String loggedMessage, long taskId) {
     LOGGER.error(loggedMessage, exception);
     taskStatusUpdater.setTaskDropped(taskId, exception.getMessage());
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

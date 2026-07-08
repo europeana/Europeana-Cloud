@@ -49,23 +49,11 @@ public class TaskSubmissionValidator {
   }
 
   private void validateTask(CreateDpsTaskRequest task, String topologyName) throws DpsTaskValidationException {
-    String taskType = specifyTaskType(task, topologyName);
-    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(taskType);
+    DpsTaskValidator validator = DpsTaskValidatorFactory.createValidatorForTaskType(topologyName);
+    if (validator == null) {
+      throw new DpsTaskValidationException("Invalid topology name: \"" + topologyName + "\"");
+    }
     validator.validate(task);
   }
 
-  private String specifyTaskType(CreateDpsTaskRequest task, String topologyName) throws DpsTaskValidationException {
-    if (task.getSource() instanceof BatchInfo) {
-      return topologyName + "_dataset_urls";
-    }
-    if (task.getSource() instanceof OAIPMHHarvestingDetails || task.getSource() instanceof HttpHarvestingDetails){
-      return topologyName + "_repository_urls";
-    }
-
-    if(task.getSource() instanceof DepublicationInfo){
-      return DEPUBLICATION_TASK;
-    }
-
-    throw new DpsTaskValidationException("Validation failed, missing source");
-  }
 }

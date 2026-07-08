@@ -9,7 +9,7 @@ import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
  */
 public class FullyDefinedMCSInputValidator extends CustomValidator {
 
-  public static final String ERROR_MESSAGE = "Input has to be fully defined - with providerId, representationName and batchId filled";
+  public static final String ERROR_MESSAGE = "Source has to be fully defined - with providerId, representationName and batchId filled";
 
   @Override
   public String detailedMessage() {
