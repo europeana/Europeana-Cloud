@@ -3,8 +3,6 @@ package eu.europeana.cloud.mcs.driver;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.test.WiremockHelper;
 import org.junit.jupiter.api.Assertions;
@@ -899,45 +897,4 @@ class RecordServiceClientTest {
 
     assertTrue(true);
   }
-
-  @Test
-  void shouldRetrieveRepresentationRevision() throws MCSException {
-
-    RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
-    //
-    new WiremockHelper(wireMockExtension).stubGet(
-            "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION1/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658Z",
-            200,
-            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><representations><representation><allVersionsUri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions</allVersionsUri><cloudId>2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A</cloudId><creationDate>2019-09-09T12:53:29.238+02:00</creationDate><dataProvider>metis_test5</dataProvider><files><contentLength>2442</contentLength><contentUri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions/68b4cc30-aa8d-11e8-8289-1c6f653f9042/files/ba434eac-90cf-452f-891b-0cd8065341f4</contentUri><date>2019-09-09T12:53:29.232+02:00</date><fileName>ba434eac-90cf-452f-891b-0cd8065341f4</fileName><fileStorage>DATA_BASE</fileStorage><md5>bad9394e7c3ba724493ddc0677225d19</md5><mimeType>text/plain</mimeType></files><persistent>true</persistent><representationName>REPRESENTATION1</representationName><revisions><revisionName>revisionName</revisionName><revisionProviderId>metis_test</revisionProviderId><creationTimeStamp>2019-01-01T00:00:00.001Z</creationTimeStamp><published>false</published><acceptance>false</acceptance><deleted>false</deleted></revisions><uri>http://localhost:8080/mcs/records/2FIVVAQ5NC6WVNNPK7BKK2X3PB6PNDLMIGQYFGU3NQPWQ6DYSK2A/representations/REPRESENTATION1/versions/68b4cc30-aa8d-11e8-8289-1c6f653f9042</uri><version>68b4cc30-aa8d-11e8-8289-1c6f653f9042</version></representation></representations>");
-    //
-
-    // retrieve representation by revision
-    List<Representation> representations = instance.getRepresentationsByRevision(
-            "Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA",
-            "REPRESENTATION1",
-            new Revision("Revision_2", "Revision_Provider", DateHelper.parseISODate("2018-08-28T07:13:34.658Z"))
-    );
-    assertNotNull(representations);
-    assertEquals(1, representations.size());
-    assertEquals("REPRESENTATION1",
-            representations.get(0).getRepresentationName());
-    assertEquals("68b4cc30-aa8d-11e8-8289-1c6f653f9042", representations.get(0).getVersion());
-  }
-
-  @Test
-  void shouldThrowRepresentationNotExists() {
-    RecordServiceClient instance = new RecordServiceClient("http://localhost:8080/mcs", "admin", "admin");
-
-    new WiremockHelper(wireMockExtension).stubGet(
-            "/mcs/records/Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA/representations/REPRESENTATION2/revisions/Revision_2?revisionProviderId=Revision_Provider&revisionTimestamp=2018-08-28T07%3A13%3A34.658Z",
-            404,
-            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><errorInfo><details>No representation was found</details><errorCode>REPRESENTATION_NOT_EXISTS</errorCode></errorInfo>");
-
-    assertThrows(RepresentationNotExistsException.class,
-            () -> instance.getRepresentationsByRevision(
-                    "Z6DX3RWCEFUUSGRUWP6QZWRIZKY7HI5Y7H4UD3OQVB3SRPAUVZHA",
-                    "REPRESENTATION2",
-                    new Revision("Revision_2", "Revision_Provider", DateHelper.parseISODate("2018-08-28T07:13:34.658Z"))
-            ));
-  }
-  }
+}

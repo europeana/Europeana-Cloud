@@ -2,10 +2,8 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -96,7 +94,6 @@ public class CassandraRecordService implements RecordService {
       for (Representation repVersion : allRecordRepresentationsInAllVersions) {
         removeFilesFromRepresentationVersion(cloudId, repVersion);
         removeRepresentationAssignmentFromDataSets(cloudId, repVersion);
-        deleteRepresentationRevision(cloudId, repVersion);
         recordDAO.deleteRepresentation(cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
       }
     } else {
@@ -120,7 +117,6 @@ public class CassandraRecordService implements RecordService {
     for (Representation rep : listRepresentations) {
       removeFilesFromRepresentationVersion(globalId, rep);
       removeRepresentationAssignmentFromDataSets(globalId, rep);
-      deleteRepresentationRevision(globalId, rep);
     }
     recordDAO.deleteRepresentation(globalId, schema);
   }
@@ -247,7 +243,6 @@ public class CassandraRecordService implements RecordService {
 
     removeFilesFromRepresentationVersion(globalId, rep);
     removeRepresentationAssignmentFromDataSets(globalId, rep);
-    deleteRepresentationRevision(globalId, rep);
     recordDAO.deleteRepresentation(globalId, schema, version);
 
   }
@@ -334,17 +329,6 @@ public class CassandraRecordService implements RecordService {
     file.setContentLength(result.getContentLength());
     recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
     LOGGER.debug("Updated file information in representation: {}", representation);
-
-    for (Revision revision : representation.getRevisions()) {
-      // update information in extra table
-      recordDAO.addOrReplaceFileInRepresentationRevision(
-          globalId, schema, version,
-          revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
-          file
-      );
-      LOGGER.debug("Updated file information in revision: {}", revision);
-    }
-
     return isCreate;
   }
 
@@ -404,7 +388,6 @@ public class CassandraRecordService implements RecordService {
       throw new CannotModifyPersistentRepresentationException();
     }
     recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
-    recordDAO.removeFileFromRepresentationRevisionsTable(representation, fileName);
     File file = findFileInRepresentation(representation, fileName);
     contentDAO.deleteContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
   }
@@ -419,61 +402,19 @@ public class CassandraRecordService implements RecordService {
     return findFileInRepresentation(rep, fileName);
   }
 
-  /**
-   * @inheritDoc
-   */
-  @Override
-  public void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException {
-    recordDAO.addOrReplaceRevisionInRepresentation(globalId, schema, version, revision);
-  }
-
-  @Override
-  public List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema,
-      String revisionProviderId,
-      String revisionName, Date revisionTimestamp) {
-    return recordDAO.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
-  }
-
-  @Override
-  public void insertRepresentationRevision(String globalId, String schema, String revisionProviderId,
-      String revisionName, String versionId, Date revisionTimestamp) {
-    // add additional association between representation version and revision
-    Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
-    recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName, revisionTimestamp);
-    for (File file : representation.getFiles()) {
-      recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName,
-          revisionTimestamp, file);
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  @Override
-  public Revision getRevision(String globalId, String schema, String version, String revisionKey)
-      throws RevisionNotExistsException, RepresentationNotExistsException {
-    Representation rep = getRepresentation(globalId, schema, version);
-    for (Revision revision : rep.getRevisions()) {
-      if (revision != null && RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
-        return revision;
-      }
-    }
-    throw new RevisionNotExistsException();
-  }
-
   @Override
   public void addAnnotationToRepresentationVersion(Representation representation, RepresentationVersionAnnotation annotation) throws RepresentationNotExistsException {
     LOGGER.debug("adding annotation to representation version");
     Representation rep = recordDAO.getRepresentation(
-            representation.getCloudId(),
-            representation.getRepresentationName(),
-            representation.getVersion());
+        representation.getCloudId(),
+        representation.getRepresentationName(),
+        representation.getVersion());
 
     if (rep != null) {
       recordDAO.addAnnotationToRepresentation(representation, annotation);
     } else {
       throw new RepresentationNotExistsException(String.format("No representation found for given cloudId %s",
-              representation.getCloudId()));
+          representation.getCloudId()));
     }
   }
 
@@ -488,13 +429,6 @@ public class CassandraRecordService implements RecordService {
             "File '{}' was found in representation {}-{}-{} but no content of such file was found",
             f.getFileName(), cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
       }
-    }
-  }
-
-  private void deleteRepresentationRevision(String globalId, Representation rep) {
-    for (Revision r : rep.getRevisions()) {
-      recordDAO.deleteRepresentationRevision(globalId, rep.getRepresentationName(), rep.getVersion(),
-          r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
     }
   }
 

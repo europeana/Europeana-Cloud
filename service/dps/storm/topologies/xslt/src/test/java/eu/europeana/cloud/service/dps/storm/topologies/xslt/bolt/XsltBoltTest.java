@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
 import com.google.common.base.Charsets;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
@@ -67,13 +66,12 @@ class XsltBoltTest {
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
             new ProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(1));
     List<Values> allValues = captor.getAllValues();
-    assertEmittedTuple(allValues, 4);
+    assertEmittedTuple(allValues, 3);
   }
 
   @Captor
@@ -91,13 +89,12 @@ class XsltBoltTest {
             new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(injectXmlFileName), true),
             new ProcessingData());
     tuple.setParameters(parameters);
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     xsltBolt.execute(anchorTuple, tuple);
     when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
     verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
     assertThat(captor.getAllValues().size(), is(1));
     List<Values> allValues = captor.getAllValues();
-    assertEmittedTuple(allValues, 4);
+    assertEmittedTuple(allValues, 3);
 
     String transformed = new String(((RecordData) allValues.get(0).get(5)).getFileData());
     assertNotNull(transformed);
@@ -122,15 +119,13 @@ class XsltBoltTest {
 
     //parameters assertion
     assertTrue(allValues.get(0).get(3) instanceof TaskData);
-    var parameters = ((TaskData) allValues.get(0).get(3)).getParameters();
+    TaskData taskData = (TaskData) allValues.get(0).get(3);
+    var parameters = taskData.getParameters();
     assertNotNull(parameters);
     assertEquals(parameters.size(), expectedParametersSize);
     String cloudId = parameters.get(PluginParameterKeys.CLOUD_ID);
     assertNotNull(cloudId);
     assertEquals(cloudId, SOURCE + CLOUD_ID);
-    String representationName = parameters.get(PluginParameterKeys.REPRESENTATION_NAME);
-    assertNotNull(representationName);
-    assertEquals(representationName, SOURCE + REPRESENTATION_NAME);
     String version = parameters.get(PluginParameterKeys.REPRESENTATION_VERSION);
     assertNotNull(version);
     assertEquals(version, SOURCE + VERSION);

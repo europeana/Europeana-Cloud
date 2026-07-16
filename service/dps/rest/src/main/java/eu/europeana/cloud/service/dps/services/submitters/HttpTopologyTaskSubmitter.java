@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
@@ -63,8 +63,8 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
     LOGGER.info("The task {} is in a pending mode.Expected size: {}", parameters.getTask().getTaskId(), expectedCount);
 
     try {
-      final String urlToZipFile = parameters.getTask()
-              .getDataEntry(InputDataType.REPOSITORY_URLS).getFirst();
+      HttpHarvestingDetails input = (HttpHarvestingDetails) parameters.getTask().getSource();
+      final String urlToZipFile = input.getRepositoryUrl();
       final HarvestingIterator<Path, Path> iterator = HarvesterFactory.createHttpHarvester()
               .harvestRecords(urlToZipFile,
                       downloadedFileLocationFor(parameters.getTask()));

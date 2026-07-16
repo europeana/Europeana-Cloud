@@ -172,6 +172,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     declarer.declareStream(NOTIFICATION_STREAM_NAME, NotificationTuple.getFields());
   }
 
+  protected void emitNotification(Tuple anchorTuple, CommonTaskTuple tuple) {
+    if (tupleContainsErrors(tuple)) {
+      emitSuccessNotificationContainingErrorInfo(anchorTuple, tuple);
+    } else {
+      emitSuccessNotification(anchorTuple, tuple, "", "");
+    }
+  }
+
+  private boolean tupleContainsErrors(CommonTaskTuple tuple) {
+    return tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE) != null;
+  }
+
   protected void emitErrorNotification(Tuple anchorTuple, CommonTaskTuple commonTaskTuple, String message, Throwable e) {
     emitErrorNotification(anchorTuple, commonTaskTuple, message,
         e.getMessage() + ":\n" + ExceptionUtils.getStackTrace(e));
@@ -217,12 +229,18 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     outputCollector.emit(NOTIFICATION_STREAM_NAME, anchorTuple, tuple.toStormTuple());
   }
 
+  private void emitSuccessNotificationContainingErrorInfo(Tuple anchorTuple, CommonTaskTuple tuple) {
+    emitSuccessNotification(anchorTuple, tuple, "", "",
+        tuple.getParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE),
+        tuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
+  }
+
   protected void prepareStormTaskTupleForEmission(CommonTaskTuple commonTaskTuple, String resultString)
           throws MalformedURLException {
     commonTaskTuple.setFileData(resultString.getBytes(StandardCharsets.UTF_8));
+    //TODO Not to do it every time on every bolt
     final UrlParser urlParser = new UrlParser(commonTaskTuple.getRecordUri());
     commonTaskTuple.addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-    commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME, urlParser.getPart(UrlPart.REPRESENTATIONS));
     commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, urlParser.getPart(UrlPart.VERSIONS));
   }
 

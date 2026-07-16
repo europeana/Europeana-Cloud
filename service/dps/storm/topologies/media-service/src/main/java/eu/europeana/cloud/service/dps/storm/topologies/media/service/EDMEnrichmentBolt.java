@@ -184,12 +184,11 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
       commonTaskTuple.addParameter(PluginParameterKeys.UNIFIED_ERROR_MESSAGE, MEDIA_RESOURCE_EXCEPTION);
     }
     commonTaskTuple.setFileData(serializeRdf(enrichedRdf));
+    //TODO NOT TO DO IT EVERY TIME
     final UrlParser urlParser = new UrlParser(commonTaskTuple.getRecordUri());
     if (urlParser.isUrlToRepresentationVersionFile()) {
       commonTaskTuple
           .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-      commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
-          urlParser.getPart(UrlPart.REPRESENTATIONS));
       commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
           urlParser.getPart(UrlPart.VERSIONS));
     }

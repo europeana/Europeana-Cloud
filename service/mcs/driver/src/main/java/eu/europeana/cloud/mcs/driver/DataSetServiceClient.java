@@ -2,30 +2,19 @@ package eu.europeana.cloud.mcs.driver;
 
 import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.F_EXISTING_ONLY;
-import static eu.europeana.cloud.common.web.ParamConstants.F_LIMIT;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PERMISSION;
-import static eu.europeana.cloud.common.web.ParamConstants.F_REVISION_TIMESTAMP;
-import static eu.europeana.cloud.common.web.ParamConstants.F_START_FROM;
 import static eu.europeana.cloud.common.web.ParamConstants.F_USERNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
-import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_NAME;
-import static eu.europeana.cloud.common.web.ParamConstants.REVISION_PROVIDER_ID;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_REVISIONS_RESOURCE;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.web.ParamConstants;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -377,109 +366,6 @@ public class DataSetServiceClient extends MCSClient {
             .request())
             .delete()
     );
-  }
-
-  /**
-   * Retrieve list of existing (not deleted) cloudIds and tags from data set for specific revision.
-   *
-   * @param providerId provider identifier (required)
-   * @param dataSetId data set identifier (required)
-   * @param representationName name of the representation (required)
-   * @param revisionName revision name (required)
-   * @param revisionProviderId revision provider id (required)
-   * @param revisionTimestamp timestamp of the searched revision which is part of the revision identifier
-   * @param limit maximum number of returned elements. Should not be greater than 10000
-   * @return slice of representation cloud identifier list from data set together with tags of the revision
-   * @throws MCSException on unexpected situations
-   */
-  @SuppressWarnings("unchecked")
-  public List<CloudTagsResponse> getRevisionsWithDeletedFlagSetToFalse(String providerId, String dataSetId,
-      String representationName,
-      String revisionName, String revisionProviderId,
-      String revisionTimestamp, int limit) throws MCSException {
-
-    ResultSlice<CloudTagsResponse> rs = manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> passLogContext(client.target(baseUrl)
-                    .path(DATA_SET_REVISIONS_RESOURCE)
-                    .resolveTemplate(PROVIDER_ID, providerId)
-                    .resolveTemplate(DATA_SET_ID, dataSetId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(REVISION_NAME, revisionName)
-                    .resolveTemplate(REVISION_PROVIDER_ID, revisionProviderId)
-                    .queryParam(F_REVISION_TIMESTAMP, revisionTimestamp)
-                    .queryParam(F_EXISTING_ONLY, true)
-                    .queryParam(F_LIMIT, limit)
-                    .request()).get()
-    );
-    return rs.getResults();
-  }
-
-  /**
-   * Retrieve chunk of cloudIds and tags from data set for specific revision.
-   *
-   * @param providerId provider identifier (required)
-   * @param dataSetId data set identifier (required)
-   * @param representationName name of the representation (required)
-   * @param revision the revision
-   * @param startFrom code pointing to the requested result slice (if equal to null, first slice is returned)
-   * @return chunk of representation cloud identifier list from data set together with tags of the revision
-   * @throws MCSException on unexpected situations
-   */
-  @SuppressWarnings("unchecked")
-  public ResultSlice<CloudTagsResponse> getDataSetRevisionsChunk(
-      String providerId, String dataSetId, String representationName,
-      Revision revision,
-      String startFrom, Integer limit) throws MCSException {
-
-    return manageResponse(new ResponseParams<>(ResultSlice.class),
-        () -> passLogContext(client.target(baseUrl)
-                    .path(DATA_SET_REVISIONS_RESOURCE)
-                    .resolveTemplate(PROVIDER_ID, providerId)
-                    .resolveTemplate(DATA_SET_ID, dataSetId)
-                    .resolveTemplate(REPRESENTATION_NAME, representationName)
-                    .resolveTemplate(REVISION_NAME, revision.getRevisionName())
-                    .resolveTemplate(REVISION_PROVIDER_ID, revision.getRevisionProviderId())
-                    .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-                    .queryParam(F_START_FROM, startFrom)
-                    .queryParam(F_LIMIT, limit != null ? limit : 0)
-                    .request()).get()
-    );
-  }
-
-  public ResultSlice<CloudTagsResponse> getDataSetRevisions(String providerId, String dataSetId, String representationName,
-      Revision revision) throws MCSException {
-    return getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, null, 0);
-  }
-
-
-  /**
-   * Lists cloudIds and tags from data set for specific revision.
-   *
-   * @param providerId provider identifier (required)
-   * @param dataSetId data set identifier (required)
-   * @param representationName name of the representation (required)
-   * @param revision the revision(required)
-   * @return chunk of representation cloud identifier list from data set together with revision tags
-   * @throws MCSException on unexpected situations
-   */
-  public List<CloudTagsResponse> getDataSetRevisionsList(
-      String providerId, String dataSetId, String representationName, Revision revision) throws MCSException {
-
-    List<CloudTagsResponse> resultList = new ArrayList<>();
-    ResultSlice<CloudTagsResponse> resultSlice;
-    String startFrom = null;
-
-    do {
-      resultSlice = getDataSetRevisionsChunk(providerId, dataSetId, representationName, revision, startFrom, null);
-      if (resultSlice == null || resultSlice.getResults() == null) {
-        throw new DriverException("Getting cloud ids and revision tags: result chunk obtained but is empty.");
-      }
-      resultList.addAll(resultSlice.getResults());
-      startFrom = resultSlice.getNextSlice();
-
-    } while (resultSlice.getNextSlice() != null);
-
-    return resultList;
   }
 
   public void updateDataSetPermissionsForUser(String providerId, String dataSetId, Permission permission,

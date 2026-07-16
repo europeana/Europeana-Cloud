@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -478,7 +477,6 @@ class IndexingBoltTest {
         put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "0");
       }
     });
-    tuple.setOutputRevision(new Revision("NAME", "PROVIDER", new Date()));
     return tuple;
   }
 

@@ -2,18 +2,20 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import eu.europeana.enrichment.rest.client.report.Report;
+import java.util.Set;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -48,7 +51,7 @@ class WriteRecordBoltTest {
     private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
     private static final UUID NEW_VERSION = UUID.fromString("2d04fbf0-e622-11eb-8000-8c50aca96d65");
     private static final String NEW_FILE_NAME = "0e7b8802-9720-379f-9abb-672abfa81076";
-    private final int TASK_ID = 1;
+    private final long TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final byte[] FILE_DATA = "Data".getBytes();
     private final int retryAttemptsCount = Optional.ofNullable(RetryableMethodExecutor.OVERRIDE_ATTEMPT_COUNT).orElse(8);
@@ -82,7 +85,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
+        prepareStormTaskTupleParameters(tuple);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
         tuple.setOutputDataset(OUTPUT_DATASET);
@@ -97,14 +100,17 @@ class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskData);
-        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(3, value.size());
+        assertEquals(TASK_ID, value.get(0));
+        Map<String, String> parameters = (Map<String, String>) value.get(1);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(NotificationParameterKeys.RESOURCE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
+        assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        Set<Report> reportSet= (Set<Report>) value.get(2);
+        assertTrue(reportSet.isEmpty());
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), eq(DATASET_NAME),
                 any(InputStream.class), eq(NEW_FILE_NAME), any());
 
@@ -118,7 +124,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
+        prepareStormTaskTupleParameters(tuple);
         tuple.setSentDate(SENT_DATE);
         tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -133,81 +139,20 @@ class WriteRecordBoltTest {
 
         writeRecordBolt.execute(anchorTuple, tuple);
 
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+        verify(outputCollector, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskData);
-        Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(3, value.size());
+        assertEquals(TASK_ID, value.get(0));
+        Map<String, String> parameters = (Map<String, String>) value.get(1);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(NotificationParameterKeys.RESOURCE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
+        assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals("true",parameters.get(PluginParameterKeys.MARKED_AS_DEPUBLISHED));
+        Set<Report> reportSet= (Set<Report>) value.get(2);
+        assertTrue(reportSet.isEmpty());
         verify(recordServiceClient).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
     }
-
-  @Test
-  public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNewRevisionTopology() throws Exception {
-      Tuple anchorTuple = mock(TupleImpl.class);
-      CommonTaskTuple tuple = new CommonTaskTuple(
-              new TaskData(TASK_ID, TASK_NAME),
-              new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-              new ProcessingData());
-      tuple.setParameters(prepareStormTaskTupleParameters());
-      tuple.setSentDate(SENT_DATE);
-      tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
-      tuple.setOutputDataset(OUTPUT_DATASET);
-      tuple.setMessageProcessingStartTimeInMs(1);
-      tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
-      when(outputCollector.emit(anyList())).thenReturn(null);
-      Representation representation = mock(Representation.class);
-      when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-              representation);
-      when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-      URI uri = new URI(SOURCE_VERSION_URL);
-      when(recordServiceClient.createRepresentation(any(), any(), any(), any(), anyString(), anyBoolean())).thenReturn(uri);
-
-      writeRecordBolt.execute(anchorTuple, tuple);
-
-      verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
-      assertThat(captor.getAllValues().size(), is(1));
-      Values value = captor.getAllValues().get(0);
-      assertEquals(6, value.size());
-      assertTrue(value.get(3) instanceof TaskData);
-      Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-      //Before it was wrong but worked due to revision being empty even though shouldnt be empty
-      assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-      verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
-  }
-
-  @Test
-  public void successfullyExecuteWriteBoltOnDeletedRecordWithRevisionOrientedProcessingOnNotNewRevisionTopology() throws Exception {
-      Tuple anchorTuple = mock(TupleImpl.class);
-      CommonTaskTuple tuple = new CommonTaskTuple(
-              new TaskData(TASK_ID, TASK_NAME),
-              new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
-              new ProcessingData());
-      tuple.setParameters(prepareStormTaskTupleParameters());
-      tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
-      tuple.setOutputDataset(OUTPUT_DATASET);
-      tuple.setSentDate(SENT_DATE);
-      tuple.setMessageProcessingStartTimeInMs(1);
-      tuple.addParameter(PluginParameterKeys.MARKED_AS_DEPUBLISHED, "true");
-      when(outputCollector.emit(anyList())).thenReturn(null);
-      Representation representation = mock(Representation.class);
-      when(recordServiceClient.getRepresentation(SOURCE + CLOUD_ID, SOURCE + REPRESENTATION_NAME, SOURCE + VERSION)).thenReturn(
-              representation);
-      when(representation.getDataProvider()).thenReturn(DATA_PROVIDER);
-      writeRecordBoltForNotNewRepresentationTopologies.execute(anchorTuple, tuple);
-
-      verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
-      assertThat(captor.getAllValues().size(), is(1));
-      Values value = captor.getAllValues().get(0);
-      assertEquals(6, value.size());
-      assertTrue(value.get(3) instanceof TaskData);
-      Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
-      //Before it was wrong but worked due to revision being empty even though shouldn't be empty
-      assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-      verify(recordServiceClient, times(0)).createRepresentation(any(), any(), any(), eq(NEW_VERSION), anyString(), anyBoolean());
-  }
 
     @Test
     void shouldRetryBeforeFailingWhenThrowingMCSException() throws Exception {
@@ -217,8 +162,7 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        prepareStormTaskTupleParameters(tuple);
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -244,8 +188,10 @@ class WriteRecordBoltTest {
                 new TaskData(TASK_ID, TASK_NAME),
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
-        tuple.setParameters(prepareStormTaskTupleParametersForRevisionOrientedProcessing());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, DateHelper.parseISODate(REVISION_TIMESTAMP)));
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
+        parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        tuple.setParameters(parameters);
         tuple.setOutputDataset(OUTPUT_DATASET);
         tuple.setSentDate(SENT_DATE);
         tuple.setMessageProcessingStartTimeInMs(1);
@@ -262,20 +208,11 @@ class WriteRecordBoltTest {
                 any());
     }
 
-    private HashMap<String, String> prepareStormTaskTupleParameters() {
+    private HashMap<String, String> prepareStormTaskTupleParameters(CommonTaskTuple tuple) {
         HashMap<String, String> parameters = new HashMap<>();
-        parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
-        parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
-        parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
+        tuple.addParameter(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
+        tuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
         return parameters;
     }
-
-  private HashMap<String, String> prepareStormTaskTupleParametersForRevisionOrientedProcessing() {
-    HashMap<String, String> parameters = new HashMap<>();
-    parameters.put(PluginParameterKeys.CLOUD_ID, SOURCE + CLOUD_ID);
-    parameters.put(PluginParameterKeys.REPRESENTATION_NAME, SOURCE + REPRESENTATION_NAME);
-    parameters.put(PluginParameterKeys.REPRESENTATION_VERSION, SOURCE + VERSION);
-    return parameters;
-  }
 
 }

@@ -5,7 +5,6 @@ import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
@@ -324,38 +323,6 @@ class RecordServiceClientTestIT {
     int index = representationURI.toString().indexOf(
         "/records/" + cloudId.getId() + "/representations/" + representationName + "/versions/");
     assertThat(index, not(-1));
-  }
-
-  @Test
-  void getRepresentationsByRevision() throws MCSException {
-    String cloudId = "<enter_cloud_id_here>";
-    String representationName = "<enter_representation_name_here>";
-    String revisionName = "<enter_revision_name_here>";
-    String revisionProviderId = "<enter_revision_provider_id_here>";
-    String revisionTimestamp = "<enter_revision_timestamp_here[YYYY-MM-ddThh:mm:ss.sss]>";
-
-    RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-    List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName,
-            new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
-
-    assertNotNull(representations);
-  }
-
-  @Test
-  void getRepresentationsByRevisionRealData() throws MCSException {
-    String cloudId = "222B5I4VPV3XN43PZMD2UHC6NPA6B2ZY7ZRPQV2UUVXRHFDALXEA";
-    String representationName = "metadataRecord";
-    String revisionName = "VALIDATION_EXTERNAL";
-    String revisionProviderId = "metis_acceptance";
-    String revisionTimestamp = "2019-09-26T16:30:04.972";
-
-    RecordServiceClient mcsClient = new RecordServiceClient(LOCAL_TEST_URL, USER_NAME, USER_PASSWORD);
-    List<Representation> representations = mcsClient.getRepresentationsByRevision(cloudId, representationName,
-            new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
-
-    assertNotNull(representations);
-    assertTrue(representations.size() > 0);
-    assertThat(representations.get(0).getCloudId(), is(cloudId));
   }
 
 }

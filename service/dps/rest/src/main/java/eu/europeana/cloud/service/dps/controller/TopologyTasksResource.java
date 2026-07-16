@@ -1,7 +1,12 @@
 package eu.europeana.cloud.service.dps.controller;
 
+import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEXT_ATTR;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
 import eu.europeana.cloud.service.dps.exception.AccessDeniedOrObjectDoesNotExistException;
@@ -18,6 +23,7 @@ import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -26,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -45,23 +52,28 @@ public class TopologyTasksResource {
 
   public static final String TASK_PREFIX = "DPS_Task";
 
-  @Autowired
-  private TaskExecutionReportService reportService;
+  private final TaskExecutionReportService reportService;
 
-  @Autowired
-  private PermissionManager permissionManager;
+  private final PermissionManager permissionManager;
 
-  @Autowired
-  private CassandraTaskInfoDAO taskInfoDAO;
+  private final CassandraTaskInfoDAO taskInfoDAO;
 
-  @Autowired
-  private TaskStatusUpdater taskStatusUpdater;
+  private final TaskStatusUpdater taskStatusUpdater;
 
-  @Autowired
-  private SubmitTaskService submitTaskService;
+  private final SubmitTaskService submitTaskService;
 
-  @Autowired
-  private TaskSubmissionValidator taskSubmissionValidator;
+  private final TaskSubmissionValidator taskSubmissionValidator;
+
+  public TopologyTasksResource(TaskExecutionReportService reportService, PermissionManager permissionManager,
+      CassandraTaskInfoDAO taskInfoDAO, TaskStatusUpdater taskStatusUpdater, SubmitTaskService submitTaskService,
+      TaskSubmissionValidator taskSubmissionValidator) {
+    this.reportService = reportService;
+    this.permissionManager = permissionManager;
+    this.taskInfoDAO = taskInfoDAO;
+    this.taskStatusUpdater = taskStatusUpdater;
+    this.submitTaskService = submitTaskService;
+    this.taskSubmissionValidator = taskSubmissionValidator;
+  }
 
   /**
    * Retrieves the current progress for the requested task.
@@ -94,51 +106,6 @@ public class TopologyTasksResource {
     TaskInfo taskProgress = reportService.getTaskProgress(taskId);
     LOGGER.info("Following task progress will be sent to user: {}", taskProgress);
     return taskProgress;
-  }
-
-  /**
-   * Submits a Task for execution. Each Task execution is associated with a specific plugin.
-   * <p/>
-   * <strong>Write permissions required</strong>.
-   *
-   * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data, either in form of
-   * cloud-records or cloud-datasets.
-   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-   * @return URI with information about the submitted task execution.
-   * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
-   * user
-   */
-  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
-  @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-  public ResponseEntity<Void> submitTask(
-      final HttpServletRequest request,
-      @RequestBody @AddTaskIdToLoggingContext final DpsTask task,
-      @PathVariable("topologyName") final String topologyName
-  ) throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-    return doSubmitTask(request, task, topologyName, false);
-  }
-
-  /**
-   * Restarts a Task for execution. Each Task execution is associated with a specific plugin.
-   * <p/>
-   * <strong>Write permissions required</strong>.
-   *
-   * @param taskId <strong>REQUIRED</strong> Task identifier to be processed.
-   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
-   * @return URI with information about the submitted task execution.
-   * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
-   * user
-   */
-  @PostMapping(path = "{taskId}/restart", consumes = {MediaType.APPLICATION_JSON_VALUE})
-  @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
-  public ResponseEntity<Void> restartTask(
-      final HttpServletRequest request,
-      @PathVariable("taskId") @AddTaskIdToLoggingContext final Long taskId,
-      @PathVariable("topologyName") final String topologyName
-  ) throws TaskInfoDoesNotExistException, AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-    var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
-    var task = DpsTask.fromTaskInfo(taskInfo);
-    return doSubmitTask(request, task, topologyName, true);
   }
 
   /**
@@ -210,89 +177,164 @@ public class TopologyTasksResource {
   }
 
   /**
-   * Common method for submit/restart task. Mode is given in restart parameter
+   * Creates new task instance based on task parameters, but without starting it. Each Task is associated with a specific plugin.
+   * <p/>
+   * <strong>Write permissions required</strong>.
    *
-   * @param task Task to process to
-   * @param topologyName Name of processing topology
-   * @param restart Mode (submit = <code>false</code> / restart = <code>true</code>) flag
-   * @return Respons for rest call
-   * @throws AccessDeniedOrTopologyDoesNotExistException Throws if access is denied or topology does not exist
+   * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data, either in form of
+   * cloud-records or cloud-datasets.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @return URI with information about the submitted task execution.
+   * @throws AccessDeniedOrTopologyDoesNotExistException if topology does not exist or access to the topology is denied for the
    * @throws DpsTaskValidationException Throws if some validation error occurred
    * @throws IOException Just IOException
    */
-  private ResponseEntity<Void> doSubmitTask(
+  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+  public ResponseEntity<DpsTask> createTask(
       final HttpServletRequest request,
-      final DpsTask task, final String topologyName,
-      final boolean restart)
-      throws AccessDeniedOrTopologyDoesNotExistException, DpsTaskValidationException, IOException {
-
-    ResponseEntity<Void> result;
-
-    if (task != null) {
-      LOGGER.info(!restart ? "Submitting task: {}" : "Restarting task: {}", task);
-
-      Date sentTime = new Date();
-
-      var taskJSON = task.toJSON();
-      SubmitTaskParameters parameters = SubmitTaskParameters.builder()
-              .taskInfo(
-                      TaskInfo.builder()
-                              .id(task.getTaskId())
-                              .topologyName(topologyName)
-                              .state(EngineTaskState.PROCESSING_BY_REST_APPLICATION)
-                              .stateDescription(
-                                      "The task is in a pending mode, it is being processed before submission")
-                              .sentTimestamp(new Date())
-                              .finishTimestamp(null)
-                              .expectedRecords(
-                                      TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
-                              .successRecords(0)
-                              .warningRecords(0)
-                              .failRecords(0)
-                              .duplicateRecords(0)
-                              .duplicateRecords(0)
-                              .unchangedRecords(0)
-                              .processedRecords(0)
-                              .postProcessedRecords(0)
-                              .expectedPostProcessedRecords(TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
-                              .successDepublishRecords(0)
-                              .failDepublishRecords(0)
-                              .processedDepublishRecords(0)
-                              .definition(taskJSON)
-                              .build()
-                                                            )
-                                                            .task(task)
-                                                            .restarted(restart).build();
-      try {
-        taskStatusUpdater.insertTask(parameters);
-        taskSubmissionValidator.validateTaskSubmission(parameters);
-        permissionManager.grantPermissionsForTask(String.valueOf(task.getTaskId()));
-        submitTaskService.submitTask(parameters);
-        var responseURI = buildTaskURI(request, task);
-        result = ResponseEntity.created(responseURI).build();
-      } catch (DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
-        taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), e.getMessage());
-        throw e;
-      } catch (Exception e) {
-        result = handleFailedSubmission(e, "Task submission failed. Internal server error.", parameters);
-      }
-    } else {
-      LOGGER.error("Task submission failed. Internal server error. DpsTask task is null.");
-      result = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      @RequestBody final CreateDpsTaskRequest task,
+      @PathVariable("topologyName") final String topologyName)
+      throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException {
+    LOGGER.info("Creating task: {}", task);
+    long taskId = createRandomTaskId();
+    MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(taskId));
+    try {
+      SubmitTaskParameters parameters = createTaskInDB(task, taskId, topologyName);
+      return validateTask(request, task, taskId, parameters);
+    } catch (DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
+      LOGGER.error("Error validating task: {}", task, e);
+      taskStatusUpdater.updateState(taskId, EngineTaskState.INVALID, e.getMessage());
+      throw e;
+    } catch (Exception e) {
+      return handleFailedSubmission(e, "Task submission failed. Internal server error.", taskId);
+    } finally {
+      MDC.remove(TASK_ID_CONTEXT_ATTR);
     }
+  }
 
+  private SubmitTaskParameters createTaskInDB(CreateDpsTaskRequest task, long taskId, String topologyName)
+      throws IOException {
+    var taskJSON = task.toJSON();
+    SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                                                          .taskInfo(
+                                                              TaskInfo.builder()
+                                                                      .id(taskId)
+                                                                      .topologyName(topologyName)
+                                                                      .state(EngineTaskState.RECEIVED)
+                                                                      .stateDescription(
+                                                                          "The task has been created, but not started yet")
+                                                                      .sentTimestamp(new Date())
+                                                                      .finishTimestamp(null)
+                                                                      .expectedRecords(
+                                                                          TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
+                                                                      .successRecords(0)
+                                                                      .warningRecords(0)
+                                                                      .failRecords(0)
+                                                                      .duplicateRecords(0)
+                                                                      .duplicateRecords(0)
+                                                                      .unchangedRecords(0)
+                                                                      .processedRecords(0)
+                                                                      .postProcessedRecords(0)
+                                                                      .expectedPostProcessedRecords(
+                                                                          TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER)
+                                                                      .successDepublishRecords(0)
+                                                                      .failDepublishRecords(0)
+                                                                      .processedDepublishRecords(0)
+                                                                      .definition(taskJSON)
+                                                                      .build()
+                                                          )
+                                                          .build();
+
+    taskStatusUpdater.insertTask(parameters);
+    permissionManager.grantPermissionsForTask(String.valueOf(taskId));
+    LOGGER.info("Saved received task: {} parameters in DB and added permissions.", task);
+    return parameters;
+  }
+
+  private ResponseEntity<DpsTask> validateTask(HttpServletRequest request, CreateDpsTaskRequest task,
+      long taskId, SubmitTaskParameters parameters)
+      throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, JsonProcessingException {
+
+    taskSubmissionValidator.validateTaskSubmission(task, parameters.getTaskInfo().getTopologyName());
+    parameters.setTask(createDpsTask(task, taskId));
+    parameters.getTaskInfo().setDefinition(parameters.getTask().toJSON());
+    parameters.getTaskInfo().setEngineTaskState(EngineTaskState.CREATED);
+    var responseURI = buildTaskURI(request, taskId);
+    ResponseEntity<DpsTask> result = ResponseEntity.created(responseURI).body(parameters.getTask());
+    taskStatusUpdater.insertTask(parameters);
+
+    LOGGER.info("Created task: {}", parameters.getTask());
     return result;
   }
 
-  private ResponseEntity<Void> handleFailedSubmission(Exception exception, String loggedMessage,
-      SubmitTaskParameters parameters) {
-    LOGGER.error(loggedMessage);
-    taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), exception.getMessage());
+  private DpsTask createDpsTask(CreateDpsTaskRequest createTaskRequest, long taskId) {
+    var dpsTask = new DpsTask();
+    dpsTask.setSource(createTaskRequest.getSource());
+    if (createTaskRequest.getResultsProvider() != null) {
+      dpsTask.setResultsBatch(
+          BatchInfo.builder().providerId(createTaskRequest.getResultsProvider()).batchId(String.valueOf(taskId)).build());
+    }
+    dpsTask.setParameters(createTaskRequest.getParameters());
+    dpsTask.setTaskId(taskId);
+    return dpsTask;
+  }
+
+
+  /**
+   * Starts the task. The method is idempotent, could be run multiple times one by one, if task is already started it has no
+   * effects. However, should not be executed at the same time for the same task id, because there is no protection against
+   * parallel execution of the same task.
+   * <p>
+   * <p/>
+   * <strong>Write permissions required</strong>.
+   *
+   * @param taskId <strong>REQUIRED</strong> Task identifier to be processed.
+   * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
+   * @throws TaskInfoDoesNotExistException if topology does not exist or access to the topology is denied for the
+   * @throws IOException if case of problems with task entity deserialization user
+   */
+  @PutMapping(path = "{taskId}/started", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void startTask(@PathVariable("taskId") @AddTaskIdToLoggingContext final Long taskId,
+      @PathVariable("topologyName") final String topologyName
+  ) throws TaskInfoDoesNotExistException, IOException {
+
+    var taskInfo = taskInfoDAO.findById(taskId).orElseThrow(TaskInfoDoesNotExistException::new);
+    if (taskInfo.getEngineTaskState().wasNotProperlyCreated()) {
+      LOGGER.warn("Topology: {} task: {} could not be started because it was not created properly!",
+          topologyName, taskId);
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Task could not be started because it was not created properly");
+    } else if (taskInfo.getEngineTaskState() != EngineTaskState.CREATED) {
+      LOGGER.info("Topology: {} task: {} is already started.", topologyName, taskId);
+      return;
+    }
+
+    var dpsTask = DpsTask.fromTaskInfo(taskInfo);
+    taskInfo.setStartTimestamp(new Date());
+    taskInfo.setEngineTaskState(EngineTaskState.PROCESSING_BY_REST_APPLICATION);
+    SubmitTaskParameters parameters = SubmitTaskParameters.builder()
+                                                          .taskInfo(taskInfo)
+                                                          .task(dpsTask)
+                                                          .build();
+    taskStatusUpdater.insertTask(parameters);
+    submitTaskService.submitTask(parameters);
+    LOGGER.info("Topology: {} task: {} started execution.", topologyName, taskId);
+  }
+
+  private static long createRandomTaskId() {
+    return (long) (Math.random() * Long.MAX_VALUE);
+  }
+
+  private ResponseEntity<DpsTask> handleFailedSubmission(Exception exception, String loggedMessage, long taskId) {
+    LOGGER.error(loggedMessage, exception);
+    taskStatusUpdater.setTaskDropped(taskId, exception.getMessage());
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
   }
 
-  private URI buildTaskURI(HttpServletRequest httpServletRequest, DpsTask task) {
+  private URI buildTaskURI(HttpServletRequest httpServletRequest, long taskId) {
     HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
-    return UriComponentsBuilder.fromUri(httpRequest.getURI()).pathSegment(String.valueOf(task.getTaskId())).build().toUri();
+    return UriComponentsBuilder.fromUri(httpRequest.getURI()).pathSegment(String.valueOf(taskId)).build().toUri();
   }
 }

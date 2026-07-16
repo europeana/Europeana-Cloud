@@ -63,13 +63,11 @@ public final class TopologyPropertiesValidator {
     validateRequiredInt(properties, RECORD_HARVESTING_BOLT_PARALLEL);
     validateRequiredInt(properties, CATEGORIZATION_BOLT_PARALLEL);
     validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
     validateRequiredInt(properties, DUPLICATES_BOLT_PARALLEL);
 
     validateRequiredInt(properties, RECORD_HARVESTING_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, CATEGORIZATION_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, DUPLICATES_BOLT_NUMBER_OF_TASKS);
   }
 
@@ -81,12 +79,10 @@ public final class TopologyPropertiesValidator {
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, XSLT_BOLT_PARALLEL);
     validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, XSLT_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
   }
 
   private static void validateValidationTopology(Properties properties) {
@@ -96,11 +92,9 @@ public final class TopologyPropertiesValidator {
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, VALIDATION_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
     validateRequiredInt(properties, STATISTICS_BOLT_PARALLEL);
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, VALIDATION_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, STATISTICS_BOLT_NUMBER_OF_TASKS);
   }
 
@@ -112,12 +106,10 @@ public final class TopologyPropertiesValidator {
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, NORMALIZATION_BOLT_PARALLEL);
     validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, NORMALIZATION_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
   }
 
   private static void validateEnrichmentTopology(Properties properties) {
@@ -128,12 +120,10 @@ public final class TopologyPropertiesValidator {
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, ENRICHMENT_BOLT_PARALLEL);
     validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, ENRICHMENT_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
 
     validateRequired(properties, DEREFERENCE_SERVICE_URL);
     validateRequired(properties, ENRICHMENT_ENTITY_MANAGEMENT_URL);
@@ -153,14 +143,12 @@ public final class TopologyPropertiesValidator {
     validateRequiredInt(properties, RESOURCE_PROCESSING_BOLT_PARALLEL);
     validateRequiredInt(properties, EDM_ENRICHMENT_BOLT_PARALLEL);
     validateRequiredInt(properties, WRITE_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
     validateRequiredInt(properties, EDM_OBJECT_PROCESSOR_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, RESOURCE_PROCESSING_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, EDM_ENRICHMENT_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, WRITE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
 
     validateRequired(properties, AWS_CREDENTIALS_ACCESSKEY);
     validateRequired(properties, AWS_CREDENTIALS_SECRETKEY);
@@ -176,11 +164,9 @@ public final class TopologyPropertiesValidator {
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, INDEXING_BOLT_PARALLEL);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_PARALLEL);
 
     validateRequiredInt(properties, INDEXING_BOLT_NUMBER_OF_TASKS);
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS);
-    validateRequiredInt(properties, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
   }
 
   private static void validateDepublicationTopology(Properties properties) {

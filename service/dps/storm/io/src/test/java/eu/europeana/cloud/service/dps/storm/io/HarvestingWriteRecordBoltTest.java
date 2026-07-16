@@ -4,7 +4,6 @@ import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.response.ErrorInfo;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -13,12 +12,16 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.NotificationParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.uis.exception.RecordDoesNotExistException;
+import eu.europeana.enrichment.rest.client.report.Report;
+import java.util.Map;
+import java.util.Set;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -42,6 +45,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
+import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -52,7 +56,7 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class HarvestingWriteRecordBoltTest {
 
-    private final int TASK_ID = 1;
+    private final long TASK_ID = 1;
     private final String TASK_NAME = "TASK_NAME";
     private final byte[] FILE_DATA = "Data".getBytes();
     private static final String SENT_DATE = "2021-07-16T10:40:02.351Z";
@@ -101,21 +105,23 @@ class HarvestingWriteRecordBoltTest {
                 new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
+        tuple.setOutputDatasetProvider(DATA_PROVIDER);
         tuple.setOutputDataset(OUTPUT_DATASET);
+        tuple.setOutputRepresentationName(REPRESENTATION_NAME);
         tuple.setSentDate(SENT_DATE);
-        tuple.setOutputRevision(new Revision());
         return tuple;
     }
 
     private CommonTaskTuple getStormTaskTupleWithAdditionalLocalIdParam() {
         CommonTaskTuple tuple = new CommonTaskTuple(
                 new TaskData(TASK_ID, "sampleTaskName"),
-                new RecordData(SOURCE + LOCAL_ID, FILE_DATA),
+                new RecordData(SOURCE_VERSION_URL, FILE_DATA),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
         tuple.setSentDate(SENT_DATE);
-        tuple.setOutputRevision(new Revision());
+        tuple.setOutputDatasetProvider(DATA_PROVIDER);
         tuple.setOutputDataset(OUTPUT_DATASET);
+        tuple.setOutputRepresentationName(REPRESENTATION_NAME);
         tuple.addParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER, "additionalLocalIdentifier");
         return tuple;
     }
@@ -133,7 +139,7 @@ class HarvestingWriteRecordBoltTest {
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
-        assertExecutionResults();
+        assertExecutionResults(false);
 
     }
 
@@ -150,7 +156,7 @@ class HarvestingWriteRecordBoltTest {
         commonTaskTuple.setMarkedAsDepublished(true);
         oaiWriteRecordBoltT.execute(anchorTuple, commonTaskTuple);
 
-        assertExecutionResults();
+        assertExecutionResults(true);
 
     }
 
@@ -214,7 +220,7 @@ class HarvestingWriteRecordBoltTest {
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTuple());
 
-        assertExecutionResults();
+        assertExecutionResults(false);
 
 
     }
@@ -234,7 +240,7 @@ class HarvestingWriteRecordBoltTest {
 
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
-        assertExecutionResults();
+        assertExecutionResults(false);
 
     }
 
@@ -255,7 +261,7 @@ class HarvestingWriteRecordBoltTest {
         oaiWriteRecordBoltT.execute(anchorTuple, getStormTaskTupleWithAdditionalLocalIdParam());
 
         //then
-        assertExecutionResults();
+        assertExecutionResults(false);
     }
 
     @Test
@@ -283,20 +289,27 @@ class HarvestingWriteRecordBoltTest {
     private HashMap<String, String> prepareStormTaskTupleParameters() {
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put(PluginParameterKeys.EUROPEANA_ID, SOURCE + LOCAL_ID);
-        parameters.put(PluginParameterKeys.PROVIDER_ID, SOURCE + DATA_PROVIDER);
         parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, new Date().getTime() + "");
         return parameters;
     }
 
-    private void assertExecutionResults() {
-        verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
+    private void assertExecutionResults(boolean markedDepublished) {
+        verify(outputCollector, times(1)).emit(eq(NOTIFICATION_STREAM_NAME), any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
-        assertTrue(value.get(3) instanceof TaskData);
-        var parameters = ((TaskData) value.get(3)).getParameters();
-        assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
-        assertEquals(SOURCE_VERSION_URL, parameters.get(PluginParameterKeys.OUTPUT_URL));
+        assertEquals(3, value.size());
+        assertEquals(TASK_ID, value.get(0));
+        Map<String, String> parameters = (Map<String, String>) value.get(1);
+        assertEquals(SOURCE_VERSION_URL, parameters.get(NotificationParameterKeys.RESOURCE));
+        assertNull(parameters.get(PluginParameterKeys.RESOURCE_URL));
+        assertNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
+        if(markedDepublished)   {
+            assertEquals("true",parameters.get(PluginParameterKeys.MARKED_AS_DEPUBLISHED));
+        }else{
+            assertNull(parameters.get(PluginParameterKeys.MARKED_AS_DEPUBLISHED));
+        }
+        Set<Report> reportSet= (Set<Report>) value.get(2);
+        assertTrue(reportSet.isEmpty());
     }
 }
 

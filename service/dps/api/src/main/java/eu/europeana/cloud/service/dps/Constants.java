@@ -8,6 +8,8 @@ public final class Constants {
    */
   public static final int MAXIMUM_ERRORS_THRESHOLD_FOR_ONE_ERROR_TYPE = 100;
 
+  public static final String DPS_REPRESENTATION_NAME = "metadataRecord";
+
   private Constants() {
   }
 

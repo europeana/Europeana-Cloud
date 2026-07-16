@@ -4,7 +4,6 @@ import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,26 +85,6 @@ public final class EnrichUriUtil {
     properties.setProperty(DATA_SET_ID, dataSet.getId());
 
     dataSet.setUri(createURI(httpServletRequest, DATA_SET_RESOURCE, properties));
-  }
-
-  /**
-   * Enriches the response with valid URIs (the URI is dependent on servlet request headers).
-   *
-   * @param httpServletRequest - request object
-   * @param response - enriched response
-   */
-  public static void enrich(HttpServletRequest httpServletRequest, RepresentationRevisionResponse response) {
-    Properties properties = new Properties();
-    properties.setProperty(CLOUD_ID, response.getCloudId());
-    properties.setProperty(REPRESENTATION_NAME, response.getRepresentationName());
-    properties.setProperty(VERSION, response.getVersion());
-    response.setRepresentationVersionUri(createURI(httpServletRequest, REPRESENTATION_VERSION, properties));
-    if (response.getFiles() != null) {
-      for (File file : response.getFiles()) {
-        EnrichUriUtil.enrich(httpServletRequest, response.getCloudId(), response.getRepresentationName(),
-            response.getVersion(), file);
-      }
-    }
   }
 
   private static URI createURI(HttpServletRequest httpServletRequest, String path, Properties properties) {

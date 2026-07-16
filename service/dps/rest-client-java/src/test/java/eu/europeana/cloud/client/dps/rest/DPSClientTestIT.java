@@ -1,9 +1,9 @@
 package eu.europeana.cloud.client.dps.rest;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.*;
+import eu.europeana.cloud.service.dps.BatchInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import org.junit.jupiter.api.Disabled;
@@ -11,11 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static eu.europeana.cloud.service.dps.InputDataType.DATASET_URLS;
-import static eu.europeana.cloud.service.dps.InputDataType.REPOSITORY_URLS;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * This class was made with intention to have easy way to run rest requests to DPS application.<br/> This is intentionally
@@ -32,17 +30,16 @@ class DPSClientTestIT {
   @Test
   void submitOaiTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
-    DpsTask task = new DpsTask();
-    Map<InputDataType, List<String>> inputData = new HashMap<>();
-    inputData.put(REPOSITORY_URLS, Collections.singletonList("http://test117.ait.co.at/oai-provider-edm/oai/"));
-    task.setInputData(inputData);
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
     task.addParameter("PROVIDER_ID", "metis_test5");
     OAIPMHHarvestingDetails details = new OAIPMHHarvestingDetails();
+    details.setRepositoryUrl("http://test117.ait.co.at/oai-provider-edm/oai/");
     details.setSchema("edm");
     details.setSet("ZFMK");
-    task.setHarvestingDetails(details);
-    long id = client.submitTask(task, "oai_topology");
-    assertTrue(id != 0);
+    task.setSource(details);
+    DpsTask resultTask = client.createTask(task, "oai_topology");
+    long id = resultTask.getTaskId();
+    assertNotEquals(0, id);
 
     TaskInfo taskProgress = client.getTaskProgress("oai_topology", id);
     assertThat(taskProgress.getId(), is(id));
@@ -51,26 +48,18 @@ class DPSClientTestIT {
   @Test
   void submitValidationTask() throws DpsException {
     DpsClient client = new DpsClient(DPS_LOCATION, USER, PASSWORD);
-    DpsTask task = new DpsTask();
-    Map<InputDataType, List<String>> inputData = new HashMap<>();
-    inputData.put(DATASET_URLS, Collections.singletonList(
-            "https://test-cloud.europeana.eu/api/data-providers/metis_test5/data-sets/f1ffd107-bf85-4a4f-948f-2a8e70ba6b82"));
-    task.setInputData(inputData);
-    task.addParameter("REPRESENTATION_NAME", "metadataRecord");
+    CreateDpsTaskRequest task = new CreateDpsTaskRequest();
+    BatchInfo inputData = BatchInfo.builder().providerId("metis_test5")
+                                             .batchId("f1ffd107-bf85-4a4f-948f-2a8e70ba6b82")
+                                             .build();
+
+    task.setSource(inputData);
     task.addParameter("SCHEMA_NAME", "EDM-EXTERNAL");
-    task.addParameter("NEW_REPRESENTATION_NAME", "metadataRecord");
-    task.addParameter("REVISION_NAME", "OAIPMH_HARVEST");
-    task.addParameter("REVISION_PROVIDER", "metis_test5");
-    task.addParameter("REVISION_TIMESTAMP", "2018-01-31T11:33:30.842+01:00");
+    task.setResultsProvider("metis_test5");
     //
-    Revision outputRevision = new Revision();
-    outputRevision.setRevisionName("VALIDATION_EXTERNAL_TEST");
-    outputRevision.setRevisionProviderId("metis_test5");
-    outputRevision.setCreationTimeStamp(new Date());
-    task.setOutputRevision(outputRevision);
-    //
-    long id = client.submitTask(task, "validation_topology");
-    assertTrue(id != 0);
+    DpsTask resultTask = client.createTask(task, "validation_topology");
+    long id = resultTask.getTaskId();
+    assertNotEquals(0, id);
 
     TaskInfo taskProgress = client.getTaskProgress("validation_topology", id);
     assertThat(taskProgress.getId(), is(id));

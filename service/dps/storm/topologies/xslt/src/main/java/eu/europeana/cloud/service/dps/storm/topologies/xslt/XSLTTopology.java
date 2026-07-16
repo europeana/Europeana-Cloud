@@ -41,7 +41,6 @@ public class XSLTTopology {
             .addBolt(XSLT_BOLT, new XsltBolt(createCassandraProperties(topologyProperties)),
                     XSLT_BOLT_PARALLEL, XSLT_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(true)
-        .addRevisionWriterBolt()
         .buildTopology();
   }
 

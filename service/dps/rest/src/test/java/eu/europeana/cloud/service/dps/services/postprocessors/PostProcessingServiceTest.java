@@ -35,7 +35,7 @@ class PostProcessingServiceTest {
   private final TaskByTaskState TASK_BY_TASK_STATE_2
           = TaskByTaskState.builder().id(TASK_ID_2).topologyName("UNKNOWN_TOPOLOGY").build();
 
-  private final String TASK_DETAILS_PATTERN = "{\"inputData\":{\"DATASET_URLS\":[\"http://a.b.c/d/e/f\"]}, \"taskId\":%s}";
+  private final String TASK_DETAILS_PATTERN = "{\"taskId\":%s}";
 
 
   @Mock

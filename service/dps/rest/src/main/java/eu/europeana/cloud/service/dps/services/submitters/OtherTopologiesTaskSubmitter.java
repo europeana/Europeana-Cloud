@@ -18,20 +18,21 @@ public class OtherTopologiesTaskSubmitter extends AbstractTaskSubmitter implemen
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OtherTopologiesTaskSubmitter.class);
 
-  @Autowired
-  private KafkaTopicSelector kafkaTopicSelector;
+  private final KafkaTopicSelector kafkaTopicSelector;
 
-  @Autowired
-  private FilesCounterFactory filesCounterFactory;
+  private final FilesCounterFactory filesCounterFactory;
 
-  @Autowired
-  private TaskStatusUpdater taskStatusUpdater;
+  private final TaskStatusUpdater taskStatusUpdater;
 
-  @Autowired
-  private MCSTaskSubmitter mcsTaskSubmitter;
+  private final MCSTaskSubmitter mcsTaskSubmitter;
 
-  public OtherTopologiesTaskSubmitter(DataSetServiceClient dataSetServiceClient) {
+  public OtherTopologiesTaskSubmitter(DataSetServiceClient dataSetServiceClient, KafkaTopicSelector kafkaTopicSelector,
+      FilesCounterFactory filesCounterFactory, TaskStatusUpdater taskStatusUpdater, MCSTaskSubmitter mcsTaskSubmitter) {
     super(dataSetServiceClient);
+    this.kafkaTopicSelector = kafkaTopicSelector;
+    this.filesCounterFactory = filesCounterFactory;
+    this.taskStatusUpdater = taskStatusUpdater;
+    this.mcsTaskSubmitter = mcsTaskSubmitter;
   }
 
   @Override

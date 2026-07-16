@@ -104,20 +104,21 @@ public class ECloudTopologyPipeline {
   }
 
   /**
-   * Adds RevisionWriterBolt to the pipeline
+   * Adds {@link ValidationWriteRecordBolt} to the pipeline
+   *
    * @return this
    */
-  public ECloudTopologyPipeline addRevisionWriterBolt() {
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
+  public ECloudTopologyPipeline addValidationWriteRecordBolt() {
+    WriteRecordBolt writeRecordBolt = new ValidationWriteRecordBolt(
         createCassandraProperties(topologyProperties),
         topologyProperties.getProperty(MCS_URL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
-
-    addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
+        false
+    );
+    addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;
   }
-
 
   /**
    * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.

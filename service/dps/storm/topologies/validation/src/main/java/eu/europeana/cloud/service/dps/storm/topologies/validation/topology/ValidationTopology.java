@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology;
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.DuplicatedRecordsProcessorBolt;
-import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.RevisionWriterBoltForValidation;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.StatisticsBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts.ValidationBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
@@ -50,13 +49,7 @@ public class ValidationTopology {
                             topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME), topologyProperties.getProperty(CASSANDRA_USERNAME),
                             topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                     STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
-            .addWriteRecordBolt(false)
-            .addBolt(REVISION_WRITER_BOLT, new RevisionWriterBoltForValidation(
-                            createCassandraProperties(topologyProperties),
-                            topologyProperties.getProperty(MCS_URL),
-                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)),
-                    REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS)
+            .addValidationWriteRecordBolt()
             .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                     createCassandraProperties(topologyProperties),
                     topologyProperties.getProperty(MCS_URL),

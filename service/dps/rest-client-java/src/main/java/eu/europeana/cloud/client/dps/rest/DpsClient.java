@@ -9,6 +9,7 @@ import static eu.europeana.cloud.service.dps.RestInterfaceConstants.IDS_COUNT;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.KILL_TASK_URL;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASET_PUBLISHED_RECORDS_SEARCH;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.PERMIT_TOPOLOGY_URL;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.START_TASK_URL;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.STATISTICS_REPORT_URL;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASKS_URL;
 import static eu.europeana.cloud.service.dps.RestInterfaceConstants.TASK_CLEAN_DATASET_URL;
@@ -24,6 +25,7 @@ import eu.europeana.cloud.common.model.dps.SubTaskInfo;
 import eu.europeana.cloud.common.model.dps.TaskErrorsInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.response.ErrorInfo;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.RestInterfaceConstants;
 import eu.europeana.cloud.service.dps.exception.DPSClientException;
@@ -31,6 +33,7 @@ import eu.europeana.cloud.service.dps.exception.DPSExceptionProvider;
 import eu.europeana.cloud.service.dps.exception.DpsException;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
+import jakarta.ws.rs.core.Response.Status;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
@@ -127,19 +130,28 @@ public class DpsClient implements AutoCloseable {
   }
 
   /**
-   * Submits a task for execution in the specified topology.
+   * Creates a task for the specified topology on server.
    */
-  public long submitTask(DpsTask task, String topologyName) throws DpsException {
-    URI uri = manageResponse(
-        new ResponseParams<>(URI.class, Response.Status.CREATED),
+  public DpsTask createTask(CreateDpsTaskRequest task, String topologyName) throws DpsException {
+    return manageResponse(
+        new ResponseParams<>(DpsTask.class, Response.Status.CREATED),
         () -> client.target(dpsUrl)
                     .path(TASKS_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)
                     .request()
-                    .post(Entity.json(task)), "Submit Task Was not successful"
+                    .post(Entity.json(task)), "Creating Task Was not successful"
     );
+  }
 
-    return getTaskId(uri);
+  public void startTask(final String topologyName, final long taskId) throws DpsException {
+    manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
+        () -> client
+            .target(dpsUrl)
+            .path(START_TASK_URL)
+            .resolveTemplate(TOPOLOGY_NAME, topologyName)
+            .resolveTemplate(TASK_ID, taskId)
+            .request().put(Entity.json("")),
+        "Starting task was not successful");
   }
 
   /**
@@ -338,11 +350,6 @@ public class DpsClient implements AutoCloseable {
   @Override
   public void close() {
     client.close();
-  }
-
-  private long getTaskId(URI uri) {
-    String[] elements = uri.getRawPath().split("/");
-    return Long.parseLong(elements[elements.length - 1]);
   }
 
   private <T> T manageResponse(ResponseParams<T> responseParameters, Supplier<Response> responseSupplier, String errorMessage)

@@ -1,11 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -23,7 +20,7 @@ import java.util.List;
 
 /**
  * Bolt that will check if there are duplicates in harvested records.</br> Duplicates, in this context, are representation
- * versions that have the same cloud_id, representation name and revision</br>
+ * versions that have the same cloud_id, representation name</br>
  * <p>In case of duplicate detection current representation version is removed from the system and error is reported.</p>
  */
 public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
@@ -31,7 +28,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
   private transient RecordServiceClient recordServiceClient;
-  private transient RevisionServiceClient revisionServiceClient;
   private final String ecloudMcsAddress;
   private final String ecloudMcsUser;
   private final String ecloudMcsUserPassword;
@@ -61,7 +57,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   @Override
   public void prepare() {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
-    revisionServiceClient = new RevisionServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   @Override
@@ -69,16 +64,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     LOGGER.info("Checking duplicates for record url '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
       try {
         Representation representation = extractRepresentationInfoFromTuple(tuple);
-      Revision revision = tuple.getOutputRevision();
-        // Based on processing mode we either look for representation with same revisions or representations with same versions
-        if (revision != null) {
-            if (detectAndHandleDuplicatesInRevisionBasedProcessing(anchorTuple, tuple, representation, revision)) {
-            return;
-            }
-        } else {
-            if (detectAndHandleDuplicatesInRepresentationBasedProcessing(anchorTuple, tuple, representation)) {
-            return;
-            }
+        if (detectAndHandleDuplicates(anchorTuple, tuple, representation)) {
+          return;
         }
         emitSuccessNotification(anchorTuple, tuple, "", "");
         LOGGER.info("Checking duplicates finished for record url '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
@@ -93,7 +80,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     outputCollector.ack(anchorTuple);
   }
 
-  private boolean detectAndHandleDuplicatesInRepresentationBasedProcessing(Tuple anchorTuple, CommonTaskTuple tuple,
+  private boolean detectAndHandleDuplicates(Tuple anchorTuple, CommonTaskTuple tuple,
                                                                            Representation representation) throws MCSException {
     List<Representation> representations = findAllRepresentationWithSameCloudId(representation);
     if (representationsWithSameCloudIdExist(representations)) {
@@ -110,31 +97,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
                     representation.getDataProvider().equals(rep.getDataProvider())).toList();
   }
 
-  private boolean detectAndHandleDuplicatesInRevisionBasedProcessing(Tuple anchorTuple, CommonTaskTuple tuple,
-                                                                     Representation representation, Revision revision) throws MCSException {
-    List<RepresentationRevisionResponse> representationRevisions = findRepresentationsWithSameRevision(representation, revision);
-    if (representationsWithSameRevisionExists(representationRevisions)) {
-      handleDuplicatedRepresentationRevision(anchorTuple, tuple, representation);
-      return true;
-    }
-    return false;
-  }
-
   private boolean representationsWithSameCloudIdExist(List<Representation> representationsAlreadyExisting) {
     return representationsAlreadyExisting.size() > 1;
-  }
-
-  private void handleDuplicatedRepresentationRevision(Tuple anchorTuple, CommonTaskTuple tuple, Representation representation)
-          throws MCSException {
-      LOGGER.warn("Found same revision for '{}' and '{}'", tuple.getRecordUri(), tuple.getTaskId());
-      removeRevision(tuple, representation);
-      removeRepresentation(representation);
-    emitDuplicatedNotification(
-              anchorTuple,
-              tuple,
-              "Duplicate detected",
-              "Duplicate detected for " + tuple.getRecordUri());
-      outputCollector.ack(anchorTuple);
   }
 
   private void handleDuplicatedRepresentationVersion(Tuple anchorTuple, CommonTaskTuple tuple, Representation representation)
@@ -154,30 +118,6 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
             representation.getCloudId(),
             representation.getRepresentationName(),
             representation.getVersion());
-  }
-
-  private void removeRevision(CommonTaskTuple tuple, Representation representation) throws MCSException {
-    revisionServiceClient.deleteRevision(
-            representation.getCloudId(),
-            representation.getRepresentationName(),
-            representation.getVersion(),
-            tuple.getOutputRevision());
-  }
-
-  private List<RepresentationRevisionResponse> findRepresentationsWithSameRevision(Representation representation, Revision outputRevision)
-          throws MCSException {
-    return recordServiceClient.getRepresentationRawRevisions(
-            representation.getCloudId(), representation.getRepresentationName(),
-            new Revision(
-                    outputRevision.getRevisionName(),
-                    outputRevision.getRevisionProviderId(),
-                    //TODO there is helper class for that
-                    new DateTime(outputRevision.getCreationTimeStamp(), DateTimeZone.UTC).toDate())
-    );
-  }
-
-  private boolean representationsWithSameRevisionExists(List<RepresentationRevisionResponse> representationRevisions) {
-    return representationRevisions.size() > 1;
   }
 
   private Representation extractRepresentationInfoFromTuple(CommonTaskTuple tuple) throws MalformedURLException, MCSException {

@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
@@ -44,7 +43,6 @@ public final class TopologyHelper {
   public static final String NOTIFICATION_BOLT = "notificationBolt";
   public static final String WRITE_RECORD_BOLT = "writeRecordBolt";
   public static final String XSLT_BOLT = "XSLT_BOLT";
-  public static final String REVISION_WRITER_BOLT = "revisionWriterBolt";
   public static final String DUPLICATES_DETECTOR_BOLT = "duplicatesDetectorBolt";
   public static final String VALIDATION_BOLT = "validationBolt";
   public static final String INDEXING_BOLT = "indexingBolt";
@@ -120,7 +118,7 @@ public final class TopologyHelper {
             .map(field -> field.getType().getName())
             .collect(Collectors.toList());
     kryoClassesToBeSerialized.addAll(Arrays.asList(LinkedHashMap.class.getName(),
-            OAIPMHHarvestingDetails.class.getName(), Revision.class.getName(), Date.class.getName(),
+            OAIPMHHarvestingDetails.class.getName(), Date.class.getName(),
             DataSetCleanerParameters.class.getName(), Report.class.getName(), CassandraProperties.class.getName(),
             RecordData.class.getName(), ProcessingData.class.getName(), TaskData.class.getName(), DataSet.class.getName()));
     config.put(TOPOLOGY_KRYO_REGISTER, kryoClassesToBeSerialized);

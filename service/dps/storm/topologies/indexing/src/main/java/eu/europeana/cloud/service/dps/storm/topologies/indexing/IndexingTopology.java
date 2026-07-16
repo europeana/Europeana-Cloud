@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.indexing;
 
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
-import eu.europeana.cloud.service.dps.storm.io.IndexingRevisionWriter;
 import eu.europeana.cloud.service.dps.storm.topologies.indexing.bolts.IndexingBolt;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -46,12 +45,6 @@ public final class IndexingTopology {
                     topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
             ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(false)
-        .addBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(MCS_URL),
-                topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-                topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-                SUCCESS_MESSAGE),
-            REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS)
         .buildTopology();
   }
 

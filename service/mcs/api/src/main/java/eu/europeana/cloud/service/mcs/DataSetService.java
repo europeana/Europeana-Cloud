@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.mcs;
 import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.*;
 
@@ -34,19 +32,7 @@ public interface DataSetService {
   ResultSlice<Representation> listDataSet(String providerId, String dataSetId,
                                           String thresholdParam, boolean existingOnly, int limit) throws DataSetNotExistsException;
 
-  /**
-   * Creates a new data set revision for specified provider and dataset.
-   *
-   * @param providerId owner of data set
-   * @param datasetId identifier of newly created data set
-   * @param revision revision to be added
-   * @param representationName name of representation
-   * @param cloudId cloud identifier
-   * @param versionId version identifier
-   */
-  void addDataSetRevision(String providerId, String datasetId, Revision revision, String representationName, String cloudId, String versionId);
-
-    void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDepublished);
+  void addAssignmentToMainTables(String providerId, String dataSetId, String recordId, String schema, String version, boolean markDepublished);
 
   /**
    * Removes representation assignment from data set.
@@ -110,72 +96,7 @@ public interface DataSetService {
   void deleteDataSet(String providerId, String dataSetId)
       throws DataSetDeletionException, DataSetNotExistsException;
 
-
-  /**
-   * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
-   *
-   * @param providerId dataSet owner
-   * @param dataSetId dataSet id
-   * @param revisionProviderId revision provider id
-   * @param revisionName revision name
-   * @param revisionTimestamp revision timestamp
-   * @param representationName representation name
-   * @param startFrom if null - will return first result slice. Result slices contain token for next pages, which should be
-   * provided in this parameter.
-   * @param limit max number of results in one slice.
-   * @return list of cloudIds and tags in given dataSet for given revisionId and representationName.
-   */
-  ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String revisionProviderId,
-      String revisionName, Date revisionTimestamp,
-      String representationName, String startFrom, int limit)
-      throws ProviderNotExistsException, DataSetNotExistsException;
-
-  /**
-   * Lists all cloudId that are included in given dataSet for given revisionId and representationName.
-   *
-   * @param providerId dataSet owner
-   * @param dataSetId dataSet id
-   * @param revisionProviderId revision provider id
-   * @param revisionName revision name
-   * @param revisionTimestamp revision timestamp
-   * @param representationName representation name
-   * @param limit max number of results in one slice.
-   * @return List of cloudIds and tags in given dataSet for given revisionId and representationName.
-   */
-  List<CloudTagsResponse> getDataSetsExistingRevisions(String providerId, String dataSetId, String revisionProviderId,
-      String revisionName, Date revisionTimestamp,
-      String representationName, int limit)
-      throws ProviderNotExistsException, DataSetNotExistsException;
-
-  /**
-   * Remove a revision
-   *
-   * @param cloudId cloud Id
-   * @param representationName representation name
-   * @param version representation version
-   * @param revisionName revision name
-   * @param revisionProviderId revision provider
-   * @param revisionTimestamp revision timestamp
-   * @throws RepresentationNotExistsException
-   */
-  void deleteRevision(String cloudId, String representationName, String version, String revisionName,
-      String revisionProviderId, Date revisionTimestamp) throws RepresentationNotExistsException;
-
-
-  /**
-   * Inserts information to the all the tables which has dataset and revisions entries
-   *
-   * @param globalId cloud identifier
-   * @param schema representation name
-   * @param version version identifier
-   * @param revision revision object containing necessary info (name, timestamp, tags)
-   * @throws RepresentationNotExistsException
-   */
-  void updateAllRevisionDatasetsEntries(String globalId, String schema, String version, Revision revision)
-      throws RepresentationNotExistsException;
-
-
-  /**
+ /**
    * Returns one (usually the first one from DB) for the given representation
    *
    * @param cloudId cloud identifier to be used
@@ -186,5 +107,5 @@ public interface DataSetService {
    */
   Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) throws RepresentationNotExistsException;
 
-  public void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
+  void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 }

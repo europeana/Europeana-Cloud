@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.google.common.hash.Hashing;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.*;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.persistent.context.SpiedServicesTestContext;
@@ -59,8 +57,8 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   private static final String PROVIDER_2_ID = "provider2";
   private static final int PROVIDER_2_PARTITION_KEY = 1;
 
-  private static final String REVISION_PROVIDER = "revisionProvider";
-  private static final String REVISION_NAME = "revisionName";
+  private DataProvider dataProvider1;
+  private DataProvider dataProvider2;
 
   @BeforeAll
   static void setUp() {
@@ -378,53 +376,6 @@ class CassandraRecordServiceTest extends CassandraTestBase {
             representationName).isEmpty());
   }
 
-  @Test
-  void shouldDeleteRepresentationRevisionObjectsWhenRecordIsDeleted()
-      throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    String cloudId = "cloud-2";
-
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    // create new representation
-    Representation r = cassandraRecordService.createRepresentation(cloudId,
-        "representation-1", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-
-    // create and add new revision
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-
-    // add files to representation version
-    byte[] dummyContent = {1, 2, 3};
-    File f = new File("content.xml", "application/xml", null, null, 0, null);
-    cassandraRecordService.putContent(cloudId, "representation-1", r.getVersion(), f,
-        new ByteArrayInputStream(dummyContent));
-    // retrieve representation again
-    r = cassandraRecordService.getRepresentation(cloudId, "representation-1", r.getVersion());
-    // insert info to extra table
-    cassandraRecordService.insertRepresentationRevision(cloudId, "representation-1", REVISION_PROVIDER, REVISION_NAME,
-        r.getVersion(), revision.getCreationTimeStamp());
-
-    // retrieve info from extra table
-    List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions(cloudId,
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-
-    cassandraRecordService.deleteRecord(cloudId);
-
-    List<RepresentationRevisionResponse> response = cassandraRecordService.getRepresentationRevisions(cloudId, "representation-1",
-        REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-    assertEquals(0, response.size());
-  }
-
   @Test()
   void shouldDeleteAllRecord() throws Exception {
     makeUISSuccess();
@@ -657,160 +608,6 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     assertTrue(r.getFiles().isEmpty());
   }
 
-  @Test
-  void addRevision() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    // then
-    r = cassandraRecordService.getRepresentation(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion());
-    assertNotNull(r.getRevisions());
-    assertFalse(r.getRevisions().isEmpty());
-    assertEquals(1, r.getRevisions().size());
-
-  }
-
-  @Test
-  void addAlreadyExistedRevision() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    // then
-    r = cassandraRecordService.getRepresentation(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion());
-    assertNotNull(r.getRevisions());
-    assertFalse(r.getRevisions().isEmpty());
-    assertEquals(1, r.getRevisions().size());
-
-  }
-
-  @Test
-  void addRevisionWithNullRevision() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    assertThrows(RevisionIsNotValidException.class,
-        () -> cassandraRecordService.addRevision(r.getCloudId(),
-            r.getRepresentationName(), r.getVersion(), null));
-  }
-
-  @Test
-  void addRevisionWithNullRevisionName() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(null, REVISION_PROVIDER);
-    assertThrows(RevisionIsNotValidException.class,
-        () -> cassandraRecordService.addRevision(r.getCloudId(),
-            r.getRepresentationName(), r.getVersion(), revision));
-  }
-
-  @Test
-  void addRevisionWithNullRevisionProvider() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, null);
-    assertThrows(RevisionIsNotValidException.class,
-        () -> cassandraRecordService.addRevision(r.getCloudId(),
-            r.getRepresentationName(), r.getVersion(), revision));
-  }
-
-  @Test
-  void addRevisionWithNullRevisionCreationDate() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    revision.setCreationTimeStamp(null);
-    assertThrows(RevisionIsNotValidException.class,
-        () -> cassandraRecordService.addRevision(r.getCloudId(),
-            r.getRepresentationName(), r.getVersion(), revision));
-  }
-
-  @Test
-  void getRevision() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER, new Date(), true);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    // then
-    String revisionKey = RevisionUtils.getRevisionKey(revision);
-    Revision storedRevision = cassandraRecordService.getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(),
-        revisionKey);
-    assertNotNull(storedRevision);
-    assertThat(storedRevision, is(revision));
-
-  }
-
-
-  @Test
-  void getNonExistedRevision() throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    // given
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = cassandraRecordService.createRepresentation(
-        "globalId", "edm", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-    // then
-    String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME, new Date().getTime());
-    assertThrows(RevisionNotExistsException.class,
-        () -> cassandraRecordService
-            .getRevision(r.getCloudId(), r.getRepresentationName(), r.getVersion(), revisionKey));
-  }
-
-  @Test
-  void getRevisionFromNonExistedRepresentation() {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    String revisionKey = RevisionUtils.getRevisionKey(REVISION_PROVIDER, REVISION_NAME, new Date().getTime());
-    assertThrows(RepresentationNotExistsException.class,
-        () -> cassandraRecordService
-            .getRevision("globalId", "not_existing_schema",
-                "5573dbf0-5979-11e6-9061-1c6f653f9042", revisionKey));
-  }
-
   private Representation insertDummyPersistentRepresentation(String cloudId,
       String schema, String providerId, UUID version) throws Exception {
     Representation r = cassandraRecordService.createRepresentation(cloudId,
@@ -868,191 +665,6 @@ class CassandraRecordServiceTest extends CassandraTestBase {
            .existsCloudId(Mockito.anyString());
   }
 
-
-  @Test
-  void shouldReturnRepresentationRevisionObjectRevisionLatest()
-      throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-
-    // create new representation
-    Representation r = cassandraRecordService.createRepresentation("cloud-1",
-        "representation-1", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-
-    // create and add new revision
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    Revision revisionLatest = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revisionLatest);
-
-    // insert info to extra table
-    cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", revision.getRevisionProviderId(),
-        revision.getRevisionName(), r.getVersion(), revision.getCreationTimeStamp());
-    cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", revisionLatest.getRevisionProviderId(),
-        revisionLatest.getRevisionName(), r.getVersion(), revisionLatest.getCreationTimeStamp());
-
-    // retrieve info from extra table
-    List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1",
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, null);
-
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revisionLatest)));
-    assertThat(representationRevisions.getFirst().getRevisionTimestamp(), is(revisionLatest.getCreationTimeStamp()));
-
-    // get the other revision
-    representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1", "representation-1", REVISION_PROVIDER,
-        REVISION_NAME, revision.getCreationTimeStamp());
-
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getRevisionTimestamp(), is(revision.getCreationTimeStamp()));
-  }
-
-  @Test
-  void shouldReturnRepresentationRevisionObjectRevisionFirst()
-      throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-
-    // create new representation
-    Representation r = cassandraRecordService.createRepresentation("cloud-1",
-        "representation-1", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-
-    // create and add new revision
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-
-    // insert info to extra table
-    cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", revision.getRevisionProviderId(),
-        revision.getRevisionName(), r.getVersion(), revision.getCreationTimeStamp());
-
-    // retrieve info from extra table
-    List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1",
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-    assertThat(representationRevisions.getFirst().getFiles().size(), is(0));
-
-    // add files to representation version
-    byte[] dummyContent = {1, 2, 3};
-    File f = new File("content.xml", "application/xml", null, null, 0, null);
-    cassandraRecordService.putContent("cloud-1", "representation-1", r.getVersion(), f,
-        new ByteArrayInputStream(dummyContent));
-
-    // retrieve representation again
-    r = cassandraRecordService.getRepresentation("cloud-1", "representation-1", r.getVersion());
-
-    // retrieve info from extra table again
-    representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1", "representation-1", REVISION_PROVIDER,
-        REVISION_NAME, revision.getCreationTimeStamp());
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-  }
-
-
-  @Test
-  void shouldDeleteRepresentationRevisionObjectWhenRepresentationIsDeleted()
-      throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-
-    // create new representation
-    Representation r = cassandraRecordService.createRepresentation("cloud-1",
-        "representation-1", PROVIDER_1_ID, VERSION_2, DATA_SET_NAME);
-
-    // create and add new revision
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-
-    // add files to representation version
-    byte[] dummyContent = {1, 2, 3};
-    File f = new File("content.xml", "application/xml", null, null, 0, null);
-    cassandraRecordService.putContent("cloud-1", "representation-1", r.getVersion(), f,
-        new ByteArrayInputStream(dummyContent));
-    // retrieve representation again
-    r = cassandraRecordService.getRepresentation("cloud-1", "representation-1", r.getVersion());
-
-    // insert info to extra table
-    cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", REVISION_PROVIDER, REVISION_NAME,
-        r.getVersion(), revision.getCreationTimeStamp());
-
-    // retrieve info from extra table
-    List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1",
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-
-    assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-
-    cassandraRecordService.deleteRepresentation("cloud-1", "representation-1");
-
-    // retrieve info from extra table again
-    List<RepresentationRevisionResponse> response = cassandraRecordService.getRepresentationRevisions("cloud-1",
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-    assertEquals(0, response.size());
-  }
-
-
-  @Test
-  void shouldReturnRepresentationRevisionObjectFilesFirst()
-      throws Exception {
-    makeUISSuccess();
-    mockUISProvider1Success();
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME,
-        DATA_SET_DESCRIPTION);
-    Representation r = insertDummyPersistentRepresentation("cloud-1", "representation-1", PROVIDER_1_ID, VERSION);
-    Revision revision = new Revision(REVISION_NAME, REVISION_PROVIDER);
-    cassandraRecordService.addRevision(r.getCloudId(),
-        r.getRepresentationName(), r.getVersion(), revision);
-    cassandraRecordService.insertRepresentationRevision("cloud-1", "representation-1", REVISION_PROVIDER, REVISION_NAME,
-        r.getVersion(), revision.getCreationTimeStamp());
-    List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1",
-        "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
-
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-  }
-
   @Test
   void shouldAddAnnotationToRepresentationVersion() throws Exception {
 
@@ -1062,7 +674,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME, DATA_SET_DESCRIPTION);
 
     Representation r = cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID, VERSION_2,
-            DATA_SET_NAME);
+        DATA_SET_NAME);
 
     RepresentationVersionAnnotation annotation = new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.INVALID, "");
 

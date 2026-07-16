@@ -1,16 +1,17 @@
 package eu.europeana.cloud.service.dps.storm.spout;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.ProcessedRecord;
 import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
+import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
+import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.exception.TaskInfoDoesNotExistException;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
@@ -40,9 +41,9 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
+import static eu.europeana.cloud.service.dps.Constants.DPS_REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.dps.PluginParameterKeys.*;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
 
@@ -194,7 +195,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     private CommonTaskTuple prepareTaskForEmission(TaskInfo taskInfo, DpsRecord dpsRecord, ProcessedRecord aRecord)
-        throws IOException, URISyntaxException {
+        throws IOException {
       var dpsTask = DpsTask.fromTaskInfo(taskInfo);
       var stormTaskTuple = new CommonTaskTuple(
               new TaskData(dpsTask.getTaskId(), dpsTask.getTaskName(),
@@ -202,38 +203,23 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
               new RecordData(aRecord.getRecordId(), null, dpsRecord.isMarkedAsDepublished()),
               new ProcessingData(aRecord.getAttemptNumber(),
                       new Date().getTime()));
-      Map<String, String> parameters = dpsTask.getParameters();
       stormTaskTuple.addParameter(SCHEMA_NAME, dpsRecord.getMetadataPrefix());
 
-
-      List<String> repositoryUrlList = dpsTask.getDataEntry(InputDataType.REPOSITORY_URLS);
-      if (!isEmpty(repositoryUrlList)) {
-        stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, repositoryUrlList.get(0));
+      if(dpsTask.getSource() instanceof HttpHarvestingDetails input){
+        stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, input.getRepositoryUrl());
       }
-      List<String> datasetUrlList = dpsTask.getDataEntry(InputDataType.DATASET_URLS);
-      if (!isEmpty(datasetUrlList)) {
-        stormTaskTuple.setInputDatasetFromUri(datasetUrlList.get(0));
-      }
-      if (dpsTask.isParameterPresent(OUTPUT_DATA_SETS)) {
-        stormTaskTuple.setOutputDatasetFromUri(dpsTask.getParameter(OUTPUT_DATA_SETS));
-        parameters.remove(OUTPUT_DATA_SETS);
+      if(dpsTask.getSource() instanceof OAIPMHHarvestingDetails input){
+        stormTaskTuple.addParameter(DPS_TASK_INPUT_DATA, input.getRepositoryUrl());
       }
 
-      if (dpsTask.getOutputRevision() != null) {
-        stormTaskTuple.setOutputRevision(dpsTask.getOutputRevision());
+      BatchInfo output = dpsTask.getResultsBatch();
+      if (output != null) {
+        stormTaskTuple.setOutputDatasetProvider(output.getProviderId());
+        stormTaskTuple.setOutputDatasetId(output.getBatchId());
+        stormTaskTuple.setOutputRepresentationName(DPS_REPRESENTATION_NAME);
       }
-      if (dpsTask.isParameterPresent(REVISION_TIMESTAMP) &&
-              dpsTask.isParameterPresent(REVISION_NAME) &&
-              dpsTask.isParameterPresent(REPRESENTATION_VERSION)) {
-        parameters.remove(REVISION_TIMESTAMP);
-        parameters.remove(REVISION_NAME);
-        parameters.remove(REPRESENTATION_VERSION);
-        stormTaskTuple.setInputRevision(new Revision(
-                dpsTask.getParameter(REVISION_NAME),
-                dpsTask.getParameter(REVISION_PROVIDER),
-                DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
-      }
-      stormTaskTuple.addParameters(parameters);
+
+      stormTaskTuple.addParameters(dpsTask.getParameters());
 
       return stormTaskTuple;
     }

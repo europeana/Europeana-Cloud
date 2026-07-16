@@ -1,8 +1,10 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
+import eu.europeana.cloud.service.dps.DepublicationInfo;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -18,10 +20,11 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredParametersForDatasetDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
+    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_DATASET);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     assertThrows(DpsTaskValidationException.class, () -> validator.validate(dpsTask));
   }
@@ -29,10 +32,11 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredParametersForRecordsDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
+    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     assertThrows(DpsTaskValidationException.class, () -> validator.validate(dpsTask));
   }
@@ -40,11 +44,12 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredMetisDatasetIdParameterForDatasetDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
+    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_DATASET);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     try {
       validator.validate(dpsTask);
@@ -57,11 +62,12 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredMetisDepublicationReasonParameterForDatasetDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
+    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "metisDS");
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_DATASET);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     try {
       validator.validate(dpsTask);
@@ -74,12 +80,12 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredMetisDatasetIdParameterForRecordsDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
-    dpsTask.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, "records");
+    dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of("records")).build());
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     try {
       validator.validate(dpsTask);
@@ -92,30 +98,30 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldFailBecauseOfMissingRequiredRecordIdsParameterForRecordsDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "metisDS");
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     try {
       validator.validate(dpsTask);
       fail();
     } catch (Exception e) {
-      assertThat(e.getMessage(), containsString(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH));
+      assertThat(e.getMessage(), containsString("record"));
     }
   }
 
   @Test
   void shouldFailBecauseOfMissingRequiredDepublicationReasonForRecordsDepublication() {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "metisDS");
-    dpsTask.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, "records");
+    dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of("records")).build());
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     try {
       validator.validate(dpsTask);
@@ -129,12 +135,13 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldSuccessfullyValidateTheTaskForDatasetDepublication() throws DpsTaskValidationException {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "metisDS");
+    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_DATASET);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     validator.validate(dpsTask);
   }
@@ -142,13 +149,13 @@ class DpsTaskValidationForDepublicationTopologyTest {
   @Test
   void shouldSuccessfullyValidateTheTaskForRecordsDepublication() throws DpsTaskValidationException {
 
-    DpsTask dpsTask = new DpsTask();
+    CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, "metisDS");
-    dpsTask.addParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, "metisDS");
+    dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of("metisDS")).build());
     dpsTask.addParameter(PluginParameterKeys.DEPUBLICATION_REASON, "reason");
 
     DpsTaskValidator validator =
-            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK_FOR_RECORDS);
+            DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);
 
     validator.validate(dpsTask);
   }

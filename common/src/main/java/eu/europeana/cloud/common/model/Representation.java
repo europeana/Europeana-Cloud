@@ -83,11 +83,6 @@ public class Representation {
      * Indicator whether this is deleted representation version or no.
      */
     private boolean markDepublished;
-    /**
-     * A list of revisions which constitute this representation.
-     */
-    @JacksonXmlElementWrapper(useWrapping = false)
-    private List<Revision> revisions = new ArrayList<>(0);
 
     @Getter
     @Setter
@@ -116,13 +111,12 @@ public class Representation {
      * @param uri                uri to representation
      * @param dataProvider       data provider
      * @param files              list of files assigned to the representation
-     * @param revisions          list of revisions assigned to the representation
      * @param persistent         boolean value indicating if representation is persistent
      * @param creationDate       representation creation date
      * @param datasetId          dataset identifier
      */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, List<Revision> revisions, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
+                          String dataProvider, List<File> files, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -131,7 +125,6 @@ public class Representation {
         this.uri = uri;
         this.dataProvider = dataProvider;
         this.files = files;
-        this.revisions = revisions;
         this.persistent = persistent;
         this.creationDate = creationDate;
         this.datasetId = datasetId;
@@ -147,7 +140,7 @@ public class Representation {
     public Representation(final Representation representation) {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
-                cloneFiles(representation), cloneRevisions(representation), representation.isPersistent(),
+                cloneFiles(representation), representation.isPersistent(),
                 representation.getCreationDate(), representation.getDatasetId(), representation.isMarkDepublished());
     }
 
@@ -157,18 +150,6 @@ public class Representation {
             files.add(new File(file));
         }
         return files;
-    }
-
-    private static List<Revision> cloneRevisions(Representation representation) {
-        List<Revision> revisions = representation.getRevisions();
-        if (revisions == null || revisions.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<Revision> clonedRevisions = new ArrayList<>(revisions.size());
-        for (Revision revision : revisions) {
-            clonedRevisions.add(new Revision(revision));
-        }
-        return clonedRevisions;
     }
 
     /**
@@ -193,14 +174,6 @@ public class Representation {
 
     public void setDatasetId(String datasetId) {
         this.datasetId = datasetId;
-    }
-
-    public List<Revision> getRevisions() {
-        return revisions;
-    }
-
-    public void setRevisions(List<Revision> revisions) {
-        this.revisions = revisions;
     }
 
     public String getCloudId() {
@@ -316,7 +289,7 @@ public class Representation {
     @Override
     public String toString() {
         return "Representation{" + "cloudId=" + cloudId + ", representationName=" + representationName + ", version="
-                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", revisions=" + revisions + ", creationDate="
+                + version + ", dataProvider=" + dataProvider + ", files=" + files + ", creationDate="
                 + creationDate
                 + ", persistent=" + persistent + '}';
     }

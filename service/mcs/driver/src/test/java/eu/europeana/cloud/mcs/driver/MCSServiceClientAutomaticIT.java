@@ -151,7 +151,7 @@ public class MCSServiceClientAutomaticIT {
 
     try {
       recordServiceClient.createRepresentation(cloudId1, REPRESENTATION_NAME, PROVIDER, DATASET_ID);
-      fail("Should not create revision!");
+      fail("Should not create representation!");
     } catch (AccessDeniedOrObjectDoesNotExistException e) {
       //OK
     }
