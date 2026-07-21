@@ -82,6 +82,7 @@ public final class ParamConstants {
   public static final String F_PERMISSION = "permission";
 
   public static final String F_USERNAME = "username";
+  public static final String F_CHUNK_SIZE = "chunkSize";
 
   private ParamConstants() {
   }

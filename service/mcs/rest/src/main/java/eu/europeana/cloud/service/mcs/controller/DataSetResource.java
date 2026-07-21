@@ -120,10 +120,15 @@ public class DataSetResource {
       @PathVariable("providerId") String providerId,
       @PathVariable("dataSetId") String dataSetId,
       @RequestParam(value = "existingOnly", defaultValue = "false") boolean existingOnly,
-      @RequestParam(value = "startFrom", required = false) String startFrom) throws DataSetNotExistsException {
+      @RequestParam(value = "startFrom", required = false) String startFrom,
+      @RequestParam(required = false) Integer chunkSize) throws DataSetNotExistsException {
+
+    if (chunkSize == null) {
+      chunkSize = numberOfElementsOnPage;
+    }
 
     ResultSlice<Representation> representations =
-            dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, numberOfElementsOnPage);
+            dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, chunkSize);
 
     for (Representation rep : representations.getResults()) {
       EnrichUriUtil.enrich(httpServletRequest, rep);

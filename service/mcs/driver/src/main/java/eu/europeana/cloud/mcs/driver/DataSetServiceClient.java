@@ -173,7 +173,43 @@ public class DataSetServiceClient extends MCSClient {
     );
   }
 
-
+  /**
+   * Returns chunk of representation versions list from data set.
+   * <p/>
+   * If specific version of representation is assigned to data set, this version is returned. If a whole representation is
+   * assigned to data set, the latest persistent representation version is returned.
+   * <p/>
+   * This method returns the chunk specified by <code>startFrom</code> parameter. If parameter is empty, the first chunk is
+   * returned. You can use {@link ResultSlice#getNextSlice()} of returned result to obtain
+   * <code>startFrom</code> value to get the next chunk, etc. If you just need
+   * all representations, you can use {@link #getDataSetRepresentations} method, which encapsulates this method.
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @param existingOnly whether or no should return only existing representation versions
+   * @param startFrom code pointing to the requested result slice (if equal to null, first slice is returned)
+   * @param chunkSize set the maximum size of result chunk
+   * @return chunk of representation versions list from data set
+   * @throws DataSetNotExistsException if data set does not exist
+   * @throws MCSException on unexpected situations
+   */
+  @SuppressWarnings("unchecked")
+  public ResultSlice<Representation> getDataSetRepresentationsChunk(String providerId, String dataSetId, boolean existingOnly,
+      String startFrom, Integer chunkSize)
+      throws MCSException {
+    return manageResponse(new ResponseParams<>(ResultSlice.class),
+        () -> passLogContext(client
+            .target(this.baseUrl)
+            .path(DATA_SET_RESOURCE)
+            .resolveTemplate(PROVIDER_ID, providerId)
+            .resolveTemplate(DATA_SET_ID, dataSetId)
+            .queryParam(ParamConstants.F_EXISTING_ONLY, existingOnly)
+            .queryParam(ParamConstants.F_START_FROM, startFrom)
+            .queryParam(ParamConstants.F_CHUNK_SIZE, chunkSize)
+            .request())
+            .get()
+    );
+  }
 
   /**
    * Returns chunk of representation versions list from data set.
