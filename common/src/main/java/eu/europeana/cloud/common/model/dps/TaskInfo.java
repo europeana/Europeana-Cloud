@@ -23,6 +23,7 @@ public class TaskInfo {
   private Date sentTimestamp;
   private Date startTimestamp;
   private Date finishTimestamp;
+  @JsonIgnore
   @Delegate
   private EcloudTaskProgress ecloudTaskProgress = new EcloudTaskProgress();
 
