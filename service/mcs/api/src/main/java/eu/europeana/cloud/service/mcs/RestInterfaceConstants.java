@@ -15,6 +15,10 @@ public final class RestInterfaceConstants {
   public static final String DATA_SET_REPRESENTATIONS_NAMES =
       DATA_SET_RESOURCE + "/representationsNames";
 
+  public static final String DATA_SET_SELECTED_RECORD_RESOURCE =
+      DATA_SET_RESOURCE+ "/records/{cloudId}/representations/{representationName}";
+
+
   //DataSetsResource
   public static final String DATA_SETS_RESOURCE =
       "/data-providers/{providerId}/data-sets";

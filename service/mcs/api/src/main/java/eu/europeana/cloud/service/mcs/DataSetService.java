@@ -108,4 +108,7 @@ public interface DataSetService {
   Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) throws RepresentationNotExistsException;
 
   void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
+
+  List<Representation> listDataSetRecordsForGivenRepresentation(String providerId, String dataSetId, String cloudId, String representationName)
+      throws DataSetNotExistsException;
 }

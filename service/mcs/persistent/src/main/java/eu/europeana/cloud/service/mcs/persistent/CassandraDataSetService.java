@@ -20,6 +20,7 @@ import java.util.*;
 
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO.*;
 import static eu.europeana.cloud.service.mcs.persistent.cassandra.PersistenceUtils.createProviderDataSetId;
+import static java.util.Collections.emptyList;
 
 /**
  * Implementation of data set service using Cassandra database.
@@ -174,6 +175,17 @@ public class CassandraDataSetService implements DataSetService {
     if (ds == null) {
       throw new DataSetNotExistsException();
     }
+  }
+
+
+  @Override
+  public List<Representation> listDataSetRecordsForGivenRepresentation(String providerId, String dataSetId, String cloudId,
+      String representationName) throws DataSetNotExistsException {
+    checkIfDatasetExists(dataSetId, providerId);
+    //TODO Use DB for searching, by modifying schema
+    return Optional.ofNullable(recordDAO.listRepresentationVersions(cloudId, representationName)).orElse(emptyList()).
+                   stream().filter(rep -> dataSetId.equals(rep.getDatasetId()) && providerId.equals(rep.getDataProvider()))
+                   .toList();
   }
 
   private List<Representation> getRepresentations(List<DatasetAssignment> assignments) {

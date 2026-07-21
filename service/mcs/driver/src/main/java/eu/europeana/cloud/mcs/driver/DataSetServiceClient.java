@@ -1,13 +1,16 @@
 package eu.europeana.cloud.mcs.driver;
 
 import static eu.europeana.cloud.common.log.AttributePassingUtils.passLogContext;
+import static eu.europeana.cloud.common.web.ParamConstants.CLOUD_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.F_PERMISSION;
 import static eu.europeana.cloud.common.web.ParamConstants.F_USERNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
+import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
 
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Permission;
@@ -19,6 +22,8 @@ import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import jakarta.ws.rs.core.GenericType;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -295,6 +300,33 @@ public class DataSetServiceClient extends MCSClient {
   public ResultSlice<Representation> getDataSetRepresentations(String providerId, String dataSetId, boolean existingOnly) throws MCSException {
     return getDataSetRepresentationsChunk(providerId, dataSetId, existingOnly, null);
   }
+
+  /**
+   * Lists all versions of record representation belonging to the dataset
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @param cloudId id of record from which to get representations (required)
+   * @param representationName name of the representation (required)
+   * @return list of representations
+   * @throws RecordNotExistsException if cloudId is not known UIS Service
+   * @throws MCSException on unexpected situations
+   */
+  public List<Representation> getDataSetRepresentations(String providerId, String dataSetId, String cloudId, String representationName) throws MCSException {
+    return manageResponse(new ResponseParams<>(new GenericType<>() {
+        }),
+        () -> passLogContext(client
+            .target(this.baseUrl)
+            .path(DATA_SET_SELECTED_RECORD_RESOURCE)
+            .resolveTemplate(PROVIDER_ID, providerId)
+            .resolveTemplate(DATA_SET_ID, dataSetId)
+            .resolveTemplate(CLOUD_ID, cloudId)
+            .resolveTemplate(REPRESENTATION_NAME, representationName)
+            .request())
+            .get()
+    );
+  }
+
 
   /**
    * Lists all representation versions from data set.

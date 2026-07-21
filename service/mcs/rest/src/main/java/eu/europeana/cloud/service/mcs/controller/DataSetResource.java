@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.mcs.controller;
 
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
 
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
@@ -15,6 +16,7 @@ import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import java.util.Arrays;
 import java.util.List;
 
@@ -134,6 +136,35 @@ public class DataSetResource {
       EnrichUriUtil.enrich(httpServletRequest, rep);
     }
     return representations;
+  }
+
+  /**
+   * Lists versions of the given representation belonging to the dataset.
+   *
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param cloudId cloud id of the record which contains the representation(required).
+   * @param representationName name of the representation(required).
+   * @return representation version list
+   * @throws DataSetNotExistsException no such data set exists.
+   */
+  @GetMapping(value = DATA_SET_SELECTED_RECORD_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE,
+      MediaType.APPLICATION_JSON_VALUE})
+  public RepresentationsListWrapper getDataSetRecordsForGivenRepresentation(
+      final HttpServletRequest request,
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @PathVariable String cloudId,
+      @PathVariable String representationName) throws DataSetNotExistsException {
+
+    List<Representation> representations = dataSetService.listDataSetRecordsForGivenRepresentation
+                                                             (providerId, dataSetId, cloudId, representationName);
+
+    for (Representation representationVersion : representations) {
+      EnrichUriUtil.enrich(request, representationVersion);
+    }
+
+    return new RepresentationsListWrapper(representations);
   }
 
   @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)

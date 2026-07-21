@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolt
 
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
 import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
@@ -10,8 +11,6 @@ import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +27,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(DuplicatedRecordsProcessorBolt.class);
   private transient RecordServiceClient recordServiceClient;
+  private transient DataSetServiceClient dataSetServiceClient;
   private final String ecloudMcsAddress;
   private final String ecloudMcsUser;
   private final String ecloudMcsUserPassword;
@@ -57,6 +57,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   @Override
   public void prepare() {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
+    dataSetServiceClient = new DataSetServiceClient(ecloudMcsAddress, ecloudMcsUser, ecloudMcsUserPassword);
   }
 
   @Override
@@ -91,10 +92,8 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   }
 
   private List<Representation> findAllRepresentationWithSameCloudId(Representation representation) throws MCSException {
-    return recordServiceClient
-            .getRepresentations(representation.getCloudId(), representation.getRepresentationName())
-            .stream().filter(rep -> representation.getDatasetId().equals(rep.getDatasetId()) &&
-                    representation.getDataProvider().equals(rep.getDataProvider())).toList();
+    return dataSetServiceClient.getDataSetRepresentations(representation.getDataProvider(),
+        representation.getDatasetId(), representation.getCloudId(), representation.getRepresentationName());
   }
 
   private boolean representationsWithSameCloudIdExist(List<Representation> representationsAlreadyExisting) {
