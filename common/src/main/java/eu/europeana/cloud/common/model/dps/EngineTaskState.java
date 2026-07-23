@@ -31,10 +31,8 @@ public enum EngineTaskState {
   // //////////////////////////////////////////////////////////////////////////////////////////// //
 
   /**
-   * Task is being processed by the REST application.<br/>
-   * <ol>
-   * <li>For OAI topology identifiers are harvested and pushed to the kafka topic;</li>
-   * <ol/>
+   * Task is being processed by the REST application and records are beaing sent to Kafka to be performed by a Storm topology<br/>
+   * Storm starts performing records without waiting, so at the same time records could be performed and completed.
    */
   PROCESSING_BY_REST_APPLICATION("Task is being processed by the REST application"),
 

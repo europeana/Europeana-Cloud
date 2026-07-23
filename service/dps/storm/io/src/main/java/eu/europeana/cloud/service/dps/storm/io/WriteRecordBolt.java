@@ -94,6 +94,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
       }
       prepareEmittedTuple(commonTaskTuple);
       emitSuccessfulResult(anchorTuple, commonTaskTuple);
+      outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
     } catch (Exception e) {
