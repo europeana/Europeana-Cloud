@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.HttpHarvestingDetails;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.http.FileURLCreator;
+import eu.europeana.cloud.service.dps.storm.utils.ExpectedCounters;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
@@ -27,12 +28,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 
 @Service
-public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements TaskSubmitter {
+public class HttpTopologyTaskSubmitter implements TaskSubmitter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpTopologyTaskSubmitter.class);
 
   private final TaskStatusUpdater taskStatusUpdater;
-  private final KafkaTopicSelector kafkaTopicSelector;
   private final TaskStatusChecker taskStatusChecker;
   private final RecordSubmitService recordSubmitService;
   private final FileURLCreator fileURLCreator;
@@ -45,16 +45,14 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
                                    KafkaTopicSelector kafkaTopicSelector,
                                    TaskStatusChecker taskStatusChecker,
                                    FileURLCreator fileURLCreator, DataSetServiceClient dataSetServiceClient) {
-    super(dataSetServiceClient);
     this.taskStatusUpdater = taskStatusUpdater;
     this.recordSubmitService = recordSubmitService;
-    this.kafkaTopicSelector = kafkaTopicSelector;
     this.taskStatusChecker = taskStatusChecker;
     this.fileURLCreator = fileURLCreator;
   }
 
   @Override
-  public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
+  public ExpectedCounters submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
 
     LOGGER.info("HTTP task submission for {} started.", parameters.getTask().getTaskId());
 
@@ -68,29 +66,15 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
       final HarvestingIterator<Path, Path> iterator = HarvesterFactory.createHttpHarvester()
               .harvestRecords(urlToZipFile,
                       downloadedFileLocationFor(parameters.getTask()));
-
-      createDateSetIfNeeded(parameters.getTask());
-      selectKafkaTopicFor(parameters);
-      taskStatusUpdater.updateSubmitParameters(parameters);
       expectedCount = iterateOverFiles(iterator, parameters);
-      updateTaskStatus(parameters.getTask(), expectedCount);
+      return new ExpectedCounters(expectedCount,0);
     } catch (HarvesterException e) {
-      LOGGER.error("Unable to submit the task.", e);
-      taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(),
-          "The task was dropped because of errors: " + e.getMessage());
+      throw new TaskSubmissionException("Submitting http task finished with error!",e);
     }
-
-    LOGGER.info("HTTP task submission for {} finished. {} records submitted.",
-        parameters.getTask().getTaskId(),
-        expectedCount);
   }
 
   private String downloadedFileLocationFor(DpsTask dpsTask) {
     return harvestingTasksDir + File.separator + "task_" + dpsTask.getTaskId();
-  }
-
-  private void selectKafkaTopicFor(SubmitTaskParameters parameters) {
-    parameters.setTopicName(kafkaTopicSelector.findPreferredTopicNameFor(TopologiesNames.HTTP_TOPOLOGY));
   }
 
   private int iterateOverFiles(HarvestingIterator<Path, Path> harvestingIterator,
@@ -123,13 +107,4 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
     return expectedSize;
   }
 
-  private void updateTaskStatus(DpsTask dpsTask, int expectedCount) {
-    if (!taskStatusChecker.hasDroppedStatus(dpsTask.getTaskId())) {
-      if (expectedCount == 0) {
-        taskStatusUpdater.setTaskDropped(dpsTask.getTaskId(), "The task doesn't include any records");
-      } else {
-        taskStatusUpdater.updateStatusExpectedRecords(dpsTask.getTaskId(), EngineTaskState.QUEUED, expectedCount);
-      }
-    }
-  }
 }

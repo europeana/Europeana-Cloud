@@ -11,7 +11,6 @@ import eu.europeana.cloud.service.dps.services.SubmitTaskService;
 import eu.europeana.cloud.service.dps.services.submitters.HttpTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.OaiTopologyTaskSubmitter;
-import eu.europeana.cloud.service.dps.services.submitters.OtherTopologiesTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.TaskSubmitterFactory;
@@ -39,7 +38,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 @Import({TopologyTasksResource.class, TopologiesResource.class, TaskSubmissionValidator.class,
     SubmitTaskService.class, TaskDiagnosticInfoDAO.class, TaskSubmitterFactory.class, OaiTopologyTaskSubmitter.class,
-    HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class, TaskStatusUpdater.class,
+    HttpTopologyTaskSubmitter.class, TaskStatusUpdater.class,
     TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class, FileURLCreator.class})
 public class AbstractSecurityTestContext {
 

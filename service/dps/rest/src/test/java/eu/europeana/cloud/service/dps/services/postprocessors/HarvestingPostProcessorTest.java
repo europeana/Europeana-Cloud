@@ -150,7 +150,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldNotFailWhenThereIsNoHarvestedRecords() {
+  void shouldNotFailWhenThereIsNoHarvestedRecords() throws TaskDroppedException {
 
     service.execute(taskInfo, task);
 
@@ -158,7 +158,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldNotDoAnythingWhenAllRecordsBelongsToCurrentHarvest() {
+  void shouldNotDoAnythingWhenAllRecordsBelongsToCurrentHarvest() throws TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID2));
 
@@ -172,7 +172,7 @@ class HarvestingPostProcessorTest {
 
 
   @Test
-  void shouldAddOlderRecordAsDeleted() throws MCSException {
+  void shouldAddOlderRecordAsDeleted() throws MCSException, TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
 
     service.execute(taskInfo, task);
@@ -188,7 +188,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldOmitRecordThatIsAlreadyAddedAsDeleted() {
+  void shouldOmitRecordThatIsAlreadyAddedAsDeleted() throws TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
     when(processedRecordsDAO.selectByPrimaryKey(TASK_ID, RECORD_ID1)).
             thenReturn(Optional.of(ProcessedRecord.builder().state(RecordState.SUCCESS).build()));
@@ -203,7 +203,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldAddAllOlderRecordAsDeleted() throws MCSException {
+  void shouldAddAllOlderRecordAsDeleted() throws MCSException, TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
 
@@ -225,7 +225,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldNotAddRecordThatNotBelongsToCurrentHarvest() throws MCSException {
+  void shouldNotAddRecordThatNotBelongsToCurrentHarvest() throws MCSException, TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(HARVEST_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
 
@@ -242,7 +242,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldNotStartPostprocessingForDroppedTask() {
+  void shouldNotStartPostprocessingForDroppedTask() throws TaskDroppedException {
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID1));
     allHarvestedRecords.add(createHarvestedRecord(OLDER_DATE, RECORD_ID2));
     doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
@@ -281,7 +281,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPreview() throws IndexingException {
+  void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPreview() throws IndexingException, TaskDroppedException {
     when(previewIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
 
     service.execute(taskInfo, task);
@@ -297,7 +297,7 @@ class HarvestingPostProcessorTest {
   }
 
   @Test
-  void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPublish() throws IndexingException {
+  void shouldCompleteHarvestedRecordsTableWithRecordsExistingInMetisPublish() throws IndexingException, TaskDroppedException {
     when(publishIndexer.getRecordIds(eq(METIS_DATASET_ID), any(Date.class))).thenReturn(Stream.of(RECORD_ID1, RECORD_ID2));
 
     service.execute(taskInfo, task);

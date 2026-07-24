@@ -23,6 +23,7 @@ import eu.europeana.cloud.service.dps.storm.dao.ExistingInMetisHarvestedRecordsB
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
@@ -113,7 +114,7 @@ public class HarvestingPostProcessor extends TaskPostProcessor {
     }
   }
 
-  private void addDeletedRecordsToTaskResultBatch(DpsTask dpsTask) {
+  private void addDeletedRecordsToTaskResultBatch(DpsTask dpsTask) throws TaskDroppedException {
     Iterator<HarvestedRecord> it = fetchDeletedRecords(dpsTask);
     int postProcessedRecordsCount = 0;
     int processedAndSuccessDepublishRecordCount = 0;

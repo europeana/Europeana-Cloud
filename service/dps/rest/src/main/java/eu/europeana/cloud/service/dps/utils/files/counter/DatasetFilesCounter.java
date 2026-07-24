@@ -41,7 +41,7 @@ public class DatasetFilesCounter extends FilesCounter {
       return UNKNOWN_EXPECTED_RECORDS_NUMBER;
     } catch (Exception e) {
       LOGGER.error("he task was dropped because of {} ", e.getMessage());
-      throw new TaskSubmissionException("The task was dropped while counting the files number because of " + e.getMessage());
+      throw new TaskSubmissionException("The task was dropped while counting the files number because of exception!",e);
     }
   }
 }

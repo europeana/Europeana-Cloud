@@ -102,7 +102,7 @@ class MCSTaskSubmitterTest {
   @BeforeEach
   void setup() {
     RecordSubmitService recordSubmitService = new RecordSubmitService(processedRecordsDAO, recordKafkaSubmitService);
-    submitter = new MCSTaskSubmitter(taskStatusChecker, taskStatusUpdater, recordSubmitService, null, null, null);
+    submitter = new MCSTaskSubmitter(taskStatusChecker, recordSubmitService, null, null, null);
     task.setTaskId(TASK_ID);
     task.addParameter(PluginParameterKeys.SCHEMA_NAME, SCHEMA_NAME);
     submitParameters = SubmitTaskParameters.builder()
@@ -151,7 +151,7 @@ class MCSTaskSubmitterTest {
       task.setSource(prepateBatchInput());
       doThrow(new TaskDroppedException(task)).when(taskStatusChecker).checkNotDropped(any());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verify(recordKafkaSubmitService, never()).submitRecord(any(DpsRecord.class), anyString());
     });
@@ -163,7 +163,7 @@ class MCSTaskSubmitterTest {
     withClientMocks(() -> {
       task.setSource(prepateBatchInput());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verify(taskStatusUpdater).updateStatusAndExpected(
               eq(TASK_ID),
@@ -183,7 +183,7 @@ class MCSTaskSubmitterTest {
       doThrow(new RuntimeException("Error in task execution")).when(recordKafkaSubmitService)
               .submitRecord(any(DpsRecord.class), anyString());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verify(taskStatusUpdater).setTaskDropped(anyLong(), anyString());
     });
@@ -195,7 +195,7 @@ class MCSTaskSubmitterTest {
     withClientMocks(() -> {
       task.setSource(prepateBatchInput());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verifyValidTaskSent(FILE_URL_1);
     });
@@ -208,7 +208,7 @@ class MCSTaskSubmitterTest {
     withClientMocks(() -> {
       task.setSource(prepateBatchInput());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verifyValidTaskSent(FILE_URL_1, FILE_URL_2, FILE_URL_3);
     });
@@ -226,7 +226,7 @@ class MCSTaskSubmitterTest {
     withClientMocks(() -> {
       task.setSource(prepateBatchInput());
 
-      submitter.execute(submitParameters);
+      submitter.submitTask(submitParameters);
 
       verifyValidTaskSent(fileUrls.toArray(new String[0]));
     });
@@ -243,7 +243,7 @@ class MCSTaskSubmitterTest {
               when(representationIterator.hasNext()).thenReturn(true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
-              submitter.execute(submitParameters);
+              submitter.submitTask(submitParameters);
 
               verifyValidTaskSent(FILE_URL_1);
             }
@@ -259,7 +259,7 @@ class MCSTaskSubmitterTest {
               when(representationIterator.hasNext()).thenReturn(true, true, true, false);
               when(representationIterator.next()).thenReturn(REPRESENTATION_1);
 
-              submitter.execute(submitParameters);
+              submitter.submitTask(submitParameters);
 
               verifyValidTaskSent(FILE_URL_1, FILE_URL_1, FILE_URL_1);
             }

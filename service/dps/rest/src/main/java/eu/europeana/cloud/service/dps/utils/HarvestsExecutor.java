@@ -3,10 +3,10 @@ package eu.europeana.cloud.service.dps.utils;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvesterRuntimeException;
@@ -42,7 +42,8 @@ public class HarvestsExecutor {
     this.taskStatusChecker = taskStatusChecker;
   }
 
-  public HarvestResult execute(OaiHarvest harvestToBeExecuted, SubmitTaskParameters parameters) throws HarvesterRuntimeException {
+  public int execute(OaiHarvest harvestToBeExecuted, SubmitTaskParameters parameters)
+      throws HarvesterRuntimeException, TaskDroppedException {
 
     LOGGER.info("(Re-)starting identifiers harvesting for: {}. Task identifier: {}", harvestToBeExecuted,
         parameters.getTask().getTaskId());
@@ -50,7 +51,6 @@ public class HarvestsExecutor {
     HarvestingIterator<OaiRecordHeader, OaiRecordHeader> headerIterator = harvester.harvestRecordHeaders(harvestToBeExecuted);
 
     // *** Main harvesting loop for a given task ***
-    boolean taskDropped = false;
     int resultCounter = 0;
     try(CloseableIterator<OaiRecordHeader> closeableIterator = headerIterator.getCloseableIterator()){
       while (closeableIterator.hasNext()){
@@ -58,8 +58,7 @@ public class HarvestsExecutor {
         if (taskStatusChecker.hasDroppedStatus(parameters.getTask().getTaskId())) {
           LOGGER.info("Harvesting for {} (Task: {}) stopped by external signal",
               harvestToBeExecuted, parameters.getTask().getTaskId());
-          taskDropped = true;
-          break;
+          throw new TaskDroppedException(parameters.getTask().getTaskId());
         }
 
         if (oaiHeader.isDeleted()) {
@@ -83,14 +82,8 @@ public class HarvestsExecutor {
     } catch (IOException e) {
       throw new HarvesterRuntimeException(e);
     }
-    if (taskDropped) {
-      return HarvestResult.builder()
-                          .resultCounter(resultCounter)
-              .taskState(EngineTaskState.DROPPED).build();
-    }
     LOGGER.info("Identifiers harvesting finished for: {}. Counter: {}", harvestToBeExecuted, resultCounter);
-
-      return new HarvestResult(resultCounter, EngineTaskState.QUEUED);
+    return resultCounter;
   }
 
   private int getMaxRecordsCount(SubmitTaskParameters parameters) {

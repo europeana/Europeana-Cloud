@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TaskDiagnosticInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.TasksByStateDAO;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusUpdater;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,13 +68,13 @@ class PostProcessingServiceTest {
 
 
   @Test
-  void shouldExecutePostprocessor() {
+  void shouldExecutePostprocessor() throws TaskDroppedException {
     postProcessingService.postProcess(TASK_BY_TASK_STATE_1);
     verify(taskPostProcessor).execute(any(), any());
   }
 
   @Test
-  void shouldNotExecuteForUnknownTopology() {
+  void shouldNotExecuteForUnknownTopology() throws TaskDroppedException {
     postProcessingService.postProcess(TASK_BY_TASK_STATE_2);
     verify(taskPostProcessor, never()).execute(any(), any());
   }

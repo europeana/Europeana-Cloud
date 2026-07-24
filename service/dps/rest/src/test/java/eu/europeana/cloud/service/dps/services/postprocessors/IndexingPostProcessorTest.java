@@ -57,7 +57,7 @@ class IndexingPostProcessorTest {
   private final TaskInfo taskInfo = new TaskInfo();
 
   @Test
-  void shouldCleanDateAndMd5ForPreviewAndForOneRecord() {
+  void shouldCleanDateAndMd5ForPreviewAndForOneRecord() throws TaskDroppedException {
     try (
             MockedConstruction<DatasetCleaner> ignored =
                     Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
@@ -87,7 +87,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() {
+  void shouldCleanDateAndMd5ForPreviewAndForMultipleRecords() throws TaskDroppedException {
     try (
             MockedConstruction<DatasetCleaner> ignored =
                     Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
@@ -116,7 +116,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldCleanDateAndMd5ForPublishAndForOneRecord() {
+  void shouldCleanDateAndMd5ForPublishAndForOneRecord() throws TaskDroppedException {
     try (
             MockedConstruction<DatasetCleaner> ignored =
                     Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
@@ -144,7 +144,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldCleanDateAndMd5ForPublishAndMultipleRecords() {
+  void shouldCleanDateAndMd5ForPublishAndMultipleRecords() throws TaskDroppedException {
     try (
             MockedConstruction<DatasetCleaner> ignored =
                     Mockito.mockConstruction(DatasetCleaner.class, (datasetCleaner, context) -> {
@@ -197,7 +197,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldNotStartPostprocessingForDroppedTask() {
+  void shouldNotStartPostprocessingForDroppedTask() throws TaskDroppedException {
     //given
     DpsTask task = prepareTaskForPreviewEnv();
     when(taskStatusChecker.hasDroppedStatus(anyLong())).thenReturn(true);
@@ -212,7 +212,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldParseIsoRecordDateProperly() {
+  void shouldParseIsoRecordDateProperly() throws TaskDroppedException {
     DpsTask dpsTask = new DpsTask();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
@@ -230,7 +230,7 @@ class IndexingPostProcessorTest {
   }
 
   @Test
-  void shouldParseIsoRecordDateWithoutMillisecondsProperly() {
+  void shouldParseIsoRecordDateWithoutMillisecondsProperly() throws TaskDroppedException {
     DpsTask dpsTask = new DpsTask();
     dpsTask.addParameter(PluginParameterKeys.METIS_DATASET_ID, METIS_DATASET_ID);
     dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");

@@ -19,7 +19,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(OtherTopologiesTaskSubmitter.class),
+                Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
@@ -36,7 +36,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(OtherTopologiesTaskSubmitter.class),
+                Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
@@ -53,7 +53,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(OtherTopologiesTaskSubmitter.class),
+                Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
@@ -70,7 +70,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitterFactory taskSubmitterFactory = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(OtherTopologiesTaskSubmitter.class),
+                Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         );
 
@@ -81,7 +81,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.VALIDATION_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
 
     assertTrue(taskSubmitterFactory.provideTaskSubmitter(
         SubmitTaskParameters
@@ -90,7 +90,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.INDEXING_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
 
     assertTrue(taskSubmitterFactory.provideTaskSubmitter(
         SubmitTaskParameters
@@ -99,7 +99,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.ENRICHMENT_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
 
     assertTrue(taskSubmitterFactory.provideTaskSubmitter(
         SubmitTaskParameters
@@ -108,7 +108,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.NORMALIZATION_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
 
     assertTrue(taskSubmitterFactory.provideTaskSubmitter(
         SubmitTaskParameters
@@ -117,7 +117,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.LINKCHECK_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
     assertTrue(taskSubmitterFactory.provideTaskSubmitter(
         SubmitTaskParameters
             .builder()
@@ -125,7 +125,7 @@ class TaskSubmitterFactoryTest {
                               .topologyName(TopologiesNames.MEDIA_TOPOLOGY)
                               .build())
             .build()
-    ) instanceof OtherTopologiesTaskSubmitter);
+    ) instanceof MCSTaskSubmitter);
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
                 SubmitTaskParameters
@@ -134,7 +134,7 @@ class TaskSubmitterFactoryTest {
                                 .topologyName(TopologiesNames.XSLT_TOPOLOGY)
                                 .build())
                         .build()
-        ) instanceof OtherTopologiesTaskSubmitter);
+        ) instanceof MCSTaskSubmitter);
     }
 
     @Test
@@ -142,7 +142,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitterFactory submitterFactory = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(OtherTopologiesTaskSubmitter.class),
+                Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         );
         SubmitTaskParameters submitTaskParameters = SubmitTaskParameters.builder()

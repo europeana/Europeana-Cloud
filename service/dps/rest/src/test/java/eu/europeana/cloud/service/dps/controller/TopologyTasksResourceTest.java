@@ -72,7 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(classes = {DPSServiceTestContext.class, TopologyTasksResource.class, TaskSubmitterFactory.class,
         TaskSubmissionValidator.class, SubmitTaskService.class, TaskDiagnosticInfoDAO.class,
-        OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class, OtherTopologiesTaskSubmitter.class,
+        OaiTopologyTaskSubmitter.class, HttpTopologyTaskSubmitter.class,
         TaskStatusUpdater.class, TaskStatusSynchronizer.class, MCSTaskSubmitter.class, RecordSubmitService.class,
         FileURLCreator.class})
 class TopologyTasksResourceTest extends AbstractResourceTest {
@@ -295,8 +295,7 @@ class TopologyTasksResourceTest extends AbstractResourceTest {
         harvestingDetails.setRepositoryUrl(TEST_RESOURCE_URL);
         harvestingDetails.setSchema("oai_dc");
         task.setSource(harvestingDetails);
-        when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(
-                new HarvestResult(1, EngineTaskState.PROCESSED));
+        when(harvestsExecutor.execute(any(OaiHarvest.class), any(SubmitTaskParameters.class))).thenReturn(1);
         prepareMocks(OAI_TOPOLOGY);
 
     ResultActions response = createTask(task, OAI_TOPOLOGY);

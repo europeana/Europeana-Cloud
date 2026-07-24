@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.RepresentationIterator;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
@@ -14,9 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class MCSTaskSubmitter {
+public class MCSTaskSubmitter implements TaskSubmitter {
 
   public static final int LOGGING_FREQUENCY = 1000;
 
@@ -24,25 +22,22 @@ public class MCSTaskSubmitter {
 
   private final TaskStatusChecker taskStatusChecker;
 
-  private final TaskStatusUpdater taskStatusUpdater;
-
   private final RecordSubmitService recordSubmitService;
 
   private final String mcsClientURL;
   private final String userName;
   private final String password;
 
-  public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker, TaskStatusUpdater taskStatusUpdater,
+  public MCSTaskSubmitter(TaskStatusChecker taskStatusChecker,
       RecordSubmitService recordSubmitService, String mcsClientURL, String userName, String password) {
     this.taskStatusChecker = taskStatusChecker;
-    this.taskStatusUpdater = taskStatusUpdater;
     this.recordSubmitService = recordSubmitService;
     this.mcsClientURL = mcsClientURL;
     this.userName = userName;
     this.password = password;
   }
 
-  public void execute(SubmitTaskParameters submitParameters) throws InterruptedException {
+  public ExpectedCounters submitTask(SubmitTaskParameters submitParameters) throws InterruptedException {
     DpsTask task = submitParameters.getTask();
     try {
       LOGGER.info("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
@@ -51,27 +46,15 @@ public class MCSTaskSubmitter {
       checkIfTaskIsKilled(task);
 
       logProgress(submitParameters, 0);
-      ExpectedCounters expectedCounters = executeForMCSInput(submitParameters);
+      return executeForMCSInput(submitParameters);
 
-      checkIfTaskIsKilled(task);
-      if (!expectedCounters.areEmpty()) {
-        taskStatusUpdater.updateStatusAndExpected(task.getTaskId(), EngineTaskState.QUEUED, expectedCounters);
-        LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", expectedCounters.getExpectedRecords(), task.getTaskId());
-      } else {
-        taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because it is empty");
-        LOGGER.warn("The task id={} was dropped because it is empty.", task.getTaskId());
-      }
-
-    } catch (TaskDroppedException e) {
-      LOGGER.warn("Task was dropped while it was submitting to the topology! Task id: {}", e.getTaskId(), e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new InterruptedException(
           String.format("MCS service encountered interruption exception for taskId=%s with message: %s and stack trace: %s",
               task.getTaskId(), e.getMessage(), Arrays.toString(e.getStackTrace())));
     } catch (Exception e) {
-      LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
-      taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
+      throw new TaskSubmitException("MCSTaskSubmitter error for taskId: "+ task.getTaskId()+" : "+e.getMessage(), e);
     }
   }
 
@@ -80,7 +63,7 @@ public class MCSTaskSubmitter {
   }
 
   private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters)
-      throws InterruptedException {
+      throws InterruptedException, TaskDroppedException {
     try (var reader = createMcsReader()) {
       var expectedSize = ExpectedCounters.expectZeroRecords();
       BatchInfo input = (BatchInfo) submitParameters.getTask().getSource();
@@ -90,7 +73,8 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private ExpectedCounters executeForEntireDataset(BatchInfo input, SubmitTaskParameters submitParameters, MCSReader reader) {
+  private ExpectedCounters executeForEntireDataset(BatchInfo input, SubmitTaskParameters submitParameters, MCSReader reader)
+      throws TaskDroppedException {
     var expectedSize = ExpectedCounters.expectZeroRecords();
     RepresentationIterator iterator = reader.getRepresentationsOfEntireDataset(input);
     while (iterator.hasNext()) {
@@ -101,18 +85,25 @@ public class MCSTaskSubmitter {
     return expectedSize;
   }
 
-  private ExpectedCounters submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters) {
+  private ExpectedCounters submitRecordsForRepresentation(Representation representation, SubmitTaskParameters submitParameters)
+      throws TaskDroppedException {
     if (representation == null) {
       throw new TaskSubmitException("Problem while reading representation - representation is null.");
     }
     if (representation.isMarkDepublished()) {
       return submitRecordForDeletedRepresentation(representation.getUri(), submitParameters);
     } else {
-      return submitRecordsForFileObjects(representation.getFiles(), submitParameters);
+      return submitExistingRepresentation(representation, submitParameters);
     }
   }
 
-  private ExpectedCounters submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters) {
+  protected ExpectedCounters submitExistingRepresentation(Representation representation, SubmitTaskParameters submitParameters)
+      throws TaskDroppedException {
+    return submitRecordsForAllFilesOfRepresentation(representation.getFiles(), submitParameters);
+  }
+
+  private ExpectedCounters submitRecordForDeletedRepresentation(URI representationVersionUri, SubmitTaskParameters submitParameters)
+      throws TaskDroppedException {
     checkIfTaskIsKilled(submitParameters.getTask());
 
     if (submitRecord(representationVersionUri.toString(), submitParameters, true)) {
@@ -122,15 +113,13 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private ExpectedCounters submitRecordsForFileObjects(List<File> files, SubmitTaskParameters submitParameters) {
-    return submitRecordsForFileUrlsList(files.stream().map(file -> file.getContentUri().toString()).collect(Collectors.toList()), submitParameters);
-  }
-
-  private ExpectedCounters submitRecordsForFileUrlsList(List<String> fileUrls, SubmitTaskParameters submitParameters) {
+  private ExpectedCounters submitRecordsForAllFilesOfRepresentation(List<File> files, SubmitTaskParameters submitParameters)
+      throws TaskDroppedException {
     ExpectedCounters baseCounter = ExpectedCounters.expectZeroRecords();
 
-    for (String fileUrl : fileUrls) {
+    for (File file : files) {
       checkIfTaskIsKilled(submitParameters.getTask());
+      String fileUrl = file.getContentUri().toString();
       if (submitRecord(fileUrl, submitParameters, false)) {
         baseCounter.add(ExpectedCounters.expectSingleRecord());
       }
@@ -161,7 +150,7 @@ public class MCSTaskSubmitter {
     }
   }
 
-  private void checkIfTaskIsKilled(DpsTask task) {
+  private void checkIfTaskIsKilled(DpsTask task) throws TaskDroppedException {
     taskStatusChecker.checkNotDropped(task);
   }
 }

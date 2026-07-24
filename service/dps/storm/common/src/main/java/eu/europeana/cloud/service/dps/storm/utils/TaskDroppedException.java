@@ -9,7 +9,7 @@ import lombok.Getter;
  * to interrupt execution.
  */
 @Getter
-public class TaskDroppedException extends RuntimeException {
+public class TaskDroppedException extends Exception {
 
   private final long taskId;
 

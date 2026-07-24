@@ -10,16 +10,16 @@ public class TaskSubmitterFactory {
 
   private final OaiTopologyTaskSubmitter oaiTopologyTaskSubmitter;
   private final HttpTopologyTaskSubmitter httpTopologyTaskSubmitter;
-  private final OtherTopologiesTaskSubmitter otherTopologiesTaskSubmitter;
+  private final MCSTaskSubmitter mcsTaskSubmitter;
   private final TaskSubmitter depublicationTaskSubmitter;
 
   public TaskSubmitterFactory(OaiTopologyTaskSubmitter oaiTopologyTaskSubmitter,
       HttpTopologyTaskSubmitter httpTopologyTaskSubmitter,
-      OtherTopologiesTaskSubmitter otherTopologiesTaskSubmitter,
+      MCSTaskSubmitter mcsTaskSubmitter,
       @Qualifier("depublicationTaskSubmitter") TaskSubmitter depublicationTaskSubmitter) {
     this.oaiTopologyTaskSubmitter = oaiTopologyTaskSubmitter;
     this.httpTopologyTaskSubmitter = httpTopologyTaskSubmitter;
-    this.otherTopologiesTaskSubmitter = otherTopologiesTaskSubmitter;
+    this.mcsTaskSubmitter = mcsTaskSubmitter;
     this.depublicationTaskSubmitter = depublicationTaskSubmitter;
   }
 
@@ -29,14 +29,14 @@ public class TaskSubmitterFactory {
         return oaiTopologyTaskSubmitter;
       case TopologiesNames.HTTP_TOPOLOGY:
         return httpTopologyTaskSubmitter;
+      case TopologiesNames.VALIDATION_TOPOLOGY:
       case TopologiesNames.ENRICHMENT_TOPOLOGY:
-      case TopologiesNames.INDEXING_TOPOLOGY:
       case TopologiesNames.LINKCHECK_TOPOLOGY:
       case TopologiesNames.MEDIA_TOPOLOGY:
       case TopologiesNames.NORMALIZATION_TOPOLOGY:
-      case TopologiesNames.VALIDATION_TOPOLOGY:
       case TopologiesNames.XSLT_TOPOLOGY:
-        return otherTopologiesTaskSubmitter;
+      case TopologiesNames.INDEXING_TOPOLOGY:
+        return mcsTaskSubmitter;
       case TopologiesNames.DEPUBLICATION_TOPOLOGY:
         return depublicationTaskSubmitter;
       default:

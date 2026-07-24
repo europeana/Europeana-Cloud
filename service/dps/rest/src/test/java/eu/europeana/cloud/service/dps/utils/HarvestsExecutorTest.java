@@ -1,14 +1,13 @@
 package eu.europeana.cloud.service.dps.utils;
 
-import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.HarvestResult;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.config.CassandraHarvestExecutorContext;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
+import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.HarvestingIterator;
@@ -36,6 +35,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -93,7 +93,7 @@ class HarvestsExecutorTest {
     }
 
     @Test
-    void shouldEmitAllRecordsToKafka() {
+    void shouldEmitAllRecordsToKafka() throws TaskDroppedException {
         //given
         createNewTask();
         Mockito.clearInvocations(recordSubmitService);
@@ -140,10 +140,9 @@ class HarvestsExecutorTest {
         when(oaiIterator.getCloseableIterator()).thenReturn(getCloseableIterator(harvestedHeaders));
 
         //when
-        HarvestResult harvestResult = executor.execute(harvest, parameters);
+        assertThrows(TaskDroppedException.class, () -> executor.execute(harvest, parameters));
 
         //then
-        assertEquals(EngineTaskState.DROPPED, harvestResult.getTaskState());
         verify(recordSubmitService, never()).submitRecord(any(), any());
   }
 

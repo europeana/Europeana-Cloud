@@ -1,6 +1,5 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
-import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.service.dps.DepublicationInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
@@ -9,6 +8,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
+import eu.europeana.cloud.service.dps.storm.utils.ExpectedCounters;
 import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
@@ -22,101 +22,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static eu.europeana.cloud.common.model.dps.TaskInfo.UNKNOWN_EXPECTED_RECORDS_NUMBER;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologiesNames.DEPUBLICATION_TOPOLOGY;
 
 /**
  * Class responsible for submitting (sending to Kafka queue) records that should be depublished
  */
 @Service
-public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements TaskSubmitter {
+public class DepublicationTaskSubmitter implements TaskSubmitter {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DepublicationTaskSubmitter.class);
-
-  private final FilesCounterFactory filesCounterFactory;
-  private final TaskStatusUpdater taskStatusUpdater;
   private final IndexWrapper indexWrapper;
-  private final KafkaTopicSelector kafkaTopicSelector;
   private final RecordSubmitService recordSubmitService;
   private final TaskStatusChecker taskStatusChecker;
 
   /**
    * Default constructor
    *
-   * @param filesCounterFactory factory for records counters
-   * @param taskStatusUpdater   service needed for changing task status during submission
-   * @param kafkaTopicSelector  service needed for selecting kafka queue for task
    * @param recordSubmitService service needed for sending records for queue
    * @param indexWrapper        service needed for accessing indexer
    */
-  public DepublicationTaskSubmitter(FilesCounterFactory filesCounterFactory,
-                                    TaskStatusUpdater taskStatusUpdater, KafkaTopicSelector kafkaTopicSelector, RecordSubmitService recordSubmitService,
-                                    IndexWrapper indexWrapper, TaskStatusChecker taskStatusChecker, DataSetServiceClient dataSetServiceClient) {
-    super(dataSetServiceClient);
-    this.filesCounterFactory = filesCounterFactory;
-    this.taskStatusUpdater = taskStatusUpdater;
-    this.kafkaTopicSelector = kafkaTopicSelector;
+  public DepublicationTaskSubmitter(RecordSubmitService recordSubmitService, IndexWrapper indexWrapper,
+      TaskStatusChecker taskStatusChecker) {
     this.recordSubmitService = recordSubmitService;
     this.indexWrapper = indexWrapper;
     this.taskStatusChecker = taskStatusChecker;
   }
 
   @Override
-  public void submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException {
-    long taskId = parameters.getTask().getTaskId();
-    if (parameters.getTaskInfo().getExpectedRecords() == UNKNOWN_EXPECTED_RECORDS_NUMBER) {
-      int expectedCount = evaluateTaskSize(parameters);
-      if (expectedCount == 0) {
-        taskStatusUpdater.setTaskDropped(parameters.getTask().getTaskId(), "The task doesn't include any records");
-        return;
-      }
-
-    } else {
-      LOGGER.info("The task: {} already have estimated expected size: {}",
-              taskId, parameters.getTaskInfo().getExpectedRecords());
-      //This means that the task was restarted, we could not evaluate size again because some of the records,
-      // coudl be already depublished and therefore not present in the Metis, so the size would be estimated smaller.
-    }
-
-    createDateSetIfNeeded(parameters.getTask());
-    selectKafkaQueue(parameters);
-    taskStatusUpdater.updateSubmitParameters(parameters);
-
-    LOGGER.info("Sending task id={} to topology {} by kafka topic {}. Parameters:\n{}",
-        taskId, parameters.getTaskInfo().getTopologyName(), parameters.getTopicName(), parameters);
-
+  public ExpectedCounters submitTask(SubmitTaskParameters parameters) throws TaskSubmissionException, TaskDroppedException {
     Stream<String> recordsForDepublication = fetchRecordIdentifiers(parameters);
     int sentRecordCount = submitRecords(recordsForDepublication, parameters);
-
-      taskStatusUpdater.updateState(taskId, EngineTaskState.QUEUED);
-    LOGGER.info("Submitting {} records of task id={} to Kafka succeeded.", sentRecordCount, taskId);
+    return new ExpectedCounters(sentRecordCount,0);
   }
 
 
-  private int submitRecords(Stream<String> recordsForDepublication, SubmitTaskParameters parameters) {
+  private int submitRecords(Stream<String> recordsForDepublication, SubmitTaskParameters parameters) throws TaskDroppedException {
     long taskId = parameters.getTask().getTaskId();
-    AtomicInteger recordCounter = new AtomicInteger(0);
-    recordsForDepublication.forEach(recordId -> {
+    int recordCounter = 0;
+    Iterable<String> oneTimeIterable = recordsForDepublication::iterator;
+    for(String recordId: oneTimeIterable){
       checkIfTaskIsKilled(parameters.getTask());
       DpsRecord aRecord = DpsRecord.builder()
                                    .taskId(taskId)
                                    .recordId(recordId)
                                    .build();
       if (recordSubmitService.submitRecord(aRecord, parameters)) {
-        recordCounter.incrementAndGet();
+        recordCounter++;
       }
-    });
-    return recordCounter.get();
-  }
-
-  private void selectKafkaQueue(SubmitTaskParameters parameters) {
-    String preferredTopicName = kafkaTopicSelector.findPreferredTopicNameFor(parameters.getTaskInfo().getTopologyName());
-    parameters.setTopicName(preferredTopicName);
+    }
+    return recordCounter;
   }
 
   private Stream<String> fetchRecordIdentifiers(SubmitTaskParameters parameters) throws TaskSubmissionException {
@@ -131,18 +88,9 @@ public class DepublicationTaskSubmitter extends AbstractTaskSubmitter implements
     } catch (IndexingException e) {
       throw new TaskSubmissionException("Fetching record identifiers failed", e);
     }
-}
-
-  private int evaluateTaskSize(SubmitTaskParameters parameters) throws TaskSubmissionException {
-    LOGGER.info("Evaluating size of depublication task for task_id {} ", parameters.getTask().getTaskId());
-    DpsTask task = parameters.getTask();
-    int expectedSize = filesCounterFactory.createFilesCounter(task, DEPUBLICATION_TOPOLOGY).getFilesCount(task);
-      parameters.getTaskInfo().setExpectedRecords(expectedSize);
-    LOGGER.info("Evaluated size: {} for task id: {}", expectedSize, task.getTaskId());
-    return expectedSize;
   }
 
-  private void checkIfTaskIsKilled(DpsTask task) {
+  private void checkIfTaskIsKilled(DpsTask task) throws TaskDroppedException {
     if (taskStatusChecker.hasDroppedStatus(task.getTaskId())) {
       throw new TaskDroppedException(task);
     }

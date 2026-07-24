@@ -99,7 +99,7 @@ class DepublicationTaskSubmitterTest {
   }
 
     @Test
-    void shouldProperlySentTaskForSelectedRecords() throws TaskSubmissionException {
+    void shouldProperlySentTaskForSelectedRecords() throws TaskSubmissionException, TaskDroppedException {
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
         dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of(RECORD_ID_1, RECORD_ID_2)).build());
         when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
@@ -116,7 +116,7 @@ class DepublicationTaskSubmitterTest {
   }
 
     @Test
-    void shouldProperlySentTaskForDataset() throws TaskSubmissionException, IndexingException {
+    void shouldProperlySentTaskForDataset() throws TaskSubmissionException, IndexingException, TaskDroppedException {
         when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
         when(indexer.getRecordIds(eq(DATASET_ID), any(), anyInt())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
@@ -135,7 +135,7 @@ class DepublicationTaskSubmitterTest {
   }
 
     @Test
-    void shouldDropTaskWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException {
+    void shouldDropTaskWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException, TaskDroppedException {
         when(indexer.countRecords(DATASET_ID)).thenReturn(0L);
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
         dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());

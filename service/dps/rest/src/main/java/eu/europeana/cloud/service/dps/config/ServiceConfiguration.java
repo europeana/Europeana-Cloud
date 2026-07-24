@@ -256,10 +256,11 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public MCSTaskSubmitter mcsTaskSubmitter() {
-    return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
+    return new MCSTaskSubmitter(taskStatusChecker(), recordSubmitService(), mcsLocation(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
+
 
   @Bean
   public FileURLCreator fileURLCreator() {
