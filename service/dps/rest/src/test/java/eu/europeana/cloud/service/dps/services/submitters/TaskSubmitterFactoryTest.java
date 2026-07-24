@@ -19,7 +19,9 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
+                Mockito.mock(ValidationTopologyTaskSubmitter.class),
                 Mockito.mock(MCSTaskSubmitter.class),
+                Mockito.mock(IndexingTopologyTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
@@ -34,10 +36,12 @@ class TaskSubmitterFactoryTest {
     void shouldProvideSubmitterForOaiTopology() {
 
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
-                Mockito.mock(OaiTopologyTaskSubmitter.class),
-                Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(MCSTaskSubmitter.class),
-                Mockito.mock(DepublicationTaskSubmitter.class)
+            Mockito.mock(OaiTopologyTaskSubmitter.class),
+            Mockito.mock(HttpTopologyTaskSubmitter.class),
+            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(MCSTaskSubmitter.class),
+            Mockito.mock(IndexingTopologyTaskSubmitter.class),
+            Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
                         .taskInfo(TaskInfo.builder()
@@ -51,10 +55,12 @@ class TaskSubmitterFactoryTest {
     void shouldProvideSubmitterForHttpTopology() {
 
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
-                Mockito.mock(OaiTopologyTaskSubmitter.class),
-                Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(MCSTaskSubmitter.class),
-                Mockito.mock(DepublicationTaskSubmitter.class)
+            Mockito.mock(OaiTopologyTaskSubmitter.class),
+            Mockito.mock(HttpTopologyTaskSubmitter.class),
+            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(MCSTaskSubmitter.class),
+            Mockito.mock(IndexingTopologyTaskSubmitter.class),
+            Mockito.mock(DepublicationTaskSubmitter.class)
         ).provideTaskSubmitter(
                 SubmitTaskParameters.builder()
                         .taskInfo(TaskInfo.builder()
@@ -68,10 +74,12 @@ class TaskSubmitterFactoryTest {
     void shouldProvideSubmitterForOtherTopologies() {
 
         TaskSubmitterFactory taskSubmitterFactory = new TaskSubmitterFactory(
-                Mockito.mock(OaiTopologyTaskSubmitter.class),
-                Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(MCSTaskSubmitter.class),
-                Mockito.mock(DepublicationTaskSubmitter.class)
+            Mockito.mock(OaiTopologyTaskSubmitter.class),
+            Mockito.mock(HttpTopologyTaskSubmitter.class),
+            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(MCSTaskSubmitter.class),
+            Mockito.mock(IndexingTopologyTaskSubmitter.class),
+            Mockito.mock(DepublicationTaskSubmitter.class)
         );
 
         assertTrue(taskSubmitterFactory.provideTaskSubmitter(
@@ -140,10 +148,12 @@ class TaskSubmitterFactoryTest {
     @Test
     void shouldThrowExceptionForUnknownTopologyName() {
         TaskSubmitterFactory submitterFactory = new TaskSubmitterFactory(
-                Mockito.mock(OaiTopologyTaskSubmitter.class),
-                Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(MCSTaskSubmitter.class),
-                Mockito.mock(DepublicationTaskSubmitter.class)
+            Mockito.mock(OaiTopologyTaskSubmitter.class),
+            Mockito.mock(HttpTopologyTaskSubmitter.class),
+            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(MCSTaskSubmitter.class),
+            Mockito.mock(IndexingTopologyTaskSubmitter.class),
+            Mockito.mock(DepublicationTaskSubmitter.class)
         );
         SubmitTaskParameters submitTaskParameters = SubmitTaskParameters.builder()
                 .taskInfo(TaskInfo.builder()

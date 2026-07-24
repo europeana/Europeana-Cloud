@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.cloud.common.model.RepresentationVersionAnnotation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.dto.AnnotationsDto;
+import eu.europeana.cloud.common.model.AnnotationsDto;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

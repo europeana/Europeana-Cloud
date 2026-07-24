@@ -41,6 +41,7 @@ public final class TopologyHelper {
   public static final String SPOUT_NAME_PREFIX = "spout_";
   public static final String RETRIEVE_FILE_BOLT = "retrieveFileBolt";
   public static final String NOTIFICATION_BOLT = "notificationBolt";
+  public static final String ANNOTATION_BOLT = "annotationBolt";
   public static final String WRITE_RECORD_BOLT = "writeRecordBolt";
   public static final String XSLT_BOLT = "XSLT_BOLT";
   public static final String DUPLICATES_DETECTOR_BOLT = "duplicatesDetectorBolt";

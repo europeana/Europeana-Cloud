@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import eu.europeana.cloud.common.model.RepresentationVersionAnnotation.AnnotationKey;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -292,5 +293,9 @@ public class Representation {
                 + version + ", dataProvider=" + dataProvider + ", files=" + files + ", creationDate="
                 + creationDate
                 + ", persistent=" + persistent + '}';
+    }
+
+    public boolean containsAnnotation(AnnotationKey annotationKey) {
+        return getAnnotations().stream().filter(r -> annotationKey.equals(r.getKey())).count() > 1;
     }
 }

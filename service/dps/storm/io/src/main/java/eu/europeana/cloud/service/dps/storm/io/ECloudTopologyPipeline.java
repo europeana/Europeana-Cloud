@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.io;
 
+import eu.europeana.cloud.common.model.RepresentationVersionAnnotation;
 import eu.europeana.cloud.service.dps.storm.NotificationBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
@@ -69,6 +70,38 @@ public class ECloudTopologyPipeline {
   }
 
   /**
+   * Adds ValidationAnnotationBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addValidationAnnotationBolt() {
+    ValidationAnnotationBolt writeRecordBolt = new ValidationAnnotationBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ANNOTATION_BOLT, writeRecordBolt, ANNOTATION_BOLT_PARALLEL, ANNOTATION_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
+   * Adds ValidationAnnotationBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addIndexingAnnotationBolt() {
+    IndexingAnnotationBolt writeRecordBolt = new IndexingAnnotationBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ANNOTATION_BOLT, writeRecordBolt, ANNOTATION_BOLT_PARALLEL, ANNOTATION_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
    * Adds WriteRecordBolt to the pipeline
    *
    * @return this
@@ -98,23 +131,6 @@ public class ECloudTopologyPipeline {
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
             true
-    );
-    addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
-    return this;
-  }
-
-  /**
-   * Adds {@link ValidationWriteRecordBolt} to the pipeline
-   *
-   * @return this
-   */
-  public ECloudTopologyPipeline addValidationWriteRecordBolt() {
-    WriteRecordBolt writeRecordBolt = new ValidationWriteRecordBolt(
-        createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
-        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-        false
     );
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;

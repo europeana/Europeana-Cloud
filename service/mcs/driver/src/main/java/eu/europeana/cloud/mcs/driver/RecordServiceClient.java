@@ -1,5 +1,6 @@
 package eu.europeana.cloud.mcs.driver;
 
+import eu.europeana.cloud.common.model.AnnotationsDto;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.web.ParamConstants;
@@ -470,6 +471,21 @@ public class RecordServiceClient extends MCSClient {
             .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
     );
   }
+
+  public void addAnnotationToRepresentationVersion(final String cloudId, final String representationName, final String version,
+      AnnotationsDto annotation) throws MCSException {
+    manageResponse(new ResponseParams<>(URI.class, Response.Status.OK),
+        () -> passLogContext(client
+            .target(baseUrl)
+            .path(REPRESENTATION_VERSION_ANNOTATION_RESOURCE)
+            .resolveTemplate(CLOUD_ID, cloudId)
+            .resolveTemplate(REPRESENTATION_NAME, representationName)
+            .resolveTemplate(VERSION, version)
+            .request())
+            .post(Entity.json(annotation))
+    );
+  }
+
 
   private FormDataMultiPart prepareRequestBody(String providerId, String datasetId,
       InputStream data, String fileName, String mediaType) {

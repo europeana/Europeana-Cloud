@@ -2,7 +2,7 @@ package eu.europeana.cloud.service.mcs.controller;
 
 import eu.europeana.cloud.common.model.RepresentationVersionAnnotation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.dto.AnnotationsDto;
+import eu.europeana.cloud.common.model.AnnotationsDto;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;

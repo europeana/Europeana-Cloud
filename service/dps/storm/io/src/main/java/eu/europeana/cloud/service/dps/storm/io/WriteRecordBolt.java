@@ -106,7 +106,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
   }
 
-  protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+  private void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     emitNotification(anchorTuple, commonTaskTuple);
   }
 

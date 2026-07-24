@@ -5,7 +5,6 @@ import static eu.europeana.cloud.common.log.AttributePassingUtils.TASK_ID_CONTEX
 import com.fasterxml.jackson.core.JsonProcessingException;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import eu.europeana.cloud.service.dps.BatchInfo;
 import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.TaskExecutionReportService;
@@ -24,7 +23,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -64,15 +62,18 @@ public class TopologyTasksResource {
 
   private final TaskSubmissionValidator taskSubmissionValidator;
 
+  private final DpsTaskCreator dpsTaskCreator;
+
   public TopologyTasksResource(TaskExecutionReportService reportService, PermissionManager permissionManager,
       CassandraTaskInfoDAO taskInfoDAO, TaskStatusUpdater taskStatusUpdater, SubmitTaskService submitTaskService,
-      TaskSubmissionValidator taskSubmissionValidator) {
+      TaskSubmissionValidator taskSubmissionValidator, DpsTaskCreator dpsTaskCreator) {
     this.reportService = reportService;
     this.permissionManager = permissionManager;
     this.taskInfoDAO = taskInfoDAO;
     this.taskStatusUpdater = taskStatusUpdater;
     this.submitTaskService = submitTaskService;
     this.taskSubmissionValidator = taskSubmissionValidator;
+    this.dpsTaskCreator = dpsTaskCreator;
   }
 
   /**
@@ -257,7 +258,7 @@ public class TopologyTasksResource {
       throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException, JsonProcessingException {
 
     taskSubmissionValidator.validateTaskSubmission(task, parameters.getTaskInfo().getTopologyName());
-    parameters.setTask(createDpsTask(task, taskId));
+    parameters.setTask(dpsTaskCreator.createDpsTask(task, taskId, parameters.getTaskInfo().getTopologyName()));
     parameters.getTaskInfo().setDefinition(parameters.getTask().toJSON());
     parameters.getTaskInfo().setEngineTaskState(EngineTaskState.CREATED);
     var responseURI = buildTaskURI(request, taskId);
@@ -266,18 +267,6 @@ public class TopologyTasksResource {
 
     LOGGER.info("Created task: {}", parameters.getTask());
     return result;
-  }
-
-  private DpsTask createDpsTask(CreateDpsTaskRequest createTaskRequest, long taskId) {
-    var dpsTask = new DpsTask();
-    dpsTask.setSource(createTaskRequest.getSource());
-    if (createTaskRequest.getResultsProvider() != null) {
-      dpsTask.setResultsBatch(
-          BatchInfo.builder().providerId(createTaskRequest.getResultsProvider()).batchId(String.valueOf(taskId)).build());
-    }
-    dpsTask.setParameters(createTaskRequest.getParameters());
-    dpsTask.setTaskId(taskId);
-    return dpsTask;
   }
 
 
