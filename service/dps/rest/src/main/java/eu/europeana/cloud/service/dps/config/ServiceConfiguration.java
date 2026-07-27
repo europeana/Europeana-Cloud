@@ -25,7 +25,7 @@ import eu.europeana.cloud.service.dps.services.postprocessors.*;
 import eu.europeana.cloud.service.dps.services.submitters.IndexingTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.MCSTaskSubmitter;
 import eu.europeana.cloud.service.dps.services.submitters.RecordSubmitService;
-import eu.europeana.cloud.service.dps.services.submitters.ValidationTopologyTaskSubmitter;
+import eu.europeana.cloud.service.dps.services.submitters.AfterValidationTopologyTaskSubmitter;
 import eu.europeana.cloud.service.dps.storm.dao.*;
 import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceImpl;
 import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceImpl;
@@ -257,8 +257,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   }
 
   @Bean
-  public ValidationTopologyTaskSubmitter validationTopologyTaskSubmitter() {
-    return new ValidationTopologyTaskSubmitter(taskStatusChecker(), recordSubmitService(), mcsLocation(),
+  public AfterValidationTopologyTaskSubmitter validationTopologyTaskSubmitter() {
+    return new AfterValidationTopologyTaskSubmitter(taskStatusChecker(), recordSubmitService(), mcsLocation(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }

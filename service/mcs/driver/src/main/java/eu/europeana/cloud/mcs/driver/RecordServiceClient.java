@@ -472,7 +472,7 @@ public class RecordServiceClient extends MCSClient {
     );
   }
 
-  public void addAnnotationToRepresentationVersion(final String cloudId, final String representationName, final String version,
+  public void addAnnotationToRepresentationVersion(final String cloudId, final String representationName, final UUID version,
       AnnotationsDto annotation) throws MCSException {
     manageResponse(new ResponseParams<>(URI.class, Response.Status.OK),
         () -> passLogContext(client

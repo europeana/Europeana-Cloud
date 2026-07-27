@@ -44,7 +44,7 @@ public final class IndexingTopology {
                     topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                     topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
             ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
-            .addWriteRecordBolt(false)
+            .addIndexingAnnotationBolt()
         .buildTopology();
   }
 

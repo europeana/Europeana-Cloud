@@ -19,7 +19,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
                 Mockito.mock(OaiTopologyTaskSubmitter.class),
                 Mockito.mock(HttpTopologyTaskSubmitter.class),
-                Mockito.mock(ValidationTopologyTaskSubmitter.class),
+                Mockito.mock(AfterValidationTopologyTaskSubmitter.class),
                 Mockito.mock(MCSTaskSubmitter.class),
                 Mockito.mock(IndexingTopologyTaskSubmitter.class),
                 Mockito.mock(DepublicationTaskSubmitter.class)
@@ -38,7 +38,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
             Mockito.mock(OaiTopologyTaskSubmitter.class),
             Mockito.mock(HttpTopologyTaskSubmitter.class),
-            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(AfterValidationTopologyTaskSubmitter.class),
             Mockito.mock(MCSTaskSubmitter.class),
             Mockito.mock(IndexingTopologyTaskSubmitter.class),
             Mockito.mock(DepublicationTaskSubmitter.class)
@@ -57,7 +57,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitter taskSubmitter = new TaskSubmitterFactory(
             Mockito.mock(OaiTopologyTaskSubmitter.class),
             Mockito.mock(HttpTopologyTaskSubmitter.class),
-            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(AfterValidationTopologyTaskSubmitter.class),
             Mockito.mock(MCSTaskSubmitter.class),
             Mockito.mock(IndexingTopologyTaskSubmitter.class),
             Mockito.mock(DepublicationTaskSubmitter.class)
@@ -76,7 +76,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitterFactory taskSubmitterFactory = new TaskSubmitterFactory(
             Mockito.mock(OaiTopologyTaskSubmitter.class),
             Mockito.mock(HttpTopologyTaskSubmitter.class),
-            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(AfterValidationTopologyTaskSubmitter.class),
             Mockito.mock(MCSTaskSubmitter.class),
             Mockito.mock(IndexingTopologyTaskSubmitter.class),
             Mockito.mock(DepublicationTaskSubmitter.class)
@@ -150,7 +150,7 @@ class TaskSubmitterFactoryTest {
         TaskSubmitterFactory submitterFactory = new TaskSubmitterFactory(
             Mockito.mock(OaiTopologyTaskSubmitter.class),
             Mockito.mock(HttpTopologyTaskSubmitter.class),
-            Mockito.mock(ValidationTopologyTaskSubmitter.class),
+            Mockito.mock(AfterValidationTopologyTaskSubmitter.class),
             Mockito.mock(MCSTaskSubmitter.class),
             Mockito.mock(IndexingTopologyTaskSubmitter.class),
             Mockito.mock(DepublicationTaskSubmitter.class)

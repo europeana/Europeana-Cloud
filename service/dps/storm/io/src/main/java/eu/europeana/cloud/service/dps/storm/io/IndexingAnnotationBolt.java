@@ -16,10 +16,7 @@ public class IndexingAnnotationBolt extends AbstractAnnotationBolt {
 
   @Override
   protected RepresentationVersionAnnotation createAnnotation(CommonTaskTuple tuple) {
-    return switch (getDatabase(tuple)) {
-      case PREVIEW -> new RepresentationVersionAnnotation(AnnotationKey.PREVIEWING, null);
-      case PUBLISH -> new RepresentationVersionAnnotation(AnnotationKey.PUBLISHED, null);
-    };
+    return new RepresentationVersionAnnotation(getDatabase(tuple).getAnnotationKey(), "");
   }
 
   private TargetIndexingDatabase getDatabase(CommonTaskTuple commonTaskTuple) {

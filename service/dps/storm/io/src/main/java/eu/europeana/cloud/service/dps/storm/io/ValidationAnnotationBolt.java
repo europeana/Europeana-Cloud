@@ -19,7 +19,7 @@ public class ValidationAnnotationBolt extends AbstractAnnotationBolt{
 
   @Override
   protected RepresentationVersionAnnotation createAnnotation(CommonTaskTuple tuple) {
-    return new RepresentationVersionAnnotation(AnnotationKey.VALID, null);
+    return new RepresentationVersionAnnotation(AnnotationKey.VALID, "");
   }
 
   protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {

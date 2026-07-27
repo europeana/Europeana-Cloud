@@ -8,9 +8,9 @@ import eu.europeana.cloud.service.dps.storm.utils.SubmitTaskParameters;
 import eu.europeana.cloud.service.dps.storm.utils.TaskDroppedException;
 import eu.europeana.cloud.service.dps.storm.utils.TaskStatusChecker;
 
-public class ValidationTopologyTaskSubmitter extends MCSTaskSubmitter {
+public class AfterValidationTopologyTaskSubmitter extends MCSTaskSubmitter {
 
-  public ValidationTopologyTaskSubmitter(TaskStatusChecker taskStatusChecker,
+  public AfterValidationTopologyTaskSubmitter(TaskStatusChecker taskStatusChecker,
       RecordSubmitService recordSubmitService, String mcsClientURL, String userName, String password) {
     super(taskStatusChecker, recordSubmitService, mcsClientURL, userName, password);
   }

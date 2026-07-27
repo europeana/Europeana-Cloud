@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.Representation;
+import eu.europeana.cloud.common.model.RepresentationVersionAnnotation.AnnotationKey;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.ExpectedCounters;
@@ -18,9 +19,18 @@ public class IndexingTopologyTaskSubmitter extends MCSTaskSubmitter {
   @Override
   protected ExpectedCounters submitExistingRepresentation(Representation representation, SubmitTaskParameters submitParameters)
       throws TaskDroppedException {
-    if (representation.containsAnnotation(getDatabase(submitParameters).getAnnotationKey())) {
+    if (TargetIndexingDatabase.PUBLISH.equals(getDatabase(submitParameters))) {
+      return submitRepresentationToPublish(representation, submitParameters);
+    } else {
       return super.submitExistingRepresentation(representation, submitParameters);
-    }else {
+    }
+  }
+
+  private ExpectedCounters submitRepresentationToPublish(Representation representation, SubmitTaskParameters submitParameters)
+      throws TaskDroppedException {
+    if (representation.containsAnnotation(AnnotationKey.PREVIEWING)) {
+      return super.submitExistingRepresentation(representation, submitParameters);
+    } else {
       return ExpectedCounters.expectZeroRecords();
     }
   }

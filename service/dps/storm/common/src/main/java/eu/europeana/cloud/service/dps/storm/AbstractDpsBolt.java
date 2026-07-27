@@ -55,7 +55,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected transient OutputCollector outputCollector;
   protected String topologyName;
 
-  public abstract void execute(Tuple anchorTuple, CommonTaskTuple t);
+  public abstract void execute(Tuple anchorTuple, CommonTaskTuple t) throws Exception;
 
   public abstract void prepare();
 

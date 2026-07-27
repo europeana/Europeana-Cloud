@@ -87,8 +87,7 @@ public class Representation {
 
     @Getter
     @Setter
-    @JacksonXmlElementWrapper(localName = "annotations")
-    @JacksonXmlProperty(localName = "annotation")
+    @JacksonXmlElementWrapper(useWrapping = false)
     private List<RepresentationVersionAnnotation> annotations = new ArrayList<>(0);
 
     public void addAnnotation(RepresentationVersionAnnotation annotations) {
@@ -296,6 +295,6 @@ public class Representation {
     }
 
     public boolean containsAnnotation(AnnotationKey annotationKey) {
-        return getAnnotations().stream().filter(r -> annotationKey.equals(r.getKey())).count() > 1;
+        return getAnnotations().stream().filter(r -> annotationKey.equals(r.getKey())).count() > 0;
     }
 }
