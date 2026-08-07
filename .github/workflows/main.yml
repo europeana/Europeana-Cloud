@@ -26,7 +26,9 @@ jobs:
           GITLAB_USER: ${{ secrets.GITLAB_USER }}
           GITLAB_REPO: ${{ vars.GITLAB_REPO }}
         run: |
-          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          # Temporarily using different auth method because we need to change CICD repo accessibility
+          # GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          GITLAB_URL="https://${GITLAB_USER}:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
       - name: Copy .gitlab-ci.yml from GitLab develop
@@ -78,10 +80,13 @@ jobs:
       - name: Delete mirrored branch or tag
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_USER: ${{ secrets.GITLAB_USER }}
         run: |
           git init
 
-          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          # Temporarily using different auth method because we need to change CICD repo accessibility
+          # GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          GITLAB_URL="https://${GITLAB_USER}:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
           if [ "${GITHUB_REF_TYPE}" = "branch" ]; then
