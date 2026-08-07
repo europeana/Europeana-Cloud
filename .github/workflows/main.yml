@@ -29,11 +29,36 @@ jobs:
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
-      - name: Mirror branch
+      - name: Copy .gitlab-ci.yml from GitLab develop
+        run: |
+          if git ls-remote --exit-code gitlab refs/heads/develop >/dev/null 2>&1; then
+            echo "Fetching GitLab develop..."
+
+            git fetch gitlab develop
+
+            echo "Copying .gitlab-ci.yml..."
+
+            git show FETCH_HEAD:.gitlab-ci.yml > .gitlab-ci.yml
+          
+            git add .gitlab-ci.yml
+          
+            if git diff --cached --quiet; then
+              echo ".gitlab-ci.yml already up to date."
+            else
+              git commit -m "Sync .gitlab-ci.yml from GitLab develop"
+            fi
+          else
+            echo "GitLab develop branch does not exist yet. Skipping."
+          fi
+
+      - name: Push mirrored branch
         run: |
           echo "Mirroring '${GITHUB_REF_NAME}'"
 
-          git push             --verbose             --force             gitlab             HEAD:refs/heads/mirror/${GITHUB_REF_NAME}
+          git push \
+            --force \
+            gitlab \
+            HEAD:refs/heads/mirror/${GITHUB_REF_NAME}
 
       - name: Push tags
         run: |
