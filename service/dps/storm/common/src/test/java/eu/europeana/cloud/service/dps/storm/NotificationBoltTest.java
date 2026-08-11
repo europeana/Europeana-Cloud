@@ -16,7 +16,7 @@ import eu.europeana.cloud.service.dps.storm.service.TaskExecutionReportServiceIm
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.enrichment.rest.client.report.Report;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
@@ -65,8 +65,8 @@ public class NotificationBoltTest extends CassandraTestBase {
     void setUp() {
         collector = Mockito.mock(OutputCollector.class);
         createBolt();
-        CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-                CassandraTestInstance.getPort(), KEYSPACE, USER_NAME,
+        CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(CassandraEnvironment.HOST,
+                CassandraEnvironment.getPort(), KEYSPACE, USER_NAME,
                 PASSWORD);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);
         taskErrorsDAO = CassandraTaskErrorsDAO.getInstance(db);
@@ -76,7 +76,8 @@ public class NotificationBoltTest extends CassandraTestBase {
   }
 
   private void createBolt() {
-    testedBolt = new NotificationBolt(HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+      testedBolt = new NotificationBolt(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+              KEYSPACE, "", "");
 
     Map<String, Object> boltConfig = new HashMap<>();
     boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));

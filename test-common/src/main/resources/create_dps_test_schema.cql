@@ -1,6 +1,6 @@
-CREATE KEYSPACE ecloud_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+CREATE KEYSPACE ${KEYSPACE} WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
-USE ecloud_test;
+USE ${KEYSPACE};
 CREATE TABLE task_info_v2
 (
     task_id                         bigint,

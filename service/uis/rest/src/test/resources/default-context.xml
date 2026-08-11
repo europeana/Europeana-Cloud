@@ -9,9 +9,11 @@
     <context:annotation-config/>
 
     <bean id="dbService" class="eu.europeana.cloud.cassandra.CassandraConnectionProvider">
-        <constructor-arg name="hosts" type="java.lang.String" value="localhost" />
-        <constructor-arg name="port" type="int" value="#{ T(eu.europeana.cloud.test.CassandraTestInstance).getPort() }" />
-        <constructor-arg name="keyspaceName" type="java.lang.String" value="uis_test4" />
+        <constructor-arg name="hosts" type="java.lang.String"
+                         value="#{ T(eu.europeana.cloud.test.CassandraEnvironment).HOST }"/>
+        <constructor-arg name="port" type="int" value="#{ T(eu.europeana.cloud.test.CassandraEnvironment).getPort() }"/>
+        <constructor-arg name="keyspaceName" type="java.lang.String"
+                         value="#{'uis_test4' + T(eu.europeana.cloud.test.CassandraEnvironment).KEYSPACE_SUFFIX}"/>
         <constructor-arg name="userName" type="java.lang.String" value="" />
         <constructor-arg name="password" type="java.lang.String" value="" />
     </bean>

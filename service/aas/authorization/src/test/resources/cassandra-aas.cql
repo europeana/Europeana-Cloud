@@ -1,1 +1,1 @@
-CREATE KEYSPACE IF NOT EXISTS aas_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};

@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.dps.storm.dao;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,8 @@ class NotificationsDAOTest extends CassandraTestBase {
 
     @BeforeEach
     void setup() {
-        CassandraConnectionProvider db = new CassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, USER,
+        CassandraConnectionProvider db = new CassandraConnectionProvider(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+                KEYSPACE, USER,
                 PASSWORD);
         subtaskInfoDao = NotificationsDAO.getInstance(db);
     }

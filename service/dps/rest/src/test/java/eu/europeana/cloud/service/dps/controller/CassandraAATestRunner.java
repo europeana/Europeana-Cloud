@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.dps.controller;
 
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class CassandraAATestRunner {
 
   private final static String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
-  private final static String KEYSPACE = "ecloud_aas_tests";
+  private final static String KEYSPACE = "ecloud_aas_tests" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
 
   /**

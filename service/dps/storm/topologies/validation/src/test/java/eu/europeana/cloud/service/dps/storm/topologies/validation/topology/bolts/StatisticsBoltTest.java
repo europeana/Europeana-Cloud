@@ -11,10 +11,10 @@ import eu.europeana.cloud.service.dps.storm.service.ValidationStatisticsServiceI
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.helper.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.topologies.validation.topology.statistics.RecordStatisticsGenerator;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.TupleImpl;
@@ -52,13 +52,14 @@ class StatisticsBoltTest extends CassandraTestBase {
 
     @InjectMocks
     private StatisticsBolt statisticsBolt = new StatisticsBolt(new CassandraProperties(),
-            HOST, CassandraTestInstance.getPort(), KEYSPACE, "", "");
+            CassandraEnvironment.HOST, CassandraEnvironment.getPort(), KEYSPACE, "", "");
 
     @BeforeEach
     void setUp() {
         statisticsBolt.prepare();
         statisticsService = Mockito.spy(ValidationStatisticsServiceImpl.getInstance(
-                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST, CassandraTestInstance.getPort(), KEYSPACE, "",
+                CassandraConnectionProviderSingleton.getCassandraConnectionProvider(CassandraEnvironment.HOST,
+                        CassandraEnvironment.getPort(), KEYSPACE, "",
                         "")));
     }
 

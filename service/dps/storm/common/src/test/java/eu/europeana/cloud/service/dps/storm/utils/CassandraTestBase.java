@@ -1,14 +1,14 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CassandraTestBase {
 
-  protected static final String KEYSPACE = "ecloud_test";
+    protected static final String KEYSPACE = "ecloud_test" + CassandraEnvironment.KEYSPACE_SUFFIX;
   private static final String KEYSPACE_SCHEMA_CQL = "create_dps_test_schema.cql";
-  public static final String HOST = "localhost";
   public static final String USER = "";
   public static final String PASSWORD = "";
 

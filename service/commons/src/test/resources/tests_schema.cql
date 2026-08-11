@@ -1,5 +1,5 @@
-CREATE KEYSPACE IF NOT EXISTS test_keyspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
-USE test_keyspace;
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+USE ${KEYSPACE};
 CREATE TABLE IF NOT EXISTS users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
 CREATE TABLE data_set_assignments_by_data_set_buckets (
                                                           object_id varchar,

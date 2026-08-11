@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -26,12 +26,14 @@ public class SecurityTestContext {
   @Bean()
   @Order(100)
   public CassandraConnectionProvider aasCassandraProvider() {
-    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_AAS_KEYSPACE, "", "");
+    return new CassandraConnectionProvider(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+            JUNIT_AAS_KEYSPACE, "", "");
   }
 
   @Bean()
   public CassandraConnectionProvider mcsCassandraConnectionProvider() {
-    return new CassandraConnectionProvider("localhost", CassandraTestInstance.getPort(), JUNIT_MCS_KEYSPACE, "", "");
+    return new CassandraConnectionProvider(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+            JUNIT_MCS_KEYSPACE, "", "");
   }
 
   @Bean()

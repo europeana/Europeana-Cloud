@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.aas.authentication;
 
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -12,7 +13,7 @@ public abstract class CassandraTestBase {
   /**
    * CassandraTestBase KEYSPACE
    */
-  public static final String KEYSPACE = "aas_test";
+  public static final String KEYSPACE = "aas_test" + CassandraEnvironment.KEYSPACE_SUFFIX;
   /**
    * CassandraTestBase KEYSPACE_SCHEMA_CQL
    */

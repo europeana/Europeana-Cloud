@@ -1,6 +1,6 @@
-CREATE KEYSPACE IF NOT EXISTS junit_aas WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
 
-USE junit_aas;
+USE ${KEYSPACE};
 
 INSERT INTO users (username, password, roles) VALUES('admin', '$2a$04$LbU.P.wAjzG2PEzxbqDcHerhrPSF3j/1v8n6Cbdy/z8sO6ua.fLLO', {'ROLE_ADMIN'});
 

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.service;
 
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -11,7 +12,7 @@ public abstract class CassandraTestBase {
 
   // config:
   public static final String KEYSPACE_SCHEMA_CQL = "cassandra-uis.cql";
-  public static final String KEYSPACE = "uis_test4";
+  public static final String KEYSPACE = "uis_test4" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
   /**
    * Creates a new instance of this class.

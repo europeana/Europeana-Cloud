@@ -1,5 +1,5 @@
-CREATE KEYSPACE IF NOT EXISTS ecloud_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
-USE ecloud_test;
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+USE ${KEYSPACE};
 
 CREATE TABLE task_info
 (
