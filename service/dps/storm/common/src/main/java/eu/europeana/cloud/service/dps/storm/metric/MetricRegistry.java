@@ -8,7 +8,9 @@ public final class MetricRegistry {
     private static volatile boolean initialized = false;
 
     private static Counter PROCESSED;
+    private static Counter MESSAGE_PROCESSED;
     private static Counter FAILED;
+    private static Counter MESSAGE_FAILED;
 
     private static Histogram PROCESSING_LATENCY;
     private static Histogram WR_UPLOAD_FILE_LATENCY;
@@ -52,6 +54,16 @@ public final class MetricRegistry {
         FAILED = Counter.builder()
                 .name("storm_failed_total")
                 .help("Total number of records failed by storm")
+                .labelNames("topology", "component")
+                .register();
+        MESSAGE_PROCESSED = Counter.builder()
+                .name("storm_message_processed_total")
+                .help("Total number of messages processed by storm")
+                .labelNames("topology", "component")
+                .register();
+        MESSAGE_FAILED = Counter.builder()
+                .name("storm_message_failed_total")
+                .help("Total number of messages failed by storm")
                 .labelNames("topology", "component")
                 .register();
         PROCESSING_LATENCY = Histogram.builder()
@@ -304,6 +316,21 @@ public final class MetricRegistry {
         ).inc();
     }
 
+    public static void messageProcessed(String topology, String component) {
+        ensureInit();
+        MESSAGE_PROCESSED.labelValues(
+                safe(topology),
+                safe(component)
+        ).inc();
+    }
+
+    public static void messageFailed(String topology, String component) {
+        ensureInit();
+        MESSAGE_FAILED.labelValues(
+                safe(topology),
+                safe(component)
+        ).inc();
+    }
 
     public static void processingLatency(String topology, String component, double seconds) {
         ensureInit();

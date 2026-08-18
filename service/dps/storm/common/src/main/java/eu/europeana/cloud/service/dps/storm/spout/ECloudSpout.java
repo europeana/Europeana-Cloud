@@ -112,6 +112,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       LOGGER.info("Record acknowledged {}", id);
 
     } finally {
+      MetricRegistry.messageProcessed(topologyName, "spout");
       super.ack(messageId);
     }
   }
@@ -125,6 +126,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     eCloudSpoutSamplerMXBean.lastFailedMessageId = id;
     LOGGER.error("Record failed {}", id);
 
+    MetricRegistry.messageFailed(topologyName, "spout");
     super.fail(messageId);
   }
 
