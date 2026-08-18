@@ -79,7 +79,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     try {
       commonTaskTuple = CommonTaskTuple.fromStormTuple(tuple);
       this.taskId = commonTaskTuple.getTaskId();
-      MetricRegistry.processed(topologyName, component);
       LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), commonTaskTuple);
       prepareDiagnosticContext(commonTaskTuple);
 
@@ -88,6 +87,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       }
 
       if (taskStatusChecker.hasDroppedStatus(commonTaskTuple.getTaskId())) {
+        MetricRegistry.failed(topologyName, component);
         outputCollector.fail(tuple);
         LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}",
                 commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri());
@@ -105,16 +105,16 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       LOGGER.debug("{} Mapped to CommonTaskTuple with taskId {} and parameters list : {}",
           getClass().getName(), commonTaskTuple.getTaskId(), commonTaskTuple.getParameters());
       execute(tuple, commonTaskTuple);
-
+      MetricRegistry.processed(topologyName, component);
     } catch (RetryInterruptedException e) {
-      handleInterruption(e, tuple);
       MetricRegistry.failed(topologyName, component);
+      handleInterruption(e, tuple);
     } catch (Exception e) {
+      MetricRegistry.failed(topologyName, component);
       if (Thread.currentThread().isInterrupted()) {
         handleInterruptedFlag(e, tuple);
       } else {
         handleException(tuple, commonTaskTuple, e);
-        MetricRegistry.failed(topologyName, component);
       }
     } finally {
       LOGGER.debug("{} Ended execution.", getClass().getName());
