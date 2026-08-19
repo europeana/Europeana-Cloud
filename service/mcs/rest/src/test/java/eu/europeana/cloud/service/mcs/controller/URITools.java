@@ -39,11 +39,6 @@ class URITools {
     return uriFromResource.build(getVersionMap(globalId, schema, version));
   }
 
-  static URI getRepresentationVersionAnnotationUri(URI baseUri, String globalId, String schema, String version) {
-    UriComponentsBuilder uriFromResource = fromUriString(RestInterfaceConstants.REPRESENTATION_VERSION_ANNOTATION_RESOURCE);
-    setBaseUri(uriFromResource, baseUri);
-    return uriFromResource.build(getVersionMap(globalId, schema, version));
-  }
 
   static URI getVersionPath(String cloudId, String representationName, String version) {
     return fromUriString(REPRESENTATION_VERSION).build(
