@@ -21,7 +21,7 @@ public class Annotation {
    * All possible annotation keys to be used
    */
   public enum AnnotationKey {
-    VALID, INVALID, INDEXED
+    VALID, INVALID, INDEXED;
   }
 }
 

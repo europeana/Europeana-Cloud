@@ -62,6 +62,9 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   private static final String REVISION_PROVIDER = "revisionProvider";
   private static final String REVISION_NAME = "revisionName";
 
+  private DataProvider dataProvider1;
+  private DataProvider dataProvider2;
+
   @BeforeAll
   static void setUp() {
     S3TestHelper.startS3MockServer();
@@ -292,9 +295,9 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation edm4 = insertDummyPersistentRepresentation("globalId", "edm", PROVIDER_1_ID, VERSION_6);
     cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID, VERSION_7, DATA_SET_NAME);
 
-    Record aRecord = cassandraRecordService.getRecord("globalId");
+    Record record = cassandraRecordService.getRecord("globalId");
     Set<Representation> expectedRepresentations = new HashSet<>(Arrays.asList(jpg, edm4));
-    Set<Representation> fetchedRepresentations = new HashSet<>(aRecord.getRepresentations());
+    Set<Representation> fetchedRepresentations = new HashSet<>(record.getRepresentations());
     assertThat(fetchedRepresentations, is(expectedRepresentations));
   }
 
@@ -411,12 +414,12 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions(cloudId,
         "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
 
     cassandraRecordService.deleteRecord(cloudId);
 
@@ -536,7 +539,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation r = insertDummyPersistentRepresentation("globalId",
         "dc", PROVIDER_1_ID, VERSION);
 
-    File f = r.getFiles().getFirst();
+    File f = r.getFiles().get(0);
     assertThrows(CannotModifyPersistentRepresentationException.class,
         () -> cassandraRecordService.deleteContent(r.getCloudId(),
             r.getRepresentationName(), r.getVersion(), f.getFileName()));
@@ -573,7 +576,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     r = cassandraRecordService.getRepresentation(r.getCloudId(),
         r.getRepresentationName(), r.getVersion());
     assertThat(r.getFiles().size(), is(1));
-    File fetchedFile = r.getFiles().getFirst();
+    File fetchedFile = r.getFiles().get(0);
     assertThat(fetchedFile.getFileName(), is(f.getFileName()));
     assertThat(fetchedFile.getMimeType(), is(f.getMimeType()));
     assertThat(fetchedFile.getContentLength(),
@@ -600,7 +603,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     r = cassandraRecordService.getRepresentation(r.getCloudId(),
         r.getRepresentationName(), r.getVersion());
     assertThat(r.getFiles().size(), is(1));
-    File fetchedFile = r.getFiles().getFirst();
+    File fetchedFile = r.getFiles().get(0);
     assertThat(fetchedFile.getFileName(), is(f.getFileName()));
     assertThat(fetchedFile.getMimeType(), is(f.getMimeType()));
     assertThat(fetchedFile.getContentLength(),
@@ -825,7 +828,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   private void mockUISProvider1Success() {
-    DataProvider dataProvider1 = new DataProvider();
+    dataProvider1 = new DataProvider();
     dataProvider1.setId(PROVIDER_1_ID);
     dataProvider1.setPartitionKey(PROVIDER_1_PARTITION_KEY);
 
@@ -834,7 +837,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   private void mockUISProvider2Success() {
-    DataProvider dataProvider2 = new DataProvider();
+    dataProvider2 = new DataProvider();
     dataProvider2.setId(PROVIDER_2_ID);
     dataProvider2.setPartitionKey(PROVIDER_2_PARTITION_KEY);
 
@@ -901,24 +904,24 @@ class CassandraRecordServiceTest extends CassandraTestBase {
         "representation-1", REVISION_PROVIDER, REVISION_NAME, null);
 
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revisionLatest)));
-    assertThat(representationRevisions.getFirst().getRevisionTimestamp(), is(revisionLatest.getCreationTimeStamp()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revisionLatest)));
+    assertThat(representationRevisions.get(0).getRevisionTimestamp(), is(revisionLatest.getCreationTimeStamp()));
 
     // get the other revision
     representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1", "representation-1", REVISION_PROVIDER,
         REVISION_NAME, revision.getCreationTimeStamp());
 
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getRevisionTimestamp(), is(revision.getCreationTimeStamp()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getRevisionTimestamp(), is(revision.getCreationTimeStamp()));
   }
 
   @Test
@@ -948,13 +951,13 @@ class CassandraRecordServiceTest extends CassandraTestBase {
         "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
 
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
-    assertThat(representationRevisions.getFirst().getFiles().size(), is(0));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
+    assertThat(representationRevisions.get(0).getFiles().size(), is(0));
 
     // add files to representation version
     byte[] dummyContent = {1, 2, 3};
@@ -969,12 +972,12 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1", "representation-1", REVISION_PROVIDER,
         REVISION_NAME, revision.getCreationTimeStamp());
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
   }
 
 
@@ -1013,12 +1016,12 @@ class CassandraRecordServiceTest extends CassandraTestBase {
         "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
 
     assertThat(representationRevisions.size(), is(1));
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
 
     cassandraRecordService.deleteRepresentation("cloud-1", "representation-1");
 
@@ -1045,12 +1048,12 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     List<RepresentationRevisionResponse> representationRevisions = cassandraRecordService.getRepresentationRevisions("cloud-1",
         "representation-1", REVISION_PROVIDER, REVISION_NAME, revision.getCreationTimeStamp());
 
-    assertThat(representationRevisions.getFirst().getCloudId(), is(r.getCloudId()));
-    assertThat(representationRevisions.getFirst().getRepresentationName(), is(r.getRepresentationName()));
-    assertThat(RevisionUtils.getRevisionKey(representationRevisions.getFirst().getRevisionProviderId(),
-        representationRevisions.getFirst().getRevisionName(),
-        representationRevisions.getFirst().getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
-    assertThat(representationRevisions.getFirst().getFiles(), is(r.getFiles()));
+    assertThat(representationRevisions.get(0).getCloudId(), is(r.getCloudId()));
+    assertThat(representationRevisions.get(0).getRepresentationName(), is(r.getRepresentationName()));
+    assertThat(RevisionUtils.getRevisionKey(representationRevisions.get(0).getRevisionProviderId(),
+        representationRevisions.get(0).getRevisionName(),
+        representationRevisions.get(0).getRevisionTimestamp().getTime()), is(RevisionUtils.getRevisionKey(revision)));
+    assertThat(representationRevisions.get(0).getFiles(), is(r.getFiles()));
   }
 
   @Test

@@ -31,6 +31,9 @@ class CassandraRecordDAOTest extends CassandraTestBase {
   @Autowired
   private CassandraRecordDAO recordDAO;
 
+  @Autowired
+  private CassandraRecordService cassandraRecordService;
+
   @Test
   void shouldReturnOneRepresentationVersionForGivenRevisionNameAndRevisionProvider() {
 
@@ -41,26 +44,26 @@ class CassandraRecordDAOTest extends CassandraTestBase {
 
     List<Representation> reps = recordDAO.getAllRepresentationVersionsForRevisionName("sampleCID", "repName", revision, null);
     assertThat(reps.size(), is(1));
-    assertThat(reps.getFirst().getCloudId(), is("sampleCID"));
-    assertThat(reps.getFirst().getRepresentationName(), is("repName"));
-    assertThat(reps.getFirst().getVersion(), is(version));
+    assertThat(reps.get(0).getCloudId(), is("sampleCID"));
+    assertThat(reps.get(0).getRepresentationName(), is("repName"));
+    assertThat(reps.get(0).getVersion(), is(version));
   }
 
   @Test
   void shouldReturnAllVersionsForGivenRevisionNameAndRevisionProvider() {
     Revision revision = new Revision("revName", "revProvider", new Date(), false);
 
-    String version0 = new com.eaio.uuid.UUID().toString();
-    String version1 = new com.eaio.uuid.UUID().toString();
-    String version2 = new com.eaio.uuid.UUID().toString();
-    String version3 = new com.eaio.uuid.UUID().toString();
-    String version4 = new com.eaio.uuid.UUID().toString();
+    String version_0 = new com.eaio.uuid.UUID().toString();
+    String version_1 = new com.eaio.uuid.UUID().toString();
+    String version_2 = new com.eaio.uuid.UUID().toString();
+    String version_3 = new com.eaio.uuid.UUID().toString();
+    String version_4 = new com.eaio.uuid.UUID().toString();
 
-    recordDAO.addRepresentationRevision("sampleCID", "repName", version0, "revProvider", "revName", new Date());
-    recordDAO.addRepresentationRevision("sampleCID", "repName", version1, "revProvider", "revName", new Date());
-    recordDAO.addRepresentationRevision("sampleCID", "repName", version2, "revProvider", "revName", new Date());
-    recordDAO.addRepresentationRevision("sampleCID", "repName", version3, "revProvider", "revName", new Date());
-    recordDAO.addRepresentationRevision("sampleCID", "repName", version4, "revProvider", "revName", new Date());
+    recordDAO.addRepresentationRevision("sampleCID", "repName", version_0, "revProvider", "revName", new Date());
+    recordDAO.addRepresentationRevision("sampleCID", "repName", version_1, "revProvider", "revName", new Date());
+    recordDAO.addRepresentationRevision("sampleCID", "repName", version_2, "revProvider", "revName", new Date());
+    recordDAO.addRepresentationRevision("sampleCID", "repName", version_3, "revProvider", "revName", new Date());
+    recordDAO.addRepresentationRevision("sampleCID", "repName", version_4, "revProvider", "revName", new Date());
 
     List<Representation> reps = recordDAO.getAllRepresentationVersionsForRevisionName("sampleCID", "repName", revision, null);
 
@@ -73,34 +76,34 @@ class CassandraRecordDAOTest extends CassandraTestBase {
 
   @Test
   void shouldRemoveAllRelevantEntriesFromRepresentationRevisionsTable() {
-    String version0 = new com.eaio.uuid.UUID().toString();
+    String version_0 = new com.eaio.uuid.UUID().toString();
     //
     Representation rep = new Representation();
     rep.setCloudId("sampleCloudId");
     rep.setRepresentationName("sampleRepName");
-    rep.setVersion(version0);
+    rep.setVersion(version_0);
     //
     Date d = new Date();
-    Revision revision1 = new Revision("revName", "revProvider", d, false);
-    rep.getRevisions().add(revision1);
-    Revision revision2 = new Revision("revName_1", "revProvider_1", d, false);
-    rep.getRevisions().add(revision2);
+    Revision revision_1 = new Revision("revName", "revProvider", d, false);
+    rep.getRevisions().add(revision_1);
+    Revision revision_2 = new Revision("revName_1", "revProvider_1", d, false);
+    rep.getRevisions().add(revision_2);
     //
     File file = new File("sampleFileName", "application/xml", "md5", "date", 12, null, Storage.DATA_BASE);
     rep.getFiles().add(file);
     //
 
-    recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version0,
+    recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0,
         rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(),
         rep.getRevisions().get(0).getCreationTimeStamp());
-    recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version0,
+    recordDAO.addRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0,
         rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(),
         rep.getRevisions().get(1).getCreationTimeStamp());
 
-    recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version0,
+    recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0,
         rep.getRevisions().get(0).getRevisionProviderId(), rep.getRevisions().get(0).getRevisionName(),
         rep.getRevisions().get(0).getCreationTimeStamp(), file);
-    recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version0,
+    recordDAO.addOrReplaceFileInRepresentationRevision(rep.getCloudId(), rep.getRepresentationName(), version_0,
         rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(),
             rep.getRevisions().get(1).getCreationTimeStamp(), file);
 
@@ -112,8 +115,8 @@ class CassandraRecordDAOTest extends CassandraTestBase {
             rep.getRepresentationName(), rep.getRevisions().get(1).getRevisionProviderId(),
             rep.getRevisions().get(1).getRevisionName(), rep.getRevisions().get(1).getCreationTimeStamp());
 
-    assertThat(response1.getFirst().getFiles().size(), is(1));
-    assertThat(response2.getFirst().getFiles().size(), is(1));
+    assertThat(response1.get(0).getFiles().size(), is(1));
+    assertThat(response2.get(0).getFiles().size(), is(1));
 
     recordDAO.removeFileFromRepresentationRevisionsTable(rep, file.getFileName());
 
@@ -125,8 +128,8 @@ class CassandraRecordDAOTest extends CassandraTestBase {
             rep.getRevisions().get(1).getRevisionProviderId(), rep.getRevisions().get(1).getRevisionName(),
             rep.getRevisions().get(1).getCreationTimeStamp());
 
-    assertThat(response1.getFirst().getFiles().size(), is(0));
-    assertThat(response2.getFirst().getFiles().size(), is(0));
+    assertThat(response1.get(0).getFiles().size(), is(0));
+    assertThat(response2.get(0).getFiles().size(), is(0));
   }
 
   @Test
