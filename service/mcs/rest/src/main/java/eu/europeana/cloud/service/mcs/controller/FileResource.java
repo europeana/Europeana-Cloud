@@ -93,6 +93,7 @@ public class FileResource {
    * @summary Updates a file in a representation version
    * @statuscode 204 object has been updated.
    */
+  //TODO Usunąc to i zawartość.
   @PutMapping
   public ResponseEntity<Void> sendFile(
       HttpServletRequest httpServletRequest,
