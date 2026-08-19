@@ -462,7 +462,7 @@ public class CassandraRecordService implements RecordService {
   }
 
   @Override
-  public void addAnnotationToRepresentationVersion(Representation representation, RepresentationVersionAnnotation annotation) throws RepresentationNotExistsException {
+  public void addAnnotationsToRepresentationVersion(Representation representation, Set<Annotation> annotations) throws RepresentationNotExistsException {
     LOGGER.debug("adding annotation to representation version");
     Representation rep = recordDAO.getRepresentation(
             representation.getCloudId(),
@@ -470,7 +470,7 @@ public class CassandraRecordService implements RecordService {
             representation.getVersion());
 
     if (rep != null) {
-      recordDAO.addAnnotationToRepresentation(representation, annotation);
+      annotations.forEach(annotation -> recordDAO.addAnnotationToRepresentation(representation, annotation));
     } else {
       throw new RepresentationNotExistsException(String.format("No representation found for given cloudId %s",
               representation.getCloudId()));

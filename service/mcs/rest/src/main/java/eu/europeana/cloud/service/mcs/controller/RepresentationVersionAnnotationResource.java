@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import eu.europeana.cloud.common.model.RepresentationVersionAnnotation;
+import eu.europeana.cloud.common.model.Annotation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.dto.AnnotationsDto;
 import eu.europeana.cloud.common.model.Representation;
@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_ANNOTATION_RESOURCE;
 
 /**
- * Resource responsible for manipulating {@link RepresentationVersionAnnotation}s for {@link Representation}s
+ * Resource responsible for manipulating {@link Annotation}s for {@link Representation}s
  */
 @RestController
 public class RepresentationVersionAnnotationResource {
@@ -41,7 +43,7 @@ public class RepresentationVersionAnnotationResource {
   }
 
   /**
-   * Adds {@link RepresentationVersionAnnotation} to {@link Representation}
+   * Adds {@link Annotation} to {@link Representation}
    *
    * @param cloudId {@link eu.europeana.cloud.common.model.CloudId} of the {@link Representation}
    * @param representationName representationName of the {@link Representation}
@@ -63,7 +65,7 @@ public class RepresentationVersionAnnotationResource {
     Representation representation = Representation.fromFields(cloudId, representationName, version);
     if (dataSetPermissionsVerifier.isUserAllowedToAddAnnotationTo(representation)) {
       LOGGER.debug("Adding annotation to representation version");
-      addAnnotationsToRepresentationVersion(annotationsDto.getAnnotation(), representation);
+      addAnnotationsToRepresentationVersion(annotationsDto.getValues(), representation);
     }else {
       throw new AccessDeniedOrObjectDoesNotExistException();
     }
@@ -71,8 +73,8 @@ public class RepresentationVersionAnnotationResource {
     return ResponseEntity.ok().build();
   }
 
-  private void addAnnotationsToRepresentationVersion(RepresentationVersionAnnotation annotation, Representation representation) throws RepresentationNotExistsException {
-    recordService.addAnnotationToRepresentationVersion(representation, annotation);
+  private void addAnnotationsToRepresentationVersion(Set<Annotation> annotations, Representation representation) throws RepresentationNotExistsException {
+    recordService.addAnnotationsToRepresentationVersion(representation, annotations);
   }
 
 }
