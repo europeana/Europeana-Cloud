@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.persistent;
 
-import com.eaio.uuid.UUID;
-import eu.europeana.cloud.common.model.Annotation;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.model.Revision;
@@ -130,23 +128,5 @@ class CassandraRecordDAOTest extends CassandraTestBase {
 
     assertThat(response1.get(0).getFiles().size(), is(0));
     assertThat(response2.get(0).getFiles().size(), is(0));
-  }
-
-  @Test
-  void shouldAddAnnotationToRepresentationVersion() {
-    UUID uuid = new UUID();
-
-    Representation representation = recordDAO.createRepresentation("sampleCID",
-            "repName", "providerId", new Date(), java.util.UUID.fromString(uuid.toString()),
-            "dsId", true);
-
-    Annotation annotation = new Annotation(Annotation.AnnotationKey.INVALID, "invalid record");
-
-    recordDAO.addAnnotationToRepresentation(representation,annotation);
-    Representation representation1 = recordDAO.getRepresentation("sampleCID","repName", uuid.toString());
-
-    assertThat(representation1.getAnnotations().size(), is(1));
-    assertThat(representation1.getAnnotations().getFirst().getKey(), is(Annotation.AnnotationKey.INVALID));
-    assertThat(representation1.getAnnotations().getFirst().getValue(), is("invalid record"));
   }
 }

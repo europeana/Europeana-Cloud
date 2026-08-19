@@ -53,7 +53,6 @@ public class CassandraRecordDAO {
   private PreparedStatement insertRepresentationRevisionStatement;
   private PreparedStatement insertRepresentationRevisionFileStatement;
   private PreparedStatement deleteRepresentationRevisionStatement;
-  private PreparedStatement addAnnotationTpRepresentationStatement;
 
   public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
@@ -562,19 +561,6 @@ public class CassandraRecordDAO {
       QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-  /**
-   * Adds {@link Annotation} to {@link Representation}
-   * @param representation {@link Representation} that will get new {@link Annotation}
-   * @param annotation {@link Annotation} that will be added to the {@link Representation}
-   */
-  public void addAnnotationToRepresentation(Representation representation, Annotation annotation) {
-    BoundStatement boundStatement = addAnnotationTpRepresentationStatement.bind(annotation.getKey().toString(),
-            annotation.getValue(), representation.getCloudId(), representation.getRepresentationName(),
-            UUID.fromString(representation.getVersion()));
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
-
     //  Need separate function so mock in test can modify it
     @PostConstruct
     private void postConstruct() {
@@ -591,7 +577,7 @@ public class CassandraRecordDAO {
         );
 
         getRepresentationVersionStatement = session.prepare(
-                "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted, annotations " +
+                "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
@@ -604,14 +590,14 @@ public class CassandraRecordDAO {
     );
 
     listRepresentationVersionsStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted, annotations, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     listRepresentationVersionsAllSchemasStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions, dataset_id, mark_deleted, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files,revisions, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ?;"
     );
@@ -664,7 +650,7 @@ public class CassandraRecordDAO {
     );
 
     getAllRepresentationsForRecordStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
@@ -738,12 +724,6 @@ public class CassandraRecordDAO {
             "revision_timestamp = ? AND " +
             "version_id = ?"
     );
-
-      addAnnotationTpRepresentationStatement = session.prepare(
-              "UPDATE representation_versions " +
-                      "SET annotations[?] = ? " +
-                      "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
-      );
   }
 
   private void mapResultSetToRepresentationList(ResultSet rs, List<Representation> result) {
@@ -764,14 +744,8 @@ public class CassandraRecordDAO {
     representation.setPersistent(row.getBool(PERSISTENT));
     representation.setCreationDate(row.getTimestamp(CREATION_DATE));
     representation.setDatasetId(row.getString(DATASET_ID));
-    representation.setMarkDepublished(row.getBool(MARK_DELETED));
-
-    Map<String, String> annotations = row.getMap("annotations", String.class, String.class);
-    annotations.keySet().forEach(s -> representation.addAnnotation(new Annotation(Annotation.AnnotationKey.valueOf(s)
-            , annotations.get(s))));
-
+      representation.setMarkDepublished(row.getBool(MARK_DELETED));
     return representation;
-
   }
 
   private List<File> deserializeFiles(Map<String, String> fileNameToFile) {

@@ -56,19 +56,6 @@ public class DataSetPermissionsVerifier {
     return isPrivilegedUser() || hasWritePermissionFor(representation);
   }
 
-  /**
-   * Verifies is given user has privileges to add annotation to given representation
-   *
-   * @param representation representation to which the revision will be added
-   * @return true of false indicating that given user is/isn't allowed to add annotation to representation
-   *
-   * @throws RepresentationNotExistsException in case of non-existing representation
-   */
-  public boolean isUserAllowedToAddAnnotationTo(Representation representation)
-          throws RepresentationNotExistsException {
-    return isPrivilegedUser() || hasWritePermissionFor(representation);
-  }
-
   public boolean isUserAllowedToDeleteRevisionFor(Representation representation)
       throws RepresentationNotExistsException {
     return isPrivilegedUser() || hasDeletePermissionFor(representation);
@@ -79,12 +66,6 @@ public class DataSetPermissionsVerifier {
     return hasPermissionFor(representation, Permission.READ);
   }
 
-  /**
-   * Verifies if given user has {@link Permission#WRITE} to the given {@link Representation}
-   * @param representation {@link Representation} to which the revision will be added
-   * @return <b>true</b> if user has {@link Permission#WRITE} to {@link Representation}, <b>false</b> otherwise
-   * @throws RepresentationNotExistsException in case of non-existing {@link Representation}
-   */
   public boolean hasWritePermissionFor(Representation representation)
       throws RepresentationNotExistsException {
     return hasPermissionFor(representation, Permission.WRITE);
@@ -95,11 +76,6 @@ public class DataSetPermissionsVerifier {
     return hasPermissionFor(representation, Permission.DELETE);
   }
 
-  /**
-   * Verifies is given user has {@link Role#ADMIN} or {@link Role#EXECUTOR} role
-   *
-   * @return <b>true</b> if user has {@link Role#ADMIN} or {@link Role#EXECUTOR} role, <b>false</b> otherwise
-   */
   private boolean isPrivilegedUser() {
     SecurityContext ctx = SecurityContextHolder.getContext();
     Authentication authentication = ctx.getAuthentication();
