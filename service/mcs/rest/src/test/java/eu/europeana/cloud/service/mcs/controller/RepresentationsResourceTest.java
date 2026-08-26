@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
@@ -41,7 +42,7 @@ class RepresentationsResourceTest extends AbstractResourceTest {
     static final private String version = "1.0";
     static final private Record record = new Record(globalId, Lists.newArrayList(new Representation(globalId, schema,
             version, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-            "2013-01-01", 12345, null)), true, new Date(), null, false)));
+            "2013-01-01", 12345, null)), true, new Date(), emptySet(), false)));
 
 
     @BeforeEach

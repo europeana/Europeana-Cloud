@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import java.util.Set;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +84,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
 
   private boolean detectAndHandleDuplicates(Tuple anchorTuple, CommonTaskTuple tuple,
                                                                            Representation representation) throws MCSException {
-    List<Representation> representations = findAllRepresentationWithSameCloudId(representation);
+    List<Representation> representations = findAllRepresentationWithSameCloudId(tuple.getOutputDatasetId(), representation);
     if (representationsWithSameCloudIdExist(representations)) {
       handleDuplicatedRepresentationVersion(anchorTuple, tuple, representation);
       return true;
@@ -91,9 +92,9 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
     return false;
   }
 
-  private List<Representation> findAllRepresentationWithSameCloudId(Representation representation) throws MCSException {
+  private List<Representation> findAllRepresentationWithSameCloudId(String outputDatasetId, Representation representation) throws MCSException {
     return dataSetServiceClient.getDataSetRepresentations(representation.getDataProvider(),
-        representation.getDatasetId(), representation.getCloudId(), representation.getRepresentationName());
+        outputDatasetId, representation.getCloudId(), representation.getRepresentationName());
   }
 
   private boolean representationsWithSameCloudIdExist(List<Representation> representationsAlreadyExisting) {
@@ -133,7 +134,7 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
       throw new MCSException("Output URL is not URL to the representation version file");
     }
     if (tuple.getOutputDatasetId() != null) {
-      representation.setDatasetId(tuple.getOutputDatasetId());
+      representation.setDatasetIds(Set.of(tuple.getOutputDatasetId()));
       representation.setDataProvider(tuple.getOutputDatasetProvider());
     }
 

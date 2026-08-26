@@ -69,6 +69,22 @@ public class ECloudTopologyPipeline {
   }
 
   /**
+   * Adds AddToDatasetBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addAddToDatasetBolt() {
+    AddToDatasetBolt writeRecordBolt = new AddToDatasetBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ADD_TO_DATASET_BOLT, writeRecordBolt, ADD_TO_DATASET_BOLT_PARALLEL, ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
    * Adds WriteRecordBolt to the pipeline
    *
    * @return this
@@ -98,23 +114,6 @@ public class ECloudTopologyPipeline {
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
             true
-    );
-    addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
-    return this;
-  }
-
-  /**
-   * Adds {@link ValidationWriteRecordBolt} to the pipeline
-   *
-   * @return this
-   */
-  public ECloudTopologyPipeline addValidationWriteRecordBolt() {
-    WriteRecordBolt writeRecordBolt = new ValidationWriteRecordBolt(
-        createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
-        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
-        false
     );
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;

@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import static eu.europeana.cloud.common.web.ParamConstants.DATA_SET_ID;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -49,7 +50,7 @@ class RepresentationResourceTest extends AbstractResourceTest {
     static final private String providerID = "DLF";
     static final private Representation representation = new Representation(globalId, schema, version, null, null,
             "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01", 12345,
-            null)), true, new Date(), null, false);
+            null)), true, new Date(), emptySet(), false);
 
     @BeforeEach
     void mockUp() {

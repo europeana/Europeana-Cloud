@@ -3,7 +3,6 @@ package eu.europeana.cloud.service.mcs.persistent;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
@@ -55,6 +54,16 @@ public class CassandraDataSetService implements DataSetService {
     } else {
       return new ResultSlice<>(assignments.getNextSlice(), getRepresentations(assignments.getResults()));
     }
+  }
+
+  public void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId, String representationName,
+      String version) throws RepresentationNotExistsException {
+    Representation representation = recordDAO.getRepresentation(cloudId, representationName, version);
+    if (representation == null) {
+      throw new RepresentationNotExistsException();
+    }
+    recordDAO.addDatasetToRepresentation(cloudId,representationName,version,dataSetId);
+    addAssignmentToMainTables(providerId,dataSetId,cloudId,representationName,version,representation.isMarkDepublished());
   }
 
   /**
@@ -154,11 +163,6 @@ public class CassandraDataSetService implements DataSetService {
   }
 
   @Override
-  public Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) {
-    return recordDAO.getRepresentationDatasetId(cloudId, representationName, version);
-  }
-
-  @Override
   public void deleteDataSet(String providerId, String dataSetId)
       throws DataSetDeletionException, DataSetNotExistsException {
 
@@ -184,7 +188,7 @@ public class CassandraDataSetService implements DataSetService {
     checkIfDatasetExists(dataSetId, providerId);
     //TODO Use DB for searching, by modifying schema
     return Optional.ofNullable(recordDAO.listRepresentationVersions(cloudId, representationName)).orElse(emptyList()).
-                   stream().filter(rep -> dataSetId.equals(rep.getDatasetId()) && providerId.equals(rep.getDataProvider()))
+                   stream().filter(rep -> rep.getDatasetIds().contains(dataSetId) && providerId.equals(rep.getDataProvider()))
                    .toList();
   }
 

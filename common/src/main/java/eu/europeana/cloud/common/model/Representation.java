@@ -7,6 +7,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +51,7 @@ public class Representation {
     /*
      * Identifier of the dataset this representation belongs to.
      */
-    private String datasetId;
+    private Set<String> datasetIds;
 
     /**
      * Uri to the history of all versions of this representation.
@@ -101,22 +103,27 @@ public class Representation {
         super();
     }
 
-    /**
-     * Creates a new instance of this class.
-     *
-     * @param cloudId            cloud identifier
-     * @param representationName representation name
-     * @param version            representation version
-     * @param allVersionsUri     uri to all versions
-     * @param uri                uri to representation
-     * @param dataProvider       data provider
-     * @param files              list of files assigned to the representation
-     * @param persistent         boolean value indicating if representation is persistent
-     * @param creationDate       representation creation date
-     * @param datasetId          dataset identifier
-     */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
-                          String dataProvider, List<File> files, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
+        String dataProvider, List<File> files, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
+        this(cloudId, representationName, version, allVersionsUri, uri,
+            dataProvider, files, persistent, creationDate, new HashSet<>(Set.of(datasetId)), markDepublished);
+    }
+        /**
+         * Creates a new instance of this class.
+         *
+         * @param cloudId            cloud identifier
+         * @param representationName representation name
+         * @param version            representation version
+         * @param allVersionsUri     uri to all versions
+         * @param uri                uri to representation
+         * @param dataProvider       data provider
+         * @param files              list of files assigned to the representation
+         * @param persistent         boolean value indicating if representation is persistent
+         * @param creationDate       representation creation date
+         * @param datasetIds          datasets identifier
+         */
+    public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
+                          String dataProvider, List<File> files, boolean persistent, Date creationDate, Set<String> datasetIds, boolean markDepublished) {
         super();
         this.cloudId = cloudId;
         this.representationName = representationName;
@@ -127,7 +134,7 @@ public class Representation {
         this.files = files;
         this.persistent = persistent;
         this.creationDate = creationDate;
-        this.datasetId = datasetId;
+        this.datasetIds = datasetIds;
         this.markDepublished = markDepublished;
     }
 
@@ -141,7 +148,7 @@ public class Representation {
         this(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion(),
                 representation.getAllVersionsUri(), representation.getUri(), representation.getDataProvider(),
                 cloneFiles(representation), representation.isPersistent(),
-                representation.getCreationDate(), representation.getDatasetId(), representation.isMarkDepublished());
+                representation.getCreationDate(), representation.getDatasetIds(), representation.isMarkDepublished());
     }
 
     private static List<File> cloneFiles(Representation representation) {
@@ -168,12 +175,12 @@ public class Representation {
         return r;
     }
 
-    public String getDatasetId() {
-        return datasetId;
+    public Set<String> getDatasetIds() {
+        return datasetIds;
     }
 
-    public void setDatasetId(String datasetId) {
-        this.datasetId = datasetId;
+    public void setDatasetIds(Set<String> datasetIds) {
+        this.datasetIds = datasetIds;
     }
 
     public String getCloudId() {

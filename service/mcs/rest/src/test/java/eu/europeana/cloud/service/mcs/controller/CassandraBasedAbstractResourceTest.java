@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.controller;
 
 import eu.europeana.cloud.service.mcs.config.ServiceConfiguration;
 import eu.europeana.cloud.service.mcs.config.UnifiedExceptionsMapper;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.CassandraBasedTestContext;
 import eu.europeana.cloud.service.mcs.utils.testcontexts.PropertyBeansContext;
 import org.junit.jupiter.api.BeforeEach;

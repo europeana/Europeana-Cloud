@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -108,7 +109,7 @@ class SimplifiedRepresentationResourceTest extends AbstractResourceTest {
 
   private void setupRecordService() throws RepresentationNotExistsException {
     Representation rep = new Representation(CLOUD_ID, EXISTING_REPRESENTATION_NAME, "sampleVersion", null, null, PROVIDER_ID,
-        null,true, null, null, false);
+        null,true, null, emptySet(), false);
 
     Mockito.when(recordService.getRepresentation(CLOUD_ID, EXISTING_REPRESENTATION_NAME)).thenReturn(rep);
     Mockito.when(recordService.getRepresentation(CLOUD_ID, RANDOM_REPRESENTATION_NAME))

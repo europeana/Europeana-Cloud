@@ -5,7 +5,7 @@ package eu.europeana.cloud.service.mcs.key;
  */
 public final class RepresentationVersionsDbColumnNames {
     public static final String FILES = "files";
-    public static final String DATASET_ID = "dataset_id";
+    public static final String DATASETS_ID = "dataset_ids";
     public static final String PROVIDER_ID = "provider_id";
     public static final String CLOUD_ID = "cloud_id";
     public static final String SCHEMA_ID = "schema_id";

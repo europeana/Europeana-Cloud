@@ -43,6 +43,7 @@ public class CassandraRecordDAO {
   private PreparedStatement insertRepresentationRevisionFileStatement;
   private PreparedStatement deleteRepresentationRevisionStatement;
   private PreparedStatement addAnnotationToRepresentationStatement;
+  private PreparedStatement addDatasetToRepresentationStatement;
 
   public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {
     this.connectionProvider = connectionProvider;
@@ -148,7 +149,7 @@ public class CassandraRecordDAO {
 
     // insert representation into representation table.
     BoundStatement boundStatement = insertRepresentationStatement.bind(
-            cloudId, schema, version, providerId, false, creationTime, datasetId, markDepublished);
+            cloudId, schema, version, providerId, false, creationTime, Set.of(datasetId), markDepublished);
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);
     QueryTracer.logConsistencyLevel(boundStatement, rs);
     return new Representation(cloudId, schema, version.toString(), null, null, providerId,
@@ -209,9 +210,9 @@ public class CassandraRecordDAO {
 
     if (!rs.isExhausted()) {
       Row row = rs.one();
-      String datasetId = row.getString(DATASET_ID);
+      Set<String> datasetIds = row.getSet(DATASETS_ID, String.class);
       String providerId = row.getString(PROVIDER_ID);
-      return Optional.of(new CompoundDataSetId(providerId, datasetId));
+      return Optional.of(new CompoundDataSetId(providerId, datasetIds));
     } else {
       return Optional.empty();
     }
@@ -354,7 +355,13 @@ public class CassandraRecordDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
-    //  Need separate function so mock in test can modify it
+  public void addDatasetToRepresentation(String cloudId, String representationName, String version, String dataSetId) {
+    BoundStatement boundStatement = addDatasetToRepresentationStatement.bind(Set.of(dataSetId), cloudId,representationName, UUID.fromString(version));
+    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
+    QueryTracer.logConsistencyLevel(boundStatement, rs);
+  }
+
+  //  Need separate function so mock in test can modify it
     @PostConstruct
     private void postConstruct() {
         prepareStatements();
@@ -365,32 +372,32 @@ public class CassandraRecordDAO {
 
         insertRepresentationStatement = session.prepare(
                 "INSERT INTO " +
-                        "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_id, mark_deleted) " +
+                        "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_ids, mark_deleted) " +
                         "VALUES (?,?,?,?,?,?,?,?);"
         );
 
         getRepresentationVersionStatement = session.prepare(
-                "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted, annotations " +
+                "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getRepresentationDatasetIdAndProviderIdStatement = session.prepare(
-            "SELECT dataset_id, provider_id" +
+            "SELECT dataset_ids, provider_id" +
                     " FROM representation_versions " +
                     "WHERE cloud_id = ? AND schema_id = ? AND version_id=?" +
                     "LIMIT 1;"
     );
 
     listRepresentationVersionsStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     listRepresentationVersionsAllSchemasStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
             "FROM representation_versions " +
             "WHERE cloud_id = ?;"
     );
@@ -420,7 +427,7 @@ public class CassandraRecordDAO {
     );
 
     getAllRepresentationsForRecordStatement = session.prepare(
-        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_id, mark_deleted, annotations " +
+        "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
             "FROM representation_versions " +
             "WHERE cloud_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
@@ -443,6 +450,12 @@ public class CassandraRecordDAO {
               "SET annotations[?] = ? " +
               "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
       );
+
+      addDatasetToRepresentationStatement = session.prepare(
+          "UPDATE representation_versions " +
+              "SET dataset_ids = dataset_ids + ? " +
+              "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
+      );
   }
 
   private void mapResultSetToRepresentationList(ResultSet rs, List<Representation> result) {
@@ -461,7 +474,7 @@ public class CassandraRecordDAO {
     representation.setVersion(row.getUUID(VERSION_ID).toString());
     representation.setPersistent(row.getBool(PERSISTENT));
     representation.setCreationDate(row.getTimestamp(CREATION_DATE));
-    representation.setDatasetId(row.getString(DATASET_ID));
+    representation.setDatasetIds(row.getSet(DATASETS_ID, String.class));
     representation.setMarkDepublished(row.getBool(MARK_DELETED));
 
     Map<String, String> annotations = row.getMap("annotations", String.class, String.class);

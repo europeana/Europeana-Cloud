@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import jakarta.ws.rs.core.HttpHeaders;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -54,7 +56,7 @@ class RepresentationVersionResourceTest extends AbstractResourceTest {
 
   private static final Representation REPRESENTATION = new Representation(GLOBAL_ID, SCHEMA, VERSION, null, null,
       "DLF", List.of(new File(FILE_NAME, "text/xml", "91162629d258a876ee994e9233b2ad87", "2013-01-01",
-          12345, null)), true, new Date(), null, false);
+          12345, null)), true, new Date(), emptySet(), false);
 
 
   @BeforeEach
@@ -65,7 +67,7 @@ class RepresentationVersionResourceTest extends AbstractResourceTest {
     Mockito.reset(recordService);
 
     when(cassandraRecordDAO.getRepresentationDatasetId(any(), any(), any()))
-            .thenReturn(Optional.of(new CompoundDataSetId("dsProvId", "datasetId")));
+            .thenReturn(Optional.of(new CompoundDataSetId("dsProvId", Set.of("datasetId"))));
 
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToPersistRepresentation(any());
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDelete(any());

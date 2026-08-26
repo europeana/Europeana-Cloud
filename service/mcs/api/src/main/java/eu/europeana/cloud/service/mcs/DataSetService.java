@@ -1,15 +1,11 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.common.model.CompoundDataSetId;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.mcs.exception.*;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Service for data sets and representation assignments to data sets.
@@ -96,19 +92,11 @@ public interface DataSetService {
   void deleteDataSet(String providerId, String dataSetId)
       throws DataSetDeletionException, DataSetNotExistsException;
 
- /**
-   * Returns one (usually the first one from DB) for the given representation
-   *
-   * @param cloudId cloud identifier to be used
-   * @param representationName representation name to be used
-   * @param version version of representation that we get dataset for
-   * @return found data set
-   * @throws RepresentationNotExistsException in case of non-existing representation version
-   */
-  Optional<CompoundDataSetId> getOneDatasetFor(String cloudId, String representationName, UUID version) throws RepresentationNotExistsException;
-
   void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 
   List<Representation> listDataSetRecordsForGivenRepresentation(String providerId, String dataSetId, String cloudId, String representationName)
       throws DataSetNotExistsException;
+
+  void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId, String representationName, String version)
+      throws RepresentationNotExistsException;
 }

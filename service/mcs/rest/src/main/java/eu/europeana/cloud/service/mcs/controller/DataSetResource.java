@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_ASSIGNMENT_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
@@ -14,6 +15,8 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
@@ -66,6 +69,7 @@ public class DataSetResource {
   private final MutableAclService mutableAclService;
 
   private final PermissionsGrantingManager permissionsGrantingManager;
+  private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
   @Value("${numberOfElementsOnPage}")
   private int numberOfElementsOnPage;
@@ -73,10 +77,12 @@ public class DataSetResource {
   public DataSetResource(
       DataSetService dataSetService,
       MutableAclService mutableAclService,
-      PermissionsGrantingManager permissionsGrantingManager) {
+      PermissionsGrantingManager permissionsGrantingManager,
+      DataSetPermissionsVerifier dataSetPermissionsVerifier) {
     this.dataSetService = dataSetService;
     this.mutableAclService = mutableAclService;
     this.permissionsGrantingManager = permissionsGrantingManager;
+    this.dataSetPermissionsVerifier=dataSetPermissionsVerifier;
   }
 
   /**
@@ -166,6 +172,32 @@ public class DataSetResource {
 
     return new RepresentationsListWrapper(representations);
   }
+
+  /**
+   * Lists versions of the given representation belonging to the dataset.
+   *
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param cloudId cloud id of the record which contains the representation(required).
+   * @param representationName name of the representation(required).
+   * @throws DataSetNotExistsException no such data set exists.
+   */
+  @PutMapping(value = DATA_SET_ASSIGNMENT_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void assignRepresentationVersionToDataset(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String version
+  ) throws AccessDeniedOrObjectDoesNotExistException, RepresentationNotExistsException {
+    if (dataSetPermissionsVerifier.hasWritePermissionForDataset(providerId, dataSetId)) {
+      dataSetService.assignRepresentationVersionToDataset(providerId, dataSetId, cloudId, representationName, version);
+    } else {
+      throw new AccessDeniedOrObjectDoesNotExistException();
+    }
+  }
+
 
   @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
   public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)

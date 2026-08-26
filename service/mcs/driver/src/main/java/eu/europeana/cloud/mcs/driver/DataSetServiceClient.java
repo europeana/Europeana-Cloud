@@ -7,7 +7,9 @@ import static eu.europeana.cloud.common.web.ParamConstants.F_PERMISSION;
 import static eu.europeana.cloud.common.web.ParamConstants.F_USERNAME;
 import static eu.europeana.cloud.common.web.ParamConstants.PROVIDER_ID;
 import static eu.europeana.cloud.common.web.ParamConstants.REPRESENTATION_NAME;
+import static eu.europeana.cloud.common.web.ParamConstants.VERSION;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SETS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_ASSIGNMENT_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
@@ -388,6 +390,32 @@ public class DataSetServiceClient extends MCSClient {
    */
   public RepresentationIterator getRepresentationIterator(String providerId, String dataSetId) {
     return new RepresentationIterator(this, providerId, dataSetId);
+  }
+
+  /**
+   * Lists all versions of record representation belonging to the dataset
+   *
+   * @param providerId provider identifier (required)
+   * @param dataSetId data set identifier (required)
+   * @param cloudId id of record from which to get representations (required)
+   * @param representationName name of the representation (required)
+   * @return list of representations
+   * @throws RecordNotExistsException if cloudId is not known UIS Service
+   * @throws MCSException on unexpected situations
+   */
+  public void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId, String representationName,String version) throws MCSException {
+    manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
+        () -> passLogContext(client
+            .target(this.baseUrl)
+            .path(DATA_SET_ASSIGNMENT_RESOURCE)
+            .resolveTemplate(PROVIDER_ID, providerId)
+            .resolveTemplate(DATA_SET_ID, dataSetId)
+            .resolveTemplate(CLOUD_ID, cloudId)
+            .resolveTemplate(REPRESENTATION_NAME, representationName)
+            .resolveTemplate(VERSION, version)
+            .request())
+            .put(Entity.json(""))
+    );
   }
 
   /**

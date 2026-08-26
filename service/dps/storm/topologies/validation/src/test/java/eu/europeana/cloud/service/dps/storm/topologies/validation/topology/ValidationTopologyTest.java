@@ -47,7 +47,7 @@ class ValidationTopologyTest {
         assertEquals(0, notificationBoltCommon.get_streams_size());
     assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, notificationBoltCommon.get_parallelism_hint());
 
-        ComponentCommon writeRecordBoltCommon = topology.get_bolts().get(TopologyHelper.WRITE_RECORD_BOLT).get_common();
+        ComponentCommon writeRecordBoltCommon = topology.get_bolts().get(TopologyHelper.ADD_TO_DATASET_BOLT).get_common();
         assertEquals(1, writeRecordBoltCommon.get_inputs_size());
         assertEquals(2, writeRecordBoltCommon.get_streams_size());
         assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, writeRecordBoltCommon.get_parallelism_hint());

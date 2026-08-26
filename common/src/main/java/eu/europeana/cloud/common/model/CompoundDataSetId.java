@@ -1,5 +1,6 @@
 package eu.europeana.cloud.common.model;
 
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -12,7 +13,7 @@ public class CompoundDataSetId {
   /**
    * Data set id (unique for provider).
    */
-  private final String dataSetId;
+  private final Set<String> dataSetIds;
 
   /**
    * Data set's owner (provider) id.
@@ -24,16 +25,16 @@ public class CompoundDataSetId {
    * Constructs CompoundDataSetId using given provider id and data set id.
    *
    * @param dataSetProviderId provider id
-   * @param dataSetId data set id
+   * @param dataSetIds data sets ids
    */
-  public CompoundDataSetId(String dataSetProviderId, String dataSetId) {
-    this.dataSetId = dataSetId;
+  public CompoundDataSetId(String dataSetProviderId, Set<String> dataSetIds) {
+    this.dataSetIds = dataSetIds;
     this.dataSetProviderId = dataSetProviderId;
   }
 
 
-  public String getDataSetId() {
-    return dataSetId;
+  public Set<String> getDataSetIds() {
+    return dataSetIds;
   }
 
 
@@ -43,7 +44,7 @@ public class CompoundDataSetId {
 
   @Override
   public String toString() {
-    return "CompoundDataSetId{" + "dataSetId=" + dataSetId + ", dataSetProviderId=" + dataSetProviderId + '}';
+    return "CompoundDataSetId{" + "dataSetIds=" + dataSetIds + ", dataSetProviderId=" + dataSetProviderId + '}';
   }
 
 }

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.*;
+import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -45,7 +46,7 @@ class RepresentationVersionsResourceTest extends AbstractResourceTest {
     private static final String LIST_VERSIONS_PATH = URITools.getListVersionsPath(GLOBAL_ID, SCHEMA).toString();
     static final private List<Representation> REPRESENTATIONS = ImmutableList.of(new Representation(GLOBAL_ID, SCHEMA,
             VERSION, null, null, "DLF", Arrays.asList(new File("1.xml", "text/xml", "91162629d258a876ee994e9233b2ad87",
-          "2013-01-01", 12345, null)), true, new Date(), null, false));
+          "2013-01-01", 12345, null)), true, new Date(), emptySet(), false));
 
 
     @BeforeEach

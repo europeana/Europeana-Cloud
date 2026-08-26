@@ -49,7 +49,7 @@ public class ValidationTopology {
                             topologyProperties.getProperty(CASSANDRA_KEYSPACE_NAME), topologyProperties.getProperty(CASSANDRA_USERNAME),
                             topologyProperties.getProperty(CASSANDRA_SECRET_TOKEN)),
                     STATISTICS_BOLT_PARALLEL, STATISTICS_BOLT_NUMBER_OF_TASKS)
-            .addValidationWriteRecordBolt()
+            .addAddToDatasetBolt()
             .addBolt(DUPLICATES_DETECTOR_BOLT, new DuplicatedRecordsProcessorBolt(
                     createCassandraProperties(topologyProperties),
                     topologyProperties.getProperty(MCS_URL),

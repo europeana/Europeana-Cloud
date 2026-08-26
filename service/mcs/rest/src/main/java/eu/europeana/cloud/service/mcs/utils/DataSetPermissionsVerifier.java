@@ -148,11 +148,28 @@ public class DataSetPermissionsVerifier {
 
   private boolean hasPermissionFor(Representation representation, Permission permission)
           throws RepresentationNotExistsException {
-      representation = recordService.getRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-      SecurityContext ctx = SecurityContextHolder.getContext();
-      Authentication authentication = ctx.getAuthentication();
-      String targetId = representation.getDatasetId() + "/" + representation.getDataProvider();
-      return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue());
+    representation = recordService.getRepresentation(representation.getCloudId(), representation.getRepresentationName(),
+        representation.getVersion());
+    SecurityContext ctx = SecurityContextHolder.getContext();
+    Authentication authentication = ctx.getAuthentication();
+    for (String datasetId : representation.getDatasetIds()) {
+      String targetId = datasetId + "/" + representation.getDataProvider();
+      if (permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue())) {
+        return true;
       }
+    }
+    return false;
 
+  }
+
+  public boolean hasWritePermissionForDataset(String providerId,String datasetId) {
+    return hasPermissionForDataset(providerId, datasetId, Permission.WRITE);
+  }
+
+  private boolean hasPermissionForDataset(String providerId,String datasetId, Permission permission) {
+    SecurityContext ctx = SecurityContextHolder.getContext();
+    Authentication authentication = ctx.getAuthentication();
+    String targetId = datasetId + "/" + providerId;
+    return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue());
+  }
 }
