@@ -7,6 +7,8 @@ import eu.europeana.cloud.common.model.dps.RecordState;
 import eu.europeana.cloud.common.model.dps.TaskDiagnosticInfo;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.service.commons.urls.UrlParser;
+import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
@@ -234,6 +236,12 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
                 DateHelper.parseISODate(dpsTask.getParameter(REVISION_TIMESTAMP))));
       }
       stormTaskTuple.addParameters(parameters);
+
+      UrlParser parser = new UrlParser(dpsRecord.getRecordId());
+      if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
+        stormTaskTuple.setCloudId(parser.getPart(UrlPart.RECORDS));
+      }
+
 
       return stormTaskTuple;
     }

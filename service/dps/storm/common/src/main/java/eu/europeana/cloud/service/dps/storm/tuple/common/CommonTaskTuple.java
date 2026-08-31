@@ -40,14 +40,23 @@ public class CommonTaskTuple implements Serializable {
   private RecordData recordData;
   @Delegate
   private TaskData taskData;
+  @Getter
+  @Setter
+  private String cloudId;
 
   @Builder
   public CommonTaskTuple(TaskData taskData,
                          RecordData recordData,
-                         ProcessingData processingData) {
+                         ProcessingData processingData,
+                         String cloudId) {
     this.taskData = taskData;
     this.processingData = processingData;
     this.recordData = recordData;
+    this.cloudId = cloudId;
+  }
+
+  public CommonTaskTuple(TaskData taskData, RecordData recordData, ProcessingData processingData){
+    this(taskData,recordData,processingData,null);
   }
 
   public CommonTaskTuple() {
@@ -64,6 +73,7 @@ public class CommonTaskTuple implements Serializable {
                     (ProcessingData) tuple.getValueByField(STORM_PROCESSING_DATA_TUPLE_FIELD))
             .recordData(
                     (RecordData) tuple.getValueByField(RECORD_DATA_TUPLE_FIELD))
+            .cloudId((String) tuple.getValueByField(CLOUD_ID_TUPLE_FIELD))
             .build();
   }
 
@@ -100,7 +110,8 @@ public class CommonTaskTuple implements Serializable {
             THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD,
             TASK_DATA_TUPLE_FIELD,
             STORM_PROCESSING_DATA_TUPLE_FIELD,
-            RECORD_DATA_TUPLE_FIELD
+            RECORD_DATA_TUPLE_FIELD,
+            CLOUD_ID_TUPLE_FIELD
     );
   }
 
@@ -112,8 +123,8 @@ public class CommonTaskTuple implements Serializable {
             processingData.getThrottlingGroupingAttribute(),
             taskData,
             processingData,
-            recordData
-
+            recordData,
+            cloudId
     );
   }
 

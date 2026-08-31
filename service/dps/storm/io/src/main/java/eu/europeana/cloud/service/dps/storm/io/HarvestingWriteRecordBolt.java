@@ -52,6 +52,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
     String europeanaId = commonTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID);
     String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
     String cloudId = getCloudId(providerId, europeanaId, additionalLocalIdentifier);
+    commonTaskTuple.setCloudId(cloudId);
     String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
     if ((representationName == null || representationName.isEmpty())) {
       representationName = commonTaskTuple.getParameter(PluginParameterKeys.SCHEMA_NAME);

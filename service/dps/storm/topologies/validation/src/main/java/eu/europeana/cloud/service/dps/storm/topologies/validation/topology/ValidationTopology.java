@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.TASK_ID_TUPLE_FIELD;
+import static eu.europeana.cloud.service.dps.storm.StormTupleKeys.CLOUD_ID_TUPLE_FIELD;
 import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
@@ -62,7 +62,7 @@ public class ValidationTopology {
                     topologyProperties.getProperty(MCS_URL),
                     topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                     topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUPLICATES_BOLT_PARALLEL,
-                DUPLICATES_BOLT_NUMBER_OF_TASKS, TASK_ID_TUPLE_FIELD)
+                DUPLICATES_BOLT_NUMBER_OF_TASKS, CLOUD_ID_TUPLE_FIELD)
         .buildTopology();
   }
 

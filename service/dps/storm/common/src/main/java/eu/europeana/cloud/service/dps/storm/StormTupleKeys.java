@@ -13,6 +13,7 @@ public final class StormTupleKeys {
   public static final String TASK_DATA_TUPLE_FIELD = "TASK_DATA";
   public static final String TASK_ID_TUPLE_FIELD = "TASK_ID";
   public static final String RECORD_DATA_TUPLE_FIELD = "RECORD_DATA";
+  public static final String CLOUD_ID_TUPLE_FIELD = "CLOUD_ID";
   public static final String STORM_PROCESSING_DATA_TUPLE_FIELD = "STORM_PROCESSING_DATA";
 
   private StormTupleKeys() {
