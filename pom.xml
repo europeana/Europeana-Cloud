@@ -82,6 +82,18 @@
         <module>service/ecloud-web-commons</module>
         <module>reports</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-releases</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-snapshots</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
     <repositories>
         <!--Release repositories-->
         <repository>
@@ -516,16 +528,4 @@
             <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
-    <distributionManagement>
-      <repository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-releases</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
-      </repository>
-      <snapshotRepository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-snapshots</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
-      </snapshotRepository>
-    </distributionManagement>
 </project>
