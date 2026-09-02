@@ -100,7 +100,7 @@ class WriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
+        assertEquals(7, value.size());
         assertTrue(value.get(3) instanceof TaskData);
         Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
@@ -136,7 +136,7 @@ class WriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
+        assertEquals(7, value.size());
         assertTrue(value.get(3) instanceof TaskData);
         Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));
@@ -170,7 +170,7 @@ class WriteRecordBoltTest {
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       assertThat(captor.getAllValues().size(), is(1));
       Values value = captor.getAllValues().get(0);
-      assertEquals(6, value.size());
+      assertEquals(7, value.size());
       assertTrue(value.get(3) instanceof TaskData);
       Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
       //Before it was wrong but worked due to revision being empty even though shouldnt be empty
@@ -201,7 +201,7 @@ class WriteRecordBoltTest {
       verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
       assertThat(captor.getAllValues().size(), is(1));
       Values value = captor.getAllValues().get(0);
-      assertEquals(6, value.size());
+      assertEquals(7, value.size());
       assertTrue(value.get(3) instanceof TaskData);
       Map<String, String> parameters = ((TaskData) value.get(3)).getParameters();
       //Before it was wrong but worked due to revision being empty even though shouldn't be empty

@@ -106,7 +106,7 @@ class ParseFileBoltTest {
       List<Values> capturedValuesList = captor.getAllValues();
       assertEquals(4, capturedValuesList.size());
       for (Values values : capturedValuesList) {
-        assertEquals(6, values.size());
+        assertEquals(7, values.size());
         assertTrue(values.get(3) instanceof TaskData);
         var val = ((TaskData) values.get(3)).getParameters();
         assertNotNull(val);
