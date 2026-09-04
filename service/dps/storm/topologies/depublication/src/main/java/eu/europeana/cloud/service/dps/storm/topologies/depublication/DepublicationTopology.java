@@ -1,22 +1,19 @@
 package eu.europeana.cloud.service.dps.storm.topologies.depublication;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DEPUBLICATION_BOLT_NUMBER_OF_TASKS;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.DEPUBLICATION_BOLT_PARALLEL;
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.TOPOLOGY_NAME;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.DEPUBLICATION_BOLT;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.buildConfig;
-import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.createCassandraProperties;
-
 import eu.europeana.cloud.service.dps.storm.io.ECloudTopologyPipeline;
 import eu.europeana.cloud.service.dps.storm.topologies.properties.PropertyFileLoader;
 import eu.europeana.cloud.service.dps.storm.utils.TopologiesNames;
 import eu.europeana.cloud.service.dps.storm.utils.TopologyPropertiesValidator;
 import eu.europeana.cloud.service.dps.storm.utils.TopologySubmitter;
-import java.util.Properties;
 import org.apache.storm.Config;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
+import static eu.europeana.cloud.service.dps.storm.utils.TopologyHelper.*;
 
 public class DepublicationTopology {
 
@@ -56,7 +53,7 @@ public class DepublicationTopology {
   }
 
   public final StormTopology buildTopology() {
-    return new ECloudTopologyPipeline(TopologiesNames.INDEXING_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.DEPUBLICATION_TOPOLOGY, topologyProperties)
         .addBolt(DEPUBLICATION_BOLT, new DepublicationBolt(createCassandraProperties(topologyProperties), indexingProperties),
             DEPUBLICATION_BOLT_PARALLEL, DEPUBLICATION_BOLT_NUMBER_OF_TASKS)
         .buildTopology();
