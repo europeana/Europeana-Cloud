@@ -139,10 +139,9 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine/> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>21</version.jdk>
+        <version.jdk>25</version.jdk>
         <version.junit>6.0.1</version.junit>
-        <version.mockito>5.21.0</version.mockito>
-        <version.mockito-inline>5.2.0</version.mockito-inline>
+        <version.mockito>5.23.0</version.mockito>
         <version.awaitility>4.2.0</version.awaitility>
         <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
         <version.jersey>3.1.5</version.jersey>
@@ -173,8 +172,8 @@
         <version.base64>2.3.9</version.base64>
         <version.cloning>1.9.12</version.cloning>
         <!-- TODO ECL-317 -->
-        <version.kafka>3.6.0</version.kafka>
-        <version.lombok>1.18.30</version.lombok>
+        <version.kafka>4.3.1</version.kafka>
+        <version.lombok>1.18.48</version.lombok>
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -184,7 +183,7 @@
         <version.cassandra-driver>3.11.5</version.cassandra-driver>
 
         <version.tika>2.9.1</version.tika>
-        <version.jacoco>0.8.11</version.jacoco>
+        <version.jacoco>0.8.15</version.jacoco>
         <!-- Metis related dependencies-->
         <version.metis>19-SNAPSHOT</version.metis>
         <version.metis.normalization>19-SNAPSHOT</version.metis.normalization>
@@ -192,9 +191,9 @@
         <!-- -->
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
         <version.guava>33.3.1-jre</version.guava>
-        <version.storm>2.8.7</version.storm>
+        <version.storm>3.1.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
-        <version.bytebuddy>1.14.13</version.bytebuddy>
+        <version.bytebuddy>1.18.13</version.bytebuddy>
         <version.wiremock>3.4.2</version.wiremock>
         <version.zt-zip>1.16</version.zt-zip>
         <version.netty>4.1.94.Final</version.netty>
@@ -263,6 +262,14 @@
                     <version>3.12.1</version>
                     <configuration>
                         <parameters>true</parameters>
+                        <release>${version.jdk}</release>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${version.lombok}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
