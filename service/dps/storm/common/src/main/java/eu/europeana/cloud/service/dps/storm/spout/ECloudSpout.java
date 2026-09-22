@@ -237,13 +237,20 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
       }
       stormTaskTuple.addParameters(parameters);
 
-      UrlParser parser = new UrlParser(dpsRecord.getRecordId());
-      if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
-        stormTaskTuple.setCloudId(parser.getPart(UrlPart.RECORDS));
-      }
-
+      addCloudIdIfPresent(stormTaskTuple, dpsRecord);
 
       return stormTaskTuple;
+    }
+
+    private static void addCloudIdIfPresent(CommonTaskTuple stormTaskTuple, DpsRecord dpsRecord) {
+      try {
+        UrlParser parser = new UrlParser(dpsRecord.getRecordId());
+        if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
+          stormTaskTuple.setCloudId(parser.getPart(UrlPart.RECORDS));
+        }
+      } catch (MalformedURLException e) {
+        //We ignore exception cause for some tasks for example OAI record id could be not parsable to URL
+      }
     }
 
     private void updateDiagnosticCounters(ProcessedRecord aRecord) {
