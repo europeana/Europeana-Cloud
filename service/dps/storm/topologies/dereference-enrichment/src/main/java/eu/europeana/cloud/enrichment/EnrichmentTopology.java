@@ -31,7 +31,7 @@ public class EnrichmentTopology {
   }
 
   public StormTopology buildTopology() {
-    return new ECloudTopologyPipeline(TopologiesNames.NORMALIZATION_TOPOLOGY, topologyProperties)
+    return new ECloudTopologyPipeline(TopologiesNames.ENRICHMENT_TOPOLOGY, topologyProperties)
             .addReadFileBolt()
             .addBolt(ENRICHMENT_BOLT, new EnrichmentBolt(createCassandraProperties(topologyProperties),
                             topologyProperties.getProperty(DEREFERENCE_SERVICE_URL),

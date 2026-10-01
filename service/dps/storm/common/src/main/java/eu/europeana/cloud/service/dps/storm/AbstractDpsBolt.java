@@ -8,6 +8,8 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
+import eu.europeana.cloud.service.dps.storm.metric.MetricServer;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.cloud.service.dps.storm.utils.DiagnosticContextWrapper;
@@ -22,6 +24,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -39,7 +42,6 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   protected static final Logger STATISTICS_LOGGER = LoggerFactory.getLogger("STATISTICS_LOGGER");
   protected static final String STATISTICS_LOGGER_MESSAGE_PATTERN = "[{}],{},{}";
-
   public static final String NOTIFICATION_STREAM_NAME = "NotificationStream";
 
   // default number of retries
@@ -54,6 +56,9 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected transient TopologyContext topologyContext;
   protected transient OutputCollector outputCollector;
   protected String topologyName;
+  protected String component;
+  protected long taskId;
+
 
   public abstract void execute(Tuple anchorTuple, CommonTaskTuple t);
 
@@ -69,9 +74,11 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    long startProcessing = System.nanoTime();
     CommonTaskTuple commonTaskTuple = null;
     try {
       commonTaskTuple = CommonTaskTuple.fromStormTuple(tuple);
+      this.taskId = commonTaskTuple.getTaskId();
       LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), commonTaskTuple);
       prepareDiagnosticContext(commonTaskTuple);
 
@@ -80,6 +87,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       }
 
       if (taskStatusChecker.hasDroppedStatus(commonTaskTuple.getTaskId())) {
+        MetricRegistry.failed(topologyName, component);
         outputCollector.fail(tuple);
         LOGGER.info("Interrupting execution cause task was dropped: {} recordId: {}",
                 commonTaskTuple.getTaskId(), commonTaskTuple.getRecordUri());
@@ -97,10 +105,12 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
       LOGGER.debug("{} Mapped to CommonTaskTuple with taskId {} and parameters list : {}",
           getClass().getName(), commonTaskTuple.getTaskId(), commonTaskTuple.getParameters());
       execute(tuple, commonTaskTuple);
-
+      MetricRegistry.processed(topologyName, component);
     } catch (RetryInterruptedException e) {
+      MetricRegistry.failed(topologyName, component);
       handleInterruption(e, tuple);
     } catch (Exception e) {
+      MetricRegistry.failed(topologyName, component);
       if (Thread.currentThread().isInterrupted()) {
         handleInterruptedFlag(e, tuple);
       } else {
@@ -109,6 +119,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     } finally {
       LOGGER.debug("{} Ended execution.", getClass().getName());
       clearDiagnosticContext();
+      MetricRegistry.processingLatency(topologyName, component, (System.nanoTime() - startProcessing) / 1e9);
     }
   }
 
@@ -147,8 +158,30 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
     this.topologyContext = tc;
     this.outputCollector = oc;
     this.topologyName = (String) stormConfig.get(Config.TOPOLOGY_NAME);
+    this.component = tc.getThisComponentId();
     initTaskStatusChecker();
+    initStormWorker(tc);
     prepare();
+  }
+
+  private static void initStormWorker(TopologyContext tc) {
+    if (tc != null && tc.getThisWorkerPort() > 0) {
+      try {
+        MetricServer.start(tc.getThisWorkerPort());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  @Override
+  public void cleanup() {
+    try {
+      MetricServer.stop();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    super.cleanup();
   }
 
   private void initTaskStatusChecker() {

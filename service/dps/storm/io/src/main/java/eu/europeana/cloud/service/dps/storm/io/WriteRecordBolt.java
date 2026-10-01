@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
@@ -104,7 +105,9 @@ public class WriteRecordBolt extends AbstractDpsBolt {
       if (shouldNewRepresentationBeCreated(commonTaskTuple)) {
         RecordWriteParams writeParams = prepareWriteParameters(commonTaskTuple);
         LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
+        long uploadStart = System.nanoTime();
         var uri = uploadFileInNewRepresentation(commonTaskTuple, writeParams);
+        MetricRegistry.wrBoltUploadFileLatency(topologyName, component, (System.nanoTime() - uploadStart) / 1e9);
         LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
         LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
         commonTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());

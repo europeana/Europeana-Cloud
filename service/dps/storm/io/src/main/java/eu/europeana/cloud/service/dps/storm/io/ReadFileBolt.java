@@ -6,6 +6,7 @@ import eu.europeana.cloud.mcs.driver.FileServiceClient;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
@@ -87,7 +88,9 @@ public class ReadFileBolt extends AbstractDpsBolt {
     final String file = commonTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
     commonTaskTuple.setRecordUri(file);
+    long downloadStart = System.nanoTime();
     InputStream downloadedFile = getFile(fileClient, file);
+    MetricRegistry.rfBoltReadFileLatency(topologyName, component, (System.nanoTime() - downloadStart) / 1e9);
     LOGGER.info("File downloaded in {}ms", Clock.millisecondsSince(processingStartTime));
     return downloadedFile;
   }

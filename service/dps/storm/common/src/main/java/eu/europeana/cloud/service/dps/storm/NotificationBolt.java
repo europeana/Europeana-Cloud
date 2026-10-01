@@ -5,6 +5,7 @@ import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.dao.*;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntry;
 import eu.europeana.cloud.service.dps.storm.notification.NotificationCacheEntryBuilder;
 import eu.europeana.cloud.service.dps.storm.notification.handler.NotificationHandlerConfig;
@@ -42,6 +43,7 @@ public class NotificationBolt extends BaseRichBolt {
   protected LRUCache<Long, NotificationCacheEntry> cache = new LRUCache<>(50);
 
   protected String topologyName;
+  protected String component;
   private transient NotificationTupleHandler notificationTupleHandler;
   private transient NotificationCacheEntryBuilder notificationCacheEntryBuilder;
   private transient BatchExecutor batchExecutor;
@@ -67,6 +69,7 @@ public class NotificationBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    long startProcessing = System.nanoTime();
     var notificationTuple = NotificationTuple.fromStormTuple(tuple);
     try {
       LOGGER.debug("{} Performing execute on tuple {}", getClass().getName(), notificationTuple);
@@ -75,9 +78,11 @@ public class NotificationBolt extends BaseRichBolt {
       NotificationHandlerConfig notificationHandlerConfig =
           NotificationHandlerConfigBuilder.prepareNotificationHandlerConfig(notificationTuple, cachedCounters);
       notificationTupleHandler.handle(notificationTuple, notificationHandlerConfig);
+      MetricRegistry.processed(topologyName, component);
       outputCollector.ack(tuple);
     } catch (RetryInterruptedException ex) {
       LOGGER.error("Notification interrupted: {}", ex.getMessage(), ex);
+      MetricRegistry.failed(topologyName, component);
       outputCollector.fail(tuple);
     } catch (Exception ex) {
       LOGGER.error("Cannot store notification to Cassandra because: {}", ex.getMessage(), ex);
@@ -86,8 +91,10 @@ public class NotificationBolt extends BaseRichBolt {
               notificationTuple,
                   EngineTaskState.DROPPED,
               ex.getMessage()));
+      MetricRegistry.processed(topologyName, component);
       outputCollector.ack(tuple);
     } finally {
+      MetricRegistry.processingLatency(topologyName, component, (System.nanoTime() - startProcessing) / 1e9);
       clearDiagnosticContext();
     }
   }
@@ -95,6 +102,7 @@ public class NotificationBolt extends BaseRichBolt {
   @Override
   public void prepare(Map stormConf, TopologyContext tc, OutputCollector outputCollector) {
     this.outputCollector = outputCollector;
+    this.component = tc.getThisComponentId();
 
     var cassandraConnectionProvider =
         CassandraConnectionProviderSingleton.getCassandraConnectionProvider(

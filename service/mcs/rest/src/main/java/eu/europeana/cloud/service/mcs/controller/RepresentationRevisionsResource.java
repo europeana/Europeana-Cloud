@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.RecordService;
@@ -10,10 +7,8 @@ import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.RepresentationRevisionResponseListWrapper;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -22,6 +17,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_RAW_REVISIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_REVISIONS_RESOURCE;
 
 /**
  * Resource to manage representations.
@@ -50,6 +52,8 @@ public class RepresentationRevisionsResource {
    * @throws RepresentationNotExistsException when representation doesn't exist
    * @summary get a representation response object
    */
+  @Counted(value = "representation_revisions_counter", description = "Number of representation revisions requests")
+  @Timed(value = "representation_revisions_duration", description = "Duration of representation revisions requests", histogram = true)
   @GetMapping(path = REPRESENTATION_REVISIONS_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public RepresentationsListWrapper getRepresentationRevisions(
       HttpServletRequest httpServletRequest,
