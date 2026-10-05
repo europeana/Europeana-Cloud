@@ -15,6 +15,7 @@ import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraDataSetDAO;
 import eu.europeana.cloud.service.mcs.persistent.cassandra.CassandraRecordDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -103,5 +104,10 @@ public class BasicResourceTestContext {
             new CassandraRecordDAO(dbService()),
             mock(UISClientHandler.class),
             new BucketsHandler(dbService().getSession()));
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return Mockito.mock(MeterRegistry.class);
   }
 }

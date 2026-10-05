@@ -40,7 +40,6 @@ CREATE TABLE representation_versions (
 	creation_date timestamp,
     dataset_id varchar,
     mark_deleted boolean,
-    annotations map<varchar, text>,
 	PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 

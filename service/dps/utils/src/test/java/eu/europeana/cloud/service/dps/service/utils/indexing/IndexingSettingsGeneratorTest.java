@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IndexingSettingsGeneratorTest {
@@ -42,6 +43,7 @@ class IndexingSettingsGeneratorTest {
     }
     assertEquals(settings.getSolrProperties().getZookeeperHosts().size(),
         prop.getProperty(previewPrefixWithDelimiter + IndexingPropertyNames.ZOOKEEPER_INSTANCES).split(",").length);
+    assertFalse(settings.getSolrProperties().getSolrUseHttp1());
   }
 
   @Test
@@ -69,6 +71,7 @@ class IndexingSettingsGeneratorTest {
     }
     assertEquals(settings.getSolrProperties().getZookeeperHosts().size(),
         prop.getProperty(publishPrefixWithDelimiter + IndexingPropertyNames.ZOOKEEPER_INSTANCES).split(",").length);
+    assertTrue(settings.getSolrProperties().getSolrUseHttp1());
   }
 
   private Properties loadProperties() throws IOException {

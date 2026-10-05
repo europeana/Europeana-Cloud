@@ -1,29 +1,15 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
-
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -34,17 +20,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriUtils;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.FILE_RESOURCE;
 
 /**
  * Resource to manage representation version's files with their content.
@@ -93,6 +82,7 @@ public class FileResource {
    * @summary Updates a file in a representation version
    * @statuscode 204 object has been updated.
    */
+  @Timed(value = "file_update_duration", description = "Duration of file update operations", histogram = true)
   @PutMapping
   public ResponseEntity<Void> sendFile(
       HttpServletRequest httpServletRequest,
@@ -155,6 +145,8 @@ public class FileResource {
    * @throws FileNotExistsException representation version does not have file with the specified name.
    * @summary get file contents from a representation version
    */
+  @Timed(value = "file_download_duration", description = "Duration of file download operations", histogram = true)
+  @Counted(value = "file_download_counter", description = "Number of file download operations")
   @GetMapping
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<StreamingResponseBody> getFile(
@@ -214,6 +206,7 @@ public class FileResource {
    * @throws FileNotExistsException
    * @summary get HTTP headers for file request
    */
+  @Timed(value = "file_header_download_duration", description = "Duration of file header download operations", histogram = true)
   @RequestMapping(method = RequestMethod.HEAD)
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Void> getFileHeaders(
@@ -262,6 +255,8 @@ public class FileResource {
    * @throws CannotModifyPersistentRepresentationException specified representation version is persistent and deleting its files
    * is not allowed.
    */
+  @Timed(value = "file_deletion_duration", description = "Duration of file deletion operations", histogram = true)
+  @Counted(value = "file_deletion_counter", description = "Number of file deletion operations")
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteFile(

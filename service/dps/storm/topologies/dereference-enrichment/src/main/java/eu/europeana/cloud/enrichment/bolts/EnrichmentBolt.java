@@ -5,6 +5,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltFinalizationException;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
@@ -61,7 +62,9 @@ public class EnrichmentBolt extends AbstractDpsBolt {
     try {
       LOGGER.info("starting enrichment on {} .....", commonTaskTuple.getRecordUri());
       String fileContent = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
+      long enrichmentStart = System.nanoTime();
       ProcessedResult<String> result = enrichmentWorker.process(fileContent);
+      MetricRegistry.enrichmentLatency(topologyName, component, (System.nanoTime() - enrichmentStart) / 1e9);
       Set<Report> reports = filterOutIgnoredReports(result.getReport());
       if (shouldRecordBeFurtherProcessed(result)) {
         processRecord(anchorTuple, commonTaskTuple, result, reports);

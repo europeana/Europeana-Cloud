@@ -1,24 +1,19 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
-
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
-
+import io.micrometer.core.annotation.Counted;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESOURCE;
 
 /**
  * Resource representing records.
@@ -40,6 +35,7 @@ public class RecordsResource {
    * @return record.
    * @throws RecordNotExistsException provided id is not known to Unique Identifier Service.
    */
+  @Counted(value = "record_get_counter", description = "Number of record get operations")
   @GetMapping(produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
   public Record getRecord(
           HttpServletRequest httpServletRequest,
@@ -61,12 +57,12 @@ public class RecordsResource {
    * such record.
    * @summary delete a record
    */
+  @Counted(value = "record_deletion_counter", description = "Number of record deletion operations")
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public void deleteRecord(
       @PathVariable("cloudId") String cloudId) throws RecordNotExistsException, RepresentationNotExistsException {
-
     recordService.deleteRecord(cloudId);
   }
 

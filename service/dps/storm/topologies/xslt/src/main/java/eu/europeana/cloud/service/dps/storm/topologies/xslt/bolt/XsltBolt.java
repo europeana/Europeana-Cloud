@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.transformation.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +37,12 @@ public class XsltBolt extends AbstractDpsBolt {
       final String fileUrl = commonTaskTuple.getRecordUri();
         final String xsltUrl = commonTaskTuple.getParameter(PluginParameterKeys.XSLT_URL);
       LOGGER.info("Processing file: {} with xslt schema:{}", fileUrl, xsltUrl);
+
       final XsltTransformer xsltTransformer = prepareXsltTransformer(commonTaskTuple);
+      long startTime = System.nanoTime();
       writer = xsltTransformer
           .transform(commonTaskTuple.getFileData(), prepareEuropeanaGeneratedIdsMap(commonTaskTuple));
+      MetricRegistry.xsltTransformLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
       commonTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
 

@@ -292,7 +292,7 @@ class HarvestingWriteRecordBoltTest {
         verify(outputCollector, times(1)).emit(any(Tuple.class), captor.capture());
         assertThat(captor.getAllValues().size(), is(1));
         Values value = captor.getAllValues().get(0);
-        assertEquals(6, value.size());
+        assertEquals(7, value.size());
         assertTrue(value.get(3) instanceof TaskData);
         var parameters = ((TaskData) value.get(3)).getParameters();
         assertNotNull(parameters.get(PluginParameterKeys.OUTPUT_URL));

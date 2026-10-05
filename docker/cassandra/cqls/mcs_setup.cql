@@ -39,7 +39,6 @@ CREATE TABLE representation_versions (
        creation_date timestamp,
        dataset_id varchar,
        mark_deleted boolean,
-       annotations map<varchar, text>,
        PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 
@@ -95,4 +94,12 @@ CREATE TABLE files_content (
     fileName varchar,
     data blob,
     PRIMARY KEY (fileName)
+);
+
+CREATE TABLE files_content_v2 (
+    md5      uuid,
+    fileName varchar,
+    data     blob STATIC,
+    updated  TIMESTAMP STATIC,
+    PRIMARY KEY (md5, fileName)
 );

@@ -112,6 +112,7 @@ public class IndexingSettingsGenerator {
     for (String instance : instances) {
       indexingSettings.addSolrHost(new URI(instance));
     }
+    indexingSettings.getSolrProperties().setSolrUseHttp1(indexingProperties.getSolrUseHttp1());
   }
 
   private void prepareZookeeperSettings(IndexingSettings indexingSettings, IndexingProperties indexingProperties)

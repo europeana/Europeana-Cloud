@@ -6,6 +6,7 @@ import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
@@ -59,9 +60,11 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     if (parametersAreValid(endpointLocation, recordId, metadataPrefix)) {
       LOGGER.info("OAI Harvesting started for: {} and {}", recordId, endpointLocation);
       try {
+        long fileDownloadStartTime = System.nanoTime();
         var oaiRecord = harvester.harvestRecord(new OaiRepository(endpointLocation, metadataPrefix), recordId);
+        MetricRegistry.oaiFileDownloadLatency(topologyName, component, (System.nanoTime() - fileDownloadStartTime) / 1e9);
         commonTaskTuple.setFileData(oaiRecord.getContent());
-
+        MetricRegistry.xmlFileSize(topologyName, component, (double) commonTaskTuple.getFileData().length / (1024 * 1024));
         generateIdentifiers(commonTaskTuple);
         addRecordTimestampToTuple(commonTaskTuple, oaiRecord);
 

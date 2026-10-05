@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import org.apache.storm.tuple.Tuple;
@@ -118,8 +119,9 @@ public class RevisionWriterBolt extends AbstractDpsBolt {
         outputRevision = new Revision(outputRevision);
         outputRevision.setDeleted(true);
       }
-
+      long startTime = System.nanoTime();
       addRevision(urlParser, outputRevision);
+      MetricRegistry.rwAddRevisionLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
     } else {
       LOGGER.info("Revisions list is empty");
     }

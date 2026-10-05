@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -67,7 +68,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         if (FileDataChecker.isFileDataNullOrBlank(data)) {
           LOGGER.warn("File data to be EDMEnriched is null or blank!");
         }
+        long enrichmentStart = System.nanoTime();
         EnrichedRdf enrichedRdf = deserializer.getRdfForResourceEnriching(data);
+        MetricRegistry.mediaEdmEnrichmentLatency(topologyName, component, (System.nanoTime() - enrichmentStart) / 1e9);
         prepareStormTaskTuple(commonTaskTuple, enrichedRdf, NO_RESOURCES_DETAILED_MESSAGE);
         outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
         outputCollector.ack(anchorTuple);
@@ -99,7 +102,9 @@ public class EDMEnrichmentBolt extends ReadFileBolt {
         }
         tempEnrichedFile.addSourceTuple(anchorTuple);
         String metadata = commonTaskTuple.getParameter(PluginParameterKeys.RESOURCE_METADATA);
+        long enrichmentStart = System.nanoTime();
         tempEnrichedFile.enrichRdf(metadata);
+        MetricRegistry.mediaEdmMetadataEnrichmentLatency(topologyName, component, (System.nanoTime() - enrichmentStart) / 1e9);
         String cachedErrorMessage = tempEnrichedFile.getExceptions();
         cachedErrorMessage = buildErrorMessage(commonTaskTuple.getParameter(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE),
             cachedErrorMessage);

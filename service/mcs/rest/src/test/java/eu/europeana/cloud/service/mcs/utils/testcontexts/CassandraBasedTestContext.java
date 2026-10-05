@@ -17,6 +17,7 @@ import eu.europeana.cloud.service.mcs.persistent.s3.ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ContentDAO;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import io.micrometer.core.instrument.MeterRegistry;
 import eu.europeana.cloud.test.CassandraEnvironment;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -150,5 +151,10 @@ public class CassandraBasedTestContext {
             uisHandler())
     );
 
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return Mockito.mock(MeterRegistry.class);
   }
 }

@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>17-SNAPSHOT</version>
+    <version>18-SNAPSHOT</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -82,6 +82,18 @@
         <module>service/ecloud-web-commons</module>
         <module>reports</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-releases</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-snapshots</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
     <repositories>
         <!--Release repositories-->
         <repository>
@@ -142,6 +154,7 @@
         <version.curator>5.9.0</version.curator>
         <version.spring-security>7.0.2</version.spring-security>
         <version.spring-boot>4.0.1</version.spring-boot>
+        <version.spring-boot-aop>4.0.0-M1</version.spring-boot-aop>
 
         <version.spring-doc>1.7.0</version.spring-doc>
         <version.git-commit-maven>5.0.1</version.git-commit-maven>
@@ -174,8 +187,8 @@
         <version.tika>2.9.1</version.tika>
         <version.jacoco>0.8.11</version.jacoco>
         <!-- Metis related dependencies-->
-        <version.metis>18-SNAPSHOT</version.metis>
-        <version.metis.normalization>18-SNAPSHOT</version.metis.normalization>
+        <version.metis>19-SNAPSHOT</version.metis>
+        <version.metis.normalization>19-SNAPSHOT</version.metis.normalization>
 
         <!-- -->
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
@@ -515,16 +528,4 @@
             <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
-    <distributionManagement>
-      <repository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-releases</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
-      </repository>
-      <snapshotRepository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-snapshots</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
-      </snapshotRepository>
-    </distributionManagement>
 </project>

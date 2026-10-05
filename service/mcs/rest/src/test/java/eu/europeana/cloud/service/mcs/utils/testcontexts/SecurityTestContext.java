@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.persistent.CassandraRecordService;
 import eu.europeana.cloud.service.mcs.persistent.s3.SimpleS3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
+import io.micrometer.core.instrument.MeterRegistry;
 import eu.europeana.cloud.test.CassandraEnvironment;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -45,6 +46,11 @@ public class SecurityTestContext {
                 S3_TEST_USER,
                 S3_TEST_PASSWORD,
                 S3_TEST_REGION);
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return Mockito.mock(MeterRegistry.class);
   }
 
   @Bean
