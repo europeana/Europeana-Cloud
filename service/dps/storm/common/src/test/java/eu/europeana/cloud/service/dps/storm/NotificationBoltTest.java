@@ -21,6 +21,7 @@ import eu.europeana.enrichment.rest.client.report.Report;
 import org.apache.storm.Config;
 import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
@@ -39,6 +40,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class NotificationBoltTest extends CassandraTestBase {
 
@@ -83,7 +85,9 @@ public class NotificationBoltTest extends CassandraTestBase {
     boltConfig.put(Config.STORM_ZOOKEEPER_SERVERS, Arrays.asList("", ""));
     boltConfig.put(Config.STORM_ZOOKEEPER_PORT, "");
     boltConfig.put(Config.TOPOLOGY_NAME, "");
-    testedBolt.prepare(boltConfig, null, collector);
+      TopologyContext mockContext = Mockito.mock(TopologyContext.class);
+      when(mockContext.getThisComponentId()).thenReturn("notificationBolt");
+      testedBolt.prepare(boltConfig, mockContext, collector);
   }
 
     @Test
