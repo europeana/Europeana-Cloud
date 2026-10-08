@@ -372,87 +372,87 @@ public class CassandraRecordDAO {
 
         insertRepresentationStatement = session.prepare(
                 "INSERT INTO " +
-                        "representation_versions (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_ids, mark_deleted) " +
+                        "representation_versions_v2 (cloud_id, schema_id, version_id, provider_id, persistent, creation_date, dataset_ids, mark_deleted) " +
                         "VALUES (?,?,?,?,?,?,?,?);"
         );
 
         getRepresentationVersionStatement = session.prepare(
                 "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getRepresentationDatasetIdAndProviderIdStatement = session.prepare(
             "SELECT dataset_ids, provider_id" +
-                    " FROM representation_versions " +
+                    " FROM representation_versions_v2 " +
                     "WHERE cloud_id = ? AND schema_id = ? AND version_id=?" +
                     "LIMIT 1;"
     );
 
     listRepresentationVersionsStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     listRepresentationVersionsAllSchemasStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ?;"
     );
 
     persistRepresentationStatement = session.prepare(
-        "UPDATE representation_versions " +
+        "UPDATE representation_versions_v2 " +
             "SET persistent = TRUE, creation_date = ? " +
             "WHERE cloud_id = ? AND schema_id=? AND version_id = ?;"
     );
 
     insertFileStatement = session.prepare(
-        "UPDATE representation_versions " +
+        "UPDATE representation_versions_v2 " +
             "SET files[?] = ? " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     removeFileStatement = session.prepare(
         "DELETE files[?] " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getFilesStatement = session.prepare(
         "SELECT files " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
     getAllRepresentationsForRecordStatement = session.prepare(
         "SELECT cloud_id, schema_id, version_id, provider_id, persistent, creation_date, files, dataset_ids, mark_deleted, annotations " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? " +
             "ORDER BY schema_id DESC, version_id DESC;"
     );
 
     deleteRepresentationStatement = session.prepare(
         "DELETE " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ?;"
     );
 
     deleteRepresentationVersionStatement = session.prepare(
         "DELETE " +
-            "FROM representation_versions " +
+            "FROM representation_versions_v2 " +
             "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
     );
 
       addAnnotationToRepresentationStatement = session.prepare(
-          "UPDATE representation_versions " +
+          "UPDATE representation_versions_v2 " +
               "SET annotations[?] = ? " +
               "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
       );
 
       addDatasetToRepresentationStatement = session.prepare(
-          "UPDATE representation_versions " +
+          "UPDATE representation_versions_v2 " +
               "SET dataset_ids = dataset_ids + ? " +
               "WHERE cloud_id = ? AND schema_id = ? AND version_id = ?;"
       );
