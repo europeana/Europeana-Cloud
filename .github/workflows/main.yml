@@ -23,7 +23,6 @@ jobs:
       - name: Add GitLab remote
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_USER: ${{ secrets.GITLAB_USER }}
           GITLAB_REPO: ${{ vars.GITLAB_REPO }}
         run: |
           # Temporarily using different auth method because we need to change CICD repo accessibility
