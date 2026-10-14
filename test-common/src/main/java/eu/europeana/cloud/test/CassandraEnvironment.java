@@ -18,6 +18,7 @@ public final class CassandraEnvironment {
         String host = System.getenv("CASSANDRA_HOST");
         String port = System.getenv("CASSANDRA_PORT");
         String useExternalCassandra = System.getenv("CASSANDRA_EXTERNAL");
+        String keyspaceSuffix = System.getenv("CASSANDRA_KEYSPACE_SUFFIX");
 
         USE_EXTERNAL_CASSANDRA = useExternalCassandra != null && !useExternalCassandra.isBlank() && Boolean.parseBoolean(useExternalCassandra);
 
@@ -29,7 +30,11 @@ public final class CassandraEnvironment {
                 ? DEFAULT_PORT
                 : Integer.parseInt(port);
         if (useExternalCassandra()) {
-            KEYSPACE_SUFFIX = "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
+            if (keyspaceSuffix != null && !keyspaceSuffix.isBlank()) {
+                KEYSPACE_SUFFIX = "_" + keyspaceSuffix;
+            } else {
+                KEYSPACE_SUFFIX = "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
+            }
         } else {
             KEYSPACE_SUFFIX = "";
         }

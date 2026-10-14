@@ -131,11 +131,11 @@ public final class CassandraTestInstance {
   private static void truncateAllKeyspaceTables(String keyspaceName) {
     Session session = keyspaceSessions.get(keyspaceName);
     final ResultSet rs = session
-            .execute("SELECT table_name from system.tables where keyspace_name='" +
+            .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
                     keyspaceName
                     + "';");
     for (Row r : rs.all()) {
-      String tableName = r.getString("columnfamily_name");
+      String tableName = r.getString("table_name");
       LOGGER.info("embedded Cassandra tuncating table: {}", tableName);
       session.execute("TRUNCATE " + tableName);
     }
@@ -181,6 +181,7 @@ public final class CassandraTestInstance {
   public void initKeyspaceIfNeeded(String keyspaceSchemaCql, String keyspace) {
     if (!keyspaceSessions.containsKey(keyspace)) {
       initKeyspace(keyspaceSchemaCql, keyspace);
+      LOGGER.info("Cassandra keyspace {} was initialized.", keyspace);
     } else {
       LOGGER.info("embedded Cassandra keyspace {} is already initialized.", keyspace);
     }
