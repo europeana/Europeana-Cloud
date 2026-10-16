@@ -25,7 +25,6 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           GITLAB_REPO: ${{ vars.GITLAB_REPO }}
         run: |
-          # Temporarily using different auth method because we need to change CICD repo accessibility
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
@@ -82,9 +81,8 @@ jobs:
         run: |
           git init
 
-          # Temporarily using different auth method because we need to change CICD repo accessibility
-          # GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
-          GITLAB_URL="https://${GITLAB_USER}:${GITLAB_TOKEN}@${GITLAB_REPO}"
+
+          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
           if [ "${GITHUB_REF_TYPE}" = "branch" ]; then
