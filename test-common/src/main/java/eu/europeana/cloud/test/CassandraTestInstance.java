@@ -37,6 +37,12 @@ public final class CassandraTestInstance {
       throw new IllegalStateException("Already initialized.");
     }
 
+    /*
+     * This variable acts as safety feature against starting cassandra test container multiple times when error occurred at initial attempt.
+     * Every following attempt, after initial failure, will result in immediate exception throw.
+     * We decided to implement that safety feature because otherwise each following attempt would try to initialize new container
+     * what would result in DOZENS docker images being initialized at same time exhausting system resources causing system freezes.
+     */
     if (containerStartException != null) {
       throw new RuntimeException("Cassandra container is not initialized!", containerStartException);
     }
