@@ -31,6 +31,11 @@ public final class CassandraTestInstance {
   private final CassandraContainer<?> container;
   private final int port;
 
+  private record CassandraConnection(
+          Cluster cluster,
+          CassandraContainer<?> container,
+          int port) {
+  }
 
   private CassandraTestInstance() {
     if (instance != null) {
@@ -44,44 +49,17 @@ public final class CassandraTestInstance {
      * what would result in DOZENS docker images being initialized at same time exhausting system resources causing system freezes.
      */
     if (containerStartException != null) {
-      throw new RuntimeException("Cassandra container is not initialized!", containerStartException);
+      throw new RuntimeException(
+              "Cassandra container is not initialized!",
+              containerStartException);
     }
 
     try {
-      if (CassandraEnvironment.useExternalCassandra()) {
+      CassandraConnection connection = initializeCassandra();
 
-        LOGGER.info("Using external Cassandra {}:{}",
-                CassandraEnvironment.HOST,
-                CassandraEnvironment.getPort());
-
-        container = null;
-
-        cluster = Cluster.builder()
-                .addContactPoint(CassandraEnvironment.HOST)
-                .withPort(CassandraEnvironment.getPort())
-                .build();
-
-        port = CassandraEnvironment.getPort();
-
-      } else {
-
-        LOGGER.info("Starting Cassandra Testcontainer");
-
-        CassandraContainer<?> cassandra =
-                new CassandraContainer<>("cassandra:3.11.2");
-
-        cassandra.withStartupTimeout(Duration.ofSeconds(180));
-        cassandra.withEnv("HEAP_NEWSIZE", "32M");
-        cassandra.withEnv("MAX_HEAP_SIZE", "256M");
-        cassandra.setStartupAttempts(1);
-        cassandra.start();
-        container = cassandra;
-
-        port = cassandra.getMappedPort(CassandraEnvironment.getPort());
-        CassandraEnvironment.setMappedPort(port);
-
-        cluster = container.getCluster();
-      }
+      this.cluster = connection.cluster();
+      this.container = connection.container();
+      this.port = connection.port();
 
     } catch (Exception e) {
       containerStartException = e;
@@ -90,6 +68,53 @@ public final class CassandraTestInstance {
       containerStartException = e;
       throw e;
     }
+  }
+
+  private CassandraConnection initializeCassandra() {
+    if (CassandraEnvironment.useExternalCassandra()) {
+      return initializeExternalCassandra();
+    }
+
+    return initializeTestContainer();
+  }
+
+  private CassandraConnection initializeExternalCassandra() {
+    LOGGER.info(
+            "Using external Cassandra {}:{}",
+            CassandraEnvironment.HOST,
+            CassandraEnvironment.getPort());
+
+    Cluster cluster = Cluster.builder()
+            .addContactPoint(CassandraEnvironment.HOST)
+            .withPort(CassandraEnvironment.getPort())
+            .build();
+
+    return new CassandraConnection(
+            cluster,
+            null,
+            CassandraEnvironment.getPort());
+  }
+
+
+  private CassandraConnection initializeTestContainer() {
+    LOGGER.info("Starting Cassandra Testcontainer");
+
+    CassandraContainer<?> container =
+            new CassandraContainer<>("cassandra:3.11.2");
+
+    container.withStartupTimeout(Duration.ofSeconds(180));
+    container.withEnv("HEAP_NEWSIZE", "32M");
+    container.withEnv("MAX_HEAP_SIZE", "256M");
+    container.setStartupAttempts(1);
+    container.start();
+
+    int port = container.getMappedPort(CassandraEnvironment.getPort());
+    CassandraEnvironment.setMappedPort(port);
+
+    return new CassandraConnection(
+            container.getCluster(),
+            container,
+            port);
   }
 
   public static int getPort() {
