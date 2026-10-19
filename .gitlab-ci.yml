@@ -1,0 +1,13 @@
+stages:
+  - trigger
+
+trigger-build:
+  stage: trigger
+
+  trigger:
+    project: dl-team/ecloud/on-commit
+    branch: main
+    strategy: mirror
+
+    inputs:
+      source_branch: "$CI_COMMIT_BRANCH"
