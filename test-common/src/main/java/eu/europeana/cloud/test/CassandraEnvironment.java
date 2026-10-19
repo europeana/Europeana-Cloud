@@ -1,5 +1,7 @@
 package eu.europeana.cloud.test;
 
+import joptsimple.internal.Strings;
+
 import java.util.UUID;
 
 public final class CassandraEnvironment {
@@ -20,7 +22,7 @@ public final class CassandraEnvironment {
         String useExternalCassandra = System.getenv("CASSANDRA_EXTERNAL");
         String keyspaceSuffix = System.getenv("CASSANDRA_KEYSPACE_SUFFIX");
 
-        USE_EXTERNAL_CASSANDRA = useExternalCassandra != null && !useExternalCassandra.isBlank() && Boolean.parseBoolean(useExternalCassandra);
+        USE_EXTERNAL_CASSANDRA = Boolean.parseBoolean(useExternalCassandra);
 
         HOST = (host == null || host.isBlank())
                 ? DEFAULT_HOST
@@ -30,10 +32,10 @@ public final class CassandraEnvironment {
                 ? DEFAULT_PORT
                 : Integer.parseInt(port);
         if (useExternalCassandra()) {
-            if (keyspaceSuffix != null && !keyspaceSuffix.isBlank()) {
-                KEYSPACE_SUFFIX = "_" + keyspaceSuffix;
-            } else {
+            if (Strings.isNullOrEmpty(keyspaceSuffix)) {
                 KEYSPACE_SUFFIX = "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
+            } else {
+                KEYSPACE_SUFFIX = "_" + keyspaceSuffix;
             }
         } else {
             KEYSPACE_SUFFIX = "";
