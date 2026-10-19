@@ -28,36 +28,14 @@ jobs:
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
-      - name: Copy .gitlab-ci.yml from GitLab develop
-        run: |
-          if git ls-remote --exit-code gitlab refs/heads/develop >/dev/null 2>&1; then
-            echo "Fetching GitLab develop..."
-
-            git fetch gitlab develop
-
-            echo "Copying .gitlab-ci.yml..."
-
-            git show FETCH_HEAD:.gitlab-ci.yml > .gitlab-ci.yml
-          
-            git add .gitlab-ci.yml
-          
-            if git diff --cached --quiet; then
-              echo ".gitlab-ci.yml already up to date."
-            else
-              git commit -m "Sync .gitlab-ci.yml from GitLab develop"
-            fi
-          else
-            echo "GitLab develop branch does not exist yet. Skipping."
-          fi
-
       - name: Push mirrored branch
         run: |
-          echo "Mirroring '${GITHUB_REF_NAME}'"
+          echo "Pushing '${GITHUB_REF_NAME}'"
 
           git push \
             --force \
             gitlab \
-            HEAD:refs/heads/mirror/${GITHUB_REF_NAME}
+            HEAD:refs/heads/${GITHUB_REF_NAME}
 
       - name: Push tags
         run: |
@@ -77,17 +55,14 @@ jobs:
       - name: Delete mirrored branch or tag
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_USER: ${{ secrets.GITLAB_USER }}
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}
         run: |
-          git init
-
-
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
           git remote add gitlab "$GITLAB_URL"
 
           if [ "${GITHUB_REF_TYPE}" = "branch" ]; then
             echo "Deleting mirror/${GITHUB_REF_NAME}"
-            git push gitlab --delete "mirror/${GITHUB_REF_NAME}"
+            git push gitlab --delete "${GITHUB_REF_NAME}"
           elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             echo "Deleting tag ${GITHUB_REF_NAME}"
             git push gitlab --delete "refs/tags/${GITHUB_REF_NAME}"
