@@ -39,9 +39,6 @@ public class CassandraRecordDAO {
   private PreparedStatement removeFileStatement;
   private PreparedStatement getFilesStatement;
   private PreparedStatement getAllRepresentationsForRecordStatement;
-  private PreparedStatement insertRepresentationRevisionStatement;
-  private PreparedStatement insertRepresentationRevisionFileStatement;
-  private PreparedStatement deleteRepresentationRevisionStatement;
   private PreparedStatement addDatasetToRepresentationStatement;
 
   public CassandraRecordDAO(CassandraConnectionProvider connectionProvider) {

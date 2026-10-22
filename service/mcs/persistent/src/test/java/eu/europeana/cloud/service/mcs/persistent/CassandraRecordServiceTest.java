@@ -60,9 +60,6 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   private DataProvider dataProvider1;
   private DataProvider dataProvider2;
 
-  private DataProvider dataProvider1;
-  private DataProvider dataProvider2;
-
   @BeforeAll
   static void setUp() {
     S3TestHelper.startS3MockServer();

@@ -37,7 +37,7 @@ class DpsTaskValidatorTest {
       dpsTask.addParameter(EXISTING_PARAMETER_NAME, EXISTING_PARAMETER_VALUE);
       dpsTask.addParameter(EMPTY_PARAMETER_NAME, "");
       dpsTask.addParameter(PluginParameterKeys.METIS_TARGET_INDEXING_DATABASE, "PREVIEW");
-      dpsTask.setSource(prepareCompleteDatasetRevisionInfo().build());
+      dpsTask.setSource(prepareCompletedBatchInfo().build());
       dpsTask.setResultsProvider(OUTPUT_PROVIDER);
       //
       icTopologyTask = new CreateDpsTaskRequest();
@@ -68,7 +68,7 @@ class DpsTaskValidatorTest {
 
   }
 
-  public static BatchInfo.BatchInfoBuilder prepareCompleteDatasetRevisionInfo() {
+  public static BatchInfo.BatchInfoBuilder prepareCompletedBatchInfo() {
     return BatchInfo.builder().providerId("providerId").batchId("datasetId");
   }
 

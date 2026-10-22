@@ -15,7 +15,6 @@ public final class MetricRegistry {
     private static Histogram PROCESSING_LATENCY;
     private static Histogram WR_UPLOAD_FILE_LATENCY;
     private static Histogram RF_READ_FILE_LATENCY;
-    private static Histogram RW_ADD_REVISION_LATENCY;
     private static Histogram PF_GET_RESOURCES_FROM_RDF_LATENCY;
     private static Histogram OAI_FILE_DOWNLOAD_LATENCY;
     private static Histogram HTTP_FILE_DOWNLOAD_LATENCY;
@@ -85,14 +84,6 @@ public final class MetricRegistry {
         RF_READ_FILE_LATENCY = Histogram.builder()
                 .name("read_file_latency")
                 .help("Read file - read file latency")
-                .classicExponentialUpperBounds(
-                        0.005, 2, 15
-                )
-                .labelNames("topology", "component")
-                .register();
-        RW_ADD_REVISION_LATENCY = Histogram.builder()
-                .name("revision_writer_add_revision_latency")
-                .help("Revision writer - add revision latency")
                 .classicExponentialUpperBounds(
                         0.005, 2, 15
                 )
@@ -359,14 +350,6 @@ public final class MetricRegistry {
     public static void rfBoltReadFileLatency(String topology, String component, double seconds) {
         ensureInit();
         RF_READ_FILE_LATENCY.labelValues(
-                safe(topology),
-                safe(component)
-        ).observe(seconds);
-    }
-
-    public static void rwAddRevisionLatency(String topology, String component, double seconds) {
-        ensureInit();
-        RW_ADD_REVISION_LATENCY.labelValues(
                 safe(topology),
                 safe(component)
         ).observe(seconds);

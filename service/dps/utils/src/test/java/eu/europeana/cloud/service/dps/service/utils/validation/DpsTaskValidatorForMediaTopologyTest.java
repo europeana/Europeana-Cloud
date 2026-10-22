@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorTest.OUTPUT_PROVIDER;
-import static eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorTest.prepareCompleteDatasetRevisionInfo;
+import static eu.europeana.cloud.service.dps.service.utils.validation.DpsTaskValidatorTest.prepareCompletedBatchInfo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DpsTaskValidatorForMediaTopologyTest {
@@ -22,7 +22,7 @@ class DpsTaskValidatorForMediaTopologyTest {
     void init() {
       dpsTaskForMediaTopologyWithDataset = new CreateDpsTaskRequest();
       dpsTaskForMediaTopologyWithDataset.setResultsProvider(OUTPUT_PROVIDER);
-      dpsTaskForMediaTopologyWithDataset.setSource(prepareCompleteDatasetRevisionInfo().build());
+      dpsTaskForMediaTopologyWithDataset.setSource(prepareCompletedBatchInfo().build());
 
       dpsTaskForMediaTopologyWithoutInputData = new CreateDpsTaskRequest();
       dpsTaskForMediaTopologyWithoutInputData.setResultsProvider(OUTPUT_PROVIDER);

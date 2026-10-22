@@ -47,6 +47,19 @@ CREATE TABLE representation_versions
     PRIMARY KEY (cloud_id, schema_id, version_id)
 );
 
+CREATE TABLE representation_versions_v2 (
+                                            cloud_id varchar,
+                                            schema_id varchar,
+                                            version_id timeuuid,
+                                            provider_id varchar,
+                                            persistent boolean,
+                                            files map<varchar, text>, /* fileName -> json object: (mime_type, content_md5, content_length, last_modification_date) */
+                                            creation_date timestamp,
+                                            dataset_ids set<text>,
+                                            mark_deleted boolean,
+                                            annotations map<varchar, text>,
+                                            PRIMARY KEY (cloud_id, schema_id, version_id)
+);
 
 CREATE TABLE representation_revisions
 (
