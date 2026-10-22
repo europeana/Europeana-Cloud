@@ -1,5 +1,5 @@
-CREATE KEYSPACE IF NOT EXISTS aas_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
-USE aas_test;
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+USE ${KEYSPACE};
 CREATE TABLE IF NOT EXISTS users(
       username varchar,
       password varchar,

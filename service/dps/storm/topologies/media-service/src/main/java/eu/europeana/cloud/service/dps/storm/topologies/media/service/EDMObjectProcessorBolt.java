@@ -7,6 +7,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.io.ReadFileBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -84,12 +85,16 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
         LOGGER.warn("File data to be processed is null or blank!");
       }
       LOGGER.debug("Searching for main thumbnail in the resource");
+      long mainThumbnailExtractionStart = System.nanoTime();
       RdfResourceEntry edmObjectResourceEntry = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(fileContent);
+      MetricRegistry.mediaOpMainThumbnailExtractionLatency(topologyName, component, (System.nanoTime() - mainThumbnailExtractionStart) / 1e9);
       LOGGER.info("Found the following rdfResourceEntry: {}", edmObjectResourceEntry);
       boolean mainThumbnailAvailable = false;
       // TODO Here we specify number of all resources to allow finishing task. This solution is strongly not optimal because we have
       //  to collect all the resources instead of just counting them
+      long remainingResourceExtractionStart = System.nanoTime();
       resourcesToBeProcessed = rdfDeserializer.getRemainingResourcesForMediaExtraction(fileContent).size();
+      MetricRegistry.mediaOpRemainingResourceExtractionLatency(topologyName, component, (System.nanoTime() - remainingResourceExtractionStart) / 1e9);
 
       if (edmObjectResourceEntry != null) {
         resourcesToBeProcessed++;
@@ -112,7 +117,9 @@ public class EDMObjectProcessorBolt extends ReadFileBolt {
           }
           LOGGER.debug("Extracted the following metadata: thumbnailTargetNames: {},  metadata: {}",
               thumbnailTargetNames, metadataJson);
+          long thumbnailStoringStart = System.nanoTime();
           storeThumbnails(commonTaskTuple, exception, resourceExtractionResult);
+          MetricRegistry.mediaOpThumbnailStoringLatency(topologyName, component, (System.nanoTime() - thumbnailStoringStart) / 1e9);
           if (tuple != null) {
             outputCollector.emit(EDM_OBJECT_ENRICHMENT_STREAM_NAME, anchorTuple, tuple.toStormTuple());
           }

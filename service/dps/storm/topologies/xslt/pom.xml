@@ -4,7 +4,7 @@
     <parent>
         <groupId>eu.europeana.cloud</groupId>
         <artifactId>ecloud-service-dps</artifactId>
-        <version>17-SNAPSHOT</version>
+        <version>18-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -18,6 +18,14 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-core</artifactId>
+            <version>${version.storm}</version>
+            <!-- keep storm out of the jar-with-dependencies -->
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <artifactId>log4j-slf4j2-impl</artifactId>
             <groupId>org.apache.logging.log4j</groupId>
@@ -107,14 +115,6 @@
             <groupId>eu.europeana.cloud</groupId>
             <artifactId>ecloud-service-mcs-rest-client-java</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-core</artifactId>
-            <version>${version.storm}</version>
-            <!-- keep storm out of the jar-with-dependencies -->
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

@@ -4,6 +4,7 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.metis.mediaprocessing.LinkChecker;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -71,7 +72,9 @@ public class LinkCheckBolt extends AbstractDpsBolt {
                 "The EDM file has no resources");
         outputCollector.ack(anchorTuple);
     } else {
+      long startTime = System.nanoTime();
       FileInfo edmFile = checkProvidedLink(tuple, resourceInfo);
+      MetricRegistry.linkCheckLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
       edmFile.addSourceTuple(anchorTuple);
       if (isFileFullyProcessed(edmFile)) {
         cache.remove(edmFile.fileUrl);

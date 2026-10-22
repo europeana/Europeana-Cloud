@@ -10,6 +10,7 @@ import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
 import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,9 +69,8 @@ public class SecurityTestContext {
     @Bean
     public CassandraConnectionProvider provider() {
         return new CassandraConnectionProvider(
-                "localhost",
-                eu.europeana.cloud.test.CassandraTestInstance.getPort(),
-                "aas_test",
+                CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+                "aas_test" + CassandraEnvironment.KEYSPACE_SUFFIX,
                 "",
                 ""
         );

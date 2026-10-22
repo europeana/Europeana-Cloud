@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.config;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.CassandraHealthIndicator;
 import eu.europeana.cloud.service.commons.utils.BucketsHandler;
 import eu.europeana.cloud.service.commons.utils.RetryAspect;
@@ -12,15 +13,14 @@ import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
-import eu.europeana.cloud.common.properties.CassandraProperties;
+import io.micrometer.core.aop.CountedAspect;
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
+import org.springframework.context.annotation.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -150,5 +150,23 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public CassandraHealthIndicator cassandraHealthIndicator(CassandraConnectionProvider uisCassandraProvider) {
     return new CassandraHealthIndicator(uisCassandraProvider);
+  }
+
+  @Bean
+  public MeterRegistryCustomizer<MeterRegistry> commonTags() {
+    return registry -> registry.config().commonTags(
+            "namespace", System.getenv("Namespace"),
+            "instance", System.getenv("AppId")
+    );
+  }
+
+  @Bean
+  public CountedAspect countedAspect(MeterRegistry registry) {
+    return new CountedAspect(registry);
+  }
+
+  @Bean
+  public TimedAspect timedAspect(MeterRegistry registry) {
+    return new TimedAspect(registry);
   }
 }

@@ -100,7 +100,8 @@ public class CommonTaskTuple implements Serializable {
             THROTTLING_GROUPING_ATTRIBUTE_TUPLE_FIELD,
             TASK_DATA_TUPLE_FIELD,
             STORM_PROCESSING_DATA_TUPLE_FIELD,
-            RECORD_DATA_TUPLE_FIELD
+            RECORD_DATA_TUPLE_FIELD,
+            CLOUD_ID_TUPLE_FIELD
     );
   }
 
@@ -112,8 +113,8 @@ public class CommonTaskTuple implements Serializable {
             processingData.getThrottlingGroupingAttribute(),
             taskData,
             processingData,
-            recordData
-
+            recordData,
+            recordData.getCloudId()
     );
   }
 

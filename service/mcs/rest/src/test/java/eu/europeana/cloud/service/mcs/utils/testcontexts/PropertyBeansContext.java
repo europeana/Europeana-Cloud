@@ -3,6 +3,7 @@ package eu.europeana.cloud.service.mcs.utils.testcontexts;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
 import eu.europeana.cloud.service.mcs.properties.S3Properties;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -37,9 +38,9 @@ public class PropertyBeansContext {
     @Bean
     public CassandraProperties cassandraAASProperties() {
         CassandraProperties cassandraProperties = new CassandraProperties();
-        cassandraProperties.setHosts("localhost");
+        cassandraProperties.setHosts(CassandraEnvironment.HOST);
         cassandraProperties.setUser("");
-        cassandraProperties.setPort(CassandraTestInstance.getPort());
+        cassandraProperties.setPort(CassandraEnvironment.getPort());
         cassandraProperties.setPassword("");
         cassandraProperties.setKeyspace(JUNIT_AAS_KEYSPACE);
         return cassandraProperties;
@@ -48,9 +49,9 @@ public class PropertyBeansContext {
   @Bean
   public CassandraProperties cassandraMCSProperties() {
     CassandraProperties cassandraProperties = new CassandraProperties();
-    cassandraProperties.setHosts("localhost");
+      cassandraProperties.setHosts(CassandraEnvironment.HOST);
     cassandraProperties.setUser("");
-    cassandraProperties.setPort(CassandraTestInstance.getPort());
+      cassandraProperties.setPort(CassandraEnvironment.getPort());
     cassandraProperties.setPassword("");
     cassandraProperties.setKeyspace(JUNIT_MCS_KEYSPACE);
     return cassandraProperties;

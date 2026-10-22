@@ -10,7 +10,7 @@ import eu.europeana.cloud.service.dps.storm.dao.CassandraTaskInfoDAO;
 import eu.europeana.cloud.service.dps.storm.dao.NotificationsDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.ServiceAndDAOTestUtils;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,8 +33,8 @@ class TaskExecutionReportServiceImplTest extends CassandraTestBase {
 
     @BeforeEach
     void setup() {
-        CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-                CassandraTestInstance.getPort(), KEYSPACE, USER,
+        CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+                KEYSPACE, USER,
                 PASSWORD);
         notificationsDAO = NotificationsDAO.getInstance(db);
         taskInfoDAO = CassandraTaskInfoDAO.getInstance(db);

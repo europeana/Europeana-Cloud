@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.notification.handler;
 
+
 import com.datastax.driver.core.BoundStatement;
 import eu.europeana.cloud.common.model.dps.*;
 import eu.europeana.cloud.service.commons.utils.BatchExecutor;
@@ -63,6 +64,7 @@ public class NotificationTupleHandler {
 
       statementsToBeExecutedInBatch.addAll(prepareCommonStatementsForAllTuples(notification, config.getNotificationCacheEntry()));
       statementsToBeExecutedInBatch.addAll(prepareStatementsForErrors(notificationTuple, config.getNotificationCacheEntry()));
+      statementsToBeExecutedInBatch.addAll(prepareStatementsForDuplications(notificationTuple, config.getNotificationCacheEntry()));
       statementsToBeExecutedInBatch.addAll(prepareStatementsForReports(notificationTuple, config.getNotificationCacheEntry()));
       statementsToBeExecutedInBatch.addAll(prepareStatementsForRecordState(notificationTuple, config));
       batchExecutor.executeAll(statementsToBeExecutedInBatch);
@@ -128,6 +130,18 @@ public class NotificationTupleHandler {
       return getStatementsToBeExecutedFromErrorNotification(notificationTuple, nCache, errorNotification);
     }
     return Collections.emptyList();
+  }
+
+  private List<BoundStatement> prepareStatementsForDuplications(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {
+    if (isDuplication(notificationTuple)) {
+      ErrorNotification errorNotification = prepareErrorNotificationFromTuple(notificationTuple, nCache);
+      return getStatementsToBeExecutedFromErrorNotification(notificationTuple, nCache,errorNotification);
+    }
+    return Collections.emptyList();
+  }
+
+  private static boolean isDuplication(NotificationTuple notificationTuple) {
+    return "true".equals(notificationTuple.getParameter(PluginParameterKeys.DUPLICATED_RECORD));
   }
 
   private List<BoundStatement> prepareStatementsForReports(NotificationTuple notificationTuple, NotificationCacheEntry nCache) {

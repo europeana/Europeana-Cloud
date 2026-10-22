@@ -34,7 +34,6 @@ public class TestConfiguration {
   public UniqueIdentifierResource uniqueIdentifierResource(UniqueIdentifierService uniqueIdentifierService) {
     return new UniqueIdentifierResource(uniqueIdentifierService);
   }
-
   @Bean
   public UniqueIdentifierService uniqueIdentifierService() {
     return Mockito.mock(UniqueIdentifierService.class);

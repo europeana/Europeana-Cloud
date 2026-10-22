@@ -6,6 +6,7 @@ import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.storm.tuple.Tuple;
@@ -63,8 +64,11 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   }
 
   private void harvestRecord(CommonTaskTuple tuple) throws Exception {
+    long startTime = System.nanoTime();
     HttpResponse<byte[]> response = tryLoadHttpFileCoupleOfTimes(tuple);
+    MetricRegistry.httpFileDownloadLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
     byte[] fileContent = response.body();
+    MetricRegistry.xmlFileSize(topologyName, component, (double) fileContent.length / (1024 * 1024));
     tuple.setFileData(fileContent);
     tuple.addParameter(PluginParameterKeys.OUTPUT_MIME_TYPE, probeMimeType(tuple.getRecordUri(), fileContent));
     identifierSupplier.prepareIdentifiers(tuple);

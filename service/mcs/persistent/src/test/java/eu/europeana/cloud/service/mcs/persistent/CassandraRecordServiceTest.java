@@ -60,6 +60,9 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   private DataProvider dataProvider1;
   private DataProvider dataProvider2;
 
+  private DataProvider dataProvider1;
+  private DataProvider dataProvider2;
+
   @BeforeAll
   static void setUp() {
     S3TestHelper.startS3MockServer();
@@ -290,9 +293,9 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation edm4 = insertDummyPersistentRepresentation("globalId", "edm", PROVIDER_1_ID, VERSION_6);
     cassandraRecordService.createRepresentation("globalId", "edm", PROVIDER_1_ID, VERSION_7, DATA_SET_NAME);
 
-    Record aRecord = cassandraRecordService.getRecord("globalId");
+    Record record = cassandraRecordService.getRecord("globalId");
     Set<Representation> expectedRepresentations = new HashSet<>(Arrays.asList(jpg, edm4));
-    Set<Representation> fetchedRepresentations = new HashSet<>(aRecord.getRepresentations());
+    Set<Representation> fetchedRepresentations = new HashSet<>(record.getRepresentations());
     assertThat(fetchedRepresentations, is(expectedRepresentations));
   }
 
@@ -487,7 +490,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     Representation r = insertDummyPersistentRepresentation("globalId",
         "dc", PROVIDER_1_ID, VERSION);
 
-    File f = r.getFiles().getFirst();
+    File f = r.getFiles().get(0);
     assertThrows(CannotModifyPersistentRepresentationException.class,
         () -> cassandraRecordService.deleteContent(r.getCloudId(),
             r.getRepresentationName(), r.getVersion(), f.getFileName()));
@@ -524,7 +527,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     r = cassandraRecordService.getRepresentation(r.getCloudId(),
         r.getRepresentationName(), r.getVersion());
     assertThat(r.getFiles().size(), is(1));
-    File fetchedFile = r.getFiles().getFirst();
+    File fetchedFile = r.getFiles().get(0);
     assertThat(fetchedFile.getFileName(), is(f.getFileName()));
     assertThat(fetchedFile.getMimeType(), is(f.getMimeType()));
     assertThat(fetchedFile.getContentLength(),
@@ -551,7 +554,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
     r = cassandraRecordService.getRepresentation(r.getCloudId(),
         r.getRepresentationName(), r.getVersion());
     assertThat(r.getFiles().size(), is(1));
-    File fetchedFile = r.getFiles().getFirst();
+    File fetchedFile = r.getFiles().get(0);
     assertThat(fetchedFile.getFileName(), is(f.getFileName()));
     assertThat(fetchedFile.getMimeType(), is(f.getMimeType()));
     assertThat(fetchedFile.getContentLength(),
@@ -622,7 +625,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   private void mockUISProvider1Success() {
-    DataProvider dataProvider1 = new DataProvider();
+    dataProvider1 = new DataProvider();
     dataProvider1.setId(PROVIDER_1_ID);
     dataProvider1.setPartitionKey(PROVIDER_1_PARTITION_KEY);
 
@@ -631,7 +634,7 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   }
 
   private void mockUISProvider2Success() {
-    DataProvider dataProvider2 = new DataProvider();
+    dataProvider2 = new DataProvider();
     dataProvider2.setId(PROVIDER_2_ID);
     dataProvider2.setPartitionKey(PROVIDER_2_PARTITION_KEY);
 
@@ -663,27 +666,6 @@ class CassandraRecordServiceTest extends CassandraTestBase {
   private void makeUISThrowSystemException() {
     Mockito.doThrow(SystemException.class).when(uisHandler)
            .existsCloudId(Mockito.anyString());
-  }
-
-  @Test
-  void shouldAddAnnotationToRepresentationVersion() throws Exception {
-
-    mockUISProvider1Success();
-    makeUISSuccess();
-
-    cassandraDataSetService.createDataSet(PROVIDER_1_ID, DATA_SET_NAME, DATA_SET_DESCRIPTION);
-
-    Representation r = cassandraRecordService.createRepresentation("globalId", "dc", PROVIDER_1_ID, VERSION_2,
-        DATA_SET_NAME);
-
-    RepresentationVersionAnnotation annotation = new RepresentationVersionAnnotation(RepresentationVersionAnnotation.AnnotationKey.INVALID, "");
-
-    cassandraRecordService.addAnnotationToRepresentationVersion(r, annotation);
-
-    Representation representation = cassandraRecordService.getRepresentation("globalId", "dc", r.getVersion());
-    assertThat(representation.getAnnotations().size(), is(1));
-    assertThat(representation.getAnnotations().contains(annotation), is(true));
-
   }
 
 }

@@ -6,6 +6,7 @@ import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.BoltInitializationException;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -59,7 +60,9 @@ public abstract class ParseFileBolt extends ReadFileBolt {
       if (FileDataChecker.isFileDataNullOrBlank(fileContent)) {
         LOGGER.warn("File data to be parsed is null or blank!");
       }
+      long startTime = System.nanoTime();
       List<RdfResourceEntry> rdfResourceEntries = getResourcesFromRDF(fileContent);
+      MetricRegistry.pfGetResourcesFromRdfLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
       int linksCount = getLinksCount(commonTaskTuple, rdfResourceEntries.size());
       if (linksCount == 0) {
         CommonTaskTuple tuple = SerializationUtils.clone(commonTaskTuple);

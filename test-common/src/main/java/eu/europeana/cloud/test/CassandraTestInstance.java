@@ -1,27 +1,22 @@
 package eu.europeana.cloud.test;
 
-import static java.lang.Thread.sleep;
-
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.WriteType;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.RetryPolicy;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.CassandraContainer;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.CassandraContainer;
+
+import static java.lang.Thread.sleep;
 
 public final class CassandraTestInstance {
 
@@ -33,45 +28,97 @@ public final class CassandraTestInstance {
   private static Throwable containerStartException;
 
   private final Cluster cluster;
-  private final CassandraContainer container;
+  private final CassandraContainer<?> container;
+  private final int port;
 
+  private record CassandraConnection(
+          Cluster cluster,
+          CassandraContainer<?> container,
+          int port) {
+  }
 
   private CassandraTestInstance() {
     if (instance != null) {
       throw new IllegalStateException("Already initialized.");
     }
 
+    /*
+     * This variable acts as safety feature against starting cassandra test container multiple times when error occurred at initial attempt.
+     * Every following attempt, after initial failure, will result in immediate exception throw.
+     * We decided to implement that safety feature because otherwise each following attempt would try to initialize new container
+     * what would result in DOZENS docker images being initialized at same time exhausting system resources causing system freezes.
+     */
     if (containerStartException != null) {
-      //Protection again consumption of all possible system memory!
-      //Without this protection it is possible that CassandraTestInstance constructor would be performed many times
-      //in case of exception while container starts. Such tries could create many Cassandra containers in docker
-      // and consume all the system memory.
-      throw new RuntimeException("Cassandra container is not initialized!", containerStartException);
+      throw new RuntimeException(
+              "Cassandra container is not initialized!",
+              containerStartException);
     }
 
     try {
-      LOGGER.info("Starting Cassandra container in docker");
-      container = new CassandraContainer("cassandra:3.11.2");
-      container.withStartupTimeout(Duration.ofSeconds(180));
-      container.withEnv("HEAP_NEWSIZE", "32M");
-      container.withEnv("MAX_HEAP_SIZE", "256M");
-      container.setStartupAttempts(1);
-      container.start();
-      cluster = container.getCluster();
+      CassandraConnection connection = initializeCassandra();
 
-      LOGGER.info("Cassandra container initialized.");
+      this.cluster = connection.cluster();
+      this.container = connection.container();
+      this.port = connection.port();
+
     } catch (Exception e) {
       containerStartException = e;
-      throw new RuntimeException("Cannot start Cassandra container!", e);
+      throw new RuntimeException("Cannot initialize Cassandra!", e);
     } catch (Error e) {
       containerStartException = e;
       throw e;
     }
+  }
 
+  private CassandraConnection initializeCassandra() {
+    if (CassandraEnvironment.useExternalCassandra()) {
+      return initializeExternalCassandra();
+    }
+
+    return initializeTestContainer();
+  }
+
+  private CassandraConnection initializeExternalCassandra() {
+    LOGGER.info(
+            "Using external Cassandra {}:{}",
+            CassandraEnvironment.HOST,
+            CassandraEnvironment.getPort());
+
+    Cluster cluster = Cluster.builder()
+            .addContactPoint(CassandraEnvironment.HOST)
+            .withPort(CassandraEnvironment.getPort())
+            .build();
+
+    return new CassandraConnection(
+            cluster,
+            null,
+            CassandraEnvironment.getPort());
+  }
+
+
+  private CassandraConnection initializeTestContainer() {
+    LOGGER.info("Starting Cassandra Testcontainer");
+
+    CassandraContainer<?> container =
+            new CassandraContainer<>("cassandra:3.11.2");
+
+    container.withStartupTimeout(Duration.ofSeconds(180));
+    container.withEnv("HEAP_NEWSIZE", "32M");
+    container.withEnv("MAX_HEAP_SIZE", "256M");
+    container.setStartupAttempts(1);
+    container.start();
+
+    int port = container.getMappedPort(CassandraEnvironment.getPort());
+    CassandraEnvironment.setMappedPort(port);
+
+    return new CassandraConnection(
+            container.getCluster(),
+            container,
+            port);
   }
 
   public static int getPort() {
-    return instance.container.getMappedPort(9042);
+    return instance.port;
   }
 
   /**
@@ -99,7 +146,7 @@ public final class CassandraTestInstance {
     for (String keyspaceName : keyspaceSessions.keySet()) {
       if (hard) {
         LOGGER.warn("Truncating all tables! Operation is slow use CassandraTestInstance.truncateAllData" +
-            "(false).");
+                "(false).");
         truncateAllKeyspaceTables(keyspaceName);
       } else {
         LOGGER.info("Truncating all not empty tables!");
@@ -115,11 +162,11 @@ public final class CassandraTestInstance {
   private static void truncateAllKeyspaceTables(String keyspaceName) {
     Session session = keyspaceSessions.get(keyspaceName);
     final ResultSet rs = session
-        .execute("SELECT table_name from system.tables where keyspace_name='" +
-            keyspaceName
-            + "';");
+            .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
+                    keyspaceName
+                    + "';");
     for (Row r : rs.all()) {
-      String tableName = r.getString("columnfamily_name");
+      String tableName = r.getString("table_name");
       LOGGER.info("embedded Cassandra tuncating table: {}", tableName);
       session.execute("TRUNCATE " + tableName);
     }
@@ -128,12 +175,12 @@ public final class CassandraTestInstance {
   private static void truncateAllNotEmptyKeyspaceTables(String keyspaceName) {
     Session session = keyspaceSessions.get(keyspaceName);
     final ResultSet rs = session
-        .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
-            keyspaceName + "';");
+            .execute("SELECT table_name from system_schema.tables where keyspace_name='" +
+                    keyspaceName + "';");
     for (Row r : rs.all()) {
       String tableName = r.getString("table_name");
       ResultSet rows = session
-          .execute("SELECT * FROM " + tableName + " LIMIT 1;");
+              .execute("SELECT * FROM " + tableName + " LIMIT 1;");
       if (rows.one() == null) {
         LOGGER.info("embedded Cassandra keyspace table:{} - is empty", tableName);
       } else {
@@ -151,12 +198,12 @@ public final class CassandraTestInstance {
     for (String keyspaceName : keyspaceSessions.keySet()) {
       Session session = keyspaceSessions.get(keyspaceName);
       final ResultSet rs = session.execute("SELECT columnfamily_name from system.schema_columnfamilies where keyspace_name='" +
-          keyspaceName + "';");
+              keyspaceName + "';");
 
       for (Row r : rs.all()) {
         String tableName = r.getString("columnfamily_name");
         ResultSet rows = session
-            .execute("SELECT * FROM " + tableName + ";");
+                .execute("SELECT * FROM " + tableName + ";");
         LOGGER.info("keyspace : {}, table : {}  have rows : {} ", keyspaceName, tableName, rows.getAvailableWithoutFetching());
       }
     }
@@ -165,6 +212,7 @@ public final class CassandraTestInstance {
   public void initKeyspaceIfNeeded(String keyspaceSchemaCql, String keyspace) {
     if (!keyspaceSessions.containsKey(keyspace)) {
       initKeyspace(keyspaceSchemaCql, keyspace);
+      LOGGER.info("Cassandra keyspace {} was initialized.", keyspace);
     } else {
       LOGGER.info("embedded Cassandra keyspace {} is already initialized.", keyspace);
     }
@@ -175,21 +223,30 @@ public final class CassandraTestInstance {
    */
   public synchronized void clean() {
     keyspaceSessions.clear();
+
+    if (container != null) {
+      container.stop();
+    }
+
+    cluster.close();
   }
 
   private void initKeyspace(String keyspaceSchemaCql, String keyspace) {
     LOGGER.info("Initializing embedded Cassandra keyspace {} ...", keyspace);
-    applyCQL(keyspaceSchemaCql);
+    applyCQL(keyspaceSchemaCql, keyspace);
     Session session = cluster.connect(keyspace);
     keyspaceSessions.put(keyspace, session);
     LOGGER.info("embedded Cassandra keyspace {} initialized.", keyspace);
   }
 
-  private void applyCQL(String keyspaceSchemaCql) {
+  private void applyCQL(String keyspaceSchemaCql, String keyspace) {
     try (Session tempSession = cluster.newSession()) {
       String[] statements = StringUtils.split(
-          IOUtils.toString(getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql)), ";");
-      Arrays.stream(statements).map(statement -> StringUtils.normalizeSpace(statement) + ";").forEach(tempSession::execute);
+              IOUtils.toString(getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql)), ";");
+      Arrays.stream(statements)
+              .map(statement -> StringUtils.normalizeSpace(statement) + ";")
+              .map(statement -> statement.replace("${KEYSPACE}", keyspace))
+              .forEach(tempSession::execute);
     } catch (IOException e) {
       LOGGER.error("Unable to load data to Cassandra", e);
       throw new RuntimeException("Unable to load data to Cassandra");
@@ -206,7 +263,7 @@ public final class CassandraTestInstance {
     private final long waitRetryTime;
 
     TestRetryPolicy(double maxReadNbRetry, double maxWriteNbRetry, double maxUnavailableNbRetry,
-        long waitRetryTime) {
+                    long waitRetryTime) {
       this.maxReadNbRetry = maxReadNbRetry;
       this.maxWriteNbRetry = maxWriteNbRetry;
       this.maxUnavailableNbRetry = maxUnavailableNbRetry;
@@ -214,7 +271,7 @@ public final class CassandraTestInstance {
     }
 
     public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses,
-        int receivedResponses, boolean dataRetrieved, int nbRetry) {
+                                       int receivedResponses, boolean dataRetrieved, int nbRetry) {
       waitForNextRetry();
       if (dataRetrieved && receivedResponses >= requiredResponses) {
         return RetryDecision.ignore();
@@ -235,13 +292,13 @@ public final class CassandraTestInstance {
     }
 
     public RetryDecision onWriteTimeout(Statement statement, ConsistencyLevel cl, WriteType writeType,
-        int requiredAcks, int receivedAcks, int nbRetry) {
+                                        int requiredAcks, int receivedAcks, int nbRetry) {
       waitForNextRetry();
       return getRetryDecision(cl, requiredAcks, receivedAcks, nbRetry, maxWriteNbRetry);
     }
 
     public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica,
-        int aliveReplica, int nbRetry) {
+                                       int aliveReplica, int nbRetry) {
       waitForNextRetry();
       return getRetryDecision(cl, requiredReplica, aliveReplica, nbRetry, maxUnavailableNbRetry);
     }

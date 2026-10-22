@@ -18,6 +18,7 @@ public final class IndexingPropertyNames {
   public static final String MONGO_TOMBSTONE_DB_NAME = "mongoTombstoneDbName";
   //
   public static final String SOLR_INSTANCES = "solrInstances";
+  public static final String SOLR_USE_HTTP1 = "solrUseHttp1";
   //
   public static final String ZOOKEEPER_INSTANCES = "zookeeperInstances";
   public static final String ZOOKEEPER_PORT_NUMBER = "zookeeperPortNumber";

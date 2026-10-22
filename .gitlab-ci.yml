@@ -1,0 +1,37 @@
+spec:
+  inputs:
+    skip_it_tests:
+      type: boolean
+      default: true
+      description: "Whether integration tests should be skipped"
+
+    skip_tests:
+      type: boolean
+      default: false
+      description: "Whether unit tests should be skipped"
+
+    skip_sonar:
+      type: boolean
+      default: false
+      description: "Whether sonar should be skipped"
+
+    ecloud_override_retries_attempt_count:
+      default: "2"
+      description: "Number of retry attempts for eCloud operations during tests"
+
+    ecloud_override_retries_delay:
+      default: "20"
+      description: "Delay between eCloud retry attempts in seconds during tests"
+
+---
+
+include:
+  - project: 'dl-team/ecloud/europeanacloudcicd'
+    ref: master
+    file: '/pipelines/on-commit.yaml'
+    inputs:
+      skip_it_tests: $[[ inputs.skip_it_tests ]]
+      skip_tests: $[[ inputs.skip_tests ]]
+      skip_sonar: $[[ inputs.skip_sonar ]]
+      ecloud_override_retries_attempt_count: $[[ inputs.ecloud_override_retries_attempt_count ]]
+      ecloud_override_retries_delay: $[[ inputs.ecloud_override_retries_delay ]]

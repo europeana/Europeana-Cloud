@@ -4,6 +4,7 @@ import eu.europeana.aas.authorization.CassandraMutableAclService;
 import eu.europeana.aas.authorization.repository.CassandraAclRepository;
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.domain.*;
@@ -15,9 +16,8 @@ public class DefaultTestContext {
     @Bean
     public CassandraConnectionProvider provider() {
         return new CassandraConnectionProvider(
-                "localhost",
-                eu.europeana.cloud.test.CassandraTestInstance.getPort(),
-                "test_keyspace",
+                CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+                "test_keyspace" + CassandraEnvironment.KEYSPACE_SUFFIX,
                 "",
                 ""
         );

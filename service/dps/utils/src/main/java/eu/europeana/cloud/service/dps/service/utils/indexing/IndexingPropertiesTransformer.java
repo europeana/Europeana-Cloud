@@ -16,6 +16,7 @@ import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingProp
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.PREVIEW_PREFIX;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.PUBLISH_PREFIX;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.SOLR_INSTANCES;
+import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.SOLR_USE_HTTP1;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.ZOOKEEPER_CHROOT;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.ZOOKEEPER_DEFAULT_COLLECTION;
 import static eu.europeana.cloud.service.dps.service.utils.indexing.IndexingPropertyNames.ZOOKEEPER_INSTANCES;
@@ -50,6 +51,8 @@ public final class IndexingPropertiesTransformer {
     indexingProperties.setMongoTombstoneDbName(properties.getProperty(prefix + MONGO_TOMBSTONE_DB_NAME));
 
     indexingProperties.setSolrInstances(properties.getProperty(prefix + SOLR_INSTANCES));
+    String useHttp1Property = properties.getProperty(prefix + SOLR_USE_HTTP1);
+    indexingProperties.setSolrUseHttp1(useHttp1Property == null || Boolean.parseBoolean(useHttp1Property));
 
     indexingProperties.setZookeeperChroot(properties.getProperty(prefix + ZOOKEEPER_CHROOT));
     indexingProperties.setZookeeperInstances(properties.getProperty(prefix + ZOOKEEPER_INSTANCES));

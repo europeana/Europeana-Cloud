@@ -1,5 +1,5 @@
-CREATE KEYSPACE IF NOT EXISTS aas_test WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
-USE aas_test;
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+USE ${KEYSPACE};
 CREATE TABLE IF NOT EXISTS users(username varchar, password varchar, roles set<text>, PRIMARY KEY (username));
 INSERT INTO users (username, password, roles) VALUES('Robin_Van_Persie', '$2a$04$QPmt/FlIU5DVQ3Ls4xAr9u6zMeJZVcJw3/H1TpCpTm2j9F.JBiwwW', {'ROLE_USER'});
 INSERT INTO users (username, password, roles) VALUES('Cristiano', '$2a$04$RD1mMlpVzOr3qr.tunzweeikDEbCHBImEfcwy5/C6hkQq4QrtVR8e', {'ROLE_USER'});

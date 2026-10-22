@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemover;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
@@ -39,8 +40,10 @@ public class DepublicationBolt extends AbstractDpsBolt {
       DepublicationReason depublicationReason = DepublicationReason.valueOf(
           commonTaskTuple.getParameter(PluginParameterKeys.DEPUBLICATION_REASON));
 
+      long depublishStart = System.nanoTime();
       boolean removedSuccessfully =
           recordRemover.removeRecord(TargetIndexingDatabase.PUBLISH, recordEuropeanaId, depublicationReason);
+      MetricRegistry.depublishLatency(topologyName, component, (System.nanoTime() - depublishStart) / 1e9);
 
       if (removedSuccessfully) {
         cleanRecordInHarvestedRecordsTable(metisDatasetId, recordEuropeanaId);

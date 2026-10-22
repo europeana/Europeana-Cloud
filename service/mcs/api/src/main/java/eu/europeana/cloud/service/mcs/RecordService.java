@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.mcs;
 
-import eu.europeana.cloud.common.model.*;
+import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.exception.*;
@@ -227,13 +227,5 @@ public interface RecordService {
   void deleteContent(String globalId, String schema, String version, String fileName)
       throws RepresentationNotExistsException, FileNotExistsException,
       CannotModifyPersistentRepresentationException;
-
-  /**
-   * Adds {@link RepresentationVersionAnnotation} to {@link Representation}
-   * @param representation representation that will be modified
-   * @param annotation annotation that will be added
-   * @throws RepresentationNotExistsException thrown in case of non-existing representation
-   */
-  void addAnnotationToRepresentationVersion(Representation representation, RepresentationVersionAnnotation annotation) throws RepresentationNotExistsException;
 
 }

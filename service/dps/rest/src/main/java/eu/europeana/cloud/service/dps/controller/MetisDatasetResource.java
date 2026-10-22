@@ -1,23 +1,21 @@
 package eu.europeana.cloud.service.dps.controller;
 
-import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASETS;
-import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASET_PUBLISHED_RECORDS_SEARCH;
-
 import eu.europeana.cloud.common.model.dps.MetisDataset;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.services.MetisDatasetService;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.exception.IndexingException;
-import java.util.List;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASETS;
+import static eu.europeana.cloud.service.dps.RestInterfaceConstants.METIS_DATASET_PUBLISHED_RECORDS_SEARCH;
 
 @RestController
 public class MetisDatasetResource {
@@ -30,6 +28,8 @@ public class MetisDatasetResource {
     this.metisDatasetService = metisDatasetService;
   }
 
+  @Counted(value = "metis_dataset_stats_counter", description = "Number of metis dataset stats requests")
+  @Timed(value = "metis_dataset_stats_duration", description = "Duration of metis dataset stats requests", histogram = true)
   @GetMapping(path = METIS_DATASETS, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public MetisDataset getMetisDatasetStats(
       @PathVariable("datasetId") String datasetId,

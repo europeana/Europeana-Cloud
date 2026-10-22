@@ -13,6 +13,7 @@ import eu.europeana.cloud.service.dps.service.utils.indexing.IndexedRecordRemove
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.TopologyGeneralException;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
 import eu.europeana.indexing.IndexingProperties;
@@ -96,18 +97,26 @@ public class IndexingBolt extends AbstractDpsBolt {
       final var properties = new IndexingProperties(recordDate,
           preserveTimestampsString, datasetIdsToRedirectFromList, performRedirects, TierCalculationMode.OVERWRITE);
       String metisDatasetId = commonTaskTuple.getParameter(PluginParameterKeys.METIS_DATASET_ID);
+      long start = System.nanoTime();
+      ;
       String europeanaId = europeanaIdFinder.findForFileUrl(metisDatasetId, commonTaskTuple.getRecordUri());
+      MetricRegistry.indexingEuropeanaIdFinderLatency(topologyName, component, (System.nanoTime() - start) / 1e9);
 
       boolean recordNotSuitableForPublication = false;
         if (!commonTaskTuple.isMarkedAsDepublished()) {
+          long indexingStart = System.nanoTime();
         recordNotSuitableForPublication = !indexRecord(commonTaskTuple, database, properties);
+          MetricRegistry.indexingLatency(topologyName, component, (System.nanoTime() - indexingStart) / 1e9);
       }
         boolean recordShouldBeDeleted = commonTaskTuple.isMarkedAsDepublished() || recordNotSuitableForPublication;
 
+      long removeTombstoneOrRecordStart = System.nanoTime();
       if (recordShouldBeDeleted) {
         removeIndexedRecord(commonTaskTuple, database, europeanaId);
+        MetricRegistry.indexingRemoveIndexRecordLatency(topologyName, component, (System.nanoTime() - removeTombstoneOrRecordStart) / 1e9);
       } else{
         indexWrapper.getIndexer(database).removeTombstone(europeanaId);
+        MetricRegistry.indexingRemoveTombstoneLatency(topologyName, component, (System.nanoTime() - removeTombstoneOrRecordStart) / 1e9);
       }
       updateHarvestedRecord(commonTaskTuple, europeanaId, recordShouldBeDeleted);
       if (recordNotSuitableForPublication) {

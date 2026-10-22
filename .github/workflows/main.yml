@@ -1,0 +1,69 @@
+name: Mirror to GitLab
+
+on:
+  push:
+  delete:
+
+jobs:
+  mirror:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
+          git config --global http.version HTTP/1.1
+
+      - name: Add GitLab remote
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}
+        run: |
+          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          git remote add gitlab "$GITLAB_URL"
+
+      - name: Push mirrored branch
+        run: |
+          echo "Pushing '${GITHUB_REF_NAME}'"
+
+          git push \
+            --force \
+            gitlab \
+            HEAD:refs/heads/${GITHUB_REF_NAME}
+
+      - name: Push tags
+        run: |
+          git push --force gitlab --tags
+
+  delete:
+    if: github.event_name == 'delete'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
+          git config --global http.version HTTP/1.1
+
+      - name: Delete mirrored branch or tag
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}
+        run: |
+          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO}"
+          git remote add gitlab "$GITLAB_URL"
+
+          if [ "${GITHUB_REF_TYPE}" = "branch" ]; then
+            echo "Deleting ${GITHUB_REF_NAME}"
+            git push gitlab --delete "${GITHUB_REF_NAME}"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "Deleting tag ${GITHUB_REF_NAME}"
+            git push gitlab --delete "refs/tags/${GITHUB_REF_NAME}"
+          fi

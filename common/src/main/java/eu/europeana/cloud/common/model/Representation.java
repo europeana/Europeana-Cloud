@@ -10,8 +10,6 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -85,16 +83,6 @@ public class Representation {
      * Indicator whether this is deleted representation version or no.
      */
     private boolean markDepublished;
-
-    @Getter
-    @Setter
-    @JacksonXmlElementWrapper(localName = "annotations")
-    @JacksonXmlProperty(localName = "annotation")
-    private List<RepresentationVersionAnnotation> annotations = new ArrayList<>(0);
-
-    public void addAnnotation(RepresentationVersionAnnotation annotations) {
-        this.annotations.add(annotations);
-    }
 
     /**
      * Creates a new instance of this class.

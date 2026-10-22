@@ -2,6 +2,7 @@ package eu.europeana.cloud.normalization.bolts;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
@@ -53,8 +54,9 @@ public class NormalizationBolt extends AbstractDpsBolt {
     try {
       final Normalizer normalizer = normalizerFactory.getNormalizer();
       String document = new String(commonTaskTuple.getFileData(), StandardCharsets.UTF_8);
-
+      long startTime = System.nanoTime();
       NormalizationResult normalizationResult = normalizer.normalize(document);
+      MetricRegistry.normalizationLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
 
       if (normalizationResult.getErrorMessage() != null) {
         LOGGER.error(NORMALIZATION_EX_MESSAGE, normalizationResult.getErrorMessage());

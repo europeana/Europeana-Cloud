@@ -72,10 +72,6 @@ public final class RestInterfaceConstants {
   public static final String SIMPLIFIED_RECORDS_RESOURCE =
       "/data-providers/{providerId}/records/{localId:.+}";
 
-  //Annotations
-  public static final String REPRESENTATION_VERSION_ANNOTATION_RESOURCE
-      = "/records/{cloudId}/representations/{representationName}/versions/{version}/annotations";
-
   //SimplifiedFileAccessResource
   public static final String SIMPLIFIED_FILE_ACCESS_RESOURCE =
       SIMPLIFIED_RECORDS_RESOURCE + "/representations/{representationName}/**";

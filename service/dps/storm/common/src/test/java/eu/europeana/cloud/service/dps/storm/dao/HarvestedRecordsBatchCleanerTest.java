@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.metis.indexing.TargetIndexingDatabase;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
 import eu.europeana.cloud.service.dps.storm.utils.HarvestedRecord;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +27,8 @@ class HarvestedRecordsBatchCleanerTest extends CassandraTestBase {
 
   @BeforeEach
   void setup() {
-    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-            CassandraTestInstance.getPort(), KEYSPACE, USER,
+    CassandraConnectionProvider db = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+            KEYSPACE, USER,
             PASSWORD);
     HarvestedRecordsDAO rawDao = new HarvestedRecordsDAO(db);
     dao = RetryableMethodExecutor.createRetryProxy(rawDao);

@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.commons.urls.UrlParser;
 import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
+import eu.europeana.cloud.service.dps.storm.metric.MetricRegistry;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
 import java.util.Set;
@@ -64,11 +65,14 @@ public class DuplicatedRecordsProcessorBolt extends AbstractDpsBolt {
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple tuple) {
     LOGGER.info("Checking duplicates for record url '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
+    long startTime = System.nanoTime();
       try {
         Representation representation = extractRepresentationInfoFromTuple(tuple);
         if (detectAndHandleDuplicates(anchorTuple, tuple, representation)) {
+          MetricRegistry.duplicateDetectionLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
           return;
         }
+        MetricRegistry.duplicateDetectionLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
         emitSuccessNotification(anchorTuple, tuple, "", "");
         LOGGER.info("Checking duplicates finished for record url '{}' and task '{}'", tuple.getRecordUri(), tuple.getTaskId());
       } catch (MalformedURLException | MCSException e) {

@@ -1,6 +1,7 @@
 package eu.europeana.cloud.service.uis.security;
 
 import com.datastax.driver.core.Session;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import eu.europeana.cloud.test.CassandraTestInstance;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -17,7 +18,7 @@ public abstract class CassandraTestBase {
   /**
    * CassandraTestBase KEYSPACE
    */
-  private static final String KEYSPACE = "aas_test";
+  private static final String KEYSPACE = "aas_test" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
   /**
    * Creates a new instance of this class.

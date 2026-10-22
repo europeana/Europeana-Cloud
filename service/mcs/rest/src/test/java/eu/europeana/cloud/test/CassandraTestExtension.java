@@ -8,8 +8,8 @@ public class CassandraTestExtension implements BeforeAllCallback, BeforeEachCall
 
     private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
 
-    public static final String JUNIT_MCS_KEYSPACE = "junit_mcs";
-    public static final String JUNIT_AAS_KEYSPACE = "junit_aas";
+    public static final String JUNIT_MCS_KEYSPACE = "junit_mcs" + CassandraEnvironment.KEYSPACE_SUFFIX;
+    public static final String JUNIT_AAS_KEYSPACE = "junit_aas" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
     @Override
     public void beforeAll(ExtensionContext context) {

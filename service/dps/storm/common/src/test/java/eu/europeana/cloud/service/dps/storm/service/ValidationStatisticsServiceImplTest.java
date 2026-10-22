@@ -9,7 +9,7 @@ import eu.europeana.cloud.common.model.dps.StatisticsReport;
 import eu.europeana.cloud.service.dps.storm.dao.CassandraAttributeStatisticsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.StatisticsReportDAO;
 import eu.europeana.cloud.service.dps.storm.utils.CassandraTestBase;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,8 +59,9 @@ class ValidationStatisticsServiceImplTest extends CassandraTestBase {
 
     @BeforeEach
     void setUp() {
-        CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(HOST,
-                CassandraTestInstance.getPort(), KEYSPACE, "", "");
+        CassandraConnectionProvider cassandra = CassandraConnectionProviderSingleton.getCassandraConnectionProvider(
+                CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+                KEYSPACE, "", "");
         statisticsReportDAO = StatisticsReportDAO.getInstance(cassandra);
         validationStatisticsService = ValidationStatisticsServiceImpl.getInstance(cassandra);
         attributeStatisticsDAO = CassandraAttributeStatisticsDAO.getInstance(cassandra);

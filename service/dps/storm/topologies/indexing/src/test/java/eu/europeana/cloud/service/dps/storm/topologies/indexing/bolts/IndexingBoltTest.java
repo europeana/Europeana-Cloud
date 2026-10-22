@@ -121,7 +121,7 @@ class IndexingBoltTest {
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(6, parameters.size());
   }
@@ -156,7 +156,7 @@ class IndexingBoltTest {
             .publishedHarvestDate(EARLIER_HARVEST_DATE)
             .publishedHarvestMd5(EARLIER_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
@@ -196,7 +196,7 @@ class IndexingBoltTest {
             .publishedHarvestDate(LATEST_HARVEST_DATE)
             .publishedHarvestMd5(LATEST_HARVEST_MD5).build());
     Values capturedValues = captor.getValue();
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
@@ -276,7 +276,7 @@ class IndexingBoltTest {
             .publishedHarvestMd5(EARLIER_HARVEST_MD5)
             .build());
     Values capturedValues = captor.getValue();
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
@@ -319,7 +319,7 @@ class IndexingBoltTest {
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(6, parameters.size());
   }
@@ -350,7 +350,7 @@ class IndexingBoltTest {
     assertEquals(
             "https://test.ecloud.psnc.pl/api/records/ZWUNIWERLFGQJUBIDPKLMSTHIDJMXC7U7LE6INQ2IZ32WHCZLHLA/representations/metadataRecord/versions/a9c549c0-88b1-11eb-b210-fa163e8d4ae3/files/ab67baa7-665f-418b-8c31-81713b0a324b",
             ((RecordData) capturedValues.get(5)).getRecordUri());
-    assertEquals(6, capturedValues.size());
+    assertEquals(7, capturedValues.size());
     Map<String, String> parameters = ((TaskData) capturedValues.get(3)).getParameters();
     assertEquals(6, parameters.size());
   }

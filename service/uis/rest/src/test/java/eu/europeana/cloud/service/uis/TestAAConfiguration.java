@@ -8,7 +8,7 @@ import eu.europeana.cloud.service.uis.dao.CloudIdLocalIdBatches;
 import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
-import eu.europeana.cloud.test.CassandraTestInstance;
+import eu.europeana.cloud.test.CassandraEnvironment;
 import org.springframework.context.annotation.Bean;
 
 public class TestAAConfiguration {
@@ -16,9 +16,8 @@ public class TestAAConfiguration {
   @Bean
   public CassandraConnectionProvider dataProviderDao() {
     return new CassandraConnectionProvider(
-        "localhost",
-        CassandraTestInstance.getPort(),
-        "uis_test4",
+            CassandraEnvironment.HOST, CassandraEnvironment.getPort(),
+            "uis_test" + CassandraEnvironment.KEYSPACE_SUFFIX,
         "",
         "");
   }

@@ -5,7 +5,7 @@
     <groupId>eu.europeana.cloud</groupId>
     <artifactId>ecloud-parent</artifactId>
     <packaging>pom</packaging>
-    <version>17-SNAPSHOT</version>
+    <version>18-SNAPSHOT</version>
     <inceptionYear>2013</inceptionYear>
     <name>Europeana Cloud</name>
     <organization>
@@ -82,6 +82,18 @@
         <module>service/ecloud-web-commons</module>
         <module>reports</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-releases</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>artifactory-prod.eanadev.org</id>
+            <name>artifactory-prod.eanadev.org-snapshots</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
     <repositories>
         <!--Release repositories-->
         <repository>
@@ -127,10 +139,9 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.skip>false</sonar.skip>
         <jacocoArgLine/> <!-- Leave as is, it's required from jacoco plugin integration -->
-        <version.jdk>21</version.jdk>
+        <version.jdk>25</version.jdk>
         <version.junit>6.0.1</version.junit>
-        <version.mockito>5.21.0</version.mockito>
-        <version.mockito-inline>5.2.0</version.mockito-inline>
+        <version.mockito>5.23.0</version.mockito>
         <version.awaitility>4.2.0</version.awaitility>
         <version.awaitility-proxy>3.1.6</version.awaitility-proxy>
         <version.jersey>3.1.5</version.jersey>
@@ -142,6 +153,7 @@
         <version.curator>5.9.0</version.curator>
         <version.spring-security>7.0.2</version.spring-security>
         <version.spring-boot>4.0.1</version.spring-boot>
+        <version.spring-boot-aop>4.0.0-M1</version.spring-boot-aop>
 
         <version.spring-doc>1.7.0</version.spring-doc>
         <version.git-commit-maven>5.0.1</version.git-commit-maven>
@@ -161,8 +173,8 @@
         <version.base64>2.3.9</version.base64>
         <version.cloning>1.9.12</version.cloning>
         <!-- TODO ECL-317 -->
-        <version.kafka>3.6.0</version.kafka>
-        <version.lombok>1.18.30</version.lombok>
+        <version.kafka>4.3.1</version.kafka>
+        <version.lombok>1.18.48</version.lombok>
         <main.directory>${project.basedir}</main.directory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -172,17 +184,17 @@
         <version.cassandra-driver>3.11.5</version.cassandra-driver>
 
         <version.tika>2.9.1</version.tika>
-        <version.jacoco>0.8.11</version.jacoco>
+        <version.jacoco>0.8.15</version.jacoco>
         <!-- Metis related dependencies-->
-        <version.metis>18-SNAPSHOT</version.metis>
-        <version.metis.normalization>18-SNAPSHOT</version.metis.normalization>
+        <version.metis>19-SNAPSHOT</version.metis>
+        <version.metis.normalization>19-SNAPSHOT</version.metis.normalization>
 
         <!-- -->
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
         <version.guava>33.3.1-jre</version.guava>
-        <version.storm>2.8.7</version.storm>
+        <version.storm>3.1.0</version.storm>
         <version.commons-collections>3.2.2</version.commons-collections>
-        <version.bytebuddy>1.14.13</version.bytebuddy>
+        <version.bytebuddy>1.18.13</version.bytebuddy>
         <version.wiremock>3.4.2</version.wiremock>
         <version.zt-zip>1.16</version.zt-zip>
         <version.netty>4.1.94.Final</version.netty>
@@ -251,6 +263,14 @@
                     <version>3.12.1</version>
                     <configuration>
                         <parameters>true</parameters>
+                        <release>${version.jdk}</release>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${version.lombok}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -345,7 +365,6 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <argLine>@{jacocoArgLine} -Xmx2048m -DECLOUD_OVERRIDE_RETRIES_ATTEMPT_COUNT=2
-                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${version.mockito}/mockito-core-${version.mockito}.jar
                         -Xshare:off
                         -DECLOUD_OVERRIDE_RETRIES_DELAY=20
                         --add-opens java.base/java.lang=ALL-UNNAMED
@@ -516,16 +535,4 @@
             <version>${version.slf4j}</version>
         </dependency>
     </dependencies>
-    <distributionManagement>
-      <repository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-releases</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-release-local</url>
-      </repository>
-      <snapshotRepository>
-        <id>artifactory-prod.eanadev.org</id>
-        <name>artifactory-prod.eanadev.org-snapshots</name>
-        <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
-      </snapshotRepository>
-    </distributionManagement>
 </project>

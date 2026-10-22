@@ -16,6 +16,7 @@ public class RecordData implements Serializable {
     private static final int BATCH_MAX_SIZE = 1024 * 4;
     byte[] fileData;
     String recordUri;
+    String cloudId;
     boolean markedAsDepublished;
 
     public RecordData(String recordUri, byte[] fileData) {

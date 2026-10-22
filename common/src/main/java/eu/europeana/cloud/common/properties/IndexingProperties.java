@@ -23,6 +23,7 @@ public class IndexingProperties {
   private String mongoTombstoneDbName;
 
   private String solrInstances;
+  private Boolean solrUseHttp1;
 
   private String zookeeperInstances;
   private int zookeeperPortNumber;

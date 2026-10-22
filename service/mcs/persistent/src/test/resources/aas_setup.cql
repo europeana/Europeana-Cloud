@@ -1,6 +1,6 @@
-CREATE KEYSPACE IF NOT EXISTS junit_aas WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
+CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE} WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
 
-USE junit_aas;
+USE ${KEYSPACE};
 
 CREATE TABLE users(
     username varchar,
