@@ -97,11 +97,26 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
   public MeterRegistryCustomizer<MeterRegistry> commonTags() {
+    String namespace = System.getenv("Namespace");
+    String instance = System.getenv("AppId");
+
+    if (namespace == null || namespace.isBlank()) {
+      namespace = "unknown";
+    }
+
+    if (instance == null || instance.isBlank()) {
+      instance = "unknown";
+    }
+
+    String finalNamespace = namespace;
+    String finalInstance = instance;
+
     return registry -> registry.config().commonTags(
-            "namespace", System.getenv("Namespace"),
-            "instance", System.getenv("AppId")
+        "namespace", finalNamespace,
+        "instance", finalInstance
     );
   }
+
 
   @Bean
   public CountedAspect countedAspect(MeterRegistry registry) {
