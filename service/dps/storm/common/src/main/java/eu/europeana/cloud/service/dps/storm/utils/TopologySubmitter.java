@@ -12,7 +12,7 @@ public final class TopologySubmitter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TopologySubmitter.class);
 
   public static final String START_TOPOLOGY_ON_LOCAL_CLUSTER_PROPERTY = "startTopologyOnLocalCluster";
-  private static final boolean START_ON_LOCAL_CLUSTER = Boolean.getBoolean(START_TOPOLOGY_ON_LOCAL_CLUSTER_PROPERTY);
+  public static final boolean START_ON_LOCAL_CLUSTER = Boolean.getBoolean(START_TOPOLOGY_ON_LOCAL_CLUSTER_PROPERTY);
 
   private TopologySubmitter() {
   }
