@@ -152,7 +152,7 @@
         <version.jetty>12.1.8</version.jetty>
         <version.curator>5.9.0</version.curator>
         <version.spring-security>7.0.2</version.spring-security>
-        <version.spring-boot>4.0.1</version.spring-boot>
+        <version.spring-boot>4.1.1</version.spring-boot>
         <version.spring-boot-aop>4.0.0-M1</version.spring-boot-aop>
 
         <version.spring-doc>1.7.0</version.spring-doc>
@@ -164,7 +164,7 @@
             Look at: eu.europeana.cloud.service.dps.storm.utils.BucketUtils.hash()-->
         <version.commonscodec>1.16.0</version.commonscodec>
         <version.commonio>2.15.1</version.commonio>
-        <version.commons-lang3>3.14.0</version.commons-lang3>
+        <version.commons-lang3>3.20.0</version.commons-lang3>
         <version.uuid>3.5</version.uuid>
         <version.jaxb-runtime>4.0.4</version.jaxb-runtime>
         <version.amazon-s3>2.28.24</version.amazon-s3>
@@ -409,7 +409,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.14.0</version>
+                <version>${version.commons-lang3}</version>
             </dependency>
             <!--Jersey -->
             <dependency>
