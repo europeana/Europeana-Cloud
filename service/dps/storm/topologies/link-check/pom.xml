@@ -70,6 +70,14 @@
                     <artifactId>org.springframework.security</artifactId>
                     <groupId>*</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 

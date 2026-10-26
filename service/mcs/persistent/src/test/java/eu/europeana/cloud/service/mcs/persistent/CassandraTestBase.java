@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class CassandraTestBase {
 
-  private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
+  private static final String KEYSPACE_SCHEMA_CQL = "mcs_setup.cql";
   static final String KEYSPACE = "junit_mcs" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
   public CassandraTestBase() {

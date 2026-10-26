@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class CassandraTestExtension implements BeforeAllCallback, BeforeEachCallback {
 
-    private static final String KEYSPACE_SCHEMA_CQL = "create_cassandra_schema.cql";
+    private static final String KEYSPACE_SCHEMA_CQL = "mcs_setup.cql";
 
     public static final String JUNIT_MCS_KEYSPACE = "junit_mcs" + CassandraEnvironment.KEYSPACE_SUFFIX;
     public static final String JUNIT_AAS_KEYSPACE = "junit_aas" + CassandraEnvironment.KEYSPACE_SUFFIX;

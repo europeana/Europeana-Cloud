@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
  */
 public abstract class CassandraAATestRunner {
 
-  private final static String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
+  private final static String KEYSPACE_SCHEMA_CQL = "test_users.cql";
   private final static String KEYSPACE = "ecloud_aas_tests" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
 

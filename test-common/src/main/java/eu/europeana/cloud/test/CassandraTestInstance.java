@@ -3,6 +3,7 @@ package eu.europeana.cloud.test;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.policies.RetryPolicy;
+import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -241,8 +242,12 @@ public final class CassandraTestInstance {
 
   private void applyCQL(String keyspaceSchemaCql, String keyspace) {
     try (Session tempSession = cluster.newSession()) {
+      InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql);
+      if (resourceAsStream == null) {
+        throw new IllegalArgumentException("Keyspace schema cql resource: " + keyspaceSchemaCql + " does not exists!");
+      }
       String[] statements = StringUtils.split(
-              IOUtils.toString(getClass().getClassLoader().getResourceAsStream(keyspaceSchemaCql)), ";");
+              IOUtils.toString(resourceAsStream), ";");
       Arrays.stream(statements)
               .map(statement -> StringUtils.normalizeSpace(statement) + ";")
               .map(statement -> statement.replace("${KEYSPACE}", keyspace))
