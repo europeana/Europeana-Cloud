@@ -1,5 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.xslt.bolt;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.google.common.base.Charsets;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
@@ -16,6 +17,7 @@ import org.apache.storm.tuple.Values;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -27,16 +29,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static eu.europeana.cloud.service.dps.test.TestConstants.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import static org.xmlunit.matchers.HasXPathMatcher.hasXPath;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -46,9 +49,21 @@ class XsltBoltTest {
   private final int TASK_ID = 1;
   private final String TASK_NAME = "TASK_NAME";
 
+  private static final Map<String, String> NS = Map.of(
+          "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "edm", "http://www.europeana.eu/schemas/edm/",
+          "dc",  "http://purl.org/dc/elements/1.1/",
+          "ore", "http://www.openarchives.org/ore/terms/"
+  );
+
   @Mock(name = "outputCollector")
   private OutputCollector outputCollector;
 
+  @RegisterExtension
+  static WireMockExtension wireMockExtension =
+          WireMockExtension.newInstance()
+                  .options(wireMockConfig().port(9876))
+                  .build();
 
   @InjectMocks
   private XsltBolt xsltBolt = new XsltBolt(new CassandraProperties());
@@ -104,9 +119,53 @@ class XsltBoltTest {
     assertTrue(transformed.contains(EXAMPLE_METIS_DATASET_ID));
   }
 
+  @Test
+  void shouldTransformNonEdmFile() throws IOException {
+    //
+    wireMockExtension.stubFor(get(urlEqualTo("/file"))
+            .willReturn(aResponse()
+                    .withStatus(200)
+                    .withFixedDelay(150)
+                    .withBodyFile("toEdmTransformer.xsl")));
+    //
+    Tuple anchorTuple = mock(TupleImpl.class);
+    String sampleXmlFileName = "/nonEdmFile.xml";
+    CommonTaskTuple tuple = new CommonTaskTuple(
+            new TaskData(TASK_ID, TASK_NAME),
+            new RecordData(SOURCE_VERSION_URL, readMockContentOfURL(sampleXmlFileName), true),
+            new ProcessingData());
+    tuple.setParameters(prepareStormTaskTupleParametersForNonEDMProcessing());
+    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
+    xsltBolt.execute(anchorTuple, tuple);
+    when(outputCollector.emit(any(Tuple.class), anyList())).thenReturn(null);
+    verify(outputCollector, times(1)).emit(Mockito.any(Tuple.class), captor.capture());
+    assertThat(captor.getAllValues().size(), is(1));
+    List<Values> allValues = captor.getAllValues();
+    assertEmittedTuple(allValues, 4);
+
+    String transformed = new String(((RecordData) allValues.get(0).get(5)).getFileData());
+
+    assertNotNull(transformed);
+    assertTrue(transformed.contains(EXAMPLE_METIS_DATASET_ID));
+    assertThat(transformed, hasXPath("/rdf:RDF").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/edm:ProvidedCHO").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/edm:ProvidedCHO/dc:title").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/edm:ProvidedCHO/dc:creator").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/edm:ProvidedCHO/dc:type").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/ore:Aggregation").withNamespaceContext(NS));
+    assertThat(transformed, hasXPath("/rdf:RDF/edm:WebResource").withNamespaceContext(NS));
+  }
+
   private HashMap<String, String> prepareStormTaskTupleParameters() {
     HashMap<String, String> parameters = new HashMap<>();
     parameters.put(PluginParameterKeys.XSLT_URL, "https://metis-core-rest.test.eanadev.org/datasets/xslt/default");
+    parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
+    return parameters;
+  }
+
+  private HashMap<String, String> prepareStormTaskTupleParametersForNonEDMProcessing() {
+    HashMap<String, String> parameters = new HashMap<>();
+    parameters.put(PluginParameterKeys.XSLT_URL, "http://127.0.0.1:9876/file");
     parameters.put(PluginParameterKeys.MESSAGE_PROCESSING_START_TIME_IN_MS, "1");
     return parameters;
   }

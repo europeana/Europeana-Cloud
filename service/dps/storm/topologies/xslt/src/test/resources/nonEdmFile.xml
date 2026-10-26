@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+  <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/">http://gallica.bnf.fr/ark:/12148/btv1b10721455c</dc:identifier>
+  <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">Grec 483</dc:title>
+  <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">BASILIUS Cæsariensis (S.). in Psalmos</dc:description>
+  <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">JOANNES Chrysostomus (S.). in Psalmos</dc:description>
+  <dc:relation xmlns:dc="http://purl.org/dc/elements/1.1/">Notice du catalogue : http://archivesetmanuscrits.bnf.fr/ark:/12148/cc23532q</dc:relation>
+  <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Numérisation effectuée à partir d'un document de substitution.</dc:description>
+  <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">(1) S. Joannis Chrysostomi expositio in psalmos CXX-CL ; — (246) S. Basilii homiliæ in psalmos</dc:description>
+  <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/">Colbert. 4275.</dc:description>
+  <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">Parchemin. - 449 fol. - Petit format</dc:format>
+  <dc:source xmlns:dc="http://purl.org/dc/elements/1.1/">Bibliothèque nationale de France. Département des manuscrits. Grec 483</dc:source>
+  <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="fre">domaine public</dc:rights>
+  <dc:rights xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="eng">public domain</dc:rights>
+  <dc:date xmlns:dc="http://purl.org/dc/elements/1.1/">1001-1100</dc:date>
+  <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">grc</dc:language>
+  <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="eng">manuscript</dc:type>
+  <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="fre">manuscrit</dc:type>
+  <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">BASILIUS Cæsariensis (S.). Auteur du texte</dc:creator>
+  <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">JOANNES Chrysostomus (S.). Auteur du texte</dc:creator>
+</oai_dc:dc>
+
