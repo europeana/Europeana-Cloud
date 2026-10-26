@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class CassandraTestBase {
 
   // config:
-  public static final String KEYSPACE_SCHEMA_CQL = "cassandra-uis.cql";
+  public static final String KEYSPACE_SCHEMA_CQL = "uis_setup.cql";
   public static final String KEYSPACE = "uis_test4" + CassandraEnvironment.KEYSPACE_SUFFIX;
 
   /**

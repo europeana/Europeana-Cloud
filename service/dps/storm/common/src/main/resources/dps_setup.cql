@@ -1,6 +1,28 @@
 CREATE KEYSPACE ${KEYSPACE} WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
 USE ${KEYSPACE};
+
+CREATE TABLE task_info
+(
+    task_id                                bigint,
+    topology_name                          varchar,
+    state                                  varchar,
+    state_description                      varchar,
+    sent_timestamp                         timestamp,
+    start_timestamp                        timestamp,
+    finish_timestamp                       timestamp,
+    expected_records_number                int,
+    processed_records_count                int,
+    ignored_records_count                  int,
+    deleted_records_count                  int,
+    processed_errors_count                 int,
+    deleted_errors_count                   int,
+    expected_post_processed_records_number int,
+    post_processed_records_count           int,
+    definition                             text,
+    PRIMARY KEY (task_id)
+);
+
 CREATE TABLE task_info_v2
 (
     task_id                         bigint,
@@ -27,27 +49,6 @@ CREATE TABLE task_info_v2
     PRIMARY KEY (task_id)
 );
 
-
-CREATE TABLE task_info
-(
-    task_id                                bigint,
-    topology_name                          varchar,
-    state                                  varchar,
-    state_description                      varchar,
-    sent_timestamp                         timestamp,
-    start_timestamp                        timestamp,
-    finish_timestamp                       timestamp,
-    expected_records_number                int,
-    processed_records_count                int,
-    ignored_records_count                  int,
-    deleted_records_count                  int,
-    processed_errors_count                 int,
-    deleted_errors_count                   int,
-    expected_post_processed_records_number int,
-    post_processed_records_count           int,
-    definition                             text,
-    PRIMARY KEY (task_id)
-);
 
 CREATE TABLE task_diagnostic_info (
     task_id                            bigint,
@@ -119,9 +120,9 @@ CREATE TABLE attribute_statistics (
 );
 
 CREATE TABLE statistics_reports (
-task_id bigint,
-report_data blob,
-PRIMARY KEY(task_id)
+    task_id bigint,
+    report_data blob,
+    PRIMARY KEY(task_id)
 );
 
 CREATE TABLE tasks_by_task_state(
@@ -134,18 +135,18 @@ CREATE TABLE tasks_by_task_state(
     PRIMARY KEY(state, topology_name, task_id)
 );
 
-CREATE TABLE processed_records(
-    task_id                 bigint,
-    bucket_number           int,
-    record_id               varchar,
-    attempt_number          int,
-    dst_identifier          varchar,
-    topology_name           varchar,
-    state                   varchar,
-    start_time              timestamp,
-    info_text               text,
+CREATE TABLE processed_records (
+    task_id bigint,
+    bucket_number int,
+    record_id varchar,
+    attempt_number int,
+    dst_identifier varchar,
+    topology_name varchar,
+    state varchar,
+    start_time     timestamp,
+    info_text text,
     additional_informations text,
-    PRIMARY KEY ((task_id, bucket_number), record_id)
+    PRIMARY KEY((task_id, bucket_number), record_id)
 ) WITH default_time_to_live = 5184000;
 
 create table harvested_records(

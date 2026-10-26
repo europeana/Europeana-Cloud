@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class CassandraTestBase {
 
     protected static final String KEYSPACE = "ecloud_test" + CassandraEnvironment.KEYSPACE_SUFFIX;
-  private static final String KEYSPACE_SCHEMA_CQL = "create_dps_test_schema.cql";
+  private static final String KEYSPACE_SCHEMA_CQL = "dps_setup.cql";
   public static final String USER = "";
   public static final String PASSWORD = "";
 

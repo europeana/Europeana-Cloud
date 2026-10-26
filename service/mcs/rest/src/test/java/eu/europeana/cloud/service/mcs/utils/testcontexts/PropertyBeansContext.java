@@ -19,7 +19,7 @@ public class PropertyBeansContext {
 
     public PropertyBeansContext() {
         CassandraTestInstance
-                .getInstance("create_cassandra_schema.cql", JUNIT_MCS_KEYSPACE)
+                .getInstance("mcs_setup.cql", JUNIT_MCS_KEYSPACE)
                 .initKeyspaceIfNeeded("aas_setup.cql", JUNIT_AAS_KEYSPACE);
     }
 

@@ -14,7 +14,7 @@ public abstract class CassandraTestBase {
    * CassandraTestBase KEYSPACE_SCHEMA_CQL
    */
   // config:
-  public static final String KEYSPACE_SCHEMA_CQL = "cassandra-aas.cql";
+  public static final String KEYSPACE_SCHEMA_CQL = "empty_keyspace.cql";
   /**
    * CassandraTestBase KEYSPACE
    */
