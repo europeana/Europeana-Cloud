@@ -85,6 +85,22 @@ public class ECloudTopologyPipeline {
   }
 
   /**
+   * Adds ValidationAddToDatasetBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addValidationAddToDatasetBolt() {
+    ValidationAddToDatasetBolt bolt = new ValidationAddToDatasetBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ADD_TO_DATASET_BOLT, bolt, ADD_TO_DATASET_BOLT_PARALLEL, ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
    * Adds WriteRecordBolt to the pipeline
    *
    * @return this
