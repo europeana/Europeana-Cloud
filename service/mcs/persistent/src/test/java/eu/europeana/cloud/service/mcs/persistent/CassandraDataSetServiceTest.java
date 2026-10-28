@@ -486,6 +486,133 @@ class CassandraDataSetServiceTest extends CassandraTestBase {
     assertNull(page2.getNextSlice());
   }
 
+  @Test
+  void shouldListAllVersionsForGivenRepresentation() throws Exception {
+    makeUISSuccess();
+    makeUISProviderSuccess();
+
+    // given
+    DataSet dataSet = createDataset();
+
+    insertDummyPersistentRepresentation(
+        "cloud-id", REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_1, dataSet.getId());
+
+    insertDummyPersistentRepresentation(
+        "cloud-id", REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_2, dataSet.getId());
+
+    // when
+    List<Representation> result =
+        cassandraDataSetService.listDataSetRecordsForGivenRepresentation(
+            PROVIDER_ID, dataSet.getId(), "cloud-id", REPRESENTATION);
+
+    // then
+    assertThat(result, hasSize(2));
+    assertThat(
+        result.stream().map(Representation::getVersion).collect(java.util.stream.Collectors.toSet()),
+        containsInAnyOrder(SAMPLE_VERSION_1.toString(), SAMPLE_VERSION_2.toString())
+    );
+  }
+
+  @Test
+  void shouldListOnlyVersionsBelongingToGivenDataset() throws Exception {
+    makeUISSuccess();
+    makeUISProviderSuccess();
+
+    // given
+    DataSet dataSet1 = createDataset();
+
+    DataSet dataSet2 = cassandraDataSetService.createDataSet(
+        PROVIDER_ID, "dataset2", "description of the second dataset");
+
+    insertDummyPersistentRepresentation(
+        "cloud-id", REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_1, dataSet1.getId());
+
+    insertDummyPersistentRepresentation(
+        "cloud-id", REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_2, dataSet1.getId());
+
+    insertDummyPersistentRepresentation(
+        "cloud-id", REPRESENTATION, PROVIDER_ID, SAMPLE_VERSION_3, dataSet2.getId());
+
+    // when
+    List<Representation> result =
+        cassandraDataSetService.listDataSetRecordsForGivenRepresentation(
+            PROVIDER_ID, dataSet1.getId(), "cloud-id", REPRESENTATION);
+
+    // then
+    assertThat(result, hasSize(2));
+    assertThat(
+        result.stream()
+              .map(Representation::getVersion)
+              .collect(java.util.stream.Collectors.toSet()),
+        containsInAnyOrder(
+            SAMPLE_VERSION_1.toString(),
+            SAMPLE_VERSION_2.toString()
+        )
+    );
+  }
+
+  @Test
+  void shouldThrowExceptionWhenListingRecordsForNonExistingDataset() {
+    assertThrows(
+        DataSetNotExistsException.class,
+        () -> cassandraDataSetService.listDataSetRecordsForGivenRepresentation(
+            PROVIDER_ID, "non-existing-dataset", "cloud-id", REPRESENTATION)
+    );
+  }
+
+  @Test
+  void shouldAssignRepresentationVersionToDataset() throws Exception {
+    // given
+    makeUISSuccess();
+    makeUISProviderSuccess();
+
+    DataSet dataSet = createDataset();
+
+    insertDummyPersistentRepresentation(
+        "cloud-id",
+        REPRESENTATION,
+        PROVIDER_ID,
+        SAMPLE_VERSION_1,
+        dataSet.getId());
+
+    // when
+    assertDoesNotThrow(() ->
+        cassandraDataSetService.assignRepresentationVersionToDataset(
+            PROVIDER_ID,
+            dataSet.getId(),
+            "cloud-id",
+            REPRESENTATION,
+            SAMPLE_VERSION_1.toString()));
+
+    // then
+    List<Representation> result =
+        cassandraDataSetService.listDataSetRecordsForGivenRepresentation(
+            PROVIDER_ID,
+            dataSet.getId(),
+            "cloud-id",
+            REPRESENTATION);
+
+    assertThat(result, hasSize(1));
+    assertThat(result.get(0).getVersion(), is(SAMPLE_VERSION_1.toString()));
+  }
+
+  @Test
+  void shouldThrowRepresentationNotExistsExceptionWhenRepresentationDoesNotExist() throws Exception {
+    // given
+    makeUISProviderSuccess();
+    DataSet dataSet = createDataset();
+
+    // when / then
+    assertThrows(
+        RepresentationNotExistsException.class,
+        () -> cassandraDataSetService.assignRepresentationVersionToDataset(
+            PROVIDER_ID,
+            dataSet.getId(),
+            "cloud-id",
+            REPRESENTATION,
+            SAMPLE_VERSION_1.toString()));
+  }
+
   private DataSet createDataset() throws ProviderNotExistsException, DataSetAlreadyExistsException {
     return cassandraDataSetService.createDataSet(PROVIDER_ID, DATA_SET_NAME, "description of this set");
   }

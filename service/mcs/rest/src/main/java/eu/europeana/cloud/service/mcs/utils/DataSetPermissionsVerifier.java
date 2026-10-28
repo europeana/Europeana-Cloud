@@ -16,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Verifies permissions to given dataset from given user
  */
 public class DataSetPermissionsVerifier {
-
   private final PermissionEvaluator permissionEvaluator;
   private final RecordService recordService;
 
@@ -83,18 +82,20 @@ public class DataSetPermissionsVerifier {
   }
 
   private boolean hasPermissionFor(Representation representation, Permission permission)
-          throws RepresentationNotExistsException {
+      throws RepresentationNotExistsException {
     representation = recordService.getRepresentation(representation.getCloudId(), representation.getRepresentationName(),
         representation.getVersion());
-    SecurityContext ctx = SecurityContextHolder.getContext();
-    Authentication authentication = ctx.getAuthentication();
+
+    if (representation.getDatasetIds().isEmpty()) {
+      throw new RuntimeException("Representation is not assigned to any dataset: " + representation);
+    }
+
     for (String datasetId : representation.getDatasetIds()) {
-      String targetId = datasetId + "/" + representation.getDataProvider();
-      if (permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue())) {
-        return true;
+      if (!hasPermissionForDataset(representation.getDataProvider(), datasetId, permission)) {
+        return false;
       }
     }
-    return false;
+    return true;
 
   }
 
