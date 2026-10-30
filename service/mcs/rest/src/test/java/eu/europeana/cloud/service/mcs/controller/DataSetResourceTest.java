@@ -8,8 +8,17 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
+import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
+import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
+import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
 import eu.europeana.cloud.test.CassandraTestExtension;
 import eu.europeana.cloud.test.S3TestHelper;
+import java.net.URISyntaxException;
+import java.util.Set;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -22,7 +31,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import static eu.europeana.cloud.common.web.ParamConstants.F_DESCRIPTION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_ASSIGNMENT_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
+import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationList;
 import static eu.europeana.cloud.service.mcs.utils.MockMvcUtils.responseContentAsRepresentationResultSlice;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -134,9 +146,54 @@ class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     assertEquals(4, dataSetContents.size());
   }
 
+  @Test
+  void shouldGetAllVersionsOfGivenRepresentation()
+      throws Exception {
+    // given data set with assigned record representations
+    dataSetService.createDataSet(dataProvider.getId(), "dataset1", "");
+    dataSetService.createDataSet(dataProvider.getId(), "dataset2", "");
+    insertDummyPersistentRepresentation("1", "dc", dataProvider.getId(), "dataset1");
+    insertDummyPersistentRepresentation("1", "dc", dataProvider.getId(), "dataset2");
+    insertDummyPersistentRepresentation("1", "dc", dataProvider.getId(), "dataset1");
+    insertDummyPersistentRepresentation("2", "dc", dataProvider.getId(), "dataset1");
+
+    // when you list representation for given cloud_id
+    ResultActions response = mockMvc.perform(
+                                        get(DATA_SET_SELECTED_RECORD_RESOURCE, dataProvider.getId(), "dataset1", "1", "dc"))
+                                    .andExpect(status().isOk());
+    List<Representation> dataSetContents = responseContentAsRepresentationList(response, MediaType.APPLICATION_XML);
+
+    // then you should get records in for specified cloud_id belonging to given dataset
+    assertEquals(2, dataSetContents.size());
+  }
+
+  @Test
+  void shouldAssignExistingRepresentationVersionToDataset()
+      throws Exception {
+    // given
+    dataSetService.createDataSet(dataProvider.getId(), "dataset1", "");
+    dataSetService.createDataSet(dataProvider.getId(), "dataset2", "");
+    Representation representation =
+        insertDummyPersistentRepresentation("1", "dc", dataProvider.getId(), "dataset1");
+
+    // when
+    mockMvc.perform(
+               put(DATA_SET_ASSIGNMENT_RESOURCE,
+                   dataProvider.getId(), "dataset2", "1", "dc", representation.getVersion()))
+           .andExpect(status().isNoContent());
+
+    Representation assignedRepresenation = recordService.getRepresentation("1", "dc", representation.getVersion());
+    assertEquals(Set.of("dataset1", "dataset2"), assignedRepresenation.getDatasetIds());
+  }
+
   private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId)
       throws Exception {
-    Representation r = recordService.createRepresentation(cloudId, schema, providerId, UUIDs.timeBased(),"dataset", false);
+    return insertDummyPersistentRepresentation(cloudId, schema, providerId, "dataset");
+  }
+
+  private Representation insertDummyPersistentRepresentation(String cloudId, String schema, String providerId, String dataset)
+      throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException, CannotModifyPersistentRepresentationException, CannotPersistEmptyRepresentationException, URISyntaxException {
+    Representation r = recordService.createRepresentation(cloudId, schema, providerId, UUIDs.timeBased(), dataset, false);
     byte[] dummyContent = {1, 2, 3};
     File f = new File("content.xml", "application/xml", null, null, 0, null);
     recordService.putContent(cloudId, schema, r.getVersion(), f, new ByteArrayInputStream(dummyContent));

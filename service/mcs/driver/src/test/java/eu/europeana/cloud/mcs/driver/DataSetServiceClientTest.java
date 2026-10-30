@@ -25,6 +25,9 @@ class DataSetServiceClientTest {
 
   public static final String PROVIDER_ID = "Provider001";
   public static final String DATASET_ID = "dataset000002";
+  private static final String CLOUD_ID = "cloudId1";
+  private static final String REPRESENTATION_NAME = "schema1";
+  private static final String VERSION_ID = "cbb65e20-987c-11e3-9621-1c6f653f6012";
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =
@@ -357,6 +360,53 @@ class DataSetServiceClientTest {
     assertNotNull(result.getResults());
     assertEquals(result.getResults().size(), resultSize);
     assertNull(result.getNextSlice());
+  }
+
+  @Test
+  void shouldRetrieveFixedNumberOfExistingRepresentations()
+      throws MCSException {
+    wireMockExtension.stubFor(get(urlEqualTo(
+        "/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID + "?existingOnly=true&chunkSize=2"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/xml")
+            .withBody(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:31.195+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>7FZHHZKSBDN</cloudId><representationName>schema1</representationName><version>cbb65e20-987c-11e3-9621-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:30.258+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>QWG6BVVQ2LM</cloudId><representationName>schema1</representationName><version>cb25b6e0-987c-11e3-9621-1c6f653f6012</version></results></resultSlice>")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(PROVIDER_ID, DATASET_ID, true,null,2);
+
+    assertNotNull(result.getResults());
+    assertEquals(2, result.getResults().size());
+    assertNull(result.getNextSlice());
+  }
+
+  @Test
+  void shouldRetrieveAllVersionOfRepresentations() throws MCSException {
+    wireMockExtension.stubFor(get(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID+"/records/"+CLOUD_ID+"/representations/"+REPRESENTATION_NAME))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/xml")
+            .withBody(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:31.195+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>7FZHHZKSBDN</cloudId><representationName>schema1</representationName><version>cbb65e20-987c-11e3-9621-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:30.258+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>QWG6BVVQ2LM</cloudId><representationName>schema1</representationName><version>cb25b6e0-987c-11e3-9621-1c6f653f6012</version></results></resultSlice>")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    List<Representation> result = instance.getDataSetRepresentations(PROVIDER_ID, DATASET_ID, CLOUD_ID,REPRESENTATION_NAME);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void shouldAssignRepresentationVersionToDataset() throws MCSException {
+    wireMockExtension.stubFor(put(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID+"/records/"+CLOUD_ID+"/representations/"+REPRESENTATION_NAME+"/versions/"+VERSION_ID))
+        .willReturn(aResponse()
+            .withStatus(204)
+            .withHeader("Content-Type", "application/xml")
+            .withBody("")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    instance.assignRepresentationVersionToDataset(PROVIDER_ID, DATASET_ID, CLOUD_ID,REPRESENTATION_NAME,VERSION_ID);
   }
 
   @Test

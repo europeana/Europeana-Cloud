@@ -184,18 +184,15 @@ public class DataSetResource {
    */
   @PutMapping(value = DATA_SET_ASSIGNMENT_RESOURCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
   public void assignRepresentationVersionToDataset(
       @PathVariable String providerId,
       @PathVariable String dataSetId,
       @PathVariable String cloudId,
       @PathVariable String representationName,
       @PathVariable String version
-  ) throws AccessDeniedOrObjectDoesNotExistException, RepresentationNotExistsException {
-    if (dataSetPermissionsVerifier.hasWritePermissionForDataset(providerId, dataSetId)) {
-      dataSetService.assignRepresentationVersionToDataset(providerId, dataSetId, cloudId, representationName, version);
-    } else {
-      throw new AccessDeniedOrObjectDoesNotExistException();
-    }
+  ) throws RepresentationNotExistsException {
+    dataSetService.assignRepresentationVersionToDataset(providerId, dataSetId, cloudId, representationName, version);
   }
 
 
