@@ -55,6 +55,10 @@ public final class TopologyPropertyKeys {
   public static final String SPOUT_SLEEP_MS = "SPOUT_SLEEP_MS";
   public static final String SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS = "SPOUT_SLEEP_EVERY_N_IDLE_ITERATIONS";
 
+  public static final String DUMMY_BOLT_PARALLEL = "DUMMY_BOLT_PARALLEL";
+  public static final String DUMMY_BOLT_NUMBER_OF_TASKS = "DUMMY_BOLT_NUMBER_OF_TASKS";
+
+
   public static final String LINK_CHECK_BOLT_PARALLEL = "LINK_CHECK_BOLT_PARALLEL";
   public static final String LINK_CHECK_BOLT_NUMBER_OF_TASKS = "LINK_CHECK_BOLT_NUMBER_OF_TASKS";
 

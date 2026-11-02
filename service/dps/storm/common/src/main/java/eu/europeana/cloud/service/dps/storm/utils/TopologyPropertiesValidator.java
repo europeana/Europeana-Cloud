@@ -49,9 +49,17 @@ public final class TopologyPropertiesValidator {
       case TopologiesNames.LINKCHECK_TOPOLOGY:
         validateLinkCheckTopology(properties);
         break;
+      case TopologiesNames.DATASET_ADMINISTRATION_TOPOLOGY:
+        validateDatasetAdministrationTopology(properties);
+        break;
       default:
         throw new TopologyPropertiesException("Validator not found for given topology name: " + topologyName);
     }
+  }
+
+  private static void validateDatasetAdministrationTopology(Properties properties) {
+    validateCommonProps(properties);
+    validateRequired(properties, MCS_URL);
   }
 
   private static void validateHarvestingTopology(Properties properties) {

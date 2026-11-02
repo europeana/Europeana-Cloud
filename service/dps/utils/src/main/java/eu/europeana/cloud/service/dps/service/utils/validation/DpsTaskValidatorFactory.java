@@ -47,6 +47,9 @@ public final class DpsTaskValidatorFactory {
   static final String MEDIA_TOPOLOGY_TASK_WITH_FILE_URLS = "media_topology_file_urls";
   static final String MEDIA_TOPOLOGY_TASK_WITH_DATASETS = "media_topology_dataset_urls";
 
+  static final String DATASET_ADMINISTRATION_TASK_WITH_FILE_URLS = "dataset_administration_file_urls";
+  static final String DATASET_ADMINISTRATION_TASK_WITH_DATASETS = "dataset_administration_dataset_urls";
+
   private static final Map<String, DpsTaskValidator> taskValidatorMap = buildTaskValidatorMap();
 
   private DpsTaskValidatorFactory() {
@@ -185,6 +188,20 @@ public final class DpsTaskValidatorFactory {
         .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
         .withOptionalOutputRevision()
         .withCustomValidator(new FullyDefinedInputRevisionValidator()));
+
+    taskValidatorMap.put(DATASET_ADMINISTRATION_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Dataset Administration")
+            .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
+            .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+            .withOptionalOutputRevision()
+            .withCustomValidator(new FullyDefinedInputRevisionValidator())
+    );
+
+    taskValidatorMap.put(DATASET_ADMINISTRATION_TASK_WITH_FILE_URLS, new DpsTaskValidator("DataSet validator for Dataset Administration")
+            .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
+            .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+            .withOptionalOutputRevision()
+            .withCustomValidator(new FullyDefinedInputRevisionValidator())
+    );
 
     return taskValidatorMap;
   }

@@ -36,6 +36,7 @@ public class TaskSubmitterFactory {
       case TopologiesNames.NORMALIZATION_TOPOLOGY:
       case TopologiesNames.VALIDATION_TOPOLOGY:
       case TopologiesNames.XSLT_TOPOLOGY:
+      case TopologiesNames.DATASET_ADMINISTRATION_TOPOLOGY:
         return otherTopologiesTaskSubmitter;
       case TopologiesNames.DEPUBLICATION_TOPOLOGY:
         return depublicationTaskSubmitter;
