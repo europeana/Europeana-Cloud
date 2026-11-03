@@ -83,7 +83,6 @@ public class FileResource {
    * @statuscode 204 object has been updated.
    */
   @Timed(value = "file_update_duration", description = "Duration of file update operations", histogram = true)
-  //TODO Usunąc to i zawartość.
   @PutMapping
   public ResponseEntity<Void> sendFile(
       HttpServletRequest httpServletRequest,

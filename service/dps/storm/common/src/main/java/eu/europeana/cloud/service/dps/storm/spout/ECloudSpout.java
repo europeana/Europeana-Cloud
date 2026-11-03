@@ -215,7 +215,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         } else {
           return emitRecordForProcessing(streamId, message, aRecord, messageId);
         }
-      } catch (MalformedURLException | URISyntaxException e) {
+      } catch (MalformedURLException e) {
         LOGGER.error("Unable to parse Uri", e);
         return Collections.emptyList();
       } catch (IOException | NullPointerException e) {
@@ -283,7 +283,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
         if (parser.isUrlToRepresentationVersion() || parser.isUrlToRepresentationVersionFile()) {
           stormTaskTuple.setCloudId(parser.getPart(UrlPart.RECORDS));
         }
-      } catch (MalformedURLException e) {
+      } catch (MalformedURLException _) {
         //We ignore exception cause for some tasks for example OAI record id could be not parsable to URL
       }
     }
@@ -341,7 +341,7 @@ public class ECloudSpout extends KafkaSpout<String, DpsRecord> {
     }
 
     List<Integer> emitRecordForProcessing(String streamId, DpsRecord message, ProcessedRecord aRecord,
-                                          Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException, URISyntaxException {
+        Object compositeMessageId) throws TaskInfoDoesNotExistException, IOException {
       var taskInfo = getTaskInfo(message);
       updateDiagnosticCounters(aRecord);
       var stormTaskTuple = prepareTaskForEmission(taskInfo, message, aRecord);

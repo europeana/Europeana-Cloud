@@ -64,11 +64,6 @@ public class MCSTaskSubmitter {
 
     } catch (TaskDroppedException e) {
       LOGGER.warn("Task was dropped while it was submitting to the topology! Task id: {}", e.getTaskId(), e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new InterruptedException(
-          String.format("MCS service encountered interruption exception for taskId=%s with message: %s and stack trace: %s",
-              task.getTaskId(), e.getMessage(), Arrays.toString(e.getStackTrace())));
     } catch (Exception e) {
       LOGGER.error("MCSTaskSubmitter error for taskId={}", task.getTaskId(), e);
       taskStatusUpdater.setTaskDropped(task.getTaskId(), "The task was dropped because " + e.getMessage());
@@ -79,14 +74,12 @@ public class MCSTaskSubmitter {
     return new MCSReader(mcsClientURL, userName, password);
   }
 
-  private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters)
-      throws InterruptedException {
+  private ExpectedCounters executeForMCSInput(SubmitTaskParameters submitParameters) {
     try (var reader = createMcsReader()) {
       var expectedSize = ExpectedCounters.expectZeroRecords();
       BatchInfo input = (BatchInfo) submitParameters.getTask().getSource();
       expectedSize.add(executeForEntireDataset(input, submitParameters, reader));
       return expectedSize;
-
     }
   }
 

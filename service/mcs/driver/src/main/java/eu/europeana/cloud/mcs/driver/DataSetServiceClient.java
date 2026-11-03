@@ -393,17 +393,18 @@ public class DataSetServiceClient extends MCSClient {
   }
 
   /**
-   * Lists all versions of record representation belonging to the dataset
+   * Assign existing representation version to the dataset
    *
    * @param providerId provider identifier (required)
    * @param dataSetId data set identifier (required)
    * @param cloudId id of record from which to get representations (required)
    * @param representationName name of the representation (required)
-   * @return list of representations
+   * @param version version
    * @throws RecordNotExistsException if cloudId is not known UIS Service
    * @throws MCSException on unexpected situations
    */
-  public void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId, String representationName,String version) throws MCSException {
+  public void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId,
+      String representationName, String version) throws MCSException {
     manageResponse(new ResponseParams<>(Void.class, Response.Status.NO_CONTENT),
         () -> passLogContext(client
             .target(this.baseUrl)

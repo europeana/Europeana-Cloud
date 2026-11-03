@@ -189,7 +189,7 @@ public class CassandraRecordService implements RecordService {
     }
   }
 
-  private void checkIfVersionIsContainedOnlyOneDataset(String cloudId, String representationName, String providerId, UUID version, String dataSetId) throws RepresentationNotExistsException, DataSetAssignmentException {
+  private void checkIfVersionIsContainedOnlyOneDataset(String cloudId, String representationName, String providerId, UUID version, String dataSetId) throws DataSetAssignmentException {
     Optional<CompoundDataSetId> datasetFor = recordDAO.getRepresentationDatasetId(cloudId, representationName, version);
     if (datasetFor.isPresent()) {
       CompoundDataSetId currentDataset = datasetFor.get();

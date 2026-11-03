@@ -406,7 +406,8 @@ class DataSetServiceClientTest {
             .withBody("")));
     DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
 
-    instance.assignRepresentationVersionToDataset(PROVIDER_ID, DATASET_ID, CLOUD_ID,REPRESENTATION_NAME,VERSION_ID);
+    assertDoesNotThrow(
+        () -> instance.assignRepresentationVersionToDataset(PROVIDER_ID, DATASET_ID, CLOUD_ID, REPRESENTATION_NAME, VERSION_ID));
   }
 
   @Test

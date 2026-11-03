@@ -23,10 +23,10 @@ import eu.europeana.cloud.service.dps.utils.PermissionManager;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -184,8 +184,8 @@ public class TopologyTasksResource {
    * Creates new task instance based on task parameters, but without starting it. Each Task is associated with a specific plugin.
    * <p/>
    * <strong>Write permissions required</strong>.
-   *
-   * @param task <strong>REQUIRED</strong> Task to be executed. Should contain links to input data, either in form of
+   * @param httpRequest - http request needed for URI generation
+   * @param createTaskRequest <strong>REQUIRED</strong> definition of task to be created. Should contain links to input data, either in form of
    * cloud-records or cloud-datasets.
    * @param topologyName <strong>REQUIRED</strong> Name of the topology where the task is submitted.
    * @return URI with information about the submitted task execution.
@@ -196,18 +196,18 @@ public class TopologyTasksResource {
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   @PreAuthorize("hasPermission(#topologyName,'" + TOPOLOGY_PREFIX + "', write)")
   public ResponseEntity<DpsTask> createTask(
-      final HttpServletRequest request,
-      @RequestBody final CreateDpsTaskRequest task,
+      final HttpServletRequest httpRequest,
+      @RequestBody final CreateDpsTaskRequest createTaskRequest,
       @PathVariable("topologyName") final String topologyName)
       throws DpsTaskValidationException, AccessDeniedOrTopologyDoesNotExistException {
-    LOGGER.info("Creating task: {}", task);
+    LOGGER.info("Creating task: {}", createTaskRequest);
     long taskId = createRandomTaskId();
     MDC.put(TASK_ID_CONTEXT_ATTR, String.valueOf(taskId));
     try {
-      SubmitTaskParameters parameters = createTaskInDB(task, taskId, topologyName);
-      return validateTask(request, task, taskId, parameters);
+      SubmitTaskParameters parameters = createTaskInDB(createTaskRequest, taskId, topologyName);
+      return validateTask(httpRequest, createTaskRequest, taskId, parameters);
     } catch (DpsTaskValidationException | AccessDeniedOrTopologyDoesNotExistException e) {
-      LOGGER.error("Error validating task: {}", task, e);
+      LOGGER.error("Error validating task: {}", createTaskRequest, e);
       taskStatusUpdater.updateState(taskId, EngineTaskState.INVALID, e.getMessage());
       throw e;
     } catch (Exception e) {
@@ -328,7 +328,7 @@ public class TopologyTasksResource {
   }
 
   private static long createRandomTaskId() {
-    return (long) (Math.random() * Long.MAX_VALUE);
+    return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
   }
 
   private ResponseEntity<DpsTask> handleFailedSubmission(Exception exception, String loggedMessage, long taskId) {

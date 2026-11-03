@@ -54,7 +54,7 @@ public class AddToDatasetBoltTest {
   private AddToDatasetBolt bolt = new AddToDatasetBolt(new CassandraProperties(), "localhost:8080/mcs", "user", "pass");
 
   @Test
-  public void shouldAssingExistingRecordToNewDataset() throws MalformedURLException, MCSException {
+  void shouldAssingExistingRecordToNewDataset() throws MalformedURLException, MCSException {
     CommonTaskTuple tuple = new CommonTaskTuple();
     tuple.setTaskId(TASK_ID);
     tuple.setRecordUri(FILE_URL);
@@ -69,7 +69,7 @@ public class AddToDatasetBoltTest {
     Values values = emittedCaptor.getValue();
     assertEquals(3, values.size());
     assertEquals(TASK_ID, values.get(0));
-    Map<String, String> parameters = (Map<String, String>) values.get(1);
+    Map<?, ?> parameters = (Map<?, ?>) values.get(1);
     assertEquals(FILE_URL, parameters.get(NotificationParameterKeys.RESOURCE));
     assertEquals(RecordState.SUCCESS.toString(), parameters.get(NotificationParameterKeys.STATE));
     assertEquals(emptySet(), values.get(2));

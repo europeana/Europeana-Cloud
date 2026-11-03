@@ -12,9 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DpsTaskValidatorForIndexingTopologyTest {
 
-  private static final String FILE_01 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-01.txt";
-  private static final String FILE_02 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-02.txt";
-  private static final String FILE_03 = "http://127.0.0.1:8080/mcs/records/FUWQ4WMUGIGEHVA3X7FY5PA3DR5Q4B2C4TWKNILLS6EM4SJNTVEQ/representations/TIFF/versions/86318b00-6377-11e5-a1c6-90e6ba2d09ef/files/sampleFileName-03.txt";
   private static final String DATASET_01_PROVIDER = "metis_test5";
   private static final String DATASET_01_ID = "wbc_1";
 

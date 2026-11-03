@@ -300,17 +300,6 @@ class MCSTaskSubmitterTest {
     );
   }
 
-  private void verifyValidStateAndExpectedSizeSavedInCassandraForDeletedFiles(String[] fileUrls) {
-    verify(taskStatusUpdater).updateStatusAndExpected(
-            eq(TASK_ID),
-            eq(EngineTaskState.QUEUED),
-            argThat(counters ->
-                    counters.getExpectedRecords() == 0
-                            && counters.getExpectedDepublishRecords() == fileUrls.length
-            )
-    );
-  }
-
   private void mockRepresentationIterator(List<Representation> representations) {
     Iterator<Representation> innerIterator = representations.iterator();
     when(representationIterator.hasNext()).thenAnswer(invocation->innerIterator.hasNext());

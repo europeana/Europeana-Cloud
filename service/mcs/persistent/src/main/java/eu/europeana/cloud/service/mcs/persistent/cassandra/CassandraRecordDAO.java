@@ -338,6 +338,13 @@ public class CassandraRecordDAO {
     QueryTracer.logConsistencyLevel(boundStatement, rs);
   }
 
+  /**
+   * Adds dataset id entry to the datasetIds set, of the representation
+   * @param cloudId - cloud id
+   * @param representationName - representation name
+   * @param version - version
+   * @param dataSetId - dataset id
+   */
   public void addDatasetToRepresentation(String cloudId, String representationName, String version, String dataSetId) {
     BoundStatement boundStatement = addDatasetToRepresentationStatement.bind(Set.of(dataSetId), cloudId,representationName, UUID.fromString(version));
     ResultSet rs = connectionProvider.getSession().execute(boundStatement);

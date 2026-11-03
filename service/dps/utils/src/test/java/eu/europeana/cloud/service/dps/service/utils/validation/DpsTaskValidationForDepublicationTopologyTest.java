@@ -33,7 +33,7 @@ class DpsTaskValidationForDepublicationTopologyTest {
   void shouldFailBecauseOfMissingRequiredParametersForRecordsDepublication() {
 
     CreateDpsTaskRequest dpsTask = new CreateDpsTaskRequest();
-    dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
+    dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of("records")).build());
 
     DpsTaskValidator validator =
             DpsTaskValidatorFactory.createValidatorForTaskType(DpsTaskValidatorFactory.DEPUBLICATION_TASK);

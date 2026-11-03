@@ -287,7 +287,6 @@ public class FileServiceClient extends MCSClient {
    * @throws DriverException call to service has not succeeded because of server side error.
    * @throws MCSException on unexpected situations.
    */
-  //TODO Wywalić
   public URI modifyFile(String cloudId, String representationName, String version,
       InputStream data, String mediaType, String fileName, String expectedMd5) throws MCSException {
 

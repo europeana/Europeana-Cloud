@@ -77,9 +77,9 @@ class DpsTaskValidatorTest {
         new DpsTaskValidator().validate(dpsTask);
     }
 
-  ////
-  //Parameters
-  ////
+  //
+  // Parameters
+  //
   @Test
   void validatorShouldValidateThatThereIsParameterWithSelectedNameAndAnyValue() throws DpsTaskValidationException {
     new DpsTaskValidator().withParameter(EXISTING_PARAMETER_NAME).validate(dpsTask);
@@ -132,9 +132,9 @@ class DpsTaskValidatorTest {
     }
 
 
-    ////
+    // //
     //inputData
-    ////
+    // //
 
     @Test
     void validatorShouldValidateThatThereIsInputDataWithSelectedNameAndAnyValue() throws DpsTaskValidationException {

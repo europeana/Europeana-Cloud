@@ -85,7 +85,6 @@ class DataSetResourceTest extends CassandraBasedAbstractResourceTest {
     S3TestHelper.stopS3MockServer();
   }
 
-
   @Test
   void shouldUpdateDataset()
           throws Exception {

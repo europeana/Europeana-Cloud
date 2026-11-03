@@ -131,18 +131,29 @@ public class DpsClient implements AutoCloseable {
 
   /**
    * Creates a task for the specified topology on server.
+   * @param request - request for creating a task containing task config
+   * @param topologyName - name of the topology for which task is created
+   * @return created DpsTask - containing id and also parameters set by server
    */
-  public DpsTask createTask(CreateDpsTaskRequest task, String topologyName) throws DpsException {
+  public DpsTask createTask(CreateDpsTaskRequest request, String topologyName) throws DpsException {
     return manageResponse(
         new ResponseParams<>(DpsTask.class, Response.Status.CREATED),
         () -> client.target(dpsUrl)
                     .path(TASKS_URL)
                     .resolveTemplate(TOPOLOGY_NAME, topologyName)
                     .request()
-                    .post(Entity.json(task)), "Creating Task Was not successful"
+                    .post(Entity.json(request)), "Creating Task Was not successful"
     );
   }
 
+  /**
+   * Starts DpsTask. Task must be created earlier.
+   * The method idempotent and could be run repeatedly until success.
+   *
+   * @param topologyName - name of the task topology
+   * @param taskId - task id
+   * @throws DpsException - if task could not be started
+   */
   public void startTask(final String topologyName, final long taskId) throws DpsException {
     manageResponse(new ResponseParams<>(Void.class, Status.NO_CONTENT),
         () -> client

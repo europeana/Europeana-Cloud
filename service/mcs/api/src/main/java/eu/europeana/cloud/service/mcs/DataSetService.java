@@ -92,11 +92,36 @@ public interface DataSetService {
   void deleteDataSet(String providerId, String dataSetId)
       throws DataSetDeletionException, DataSetNotExistsException;
 
+  /**
+   * Validates if given dataset exists and throw exception if not.
+   *
+   * @param providerId - provider id
+   * @param dataSetId - dataset id
+   * @throws DataSetNotExistsException - if dataset does not exist
+   */
   void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException;
 
+  /**
+   * List records assigned for this dataset for given representation
+   * @param providerId - provider id
+   * @param dataSetId - dataset id
+   * @param cloudId - cloud id
+   * @param representationName - representation name
+   * @return List of Representation
+   * @throws DataSetNotExistsException - if dataset does not exist
+   */
   List<Representation> listDataSetRecordsForGivenRepresentation(String providerId, String dataSetId, String cloudId, String representationName)
       throws DataSetNotExistsException;
 
+  /**
+   * Assigns already existing representation version to the dataset.
+   * @param providerId - provider id
+   * @param dataSetId - dataset id
+   * @param cloudId - cloud id
+   * @param representationName - representation name
+   * @param version - version
+   * @throws RepresentationNotExistsException - if representation does not exist
+   */
   void assignRepresentationVersionToDataset(String providerId, String dataSetId, String cloudId, String representationName, String version)
       throws RepresentationNotExistsException;
 }

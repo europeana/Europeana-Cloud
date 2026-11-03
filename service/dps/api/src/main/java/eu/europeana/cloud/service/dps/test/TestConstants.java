@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.dps.test;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
  * Created by Tarek on 3/13/2017.
  */

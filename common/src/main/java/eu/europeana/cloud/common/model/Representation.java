@@ -91,25 +91,40 @@ public class Representation {
         super();
     }
 
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param cloudId cloud identifier
+     * @param representationName representation name
+     * @param version representation version
+     * @param allVersionsUri uri to all versions
+     * @param uri uri to representation
+     * @param dataProvider data provider
+     * @param files list of files assigned to the representation
+     * @param persistent boolean value indicating if representation is persistent
+     * @param creationDate representation creation date
+     * @param datasetId dataset identifier
+     */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
         String dataProvider, List<File> files, boolean persistent, Date creationDate, String datasetId, boolean markDepublished) {
         this(cloudId, representationName, version, allVersionsUri, uri,
             dataProvider, files, persistent, creationDate, new HashSet<>(Set.of(datasetId)), markDepublished);
     }
-        /**
-         * Creates a new instance of this class.
-         *
-         * @param cloudId            cloud identifier
-         * @param representationName representation name
-         * @param version            representation version
-         * @param allVersionsUri     uri to all versions
-         * @param uri                uri to representation
-         * @param dataProvider       data provider
-         * @param files              list of files assigned to the representation
-         * @param persistent         boolean value indicating if representation is persistent
-         * @param creationDate       representation creation date
-         * @param datasetIds          datasets identifier
-         */
+
+    /**
+     * Creates a new instance of this class.
+     *
+     * @param cloudId cloud identifier
+     * @param representationName representation name
+     * @param version representation version
+     * @param allVersionsUri uri to all versions
+     * @param uri uri to representation
+     * @param dataProvider data provider
+     * @param files list of files assigned to the representation
+     * @param persistent boolean value indicating if representation is persistent
+     * @param creationDate representation creation date
+     * @param datasetIds datasets identifiers
+     */
     public Representation(String cloudId, String representationName, String version, URI allVersionsUri, URI uri,
                           String dataProvider, List<File> files, boolean persistent, Date creationDate, Set<String> datasetIds, boolean markDepublished) {
         super();

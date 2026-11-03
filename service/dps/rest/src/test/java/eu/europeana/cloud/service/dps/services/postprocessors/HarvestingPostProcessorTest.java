@@ -55,12 +55,10 @@ class HarvestingPostProcessorTest {
   private static final String METIS_DATASET_ID = "111";
   private static final String PROVIDER_ID = "prov";
   private static final String DATASET_ID = "datasetId";
-  private static final String OUTPUT_DATA_SETS = "http://localhost:8080/mcs/data-providers/prov/data-sets/datasetId";
   private static final String RECORD_ID1 = "R1";
   private static final String RECORD_ID2 = "R2";
   private static final String CLOUD_ID1 = "a1";
   private static final String CLOUD_ID2 = "b2";
-  private static final String VERSION = "v1";
   private static final String RECORD1_REPRESENTATION_URI = "http://localhost:8080/mcs/records/a1/representations/repr/versions/v1";
   private static final String RECORD2_REPRESENTATION_URI = "http://localhost:8080/mcs/records/b2/representations/repr/versions/v1";
   private static final String HARVEST_DATE_STRING = "2021-05-26T08:00:00.000Z";

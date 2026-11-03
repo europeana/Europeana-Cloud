@@ -1,6 +1,5 @@
 package eu.europeana.cloud.http;
 
-
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.ComponentCommon;
 import org.apache.storm.generated.StormTopology;

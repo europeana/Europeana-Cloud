@@ -45,9 +45,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String ecloudMcsAddress;
   private final String topologyUserName;
   private final String topologyUserPassword;
-  private final boolean topologyCreatingNewData;
   protected transient RecordServiceClient recordServiceClient;
-  protected transient UISClient uisClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
                          String topologyUserName, String topologyUserPassword, boolean topologyCreatingNewData) {
@@ -55,7 +53,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
-    this.topologyCreatingNewData = topologyCreatingNewData;
   }
 
   @Override
@@ -69,32 +66,19 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  /*
-  * New representation should be created if:
-  * We are using dataset output and record is not marked as deleted and is processed as part of specific topologies.
-  * (xslt, enrichment, normalization, oai or media)
-   */
-  private boolean shouldNewRepresentationBeCreated(CommonTaskTuple tuple) {
-     return true;
-  }
-
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      if (shouldNewRepresentationBeCreated(commonTaskTuple)) {
-        RecordWriteParams writeParams = prepareWriteParameters(commonTaskTuple);
-        LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
-        long uploadStart = System.nanoTime();
-        var uri = uploadFileInNewRepresentation(commonTaskTuple, writeParams);
-        MetricRegistry.wrBoltUploadFileLatency(topologyName, component, (System.nanoTime() - uploadStart) / 1e9);
-        LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
-        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
-        commonTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
-      } else {
-        LOGGER.info("WriteRecordBolt: For this record in this execution representation creation is not needed!");
-      }
+      RecordWriteParams writeParams = prepareWriteParameters(commonTaskTuple);
+      LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
+      long uploadStart = System.nanoTime();
+      var uri = uploadFileInNewRepresentation(commonTaskTuple, writeParams);
+      MetricRegistry.wrBoltUploadFileLatency(topologyName, component, (System.nanoTime() - uploadStart) / 1e9);
+      LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
+      LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+      commonTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
       prepareEmittedTuple(commonTaskTuple);
       emitSuccessfulResult(anchorTuple, commonTaskTuple);
       outputCollector.ack(anchorTuple);

@@ -11,8 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DpsTaskValidatorForMediaTopologyTest {
 
-    private static final String TASK_NAME = "taskName";
-
     private CreateDpsTaskRequest dpsTaskForMediaTopologyWithDataset;
     private CreateDpsTaskRequest dpsTaskForMediaTopologyWithoutInputData;
 //    private CreateDpsTaskRequest dpsTaskForMediaTopologyWithoutNewRepresentationParam;

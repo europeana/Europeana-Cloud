@@ -49,7 +49,7 @@ class ValidationAddToDatasetBoltTest {
       "localhost:8080/mcs", "user", "pass");
 
   @Test
-  public void shouldAssingExistingRecordToNewDataset() throws MalformedURLException, MCSException {
+  void shouldAssingExistingRecordToNewDataset() throws MalformedURLException, MCSException {
     CommonTaskTuple tuple = new CommonTaskTuple();
     tuple.setTaskId(TASK_ID);
     tuple.setCloudId(CLOUD_ID);

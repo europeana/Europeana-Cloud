@@ -69,7 +69,6 @@ public class DataSetResource {
   private final MutableAclService mutableAclService;
 
   private final PermissionsGrantingManager permissionsGrantingManager;
-  private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
 
   @Value("${numberOfElementsOnPage}")
   private int numberOfElementsOnPage;
@@ -77,12 +76,10 @@ public class DataSetResource {
   public DataSetResource(
       DataSetService dataSetService,
       MutableAclService mutableAclService,
-      PermissionsGrantingManager permissionsGrantingManager,
-      DataSetPermissionsVerifier dataSetPermissionsVerifier) {
+      PermissionsGrantingManager permissionsGrantingManager) {
     this.dataSetService = dataSetService;
     this.mutableAclService = mutableAclService;
     this.permissionsGrantingManager = permissionsGrantingManager;
-    this.dataSetPermissionsVerifier=dataSetPermissionsVerifier;
   }
 
   /**
@@ -147,6 +144,7 @@ public class DataSetResource {
   /**
    * Lists versions of the given representation belonging to the dataset.
    *
+   * @param request current HttpServletRequest
    * @param providerId identifier of the dataset's provider (required).
    * @param dataSetId identifier of a data set (required).
    * @param cloudId cloud id of the record which contains the representation(required).
@@ -174,13 +172,14 @@ public class DataSetResource {
   }
 
   /**
-   * Lists versions of the given representation belonging to the dataset.
+   * Assigns existing representation to the dataset.
    *
    * @param providerId identifier of the dataset's provider (required).
    * @param dataSetId identifier of a data set (required).
    * @param cloudId cloud id of the record which contains the representation(required).
    * @param representationName name of the representation(required).
-   * @throws DataSetNotExistsException no such data set exists.
+   * @param version version of the representation(required).
+   * @throws RepresentationNotExistsException no such representation exists.
    */
   @PutMapping(value = DATA_SET_ASSIGNMENT_RESOURCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -195,7 +194,13 @@ public class DataSetResource {
     dataSetService.assignRepresentationVersionToDataset(providerId, dataSetId, cloudId, representationName, version);
   }
 
-
+  /**
+   * Checks if given dataset exists.
+   *
+   * @param providerId - provider id
+   * @param dataSetId - dataset id
+   * @throws DataSetNotExistsException - if dataset does not exist
+   */
   @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
   public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
       throws DataSetNotExistsException {

@@ -59,7 +59,7 @@ public abstract class AbstractDpsBolt extends BaseRichBolt {
   protected String component;
   protected long taskId;
 
-
+  @SuppressWarnings("java:S112") //Specific bolt coudl throw any exception
   public abstract void execute(Tuple anchorTuple, CommonTaskTuple t) throws Exception;
 
   public abstract void prepare();

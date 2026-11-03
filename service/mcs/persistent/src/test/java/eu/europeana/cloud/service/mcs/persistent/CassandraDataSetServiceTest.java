@@ -61,7 +61,6 @@ class CassandraDataSetServiceTest extends CassandraTestBase {
   private static final String PROVIDER_ID = "provider";
   private static final String DATA_SET_NAME = "dataset1";
   private static final String REPRESENTATION = "representation";
-  private static final String VERSION= "7c91d370-5cf4-11ec-8000-d3ce7f0f06e3";
   private static final String SAMPLE_PROVIDER_NAME = PROVIDER_ID;
   private static final String SAMPLE_DATASET_ID = DATA_SET_NAME;
   private static final String SAMPLE_CLOUD_ID = "Cloud_1";

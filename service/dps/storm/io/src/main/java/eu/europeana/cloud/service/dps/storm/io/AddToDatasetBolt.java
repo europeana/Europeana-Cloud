@@ -11,6 +11,7 @@ import eu.europeana.cloud.service.commons.urls.UrlPart;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
+import java.io.Serial;
 import java.net.MalformedURLException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AddToDatasetBolt extends AbstractDpsBolt {
 
+  @Serial
   private static final long serialVersionUID = 1L;
   private static final Logger LOGGER = LoggerFactory.getLogger(AddToDatasetBolt.class);
   private final String ecloudMcsAddress;
@@ -29,6 +31,14 @@ public class AddToDatasetBolt extends AbstractDpsBolt {
   protected transient RecordServiceClient recordServiceClient;
   protected transient DataSetServiceClient dataSetServiceClient;
 
+  /**
+   * Creates bolt
+   *
+   * @param cassandraProperties - properties of Cassandra DPS schema
+   * @param ecloudMcsAddress - address of MCS application
+   * @param topologyUserName - user for MCS API
+   * @param topologyUserPassword - user for MCS API
+   */
   public AddToDatasetBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress, String topologyUserName,
       String topologyUserPassword) {
     super(cassandraProperties);

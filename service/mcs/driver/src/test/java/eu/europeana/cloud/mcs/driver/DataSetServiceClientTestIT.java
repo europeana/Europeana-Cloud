@@ -21,8 +21,6 @@ class DataSetServiceClientTestIT {
   private static final String USER_NAME = "metis_test";  //user z bazy danych
   private static final String USER_PASSWORD = "Gi*Z26h4c1y^rTGf";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataSetServiceClientTestIT.class);
-
   @Test
   void createDataSet() throws MCSException {
     String providerId = "<enter_provider_id_here>";
