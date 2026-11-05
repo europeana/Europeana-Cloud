@@ -106,7 +106,7 @@ public class HttpTopologyTaskSubmitter extends AbstractTaskSubmitter implements 
         try {
           dpsRecord = DpsRecord.builder()
                                .taskId(submitTaskParameters.getTask().getTaskId())
-                               .recordId(fileURLCreator.generateUrlFor(path))
+                  .recordId(fileURLCreator.generateExternalUrlFor(path))
                                .build();
         } catch (UnsupportedEncodingException e) {
           taskStatusUpdater.setTaskDropped(submitTaskParameters.getTask().getTaskId(),

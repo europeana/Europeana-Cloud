@@ -268,12 +268,17 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public FileURLCreator fileURLCreator() {
-    String machineLocation = generalProperties().getMachineLocation();
-    if (machineLocation == null) {
+    String fileServerLocationExternal = generalProperties().getFileServerLocationExternal();
+    String fileServerLocationInternal = generalProperties().getFileServerLocationInternal();
+    if (fileServerLocationExternal == null) {
       throw new BeanCreationException(
-          "Property 'misc.machineLocation' must be set in properties file");
+              "Property 'general.fileServerLocationExternal' must be set in properties file");
     }
-    return new FileURLCreator(machineLocation);
+    if (fileServerLocationInternal == null) {
+      throw new BeanCreationException(
+              "Property 'general.fileServerLocationInternal' must be set in properties file");
+    }
+    return new FileURLCreator(fileServerLocationExternal, fileServerLocationInternal);
   }
 
   @Bean

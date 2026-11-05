@@ -29,7 +29,7 @@ topology.nameList=
 
 
 #### General settings ####
-general.appId=
-general.machineLocation=
+general.fileServerLocationInternal=
+general.fileServerLocationExternal=
 general.mcsLocation=
 general.uisLocation=

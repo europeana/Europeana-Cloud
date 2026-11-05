@@ -20,6 +20,8 @@ public final class TopologyPropertyKeys {
   public static final String CASSANDRA_KEYSPACE_NAME = "CASSANDRA_KEYSPACE_NAME";
   public static final String CASSANDRA_USERNAME = "CASSANDRA_USERNAME";
   public static final String CASSANDRA_SECRET_TOKEN = "CASSANDRA_PASSWORD";
+  public static final String FILE_SERVER_LOCATION_INTERNAL = "FILE_SERVER_LOCATION_INTERNAL";
+  public static final String FILE_SERVER_LOCATION_EXTERNAL = "FILE_SERVER_LOCATION_EXTERNAL";
   public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
   public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
   public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";

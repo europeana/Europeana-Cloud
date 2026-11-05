@@ -1,20 +1,20 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
+import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.FileServerProperties;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsRecordDeserializer;
-import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.service.dps.OAIPMHHarvestingDetails;
 import eu.europeana.cloud.service.dps.metis.indexing.DataSetCleanerParameters;
 import eu.europeana.cloud.service.dps.storm.spout.ECloudSpout;
 import eu.europeana.cloud.service.dps.storm.spout.MediaSpout;
-import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.ProcessingData;
+import eu.europeana.cloud.service.dps.storm.tuple.common.RecordData;
 import eu.europeana.cloud.service.dps.storm.tuple.common.TaskData;
 import eu.europeana.cloud.service.dps.storm.tuple.notification.NotificationTuple;
 import eu.europeana.enrichment.rest.client.report.Report;
-import java.net.URI;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.storm.Config;
@@ -79,6 +79,13 @@ public final class TopologyHelper {
                           .topics(topologyProperties.getProperty(TOPICS))
                           .bootstrapServers(topologyProperties.getProperty(BOOTSTRAP_SERVERS))
                           .build();
+  }
+
+  public static FileServerProperties createFileServerProperties(Properties topologyProperties) {
+    return FileServerProperties.builder()
+            .locationInternal(topologyProperties.getProperty(FILE_SERVER_LOCATION_INTERNAL))
+            .locationExternal(topologyProperties.getProperty(FILE_SERVER_LOCATION_EXTERNAL))
+            .build();
   }
 
   public static CassandraProperties createCassandraProperties(Properties topologyProperties) {

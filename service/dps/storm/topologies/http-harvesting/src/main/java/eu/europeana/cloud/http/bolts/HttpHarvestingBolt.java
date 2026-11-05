@@ -1,6 +1,7 @@
 package eu.europeana.cloud.http.bolts;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
+import eu.europeana.cloud.common.properties.FileServerProperties;
 import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.RetryInterruptedException;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
@@ -29,9 +30,11 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   private static final int SLEEP_TIME_BETWEEN_RETRIES_MS = 30_000; //this constant is not final for test purpose
   private transient IdentifierSupplier identifierSupplier;
   private transient HttpClient httpClient;
+  private transient FileServerProperties fileServerProperties;
 
-  public HttpHarvestingBolt(CassandraProperties cassandraProperties) {
+  public HttpHarvestingBolt(CassandraProperties cassandraProperties, FileServerProperties fileServerProperties) {
     super(cassandraProperties);
+    this.fileServerProperties = fileServerProperties;
   }
 
   @Override
@@ -92,7 +95,9 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   }
 
   private HttpResponse<byte[]> loadHttpFile(CommonTaskTuple tuple) throws IOException, InterruptedException {
-    HttpRequest request = HttpRequest.newBuilder(URI.create(tuple.getRecordUri())).GET().build();
+    String fileExternalLocation = tuple.getRecordUri();
+    String fileInternalLocation = fileServerProperties.convertToInternalUrl(fileExternalLocation);
+    HttpRequest request = HttpRequest.newBuilder(URI.create(fileInternalLocation)).GET().build();
     HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() != 200) {
       throw new IOException("Bad return status code: " + response.statusCode());
@@ -101,3 +106,4 @@ public class HttpHarvestingBolt extends AbstractDpsBolt {
   }
 
 }
+
