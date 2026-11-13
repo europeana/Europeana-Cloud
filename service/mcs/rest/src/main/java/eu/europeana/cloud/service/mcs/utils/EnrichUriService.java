@@ -117,7 +117,7 @@ public final class EnrichUriService {
     URI result = null;
 
     StringBuilder uriSpec = new StringBuilder();
-    uriSpec.append(httpServletRequest.getContextPath());
+    uriSpec.append(MCS_EXTERNAL_URI.getPath());
     uriSpec.append(PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(path, properties));
 
     try {
@@ -125,12 +125,10 @@ public final class EnrichUriService {
 
       UriComponentsBuilder builder = UriComponentsBuilder.fromUri(httpRequest.getURI());
 
-      if (this.MCS_EXTERNAL_URI != null) {
         builder.scheme(this.MCS_EXTERNAL_URI.getScheme())
                 .host(this.MCS_EXTERNAL_URI.getHost())
                 .port(this.MCS_EXTERNAL_URI.getPort())
                 .userInfo(this.MCS_EXTERNAL_URI.getUserInfo());
-      }
 
       result = builder
               .replacePath(uriSpec.toString())

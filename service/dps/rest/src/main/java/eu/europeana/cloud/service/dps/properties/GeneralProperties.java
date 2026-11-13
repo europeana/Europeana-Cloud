@@ -11,6 +11,5 @@ public class GeneralProperties {
   private String fileServerLocationExternal;
   private String mcsLocationExternal;
   private String mcsLocationInternal;
-  private String uisLocationExternal;
   private String uisLocationInternal;
 }

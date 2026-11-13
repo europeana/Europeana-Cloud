@@ -221,6 +221,8 @@ class DataProviderAATest extends AbstractSecurityTest {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     when(request.getRequestURL()).thenReturn(new StringBuffer());
     when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getContextPath()).thenReturn("");
+    when(request.getRequestURI()).thenReturn("");
     return request;
   }
 }

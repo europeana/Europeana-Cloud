@@ -262,7 +262,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public MCSTaskSubmitter mcsTaskSubmitter() {
     return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(),
-            generalProperties().getMcsLocationExternal(),
+            generalProperties().getMcsLocationInternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }

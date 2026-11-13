@@ -9,6 +9,7 @@ import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.UniqueIdentifierService;
 import eu.europeana.cloud.service.uis.rest.DataProviderResource;
 import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
+import eu.europeana.cloud.service.uis.rest.EnrichUriService;
 import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
 import eu.europeana.cloud.test.CassandraEnvironment;
 import org.mockito.Mockito;
@@ -48,8 +49,8 @@ public class SecurityTestContext {
     }
 
     @Bean
-    public DataProvidersResource dataProviders(DataProviderService dataProviderService) {
-        return new DataProvidersResource(dataProviderService);
+    public DataProvidersResource dataProviders(DataProviderService dataProviderService, EnrichUriService enrichUriService) {
+        return new DataProvidersResource(dataProviderService, enrichUriService);
     }
 
     @Bean
@@ -133,5 +134,10 @@ public class SecurityTestContext {
     @Bean
     public ACLServiceWrapper aclWrapper(CassandraMutableAclService aclService) {
         return new ACLServiceWrapper(aclService);
+    }
+
+    @Bean
+    public EnrichUriService enrichUriService() {
+        return new EnrichUriService("http://localhost:8080");
     }
 }

@@ -26,7 +26,10 @@ public class PropertyBeansContext {
     @Bean
     @Primary
     public GeneralProperties generalProperties() {
-        return Mockito.mock(GeneralProperties.class);
+        GeneralProperties generalProperties = new GeneralProperties();
+        generalProperties.setMcsLocationExternal("http://localhost:8080");
+        generalProperties.setUisLocationInternal("http://localhost:8080");
+        return generalProperties;
     }
 
     @Bean

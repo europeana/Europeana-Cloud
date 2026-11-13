@@ -20,21 +20,26 @@ public final class EnrichUriService {
     try {
       this.UIS_EXTERNAL_URI = new URI(uisExternalUri);
     } catch (URISyntaxException e) {
-      throw new RuntimeException("Invalid MCS base URI: " + uisExternalUri, e);
+      throw new RuntimeException("Invalid UIS external URI: " + uisExternalUri, e);
     }
   }
 
-  void enrich(HttpServletRequest httpServletRequest, DataProvider provider) {
+  public void enrich(HttpServletRequest httpServletRequest, DataProvider provider) {
     HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
+
+    String contextPath = httpServletRequest.getContextPath();
+    String requestPath = httpServletRequest.getRequestURI();
+
+    // Remove internal context path.
+    String pathWithinApplication = requestPath.substring(contextPath.length());
 
     UriComponentsBuilder builder = UriComponentsBuilder.fromUri(httpRequest.getURI());
 
-    if (UIS_EXTERNAL_URI != null) {
-      builder.scheme(UIS_EXTERNAL_URI.getScheme())
-              .host(UIS_EXTERNAL_URI.getHost())
-              .port(UIS_EXTERNAL_URI.getPort())
-              .userInfo(UIS_EXTERNAL_URI.getUserInfo());
-    }
+    builder.scheme(UIS_EXTERNAL_URI.getScheme())
+            .host(UIS_EXTERNAL_URI.getHost())
+            .port(UIS_EXTERNAL_URI.getPort())
+            .userInfo(UIS_EXTERNAL_URI.getUserInfo())
+            .replacePath(UIS_EXTERNAL_URI.getPath() + pathWithinApplication);
 
     URI newUri = builder
             .pathSegment(provider.getId())

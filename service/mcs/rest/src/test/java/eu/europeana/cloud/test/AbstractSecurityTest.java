@@ -71,7 +71,7 @@ public abstract class AbstractSecurityTest {
 
 
   protected String getBaseUri() {
-    return "localhost:80/";
+    return "localhost:8080/";
   }
 
 

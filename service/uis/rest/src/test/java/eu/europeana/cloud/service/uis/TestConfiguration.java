@@ -68,6 +68,6 @@ public class TestConfiguration {
 
   @Bean
   public EnrichUriService enrichUriService() {
-    return Mockito.mock(EnrichUriService.class);
+    return new EnrichUriService("http://localhost:8080");
   }
 }

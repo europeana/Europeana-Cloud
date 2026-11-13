@@ -130,8 +130,8 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  EnrichUriService enrichUriService(GeneralProperties generalProperties) {
-    return new EnrichUriService(generalProperties.getMcsLocationExternal());
+  EnrichUriService enrichUriService(GeneralProperties properties) {
+    return new EnrichUriService(properties.getMcsLocationExternal());
   }
 
 }

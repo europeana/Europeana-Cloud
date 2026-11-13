@@ -22,7 +22,7 @@ public class FileServerProperties implements Serializable {
     }
 
     public String convertToInternalUrl(String url) {
-        return convertUrl(url, locationInternal, locationExternal);
+        return convertUrl(url, locationExternal, locationInternal);
     }
 
     private String convertUrl(String url, String source, String target) {
