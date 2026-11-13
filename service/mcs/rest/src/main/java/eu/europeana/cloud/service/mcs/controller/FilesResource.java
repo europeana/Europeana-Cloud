@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import io.micrometer.core.annotation.Counted;
@@ -36,14 +36,17 @@ public class FilesResource {
   private final RecordService recordService;
   private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
   private final Integer objectStoreSizeThreshold;
+  private final EnrichUriService enrichUriService;
 
   public FilesResource(
       RecordService recordService,
       DataSetPermissionsVerifier dataSetPermissionsVerifier,
-      Integer objectStoreSizeThreshold) {
+      Integer objectStoreSizeThreshold,
+      EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
     this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -113,7 +116,7 @@ public class FilesResource {
 
       recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
       IOUtils.closeQuietly(prebufferedInputStream);
-      EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
+      enrichUriService.enrich(httpServletRequest, cloudId, representationName, version, f);
 
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug(String.format("File added [%s, %s, %s], uri: %s ",

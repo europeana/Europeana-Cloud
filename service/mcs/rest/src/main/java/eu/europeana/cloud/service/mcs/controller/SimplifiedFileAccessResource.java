@@ -9,7 +9,7 @@ import eu.europeana.cloud.common.selectors.RepresentationSelector;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import io.micrometer.core.annotation.Counted;
 import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,10 +42,12 @@ public class SimplifiedFileAccessResource {
 
   private final RecordService recordService;
   private final UISClientHandler uisClientHandler;
+  private final EnrichUriService enrichUriService;
 
-  public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler) {
+  public SimplifiedFileAccessResource(RecordService recordService, UISClientHandler uisClientHandler, EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.uisClientHandler = uisClientHandler;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -91,7 +93,7 @@ public class SimplifiedFileAccessResource {
     if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
       fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
     }
-    EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
+    enrichUriService.enrich(httpServletRequest, representation, requestedFile);
     final FileResource.ContentRange contentRange = new FileResource.ContentRange(-1L, -1L);
     Consumer<OutputStream> downloadingMethod = recordService.getContent(cloudId, representationName, representation.getVersion(),
         fileName, contentRange.getStart(), contentRange.getEnd());
@@ -158,7 +160,7 @@ public class SimplifiedFileAccessResource {
     if (StringUtils.isNotBlank(requestedFile.getMimeType())) {
       fileMimeType = MediaType.parseMediaType(requestedFile.getMimeType());
     }
-    EnrichUriUtil.enrich(httpServletRequest, representation, requestedFile);
+    enrichUriService.enrich(httpServletRequest, representation, requestedFile);
 
     ResponseEntity.BodyBuilder response = ResponseEntity
         .status(HttpStatus.OK)

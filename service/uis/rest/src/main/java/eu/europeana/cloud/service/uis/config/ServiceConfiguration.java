@@ -10,6 +10,8 @@ import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
 import eu.europeana.cloud.service.uis.dao.CloudIdDAO;
 import eu.europeana.cloud.service.uis.dao.CloudIdLocalIdBatches;
 import eu.europeana.cloud.service.uis.dao.LocalIdDAO;
+import eu.europeana.cloud.service.uis.properties.GeneralProperties;
+import eu.europeana.cloud.service.uis.rest.EnrichUriService;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import eu.europeana.cloud.service.uis.service.UniqueIdentifierServiceImpl;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
@@ -37,6 +39,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableAspectJAutoProxy
 @PropertySource(value = "classpath:uis.properties", ignoreResourceNotFound = true)
 public class ServiceConfiguration implements WebMvcConfigurer {
+
+
+  @Bean
+  @ConfigurationProperties(prefix = "general")
+  GeneralProperties generalProperties() {
+    return new GeneralProperties();
+  }
 
   @Bean
   @ConfigurationProperties(prefix = "cassandra.aas")
@@ -183,5 +192,10 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public TimedAspect timedAspect(MeterRegistry registry) {
     return new TimedAspect(registry);
+  }
+
+  @Bean
+  EnrichUriService enrichUriService(GeneralProperties generalProperties) {
+    return new EnrichUriService(generalProperties.getUisLocationExternal());
   }
 }

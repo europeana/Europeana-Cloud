@@ -261,7 +261,8 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
   @Bean
   public MCSTaskSubmitter mcsTaskSubmitter() {
-    return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(), mcsLocation(),
+    return new MCSTaskSubmitter(taskStatusChecker(), taskStatusUpdater(), recordSubmitService(),
+            generalProperties().getMcsLocationExternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
@@ -303,7 +304,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public UISClient uisClient() {
     return new UISClient(
-        uisLocation(),
+            generalProperties().getUisLocationInternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
@@ -311,7 +312,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public DataSetServiceClient dataSetServiceClient() {
     return new DataSetServiceClient(
-        mcsLocation(),
+            generalProperties().getMcsLocationInternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
@@ -319,7 +320,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public RecordServiceClient recordServiceClient() {
     return new RecordServiceClient(
-        mcsLocation(),
+            generalProperties().getMcsLocationInternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
@@ -327,7 +328,7 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public RevisionServiceClient revisionServiceClient() {
     return new RevisionServiceClient(
-        mcsLocation(),
+            generalProperties().getMcsLocationInternal(),
         topologyProperties().getUser(),
         topologyProperties().getPassword());
   }
@@ -456,13 +457,5 @@ public class ServiceConfiguration implements WebMvcConfigurer, AsyncConfigurer {
   @Bean
   public TimedAspect timedAspect(MeterRegistry registry) {
     return new TimedAspect(registry);
-  }
-
-  private String mcsLocation() {
-    return generalProperties().getMcsLocation();
-  }
-
-  private String uisLocation() {
-    return generalProperties().getUisLocation();
   }
 }

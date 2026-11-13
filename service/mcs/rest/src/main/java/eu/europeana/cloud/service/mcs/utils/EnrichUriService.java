@@ -12,10 +12,8 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Properties;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
@@ -24,23 +22,30 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.*;
 /**
  * Utility class that inserts absolute uris into classes that will be used as REST responses.
  */
-public final class EnrichUriUtil {
+public final class EnrichUriService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EnrichUriUtil.class);
+  private final Logger LOGGER = LoggerFactory.getLogger(EnrichUriService.class);
 
-  private static final MappingPlaceholdersResolver PROPERTY_PLACEHOLDER_HELPER
+  private final MappingPlaceholdersResolver PROPERTY_PLACEHOLDER_HELPER
       = new MappingPlaceholdersResolver();
 
-  private EnrichUriUtil() {
+  private final URI MCS_EXTERNAL_URI;
+
+  public EnrichUriService(String mcsExternalUri) {
+    try {
+      this.MCS_EXTERNAL_URI = new URI(mcsExternalUri);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException("Invalid MCS base URI: " + mcsExternalUri, e);
+    }
   }
 
-  public static void enrich(HttpServletRequest httpServletRequest, Record record) {
+  public void enrich(HttpServletRequest httpServletRequest, Record record) {
     for (Representation rep : record.getRepresentations()) {
       enrich(httpServletRequest, rep);
     }
   }
 
-  public static void enrich(HttpServletRequest httpServletRequest, Representation representation) {
+  public void enrich(HttpServletRequest httpServletRequest, Representation representation) {
     Properties properties = new Properties();
     properties.setProperty(CLOUD_ID, representation.getCloudId());
     properties.setProperty(REPRESENTATION_NAME, representation.getRepresentationName());
@@ -60,11 +65,11 @@ public final class EnrichUriUtil {
 
   }
 
-  public static void enrich(HttpServletRequest httpServletRequest, Representation rep, File file) {
+  public void enrich(HttpServletRequest httpServletRequest, Representation rep, File file) {
     enrich(httpServletRequest, rep.getCloudId(), rep.getRepresentationName(), rep.getVersion(), file);
   }
 
-  public static void enrich(
+  public void enrich(
       HttpServletRequest httpServletRequest,
       String cloudId,
       String representationName,
@@ -79,7 +84,7 @@ public final class EnrichUriUtil {
     file.setContentUri(createURI(httpServletRequest, CLIENT_FILE_RESOURCE, properties));
   }
 
-  public static void enrich(HttpServletRequest httpServletRequest, DataSet dataSet) {
+  public void enrich(HttpServletRequest httpServletRequest, DataSet dataSet) {
     Properties properties = new Properties();
 
     properties.setProperty(PROVIDER_ID, dataSet.getProviderId());
@@ -94,7 +99,7 @@ public final class EnrichUriUtil {
    * @param httpServletRequest - request object
    * @param response - enriched response
    */
-  public static void enrich(HttpServletRequest httpServletRequest, RepresentationRevisionResponse response) {
+  public void enrich(HttpServletRequest httpServletRequest, RepresentationRevisionResponse response) {
     Properties properties = new Properties();
     properties.setProperty(CLOUD_ID, response.getCloudId());
     properties.setProperty(REPRESENTATION_NAME, response.getRepresentationName());
@@ -102,30 +107,38 @@ public final class EnrichUriUtil {
     response.setRepresentationVersionUri(createURI(httpServletRequest, REPRESENTATION_VERSION, properties));
     if (response.getFiles() != null) {
       for (File file : response.getFiles()) {
-        EnrichUriUtil.enrich(httpServletRequest, response.getCloudId(), response.getRepresentationName(),
+        enrich(httpServletRequest, response.getCloudId(), response.getRepresentationName(),
             response.getVersion(), file);
       }
     }
   }
 
-  private static URI createURI(HttpServletRequest httpServletRequest, String path, Properties properties) {
+  private URI createURI(HttpServletRequest httpServletRequest, String path, Properties properties) {
     URI result = null;
 
     StringBuilder uriSpec = new StringBuilder();
     uriSpec.append(httpServletRequest.getContextPath());
     uriSpec.append(PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(path, properties));
+
     try {
       HttpRequest httpRequest = new ServletServerHttpRequest(httpServletRequest);
-      URL url = new URL(
-          UriComponentsBuilder.fromUri(httpRequest.getURI()).build().getScheme(),
-          httpServletRequest.getServerName(),
-          (httpServletRequest.getServerPort() == 80 || httpServletRequest.getServerPort() == 443) ?
-              -1 : httpServletRequest.getServerPort(),  //Do not setup 80 (http) or 443 (https) ports - pointed by scheme
-          uriSpec.toString());
 
-      result = url.toURI();
-    } catch (MalformedURLException | URISyntaxException ure) {
-      LOGGER.warn("Invalid URL/URI", ure);
+      UriComponentsBuilder builder = UriComponentsBuilder.fromUri(httpRequest.getURI());
+
+      if (this.MCS_EXTERNAL_URI != null) {
+        builder.scheme(this.MCS_EXTERNAL_URI.getScheme())
+                .host(this.MCS_EXTERNAL_URI.getHost())
+                .port(this.MCS_EXTERNAL_URI.getPort())
+                .userInfo(this.MCS_EXTERNAL_URI.getUserInfo());
+      }
+
+      result = builder
+              .replacePath(uriSpec.toString())
+              .build()
+              .toUri();
+
+    } catch (IllegalArgumentException e) {
+      LOGGER.warn("Invalid URL/URI", e);
     }
 
     return result;

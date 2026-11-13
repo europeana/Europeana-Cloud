@@ -6,17 +6,11 @@ import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.service.uis.DataProviderService;
 import eu.europeana.cloud.service.uis.RestInterfaceConstants;
 import eu.europeana.cloud.service.uis.exception.ProviderAlreadyExistsException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Resource for DataProviders.
@@ -27,14 +21,17 @@ public class DataProvidersResource {
 
   private static final int NUMBER_OF_ELEMENTS_ON_PAGE = 100;
   private final DataProviderService providerService;
+  private final EnrichUriService enrichUriService;
 
   /**
    * Constructor used for injection
    *
    * @param providerService service for providers
    */
-  public DataProvidersResource(DataProviderService providerService) {
+  public DataProvidersResource(DataProviderService providerService,
+                               EnrichUriService enrichUriService) {
     this.providerService = providerService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -70,7 +67,7 @@ public class DataProvidersResource {
       @RequestParam String providerId) throws ProviderAlreadyExistsException {
     DataProvider provider = providerService.createProvider(providerId,
         dataProviderProperties);
-    EnrichUriUtil.enrich(servletRequest, provider);
+    enrichUriService.enrich(servletRequest, provider);
     return ResponseEntity.created(provider.getUri()).build();
   }
 }

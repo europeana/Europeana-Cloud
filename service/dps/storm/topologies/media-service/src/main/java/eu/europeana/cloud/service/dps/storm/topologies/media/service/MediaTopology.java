@@ -42,14 +42,14 @@ public class MediaTopology {
 
     EDMObjectProcessorBolt edmObjectProcessorBolt = new EDMObjectProcessorBolt(
         createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
         amazonClient);
 
     ParseFileForMediaBolt parseFileBolt = new ParseFileForMediaBolt(
         createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 
@@ -57,7 +57,7 @@ public class MediaTopology {
         amazonClient);
 
     EDMEnrichmentBolt edmEnrichmentBolt = new EDMEnrichmentBolt(createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 

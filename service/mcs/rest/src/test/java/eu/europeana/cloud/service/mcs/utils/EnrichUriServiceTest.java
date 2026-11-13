@@ -6,11 +6,11 @@ import java.util.Properties;
 
 import static eu.europeana.cloud.common.web.ParamConstants.*;
 
-class EnrichUriUtilTest {
+class EnrichUriServiceTest {
 
   @Test
   void testMappingPlaceholdersResolver() {
-    EnrichUriUtil.MappingPlaceholdersResolver r = new EnrichUriUtil.MappingPlaceholdersResolver();
+    EnrichUriService.MappingPlaceholdersResolver r = new EnrichUriService.MappingPlaceholdersResolver();
 
     final String CLASS_MAPPING =
             "/records/{" + CLOUD_ID + "}/representations/{" + REPRESENTATION_NAME + "}/versions/{" + VERSION + "}/files/{" + FILE_NAME

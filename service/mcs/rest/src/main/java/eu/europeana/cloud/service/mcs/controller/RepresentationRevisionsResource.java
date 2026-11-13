@@ -4,7 +4,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.RepresentationRevisionResponseListWrapper;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import io.micrometer.core.annotation.Counted;
@@ -32,10 +32,13 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 public class RepresentationRevisionsResource {
 
 
+  private final EnrichUriService enrichUriService;
+
   private final RecordService recordService;
 
-  public RepresentationRevisionsResource(RecordService recordService) {
+  public RepresentationRevisionsResource(RecordService recordService, EnrichUriService enrichUriService) {
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -74,7 +77,7 @@ public class RepresentationRevisionsResource {
           representationRevisionsResource.getCloudId(),
           representationRevisionsResource.getRepresentationName(),
           representationRevisionsResource.getVersion());
-      EnrichUriUtil.enrich(httpServletRequest, representation);
+      enrichUriService.enrich(httpServletRequest, representation);
       representations.add(representation);
     }
 
@@ -108,7 +111,7 @@ public class RepresentationRevisionsResource {
         representationName, revisionProviderId, revisionName, parseRevisionTimestamp(revisionTimestamp));
 
     for (RepresentationRevisionResponse response : result) {
-      EnrichUriUtil.enrich(httpServletRequest, response);
+      enrichUriService.enrich(httpServletRequest, response);
     }
     return new RepresentationRevisionResponseListWrapper(result);
   }

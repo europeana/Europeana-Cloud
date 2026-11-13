@@ -59,7 +59,7 @@ public class ECloudTopologyPipeline {
   public ECloudTopologyPipeline addReadFileBolt() {
     ReadFileBolt readFileBolt = new ReadFileBolt(
         createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
     );
@@ -76,7 +76,7 @@ public class ECloudTopologyPipeline {
   public ECloudTopologyPipeline addWriteRecordBolt(Boolean topologyCreatingNewData) {
     WriteRecordBolt writeRecordBolt = new WriteRecordBolt(
             createCassandraProperties(topologyProperties),
-            topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
             topologyCreatingNewData
@@ -93,8 +93,8 @@ public class ECloudTopologyPipeline {
   public ECloudTopologyPipeline addHarvestingWriteRecordBolt() {
     WriteRecordBolt writeRecordBolt = new HarvestingWriteRecordBolt(
             createCassandraProperties(topologyProperties),
-            topologyProperties.getProperty(MCS_URL),
-            topologyProperties.getProperty(UIS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
+            topologyProperties.getProperty(UIS_URL_INTERNAL),
             topologyProperties.getProperty(TOPOLOGY_USER_NAME),
             topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
             true
@@ -110,7 +110,7 @@ public class ECloudTopologyPipeline {
   public ECloudTopologyPipeline addRevisionWriterBolt() {
     RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
         createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
+            topologyProperties.getProperty(MCS_URL_INTERNAL),
         topologyProperties.getProperty(TOPOLOGY_USER_NAME),
         topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
 

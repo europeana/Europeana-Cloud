@@ -41,13 +41,13 @@ public final class IndexingTopology {
             .addBolt(INDEXING_BOLT, new IndexingBolt(
                     createCassandraProperties(topologyProperties),
                     indexingProperties,
-                    topologyProperties.getProperty(UIS_URL),
+                    topologyProperties.getProperty(UIS_URL_INTERNAL),
                     topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                     topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
             ), INDEXING_BOLT_PARALLEL, INDEXING_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(false)
         .addBolt(REVISION_WRITER_BOLT, new IndexingRevisionWriter(createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(MCS_URL),
+                        topologyProperties.getProperty(MCS_URL_INTERNAL),
                 topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD),
                 SUCCESS_MESSAGE),

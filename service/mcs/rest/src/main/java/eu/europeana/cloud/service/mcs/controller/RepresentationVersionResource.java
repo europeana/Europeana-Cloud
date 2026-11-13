@@ -1,17 +1,10 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
-import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
-import eu.europeana.cloud.service.mcs.exception.CannotModifyPersistentRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.CannotPersistEmptyRepresentationException;
-import eu.europeana.cloud.service.mcs.exception.DataSetAssignmentException;
-import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSION_PERSIST;
 
 /**
  * Resource to manage representation versions.
@@ -36,12 +27,15 @@ public class RepresentationVersionResource {
 
   private final RecordService recordService;
   private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
+  private final EnrichUriService enrichUriService;
 
   public RepresentationVersionResource(
       RecordService recordService,
-      DataSetPermissionsVerifier dataSetPermissionsVerifier) {
+      DataSetPermissionsVerifier dataSetPermissionsVerifier,
+      EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -64,7 +58,7 @@ public class RepresentationVersionResource {
       @PathVariable("version") String version) throws RepresentationNotExistsException {
 
     Representation representation = recordService.getRepresentation(cloudId, representationName, version);
-    EnrichUriUtil.enrich(httpServletRequest, representation);
+    enrichUriService.enrich(httpServletRequest, representation);
     return representation;
   }
 
@@ -125,7 +119,7 @@ public class RepresentationVersionResource {
 
     if (dataSetPermissionsVerifier.isUserAllowedToPersistRepresentation(representation)) {
       Representation persistentRepresentation = recordService.persistRepresentation(cloudId, representationName, version);
-      EnrichUriUtil.enrich(httpServletRequest, persistentRepresentation);
+      enrichUriService.enrich(httpServletRequest, persistentRepresentation);
       return ResponseEntity.created(persistentRepresentation.getUri()).build();
     } else {
       throw new AccessDeniedOrObjectDoesNotExistException();

@@ -1,20 +1,20 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
-import jakarta.ws.rs.core.MediaType;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATIONS_RESOURCE;
 
 /**
  * Resource that represents record representations.
@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RepresentationsResource {
 
   private final RecordService recordService;
+  private final EnrichUriService enrichUriService;
 
-  public RepresentationsResource(RecordService recordService) {
+  public RepresentationsResource(RecordService recordService, EnrichUriService enrichUriService) {
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -50,7 +52,7 @@ public class RepresentationsResource {
   private void prepare(HttpServletRequest httpServletRequest, List<Representation> representationInfos) {
     for (Representation representationInfo : representationInfos) {
       representationInfo.setFiles(null);
-      EnrichUriUtil.enrich(httpServletRequest, representationInfo);
+      enrichUriService.enrich(httpServletRequest, representationInfo);
     }
   }
 }

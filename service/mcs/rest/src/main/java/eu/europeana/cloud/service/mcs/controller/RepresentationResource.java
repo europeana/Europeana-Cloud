@@ -3,7 +3,7 @@ package eu.europeana.cloud.service.mcs.controller;
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,9 +23,11 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATI
 public class RepresentationResource {
 
   private final RecordService recordService;
+  private final EnrichUriService enrichUriService;
 
-  public RepresentationResource(RecordService recordService) {
+  public RepresentationResource(RecordService recordService, EnrichUriService enrichUriService) {
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -102,11 +104,11 @@ public class RepresentationResource {
       throws RecordNotExistsException, ProviderNotExistsException, DataSetAssignmentException, RepresentationNotExistsException, DataSetNotExistsException {
 
       var representation = recordService.createRepresentation(cloudId, representationName, providerId, version, dataSetId, markDepublished);
-    EnrichUriUtil.enrich(httpServletRequest, representation);
+    enrichUriService.enrich(httpServletRequest, representation);
     return ResponseEntity.created(representation.getUri()).build();
   }
 
   private void prepare(HttpServletRequest httpServletRequest, Representation representation) {
-    EnrichUriUtil.enrich(httpServletRequest, representation);
+    enrichUriService.enrich(httpServletRequest, representation);
   }
 }

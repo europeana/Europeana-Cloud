@@ -1,8 +1,8 @@
 package eu.europeana.cloud.service.dps.storm.utils;
 
-import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
-
 import java.util.Properties;
+
+import static eu.europeana.cloud.service.dps.storm.topologies.properties.TopologyPropertyKeys.*;
 
 /**
  * Validates topologies configurations
@@ -57,8 +57,8 @@ public final class TopologyPropertiesValidator {
   private static void validateHarvestingTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
-    validateRequired(properties, UIS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
+    validateRequired(properties, UIS_URL_INTERNAL);
 
     validateRequiredInt(properties, RECORD_HARVESTING_BOLT_PARALLEL);
     validateRequiredInt(properties, CATEGORIZATION_BOLT_PARALLEL);
@@ -76,7 +76,7 @@ public final class TopologyPropertiesValidator {
   private static void validateForXsltTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, XSLT_BOLT_PARALLEL);
@@ -92,7 +92,7 @@ public final class TopologyPropertiesValidator {
   private static void validateValidationTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, VALIDATION_BOLT_PARALLEL);
@@ -107,7 +107,7 @@ public final class TopologyPropertiesValidator {
   private static void validateNormalizationTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, NORMALIZATION_BOLT_PARALLEL);
@@ -123,7 +123,7 @@ public final class TopologyPropertiesValidator {
   private static void validateEnrichmentTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, ENRICHMENT_BOLT_PARALLEL);
@@ -146,7 +146,7 @@ public final class TopologyPropertiesValidator {
   private static void validateMediaTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, EDM_OBJECT_PROCESSOR_BOLT_PARALLEL);
     validateRequiredInt(properties, PARSE_FILE_BOLT_PARALLEL);
@@ -171,8 +171,8 @@ public final class TopologyPropertiesValidator {
   private static void validateIndexingTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
-    validateRequired(properties, UIS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
+    validateRequired(properties, UIS_URL_INTERNAL);
 
     validateRequiredInt(properties, RETRIEVE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, INDEXING_BOLT_PARALLEL);
@@ -194,7 +194,7 @@ public final class TopologyPropertiesValidator {
   private static void validateLinkCheckTopology(Properties properties) {
     validateCommonProps(properties);
 
-    validateRequired(properties, MCS_URL);
+    validateRequired(properties, MCS_URL_INTERNAL);
 
     validateRequiredInt(properties, PARSE_FILE_BOLT_PARALLEL);
     validateRequiredInt(properties, LINK_CHECK_BOLT_PARALLEL);

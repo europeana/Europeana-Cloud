@@ -1,8 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
-
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Representation;
@@ -13,11 +10,8 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
-import java.util.Arrays;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +24,13 @@ import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
 
 /**
  * Resource to manage data sets.
@@ -64,6 +56,7 @@ public class DataSetResource {
   private final MutableAclService mutableAclService;
 
   private final PermissionsGrantingManager permissionsGrantingManager;
+  private final EnrichUriService enrichUriService;
 
   @Value("${numberOfElementsOnPage}")
   private int numberOfElementsOnPage;
@@ -71,10 +64,12 @@ public class DataSetResource {
   public DataSetResource(
       DataSetService dataSetService,
       MutableAclService mutableAclService,
-      PermissionsGrantingManager permissionsGrantingManager) {
+      PermissionsGrantingManager permissionsGrantingManager,
+      EnrichUriService enrichUriService) {
     this.dataSetService = dataSetService;
     this.mutableAclService = mutableAclService;
     this.permissionsGrantingManager = permissionsGrantingManager;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -126,7 +121,7 @@ public class DataSetResource {
             dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, numberOfElementsOnPage);
 
     for (Representation rep : representations.getResults()) {
-      EnrichUriUtil.enrich(httpServletRequest, rep);
+      enrichUriService.enrich(httpServletRequest, rep);
     }
     return representations;
   }

@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Record;
@@ -10,13 +8,15 @@ import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_RECORDS_RESOURCE;
 
 /**
  * Gives (read) access to record stored in ecloud in simplified (friendly) way.
@@ -27,10 +27,12 @@ public class SimplifiedRecordsResource {
 
   private final RecordService recordService;
   private final UISClientHandler uisHandler;
+  private final EnrichUriService enrichUriService;
 
-  public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler) {
+  public SimplifiedRecordsResource(RecordService recordService, UISClientHandler uisHandler, EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.uisHandler = uisHandler;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -63,7 +65,7 @@ public class SimplifiedRecordsResource {
   }
 
   private void prepare(HttpServletRequest httpServletRequest, Record record) {
-    EnrichUriUtil.enrich(httpServletRequest, record);
+    enrichUriService.enrich(httpServletRequest, record);
     for (Representation representation : record.getRepresentations()) {
       representation.setCloudId(null);
     }

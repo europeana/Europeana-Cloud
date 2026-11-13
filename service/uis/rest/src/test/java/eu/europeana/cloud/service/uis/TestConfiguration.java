@@ -3,10 +3,7 @@ package eu.europeana.cloud.service.uis;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.service.uis.config.UnifiedExceptionsMapper;
 import eu.europeana.cloud.service.uis.dao.CassandraDataProviderDAO;
-import eu.europeana.cloud.service.uis.rest.DataProviderActivationResource;
-import eu.europeana.cloud.service.uis.rest.DataProviderResource;
-import eu.europeana.cloud.service.uis.rest.DataProvidersResource;
-import eu.europeana.cloud.service.uis.rest.UniqueIdentifierResource;
+import eu.europeana.cloud.service.uis.rest.*;
 import eu.europeana.cloud.service.uis.service.CassandraDataProviderService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +37,8 @@ public class TestConfiguration {
   }
 
   @Bean
-  public DataProvidersResource dataProvidersResource(DataProviderService providerService) {
-    return new DataProvidersResource(providerService);
+  public DataProvidersResource dataProvidersResource(DataProviderService providerService, EnrichUriService enrichUriService) {
+    return new DataProvidersResource(providerService, enrichUriService);
   }
 
   @Bean
@@ -67,5 +64,10 @@ public class TestConfiguration {
   @Bean
   public ACLServiceWrapper aclServiceWrapper() {
     return Mockito.mock(ACLServiceWrapper.class);
+  }
+
+  @Bean
+  public EnrichUriService enrichUriService() {
+    return Mockito.mock(EnrichUriService.class);
   }
 }

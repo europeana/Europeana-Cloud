@@ -1,14 +1,10 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
-
 import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.REPRESENTATION_VERSIONS_RESOURCE;
 
 /**
  * Resource to manage representation versions.
@@ -28,9 +28,11 @@ public class RepresentationVersionsResource {
   public static final Logger LOGGER = LoggerFactory.getLogger(RepresentationVersionsResource.class.getName());
 
   private final RecordService recordService;
+  private final EnrichUriService enrichUriService;
 
-  public RepresentationVersionsResource(RecordService recordService) {
+  public RepresentationVersionsResource(RecordService recordService, EnrichUriService enrichUriService) {
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -49,7 +51,7 @@ public class RepresentationVersionsResource {
 
     List<Representation> representationVersions = recordService.listRepresentationVersions(cloudId, representationName);
     for (Representation representationVersion : representationVersions) {
-      EnrichUriUtil.enrich(request, representationVersion);
+      enrichUriService.enrich(request, representationVersion);
     }
 
     return new RepresentationsListWrapper(representationVersions);

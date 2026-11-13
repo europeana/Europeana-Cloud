@@ -34,7 +34,7 @@ public class LinkCheckTopology {
   public final StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.LINKCHECK_TOPOLOGY, topologyProperties)
         .addBolt(PARSE_FILE_BOLT, new ParseFileForLinkCheckBolt(createCassandraProperties(topologyProperties),
-                topologyProperties.getProperty(MCS_URL), topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                        topologyProperties.getProperty(MCS_URL_INTERNAL), topologyProperties.getProperty(TOPOLOGY_USER_NAME),
                 topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), PARSE_FILE_BOLT_PARALLEL,
             PARSE_FILE_BOLT_BOLT_NUMBER_OF_TASKS)
         .addBolt(LINK_CHECK_BOLT, new LinkCheckBolt(createCassandraProperties(topologyProperties)),

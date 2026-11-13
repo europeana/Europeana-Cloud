@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import io.micrometer.core.annotation.Counted;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -23,9 +23,11 @@ import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.RECORDS_RESO
 public class RecordsResource {
 
   private final RecordService recordService;
+  private final EnrichUriService enrichUriService;
 
-  public RecordsResource(RecordService recordService) {
+  public RecordsResource(RecordService recordService, EnrichUriService enrichUriService) {
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -72,7 +74,7 @@ public class RecordsResource {
    * @param record
    */
   private void prepare(HttpServletRequest httpServletRequest, Record record) {
-    EnrichUriUtil.enrich(httpServletRequest, record);
+    enrichUriService.enrich(httpServletRequest, record);
     for (Representation representation : record.getRepresentations()) {
       representation.setCloudId(null);
     }

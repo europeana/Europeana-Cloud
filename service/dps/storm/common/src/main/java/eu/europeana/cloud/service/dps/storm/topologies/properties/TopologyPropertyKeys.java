@@ -12,7 +12,7 @@ public final class TopologyPropertyKeys {
 
   public static final String BOOTSTRAP_SERVERS = "BOOTSTRAP_SERVERS";
   public static final String TOPICS = "TOPICS";
-  public static final String MCS_URL = "MCS_URL";
+  public static final String MCS_URL_INTERNAL = "MCS_URL_INTERNAL";
   public static final String TOPOLOGY_USER_NAME = "TOPOLOGY_USER_NAME";
   public static final String TOPOLOGY_USER_PASSWORD = "TOPOLOGY_USER_PASSWORD";
   public static final String CASSANDRA_HOSTS = "CASSANDRA_HOSTS";
@@ -86,7 +86,7 @@ public final class TopologyPropertyKeys {
   public static final String RECORD_HARVESTING_BOLT_PARALLEL = "RECORD_HARVESTING_BOLT_PARALLEL";
   public static final String CATEGORIZATION_BOLT_NUMBER_OF_TASKS = "CATEGORIZATION_BOLT_NUMBER_OF_TASKS";
   public static final String CATEGORIZATION_BOLT_PARALLEL = "CATEGORIZATION_BOLT_PARALLEL";
-  public static final String UIS_URL = "UIS_URL";
+  public static final String UIS_URL_INTERNAL = "UIS_URL_INTERNAL";
 
   public static final String DEFAULT_MAXIMUM_PARALLELIZATION = "DEFAULT_MAXIMUM_PARALLELIZATION";
 

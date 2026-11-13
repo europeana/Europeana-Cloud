@@ -1,7 +1,5 @@
 package eu.europeana.cloud.service.mcs.controller;
 
-import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_REPRESENTATION_RESOURCE;
-
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.common.model.CloudId;
 import eu.europeana.cloud.common.model.Representation;
@@ -10,7 +8,7 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.SIMPLIFIED_REPRESENTATION_RESOURCE;
 
 /**
  * Gives access to latest persistent representation using 'friendly' URL
@@ -31,10 +31,12 @@ public class SimplifiedRepresentationResource {
 
   private final UISClientHandler uisClientHandler;
   private final RecordService recordService;
+  private final EnrichUriService enrichUriService;
 
-  public SimplifiedRepresentationResource(UISClientHandler uisClientHandler, RecordService recordService) {
+  public SimplifiedRepresentationResource(UISClientHandler uisClientHandler, RecordService recordService, EnrichUriService enrichUriService) {
     this.uisClientHandler = uisClientHandler;
     this.recordService = recordService;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -63,7 +65,7 @@ public class SimplifiedRepresentationResource {
     final String cloudId = findCloudIdFor(providerId, localId);
 
     Representation representation = recordService.getRepresentation(cloudId, representationName);
-    EnrichUriUtil.enrich(httpServletRequest, representation);
+    enrichUriService.enrich(httpServletRequest, representation);
 
     return representation;
   }

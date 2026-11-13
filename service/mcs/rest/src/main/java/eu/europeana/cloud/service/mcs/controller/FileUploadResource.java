@@ -6,7 +6,7 @@ import eu.europeana.cloud.common.utils.LogMessageCleaner;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.Storage;
 import eu.europeana.cloud.service.mcs.exception.*;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import io.micrometer.core.annotation.Counted;
@@ -37,12 +37,15 @@ public class FileUploadResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadResource.class);
   private final RecordService recordService;
   private final Integer objectStoreSizeThreshold;
+  private final EnrichUriService enrichUriService;
 
   public FileUploadResource(
       RecordService recordService,
-      Integer objectStoreSizeThreshold) {
+      Integer objectStoreSizeThreshold,
+      EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.objectStoreSizeThreshold = objectStoreSizeThreshold;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -99,7 +102,7 @@ public class FileUploadResource {
     File file = addFileToRepresentation(representation, prebufferedInputStream, mimeType, fileName, storage);
     persistRepresentation(representation);
 
-    EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, representation.getVersion(), file);
+    enrichUriService.enrich(httpServletRequest, cloudId, representationName, representation.getVersion(), file);
 
     return ResponseEntity
         .created(file.getContentUri())

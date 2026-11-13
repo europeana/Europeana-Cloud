@@ -8,6 +8,7 @@ import eu.europeana.cloud.service.mcs.UISClientHandler;
 import eu.europeana.cloud.service.mcs.persistent.s3.S3ConnectionProvider;
 import eu.europeana.cloud.service.mcs.persistent.uis.UISClientHandlerImpl;
 import eu.europeana.cloud.service.mcs.properties.GeneralProperties;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.web.common.LoggingContextCopingTaskDecorator;
 import eu.europeana.cloud.service.web.common.LoggingFilter;
 import io.micrometer.core.aop.CountedAspect;
@@ -61,7 +62,7 @@ public class ServiceConfiguration implements WebMvcConfigurer {
 
   @Bean
   UISClient uisClient() {
-    return new UISClient(generalProperties().getUisLocation());
+    return new UISClient(generalProperties().getUisLocationInternal());
   }
 
   @Bean
@@ -126,6 +127,11 @@ public class ServiceConfiguration implements WebMvcConfigurer {
   @Bean
   public TimedAspect timedAspect(MeterRegistry registry) {
     return new TimedAspect(registry);
+  }
+
+  @Bean
+  EnrichUriService enrichUriService(GeneralProperties generalProperties) {
+    return new EnrichUriService(generalProperties.getMcsLocationExternal());
   }
 
 }

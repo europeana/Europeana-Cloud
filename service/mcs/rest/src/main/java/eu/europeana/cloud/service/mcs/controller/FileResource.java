@@ -5,7 +5,7 @@ import eu.europeana.cloud.common.model.Representation;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.exception.*;
 import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
-import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
+import eu.europeana.cloud.service.mcs.utils.EnrichUriService;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.PreBufferedInputStream;
 import eu.europeana.cloud.service.mcs.utils.storage_selector.StorageSelector;
 import io.micrometer.core.annotation.Counted;
@@ -48,13 +48,16 @@ public class FileResource {
   private final RecordService recordService;
   private final DataSetPermissionsVerifier dataSetPermissionsVerifier;
   private final Integer objectStoreSizeThreshold;
+  private final EnrichUriService enrichUriService;
 
   public FileResource(RecordService recordService,
       Integer objectStoreSizeThreshold,
-      DataSetPermissionsVerifier dataSetPermissionsVerifier) {
+                      DataSetPermissionsVerifier dataSetPermissionsVerifier,
+                      EnrichUriService enrichUriService) {
     this.recordService = recordService;
     this.objectStoreSizeThreshold = objectStoreSizeThreshold;
     this.dataSetPermissionsVerifier = dataSetPermissionsVerifier;
+    this.enrichUriService = enrichUriService;
   }
 
   /**
@@ -109,7 +112,7 @@ public class FileResource {
       recordService.getFile(cloudId, representationName, version, fileName);
       recordService.putContent(cloudId, representationName, version, f, prebufferedInputStream);
       IOUtils.closeQuietly(prebufferedInputStream);
-      EnrichUriUtil.enrich(httpServletRequest, cloudId, representationName, version, f);
+      enrichUriService.enrich(httpServletRequest, cloudId, representationName, version, f);
 
       ResponseEntity.BodyBuilder response = ResponseEntity
           .status(HttpStatus.NO_CONTENT)
