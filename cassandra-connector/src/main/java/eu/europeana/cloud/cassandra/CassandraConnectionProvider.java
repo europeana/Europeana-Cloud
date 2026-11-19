@@ -2,6 +2,7 @@ package eu.europeana.cloud.cassandra;
 
 import com.datastax.driver.core.AtomicMonotonicTimestampGenerator;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Cluster.Builder;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
@@ -11,6 +12,7 @@ import com.datastax.driver.core.Session;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
@@ -47,12 +49,16 @@ public class CassandraConnectionProvider {
     this.keyspaceName = keyspaceName;
 
     String[] contactPoints = hosts.split(",");
-    cluster = getClusterBuilder(port, contactPoints)
+    cluster = getClusterBuilder(port, contactPoints, false)
         .build();
     init();
     session = cluster.connect(keyspaceName);
   }
 
+  @Autowired
+  public CassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password){
+    this(hosts,port,keyspaceName,userName,password,false);
+  }
 
   /**
    * Constructor. Use it when your Cassandra cluster does support authentication.
@@ -62,14 +68,15 @@ public class CassandraConnectionProvider {
    * @param keyspaceName name of keyspace
    * @param userName user name
    * @param password password
+   * @param ssl - using ssl connection
    */
-  public CassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password) {
+  public CassandraConnectionProvider(String hosts, int port, String keyspaceName, String userName, String password, boolean ssl) {
     this.hosts = hosts;
     this.port = String.valueOf(port);
     this.keyspaceName = keyspaceName;
 
     String[] contactPoints = hosts.split(",");
-    cluster = getClusterBuilder(port, contactPoints)
+    cluster = getClusterBuilder(port, contactPoints, ssl)
         .withCredentials(userName, password).build();
     init();
     session = cluster.connect(keyspaceName);
@@ -91,14 +98,19 @@ public class CassandraConnectionProvider {
    *
    * @param port port of endpoints
    * @param contactPoints list of cassandra ip addresses
+   * @param ssl - using ssl connection
    * @return {@link com.datastax.driver.core.Cluster.Builder}
    */
-  private Cluster.Builder getClusterBuilder(int port, String[] contactPoints) {
-    return Cluster.builder().addContactPoints(contactPoints).withPort(port)
-                  .withProtocolVersion(ProtocolVersion.V3)
-                  .withQueryOptions(new QueryOptions()
-                      .setConsistencyLevel(DEFAULT_CONSISTENCY_LEVEL))
-                  .withTimestampGenerator(new AtomicMonotonicTimestampGenerator());
+  private Cluster.Builder getClusterBuilder(int port, String[] contactPoints, boolean ssl) {
+    Builder builder = Cluster.builder().addContactPoints(contactPoints).withPort(port)
+                             .withProtocolVersion(ProtocolVersion.V3)
+                             .withQueryOptions(new QueryOptions()
+                                 .setConsistencyLevel(DEFAULT_CONSISTENCY_LEVEL))
+                             .withTimestampGenerator(new AtomicMonotonicTimestampGenerator());
+    if(ssl) {
+      builder.withSSL();
+    }
+    return builder;
   }
 
 
