@@ -192,6 +192,7 @@ public final class DpsTaskValidatorFactory {
     taskValidatorMap.put(DATASET_ADMINISTRATION_TASK_WITH_DATASETS, new DpsTaskValidator("DataSet validator for Dataset Administration")
             .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
             .withDataEntry(DATASET_URLS.name(), InputDataValueType.LINK_TO_DATASET)
+            .withParameter(PluginParameterKeys.METIS_DATASET_ID)
             .withOptionalOutputRevision()
             .withCustomValidator(new FullyDefinedInputRevisionValidator())
     );
@@ -199,6 +200,7 @@ public final class DpsTaskValidatorFactory {
     taskValidatorMap.put(DATASET_ADMINISTRATION_TASK_WITH_FILE_URLS, new DpsTaskValidator("DataSet validator for Dataset Administration")
             .withParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME)
             .withDataEntry(FILE_URLS.name(), InputDataValueType.LINK_TO_FILE)
+            .withParameter(PluginParameterKeys.METIS_DATASET_ID)
             .withOptionalOutputRevision()
             .withCustomValidator(new FullyDefinedInputRevisionValidator())
     );

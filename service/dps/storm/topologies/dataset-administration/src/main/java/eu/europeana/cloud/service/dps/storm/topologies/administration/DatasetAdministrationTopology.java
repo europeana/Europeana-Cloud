@@ -50,9 +50,12 @@ public class DatasetAdministrationTopology {
 
   public final StormTopology buildTopology() {
     return new ECloudTopologyPipeline(TopologiesNames.DATASET_ADMINISTRATION_TOPOLOGY, topologyProperties)
-            .addReadFileBolt()
-            .addBolt(DUMMY_BOLT, new DummyBolt(createCassandraProperties(topologyProperties)),
-                    DUMMY_BOLT_PARALLEL, DUMMY_BOLT_NUMBER_OF_TASKS)
+            .addReadFileBolt().addBolt(DATASET_ADMINISTRATION_BOLT,
+                    new DatasetAdministrationBolt(createCassandraProperties(topologyProperties),
+                            topologyProperties.getProperty(UIS_URL),
+                            topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+                            topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)), DUMMY_BOLT_PARALLEL,
+                    DUMMY_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(true)
             .addRevisionWriterBolt()
             .buildTopology();

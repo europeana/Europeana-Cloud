@@ -2,7 +2,6 @@ package eu.europeana.cloud.service.dps.storm.topologies.oaipmh.bolt;
 
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
-import eu.europeana.cloud.harvesting.commons.IdentifierSupplier;
 import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -13,7 +12,6 @@ import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRepository;
-import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,6 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
   private static final Logger LOGGER = LoggerFactory.getLogger(RecordHarvestingBolt.class);
 
   private transient OaiHarvester harvester;
-  private transient IdentifierSupplier identifierSupplier;
 
   public RecordHarvestingBolt(CassandraProperties cassandraProperties) {
     super(cassandraProperties);
@@ -65,13 +62,12 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
         MetricRegistry.oaiFileDownloadLatency(topologyName, component, (System.nanoTime() - fileDownloadStartTime) / 1e9);
         commonTaskTuple.setFileData(oaiRecord.getContent());
         MetricRegistry.xmlFileSize(topologyName, component, (double) commonTaskTuple.getFileData().length / (1024 * 1024));
-        generateIdentifiers(commonTaskTuple);
         addRecordTimestampToTuple(commonTaskTuple, oaiRecord);
 
         outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
 
         LOGGER.info("Harvesting finished successfully for: {} and {}", recordId, endpointLocation);
-      } catch (HarvesterException | IOException | EuropeanaIdException e) {
+      } catch (HarvesterException | IOException e) {
         LOGGER.error("Exception on harvesting", e);
           emitErrorNotification(
                   anchorTuple,
@@ -99,14 +95,8 @@ public class RecordHarvestingBolt extends AbstractDpsBolt {
     LOGGER.info("Retry number {} detected. No cleaning phase required. Record will be harvested again.", tries);
   }
 
-  private void generateIdentifiers(CommonTaskTuple commonTaskTuple) throws EuropeanaIdException {
-    identifierSupplier.prepareIdentifiers(commonTaskTuple);
-  }
-
-
   @Override
   public void prepare() {
-    identifierSupplier = new IdentifierSupplier();
     harvester = HarvesterFactory.createOaiHarvester(null, DEFAULT_RETRIES, SLEEP_TIME);
   }
 

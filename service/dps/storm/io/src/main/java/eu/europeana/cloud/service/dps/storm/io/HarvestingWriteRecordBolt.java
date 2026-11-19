@@ -7,7 +7,6 @@ import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
-import eu.europeana.cloud.service.dps.storm.utils.StormTaskTupleHelper;
 
 import java.net.MalformedURLException;
 
@@ -49,9 +48,7 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
   @Override
   protected RecordWriteParams prepareWriteParameters(CommonTaskTuple commonTaskTuple) throws CloudException, MalformedURLException {
     String providerId = commonTaskTuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    String europeanaId = commonTaskTuple.getParameter(PluginParameterKeys.EUROPEANA_ID);
-    String additionalLocalIdentifier = commonTaskTuple.getParameter(PluginParameterKeys.ADDITIONAL_LOCAL_IDENTIFIER);
-    String cloudId = getCloudId(providerId, europeanaId, additionalLocalIdentifier);
+    String cloudId = getCloudId(providerId);
     commonTaskTuple.setCloudId(cloudId);
     String representationName = commonTaskTuple.getParameter(PluginParameterKeys.NEW_REPRESENTATION_NAME);
     if ((representationName == null || representationName.isEmpty())) {
@@ -70,29 +67,14 @@ public class HarvestingWriteRecordBolt extends WriteRecordBolt {
       return writeParams;
   }
 
-    protected String getCloudId(String providerId, String europeanaId, String additionalLocalIdentifier) throws CloudException {
-        String result = createCloudId(providerId, europeanaId);
-
-        if (additionalLocalIdentifier != null) {
-            attachAdditionalLocalIdentifier(additionalLocalIdentifier, result, providerId);
-        }
-
-        return result;
-
+    protected String getCloudId(String providerId) throws CloudException {
+        return createCloudId(providerId);
     }
 
-    private void attachAdditionalLocalIdentifier(String additionalLocalIdentifier, String cloudId, String providerId)
-            throws CloudException {
-        RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_MAPPING_LOCAL_CLOUD_ID, () ->
-                uisClient.createMapping(cloudId, providerId, additionalLocalIdentifier)
-        );
-    }
-
-    private String createCloudId(String providerId, String europeanaId) throws CloudException {
+    private String createCloudId(String providerId) throws CloudException {
         return RetryableMethodExecutor.executeOnRest(ERROR_MSG_WHILE_CREATING_CLOUD_ID, () ->
-                uisClient.createCloudId(providerId, europeanaId).getId());
+                uisClient.createCloudId(providerId).getId());
     }
-
 }
 
 

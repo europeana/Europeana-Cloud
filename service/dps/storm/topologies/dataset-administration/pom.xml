@@ -123,6 +123,18 @@
       <version>${version.storm}</version>
     </dependency>
 
+    <dependency>
+      <groupId>eu.europeana.cloud</groupId>
+      <artifactId>harvesting-commons</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-compress</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!--test dependencies-->
     <dependency>
       <artifactId>mockito-core</artifactId>

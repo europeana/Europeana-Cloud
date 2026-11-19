@@ -59,7 +59,7 @@ public final class TopologyHelper {
   public static final String RESOURCE_PROCESSING_BOLT = "ResourceProcessingBolt";
   public static final String LINK_CHECK_BOLT = "LinkCheckBolt";
   public static final String DEPUBLICATION_BOLT = "DepublicationBolt";
-  public static final String DUMMY_BOLT = "DUMMY_BOLT";
+  public static final String DATASET_ADMINISTRATION_BOLT = "DATASET_ADMINISTRATION_BOLT";
 
   private TopologyHelper() {
   }
