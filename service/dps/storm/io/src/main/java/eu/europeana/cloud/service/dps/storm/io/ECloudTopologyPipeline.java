@@ -69,6 +69,38 @@ public class ECloudTopologyPipeline {
   }
 
   /**
+   * Adds AddToDatasetBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addAddToDatasetBolt() {
+    AddToDatasetBolt writeRecordBolt = new AddToDatasetBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ADD_TO_DATASET_BOLT, writeRecordBolt, ADD_TO_DATASET_BOLT_PARALLEL, ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
+   * Adds ValidationAddToDatasetBolt to the pipeline
+   *
+   * @return this
+   */
+  public ECloudTopologyPipeline addValidationAddToDatasetBolt() {
+    ValidationAddToDatasetBolt bolt = new ValidationAddToDatasetBolt(
+        createCassandraProperties(topologyProperties),
+        topologyProperties.getProperty(MCS_URL),
+        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
+        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD)
+    );
+    addBolt(ADD_TO_DATASET_BOLT, bolt, ADD_TO_DATASET_BOLT_PARALLEL, ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS);
+    return this;
+  }
+
+  /**
    * Adds WriteRecordBolt to the pipeline
    *
    * @return this
@@ -102,22 +134,6 @@ public class ECloudTopologyPipeline {
     addBolt(WRITE_RECORD_BOLT, writeRecordBolt, WRITE_BOLT_PARALLEL, WRITE_BOLT_NUMBER_OF_TASKS);
     return this;
   }
-
-  /**
-   * Adds RevisionWriterBolt to the pipeline
-   * @return this
-   */
-  public ECloudTopologyPipeline addRevisionWriterBolt() {
-    RevisionWriterBolt revisionWriterBolt = new RevisionWriterBolt(
-        createCassandraProperties(topologyProperties),
-        topologyProperties.getProperty(MCS_URL),
-        topologyProperties.getProperty(TOPOLOGY_USER_NAME),
-        topologyProperties.getProperty(TOPOLOGY_USER_PASSWORD));
-
-    addBolt(REVISION_WRITER_BOLT, revisionWriterBolt, REVISION_WRITER_BOLT_PARALLEL, REVISION_WRITER_BOLT_NUMBER_OF_TASKS);
-    return this;
-  }
-
 
   /**
    * Adds the bolt with a ShuffleGrouping tuples from the previous bolt, or spouts it the bolt is first added.

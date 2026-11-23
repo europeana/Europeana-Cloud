@@ -2,6 +2,7 @@ package eu.europeana.cloud.service.dps.services.submitters;
 
 import eu.europeana.cloud.common.model.dps.EngineTaskState;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
+import eu.europeana.cloud.service.dps.DepublicationInfo;
 import eu.europeana.cloud.service.dps.DpsRecord;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -18,6 +19,7 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.exception.IndexingException;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,7 +101,7 @@ class DepublicationTaskSubmitterTest {
     @Test
     void shouldProperlySentTaskForSelectedRecords() throws TaskSubmissionException {
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
-        dpsTask.getParameters().put(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD_ID_1 + "," + RECORD_ID_2);
+        dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of(RECORD_ID_1, RECORD_ID_2)).build());
         when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
 
         submitter.submitTask(parameters);
@@ -118,6 +120,7 @@ class DepublicationTaskSubmitterTest {
         when(indexer.countRecords(DATASET_ID)).thenReturn(2L);
         when(indexer.getRecordIds(eq(DATASET_ID), any(), anyInt())).thenReturn(Stream.of(RECORD_ID_1, RECORD_ID_2));
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
+        dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
         when(recordSubmitService.submitRecord(any(), any())).thenReturn(true);
 
         submitter.submitTask(parameters);
@@ -135,6 +138,7 @@ class DepublicationTaskSubmitterTest {
     void shouldDropTaskWhenDatasetIsEmpty() throws TaskSubmissionException, IndexingException {
         when(indexer.countRecords(DATASET_ID)).thenReturn(0L);
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
+        dpsTask.setSource(DepublicationInfo.builder().depublishWholeDataset(true).build());
 
         submitter.submitTask(parameters);
 
@@ -145,7 +149,7 @@ class DepublicationTaskSubmitterTest {
     @Test
     void shouldNotSentRecordsWhenTaskIsCanceled() {
         dpsTask.getParameters().put(PluginParameterKeys.METIS_DATASET_ID, DATASET_ID);
-        dpsTask.getParameters().put(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH, RECORD_ID_1 + "," + RECORD_ID_2);
+        dpsTask.setSource(DepublicationInfo.builder().europeanaIdsToDepublish(Set.of(RECORD_ID_1, RECORD_ID_2)).build());
         when(taskStatusChecker.hasDroppedStatus(TASK_ID)).thenReturn(true);
 
         assertThrows(TaskDroppedException.class, () -> submitter.submitTask(parameters));

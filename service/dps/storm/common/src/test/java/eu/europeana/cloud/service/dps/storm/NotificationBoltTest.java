@@ -270,7 +270,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     @Test
     void verifyOnlyOneNotificationForRepeatedRecord() throws Exception {
         long taskId = 1;
-        insertTaskToDB(taskId, null, 10, EngineTaskState.CURRENTLY_PROCESSING, "");
+        insertTaskToDB(taskId, null, 10, EngineTaskState.QUEUED, "");
 
         Tuple tuple = createNotificationTuple(taskId, RecordState.SUCCESS);
         testedBolt.execute(tuple);
@@ -290,7 +290,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         long taskId = 1;
         int expectedSize = 101;
         String topologyName = null;
-        EngineTaskState taskState = EngineTaskState.CURRENTLY_PROCESSING;
+        EngineTaskState taskState = EngineTaskState.QUEUED;
         String taskInfo = "";
         insertTaskToDB(taskId, topologyName, expectedSize, taskState, taskInfo);
 
@@ -305,10 +305,10 @@ public class NotificationBoltTest extends CassandraTestBase {
     TaskInfo afterOneHundredExecutions = reportService.getTaskProgress(taskId);
     testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
         assertEquals(0, beforeExecute.getProcessedRecords());
-        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
+        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.QUEUED));
 
         assertEquals(100, afterOneHundredExecutions.getProcessedRecords());
-        assertThat(afterOneHundredExecutions.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
+        assertThat(afterOneHundredExecutions.getEngineTaskState(), is(EngineTaskState.QUEUED));
   }
 
     @Test
@@ -347,7 +347,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         long taskId = 1;
         int expectedSize = 2;
         String topologyName = null;
-        EngineTaskState taskState = EngineTaskState.CURRENTLY_PROCESSING;
+        EngineTaskState taskState = EngineTaskState.QUEUED;
         String taskInfo = "";
         insertTaskToDB(taskId, topologyName, 2, taskState, taskInfo);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.SUCCESS));
@@ -361,7 +361,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     void testValidErrorReportDataAfterBoltRecreate() throws Exception {
         long taskId = 1;
         String topologyName = null;
-        EngineTaskState taskState = EngineTaskState.CURRENTLY_PROCESSING;
+        EngineTaskState taskState = EngineTaskState.QUEUED;
         String taskInfo = "";
         insertTaskToDB(taskId, topologyName, 2, taskState, taskInfo);
         testedBolt.execute(createNotificationTuple(taskId, RecordState.ERROR, RESOURCE_1));
@@ -504,7 +504,7 @@ public class NotificationBoltTest extends CassandraTestBase {
         int expectedSize = 20;
         int errors = 9;
         String topologyName = null;
-        EngineTaskState taskState = EngineTaskState.CURRENTLY_PROCESSING;
+        EngineTaskState taskState = EngineTaskState.QUEUED;
         String taskInfo = "";
         insertTaskToDB(taskId, topologyName, expectedSize, taskState, taskInfo);
 
@@ -521,7 +521,7 @@ public class NotificationBoltTest extends CassandraTestBase {
 
     //then
         assertEquals(0, beforeExecute.getProcessedRecords());
-        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
+        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.QUEUED));
         assertEquals(0, beforeExecute.getFailRecords());
 
     assertEquals(1, errorsInfo.getErrors().size());
@@ -532,7 +532,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     void shouldProperlyExecuteTupleWithReports() throws AccessDeniedOrObjectDoesNotExistException {
         TaskExecutionReportServiceImpl reportService = new TaskExecutionReportServiceImpl(subtaskDAO, taskErrorsDAO, taskInfoDAO);
         long taskId = 1;
-        EngineTaskState taskState = EngineTaskState.CURRENTLY_PROCESSING;
+        EngineTaskState taskState = EngineTaskState.QUEUED;
         String taskInfo = "";
         insertTaskToDB(taskId, null, 1, taskState, taskInfo);
 
@@ -546,7 +546,7 @@ public class NotificationBoltTest extends CassandraTestBase {
     TaskErrorsInfo errorsInfo = reportService.getGeneralTaskErrorReport(taskId, 0);
 
         assertEquals(0, beforeExecute.getProcessedRecords());
-        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.CURRENTLY_PROCESSING));
+        assertThat(beforeExecute.getEngineTaskState(), is(EngineTaskState.QUEUED));
         assertEquals(0, beforeExecute.getFailRecords());
 
     List<TaskErrorInfo> errors = errorsInfo.getErrors();

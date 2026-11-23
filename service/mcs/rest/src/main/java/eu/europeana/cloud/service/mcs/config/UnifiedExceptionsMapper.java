@@ -14,8 +14,6 @@ import eu.europeana.cloud.service.mcs.exception.FileNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.ProviderNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RecordNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
-import eu.europeana.cloud.service.mcs.exception.RevisionIsNotValidException;
-import eu.europeana.cloud.service.mcs.exception.RevisionNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.WrongContentRangeException;
 import eu.europeana.cloud.service.mcs.status.McsErrorCode;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -301,34 +299,6 @@ public class UnifiedExceptionsMapper {
   @ResponseBody
   public ResponseEntity<ErrorInfo> handleAccessDeniedOrObjectDoesNotExistException(Exception exception) {
     return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, McsErrorCode.ACCESS_DENIED_OR_OBJECT_DOES_NOT_EXIST_EXCEPTION, exception);
-  }
-
-
-  /**
-   * Maps {@link RevisionIsNotValidException} to {@link ResponseEntity}. Returns a response with HTTP status code 405 - "Method
-   * not Allowed" and a {@link ResponseEntity<ErrorInfo>} with exception details as a message body.
-   *
-   * @param exception the exception to map to a response
-   * @return a response mapped from the supplied exception
-   */
-  @ExceptionHandler(RevisionIsNotValidException.class)
-  public @ResponseBody
-  ResponseEntity<ErrorInfo> handleRevisionIsNotValidException(Exception exception) {
-    return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, McsErrorCode.REVISION_IS_NOT_VALID, exception);
-  }
-
-
-  /**
-   * Maps {@link RevisionNotExistsException} to {@link ResponseEntity}. Returns a response with HTTP status code 404 - "Not found"
-   * and a {@link ResponseEntity<ErrorInfo>} with exception details as a message body.
-   *
-   * @param exception the exception to map to a response
-   * @return a response mapped from the supplied exception
-   */
-  @ExceptionHandler(RevisionNotExistsException.class)
-  public @ResponseBody
-  ResponseEntity<ErrorInfo> handleRevisionNotExistsException(Exception exception) {
-    return buildResponse(HttpStatus.NOT_FOUND, McsErrorCode.REVISION_NOT_EXISTS, exception);
   }
 
   @ExceptionHandler(DataSetDeletionException.class)

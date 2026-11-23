@@ -34,7 +34,6 @@ public class NormalizationTopology {
             .addBolt(NORMALIZATION_BOLT, new NormalizationBolt(createCassandraProperties(topologyProperties)),
                     NORMALIZATION_BOLT_PARALLEL, NORMALIZATION_BOLT_NUMBER_OF_TASKS)
             .addWriteRecordBolt(true)
-        .addRevisionWriterBolt()
         .buildTopology();
   }
 

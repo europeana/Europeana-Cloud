@@ -16,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Verifies permissions to given dataset from given user
  */
 public class DataSetPermissionsVerifier {
-
   private final PermissionEvaluator permissionEvaluator;
   private final RecordService recordService;
 
@@ -51,16 +50,14 @@ public class DataSetPermissionsVerifier {
     return isPrivilegedUser() || hasWritePermissionFor(representation);
   }
 
-  public boolean isUserAllowedToAddRevisionTo(Representation representation)
-      throws RepresentationNotExistsException {
-    return isPrivilegedUser() || hasWritePermissionFor(representation);
-  }
-
-  public boolean isUserAllowedToDeleteRevisionFor(Representation representation)
-      throws RepresentationNotExistsException {
-    return isPrivilegedUser() || hasDeletePermissionFor(representation);
-  }
-
+  /**
+   * Verifies is given user has privileges to read {@link Representation}
+   *
+   * @param representation {@link Representation} that is about to be read
+   *
+   * @return true of false indicating that given user is/isn't allowed to read {@link Representation}
+   * @throws RepresentationNotExistsException in case of non-existing representation
+   */
   public boolean hasReadPermissionFor(Representation representation)
       throws RepresentationNotExistsException {
     return hasPermissionFor(representation, Permission.READ);
@@ -85,12 +82,31 @@ public class DataSetPermissionsVerifier {
   }
 
   private boolean hasPermissionFor(Representation representation, Permission permission)
-          throws RepresentationNotExistsException {
-      representation = recordService.getRepresentation(representation.getCloudId(), representation.getRepresentationName(), representation.getVersion());
-      SecurityContext ctx = SecurityContextHolder.getContext();
-      Authentication authentication = ctx.getAuthentication();
-      String targetId = representation.getDatasetId() + "/" + representation.getDataProvider();
-      return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue());
-      }
+      throws RepresentationNotExistsException {
+    representation = recordService.getRepresentation(representation.getCloudId(), representation.getRepresentationName(),
+        representation.getVersion());
 
+    if (representation.getDatasetIds().isEmpty()) {
+      throw new RuntimeException("Representation is not assigned to any dataset: " + representation);
+    }
+
+    for (String datasetId : representation.getDatasetIds()) {
+      if (!hasPermissionForDataset(representation.getDataProvider(), datasetId, permission)) {
+        return false;
+      }
+    }
+    return true;
+
+  }
+
+  public boolean hasWritePermissionForDataset(String providerId,String datasetId) {
+    return hasPermissionForDataset(providerId, datasetId, Permission.WRITE);
+  }
+
+  private boolean hasPermissionForDataset(String providerId,String datasetId, Permission permission) {
+    SecurityContext ctx = SecurityContextHolder.getContext();
+    Authentication authentication = ctx.getAuthentication();
+    String targetId = datasetId + "/" + providerId;
+    return permissionEvaluator.hasPermission(authentication, targetId, DataSet.class.getName(), permission.getValue());
+  }
 }

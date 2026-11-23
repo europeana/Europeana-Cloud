@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ErrorInfo;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.Is;
@@ -79,11 +77,6 @@ public class MockMvcUtils {
     });
   }
 
-  public static ResultSlice<CloudTagsResponse> responseContentAsCloudTagResultSlice(ResultActions response) throws IOException {
-    return responseContent(response, new TypeReference<ResultSlice<CloudTagsResponse>>() {
-    });
-  }
-
   public static ErrorInfo responseContentAsErrorInfo(ResultActions response) throws IOException {
     return responseContent(response, ErrorInfo.class);
   }
@@ -105,12 +98,6 @@ public class MockMvcUtils {
       throws UnsupportedEncodingException, JsonProcessingException {
     return responseContent(response, new TypeReference<RepresentationsListWrapper>() {
     }, mediaType).getRepresentations();
-  }
-
-  public static List<RepresentationRevisionResponse> responseContentAsRepresentationRevisionResponseList(ResultActions response, MediaType mediaType)
-      throws UnsupportedEncodingException, JsonProcessingException {
-    return responseContent(response, new TypeReference<RepresentationRevisionResponseListWrapper>() {
-    }, mediaType).getRepresentationRevisions();
   }
 
   private static <T> T responseContent(ResultActions response, TypeReference<T> valueTypeRef)

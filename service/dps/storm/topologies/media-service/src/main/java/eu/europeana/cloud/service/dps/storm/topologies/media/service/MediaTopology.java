@@ -72,7 +72,6 @@ public class MediaTopology {
             .withAdditionalFieldGrouping(EDM_OBJECT_PROCESSOR_BOLT, EDMObjectProcessorBolt.EDM_OBJECT_ENRICHMENT_STREAM_NAME,
                     INPUT_FILES_TUPLE_FIELD)
             .addWriteRecordBolt(true)
-        .addRevisionWriterBolt()
         .buildTopology();
   }
 

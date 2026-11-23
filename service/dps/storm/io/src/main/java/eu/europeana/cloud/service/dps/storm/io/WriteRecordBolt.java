@@ -3,8 +3,6 @@ package eu.europeana.cloud.service.dps.storm.io;
 
 import eu.europeana.cloud.client.uis.rest.CloudException;
 import eu.europeana.cloud.client.uis.rest.UISClient;
-import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.common.utils.Clock;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
@@ -20,7 +18,6 @@ import eu.europeana.cloud.service.dps.storm.tuple.common.CommonTaskTuple;
 import eu.europeana.cloud.service.dps.storm.utils.FileDataChecker;
 import eu.europeana.cloud.service.dps.storm.utils.TaskTupleUtility;
 import eu.europeana.cloud.service.dps.storm.utils.UUIDWrapper;
-import eu.europeana.cloud.service.mcs.exception.MCSException;
 import lombok.Data;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
@@ -48,9 +45,7 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   private final String ecloudMcsAddress;
   private final String topologyUserName;
   private final String topologyUserPassword;
-  private final boolean topologyCreatingNewData;
   protected transient RecordServiceClient recordServiceClient;
-  protected transient UISClient uisClient;
 
   public WriteRecordBolt(CassandraProperties cassandraProperties, String ecloudMcsAddress,
                          String topologyUserName, String topologyUserPassword, boolean topologyCreatingNewData) {
@@ -58,7 +53,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     this.ecloudMcsAddress = ecloudMcsAddress;
     this.topologyUserName = topologyUserName;
     this.topologyUserPassword = topologyUserPassword;
-    this.topologyCreatingNewData = topologyCreatingNewData;
   }
 
   @Override
@@ -72,50 +66,21 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     recordServiceClient = new RecordServiceClient(ecloudMcsAddress, topologyUserName, topologyUserPassword);
   }
 
-  /*
-  * New representation should be created if:
-  * - We are using revision output,
-  * - We are using dataset output and record is not marked as deleted and is processed as part of specific topologies.
-  * (xslt, enrichment, normalization, oai or media)
-   */
-  private boolean shouldNewRepresentationBeCreated(CommonTaskTuple tuple) {
-    if (!isRevisionProvided(tuple.getOutputRevision())) return true;
-
-      if (tuple.isMarkedAsDepublished()) {
-      return false;
-    }
-
-    return topologyCreatingNewData;
-  }
-
-  private boolean isRevisionProvided(Revision revision) {
-    if (revision == null) return false;
-    if (revision.getRevisionName() == null) return false;
-    if (revision.getCreationTimeStamp() == null) return false;
-    if (revision.getRevisionProviderId() == null) return false;
-    return true;
-  }
-
-
   @Override
   public void execute(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
     LOGGER.debug("WriteRecordBolt: persisting processed file");
     Instant processingStartTime = Instant.now();
     try {
-      if (shouldNewRepresentationBeCreated(commonTaskTuple)) {
-        RecordWriteParams writeParams = prepareWriteParameters(commonTaskTuple);
-        LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
-        long uploadStart = System.nanoTime();
-        var uri = uploadFileInNewRepresentation(commonTaskTuple, writeParams);
-        MetricRegistry.wrBoltUploadFileLatency(topologyName, component, (System.nanoTime() - uploadStart) / 1e9);
-        LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
-        LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
-        commonTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
-      } else {
-        LOGGER.info("WriteRecordBolt: For this record in this execution representation creation is not needed!");
-      }
+      RecordWriteParams writeParams = prepareWriteParameters(commonTaskTuple);
+      LOGGER.debug("WriteRecordBolt: prepared write parameters: {}", writeParams);
+      long uploadStart = System.nanoTime();
+      var uri = uploadFileInNewRepresentation(commonTaskTuple, writeParams);
+      MetricRegistry.wrBoltUploadFileLatency(topologyName, component, (System.nanoTime() - uploadStart) / 1e9);
+      LOGGER.debug("WriteRecordBolt: file modified, new URI: {}", uri);
+      LOGGER.debug("File persisted in eCloud in: {}ms", Clock.millisecondsSince(processingStartTime));
+      commonTaskTuple.addParameter(PluginParameterKeys.OUTPUT_URL, uri.toString());
       prepareEmittedTuple(commonTaskTuple);
-      outputCollector.emit(anchorTuple, commonTaskTuple.toStormTuple());
+      emitSuccessfulResult(anchorTuple, commonTaskTuple);
       outputCollector.ack(anchorTuple);
     } catch (RetryInterruptedException e) {
       handleInterruption(e, anchorTuple);
@@ -128,22 +93,13 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
   }
 
-  private String getProviderId(CommonTaskTuple commonTaskTuple) throws MCSException {
-    Representation rep = getRepresentation(commonTaskTuple);
-    return rep.getDataProvider();
-  }
-
-  private Representation getRepresentation(CommonTaskTuple commonTaskTuple) throws MCSException {
-    return RetryableMethodExecutor.executeOnRest("Error while getting provider id", () ->
-            recordServiceClient.getRepresentation(commonTaskTuple.getParameter(CLOUD_ID),
-            commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_NAME),
-            commonTaskTuple.getParameter(PluginParameterKeys.REPRESENTATION_VERSION)));
+  protected void emitSuccessfulResult(Tuple anchorTuple, CommonTaskTuple commonTaskTuple) {
+    emitNotification(anchorTuple, commonTaskTuple);
   }
 
   private void prepareEmittedTuple(CommonTaskTuple commonTaskTuple) {
     commonTaskTuple.setFileData((byte[]) null);
-    commonTaskTuple.getParameters().remove(CLOUD_ID);
-    commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_NAME);
+    commonTaskTuple.getParameters().remove(PluginParameterKeys.CLOUD_ID);
     commonTaskTuple.getParameters().remove(PluginParameterKeys.REPRESENTATION_VERSION);
   }
 
@@ -159,13 +115,12 @@ public class WriteRecordBolt extends AbstractDpsBolt {
   }
 
   protected RecordWriteParams prepareWriteParameters(CommonTaskTuple tuple)
-      throws CloudException, MCSException, MalformedURLException {
+      throws CloudException, MalformedURLException {
     var writeParams = new RecordWriteParams();
     String cloudId = obtainCloudId(tuple);
-    String providerId = obtainProviderId(tuple);
     writeParams.setCloudId(cloudId);
-    writeParams.setRepresentationName(TaskTupleUtility.getParameterFromTuple(tuple, PluginParameterKeys.NEW_REPRESENTATION_NAME));
-    writeParams.setProviderId(providerId);
+    writeParams.setRepresentationName(tuple.getOutputRepresentationName());
+    writeParams.setProviderId(tuple.getOutputDatasetProvider());
     writeParams.setNewVersion(generateNewVersionId(tuple));
     writeParams.setNewFileName(generateNewFileName(tuple));
     writeParams.setDataSetId(tuple.getOutputDatasetId());
@@ -187,21 +142,6 @@ public class WriteRecordBolt extends AbstractDpsBolt {
     }
     tuple.addParameter(cloudId, CLOUD_ID);
     return cloudId;
-  }
-
-  private String obtainProviderId(CommonTaskTuple tuple) throws MCSException, CloudException, MalformedURLException {
-    String providerId = null;
-    if (tuple.ifParametersContainsKey(PluginParameterKeys.PROVIDER_ID)) {
-      providerId = tuple.getParameter(PluginParameterKeys.PROVIDER_ID);
-    } else if (tuple.getOutputDatasetProvider() != null) {
-      providerId = tuple.getOutputDatasetProvider();
-    } else if (tuple.ifParametersContainsKey(CLOUD_ID)) {
-      providerId = getProviderId(tuple);
-    }
-    if (providerId == null) {
-      throw new CloudException("Couldn't obtain provider Id!", new RuntimeException());
-    }
-    return providerId;
   }
 
   protected URI uploadFileInNewRepresentation(CommonTaskTuple commonTaskTuple, RecordWriteParams writeParams) throws Exception {

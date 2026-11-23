@@ -4,11 +4,8 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import eu.europeana.cloud.common.model.DataSet;
 import eu.europeana.cloud.common.model.Permission;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.mcs.driver.exception.DriverException;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.DataSetAlreadyExistsException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
 import eu.europeana.cloud.service.mcs.exception.MCSException;
@@ -22,15 +19,15 @@ import java.util.NoSuchElementException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataSetServiceClientTest {
 
   public static final String PROVIDER_ID = "Provider001";
   public static final String DATASET_ID = "dataset000002";
+  private static final String CLOUD_ID = "cloudId1";
+  private static final String REPRESENTATION_NAME = "schema1";
+  private static final String VERSION_ID = "cbb65e20-987c-11e3-9621-1c6f653f6012";
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =
@@ -363,6 +360,54 @@ class DataSetServiceClientTest {
     assertNotNull(result.getResults());
     assertEquals(result.getResults().size(), resultSize);
     assertNull(result.getNextSlice());
+  }
+
+  @Test
+  void shouldRetrieveFixedNumberOfExistingRepresentations()
+      throws MCSException {
+    wireMockExtension.stubFor(get(urlEqualTo(
+        "/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID + "?existingOnly=true&chunkSize=2"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/xml")
+            .withBody(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:31.195+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>7FZHHZKSBDN</cloudId><representationName>schema1</representationName><version>cbb65e20-987c-11e3-9621-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:30.258+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>QWG6BVVQ2LM</cloudId><representationName>schema1</representationName><version>cb25b6e0-987c-11e3-9621-1c6f653f6012</version></results></resultSlice>")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    ResultSlice<Representation> result = instance.getDataSetRepresentationsChunk(PROVIDER_ID, DATASET_ID, true,null,2);
+
+    assertNotNull(result.getResults());
+    assertEquals(2, result.getResults().size());
+    assertNull(result.getNextSlice());
+  }
+
+  @Test
+  void shouldRetrieveAllVersionOfRepresentations() throws MCSException {
+    wireMockExtension.stubFor(get(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID+"/records/"+CLOUD_ID+"/representations/"+REPRESENTATION_NAME))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/xml")
+            .withBody(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:31.195+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>7FZHHZKSBDN</cloudId><representationName>schema1</representationName><version>cbb65e20-987c-11e3-9621-1c6f653f6012</version></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"representation\"><creationDate>2014-02-18T10:12:30.258+01:00</creationDate><dataProvider>Provider001</dataProvider><persistent>false</persistent><cloudId>QWG6BVVQ2LM</cloudId><representationName>schema1</representationName><version>cb25b6e0-987c-11e3-9621-1c6f653f6012</version></results></resultSlice>")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    List<Representation> result = instance.getDataSetRepresentations(PROVIDER_ID, DATASET_ID, CLOUD_ID,REPRESENTATION_NAME);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void shouldAssignRepresentationVersionToDataset() throws MCSException {
+    wireMockExtension.stubFor(put(urlEqualTo("/mcs/data-providers/" + PROVIDER_ID + "/data-sets/" + DATASET_ID+"/records/"+CLOUD_ID+"/representations/"+REPRESENTATION_NAME+"/versions/"+VERSION_ID))
+        .willReturn(aResponse()
+            .withStatus(204)
+            .withHeader("Content-Type", "application/xml")
+            .withBody("")));
+    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
+
+    assertDoesNotThrow(
+        () -> instance.assignRepresentationVersionToDataset(PROVIDER_ID, DATASET_ID, CLOUD_ID, REPRESENTATION_NAME, VERSION_ID));
   }
 
   @Test
@@ -1017,79 +1062,6 @@ class DataSetServiceClientTest {
 
       RepresentationIterator iterator = instance.getRepresentationIterator(providerId, dataSetId);
     assertThrows(DriverException.class, iterator::next);
-  }
-
-  @Test
-  void shouldRetrieveCloudIdsForSpecificRevision()
-          throws MCSException {
-    //given
-    String providerId = "LFT";
-    String dataSetId = "set1";
-    String representationName = "t1";
-    String revisionName = "IMPORT";
-    String revisionProviderId = "EU";
-    String revisionTimestamp = "2017-01-09T08:16:47.824Z";
-
-    //
-    wireMockExtension.stubFor(get(urlEqualTo(
-            "/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824Z&limit=0"))
-            .willReturn(aResponse()
-                    .withStatus(200)
-                    .withHeader("Content-Type", "application/xml")
-                    .withBody(
-                            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudTagsResponse\"><acceptance>true</acceptance><cloudId>A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ</cloudId><deleted>false</deleted><published>false</published></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudTagsResponse\"><acceptance>false</acceptance><cloudId>V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ</cloudId><deleted>false</deleted><published>true</published></results></resultSlice>")));
-    //
-
-    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    //when
-    List<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsList(providerId, dataSetId, representationName,
-        new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)));
-    //then
-    assertThat(cloudIds.size(), is(2));
-    CloudTagsResponse cid = cloudIds.get(0);
-    assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
-    assertFalse(cid.isDeleted());
-
-    cid = cloudIds.get(1);
-    assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
-    assertFalse(cid.isDeleted());
-  }
-
-  @Test
-  void shouldRetrieveCloudIdsChunkForSpecificRevision()
-          throws MCSException {
-    //given
-    String providerId = "LFT";
-    String dataSetId = "set1";
-    String representationName = "t1";
-    String revisionName = "IMPORT";
-    String revisionProviderId = "EU";
-    String revisionTimestamp = "2017-01-09T08:16:47.824Z";
-
-    //
-    wireMockExtension.stubFor(get(urlEqualTo(
-            "/mcs/data-providers/LFT/data-sets/set1/representations/t1/revisions/IMPORT/revisionProvider/EU?revisionTimestamp=2017-01-09T08%3A16%3A47.824Z&limit=0"))
-            .willReturn(aResponse()
-                    .withStatus(200)
-                    .withHeader("Content-Type", "application/xml")
-                    .withBody(
-                            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><resultSlice><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudTagsResponse\"><acceptance>true</acceptance><cloudId>A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ</cloudId><deleted>false</deleted><published>false</published></results><results xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"cloudTagsResponse\"><acceptance>false</acceptance><cloudId>V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ</cloudId><deleted>false</deleted><published>true</published></results></resultSlice>")));
-    //
-
-    DataSetServiceClient instance = new DataSetServiceClient(baseUrl);
-    //when
-    ResultSlice<CloudTagsResponse> cloudIds = instance.getDataSetRevisionsChunk(providerId, dataSetId, representationName,
-        new Revision(revisionName, revisionProviderId, DateHelper.parseISODate(revisionTimestamp)), null, null);
-    //then
-    assertThat(cloudIds.getNextSlice(), nullValue());
-    assertThat(cloudIds.getResults().size(), is(2));
-    CloudTagsResponse cid = cloudIds.getResults().get(0);
-    assertThat(cid.getCloudId(), is("A2YCHGEFD4UV4UIEAWDUJHWJNZWXNOURWCQORIG7MCQASTB62OSQ"));
-    assertFalse(cid.isDeleted());
-
-    cid = cloudIds.getResults().get(1);
-    assertThat(cid.getCloudId(), is("V7UYW5HK2YVQH7HN67W4ZRXBKLXLEY2HRIICIWAFTDVHEFZE5SPQ"));
-    assertFalse(cid.isDeleted());
   }
 
 }

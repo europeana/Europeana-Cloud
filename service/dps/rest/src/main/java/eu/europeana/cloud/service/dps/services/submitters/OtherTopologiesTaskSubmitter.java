@@ -10,7 +10,6 @@ import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounter;
 import eu.europeana.cloud.service.dps.utils.files.counter.FilesCounterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,20 +17,21 @@ public class OtherTopologiesTaskSubmitter extends AbstractTaskSubmitter implemen
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OtherTopologiesTaskSubmitter.class);
 
-  @Autowired
-  private KafkaTopicSelector kafkaTopicSelector;
+  private final KafkaTopicSelector kafkaTopicSelector;
 
-  @Autowired
-  private FilesCounterFactory filesCounterFactory;
+  private final FilesCounterFactory filesCounterFactory;
 
-  @Autowired
-  private TaskStatusUpdater taskStatusUpdater;
+  private final TaskStatusUpdater taskStatusUpdater;
 
-  @Autowired
-  private MCSTaskSubmitter mcsTaskSubmitter;
+  private final MCSTaskSubmitter mcsTaskSubmitter;
 
-  public OtherTopologiesTaskSubmitter(DataSetServiceClient dataSetServiceClient) {
+  public OtherTopologiesTaskSubmitter(DataSetServiceClient dataSetServiceClient, KafkaTopicSelector kafkaTopicSelector,
+      FilesCounterFactory filesCounterFactory, TaskStatusUpdater taskStatusUpdater, MCSTaskSubmitter mcsTaskSubmitter) {
     super(dataSetServiceClient);
+    this.kafkaTopicSelector = kafkaTopicSelector;
+    this.filesCounterFactory = filesCounterFactory;
+    this.taskStatusUpdater = taskStatusUpdater;
+    this.mcsTaskSubmitter = mcsTaskSubmitter;
   }
 
   @Override

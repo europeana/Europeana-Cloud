@@ -71,7 +71,6 @@ class FileResourceTest extends CassandraBasedAbstractResourceTest {
             .existsCloudId(Mockito.anyString());
 
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToUploadFileFor(Mockito.any());
-    Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToAddRevisionTo(Mockito.any());
     Mockito.doReturn(true).when(dataSetPermissionsVerifier).isUserAllowedToDeleteFileFor(Mockito.any());
 
     dataSetService.createDataSet("1", "s", "desc");

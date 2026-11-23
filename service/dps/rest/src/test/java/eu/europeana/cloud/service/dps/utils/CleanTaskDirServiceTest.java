@@ -79,7 +79,7 @@ class CleanTaskDirServiceTest {
     FileUtils.forceMkdir(baseDir);
     baseDir.deleteOnExit();
 
-      when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(createTaskInfo(anyLong(), EngineTaskState.PENDING)));
+      when(taskInfoDAO.findById(anyLong())).thenReturn(Optional.of(createTaskInfo(anyLong(), EngineTaskState.QUEUED)));
 
     for (int index = 0; index < TEST_COUNTER; index++) {
       long taskId = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, Long.MAX_VALUE);
@@ -101,7 +101,7 @@ class CleanTaskDirServiceTest {
         state = null;
         processedDroppedTasksCounter++;
       } else {
-          state = EngineTaskState.PENDING;   //other than PROCESSED & DROPPED & null
+          state = EngineTaskState.QUEUED;   //other than PROCESSED & DROPPED & null
       }
 
       TaskInfo taskInfo = createTaskInfo(taskId, state);

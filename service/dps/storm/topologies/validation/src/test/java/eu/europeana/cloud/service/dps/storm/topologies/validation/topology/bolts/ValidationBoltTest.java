@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.storm.AbstractDpsBolt;
@@ -26,7 +25,6 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -91,7 +89,6 @@ class ValidationBoltTest {
             new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
             new ProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters(schemaName, schemaRootLocation));
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     validationBolt.execute(anchorTuple, tuple);
     assertSuccessfulValidation();
   }
@@ -105,7 +102,6 @@ class ValidationBoltTest {
             new RecordData(SOURCE_VERSION_URL, FILE_DATA, true),
             new ProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters("edm-external", null));
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     validationBolt.execute(anchorTuple, tuple);
     assertFailedValidation();
   }

@@ -3,7 +3,6 @@ package eu.europeana.cloud.downloader;
 import eu.europeana.cloud.TestConstantsHelper;
 import eu.europeana.cloud.common.model.File;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.exception.RepresentationNotFoundException;
 import eu.europeana.cloud.mcs.driver.DataSetServiceClient;
 import eu.europeana.cloud.mcs.driver.FileServiceClient;
@@ -74,11 +73,10 @@ public class RecordDownloaderTest implements TestConstantsHelper {
 
   private Representation prepareRepresentation() throws URISyntaxException {
     List<File> files = new ArrayList<>();
-    List<Revision> revisions = new ArrayList<>();
     files.add(new File("fileName", "text/plain", "md5", "1", 5, new URI(FILE_URL)));
     files.add(new File("fileName2", "text/plain", "md5", "1", 5, new URI(FILE_URL2)));
     Representation representation = new Representation(CLOUD_ID, REPRESENTATION_NAME, VERSION, new URI(FILE_URL),
-        new URI(FILE_URL), DATA_PROVIDER, files, revisions, false, new Date());
+        new URI(FILE_URL), DATA_PROVIDER, files, false, new Date());
     return representation;
   }
 

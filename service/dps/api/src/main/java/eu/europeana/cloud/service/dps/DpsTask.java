@@ -1,38 +1,31 @@
 package eu.europeana.cloud.service.dps;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Objects;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.TaskInfo;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.ToString;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Definition of the task parameters which is sent to DPS service.
+ */
 @XmlRootElement
-@ToString
-public class DpsTask implements Serializable {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DpsTask {
 
-  private static final long serialVersionUID = 1L;
-
-  /* Map of input data:
-  cloud-records - InputDataType.FILE_URLS
-  cloud-datasets - InputDataType.DATASET_URLS
-  cloud-repositoryurl - InputDataType.REPOSITORY_URLS
-  */
-  private Map<InputDataType, List<String>> inputData;
+  private TaskSource source;
+  private BatchInfo resultsBatch;
 
   /* List of parameters (specific for each dps-topology) */
-  private Map<String, String> parameters;
-
-  /* output revision*/
-  private Revision outputRevision;
+  private Map<String, String> parameters = new HashMap<>();
 
   /* Unique id for this task */
   private long taskId;
@@ -41,146 +34,70 @@ public class DpsTask implements Serializable {
   private String taskName;
 
   /**
-   * Details of harvesting process
-   */
-  private OAIPMHHarvestingDetails harvestingDetails;
-
-
-  public DpsTask() {
-    this("");
-  }
-
-  /**
-   * @param taskName
+   * Constructor
+   * @param taskName - task name
    */
   public DpsTask(String taskName) {
-
     this.taskName = taskName;
-
-    inputData = new EnumMap<>(InputDataType.class);
-    parameters = new HashMap<>();
-
-    taskId = UUID.randomUUID().getMostSignificantBits();
-
-    harvestingDetails = null;
-  }
-
-  public void setTaskId(long taskId) {
-    this.taskId = taskId;
-  }
-
-  public Revision getOutputRevision() {
-    return outputRevision;
-  }
-
-  public void setOutputRevision(Revision outputRevision) {
-    this.outputRevision = outputRevision;
   }
 
 
   /**
-   * @return Unique id for this task
+   * Adds task general parameter
+   * @param parameterKey  - key of the parameter
+   * @param parameterValue - value of the parameter
    */
-  public long getTaskId() {
-    return taskId;
-  }
-
-  public void setTaskName(String taskName) {
-    this.taskName = taskName;
-  }
-
-  /**
-   * @return Name for the task
-   */
-  public String getTaskName() {
-    return taskName;
-  }
-
-  public void addDataEntry(InputDataType dataType, List<String> data) {
-    inputData.put(dataType, data);
-  }
-
-  public List<String> getDataEntry(InputDataType dataType) {
-    return inputData.get(dataType);
-  }
-
   public void addParameter(String parameterKey, String parameterValue) {
     parameters.put(parameterKey, parameterValue);
   }
 
+  /**
+   * Adds task general parameter
+   * @param parameterKey - key of the parameter
+   * @return parameter value
+   */
   public String getParameter(String parameterKey) {
     return parameters.get(parameterKey);
   }
 
-  /*
-   * @return true if parameter is present and is not empty
+  /**
+   * Removes task general parameter
+   * @param name - key of the parameter
    */
-  public boolean isParameterPresent(String parameterKey){
-    return parameters.containsKey(parameterKey) && !parameters.get(parameterKey).isBlank();
+  public void removeParameter(String name) {
+    parameters.remove(name);
   }
 
   /**
-   * @return List of parameters (specific for each dps-topology)
+   * @return string representation of the DpsTask in JSON format
+   * @throws JsonProcessingException when some of the parameters could not be serialized as JSON
    */
-  public Map<String, String> getParameters() {
-    return parameters;
-  }
-
-  public void setParameters(Map<String, String> parameters) {
-    this.parameters = parameters;
-  }
-
-  /**
-   * @return List of input data (cloud-records or cloud-datasets)
-   */
-  public Map<InputDataType, List<String>> getInputData() {
-    return inputData;
-  }
-
-  public void setInputData(Map<InputDataType, List<String>> inputData) {
-    this.inputData = inputData;
-  }
-
-  public OAIPMHHarvestingDetails getHarvestingDetails() {
-    return harvestingDetails;
-  }
-
-  public void setHarvestingDetails(OAIPMHHarvestingDetails harvestingDetails) {
-    this.harvestingDetails = harvestingDetails;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || this.getClass() != o.getClass()) {
-      return false;
-    }
-    var dpsTask = (DpsTask) o;
-    return taskId == dpsTask.taskId &&
-        com.google.common.base.Objects.equal(inputData, dpsTask.inputData) &&
-        Objects.equal(parameters, dpsTask.parameters) &&
-        Objects.equal(outputRevision, dpsTask.outputRevision) &&
-        Objects.equal(taskName, dpsTask.taskName) &&
-        Objects.equal(harvestingDetails, dpsTask.harvestingDetails);
-  }
-
-  public String toJSON() throws IOException {
+  public String toJSON() throws JsonProcessingException {
     return new ObjectMapper().writeValueAsString(this);
   }
 
-  public static DpsTask fromJSON(String json) throws IOException {
+  /**
+   * Deserializes task
+   * @param json - string containing the DpsTask in JSON format
+   * @return DPS task instance
+   * @throws JsonProcessingException when string could not be properly parsed as DpsTask
+   */
+  public static DpsTask fromJSON(String json) throws JsonProcessingException {
+    if (json == null) {
+      throw new IllegalArgumentException("Task definition json is null");
+    }
     return new ObjectMapper().readValue(json, DpsTask.class);
   }
 
-  public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws IOException {
+  /**
+   * Deserializes task
+   * @param taskInfo - task database entity
+   * @return DPS task instance
+   * @throws JsonProcessingException when task definition stored in entity could not be properly parsed as DpsTask
+   */
+  public static DpsTask fromTaskInfo(TaskInfo taskInfo) throws JsonProcessingException {
     return fromJSON(taskInfo.getDefinition());
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(inputData, parameters, outputRevision, taskId, taskName, harvestingDetails);
-  }
 }
 

@@ -34,7 +34,7 @@ public class TestSpout extends BaseRichSpout {
     //        CommonTaskTuple stormTaskTuple = new CommonTaskTuple(
     //                1,
     //               "taskName",
-    //                null, null, new HashMap<>(), new Revision(), new OAIPMHHarvestingDetails());
+    //                null, null, new HashMap<>(), new OAIPMHHarvestingDetails());
     //
     //        collector.emit(stormTaskTuple.toStormTuple());
 

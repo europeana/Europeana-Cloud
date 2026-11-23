@@ -1,7 +1,9 @@
 package eu.europeana.cloud.service.mcs.controller;
 
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_ASSIGNMENT_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_PERMISSIONS_RESOURCE;
 import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_RESOURCE;
+import static eu.europeana.cloud.service.mcs.RestInterfaceConstants.DATA_SET_SELECTED_RECORD_RESOURCE;
 
 import eu.europeana.aas.permission.PermissionsGrantingManager;
 import eu.europeana.cloud.common.model.DataSet;
@@ -13,8 +15,11 @@ import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.exception.AccessDeniedOrObjectDoesNotExistException;
 import eu.europeana.cloud.service.mcs.exception.DataSetDeletionException;
 import eu.europeana.cloud.service.mcs.exception.DataSetNotExistsException;
+import eu.europeana.cloud.service.mcs.exception.RepresentationNotExistsException;
+import eu.europeana.cloud.service.mcs.utils.DataSetPermissionsVerifier;
 import eu.europeana.cloud.service.mcs.utils.EnrichUriUtil;
 import eu.europeana.cloud.service.mcs.utils.ParamUtil;
+import eu.europeana.cloud.service.mcs.utils.RepresentationsListWrapper;
 import java.util.Arrays;
 import java.util.List;
 
@@ -120,10 +125,15 @@ public class DataSetResource {
       @PathVariable("providerId") String providerId,
       @PathVariable("dataSetId") String dataSetId,
       @RequestParam(value = "existingOnly", defaultValue = "false") boolean existingOnly,
-      @RequestParam(value = "startFrom", required = false) String startFrom) throws DataSetNotExistsException {
+      @RequestParam(value = "startFrom", required = false) String startFrom,
+      @RequestParam(required = false) Integer chunkSize) throws DataSetNotExistsException {
+
+    if (chunkSize == null) {
+      chunkSize = numberOfElementsOnPage;
+    }
 
     ResultSlice<Representation> representations =
-            dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, numberOfElementsOnPage);
+            dataSetService.listDataSet(providerId, dataSetId, startFrom, existingOnly, chunkSize);
 
     for (Representation rep : representations.getResults()) {
       EnrichUriUtil.enrich(httpServletRequest, rep);
@@ -131,6 +141,66 @@ public class DataSetResource {
     return representations;
   }
 
+  /**
+   * Lists versions of the given representation belonging to the dataset.
+   *
+   * @param request current HttpServletRequest
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param cloudId cloud id of the record which contains the representation(required).
+   * @param representationName name of the representation(required).
+   * @return representation version list
+   * @throws DataSetNotExistsException no such data set exists.
+   */
+  @GetMapping(value = DATA_SET_SELECTED_RECORD_RESOURCE, produces = {MediaType.APPLICATION_XML_VALUE,
+      MediaType.APPLICATION_JSON_VALUE})
+  public RepresentationsListWrapper getDataSetRecordsForGivenRepresentation(
+      final HttpServletRequest request,
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @PathVariable String cloudId,
+      @PathVariable String representationName) throws DataSetNotExistsException {
+
+    List<Representation> representations = dataSetService.listDataSetRecordsForGivenRepresentation
+                                                             (providerId, dataSetId, cloudId, representationName);
+
+    for (Representation representationVersion : representations) {
+      EnrichUriUtil.enrich(request, representationVersion);
+    }
+
+    return new RepresentationsListWrapper(representations);
+  }
+
+  /**
+   * Assigns existing representation to the dataset.
+   *
+   * @param providerId identifier of the dataset's provider (required).
+   * @param dataSetId identifier of a data set (required).
+   * @param cloudId cloud id of the record which contains the representation(required).
+   * @param representationName name of the representation(required).
+   * @param version version of the representation(required).
+   * @throws RepresentationNotExistsException no such representation exists.
+   */
+  @PutMapping(value = DATA_SET_ASSIGNMENT_RESOURCE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasPermission(#dataSetId.concat('/').concat(#providerId), 'eu.europeana.cloud.common.model.DataSet', write)")
+  public void assignRepresentationVersionToDataset(
+      @PathVariable String providerId,
+      @PathVariable String dataSetId,
+      @PathVariable String cloudId,
+      @PathVariable String representationName,
+      @PathVariable String version
+  ) throws RepresentationNotExistsException {
+    dataSetService.assignRepresentationVersionToDataset(providerId, dataSetId, cloudId, representationName, version);
+  }
+
+  /**
+   * Checks if given dataset exists.
+   *
+   * @param providerId - provider id
+   * @param dataSetId - dataset id
+   * @throws DataSetNotExistsException - if dataset does not exist
+   */
   @RequestMapping(value = DATA_SET_RESOURCE, method = RequestMethod.HEAD)
   public void checkIfDatasetExists(@PathVariable String dataSetId, @PathVariable String providerId)
       throws DataSetNotExistsException {

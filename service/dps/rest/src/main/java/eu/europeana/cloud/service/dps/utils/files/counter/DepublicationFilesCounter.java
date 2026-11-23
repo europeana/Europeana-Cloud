@@ -1,5 +1,8 @@
 package eu.europeana.cloud.service.dps.utils.files.counter;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import eu.europeana.cloud.service.dps.DepublicationInfo;
 import eu.europeana.cloud.service.dps.DpsTask;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 import eu.europeana.cloud.service.dps.exceptions.TaskSubmissionException;
@@ -19,9 +22,10 @@ public class DepublicationFilesCounter extends FilesCounter {
 
   @Override
   public int getFilesCount(DpsTask task) throws TaskSubmissionException {
-    if (task.getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH) != null) {
-      return calculateRecordsNumber(task);
-    } else if (task.getParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
+    DepublicationInfo info= (DepublicationInfo) task.getSource();
+    if (isNotEmpty(info.getEuropeanaIdsToDepublish())) {
+      return calculateRecordsNumber(info);
+    } else if (info.isDepublishWholeDataset() && task.getParameter(PluginParameterKeys.METIS_DATASET_ID) != null) {
       return calculateDatasetSize(task);
     } else {
       throw new TaskSubmissionException("Can't evaluate task expected size! Needed parameters not found in the task");
@@ -42,7 +46,7 @@ public class DepublicationFilesCounter extends FilesCounter {
     }
   }
 
-  private int calculateRecordsNumber(DpsTask task) {
-    return task.getParameter(PluginParameterKeys.RECORD_IDS_TO_DEPUBLISH).split(",").length;
+  private int calculateRecordsNumber(DepublicationInfo info) {
+    return info.getEuropeanaIdsToDepublish().size();
   }
 }

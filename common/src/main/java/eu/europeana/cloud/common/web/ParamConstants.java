@@ -29,12 +29,6 @@ public final class ParamConstants {
 
   public static final String DATA_SET_ID = "dataSetId";
 
-  public static final String REVISION_NAME = "revisionName";
-
-  public static final String REVISION_PROVIDER = "revisionProvider";
-
-  public static final String REVISION_PROVIDER_ID = "revisionProviderId";
-
   public static final String FILE_NAME = "fileName";
     public static final String MARK_DEPUBLISHED = "markDepublished";
 
@@ -80,11 +74,7 @@ public final class ParamConstants {
 
   public static final String IS_DELETED = "deleted";
 
-  public static final String F_REVISION_TIMESTAMP = "revisionTimestamp";
-
   public static final String F_EXISTING_ONLY = "existingOnly";
-
-  public static final String F_REVISION_PROVIDER_ID = "revisionProviderId";
 
   //header paramiters' names
   public static final String H_RANGE = "Range";
@@ -92,6 +82,7 @@ public final class ParamConstants {
   public static final String F_PERMISSION = "permission";
 
   public static final String F_USERNAME = "username";
+  public static final String F_CHUNK_SIZE = "chunkSize";
 
   private ParamConstants() {
   }

@@ -17,6 +17,7 @@ import java.io.Serializable;
 public class AmazonClient implements Serializable {
 
   static AmazonS3 amazonS3;
+  private static final Object LOCK = new Object();
   private final String awsAccessKey;
   private final String awsSecretKey;
   private final String awsEndPoint;
@@ -24,13 +25,15 @@ public class AmazonClient implements Serializable {
 
   @PostConstruct
   @SuppressWarnings("java:S6263")
-  // Credentials are loaded from configuration files that require SSH-key and VPN to access or inner company gitlab account with proper permissions.
-  synchronized void init() {
-    if (amazonS3 == null) {
-      amazonS3 = new AmazonS3Client(new BasicAWSCredentials(
-          awsAccessKey,
-          awsSecretKey));
-      amazonS3.setEndpoint(awsEndPoint);
+    // Credentials are loaded from configuration files that require SSH-key and VPN to access or inner company gitlab account with proper permissions.
+  void init() {
+    synchronized (LOCK) {
+      if (amazonS3 == null) {
+        amazonS3 = new AmazonS3Client(new BasicAWSCredentials(
+            awsAccessKey,
+            awsSecretKey));
+        amazonS3.setEndpoint(awsEndPoint);
+      }
     }
   }
 

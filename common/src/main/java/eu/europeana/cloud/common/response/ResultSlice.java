@@ -24,7 +24,7 @@ import java.util.List;
  */
 @XmlRootElement
 @XmlSeeAlso({DataProvider.class, Representation.class, DataSet.class, CloudId.class,
-    LocalId.class, String.class, CloudVersionRevisionResponse.class, CloudTagsResponse.class})
+    LocalId.class, String.class})
 // references to all classes that might be used as generics parameters
 @JsonRootName("resultSlice")
 @JacksonXmlRootElement

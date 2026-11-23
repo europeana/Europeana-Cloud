@@ -2,10 +2,8 @@ package eu.europeana.cloud.service.mcs.persistent;
 
 import eu.europeana.cloud.common.model.*;
 import eu.europeana.cloud.common.model.Record;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.utils.FileUtils;
 import eu.europeana.cloud.common.utils.LogMessageCleaner;
-import eu.europeana.cloud.common.utils.RevisionUtils;
 import eu.europeana.cloud.service.mcs.DataSetService;
 import eu.europeana.cloud.service.mcs.RecordService;
 import eu.europeana.cloud.service.mcs.UISClientHandler;
@@ -96,7 +94,6 @@ public class CassandraRecordService implements RecordService {
       for (Representation repVersion : allRecordRepresentationsInAllVersions) {
         removeFilesFromRepresentationVersion(cloudId, repVersion);
         removeRepresentationAssignmentFromDataSets(cloudId, repVersion);
-        deleteRepresentationRevision(cloudId, repVersion);
         recordDAO.deleteRepresentation(cloudId, repVersion.getRepresentationName(), repVersion.getVersion());
       }
     } else {
@@ -120,7 +117,6 @@ public class CassandraRecordService implements RecordService {
     for (Representation rep : listRepresentations) {
       removeFilesFromRepresentationVersion(globalId, rep);
       removeRepresentationAssignmentFromDataSets(globalId, rep);
-      deleteRepresentationRevision(globalId, rep);
     }
     recordDAO.deleteRepresentation(globalId, schema);
   }
@@ -193,11 +189,11 @@ public class CassandraRecordService implements RecordService {
     }
   }
 
-  private void checkIfVersionIsContainedOnlyOneDataset(String cloudId, String representationName, String providerId, UUID version, String dataSetId) throws RepresentationNotExistsException, DataSetAssignmentException {
-    Optional<CompoundDataSetId> oneDatasetFor = dataSetService.getOneDatasetFor(cloudId, representationName, version);
-    if (oneDatasetFor.isPresent()) {
-      CompoundDataSetId currentDataset = oneDatasetFor.get();
-      CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, dataSetId);
+  private void checkIfVersionIsContainedOnlyOneDataset(String cloudId, String representationName, String providerId, UUID version, String dataSetId) throws DataSetAssignmentException {
+    Optional<CompoundDataSetId> datasetFor = recordDAO.getRepresentationDatasetId(cloudId, representationName, version);
+    if (datasetFor.isPresent()) {
+      CompoundDataSetId currentDataset = datasetFor.get();
+      CompoundDataSetId newVersionDataset = new CompoundDataSetId(providerId, Set.of(dataSetId));
       if (!currentDataset.equals(newVersionDataset)) {
         throw new DataSetAssignmentException("ProviderId and/or datasetId: " + newVersionDataset
                 + " doesn't match the current assignments of the representation: " + currentDataset
@@ -247,7 +243,6 @@ public class CassandraRecordService implements RecordService {
 
     removeFilesFromRepresentationVersion(globalId, rep);
     removeRepresentationAssignmentFromDataSets(globalId, rep);
-    deleteRepresentationRevision(globalId, rep);
     recordDAO.deleteRepresentation(globalId, schema, version);
 
   }
@@ -334,17 +329,6 @@ public class CassandraRecordService implements RecordService {
     file.setContentLength(result.getContentLength());
     recordDAO.addOrReplaceFileInRepresentation(globalId, schema, version, file);
     LOGGER.debug("Updated file information in representation: {}", representation);
-
-    for (Revision revision : representation.getRevisions()) {
-      // update information in extra table
-      recordDAO.addOrReplaceFileInRepresentationRevision(
-          globalId, schema, version,
-          revision.getRevisionProviderId(), revision.getRevisionName(), revision.getCreationTimeStamp(),
-          file
-      );
-      LOGGER.debug("Updated file information in revision: {}", revision);
-    }
-
     return isCreate;
   }
 
@@ -404,7 +388,6 @@ public class CassandraRecordService implements RecordService {
       throw new CannotModifyPersistentRepresentationException();
     }
     recordDAO.removeFileFromRepresentation(globalId, schema, version, fileName);
-    recordDAO.removeFileFromRepresentationRevisionsTable(representation, fileName);
     File file = findFileInRepresentation(representation, fileName);
     contentDAO.deleteContent(file.getMd5(), FileUtils.generateKeyForFile(globalId, schema, version, fileName), file.getFileStorage());
   }
@@ -417,48 +400,6 @@ public class CassandraRecordService implements RecordService {
       throws RepresentationNotExistsException, FileNotExistsException {
     final Representation rep = getRepresentation(globalId, schema, version);
     return findFileInRepresentation(rep, fileName);
-  }
-
-  /**
-   * @inheritDoc
-   */
-  @Override
-  public void addRevision(String globalId, String schema, String version, Revision revision) throws RevisionIsNotValidException {
-    recordDAO.addOrReplaceRevisionInRepresentation(globalId, schema, version, revision);
-  }
-
-  @Override
-  public List<RepresentationRevisionResponse> getRepresentationRevisions(String globalId, String schema,
-      String revisionProviderId,
-      String revisionName, Date revisionTimestamp) {
-    return recordDAO.getRepresentationRevisions(globalId, schema, revisionProviderId, revisionName, revisionTimestamp);
-  }
-
-  @Override
-  public void insertRepresentationRevision(String globalId, String schema, String revisionProviderId,
-      String revisionName, String versionId, Date revisionTimestamp) {
-    // add additional association between representation version and revision
-    Representation representation = recordDAO.getRepresentation(globalId, schema, versionId);
-    recordDAO.addRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName, revisionTimestamp);
-    for (File file : representation.getFiles()) {
-      recordDAO.addOrReplaceFileInRepresentationRevision(globalId, schema, versionId, revisionProviderId, revisionName,
-          revisionTimestamp, file);
-    }
-  }
-
-  /**
-   * @inheritDoc
-   */
-  @Override
-  public Revision getRevision(String globalId, String schema, String version, String revisionKey)
-      throws RevisionNotExistsException, RepresentationNotExistsException {
-    Representation rep = getRepresentation(globalId, schema, version);
-    for (Revision revision : rep.getRevisions()) {
-      if (revision != null && RevisionUtils.getRevisionKey(revision).equals(revisionKey)) {
-        return revision;
-      }
-    }
-    throw new RevisionNotExistsException();
   }
 
   private void removeFilesFromRepresentationVersion(String cloudId, Representation repVersion) {
@@ -475,13 +416,6 @@ public class CassandraRecordService implements RecordService {
     }
   }
 
-  private void deleteRepresentationRevision(String globalId, Representation rep) {
-    for (Revision r : rep.getRevisions()) {
-      recordDAO.deleteRepresentationRevision(globalId, rep.getRepresentationName(), rep.getVersion(),
-          r.getRevisionProviderId(), r.getRevisionName(), r.getCreationTimeStamp());
-    }
-  }
-
   private void checkIfDatasetExists(String dataSetId, String providerId) throws DataSetNotExistsException {
     DataSet ds = dataSetDAO.getDataSet(providerId, dataSetId);
     if (ds == null) {
@@ -490,11 +424,11 @@ public class CassandraRecordService implements RecordService {
   }
 
   private void removeRepresentationAssignmentFromDataSets(String globalId, Representation representation) {
-    if (representation.getDatasetId() != null) {
+    for (String datasetId : representation.getDatasetIds()) {
         try {
           dataSetService.removeAssignment(
               representation.getDataProvider(),
-                  representation.getDatasetId(),
+                  datasetId,
               globalId,
               representation.getRepresentationName(),
               representation.getVersion()

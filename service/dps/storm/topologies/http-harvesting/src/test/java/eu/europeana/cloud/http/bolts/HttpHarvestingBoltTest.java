@@ -1,7 +1,6 @@
 package eu.europeana.cloud.http.bolts;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.properties.CassandraProperties;
 import eu.europeana.cloud.service.commons.utils.RetryableMethodExecutor;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
@@ -32,8 +31,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static eu.europeana.cloud.service.dps.storm.AbstractDpsBolt.NOTIFICATION_STREAM_NAME;
-import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_NAME;
-import static eu.europeana.cloud.service.dps.test.TestConstants.REVISION_PROVIDER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.core.Is.is;
@@ -84,7 +81,6 @@ class HttpHarvestingBoltTest {
             new RecordData(fileUrl, null),
             new ProcessingData());
     tuple.setParameters(prepareStormTaskTupleParameters());
-    tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
     bolt.prepare();
   }
 

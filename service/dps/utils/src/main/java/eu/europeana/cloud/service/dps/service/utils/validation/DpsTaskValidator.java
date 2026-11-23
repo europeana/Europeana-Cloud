@@ -1,31 +1,24 @@
 package eu.europeana.cloud.service.dps.service.utils.validation;
 
-import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.service.commons.urls.DataSetUrlParser;
-import eu.europeana.cloud.service.commons.urls.UrlParser;
-import eu.europeana.cloud.service.dps.DpsTask;
-import eu.europeana.cloud.service.dps.InputDataType;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.exception.DpsTaskValidationException;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.CustomValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedDepublicationSourceValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.FullyDefinedMCSInputValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.HttpInputValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.NoOutputValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.OAIInputValidator;
+import eu.europeana.cloud.service.dps.service.utils.validation.custom.ProperlyDefinedMCSOutputValidator;
 import eu.europeana.cloud.service.dps.service.utils.validation.custom.MaximumParallelizationValidator;
-import org.apache.commons.validator.routines.UrlValidator;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static eu.europeana.cloud.service.dps.PluginParameterKeys.OUTPUT_DATA_SETS;
-import static eu.europeana.cloud.service.dps.service.utils.validation.InputDataValueType.*;
-
 public final class DpsTaskValidator {
 
-
-  public static final String WRONG_INPUT_DATA_MESSAGE = "Wrong input data: ";
   private final List<DpsTaskConstraint> dpsTaskConstraints = new ArrayList<>();
   private final List<CustomValidator> customValidators = new ArrayList<>();
   private final String validatorName;
-  private boolean revisionMustExist = false;
 
   public DpsTaskValidator() {
     this("Default validator");
@@ -99,135 +92,27 @@ public final class DpsTaskValidator {
     return this;
   }
 
-  /**
-   * Will check if dps task contains input data with selected name (value of this input data will not be validated)
-   *
-   * @param inputDataName name for the INPUT_DATA that will be validated
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withDataEntry(String inputDataName) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.INPUT_DATA)
-                                                    .expectedName(inputDataName)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
+  public DpsTaskValidator withDefinedMCSOutput() {
+    return withCustomValidator(new ProperlyDefinedMCSOutputValidator());
   }
 
-  /**
-   * Will check if dps task contains input data with selected name and selected value
-   *
-   * @param entryName name for the INPUT_DATA that will be validated
-   * @param entryValue value for the INPUT_DATA that will be validated
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withDataEntry(String entryName, Object entryValue) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.INPUT_DATA)
-                                                    .expectedName(entryName)
-                                                    .expectedValue(entryValue)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
+  public DpsTaskValidator withDefinedMCSInput() {
+    return withCustomValidator(new FullyDefinedMCSInputValidator());
+  }
+  public DpsTaskValidator withDefinedDepublicationInput() {
+    return withCustomValidator(new FullyDefinedDepublicationSourceValidator());
   }
 
-  /**
-   * Will check if dps task contains input data with selected name and selected content type
-   *
-   * @param entryName name for the INPUT_DATA that will be validated
-   * @param contentType content type of input data entry (can be file url, dataset url, ...)
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withDataEntry(String entryName, InputDataValueType contentType) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.INPUT_DATA)
-                                                    .expectedName(entryName)
-                                                    .expectedValueType(contentType)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
+  public DpsTaskValidator withDefinedOAIInput() {
+    return withCustomValidator(new OAIInputValidator());
   }
 
-
-  /**
-   * Will check if dps task contains selected name
-   *
-   * @param taskName name of the task that will be compared with the name of the validated task
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withName(String taskName) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.NAME)
-                                                    .expectedName(null)
-                                                    .expectedValue(taskName)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
+  public DpsTaskValidator withDefinedHttpInput() {
+    return withCustomValidator(new HttpInputValidator());
   }
 
-  /**
-   * Will check if dps task contains any name
-   *
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withAnyName() {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.NAME)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  /**
-   * Will check if dps task contains selected task id
-   *
-   * @param taskId task identifier that will be compared with the identifier of the validated task
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withId(long taskId) {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.ID)
-                                                    .expectedName(null)
-                                                    .expectedValue(taskId + "")
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  /**
-   * Will check if dps task contains any task id
-   *
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withAnyId() {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.ID)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-
-  /**
-   * Will check if dps task contains any task id
-   *
-   * @return currently constructed validator
-   */
-  public DpsTaskValidator withAnyOutputRevision() {
-    revisionMustExist = true;
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.OUTPUT_REVISION)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
-  }
-
-  public DpsTaskValidator withOptionalOutputRevision() {
-    DpsTaskConstraint constraint = DpsTaskConstraint.newDpsTaskConstraint()
-                                                    .fieldType(DpsTaskFieldType.OUTPUT_REVISION)
-                                                    .build();
-    dpsTaskConstraints.add(constraint);
-    return this;
+  public DpsTaskValidator withNoOutput() {
+    return withCustomValidator(new NoOutputValidator());
   }
 
   public DpsTaskValidator withCustomValidator(CustomValidator validator) {
@@ -235,19 +120,11 @@ public final class DpsTaskValidator {
     return this;
   }
 
-  public void validate(DpsTask task) throws DpsTaskValidationException {
+  public void validate(CreateDpsTaskRequest task) throws DpsTaskValidationException {
     for (DpsTaskConstraint re : dpsTaskConstraints) {
       DpsTaskFieldType fieldType = re.getFieldType();
-      if (fieldType == DpsTaskFieldType.NAME) {
-        validateName(task, re);
-      } else if (fieldType == DpsTaskFieldType.PARAMETER) {
+      if (fieldType == DpsTaskFieldType.PARAMETER) {
         validateParameter(task, re);
-      } else if (fieldType == DpsTaskFieldType.INPUT_DATA) {
-        validateInputData(task, re);
-      } else if (fieldType == DpsTaskFieldType.ID) {
-        validateId(task, re);
-      } else if (fieldType == DpsTaskFieldType.OUTPUT_REVISION) {
-        validateOutputRevision(task, revisionMustExist);
       }
     }
     for (CustomValidator customValidator : customValidators) {
@@ -258,35 +135,7 @@ public final class DpsTaskValidator {
     }
   }
 
-  private void validateRevisionBasedProcessingParameters(DpsTask task) throws DpsTaskValidationException {
-    if (isRevisionFilled(task)){
-      long numberOfFilesAndDatasets = dpsTaskConstraints.stream().map(DpsTaskConstraint::getExpectedValueType)
-              .filter(dataValueType -> dataValueType.equals(LINK_TO_FILE) || dataValueType.equals(LINK_TO_DATASET)).count();
-      if (numberOfFilesAndDatasets != 1) {
-        throw new DpsTaskValidationException(
-                "Dps task with filled revision can contain only one input dataset or one input file"
-        );
-      }
-    }
-  }
-
-
-  private void validateName(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    String taskName = task.getTaskName();
-    if (constraint.getExpectedValue() == null && taskName != null) {  //any name
-      return;
-    }
-    if ("".equals(constraint.getExpectedValue()) && "".equals(taskName)) {//empty name
-      return;
-    }
-    if (constraint.getExpectedValue().equals(taskName)) {//exact name
-      return;
-    }
-
-    throw new DpsTaskValidationException("Task name is not valid.");
-  }
-
-  private void validateParameter(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
+  private void validateParameter(CreateDpsTaskRequest task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
     String parameterValue = task.getParameter(constraint.getExpectedName());
     if (parameterValue == null) {
       throw new DpsTaskValidationException(
@@ -311,173 +160,7 @@ public final class DpsTaskValidator {
     }
     throw new DpsTaskValidationException("Parameter does not meet constraints. Parameter name: " + constraint.getExpectedName());
   }
-
-  private void validateInputData(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    if (NO_DATA == constraint.getExpectedValueType()) {
-      validateNoInputData(task);
-      return;
-    }
-    final InputDataType dataType;
-    try {
-      dataType = InputDataType.valueOf(constraint.getExpectedName());
-    } catch (IllegalArgumentException e) {
-      throw new DpsTaskValidationException("Input data is not valid.", e);
-    }
-    List<String> expectedInputData = task.getDataEntry(dataType);
-
-    if (expectedInputData == null) {
-      throw new DpsTaskValidationException(
-          "Expected parameter does not exist in dpsTask. Parameter name: " + constraint.getExpectedName());
-    }
-    if (constraint.getExpectedValueType() != null) {
-      validateInputDataContent(expectedInputData, constraint);
-    }
-    if (constraint.getExpectedValue() == null) {   //any value
-      return;
-    }
-    if (constraint.getExpectedValueType() != null) {
-      if (isRevisionFilled(task)){
-        validateRevisionBasedProcessingParameters(task);
-      } else {
-        validateCorrectDatasets(expectedInputData, task, constraint);
-      }
-    }
-    if ("".equals(constraint.getExpectedValue()) && expectedInputData.isEmpty()) {    //empty value
-      return;
-    }
-    if (expectedInputData.equals(constraint.getExpectedValue())) {  //exact value
-      return;
-    }
-    throw new DpsTaskValidationException("Input data is not valid.");
-  }
-
-  private void validateNoInputData(DpsTask task) throws DpsTaskValidationException {
-    if (!task.getInputData().isEmpty()) {
-      throw new DpsTaskValidationException("Input data should be empty.");
-    }
-  }
-
-  public void validateCorrectDatasets(List<String> taskInputData, DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-      DataSet outputDataset = parseDataSetUrl(task.getParameter(OUTPUT_DATA_SETS));
-      if (outputDataset != null){
-        for (String taskInputDataValue : taskInputData) {
-          validateIfInputAndOutputDatasetAreNotMatching(constraint, outputDataset, taskInputDataValue);
-        }
-      } else {
-        throw new DpsTaskValidationException("Revision is not filled and input dataset is null!");
-      }
-  }
-
-  private static DataSet parseDataSetUrl(String datasetUrl) throws DpsTaskValidationException {
-    DataSet dataSet;
-    try {
-      dataSet = DataSetUrlParser.parse(datasetUrl);
-    } catch (MalformedURLException e){
-      throw new DpsTaskValidationException("Revision is not filled and output dataset url is malformed!");
-    }
-    return dataSet;
-  }
-
-
-  private static void validateIfInputAndOutputDatasetAreNotMatching(DpsTaskConstraint constraint, DataSet outputDataset,
-                                                                    String taskInputDataValue) throws DpsTaskValidationException {
-    DataSet inputDataset = null;
-    if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
-      inputDataset = parseDataSetUrl(taskInputDataValue);
-    }
-    if (constraint.getExpectedValueType() == LINK_TO_FILE){
-      return;
-    }
-    // in case of file constraint we expect user to provide it correctly since it would be a bit problematic to extract
-    // dataset from file URI
-    if (outputDataset.equals(inputDataset)) {
-      throw new DpsTaskValidationException("Revision is not filled nor are dataset different!");
-    }
-  }
-
-  private static boolean isRevisionFilled(DpsTask task) {
-    Revision outputRevision = task.getOutputRevision();
-    return outputRevision!=null && !outputRevision.getRevisionName().isBlank() &&
-            !outputRevision.getRevisionProviderId().isBlank() &&
-            outputRevision.getCreationTimeStamp() != null;
-  }
-
-  private void validateInputDataContent(List<String> taskInputData, DpsTaskConstraint constraint)
-      throws DpsTaskValidationException {
-    for (String taskInputDataValue : taskInputData) {
-      try {
-        if (constraint.getExpectedValueType() == LINK_TO_FILE) {
-          tryValidateFileUrl(taskInputDataValue);
-        } else if (constraint.getExpectedValueType() == LINK_TO_DATASET) {
-          tryValidateDatasetUrl(taskInputDataValue);
-        } else if (constraint.getExpectedValueType() == LINK_TO_EXTERNAL_URL) {
-          tryValidateResourceUrl(taskInputDataValue);
-        }
-      } catch (MalformedURLException e) {
-        throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue, e);
-      }
-    }
-  }
-
-  private void tryValidateResourceUrl(String taskInputDataValue) throws DpsTaskValidationException {
-    UrlValidator urlValidator = new UrlValidator();
-    if (!urlValidator.isValid(taskInputDataValue)) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
-    }
-  }
-
-  private void tryValidateFileUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(taskInputDataValue);
-    if (!parser.isUrlToRepresentationVersionFile()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
-    }
-  }
-
-  private void tryValidateDatasetUrl(String taskInputDataValue) throws MalformedURLException, DpsTaskValidationException {
-    UrlParser parser = new UrlParser(taskInputDataValue);
-    if (!parser.isUrlToDataset()) {
-      throw new DpsTaskValidationException(WRONG_INPUT_DATA_MESSAGE + taskInputDataValue);
-    }
-  }
-
-  private void validateId(DpsTask task, DpsTaskConstraint constraint) throws DpsTaskValidationException {
-    if (constraint.getExpectedValue() == null) {  //any id
-      return;
-    }
-
-    long taskId = task.getTaskId();
-    if (constraint.getExpectedValue().equals(taskId + "")) {//exacted id
-      return;
-    }
-    throw new DpsTaskValidationException("Task id is not valid.");
-  }
-
-  private void validateOutputRevision(DpsTask task, boolean revisionMustExist) throws DpsTaskValidationException {
-    Revision outputRevision = task.getOutputRevision();
-    if (revisionMustExist) {
-      if (outputRevision == null) {
-        throw new DpsTaskValidationException("Output Revision should not be null!. It is required for this task");
-      } else {
-        checkOutputRevisionContent(outputRevision);
-      }
-    } else {
-      if (outputRevision != null) {
-        checkOutputRevisionContent(outputRevision);
-      }
-    }
-  }
-
-  private void checkOutputRevisionContent(Revision outputRevision) throws DpsTaskValidationException {
-    if (outputRevision.getRevisionName() == null || outputRevision.getRevisionProviderId() == null) {
-      throw new DpsTaskValidationException("Revision name and revision provider has to be not null");
-    }
-
-    if (outputRevision.getRevisionName().matches("\\s*") || outputRevision.getRevisionProviderId().matches("\\s*")) {
-      throw new DpsTaskValidationException("Revision name and revision provider has to be non empty");
-    }
-  }
 }
-
 /**
  * Holds the definition of single constraint that should be fulfilled by dpsTask
  */
@@ -501,10 +184,6 @@ class DpsTaskConstraint {
 
   public Object getExpectedValue() {
     return expectedValue;
-  }
-
-  public InputDataValueType getExpectedValueType() {
-    return expectedValueType;
   }
 
   public DpsTaskFieldType getFieldType() {
@@ -540,11 +219,6 @@ class DpsTaskConstraint {
       return this;
     }
 
-    public Builder expectedValueType(InputDataValueType expectedValueType) {
-      this.expectedValueType = expectedValueType;
-      return this;
-    }
-
     public Builder expectedName(String expectedName) {
       this.expectedName = expectedName;
       return this;
@@ -554,8 +228,4 @@ class DpsTaskConstraint {
 
 enum DpsTaskFieldType {
   PARAMETER,
-  INPUT_DATA,
-  ID,
-  NAME,
-  OUTPUT_REVISION
 }

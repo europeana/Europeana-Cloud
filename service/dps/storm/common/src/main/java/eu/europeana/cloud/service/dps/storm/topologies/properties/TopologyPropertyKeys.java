@@ -22,8 +22,8 @@ public final class TopologyPropertyKeys {
   public static final String CASSANDRA_SECRET_TOKEN = "CASSANDRA_PASSWORD";
   public static final String RETRIEVE_FILE_BOLT_PARALLEL = "RETRIEVE_FILE_BOLT_PARALLEL";
   public static final String XSLT_BOLT_PARALLEL = "XSLT_BOLT_PARALLEL";
+  public static final String ADD_TO_DATASET_BOLT_PARALLEL = "ADD_TO_DATASET_BOLT_PARALLEL";
   public static final String WRITE_BOLT_PARALLEL = "WRITE_BOLT_PARALLEL";
-  public static final String REVISION_WRITER_BOLT_PARALLEL = "REVISION_WRITER_BOLT_PARALLEL";
   public static final String VALIDATION_BOLT_PARALLEL = "VALIDATION_BOLT_PARALLEL";
   public static final String INDEXING_BOLT_PARALLEL = "INDEXING_BOLT_PARALLEL";
   public static final String STATISTICS_BOLT_PARALLEL = "STATISTICS_BOLT_PARALLEL";
@@ -31,8 +31,8 @@ public final class TopologyPropertyKeys {
   public static final String MAX_TASK_PARALLELISM = "MAX_TASK_PARALLELISM";
   public static final String RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS = "RETRIEVE_FILE_BOLT_NUMBER_OF_TASKS";
   public static final String XSLT_BOLT_NUMBER_OF_TASKS = "XSLT_BOLT_NUMBER_OF_TASKS";
+  public static final String ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS = "ADD_TO_DATASET_BOLT_NUMBER_OF_TASKS";
   public static final String WRITE_BOLT_NUMBER_OF_TASKS = "WRITE_BOLT_NUMBER_OF_TASKS";
-  public static final String REVISION_WRITER_BOLT_NUMBER_OF_TASKS = "REVISION_WRITER_BOLT_NUMBER_OF_TASKS";
   public static final String NOTIFICATION_BOLT_NUMBER_OF_TASKS = "NOTIFICATION_BOLT_NUMBER_OF_TASKS";
   public static final String NIMBUS_SEEDS = "NIMBUS_SEEDS";
   public static final String VALIDATION_BOLT_NUMBER_OF_TASKS = "VALIDATION_BOLT_NUMBER_OF_TASKS";

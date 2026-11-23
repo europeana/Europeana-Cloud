@@ -1,7 +1,6 @@
 package eu.europeana.cloud.service.dps.storm.topologies.validation.topology.bolts;
 
 import eu.europeana.cloud.cassandra.CassandraConnectionProviderSingleton;
-import eu.europeana.cloud.common.model.Revision;
 import eu.europeana.cloud.common.model.dps.AttributeStatistics;
 import eu.europeana.cloud.common.model.dps.NodeStatistics;
 import eu.europeana.cloud.common.properties.CassandraProperties;
@@ -28,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -74,7 +72,6 @@ class StatisticsBoltTest extends CassandraTestBase {
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         //when
@@ -97,7 +94,6 @@ class StatisticsBoltTest extends CassandraTestBase {
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         List<NodeStatistics> generated = new RecordStatisticsGenerator(new String(fileData)).getStatistics();
 
         byte[] fileData2 = Files.readAllBytes(Paths.get("src/test/resources/example2.xml"));
@@ -128,7 +124,6 @@ class StatisticsBoltTest extends CassandraTestBase {
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
 
         //when
         statisticsBolt.execute(anchorTuple, tuple);
@@ -148,7 +143,6 @@ class StatisticsBoltTest extends CassandraTestBase {
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
 
         //when
         statisticsBolt.execute(anchorTuple, tuple);
@@ -168,7 +162,6 @@ class StatisticsBoltTest extends CassandraTestBase {
                 new RecordData(SOURCE_VERSION_URL, fileData, true),
                 new ProcessingData());
         tuple.setParameters(prepareStormTaskTupleParameters());
-        tuple.setOutputRevision(new Revision(REVISION_NAME, REVISION_PROVIDER, new Date()));
         //when
         statisticsBolt.execute(anchorTuple, tuple);
         //then

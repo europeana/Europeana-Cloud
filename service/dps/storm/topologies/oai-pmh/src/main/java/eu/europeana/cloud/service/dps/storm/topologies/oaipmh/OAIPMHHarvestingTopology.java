@@ -48,7 +48,6 @@ public class OAIPMHHarvestingTopology {
                             createCassandraProperties(topologyProperties)), CATEGORIZATION_BOLT_PARALLEL,
                     CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
             .addHarvestingWriteRecordBolt()
-            .addRevisionWriterBolt()
         .buildTopology();
   }
 

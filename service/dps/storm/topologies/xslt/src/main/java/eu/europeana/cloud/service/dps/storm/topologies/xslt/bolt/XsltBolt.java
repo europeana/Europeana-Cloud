@@ -45,13 +45,11 @@ public class XsltBolt extends AbstractDpsBolt {
       MetricRegistry.xsltTransformLatency(topologyName, component, (System.nanoTime() - startTime) / 1e9);
       LOGGER.info("XsltBolt: transformation success for: {}", fileUrl);
       commonTaskTuple.setFileData(writer.toString().getBytes(StandardCharsets.UTF_8));
-
+//TODO Probably we should removed this outdated information from here it should be done in ECloudSpout
       final UrlParser urlParser = new UrlParser(fileUrl);
       if (urlParser.isUrlToRepresentationVersionFile()) {
         commonTaskTuple
             .addParameter(PluginParameterKeys.CLOUD_ID, urlParser.getPart(UrlPart.RECORDS));
-        commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_NAME,
-            urlParser.getPart(UrlPart.REPRESENTATIONS));
         commonTaskTuple.addParameter(PluginParameterKeys.REPRESENTATION_VERSION,
             urlParser.getPart(UrlPart.VERSIONS));
       }

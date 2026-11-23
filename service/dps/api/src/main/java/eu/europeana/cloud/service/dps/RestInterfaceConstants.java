@@ -15,6 +15,7 @@ public class RestInterfaceConstants {
   public static final String TASK_PROGRESS_URL = "/{topologyName}/tasks/{taskId}/progress";
   public static final String TASK_CLEAN_DATASET_URL = "/{topologyName}/tasks/{taskId}/cleaner";
   public static final String KILL_TASK_URL = "/{topologyName}/tasks/{taskId}/kill";
+  public static final String START_TASK_URL = "/{topologyName}/tasks/{taskId}/started";
   public static final String STATISTICS_REPORT_URL = "/{topologyName}/tasks/{taskId}/statistics";
   public static final String DETAILED_TASK_REPORT_URL = "/{topologyName}/tasks/{taskId}/reports/details";
   public static final String ERRORS_TASK_REPORT_URL = "/{topologyName}/tasks/{taskId}/reports/errors";

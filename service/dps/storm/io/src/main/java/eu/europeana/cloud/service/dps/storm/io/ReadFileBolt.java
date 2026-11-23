@@ -87,7 +87,6 @@ public class ReadFileBolt extends AbstractDpsBolt {
     Instant processingStartTime = Instant.now();
     final String file = commonTaskTuple.getRecordUri();
     LOGGER.info("Downloading the following file: {}", file);
-    commonTaskTuple.setRecordUri(file);
     long downloadStart = System.nanoTime();
     InputStream downloadedFile = getFile(fileClient, file);
     MetricRegistry.rfBoltReadFileLatency(topologyName, component, (System.nanoTime() - downloadStart) / 1e9);

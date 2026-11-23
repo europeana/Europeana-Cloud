@@ -1,6 +1,7 @@
 package eu.europeana.cloud.common.utils;
 
 
+import java.time.format.DateTimeParseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -31,13 +32,27 @@ class DateAdapterTest {
 
     @Test
     void shouldDeSerializeTheDateSuccessfully() {
-        assertEquals(dateAdapter.marshal(DATE), DATE_STRING);
+        assertEquals(DATE_STRING, dateAdapter.marshal(DATE));
+    }
+
+    @Test
+    void shouldDeSerializeNegativeNumberOfMillisendsSuccessfully() {
+        Date date = dateAdapter.unmarshal("-1695479578123");
+
+        assertEquals(new Date(-1695479578123L), date);
+    }
+
+    @Test
+    void shouldDeserializeISODate(){
+        Date date=dateAdapter.unmarshal("2021-02-16T12:58:58.321Z");
+
+        assertEquals(DATE, date);
     }
 
     @Test
     void shouldThrowParsingException() {
         String unParsedDateString = "2017-11-23";
-        assertThrows(NumberFormatException.class, () -> dateAdapter.unmarshal(unParsedDateString));
+        assertThrows(DateTimeParseException.class, () -> dateAdapter.unmarshal(unParsedDateString));
     }
 
     @Test

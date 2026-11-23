@@ -4,7 +4,6 @@ package eu.europeana.cloud.service.dps.services.postprocessors;
 import eu.europeana.cloud.client.uis.rest.UISClient;
 import eu.europeana.cloud.common.model.dps.TaskByTaskState;
 import eu.europeana.cloud.mcs.driver.RecordServiceClient;
-import eu.europeana.cloud.mcs.driver.RevisionServiceClient;
 import eu.europeana.cloud.service.dps.service.utils.indexing.IndexWrapper;
 import eu.europeana.cloud.service.dps.storm.dao.HarvestedRecordsDAO;
 import eu.europeana.cloud.service.dps.storm.dao.ProcessedRecordsDAO;
@@ -35,7 +34,6 @@ class PostProcessorFactoryTest {
                 Mockito.mock(HarvestedRecordsDAO.class),
                 Mockito.mock(ProcessedRecordsDAO.class),
                 Mockito.mock(RecordServiceClient.class),
-                Mockito.mock(RevisionServiceClient.class),
                 Mockito.mock(UISClient.class),
                 Mockito.mock(TaskStatusUpdater.class),
                 Mockito.mock(TaskStatusChecker.class),

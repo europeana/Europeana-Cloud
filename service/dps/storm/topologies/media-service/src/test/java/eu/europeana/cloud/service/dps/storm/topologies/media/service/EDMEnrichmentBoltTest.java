@@ -71,12 +71,12 @@ class EDMEnrichmentBoltTest {
       edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
+      TaskData taskData = (TaskData) values.get(3);
+      Map<String, String> parameters = taskData.getParameters();
       assertNotNull(parameters);
-      assertEquals(4, parameters.size());
+      assertEquals(3, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
-      assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
       assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
     }
   }
@@ -101,12 +101,12 @@ class EDMEnrichmentBoltTest {
       }
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
+      TaskData taskData = (TaskData) values.get(3);
+      Map<String, String> parameters = taskData.getParameters();
       assertNotNull(parameters);
-      assertEquals(4, parameters.size());
+      assertEquals(3, parameters.size());
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
-      assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
       assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
     }
   }
@@ -118,7 +118,7 @@ class EDMEnrichmentBoltTest {
     try (InputStream stream = this.getClass().getResourceAsStream("/files/no-resources.xml")) {
       when(fileClient.getFile(FILE_URL)).thenReturn(stream);
       edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
-      int expectedParametersSize = 5;
+      int expectedParametersSize = 4;
       Map<String, String> initialTupleParameters = commonTaskTuple.getParameters();
       assertEquals(expectedParametersSize, initialTupleParameters.size());
       verify(outputCollector, Mockito.times(1)).emit(eq(anchorTuple), captor.capture());
@@ -146,14 +146,14 @@ class EDMEnrichmentBoltTest {
       edmEnrichmentBolt.execute(anchorTuple, commonTaskTuple);
       verify(outputCollector, times(1)).emit(eq(anchorTuple), captor.capture());
       Values values = captor.getValue();
-      Map<String, String> parameters = ((TaskData) values.get(3)).getParameters();
+      TaskData taskData = (TaskData) values.get(3);
+      Map<String, String> parameters = taskData.getParameters();
       assertNotNull(parameters);
-      assertEquals(6, parameters.size());
+      assertEquals(5, parameters.size());
       assertNotNull(parameters.get(PluginParameterKeys.EXCEPTION_ERROR_MESSAGE));
       assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertNull(parameters.get(PluginParameterKeys.RESOURCE_METADATA));
       assertEquals("sourceCloudId", parameters.get(PluginParameterKeys.CLOUD_ID));
-      assertEquals("sourceRepresentationName", parameters.get(PluginParameterKeys.REPRESENTATION_NAME));
       assertEquals("sourceVersion", parameters.get(PluginParameterKeys.REPRESENTATION_VERSION));
       assertNotNull(parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));
       assertNotNull(MEDIA_RESOURCE_EXCEPTION, parameters.get(PluginParameterKeys.UNIFIED_ERROR_MESSAGE));

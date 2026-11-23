@@ -1,6 +1,5 @@
 package eu.europeana.cloud.http;
 
-
 import eu.europeana.cloud.service.dps.storm.utils.TopologyHelper;
 import org.apache.storm.generated.ComponentCommon;
 import org.apache.storm.generated.StormTopology;
@@ -21,7 +20,7 @@ class HTTPHarvestingTopologyTest {
         HTTPHarvestingTopology httpHarvestingTopology = new HTTPHarvestingTopology("defaultHTTPHarvestingTopologyConfig.properties", "");
         StormTopology topology = httpHarvestingTopology.buildTopology();
 
-        assertEquals(5, topology.get_bolts_size());
+        assertEquals(4, topology.get_bolts_size());
         assertEquals(4, topology.get_spouts_size());
         topology.get_spouts().values().forEach(spoutSpec -> {
             String jsonConf = spoutSpec.get_common().get_json_conf();
@@ -47,16 +46,8 @@ class HTTPHarvestingTopologyTest {
     assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, writeRecordBoltCommon.get_parallelism_hint());
 
     ComponentCommon notificationBoltCommon = topology.get_bolts().get(TopologyHelper.NOTIFICATION_BOLT).get_common();
-        assertEquals(8, notificationBoltCommon.get_inputs_size());
+        assertEquals(7, notificationBoltCommon.get_inputs_size());
         assertEquals(0, notificationBoltCommon.get_streams_size());
     assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, notificationBoltCommon.get_parallelism_hint());
-
-    ComponentCommon revisionWriterBoltCommon = topology.get_bolts().get(TopologyHelper.REVISION_WRITER_BOLT).get_common();
-    assertEquals(1, revisionWriterBoltCommon.get_inputs_size());
-    assertEquals(2, revisionWriterBoltCommon.get_streams_size());
-    assertEquals(DEFAULT_PROPERTIES_BOLT_PARALLELISM, revisionWriterBoltCommon.get_parallelism_hint());
-
-
-
   }
 }

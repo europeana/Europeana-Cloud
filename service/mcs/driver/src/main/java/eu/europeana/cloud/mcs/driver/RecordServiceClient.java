@@ -2,10 +2,7 @@ package eu.europeana.cloud.mcs.driver;
 
 import eu.europeana.cloud.common.model.Record;
 import eu.europeana.cloud.common.model.Representation;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.RepresentationRevisionResponse;
 import eu.europeana.cloud.common.web.ParamConstants;
-import eu.europeana.cloud.service.commons.utils.DateHelper;
 import eu.europeana.cloud.service.mcs.exception.*;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Form;
@@ -471,100 +468,6 @@ public class RecordServiceClient extends MCSClient {
             .resolveTemplate(VERSION, version)
             .request())
             .post(Entity.entity(new Form(), MediaType.APPLICATION_FORM_URLENCODED_TYPE))
-    );
-  }
-
-  /**
-   * Returns representation in specified version.
-   * <p/>
-   * If Version = LATEST, will redirect to actual latest persistent version at the moment of invoking this method.
-   *
-   * @param cloudId id of the record to get representation from (required)
-   * @param representationName name of the representation (required)
-   * @param revisionName revision name (required)
-   * @param revisionProviderId revision provider identifier, together with revisionId it is used to determine the correct revision
-   * (required)
-   * @return requested representation version
-   * @throws RepresentationNotExistsException if specified representation does not exist
-   * @throws RepresentationNotExistsException on representation does not exist
-   * @throws MCSException on unexpected situations
-   * @deprecated since 6-SNAPSHOT. The method {@link #getRepresentationsByRevision(String, String, Revision)} should be used
-   * instead
-   */
-  @Deprecated(since = "6-SNAPSHOT")
-  public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, String revisionName,
-      String revisionProviderId, String revisionTimestamp) throws MCSException {
-    return getRepresentationsByRevision(cloudId, representationName, new Revision(revisionName, revisionProviderId,
-        DateHelper.parseISODate(revisionTimestamp)));
-  }
-
-
-  /**
-   * Returns representation in specified version.
-   * <p/>
-   * If Version = LATEST, will redirect to actual latest persistent version at the moment of invoking this method.
-   *
-   * @param cloudId id of the record to get representation from (required)
-   * @param representationName name of the representation (required)
-   * @param revision the revision (required) (revisionProviderId is required)
-   * @return requested representation version
-   * @throws RepresentationNotExistsException if specified representation does not exist
-   * @throws RepresentationNotExistsException on representation does not exist
-   * @throws MCSException on unexpected situations
-   */
-  public List<Representation> getRepresentationsByRevision(String cloudId, String representationName, Revision revision)
-      throws MCSException {
-
-    if (revision.getRevisionProviderId() == null) {
-      throw new MCSException("RevisionProviderId is required");
-    }
-
-    return manageResponse(new ResponseParams<>(new GenericType<List<Representation>>() {
-        }),
-        () -> passLogContext(client
-            .target(baseUrl)
-            .path(REPRESENTATION_REVISIONS_RESOURCE)
-            .resolveTemplate(CLOUD_ID, cloudId)
-            .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .resolveTemplate(REVISION_NAME, revision.getRevisionName())
-            .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
-            .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-            .request())
-            .get()
-    );
-  }
-
-  /**
-   * Returns raw revisions for the specified representation
-   * <p/>
-   * If Version = LATEST, will redirect to actual latest persistent version at the moment of invoking this method.
-   *
-   * @param cloudId id of the record to get representation from (required)
-   * @param representationName name of the representation (required)
-   * @param revision the revision (required) (revisionProviderId is required)
-   * @return requested representation raw revisions
-   * @throws RepresentationNotExistsException if specified representation does not exist
-   * @throws MCSException on unexpected situations
-   */
-  public List<RepresentationRevisionResponse> getRepresentationRawRevisions(String cloudId, String representationName, Revision revision)
-      throws MCSException {
-
-    if (revision.getRevisionProviderId() == null) {
-      throw new MCSException("RevisionProviderId is required");
-    }
-
-    return manageResponse(new ResponseParams<>(new GenericType<>() {
-        }),
-        () -> passLogContext(client
-            .target(baseUrl)
-            .path(REPRESENTATION_RAW_REVISIONS_RESOURCE)
-            .resolveTemplate(CLOUD_ID, cloudId)
-            .resolveTemplate(REPRESENTATION_NAME, representationName)
-            .resolveTemplate(REVISION_NAME, revision.getRevisionName())
-            .queryParam(F_REVISION_PROVIDER_ID, revision.getRevisionProviderId())
-            .queryParam(F_REVISION_TIMESTAMP, DateHelper.getISODateString(revision.getCreationTimeStamp()))
-            .request())
-            .get()
     );
   }
 

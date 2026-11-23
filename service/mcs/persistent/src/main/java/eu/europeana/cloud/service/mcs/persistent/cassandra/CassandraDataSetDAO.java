@@ -6,8 +6,6 @@ import com.datastax.driver.core.exceptions.QueryExecutionException;
 import eu.europeana.cloud.cassandra.CassandraConnectionProvider;
 import eu.europeana.cloud.common.annotation.Retryable;
 import eu.europeana.cloud.common.model.DataSet;
-import eu.europeana.cloud.common.model.Revision;
-import eu.europeana.cloud.common.response.CloudTagsResponse;
 import eu.europeana.cloud.common.response.ResultSlice;
 import eu.europeana.cloud.common.utils.Bucket;
 import eu.europeana.cloud.service.mcs.persistent.util.QueryTracer;
@@ -28,11 +26,8 @@ public class CassandraDataSetDAO {
   public static final String CDSID_SEPARATOR = "\n";
 
   public static final int MAX_DATASET_ASSIGNMENTS_BUCKET_COUNT = 100_000;
-  public static final int MAX_DATASET_ASSIGNMENTS_BY_REVISION_ID_BUCKET_COUNT = 125_000;
 
   public static final String DATA_SET_ASSIGNMENTS_BY_DATA_SET_BUCKETS = "data_set_assignments_by_data_set_buckets";
-
-  public static final String DATA_SET_ASSIGNMENTS_BY_REVISION_ID_BUCKETS = "data_set_assignments_by_revision_id_buckets";
 
   private final CassandraConnectionProvider connectionProvider;
   private PreparedStatement createDataSetStatement;
@@ -43,9 +38,6 @@ public class CassandraDataSetDAO {
   private PreparedStatement listExistingDataSetRepresentationsStatement;
   private PreparedStatement listDataSetsStatement;
   private PreparedStatement getDataSetStatement;
-  private PreparedStatement addDataSetsRevisionStatement;
-  private PreparedStatement getDataSetsRevisionStatement;
-  private PreparedStatement removeDataSetsRevisionStatement;
 
   /**
    * Constructor for the class
@@ -249,89 +241,6 @@ public class CassandraDataSetDAO {
     connectionProvider.getSession().execute(boundStatement);
   }
 
-  /**
-   * Adds row to the <b><i>data_set_assignments_by_revision_id_v2</i></b> table.
-   * @param providerId dataset provider
-   * @param datasetId dataset name
-   * @param bucketId  bucket identifier
-   * @param revision  revision definition
-   * @param representationName representation name
-   * @param cloudId cloud identifier
-   * @param versionId representation version
-   */
-  public void addDataSetsRevision(String providerId, String datasetId, String bucketId, Revision revision,
-                                  String representationName, String cloudId, String versionId) {
-
-    BoundStatement boundStatement = addDataSetsRevisionStatement.bind(
-            providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
-            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId,
-            UUID.fromString(versionId), revision.isDeleted());
-
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-  }
-
-  /**
-   * Deletes row from <b><i>data_set_assignments_by_revision_id_v2</i></b> table.
-   * @param providerId dataset provider
-   * @param datasetId dataset name
-   * @param bucketId  bucket identifier
-   * @param revision  revision definition
-   * @param representationName representation name
-   * @param cloudId cloud identifier
-   * @param versionId representation version
-   *
-   * @return if operation was applied
-   */
-  public boolean removeDataSetRevision(String providerId, String datasetId, String bucketId, Revision revision,
-      String representationName, String cloudId, String versionId) {
-
-    BoundStatement boundStatement = removeDataSetsRevisionStatement.bind(
-            providerId, datasetId, UUID.fromString(bucketId), revision.getRevisionProviderId(),
-            revision.getRevisionName(), revision.getCreationTimeStamp(), representationName, cloudId, UUID.fromString(versionId));
-
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-
-    return rs.wasApplied();
-  }
-
-  public ResultSlice<CloudTagsResponse> getDataSetsRevisions(String providerId, String dataSetId, String bucketId,
-      String revisionProviderId,
-      String revisionName, Date revisionTimestamp, String representationName,
-      PagingState state, int limit) {
-    List<CloudTagsResponse> result = new ArrayList<>();
-    // bind parameters, set limit to max int value
-    BoundStatement boundStatement = getDataSetsRevisionStatement.bind(
-        providerId, dataSetId, UUID.fromString(bucketId), revisionProviderId, revisionName,
-        revisionTimestamp, representationName, Integer.MAX_VALUE);
-
-    // limit page to "limit" number of results
-    boundStatement.setFetchSize(limit);
-    // when this is not a first page call set paging state in the statement
-    if (state != null) {
-      boundStatement.setPagingState(state);
-    }
-    // execute query
-    ResultSet rs = connectionProvider.getSession().execute(boundStatement);
-    QueryTracer.logConsistencyLevel(boundStatement, rs);
-
-    // get available results
-    int available = rs.getAvailableWithoutFetching();
-    for (int i = 0; i < available; i++) {
-      Row row = rs.one();
-      result.add(new CloudTagsResponse(row.getString("cloud_id"), row.getBool("mark_deleted")));
-    }
-    PagingState ps = rs.getExecutionInfo().getPagingState();
-    if ((result.size() == limit) && !rs.isExhausted()) {
-        // we reached the page limit, prepare the next slice string to be used for the next page
-        return new ResultSlice<>(Optional.ofNullable(ps)
-                .map(Object::toString).orElse(null), result);
-    } else {
-        return new ResultSlice<>(null, result);
-    }
-  }
-
     //  Need separate function so mock in test can modify it
     @PostConstruct
     private void postConstruct() {
@@ -394,45 +303,6 @@ public class CassandraDataSetDAO {
             "WHERE provider_id = ? AND dataset_id = ?;"
     );
 
-
-
-
-    addDataSetsRevisionStatement = connectionProvider.getSession().prepare(
-            "INSERT " +
-                    "INTO data_set_assignments_by_revision_id_v2 (provider_id, dataset_id, bucket_id, " +
-                    "revision_provider_id, revision_name, revision_timestamp, " +
-                    "representation_id, cloud_id, version_id, mark_deleted) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?,?);"
-    );
-
-    removeDataSetsRevisionStatement = connectionProvider.getSession().prepare(
-            "DELETE " +
-                    "FROM data_set_assignments_by_revision_id_v2 " +
-                    "WHERE provider_id = ? " +
-                    "AND dataset_id = ? " +
-                    "AND bucket_id = ? " +
-                    "AND revision_provider_id = ? " +
-                    "AND revision_name = ? " +
-                    "AND revision_timestamp = ? " +
-                    "AND representation_id = ? " +
-                    "AND cloud_id = ? " +
-                    "AND version_id = ? " +
-                    "IF EXISTS;"
-    );
-
-
-    getDataSetsRevisionStatement = connectionProvider.getSession().prepare(//
-        "SELECT cloud_id, mark_deleted " +
-            "FROM data_set_assignments_by_revision_id_v2 " +
-            "WHERE provider_id = ? " +
-            "AND dataset_id = ? " +
-            "AND bucket_id = ? " +
-            "AND revision_provider_id = ? " +
-            "AND revision_name = ? " +
-            "AND revision_timestamp = ? " +
-            "AND representation_id = ? " +
-            "LIMIT ?;"
-    );
   }
 
 }

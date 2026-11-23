@@ -52,7 +52,6 @@ public class HTTPHarvestingTopology {
                     CATEGORIZATION_BOLT_PARALLEL,
                     CATEGORIZATION_BOLT_NUMBER_OF_TASKS)
             .addHarvestingWriteRecordBolt()
-            .addRevisionWriterBolt()
         .buildTopology();
   }
 

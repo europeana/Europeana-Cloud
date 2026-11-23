@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 
 public class MaximumParallelizationValidator extends CustomValidator {
@@ -10,7 +10,7 @@ public class MaximumParallelizationValidator extends CustomValidator {
   }
 
   @Override
-  public boolean test(DpsTask dpsTask) {
+  public boolean test(CreateDpsTaskRequest dpsTask) {
     String valueString = dpsTask.getParameter(PluginParameterKeys.MAXIMUM_PARALLELIZATION);
     if (valueString == null) {
       return true;

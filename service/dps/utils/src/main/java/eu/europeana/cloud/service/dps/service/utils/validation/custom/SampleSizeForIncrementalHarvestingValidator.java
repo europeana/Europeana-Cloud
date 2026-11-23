@@ -1,6 +1,6 @@
 package eu.europeana.cloud.service.dps.service.utils.validation.custom;
 
-import eu.europeana.cloud.service.dps.DpsTask;
+import eu.europeana.cloud.service.dps.CreateDpsTaskRequest;
 import eu.europeana.cloud.service.dps.PluginParameterKeys;
 
 /**
@@ -16,7 +16,7 @@ public class SampleSizeForIncrementalHarvestingValidator extends CustomValidator
   }
 
   @Override
-  public boolean test(DpsTask dpsTask) {
+  public boolean test(CreateDpsTaskRequest dpsTask) {
     if (isIncremental(dpsTask)) {
       return dpsTask.getParameter(PluginParameterKeys.SAMPLE_SIZE) == null;
     } else {
@@ -24,7 +24,7 @@ public class SampleSizeForIncrementalHarvestingValidator extends CustomValidator
     }
   }
 
-  private boolean isIncremental(DpsTask dpsTask) {
+  private boolean isIncremental(CreateDpsTaskRequest dpsTask) {
     return "true".equals(dpsTask.getParameter(PluginParameterKeys.INCREMENTAL_HARVEST));
   }
 }
